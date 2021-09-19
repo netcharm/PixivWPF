@@ -72,67 +72,77 @@ namespace ImageCompare
             return (GetString(text));
         }
 
-        public static void Locale(this FrameworkElement element)
+        public static void Locale(this FrameworkElement element, IEnumerable<string> ignore_uids = null, IEnumerable<FrameworkElement> ignore_elements = null)
         {
             try
             {
                 if (_be_locale_ == null) _be_locale_ = new Dictionary<FrameworkElement, bool>();
                 if (_be_locale_.ContainsKey(element)) return;
 
-                if (!string.IsNullOrEmpty(element.Uid))
+                var element_name = element.Name ?? string.Empty;
+                var elemet_uid = element.Uid ?? string.Empty;
+
+                bool trans_uid = ignore_uids is IEnumerable<string> ? ignore_uids.Where(uid => uid.Equals(elemet_uid) || uid.Equals(element_name)).Count() <= 0 : true;
+                bool trans_element = ignore_elements is IEnumerable<FrameworkElement> ? ignore_elements.Where(e => e == element).Count() <= 0 : true;
+
+                if (!string.IsNullOrEmpty(elemet_uid))
                 {
 #if DEBUG
                     Debug.WriteLine($"==> UID: {element.Uid}");
 #endif
-                    if (element is ButtonBase)
+
+                    if (trans_uid && trans_element)
                     {
-                        var ui = element as ButtonBase;
-                        if (ui.Content is string)
+                        if (element is ButtonBase)
                         {
-                            var text = $"{ui.Uid}.Content".T();
-                            if (!string.IsNullOrEmpty(text)) ui.Content = text;
+                            var ui = element as ButtonBase;
+                            if (ui.Content is string)
+                            {
+                                var text = $"{ui.Uid}.Content".T();
+                                if (!string.IsNullOrEmpty(text)) ui.Content = text;
+                            }
                         }
-                    }
-                    else if (element is TextBlock)
-                    {
-                        var ui = element as TextBlock;
-                        var text = $"{ui.Uid}.Text".T();
-                        if (!string.IsNullOrEmpty(text)) ui.Text = text;
-                    }
-                    else if (element is MenuItem)
-                    {
-                        var ui = element as MenuItem;
-                        if (ui.Header is string)
+                        else if (element is TextBlock)
                         {
-                            var text = $"{ui.Uid}.Header".T();
-                            if (!string.IsNullOrEmpty(text)) ui.Header = text;
+                            var ui = element as TextBlock;
+                            var text = $"{ui.Uid}.Text".T();
+                            if (!string.IsNullOrEmpty(text)) ui.Text = text;
                         }
-                        if (ui.Items.Count > 1)
+                        else if (element is MenuItem)
+                        {
+                            var ui = element as MenuItem;
+                            if (ui.Header is string)
+                            {
+                                var text = $"{ui.Uid}.Header".T();
+                                if (!string.IsNullOrEmpty(text)) ui.Header = text;
+                            }
+                            if (ui.Items.Count > 1)
+                                foreach (var i in ui.Items) if (i is FrameworkElement) (i as FrameworkElement).Locale();
+                        }
+                        else if (element is MenuBase)
+                        {
+                            var ui = element as MenuBase;
                             foreach (var i in ui.Items) if (i is FrameworkElement) (i as FrameworkElement).Locale();
-                    }
-                    else if (element is MenuBase)
-                    {
-                        var ui = element as MenuBase;
-                        foreach (var i in ui.Items) if (i is FrameworkElement) (i as FrameworkElement).Locale();
-                    }
-                    else if (element is ItemsControl)
-                    {
-                        var ui = element as ItemsControl;
-                        foreach (var i in ui.Items) if (i is FrameworkElement) (i as FrameworkElement).Locale();
-                    }
-                    else if (element is ColorPicker)
-                    {
-                        var ui = element as ColorPicker;
-                        var text = $"{ui.Uid}.AdvancedTabHeader".T();
-                        if (!string.IsNullOrEmpty(text)) ui.AdvancedTabHeader = text;
-                        text = $"{ui.Uid}.StandardTabHeader".T();
-                        if (!string.IsNullOrEmpty(text)) ui.StandardTabHeader = text;
-                        text = $"{ui.Uid}.AvailableColorsHeader".T();
-                        if (!string.IsNullOrEmpty(text)) ui.AvailableColorsHeader = text;
-                        text = $"{ui.Uid}.StandardColorsHeader".T();
-                        if (!string.IsNullOrEmpty(text)) ui.StandardColorsHeader = text;
-                        text = $"{ui.Uid}.RecentColorsHeader".T();
-                        if (!string.IsNullOrEmpty(text)) ui.RecentColorsHeader = text;
+                        }
+                        else if (element is ItemsControl)
+                        {
+                            var ui = element as ItemsControl;
+                            foreach (var i in ui.Items) if (i is FrameworkElement) (i as FrameworkElement).Locale();
+                        }
+                        else if (element is ColorPicker)
+                        {
+                            var ui = element as ColorPicker;
+                            var text = $"{ui.Uid}.AdvancedTabHeader".T();
+                            if (!string.IsNullOrEmpty(text)) ui.AdvancedTabHeader = text;
+                            text = $"{ui.Uid}.StandardTabHeader".T();
+                            if (!string.IsNullOrEmpty(text)) ui.StandardTabHeader = text;
+                            text = $"{ui.Uid}.AvailableColorsHeader".T();
+                            if (!string.IsNullOrEmpty(text)) ui.AvailableColorsHeader = text;
+                            text = $"{ui.Uid}.StandardColorsHeader".T();
+                            if (!string.IsNullOrEmpty(text)) ui.StandardColorsHeader = text;
+                            text = $"{ui.Uid}.RecentColorsHeader".T();
+                            if (!string.IsNullOrEmpty(text)) ui.RecentColorsHeader = text;
+                        }
                     }
                 }
 
@@ -157,7 +167,7 @@ namespace ImageCompare
                 if (element is FrameworkElement)
                 {
                     var ui = element as FrameworkElement;
-                    if (!string.IsNullOrEmpty(ui.Uid) && ui.ToolTip is string)
+                    if (trans_uid && trans_element && !string.IsNullOrEmpty(ui.Uid) && ui.ToolTip is string)
                     {
                         var tip = $"{ui.Uid}.ToolTip".T();
                         if (!string.IsNullOrEmpty(tip)) ui.ToolTip = tip;
@@ -169,14 +179,12 @@ namespace ImageCompare
             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show($"Locale : {element.Uid ?? element.ToString()} : {ex.Message}"); }
         }
 
-        public static void Locale(this FrameworkElement element, CultureInfo culture)
+        public static void Locale(this FrameworkElement element, CultureInfo culture, IEnumerable<string> ignore_uids = null, IEnumerable<FrameworkElement> ignore_elements = null)
         {
             try
             {
                 ChangeLocale(culture);
-                //if (!IsRecursiveCall("Locale") && _be_locale_ is Dictionary<FrameworkElement, bool>) _be_locale_.Clear();
-
-                Locale(element);
+                Locale(element, ignore_uids: ignore_uids, ignore_elements: ignore_elements);
             }
             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show($"Locale : {ex.Message}"); }
         }
@@ -194,8 +202,6 @@ namespace ImageCompare
             try
             {
                 ChangeLocale(culture);
-                //if (!IsRecursiveCall("Locale") && _be_locale_ is Dictionary<FrameworkElement, bool>) _be_locale_.Clear();
-
                 Locale(elements);
             }
             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show($"Locale : {ex.Message}"); }
@@ -241,6 +247,19 @@ namespace ImageCompare
                     Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text, prefix);
             }
             catch(Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message); }
+        }
+
+        public static void ShowMessage(this Exception exception, string prefix = "")
+        {
+            try
+            {
+                var contents = $"{exception.StackTrace}{Environment.NewLine}{exception.Message}";
+                if (string.IsNullOrEmpty(prefix))
+                    Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, contents);
+                else
+                    Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, contents, prefix);
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message); }
         }
 
         private static object ExitFrame(object state)
@@ -355,61 +374,6 @@ namespace ImageCompare
             else { v_str = $"{v / factor:F0}"; u_str = "B"; }
             var vs = trimzero && !u_str.Equals("B") ? v_str.Trim('0').TrimEnd('.') : v_str;
             return ((unit ? $"{vs} {u_str}" : vs).PadLeft(padleft));
-        }
-
-        public static void GetExif(this MagickImage image)
-        {
-            try
-            {
-                if (image is MagickImage)
-                {
-                    //var exif = image.GetExifProfile() ?? new ExifProfile();
-                    //var tag = exif.GetValue(ExifTag.XPTitle);
-                    //if (tag != null) { var text = Encoding.Unicode.GetString(tag.Value).Trim('\0').Trim(); }
-#if DEBUG
-                    //Debug.WriteLine(text);
-#endif
-                    var profiles = new Dictionary<string, IImageProfile>();
-                    foreach (var pn in image.ProfileNames)
-                    {
-                        if (image.HasProfile(pn)) profiles[pn] = image.GetProfile(pn);
-                        if (pn.Equals("exif", StringComparison.CurrentCultureIgnoreCase))
-                            profiles[pn] = image.GetExifProfile();
-                        else if (pn.Equals("iptc", StringComparison.CurrentCultureIgnoreCase))
-                            profiles[pn] = image.GetIptcProfile();
-                        else if (pn.Equals("xmp", StringComparison.CurrentCultureIgnoreCase))
-                            profiles[pn] = image.GetXmpProfile();
-#if DEBUG
-                        var profile = profiles[pn];
-                        if (profile is ExifProfile)
-                        {
-                            var exif = profile as ExifProfile;
-                            Debug.WriteLine(exif.GetValue(ExifTag.XPTitle));
-                            Debug.WriteLine(exif.GetValue(ExifTag.XPAuthor));
-                            Debug.WriteLine(exif.GetValue(ExifTag.XPKeywords));
-                            Debug.WriteLine(exif.GetValue(ExifTag.XPComment));
-                        }
-                        else if (profile is IptcProfile)
-                        {
-                            var iptc = profile as IptcProfile;
-                            Debug.WriteLine(iptc.GetValue(IptcTag.Title));
-                            Debug.WriteLine(iptc.GetValue(IptcTag.Byline));
-                            Debug.WriteLine(iptc.GetValue(IptcTag.BylineTitle));
-                            Debug.WriteLine(iptc.GetValue(IptcTag.CopyrightNotice));
-                            Debug.WriteLine(iptc.GetValue(IptcTag.Caption));
-                            Debug.WriteLine(iptc.GetValue(IptcTag.CaptionWriter));
-                        }
-                        else if (profile is XmpProfile)
-                        {
-                            var xmp = profile as XmpProfile;
-                            var xml = Encoding.UTF8.GetString(xmp.GetData());
-                            //image.SetAttribute()
-                        }
-#endif
-                    }
-                }
-            }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message); }
         }
 
         public static string DecodeHexUnicode(this string text)
@@ -566,6 +530,61 @@ namespace ImageCompare
             return (result);
         }
 
+        public static void GetExif(this MagickImage image)
+        {
+            try
+            {
+                if (image is MagickImage)
+                {
+                    //var exif = image.GetExifProfile() ?? new ExifProfile();
+                    //var tag = exif.GetValue(ExifTag.XPTitle);
+                    //if (tag != null) { var text = Encoding.Unicode.GetString(tag.Value).Trim('\0').Trim(); }
+#if DEBUG
+                    //Debug.WriteLine(text);
+#endif
+                    var profiles = new Dictionary<string, IImageProfile>();
+                    foreach (var pn in image.ProfileNames)
+                    {
+                        if (image.HasProfile(pn)) profiles[pn] = image.GetProfile(pn);
+                        if (pn.Equals("exif", StringComparison.CurrentCultureIgnoreCase))
+                            profiles[pn] = image.GetExifProfile();
+                        else if (pn.Equals("iptc", StringComparison.CurrentCultureIgnoreCase))
+                            profiles[pn] = image.GetIptcProfile();
+                        else if (pn.Equals("xmp", StringComparison.CurrentCultureIgnoreCase))
+                            profiles[pn] = image.GetXmpProfile();
+#if DEBUG
+                        var profile = profiles[pn];
+                        if (profile is ExifProfile)
+                        {
+                            var exif = profile as ExifProfile;
+                            Debug.WriteLine(exif.GetValue(ExifTag.XPTitle));
+                            Debug.WriteLine(exif.GetValue(ExifTag.XPAuthor));
+                            Debug.WriteLine(exif.GetValue(ExifTag.XPKeywords));
+                            Debug.WriteLine(exif.GetValue(ExifTag.XPComment));
+                        }
+                        else if (profile is IptcProfile)
+                        {
+                            var iptc = profile as IptcProfile;
+                            Debug.WriteLine(iptc.GetValue(IptcTag.Title));
+                            Debug.WriteLine(iptc.GetValue(IptcTag.Byline));
+                            Debug.WriteLine(iptc.GetValue(IptcTag.BylineTitle));
+                            Debug.WriteLine(iptc.GetValue(IptcTag.CopyrightNotice));
+                            Debug.WriteLine(iptc.GetValue(IptcTag.Caption));
+                            Debug.WriteLine(iptc.GetValue(IptcTag.CaptionWriter));
+                        }
+                        else if (profile is XmpProfile)
+                        {
+                            var xmp = profile as XmpProfile;
+                            var xml = Encoding.UTF8.GetString(xmp.GetData());
+                            //image.SetAttribute()
+                        }
+#endif
+                    }
+                }
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message); }
+        }
+
         public static IMagickGeometry CalcBoundingBox(this MagickImage image)
         {
             var result = image.BoundingBox;
@@ -611,6 +630,7 @@ namespace ImageCompare
         }
         #endregion
 
+        #region Misc
         public static IList<string> NaturalSort(this IList<string> list, int padding = 16)
         {
             try
@@ -628,6 +648,7 @@ namespace ImageCompare
             }
             catch (Exception ex) { ex.Message.ShowMessage(); return (list); }
         }
+        #endregion
 
         public static ImageInformation GetInformation(this FrameworkElement element)
         {

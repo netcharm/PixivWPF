@@ -53,6 +53,7 @@ namespace ImageCompare
         public bool ValidOriginal { get { return (Original is MagickImage && !Original.IsDisposed); } }
 
         public FrameworkElement Tagetment { get; set; } = null;
+        public string TagetmentTooltip { get; set; } = null;
 
         public string FileName { get; set; } = string.Empty;
 
@@ -287,6 +288,7 @@ namespace ImageCompare
                     break;
                 case "image/png":
                 case "png":
+                case "PNG":
                 case ".png":
                     result = MagickFormat.Png;
                     break;

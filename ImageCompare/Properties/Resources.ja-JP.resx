@@ -447,4 +447,7 @@
   <data name="MedianFilter.Header" xml:space="preserve">
     <value>中間値フィルタノイズ低減</value>
   </data>
+  <data name="CopyImage.Header" xml:space="preserve">
+    <value>画像をコピー</value>
+  </data>
 </root>

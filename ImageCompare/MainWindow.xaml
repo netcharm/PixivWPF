@@ -97,16 +97,16 @@
                 </StackPanel>
             </Button>
             <Slider x:Name="ImageCompareFuzzy" Width="112" HorizontalAlignment="Right" VerticalAlignment="Center"
-                    Value="15" Minimum="0" Maximum="100" SmallChange="1" LargeChange="5"
+                    Value="15" Minimum="0" Maximum="100" SmallChange="0.5" LargeChange="5"
                     TickPlacement="None" Ticks="0.5, 1, 2, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100" 
                     IsSnapToTickEnabled="False" ValueChanged="ImageCompareFuzzy_ValueChanged">
                 <Slider.ToolTip>
-                    <ToolTip x:Uid="ImageCompareFuzzyToolTip" Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}" ContentStringFormat="Fuzzy: {0:F0}%" />
+                    <ToolTip x:Uid="ImageCompareFuzzyToolTip" Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}" ContentStringFormat="Fuzzy: {0:F1}%" />
                 </Slider.ToolTip>
             </Slider>
             <TextBlock x:Name="ImageCompareFuzzyValue" Width="Auto"
                        HorizontalAlignment="Right" VerticalAlignment="Center"
-                       Text="{Binding ElementName=ImageCompareFuzzy, Path=Value, StringFormat={}{0:F0}%}"
+                       Text="{Binding ElementName=ImageCompareFuzzy, Path=Value, StringFormat={}{0:F1}%}"
                        ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>
             <ProgressBar x:Uid="ProcessStatus" x:Name="ProcessStatus" ToolTip="Picture Processing Progress" Margin="4,0,0,0" HorizontalAlignment="Right" Width="36" Height="20" />
             <Button x:Name="ImageCopyResult" x:Uid="ImageCopyResult" ToolTip="Copy Result Picture" Click="ImageActions_Click">
@@ -236,7 +236,7 @@
         </ToolBar>
 
         <!-- Image Source Preview -->
-        <ScrollViewer Grid.Row="1" Grid.Column="0" x:Name="ImageSourceScroll" x:Uid="ImageSourceScroll" AllowDrop="True" Focusable="False" ScrollChanged="ImageScroll_ScrollChanged"
+        <ScrollViewer Grid.Row="1" Grid.Column="0" x:Name="ImageSourceScroll" x:Uid="ImageSourceScroll" AllowDrop="True" Focusable="False" ScrollChanged="ImageScroll_ScrollChanged" 
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
             <Viewbox x:Name="ImageSourceBox" x:Uid="ImageSourceBox" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
@@ -259,9 +259,8 @@
             </Viewbox>
         </ScrollViewer>
         <!-- Image Target Preview -->
-        <ScrollViewer Grid.Row="1" Grid.Column="2" x:Name="ImageTargetScroll" x:Uid="ImageTargetScroll" AllowDrop="True" Focusable="False" ScrollChanged="ImageScroll_ScrollChanged"
-            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-            HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
+        <ScrollViewer Grid.Row="1" Grid.Column="2" x:Name="ImageTargetScroll" x:Uid="ImageTargetScroll" AllowDrop="True" Focusable="False" ScrollChanged="ImageScroll_ScrollChanged" 
+            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
             <Viewbox x:Name="ImageTargetBox" x:Uid="ImageTargetBox" Stretch="Uniform" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                 MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove">
@@ -284,8 +283,7 @@
         </ScrollViewer>
         <!-- Image Result Preview -->
         <ScrollViewer Grid.Row="1" Grid.Column="1" x:Name="ImageResultScroll" x:Uid="ImageResultScroll" Focusable="False" ScrollChanged="ImageScroll_ScrollChanged"
-            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-            HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
+            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
             <Viewbox x:Uid="ImageResultBox" x:Name="ImageResultBox" Stretch="Uniform" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                 MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove">

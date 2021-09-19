@@ -996,12 +996,18 @@ namespace ImageCompare
                     Tag = source,
                     Icon = new TextBlock() { Text = "\uE16F", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
                 };
+                var item_copyimage = new MenuItem()
+                {
+                    Header = "Copy Image",
+                    Uid = "CopyImage",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE16F", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                };
                 var item_saveas = new MenuItem()
                 {
                     Header = "Save As ...",
                     Uid = "SaveAs",
                     Tag = source,
-                    Visibility = Visibility.Collapsed,
                     Icon = new TextBlock() { Text = "\uE105", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
                 };
                 #endregion
@@ -1033,6 +1039,7 @@ namespace ImageCompare
                 item_reload.Click += (obj, evt) => { this.InvokeAsync(() => { ReloadImage((bool)(obj as MenuItem).Tag); }); };
 
                 item_copyinfo.Click += (obj, evt) => { this.InvokeAsync(() => { CopyImageInfo((bool)(obj as MenuItem).Tag); }); };
+                item_copyimage.Click += (obj, evt) => { this.InvokeAsync(() => { CopyImage((bool)(obj as MenuItem).Tag); }); };
                 item_saveas.Click += (obj, evt) => { SaveImageAs((bool)(obj as MenuItem).Tag); };
                 #endregion
                 #region Add MenuItems to ContextMenu
@@ -1065,6 +1072,7 @@ namespace ImageCompare
                 items.Add(item_reload);
                 items.Add(new Separator());
                 items.Add(item_copyinfo);
+                items.Add(item_copyimage);
                 items.Add(item_saveas);
                 #endregion
                 #region MoreEffects MenuItem
@@ -1248,7 +1256,7 @@ namespace ImageCompare
                 #endregion
                 target.ContextMenuOpening += (obj, evt) =>
                 {
-                    item_saveas.Visibility = Keyboard.Modifiers == ModifierKeys.Shift ? Visibility.Visible : Visibility.Collapsed;
+                    //item_saveas.Visibility = Keyboard.Modifiers == ModifierKeys.Shift ? Visibility.Visible : Visibility.Collapsed;
                     item_copyto_source.Visibility = source ? Visibility.Collapsed : Visibility.Visible;
                     item_copyto_target.Visibility = source ? Visibility.Visible : Visibility.Collapsed;
                     var show_load = false;

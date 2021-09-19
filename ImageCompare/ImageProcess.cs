@@ -75,9 +75,27 @@ namespace ImageCompare
         /// <param name="source"></param>
         private void CopyImageInfo(bool source)
         {
-            var src = source ? ImageSource : ImageTarget;
-            if (src.ToolTip is string && !string.IsNullOrEmpty(src.ToolTip as string))
-                Clipboard.SetText(src.ToolTip as string);
+            try
+            {
+                var src = source ? ImageSource : ImageTarget;
+                if (src.ToolTip is string && !string.IsNullOrEmpty(src.ToolTip as string))
+                    Clipboard.SetText(src.ToolTip as string);
+            }
+            catch (Exception ex) { ex.Message.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        private void CopyImage(bool source)
+        {
+            try
+            {
+                var src = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                src.CopyToClipboard();
+            }
+            catch(Exception ex) { ex.Message.ShowMessage(); }
         }
 
         /// <summary>

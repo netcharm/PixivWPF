@@ -447,4 +447,7 @@
   <data name="MedianFilter.Header" xml:space="preserve">
     <value>Median Filter</value>
   </data>
+  <data name="CopyImage.Header" xml:space="preserve">
+    <value>Copy Image</value>
+  </data>
 </root>
