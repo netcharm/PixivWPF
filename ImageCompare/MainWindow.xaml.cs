@@ -1149,6 +1149,12 @@ namespace ImageCompare
                     Uid = "ReMapColor",
                     Tag = source
                 };
+                var item_more_clut = new MenuItem()
+                {
+                    Header = "Clut",
+                    Uid = "CLUT",
+                    Tag = source
+                };
                 var item_more_haldclut = new MenuItem()
                 {
                     Header = "Hald Clut",
@@ -1221,6 +1227,7 @@ namespace ImageCompare
                 item_more_blueshift.Click += (obj, evt) => { this.InvokeAsync(() => { BlueShiftImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_autothreshold.Click += (obj, evt) => { this.InvokeAsync(() => { AutoThresholdImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_remap.Click += (obj, evt) => { this.InvokeAsync(() => { RemapImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_clut.Click += (obj, evt) => { this.InvokeAsync(() => { ClutImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_haldclut.Click += (obj, evt) => { this.InvokeAsync(() => { HaldClutImage((bool)(obj as MenuItem).Tag); }); };
 
                 item_more_meanshift.Click += (obj, evt) => { this.InvokeAsync(() => { MeanShiftImage((bool)(obj as MenuItem).Tag); }); };
@@ -1246,6 +1253,7 @@ namespace ImageCompare
                 item_more.Items.Add(item_more_blueshift);
                 item_more.Items.Add(item_more_autothreshold);
                 item_more.Items.Add(item_more_remap);
+                item_more.Items.Add(item_more_clut);
                 item_more.Items.Add(item_more_haldclut);
                 item_more.Items.Add(new Separator());
                 item_more.Items.Add(item_more_medianfilter);

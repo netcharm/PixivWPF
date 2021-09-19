@@ -806,6 +806,29 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
+        private void ClutImage(bool source)
+        {
+            try
+            {
+                var action = false;
+
+                var image_s = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                var image_t = source ? ImageTarget.GetInformation() : ImageSource.GetInformation();
+                if (image_s.ValidCurrent && image_t.ValidCurrent)
+                {
+                    image_s.Current.Clut(image_t.Current, PixelInterpolateMethod.Spline, CompareImageChannels);
+                    action = true;
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            }
+            catch (Exception ex) { ex.Message.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
         private void HaldClutImage(bool source)
         {
             try

@@ -403,7 +403,7 @@
     <value>画像の自動均衡</value>
   </data>
   <data name="HaldClut.Header" xml:space="preserve">
-    <value>Hald CLUT を適用</value>
+    <value>Hald色の検索表を適用する</value>
   </data>
   <data name="KmeansCluster.Header" xml:space="preserve">
     <value>K-Means クラスター</value>
@@ -449,5 +449,8 @@
   </data>
   <data name="CopyImage.Header" xml:space="preserve">
     <value>画像をコピー</value>
+  </data>
+  <data name="CLUT.Header" xml:space="preserve">
+    <value>普通の色の検索表を適用します</value>
   </data>
 </root>

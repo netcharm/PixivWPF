@@ -450,4 +450,7 @@
   <data name="CopyImage.Header" xml:space="preserve">
     <value>Copy Image</value>
   </data>
+  <data name="CLUT.Header" xml:space="preserve">
+    <value>Apply CLUT</value>
+  </data>
 </root>

@@ -403,17 +403,27 @@ namespace ImageCompare
                 if (ValidCurrent)
                 {
                     var st = Stopwatch.StartNew();
-                    Current.Density.ChangeUnits(DensityUnit.PixelsPerInch);
-                    if (Current.Density.X <= 0 || Current.Density.Y <= 0)
+
+                    var DPI_TEXT = string.Empty;
+                    var DPI_UNIT = Current.Density.Units == DensityUnit.PixelsPerCentimeter ? "PPC" : ( Current.Density.Units == DensityUnit.PixelsPerInch ? "PPI" : string.Empty);
+                    if (Current.Density == null || Current.Density.X <= 0 || Current.Density.Y <= 0)
                     {
                         var dpi = Application.Current.GetSystemDPI();
                         Current.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
                     }
+                    DPI_TEXT = $"{Math.Ceiling(Current.Density.X):F0} {DPI_UNIT} x {Math.Ceiling(Current.Density.Y):F0} {DPI_UNIT}";
+                    if (Current.Density.Units != DensityUnit.PixelsPerInch)
+                    {
+                        var dpi = Current.Density.ChangeUnits(DensityUnit.PixelsPerInch);
+                        var dpi_text = $"{Math.Round(dpi.X):F0} PPI x {Math.Round(dpi.Y):F0} PPI";
+                        DPI_TEXT = $"{DPI_TEXT} [{dpi_text}]";
+                    }
+
                     var tip = new List<string>();
                     tip.Add($"{"InfoTipDimention".T()} {Current.Width:F0}x{Current.Height:F0}x{Current.ChannelCount * Current.Depth:F0}");
                     if (Current.BoundingBox != null)
                         tip.Add($"{"InfoTipBounding".T()} {Current.BoundingBox.Width:F0}x{Current.BoundingBox.Height:F0}");
-                    tip.Add($"{"InfoTipResolution".T()} {Current.Density.X:F0} DPI x {Current.Density.Y:F0} DPI");
+                    tip.Add($"{"InfoTipResolution".T()} {DPI_TEXT}");
                     //tip.Add($"{"InfoTipColors".T()} {TotalColors.Invoke(image)}");
 #if DEBUG
                     if (Keyboard.Modifiers == ModifierKeys.Alt)

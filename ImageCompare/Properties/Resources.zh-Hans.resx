@@ -403,7 +403,7 @@
     <value>自动均衡图像</value>
   </data>
   <data name="HaldClut.Header" xml:space="preserve">
-    <value>应用 Hald CLUT</value>
+    <value>应用Hald颜色查找表</value>
   </data>
   <data name="KmeansCluster.Header" xml:space="preserve">
     <value>K-Means 聚类</value>
@@ -449,5 +449,8 @@
   </data>
   <data name="CopyImage.Header" xml:space="preserve">
     <value>复制图像</value>
+  </data>
+  <data name="CLUT.Header" xml:space="preserve">
+    <value>应用普通颜色查找表</value>
   </data>
 </root>
