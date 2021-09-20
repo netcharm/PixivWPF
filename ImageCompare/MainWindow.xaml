@@ -97,7 +97,7 @@
                 </StackPanel>
             </Button>
             <Slider x:Name="ImageCompareFuzzy" Width="112" HorizontalAlignment="Right" VerticalAlignment="Center"
-                    Value="15" Minimum="0" Maximum="100" SmallChange="0.5" LargeChange="5"
+                    Value="15" Minimum="0" Maximum="100" SmallChange="0.1" LargeChange="5"
                     TickPlacement="None" Ticks="0.5, 1, 2, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100" 
                     IsSnapToTickEnabled="False" ValueChanged="ImageCompareFuzzy_ValueChanged">
                 <Slider.ToolTip>

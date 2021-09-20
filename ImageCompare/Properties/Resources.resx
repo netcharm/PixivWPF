@@ -456,4 +456,25 @@
   <data name="AutoReduceNoise.Header" xml:space="preserve">
     <value>Auto Reduce Noise</value>
   </data>
+  <data name="InfoTipCompression" xml:space="preserve">
+    <value>Compression    =</value>
+  </data>
+  <data name="InfoTipHasAlpha" xml:space="preserve">
+    <value>Has Alpha      =</value>
+  </data>
+  <data name="Included" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="NotIncluded" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Undefined" xml:space="preserve">
+    <value>Undefined</value>
+  </data>
+  <data name="CreateColorImage.Header" xml:space="preserve">
+    <value>Set Color To Alpha</value>
+  </data>
+  <data name="SetColorToAlpha.Header" xml:space="preserve">
+    <value>Create Image By Color</value>
+  </data>
 </root>

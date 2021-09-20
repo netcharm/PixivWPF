@@ -29,6 +29,7 @@ namespace ImageCompare
             {
                 if (_original_ is MagickImage && !_original_.IsDisposed) { _original_.Dispose(); _original_ = null; }
                 _original_ = value;
+                if (ValidOriginal) _original_.FilterType = FilterType.CubicSpline;
                 Reload();
             }
         }
@@ -41,6 +42,7 @@ namespace ImageCompare
             {
                 if (_current_ is MagickImage && !_current_.IsDisposed) { _current_.Dispose(); _current_ = null; }
                 _current_ = value;
+                if (ValidCurrent) _current_.FilterType = FilterType.CubicSpline;
             }
         }
         public Size CurrentSize { get { return (ValidCurrent ? new Size(Current.Width, Current.Height) : new Size(0, 0)); } }
@@ -97,7 +99,7 @@ namespace ImageCompare
 #if DEBUG
                                 catch (Exception ex) { Debug.WriteLine(ex.Message); }
 #else
-                                catch (Exception ex) { ex.Message.ShowMessage(); }
+                                catch (Exception ex) { ex.ShowMessage();}
 #endif
                             }
                             else
@@ -118,7 +120,7 @@ namespace ImageCompare
                         }
                     }
                 }
-                catch (Exception ex) { ex.Message.ShowMessage(); }
+                catch (Exception ex) { ex.ShowMessage();}
                 return(ret);
             }, DispatcherPriority.Render);
             return (result);
@@ -144,7 +146,7 @@ namespace ImageCompare
                         }
                     }
                 }
-                catch (Exception ex) { ex.Message.ShowMessage(); }
+                catch (Exception ex) { ex.ShowMessage(); }
                 return (ret);
             });
             return (result);
@@ -170,7 +172,7 @@ namespace ImageCompare
                         }
                     }
                 }
-                catch (Exception ex) { ex.Message.ShowMessage(); }
+                catch (Exception ex) { ex.ShowMessage(); }
                 return (ret);
             });
             return (result);
@@ -203,7 +205,7 @@ namespace ImageCompare
                         ret = true;
                     }
                 }
-                catch (Exception ex) { ex.Message.ShowMessage(); }
+                catch (Exception ex) { ex.ShowMessage(); }
                 return (ret);
             });
             return (result);
@@ -224,7 +226,7 @@ namespace ImageCompare
                     result = new Func<bool>(() => { return (LoadImageFromFile(file)); }).Invoke();
                 }
             }
-            catch (Exception ex) { ex.Message.ShowMessage(); }
+            catch (Exception ex) { ex.ShowMessage(); }
             return (result);
         }
 
@@ -238,7 +240,7 @@ namespace ImageCompare
                     if (string.IsNullOrEmpty(e)) file = $"{file}{ext}";
                     Current.Write(file);
                 }
-                catch (Exception ex) { ex.Message.ShowMessage(); }
+                catch (Exception ex) { ex.ShowMessage(); }
             }
         }
 
@@ -265,7 +267,7 @@ namespace ImageCompare
                         Save(file);
                     }
                 }
-                catch (Exception ex) { ex.Message.ShowMessage(); }
+                catch (Exception ex) { ex.ShowMessage(); }
             }
         }
 
@@ -356,7 +358,7 @@ namespace ImageCompare
                         #endregion
                         Clipboard.SetDataObject(dataPackage, true);
                     }
-                    catch (Exception ex) { ex.Message.ShowMessage(); }
+                    catch (Exception ex) { ex.ShowMessage(); }
                 });
             }
         }
@@ -375,7 +377,7 @@ namespace ImageCompare
                         ret = true;
                     }
                 }
-                catch (Exception ex) { ex.Message.ShowMessage(); }
+                catch (Exception ex) { ex.ShowMessage(); }
                 return (ret);
             });
             return (result);
@@ -447,7 +449,9 @@ namespace ImageCompare
                     }
                     tip.Add($"{"InfoTipColorSpace".T()} {Current.ColorSpace.ToString()}");
                     if (Current.FormatInfo != null)
-                        tip.Add($"{"InfoTipFormatInfo".T()} {Current.FormatInfo.Format.ToString()}, {Current.FormatInfo.MimeType}");
+                        tip.Add($"{"InfoTipFormatInfo".T()} {Current.FormatInfo.Format.ToString()} ({Current.FormatInfo.Description}), mime:{Current.FormatInfo.MimeType}");
+                    tip.Add($"{"InfoTipHasAlpha".T()} {(Current.HasAlpha ? "Included" : "NotIncluded").T()}");
+                    tip.Add($"{"InfoTipCompression".T()} {Current.Compression.ToString().T()}");
 #if Q16HDRI
                     tip.Add($"{"InfoTipMemoryUsage".T()} {((long)(Current.Width * Current.Height * Current.ChannelCount * Current.Depth * 4 / 8)).SmartFileSize()}");
 #elif Q16
@@ -468,7 +472,7 @@ namespace ImageCompare
                     Current.GetExif();
                 }
             }
-            catch (Exception ex) { ex.Message.ShowMessage(); }
+            catch (Exception ex) { ex.ShowMessage(); }
             return (string.IsNullOrEmpty(result) ? null : result);
         }
 
@@ -521,7 +525,7 @@ namespace ImageCompare
                     result = true;
                 }
             }
-            catch (Exception ex) { ex.Message.ShowMessage(); }
+            catch (Exception ex) { ex.ShowMessage(); }
             return (result);
         }
 
@@ -542,7 +546,7 @@ namespace ImageCompare
                     result = true;
                 }
             }
-            catch (Exception ex) { ex.Message.ShowMessage(); }
+            catch (Exception ex) { ex.ShowMessage(); }
             return (result);
         }
 

@@ -161,7 +161,7 @@ namespace ImageCompare
                 if (dpiXProperty != null) { result.X = (int)dpiXProperty.GetValue(null, null); }
                 if (dpiYProperty != null) { result.Y = (int)dpiYProperty.GetValue(null, null); }
             }
-            catch (Exception ex) { ex.Message.ShowMessage(); }
+            catch (Exception ex) { ex.ShowMessage(); }
             return (result);
         }
 
@@ -206,7 +206,7 @@ namespace ImageCompare
                         else if (picker.RecentColors.Where(c => c.Color.Equals(color)).Count() <= 0)
                             picker.RecentColors.Add(new ColorItem(color, ColorToHex(color)));
                     }
-                    catch (Exception ex) { ex.Message.ShowMessage(); continue; }
+                    catch (Exception ex) { ex.ShowMessage(); continue; }
                 }
             }
         }
@@ -353,7 +353,7 @@ namespace ImageCompare
 
                 CalcZoomRatio();
             }
-            catch (Exception ex) { ex.Message.ShowMessage(); }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         private void CalcZoomRatio()
@@ -405,7 +405,7 @@ namespace ImageCompare
                     }
                 }
             }
-            catch (Exception ex) { ex.Message.ShowMessage(); }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         private async void UpdateImageViewer(bool compose = false, bool assign = false)
@@ -455,7 +455,7 @@ namespace ImageCompare
                                 await Task.Delay(1);
                                 DoEvents();
                             }
-                            catch (Exception ex) { ex.Message.ShowMessage(); }
+                            catch (Exception ex) { ex.ShowMessage(); }
                         }
 
                         if (image_s.ValidCurrent)
@@ -494,7 +494,7 @@ namespace ImageCompare
 
                         CalcDisplay(set_ratio: false);
                     }
-                    catch (Exception ex) { ex.Message.ShowMessage(); }
+                    catch (Exception ex) { ex.ShowMessage(); }
                     finally
                     {
                         ProcessStatus.IsIndeterminate = false;
@@ -519,17 +519,23 @@ namespace ImageCompare
                     var image_t = ImageTarget.GetInformation();
                     if (source && image_s.ValidCurrent)
                     {
-                        image_t.Current = new MagickImage(image_s.Current);
+                        if (image_t.ValidOriginal)
+                            image_t.Current = new MagickImage(image_s.Current);
+                        else
+                            image_t.Original = new MagickImage(image_s.Current);
                         action = true;
                     }
                     else if (image_t.ValidCurrent)
                     {
-                        image_s.Current = new MagickImage(image_t.Current);
+                        if (image_s.ValidOriginal)
+                            image_s.Current = new MagickImage(image_t.Current);
+                        else
+                            image_s.Original = new MagickImage(image_t.Current);
                         action = true;
                     }
                     if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
                 }
-                catch (Exception ex) { ex.Message.ShowMessage(); }
+                catch (Exception ex) { ex.ShowMessage(); }
             }, DispatcherPriority.Render);
         }
 
@@ -544,7 +550,7 @@ namespace ImageCompare
                     ret = await image.LoadImageFromPrevFile();
                     if (ret) UpdateImageViewer(assign: true);
                 }
-                catch (Exception ex) { ex.Message.ShowMessage(); }
+                catch (Exception ex) { ex.ShowMessage(); }
                 return (ret);
             });
         }
@@ -560,7 +566,7 @@ namespace ImageCompare
                     ret = await image.LoadImageFromNextFile();
                     if (ret) UpdateImageViewer(assign: true);
                 }
-                catch (Exception ex) { ex.Message.ShowMessage(); }
+                catch (Exception ex) { ex.ShowMessage(); }
                 return (ret);
             });
         }
@@ -597,7 +603,7 @@ namespace ImageCompare
                         if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
                     }
                 }
-                catch (Exception ex) { ex.Message.ShowMessage(); }
+                catch (Exception ex) { ex.ShowMessage(); }
             }, DispatcherPriority.Render);
         }
 
@@ -725,7 +731,7 @@ namespace ImageCompare
                 }
 
             }
-            catch (Exception ex) { ex.Message.ShowMessage(); }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         private void SaveConfig()
@@ -838,7 +844,7 @@ namespace ImageCompare
 
                 appCfg.Save();
             }
-            catch (Exception ex) { ex.Message.ShowMessage(); }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
         #endregion
 
@@ -1091,18 +1097,6 @@ namespace ImageCompare
                 items.Add(item_saveas);
                 #endregion
                 #region MoreEffects MenuItem
-                var item_more_oil = new MenuItem()
-                {
-                    Header = "Oil Paint",
-                    Uid = "OilPaint",
-                    Tag = source
-                };
-                var item_more_charcoal = new MenuItem()
-                {
-                    Header = "Charcoal",
-                    Uid = "Charcoal",
-                    Tag = source
-                };
                 var item_more_autolevel = new MenuItem()
                 {
                     Header = "Auto Level",
@@ -1158,6 +1152,18 @@ namespace ImageCompare
                     Tag = source
                 };
 
+                var item_more_oil = new MenuItem()
+                {
+                    Header = "Oil Paint",
+                    Uid = "OilPaint",
+                    Tag = source
+                };
+                var item_more_charcoal = new MenuItem()
+                {
+                    Header = "Charcoal",
+                    Uid = "Charcoal",
+                    Tag = source
+                };
                 var item_more_blueshift = new MenuItem()
                 {
                     Header = "Blue Shift",
@@ -1221,6 +1227,18 @@ namespace ImageCompare
                     Tag = source
                 };
 
+                var item_more_setalphacolor = new MenuItem()
+                {
+                    Header = "Set Color To Alpha",
+                    Uid = "SetColorToAlpha",
+                    Tag = source
+                };
+                var item_more_createcolorimage = new MenuItem()
+                {
+                    Header = "Create Image By Color",
+                    Uid = "CreateColorImage",
+                    Tag = source
+                };
                 var item_more_fillflood = new MenuItem()
                 {
                     Header = "Fill BoundingBox",
@@ -1256,6 +1274,8 @@ namespace ImageCompare
                 item_more_kmeans.Click += (obj, evt) => { this.InvokeAsync(() => { KmeansImage((bool)(obj as MenuItem).Tag); }); };
 
                 item_more_fillflood.Click += (obj, evt) => { this.InvokeAsync(() => { FillOutBoundBoxImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_setalphacolor.Click += (obj, evt) => { this.InvokeAsync(() => { SetColorToAlphaImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_createcolorimage.Click += (obj, evt) => { this.InvokeAsync(() => { CreateColorImage((bool)(obj as MenuItem).Tag); }); };
                 #endregion
                 #region Add MoreEffects MenuItems to MoreEffects
                 item_more.Items.Add(item_more_autoenhance);
@@ -1285,6 +1305,8 @@ namespace ImageCompare
                 item_more.Items.Add(item_more_kmeans);
                 item_more.Items.Add(new Separator());
                 item_more.Items.Add(item_more_fillflood);
+                item_more.Items.Add(item_more_createcolorimage);
+                item_more.Items.Add(item_more_setalphacolor);
                 #endregion
                 target.ContextMenuOpening += (obj, evt) =>
                 {
@@ -1403,7 +1425,7 @@ namespace ImageCompare
                 //ImageMagick.ResourceLimits.Area = 4096 * 4096;
                 //ImageMagick.ResourceLimits.Throttle = 
             }
-            catch (Exception ex) { ex.Message.ShowMessage(); }
+            catch (Exception ex) { ex.ShowMessage(); }
 
             Extensions.AllSupportedFormats = Extensions.GetSupportedImageFormats();
             Extensions.AllSupportedExts = Extensions.AllSupportedFormats.Keys.ToList().Skip(4).Select(ext => $".{ext.ToLower()}").Where(ext => !ext.Equals(".txt")).ToList();
@@ -1705,7 +1727,7 @@ namespace ImageCompare
                     _last_key_ = e.Key;
                     _last_key_time_ = DateTime.Now;
                 }
-                catch (Exception ex) { ex.Message.ShowMessage(); }
+                catch (Exception ex) { ex.ShowMessage(); }
             }
         }
 
@@ -1795,7 +1817,7 @@ namespace ImageCompare
                     e.Handled = true;
                     LastZoomRatio = ZoomRatio.Value;
                 }
-                catch (Exception ex) { ex.Message.ShowMessage(); }
+                catch (Exception ex) { ex.ShowMessage(); }
             }
         }
 
@@ -1816,7 +1838,7 @@ namespace ImageCompare
                     CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
                 }
             }
-            catch (Exception ex) { ex.Message.ShowMessage(); }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         private void ColorPick_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
@@ -1871,11 +1893,11 @@ namespace ImageCompare
 #endif
                             }
                         }
-                        catch (Exception ex) { ex.Message.ShowMessage(); }
+                        catch (Exception ex) { ex.ShowMessage(); }
                     });
                 }
             }
-            catch (Exception ex) { ex.Message.ShowMessage(); }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         private async void ImageActions_Click(object sender, RoutedEventArgs e)

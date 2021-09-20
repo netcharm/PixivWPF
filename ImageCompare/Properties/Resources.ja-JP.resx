@@ -292,28 +292,28 @@
     <value>使用時 :</value>
   </data>
   <data name="InfoTipDimention" xml:space="preserve">
-    <value>サイズ           =</value>
+    <value>サイズ             =</value>
   </data>
   <data name="InfoTipResolution" xml:space="preserve">
-    <value>解像度           =</value>
+    <value>解像度             =</value>
   </data>
   <data name="InfoTipAttributes" xml:space="preserve">
-    <value>属性             =</value>
+    <value>属性               =</value>
   </data>
   <data name="InfoTipColorSpace" xml:space="preserve">
-    <value>カラースペース   =</value>
+    <value>カラースペース     =</value>
   </data>
   <data name="InfoTipFormatInfo" xml:space="preserve">
-    <value>フォーマット情報 =</value>
+    <value>フォーマット情報   =</value>
   </data>
   <data name="InfoTipMemoryUsage" xml:space="preserve">
-    <value>メモリ使用       =</value>
+    <value>メモリ使用         =</value>
   </data>
   <data name="InfoTipDisplayMemory" xml:space="preserve">
-    <value>占有メモリを表示 =</value>
+    <value>占有メモリを表示   =</value>
   </data>
   <data name="InfoTipFileName" xml:space="preserve">
-    <value>ファイル名       =</value>
+    <value>ファイル名         =</value>
   </data>
   <data name="HighlightColorPick.AdvancedTabHeader" xml:space="preserve">
     <value>カスタム</value>
@@ -376,10 +376,10 @@
     <value>日本語</value>
   </data>
   <data name="FillBoundingBox.Header" xml:space="preserve">
-    <value>境界を自動的に埋める</value>
+    <value>境界の空白を指定色で塗りつぶす</value>
   </data>
   <data name="InfoTipBounding" xml:space="preserve">
-    <value>境界サイズ       =</value>
+    <value>境界サイズ         =</value>
   </data>
   <data name="AutoGamma.Header" xml:space="preserve">
     <value>ガンマの自動調整</value>
@@ -412,7 +412,7 @@
     <value>画像色を再マッピング</value>
   </data>
   <data name="InfoTipColors" xml:space="preserve">
-    <value>色の数           =</value>
+    <value>色の数             =</value>
   </data>
   <data name="Waiting" xml:space="preserve">
     <value>少々お待ちください ...</value>
@@ -455,5 +455,26 @@
   </data>
   <data name="AutoReduceNoise.Header" xml:space="preserve">
     <value>自動画像ノイズ低減</value>
+  </data>
+  <data name="InfoTipCompression" xml:space="preserve">
+    <value>圧縮方法           =</value>
+  </data>
+  <data name="InfoTipHasAlpha" xml:space="preserve">
+    <value>透明チャネルを含む =</value>
+  </data>
+  <data name="Included" xml:space="preserve">
+    <value>含まれる</value>
+  </data>
+  <data name="NotIncluded" xml:space="preserve">
+    <value>含まれない</value>
+  </data>
+  <data name="Undefined" xml:space="preserve">
+    <value>不確定の</value>
+  </data>
+  <data name="CreateColorImage.Header" xml:space="preserve">
+    <value>指定された色で画像を作成します</value>
+  </data>
+  <data name="SetColorToAlpha.Header" xml:space="preserve">
+    <value>色を透明チャンネルに設定する</value>
   </data>
 </root>

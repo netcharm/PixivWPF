@@ -350,7 +350,7 @@ namespace ImageCompare
                         files.AddRange(Directory.EnumerateFiles(dir, "*.*").Where(f => AllSupportedExts.Contains(Path.GetExtension(f).ToLower())).NaturalSort());
                     }
                 }
-                catch (Exception ex) { ex.Message.ShowMessage(); }
+                catch (Exception ex) { ex.ShowMessage(); }
             }
             return (files.Distinct().ToList());
         }
@@ -470,7 +470,7 @@ namespace ImageCompare
                 encoder.Save(result);
                 await result.FlushAsync();
             }
-            catch (Exception ex) { ex.Message.ShowMessage(); }
+            catch (Exception ex) { ex.ShowMessage(); }
             return (result);
         }
 
@@ -492,7 +492,7 @@ namespace ImageCompare
                     png = new MagickImage(ms);
                 }
             }
-            catch (Exception ex) { ex.Message.ShowMessage(); }
+            catch (Exception ex) { ex.ShowMessage(); }
             return (png);
         }
 
@@ -509,7 +509,7 @@ namespace ImageCompare
                     png = new MagickImage(ms);
                 }
             }
-            catch (Exception ex) { ex.Message.ShowMessage(); }
+            catch (Exception ex) { ex.ShowMessage(); }
             return (png);
         }
 
@@ -598,7 +598,7 @@ namespace ImageCompare
                     diff.Dispose();
                 }
             }
-            catch (Exception ex) { ex.Message.ShowMessage(); }
+            catch (Exception ex) { ex.ShowMessage(); }
             return (result);
         }
 
@@ -625,7 +625,7 @@ namespace ImageCompare
                 //    result.Add(fmt, "");
                 //}
             }
-            catch (Exception ex) { ex.Message.ShowMessage(); }
+            catch (Exception ex) { ex.ShowMessage(); }
             return (result);
         }
         #endregion
@@ -637,7 +637,7 @@ namespace ImageCompare
             {
                 return (list is IList<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
             }
-            catch (Exception ex) { ex.Message.ShowMessage(); return (list); }
+            catch (Exception ex) { ex.ShowMessage(); return (list); }
         }
 
         public static IEnumerable<string> NaturalSort(this IEnumerable<string> list, int padding = 16)
@@ -646,7 +646,7 @@ namespace ImageCompare
             {
                 return (list is IEnumerable<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
             }
-            catch (Exception ex) { ex.Message.ShowMessage(); return (list); }
+            catch (Exception ex) { ex.ShowMessage(); return (list); }
         }
         #endregion
 
