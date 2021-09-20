@@ -238,7 +238,7 @@ namespace ImageCompare
             {
                 if (ImageTargetBox.Stretch == Stretch.None)
                 {
-                    Point factor = new Point(ImageSourceScroll.ExtentWidth/ImageTargetScroll.ActualWidth, ImageTargetScroll.ExtentHeight/ImageTargetScroll.ActualHeight);
+                    Point factor = new Point(ImageTargetScroll.ExtentWidth/ImageTargetScroll.ActualWidth, ImageTargetScroll.ExtentHeight/ImageTargetScroll.ActualHeight);
                     Vector v = mouse_start - e.GetPosition(ImageTargetScroll);
                     offset_x = mouse_origin.X + v.X * factor.X;
                     offset_y = mouse_origin.Y + v.Y * factor.Y;
@@ -1048,8 +1048,18 @@ namespace ImageCompare
                 item_size_to_source.Click += (obj, evt) => { this.InvokeAsync(() => { ResizeToImage(false); }); };
                 item_size_to_target.Click += (obj, evt) => { this.InvokeAsync(() => { ResizeToImage(true); }); };
 
-                item_slice_h.Click += (obj, evt) => { this.InvokeAsync(() => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: false); }); };
-                item_slice_v.Click += (obj, evt) => { this.InvokeAsync(() => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: true); }); };
+                item_slice_h.Click += (obj, evt) =>
+                {
+                    var sendto = Keyboard.Modifiers == ModifierKeys.None;
+                    var first = Keyboard.Modifiers == ModifierKeys.Shift ? true : (Keyboard.Modifiers == ModifierKeys.Control ? false : true);
+                    this.InvokeAsync(() => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: false, sendto: sendto, first: first); });
+                };
+                item_slice_v.Click += (obj, evt) =>
+                {
+                    var sendto = Keyboard.Modifiers == ModifierKeys.None;
+                    var first = Keyboard.Modifiers == ModifierKeys.Shift ? true : (Keyboard.Modifiers == ModifierKeys.Control ? false : true);
+                    this.InvokeAsync(() => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: true, sendto: sendto, first: first); });
+                };
 
                 item_copyto_source.Click += (obj, evt) => { this.InvokeAsync(() => { CopyImageToOther(source); }); };
                 item_copyto_target.Click += (obj, evt) => { this.InvokeAsync(() => { CopyImageToOther(source); }); };
@@ -1340,6 +1350,34 @@ namespace ImageCompare
             target.ContextMenu.ItemsSource = new ObservableCollection<FrameworkElement>(items);
         }
 
+        private void InitMagickNet()
+        {
+            #region Magick.Net Default Settings
+            try
+            {
+                var magick_cache = Path.IsPathRooted(CachePath) ? CachePath : Path.Combine(AppPath, CachePath);
+                //if (!Directory.Exists(magick_cache)) Directory.CreateDirectory(magick_cache);
+                if (Directory.Exists(magick_cache)) MagickAnyCPU.CacheDirectory = magick_cache;
+                ResourceLimits.Memory = 256 * 1024 * 1024;
+                ResourceLimits.LimitMemory(new Percentage(5));
+                ResourceLimits.Thread = 4;
+                //ResourceLimits.Area = 4096 * 4096;
+                //ResourceLimits.Throttle = 
+                OpenCL.IsEnabled = true;
+                if (Directory.Exists(magick_cache)) OpenCL.SetCacheDirectory(magick_cache);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+
+            Extensions.AllSupportedFormats = Extensions.GetSupportedImageFormats();
+            Extensions.AllSupportedExts = Extensions.AllSupportedFormats.Keys.ToList().Skip(4).Select(ext => $".{ext.ToLower()}").Where(ext => !ext.Equals(".txt")).ToList();
+            var exts = Extensions.AllSupportedExts.Select(ext => $"*{ext}");
+            Extensions.AllSupportedFiles = string.Join(";", exts);
+            Extensions.AllSupportedFilters = string.Join("|", Extensions.AllSupportedFormats.Select(f => $"{f.Value}|*.{f.Key}"));
+
+            CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
+            #endregion
+        }
+
         private void LocaleUI(CultureInfo culture = null)
         {
             Title = $"{Uid}.Title".T(culture) ?? Title;
@@ -1400,6 +1438,8 @@ namespace ImageCompare
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             //System.Diagnostics.PresentationTraceSources.DataBindingSource.Switch.Level = System.Diagnostics.SourceLevels.Critical;
+            InitMagickNet();
+
             LocaleUI(DefaultCultureInfo);
 
             #region Some Default UI Settings
@@ -1409,31 +1449,6 @@ namespace ImageCompare
             DefaultComposeToolTip = ImageCompose.ToolTip as string;
 
             if (DefaultFontFamily == null) DefaultFontFamily = new FontFamily(DefaultFontFamilyName);
-            #endregion
-
-            #region Magick.Net Default Settings
-            try
-            {
-                var magick_cache = Path.IsPathRooted(CachePath) ? CachePath : Path.Combine(AppPath, CachePath);
-                if (!Directory.Exists(magick_cache)) Directory.CreateDirectory(magick_cache);
-                if (Directory.Exists(magick_cache)) MagickAnyCPU.CacheDirectory = magick_cache;
-                ImageMagick.OpenCL.IsEnabled = true;
-                ImageMagick.OpenCL.SetCacheDirectory(magick_cache);
-                ImageMagick.ResourceLimits.Memory = 256 * 1024 * 1024;
-                ImageMagick.ResourceLimits.LimitMemory(new Percentage(5));
-                ImageMagick.ResourceLimits.Thread = 4;
-                //ImageMagick.ResourceLimits.Area = 4096 * 4096;
-                //ImageMagick.ResourceLimits.Throttle = 
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-
-            Extensions.AllSupportedFormats = Extensions.GetSupportedImageFormats();
-            Extensions.AllSupportedExts = Extensions.AllSupportedFormats.Keys.ToList().Skip(4).Select(ext => $".{ext.ToLower()}").Where(ext => !ext.Equals(".txt")).ToList();
-            var exts = Extensions.AllSupportedExts.Select(ext => $"*{ext}");
-            Extensions.AllSupportedFiles = string.Join(";", exts);
-            Extensions.AllSupportedFilters = string.Join("|", Extensions.AllSupportedFormats.Select(f => $"{f.Value}|*.{f.Key}"));
-
-            CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
             #endregion
 
             #region Create ErrorMetric Mode Selector
@@ -1736,6 +1751,31 @@ namespace ImageCompare
 
         }
 
+        private async void ImageScroll_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Middle)
+            {
+                e.Handled = true;
+                Close();
+            }
+            else if (e.ChangedButton == MouseButton.XButton1)
+            {
+                e.Handled = true;
+                var action = false;
+                if (sender == ImageSourceScroll || sender == ImageSourceBox) action |= await ImageSource.GetInformation().LoadImageFromNextFile();
+                else if (sender == ImageTargetScroll || sender == ImageTargetBox) action |= await ImageTarget.GetInformation().LoadImageFromNextFile();
+                if (action) UpdateImageViewer(assign: true);
+            }
+            else if (e.ChangedButton == MouseButton.XButton2)
+            {
+                e.Handled = true;
+                var action = false;
+                if (sender == ImageSourceScroll || sender == ImageSourceBox) action |= await ImageSource.GetInformation().LoadImageFromPrevFile();
+                else if (sender == ImageTargetScroll || sender == ImageTargetBox) action |= await ImageTarget.GetInformation().LoadImageFromPrevFile();
+                if (action) UpdateImageViewer(assign: true);
+            }
+        }
+
         private void ImageBox_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (ZoomFitNone.IsChecked ?? false && (ImageSource.Source != null || ImageTarget.Source != null))
@@ -1748,7 +1788,7 @@ namespace ImageCompare
             }
         }
 
-        private async void ImageBox_MouseDown(object sender, MouseButtonEventArgs e)
+        private void ImageBox_MouseDown(object sender, MouseButtonEventArgs e)
         {
             e.Handled = false;
             if (e.Device is MouseDevice)
@@ -1771,27 +1811,6 @@ namespace ImageCompare
                         mouse_origin = new Point(ImageResultScroll.HorizontalOffset, ImageResultScroll.VerticalOffset);
                     }
                 }
-                else if (e.ChangedButton == MouseButton.Middle && sender == this)
-                {
-                    e.Handled = true;
-                    Close();
-                }
-                else if (e.ChangedButton == MouseButton.XButton1)
-                {
-                    e.Handled = true;
-                    var action = false;
-                    if (sender == ImageSourceScroll || sender == ImageSourceBox) action |= await ImageSource.GetInformation().LoadImageFromNextFile();
-                    else if (sender == ImageTargetScroll || sender == ImageTargetBox) action |= await ImageTarget.GetInformation().LoadImageFromNextFile();
-                    if (action) UpdateImageViewer(assign: true);
-                }
-                else if (e.ChangedButton == MouseButton.XButton2)
-                {
-                    e.Handled = true;
-                    var action = false;
-                    if (sender == ImageSourceScroll || sender == ImageSourceBox) action |= await ImageSource.GetInformation().LoadImageFromPrevFile();
-                    else if (sender == ImageTargetScroll || sender == ImageTargetBox) action |= await ImageTarget.GetInformation().LoadImageFromPrevFile();
-                    if (action) UpdateImageViewer(assign: true);
-                }
             }
         }
 
@@ -1805,6 +1824,36 @@ namespace ImageCompare
                 //Debug.WriteLine($"Move Y: {offset_y}");
 #endif
                 SyncOffset(offset);
+            }
+        }
+
+        private void ImageBox_MouseEnter(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                if (sender == ImageSourceBox)
+                {
+                    mouse_start = e.GetPosition(ImageSourceScroll);
+                    mouse_origin = new Point(ImageSourceScroll.HorizontalOffset, ImageSourceScroll.VerticalOffset);
+                }
+                else if (sender == ImageTargetBox)
+                {
+                    mouse_start = e.GetPosition(ImageTargetScroll);
+                    mouse_origin = new Point(ImageTargetScroll.HorizontalOffset, ImageTargetScroll.VerticalOffset);
+                }
+                else if (sender == ImageResultBox)
+                {
+                    mouse_start = e.GetPosition(ImageResultScroll);
+                    mouse_origin = new Point(ImageResultScroll.HorizontalOffset, ImageResultScroll.VerticalOffset);
+                }
+            }
+        }
+
+        private void ImageBox_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                var offset = sender is Viewbox ? CalcOffset(sender as Viewbox, e) : new Point(-1, -1);
             }
         }
 

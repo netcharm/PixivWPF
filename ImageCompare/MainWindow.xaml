@@ -15,7 +15,7 @@
         d:DesignHeight="520" d:DesignWidth="368"        
         x:Uid="MainWindow" Title="Image Compare" 
         Height="720" Width="1280" MinWidth="720" MinHeight="480"
-        SizeChanged="Window_SizeChanged" StateChanged="Window_StateChanged" PreviewKeyDown="Window_KeyDown" MouseDown="ImageBox_MouseDown"
+        SizeChanged="Window_SizeChanged" StateChanged="Window_StateChanged" PreviewKeyDown="Window_KeyDown"
         Loaded="Window_Loaded" Unloaded="Window_Unloaded" Closed="Window_Closed"
         DragOver="Window_DragOver" Drop="Window_Drop">
 
@@ -237,11 +237,11 @@
 
         <!-- Image Source Preview -->
         <ScrollViewer Grid.Row="1" Grid.Column="0" x:Name="ImageSourceScroll" x:Uid="ImageSourceScroll" AllowDrop="True" Focusable="False" 
-            ScrollChanged="ImageScroll_ScrollChanged" MouseDown="ImageBox_MouseDown"
+            ScrollChanged="ImageScroll_ScrollChanged" MouseDown="ImageScroll_MouseDown"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
             <Viewbox x:Name="ImageSourceBox" x:Uid="ImageSourceBox" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove">
+                MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave">
                 <Image x:Name="ImageSource" x:Uid="ImageSource" Stretch="None" ToolTipOpening="Image_ToolTipOpening"
                     HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                     <Image.LayoutTransform>
@@ -261,11 +261,11 @@
         </ScrollViewer>
         <!-- Image Target Preview -->
         <ScrollViewer Grid.Row="1" Grid.Column="2" x:Name="ImageTargetScroll" x:Uid="ImageTargetScroll" AllowDrop="True" Focusable="False" 
-                      ScrollChanged="ImageScroll_ScrollChanged" MouseDown="ImageBox_MouseDown"
+                      ScrollChanged="ImageScroll_ScrollChanged" MouseDown="ImageScroll_MouseDown"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
             <Viewbox x:Name="ImageTargetBox" x:Uid="ImageTargetBox" Stretch="Uniform" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove">
+                MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave">
                 <Image x:Name="ImageTarget" x:Uid="ImageTarget" Stretch="None" ToolTipOpening="Image_ToolTipOpening"
                     HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                     <Image.LayoutTransform>
@@ -285,11 +285,11 @@
         </ScrollViewer>
         <!-- Image Result Preview -->
         <ScrollViewer Grid.Row="1" Grid.Column="1" x:Name="ImageResultScroll" x:Uid="ImageResultScroll" Focusable="False" 
-            ScrollChanged="ImageScroll_ScrollChanged" MouseDown="ImageBox_MouseDown"
+            ScrollChanged="ImageScroll_ScrollChanged" MouseDown="ImageScroll_MouseDown"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
             <Viewbox x:Uid="ImageResultBox" x:Name="ImageResultBox" Stretch="Uniform" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                MouseWheel="ImageBox_MouseWheel" MouseMove="ImageBox_MouseMove">
+                MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave">
                 <Image x:Name="ImageResult" x:Uid="ImageResult" Stretch="None" ToolTipOpening="Image_ToolTipOpening"
                     HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                     <Image.LayoutTransform>

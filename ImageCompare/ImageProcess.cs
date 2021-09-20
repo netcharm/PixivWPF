@@ -356,7 +356,7 @@ namespace ImageCompare
         /// </summary>
         /// <param name="source"></param>
         /// <param name="vertical"></param>
-        private void SlicingImage(bool source, bool vertical)
+        private void SlicingImage(bool source, bool vertical, bool sendto = true, bool first = true)
         {
             try
             {
@@ -364,23 +364,30 @@ namespace ImageCompare
 
                 var image_s = ImageSource.GetInformation();
                 var image_t = ImageTarget.GetInformation();
-                var image = source ? image_s.Current : image_t.Current;
-                if (image_s.ValidCurrent)
+                var image = source ? image_s : image_t;
+                if (image.ValidCurrent)
                 {
-                    var s_image = image_s.Current;
-                    var t_image = image_t.Current;
-
                     var geometry = vertical ? new MagickGeometry(new Percentage(50), new Percentage(100)) : new MagickGeometry(new Percentage(100), new Percentage(50));
-                    var result = image.CropToTiles(geometry);
+                    var result = image.Current.CropToTiles(geometry);
                     if (result.Count() >= 2)
                     {
-                        image_s.Current = new MagickImage(result.FirstOrDefault());
-                        image_s.Current.RePage();
-                        image_t.Current = new MagickImage(result.Skip(1).Take(1).FirstOrDefault());
-                        image_t.Current.RePage();
+                        if (sendto)
+                        {
+                            image_s.Current = new MagickImage(result.FirstOrDefault());
+                            image_s.Current.RePage();
+                            image_t.Current = new MagickImage(result.Skip(1).Take(1).FirstOrDefault());
+                            image_t.Current.RePage();
+                        }
+                        else
+                        {
+                            if (first)
+                                image.Current = new MagickImage(result.FirstOrDefault());
+                            else
+                                image.Current = new MagickImage(result.Skip(1).Take(1).FirstOrDefault());
+                            image.Current.RePage();
+                        }
                         action = true;
                     }
-                    action = true;
                 }
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
