@@ -253,7 +253,7 @@ namespace ImageCompare
         {
             try
             {
-                var contents = $"{exception.StackTrace}{Environment.NewLine}{exception.Message}";
+                var contents = $"{exception.Message}{Environment.NewLine}{exception.StackTrace}";
                 if (string.IsNullOrEmpty(prefix))
                     Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, contents);
                 else

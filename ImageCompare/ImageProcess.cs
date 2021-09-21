@@ -1007,17 +1007,23 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
-        private void CreateColorImage(bool source)
+        private void CreateColorImage(bool source, bool sendto = false)
         {
             try
             {
                 var action = false;
 
-                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
-                if (image.ValidCurrent)
+                var image_s = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                var image_t = source ? ImageTarget.GetInformation() : ImageSource.GetInformation();
+                if (image_s.ValidCurrent)
                 {
-                    if (image.Current.ColorFuzz.ToDouble() != ImageCompareFuzzy.Value) image.Current.ColorFuzz = new Percentage(ImageCompareFuzzy.Value);
-                    image.Current = new MagickImage(MasklightColor ?? image.Current.BackgroundColor, image.Current.Width, image.Current.Height);
+                    if (image_s.Current.ColorFuzz.ToDouble() != ImageCompareFuzzy.Value) image_s.Current.ColorFuzz = new Percentage(ImageCompareFuzzy.Value);
+                    if (sendto)
+                        image_t.Current = new MagickImage(MasklightColor ?? image_s.Current.MatteColor ?? image_s.Current.BackgroundColor, 
+                                                          image_s.Current.Width, image_s.Current.Height);
+                    else
+                        image_s.Current = new MagickImage(MasklightColor ?? image_s.Current.MatteColor ?? image_s.Current.BackgroundColor, 
+                                                          image_s.Current.Width, image_s.Current.Height);
                     action = true;
                 }
 

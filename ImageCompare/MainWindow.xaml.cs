@@ -35,37 +35,37 @@ namespace ImageCompare
         private static string AppName = Path.GetFileNameWithoutExtension(AppPath);
         private static string CachePath =  "cache";
 
-        private string DefaultFontFamilyName { get; set; } = "Segoe MDL2 Assets";
-        private FontFamily DefaultFontFamily { get; set; } = null;
-        private int DefaultFontSize { get; set; } = 16;
+        private string DefaultFontFamilyName = "Segoe MDL2 Assets";
+        private FontFamily DefaultFontFamily = null;
+        private int DefaultFontSize = 16;
 
-        private string DefaultWindowTitle { get; set; } = string.Empty;
-        private string DefaultCompareToolTip { get; set; } = string.Empty;
-        private string DefaultComposeToolTip { get; set; } = string.Empty;
+        private string DefaultWindowTitle = string.Empty;
+        private string DefaultCompareToolTip = string.Empty;
+        private string DefaultComposeToolTip = string.Empty;
 
-        private Rect LastPositionSize { get; set; } = new Rect();
+        private Rect LastPositionSize = new Rect();
 
-        private CultureInfo DefaultCultureInfo { get; set; } = CultureInfo.CurrentCulture;
+        private CultureInfo DefaultCultureInfo = CultureInfo.CurrentCulture;
         #endregion
 
         #region Magick.Net Settings
-        private int MaxCompareSize { get; set; } = 1024;
-        private MagickGeometry CompareResizeGeometry { get; set; } = null;
+        private int MaxCompareSize = 1024;
+        private MagickGeometry CompareResizeGeometry = null;
 
-        private double ImageDistance { get; set; } = 0;
-        private double LastZoomRatio { get; set; } = 1;
-        private bool LastOpIsCompose { get; set; } = false;
-        private ImageType LastImageType { get; set; } = ImageType.Result;
+        private double LastZoomRatio = 1;
+        private bool LastOpIsCompose = false;
+        //private ImageType LastImageType = ImageType.Result;
+        //private double ImageDistance = 0;
 
-        private Channels CompareImageChannels { get; set; } = Channels.Default;
+        private Channels CompareImageChannels = Channels.Default;
         private bool CompareImageForceScale { get { return (UseSmallerImage.IsChecked ?? false); } }
         private bool CompareImageForceColor { get { return (UseColorImage.IsChecked ?? false); } }
-        private ErrorMetric ErrorMetricMode { get; set; } = ErrorMetric.Fuzz;
-        private CompositeOperator CompositeMode { get; set; } = CompositeOperator.Difference;
+        private ErrorMetric ErrorMetricMode = ErrorMetric.Fuzz;
+        private CompositeOperator CompositeMode = CompositeOperator.Difference;
 #if Q16HDRI
-        private IMagickColor<float> HighlightColor { get; set; } = MagickColors.Red;
-        private IMagickColor<float> LowlightColor { get; set; } = null;
-        private IMagickColor<float> MasklightColor { get; set; } = null;
+        private IMagickColor<float> HighlightColor = MagickColors.Red;
+        private IMagickColor<float> LowlightColor = null;
+        private IMagickColor<float> MasklightColor = null;
 #else
         private IMagickColor<byte> HighlightColor { get; set; } = MagickColors.Red;
         private IMagickColor<byte> LowlightColor { get; set; } = null;
@@ -1285,7 +1285,7 @@ namespace ImageCompare
 
                 item_more_fillflood.Click += (obj, evt) => { this.InvokeAsync(() => { FillOutBoundBoxImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_setalphacolor.Click += (obj, evt) => { this.InvokeAsync(() => { SetColorToAlphaImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_createcolorimage.Click += (obj, evt) => { this.InvokeAsync(() => { CreateColorImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_createcolorimage.Click += (obj, evt) => { this.InvokeAsync(() => { CreateColorImage((bool)(obj as MenuItem).Tag, Keyboard.Modifiers == ModifierKeys.Shift); }); };
                 #endregion
                 #region Add MoreEffects MenuItems to MoreEffects
                 item_more.Items.Add(item_more_autoenhance);

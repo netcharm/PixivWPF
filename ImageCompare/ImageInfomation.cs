@@ -181,33 +181,36 @@ namespace ImageCompare
         public bool LoadImageFromFile(string file, bool update = false)
         {
             var result = false;
-            result = Application.Current.MainWindow.Dispatcher.Invoke(() =>
+            if (File.Exists(file))
             {
-                var ret = false;
-                try
+                result = Application.Current.MainWindow.Dispatcher.Invoke(() =>
                 {
-                    using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    var ret = false;
+                    try
                     {
-                        FileName = file;
-
-                        if (Path.GetExtension(file).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
+                        using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
                         {
-                            Original = fs.Lut2Png();
-                        }
-                        else
-                        {
-                            try { Original = new MagickImage(fs, Path.GetExtension(file).GetImageFileFormat()); }
-                            catch { Original = new MagickImage(fs, MagickFormat.Unknown); }
-                        }
-                        if (update && Tagetment is Image && ValidCurrent)
-                            (Tagetment as Image).Source = Source;
+                            FileName = file;
 
-                        ret = true;
+                            if (Path.GetExtension(file).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                Original = fs.Lut2Png();
+                            }
+                            else
+                            {
+                                try { Original = new MagickImage(fs, Path.GetExtension(file).GetImageFileFormat()); }
+                                catch { Original = new MagickImage(fs, MagickFormat.Unknown); }
+                            }
+                            if (update && Tagetment is Image && ValidCurrent)
+                                (Tagetment as Image).Source = Source;
+
+                            ret = true;
+                        }
                     }
-                }
-                catch (Exception ex) { ex.ShowMessage(); }
-                return (ret);
-            });
+                    catch (Exception ex) { ex.ShowMessage(); }
+                    return (ret);
+                });
+            }
             return (result);
         }
 
