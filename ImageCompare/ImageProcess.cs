@@ -1061,7 +1061,7 @@ namespace ImageCompare
                             {
                                 diff.Composite(source, CompositeMode, CompareImageChannels);
                                 tip.Add($"{"ResultTipMode".T()} {CompositeMode.ToString()}");
-                                result = new MagickImage(diff.Clone());
+                                result = new MagickImage(diff);
                                 await Task.Delay(1);
                                 DoEvents();
                             }
@@ -1080,7 +1080,7 @@ namespace ImageCompare
                                 var distance = source.Compare(target, setting, diff, CompareImageChannels);
                                 tip.Add($"{"ResultTipMode".T()} {ErrorMetricMode.ToString()}");
                                 tip.Add($"{"ResultTipDifference".T()} {distance:F4}");
-                                result = new MagickImage(diff.Clone());
+                                result = new MagickImage(diff);
                                 //result.Comment = "NetCharm Created";
                                 await Task.Delay(1);
                                 DoEvents();

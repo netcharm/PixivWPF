@@ -695,8 +695,8 @@ namespace ImageCompare
                 }
                 if (appSection.Settings.AllKeys.Contains("CompositeMode"))
                 {
-                    var size = CompositeMode;
-                    if (Enum.TryParse<CompositeOperator>(appSection.Settings["CompositeMode"].Value, out size)) CompositeMode = size;
+                    var value = CompositeMode;
+                    if (Enum.TryParse<CompositeOperator>(appSection.Settings["CompositeMode"].Value, out value)) CompositeMode = value;
                 }
                 if (appSection.Settings.AllKeys.Contains("UseSmallerImage"))
                 {
@@ -1459,7 +1459,7 @@ namespace ImageCompare
                 {
                     Header = v.ToString(),
                     Tag = v,
-                    IsChecked = ((ErrorMetric)v == ErrorMetric.Fuzz ? true : false)
+                    IsChecked = ((ErrorMetric)v == ErrorMetricMode ? true : false)
                 };
                 item.Click += (obj, evt) =>
                 {
@@ -1481,7 +1481,7 @@ namespace ImageCompare
                 {
                     Header = v.ToString(),
                     Tag = v,
-                    IsChecked = ((CompositeOperator)v == CompositeOperator.Difference ? true : false)
+                    IsChecked = ((CompositeOperator)v == CompositeMode ? true : false)
                 };
                 item.Click += (obj, evt) =>
                 {
