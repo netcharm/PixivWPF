@@ -807,7 +807,8 @@ namespace PixivWPF.Common
                                     }
                                     if (UpdateTileTask.CancellationPending)
                                     {
-                                        this.Invoke(() => { 
+                                        this.Invoke(() =>
+                                        {
                                             $"Canceled".DEBUG($"{Name ?? string.Empty}_UpdateTileTask".Trim('_'));
                                         });
                                         e.Cancel = true; loopstate.Stop();
@@ -893,7 +894,8 @@ namespace PixivWPF.Common
                                             }
                                             if (UpdateTileTask.CancellationPending)
                                             {
-                                                this.Invoke(() => {
+                                                this.Invoke(() =>
+                                                {
                                                     $"Canceled".DEBUG($"{Name ?? string.Empty}_UpdateTileTask".Trim('_'));
                                                 });
                                                 e.Cancel = true; return;
@@ -1061,12 +1063,12 @@ namespace PixivWPF.Common
                                 if (item.IsPage() || item.IsPages())
                                 {
                                     bool download = item.Illust.IsDownloadedAsync(index: item.Index, touch: touch);
-                                    if (item.IsDownloaded != download) item.IsDownloaded = download;
+                                    item.IsDownloaded = download;
                                 }
                                 else if (item.IsWork())
                                 {
                                     bool part_down = item.Illust.IsPartDownloadedAsync(touch: touch);
-                                    if (item.IsPartDownloaded != part_down) item.IsPartDownloaded = part_down;
+                                    item.IsPartDownloaded = part_down;
                                     item.IsDownloaded = item.IsPartDownloaded;
                                     //if (item.IsDownloaded != part_down) item.IsDownloaded = part_down;
 #if DEBUG
@@ -1088,7 +1090,7 @@ namespace PixivWPF.Common
                 catch (Exception ex) { ex.ERROR("UpdateTilesState"); }
             }
         }
-#endregion
+        #endregion
 
         public ImageListGrid()
         {
