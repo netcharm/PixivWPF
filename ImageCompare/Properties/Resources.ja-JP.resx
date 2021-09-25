@@ -477,4 +477,7 @@
   <data name="SetColorToAlpha.Header" xml:space="preserve">
     <value>色を透明チャンネルに設定する</value>
   </data>
+  <data name="InfoTipColorMapsSize" xml:space="preserve">
+    <value>パレットの色数     =</value>
+  </data>
 </root>

@@ -416,16 +416,27 @@ namespace ImageCompare
                         Current.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
                     }
                     var DPI_UNIT = Current.Density.Units == DensityUnit.PixelsPerCentimeter ? "PPC" : (Current.Density.Units == DensityUnit.PixelsPerInch ? "PPI" : string.Empty);
-                    DPI_TEXT = $"{Math.Ceiling(Current.Density.X):F0} {DPI_UNIT} x {Math.Ceiling(Current.Density.Y):F0} {DPI_UNIT}";
+                    DPI_TEXT = DPI_UNIT.Equals("PPC") ? $"{Current.Density.X:F2} {DPI_UNIT} x {Current.Density.Y:F2} {DPI_UNIT}" : $"{Current.Density.X:F0} {DPI_UNIT} x {Current.Density.Y:F0} {DPI_UNIT}";
                     if (Current.Density.Units != DensityUnit.PixelsPerInch)
                     {
                         var dpi = Current.Density.ChangeUnits(DensityUnit.PixelsPerInch);
-                        var dpi_text = $"{Math.Round(dpi.X):F0} PPI x {Math.Round(dpi.Y):F0} PPI";
+                        var dpi_text = $"{dpi.X:F0} PPI x {dpi.Y:F0} PPI";
                         DPI_TEXT = $"{DPI_TEXT} [{dpi_text}]";
                     }
 
+                    var depth = Current.Depth * Current.ChannelCount;
+                    if (Current.ColorType == ColorType.Bilevel) depth = 2;
+                    else if (Current.ColorType == ColorType.Grayscale) depth = 8;
+                    else if (Current.ColorType == ColorType.GrayscaleAlpha) depth = 8 + 8;
+                    else if (Current.ColorType == ColorType.Palette) depth = (int)Math.Ceiling(Math.Log(Current.ColormapSize, 2));
+                    else if (Current.ColorType == ColorType.PaletteAlpha) depth = (int)Math.Ceiling(Math.Log(Current.ColormapSize, 2)) + 8;
+                    else if (Current.ColorType == ColorType.TrueColor) depth = 24;
+                    else if (Current.ColorType == ColorType.TrueColorAlpha) depth = 32;
+                    else if (Current.ColorType == ColorType.ColorSeparation) depth = 24;
+                    else if (Current.ColorType == ColorType.ColorSeparationAlpha) depth = 32;
+
                     var tip = new List<string>();
-                    tip.Add($"{"InfoTipDimention".T()} {Current.Width:F0}x{Current.Height:F0}x{Current.ChannelCount * Current.Depth:F0}");
+                    tip.Add($"{"InfoTipDimention".T()} {Current.Width:F0}x{Current.Height:F0}x{depth:F0}");
                     if (Current.BoundingBox != null)
                         tip.Add($"{"InfoTipBounding".T()} {Current.BoundingBox.Width:F0}x{Current.BoundingBox.Height:F0}");
                     tip.Add($"{"InfoTipResolution".T()} {DPI_TEXT}");
@@ -454,6 +465,7 @@ namespace ImageCompare
                     if (Current.FormatInfo != null)
                         tip.Add($"{"InfoTipFormatInfo".T()} {Current.FormatInfo.Format.ToString()} ({Current.FormatInfo.Description}), mime:{Current.FormatInfo.MimeType}");
                     tip.Add($"{"InfoTipHasAlpha".T()} {(Current.HasAlpha ? "Included" : "NotIncluded").T()}");
+                    tip.Add($"{"InfoTipColorMapsSize".T()} {Current.ColormapSize.ToString()}");
                     tip.Add($"{"InfoTipCompression".T()} {Current.Compression.ToString().T()}");
 #if Q16HDRI
                     tip.Add($"{"InfoTipMemoryUsage".T()} {((long)(Current.Width * Current.Height * Current.ChannelCount * Current.Depth * 4 / 8)).SmartFileSize()}");

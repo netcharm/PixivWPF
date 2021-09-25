@@ -477,4 +477,7 @@
   <data name="SetColorToAlpha.Header" xml:space="preserve">
     <value>Create Image By Color</value>
   </data>
+  <data name="InfoTipColorMapsSize" xml:space="preserve">
+    <value>ColorMaps Size</value>
+  </data>
 </root>

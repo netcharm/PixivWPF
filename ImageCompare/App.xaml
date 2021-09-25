@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:local="clr-namespace:ImageCompare"
-             StartupUri="MainWindow.xaml">
+             StartupUri="MainWindow.xaml" Startup="Application_Startup">
     <Application.Resources>
         <FontFamily x:Uid="MonoSpaceFamily" x:Key="MonoSpaceFamily">
             "Sarasa Mono J, 等距更纱黑体 SC, FontAwesome, Iosevka, Consolas, Segoe UI Emoji, Segoe MDL2 Assets, 更纱黑体 SC, Segoe UI, Monospace"

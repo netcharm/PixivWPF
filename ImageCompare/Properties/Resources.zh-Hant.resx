@@ -477,4 +477,7 @@
   <data name="SetColorToAlpha.Header" xml:space="preserve">
     <value>指定顏色設為透明通道</value>
   </data>
+  <data name="InfoTipColorMapsSize" xml:space="preserve">
+    <value>調色盤顏色數   =</value>
+  </data>
 </root>

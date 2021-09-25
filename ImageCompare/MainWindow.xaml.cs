@@ -1357,16 +1357,21 @@ namespace ImageCompare
             {
                 var magick_cache = Path.IsPathRooted(CachePath) ? CachePath : Path.Combine(AppPath, CachePath);
                 //if (!Directory.Exists(magick_cache)) Directory.CreateDirectory(magick_cache);
-                if (Directory.Exists(magick_cache)) MagickAnyCPU.CacheDirectory = magick_cache;
+                MagickAnyCPU.CacheDirectory = Directory.Exists(magick_cache) ? magick_cache : AppPath;
+                MagickAnyCPU.HasSharedCacheDirectory = true;
+                OpenCL.IsEnabled = true;
+                if (Directory.Exists(magick_cache)) OpenCL.SetCacheDirectory(magick_cache);
+#if DEBUG
+                Debug.WriteLine(string.Join(", ", OpenCL.Devices.Select(d => d.Name)));
+#endif
                 ResourceLimits.Memory = 256 * 1024 * 1024;
                 ResourceLimits.LimitMemory(new Percentage(5));
                 ResourceLimits.Thread = 4;
                 //ResourceLimits.Area = 4096 * 4096;
                 //ResourceLimits.Throttle = 
-                OpenCL.IsEnabled = true;
-                if (Directory.Exists(magick_cache)) OpenCL.SetCacheDirectory(magick_cache);
             }
             catch (Exception ex) { ex.ShowMessage(); }
+
 
             Extensions.AllSupportedFormats = Extensions.GetSupportedImageFormats();
             Extensions.AllSupportedExts = Extensions.AllSupportedFormats.Keys.ToList().Skip(4).Select(ext => $".{ext.ToLower()}").Where(ext => !ext.Equals(".txt")).ToList();
