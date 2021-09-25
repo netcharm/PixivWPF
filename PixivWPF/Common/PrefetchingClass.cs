@@ -303,6 +303,8 @@ namespace PixivWPF.Common
                 var args = e.Argument is PrefetchingOpts ? e.Argument as PrefetchingOpts : new PrefetchingOpts();
                 if (!args.PrefetchingPreview) return (result);
 
+                var comments = Comments;
+                var count = originals.Count;
                 bool paralllel = args.ParallelPrefetching;
                 var parallels = args.PrefetchingDownloadParallel;
                 if (paralllel)
@@ -313,7 +315,15 @@ namespace PixivWPF.Common
                     {
                         try
                         {
-                            url.QueryImageFileSize(cancelToken: PrefetchingTaskCancelTokenSource).GetAwaiter().GetResult();
+                            var size = url.QueryImageFileSize(cancelToken: PrefetchingTaskCancelTokenSource).GetAwaiter().GetResult();
+                            if (size > 0)
+                            {
+                                Comments = comments.Replace("]", $"] [ Q: {--count} / {originals.Count} ]");
+                                State = TaskStatus.Running;
+                                if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
+                                else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke((double)Percentage, Comments, State);
+                                //this.DoEvents();
+                            }
                         }
                         catch (Exception ex) { ex.ERROR("PREFETCHING"); }
                         finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
@@ -331,7 +341,15 @@ namespace PixivWPF.Common
                             {
                                 try
                                 {
-                                    await url.QueryImageFileSize(cancelToken: PrefetchingTaskCancelTokenSource);
+                                    var size = await url.QueryImageFileSize(cancelToken: PrefetchingTaskCancelTokenSource);
+                                    if (size > 0)
+                                    {
+                                        Comments = comments.Replace("]", $"] [ Q: {--count} / {originals.Count} ]");
+                                        State = TaskStatus.Running;
+                                        if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
+                                        else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke((double)Percentage, Comments, State);
+                                        //this.DoEvents();
+                                    }
                                 }
                                 catch (Exception ex) { ex.ERROR("PREFETCHING"); }
                                 finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallels) tasks.Release(); this.DoEvents(); await Task.Delay(1); }
@@ -340,6 +358,10 @@ namespace PixivWPF.Common
                     }
                 }
                 $"Query Original Imagee File Size : {Environment.NewLine}  Done [ {originals.Count} ]".ShowToast("INFO", tag: args.Name ?? Name ?? GetType().Name);
+                State = TaskStatus.RanToCompletion;
+                if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
+                else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke((double)Percentage, Comments, State);
+                result = true;
             }
             return (result);
         }

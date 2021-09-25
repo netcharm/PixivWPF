@@ -639,7 +639,7 @@ namespace PixivWPF.Common
 
         public static ICommand Compare { get; } = new DelegateCommand<dynamic>(async obj =>
         {
-            if(obj is string)
+            if (obj is string)
             {
                 Compare.Execute(new string[] { obj });
             }
@@ -667,8 +667,17 @@ namespace PixivWPF.Common
                 var item = obj as PixivItem;
                 if (item.IsWork())
                 {
-                    var id = $"{item.Illust.GetPreviewUrl(item.Index).GetImageCacheFile()}";
-                    Compare.Execute(new string[] { id });
+                    if (item.Count > 1)
+                    {
+                        var id_0 = item.Index;
+                        var id_1 = item.Index < item.Count - 1 ? item.Index + 1 : (item.Index - 1);
+                        Compare.Execute(new string[] { item.Illust.GetPreviewUrl(id_0).GetImageCacheFile(), item.Illust.GetPreviewUrl(id_1).GetImageCacheFile() });
+                    }
+                    else
+                    {
+                        var id = $"{item.Illust.GetPreviewUrl(item.Index).GetImageCacheFile()}";
+                        Compare.Execute(new string[] { id });
+                    }
                 }
             }
             else if (obj is ImageListGrid)
@@ -692,7 +701,7 @@ namespace PixivWPF.Common
                                 {
                                     var item = selected.First();
                                     var idx = gallery.Items.IndexOf(item);
-                                    if (idx < item.Count - 1)
+                                    if (idx < gallery.Count - 1)
                                     {
                                         ids.Add(selected.First().Illust.GetPreviewUrl().GetImageCacheFile());
                                         ids.Add(gallery.Items[idx + 1].Illust.GetPreviewUrl().GetImageCacheFile());
@@ -705,7 +714,7 @@ namespace PixivWPF.Common
                                 }
                             }
                         }
-                        catch(Exception ex) { ex.ERROR("Compare"); }
+                        catch (Exception ex) { ex.ERROR("Compare"); }
                     }
                     else
                     {
