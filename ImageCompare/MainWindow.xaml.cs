@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Configuration;
 using System.Diagnostics;
 using System.Globalization;
@@ -134,6 +135,44 @@ namespace ImageCompare
                     //CanDoEvents.Release(max: 1);
                     if (CanDoEvents is SemaphoreSlim && CanDoEvents.CurrentCount <= 0) CanDoEvents.Release();
                 }
+            }
+        }
+        #endregion
+
+        #region Render Background Worker Routines
+        private BackgroundWorker RenderWorker = null;
+
+        private void InitRenderWorker()
+        {
+            if (RenderWorker == null)
+            {
+                RenderWorker = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
+                RenderWorker.ProgressChanged += (o, e) => { ProcessStatus.IsIndeterminate = true; };
+                RenderWorker.RunWorkerCompleted += (o, e) => { ProcessStatus.IsIndeterminate = false; ProcessStatus.Value = 100; };
+                RenderWorker.DoWork += (o, e) =>
+                {
+                    if (e.Argument is Action)
+                    {
+                        var action = e.Argument as Action;
+                        Dispatcher.Invoke(async () =>
+                        {
+                            ProcessStatus.Value = 0;
+                            ProcessStatus.IsIndeterminate = true;
+                            await Task.Delay(1);
+                            DoEvents();
+                            action.Invoke();
+                        });
+                    }
+                };
+            }
+        }
+
+        private void RenderRun(Action action)
+        {
+            InitRenderWorker();
+            if (RenderWorker is BackgroundWorker && !RenderWorker.IsBusy && action is Action)
+            {
+                RenderWorker.RunWorkerAsync(action);
             }
         }
         #endregion
@@ -408,7 +447,7 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
         }
 
-        private async void UpdateImageViewer(bool compose = false, bool assign = false)
+        private async void UpdateImageViewer(bool compose = false, bool assign = false, bool reload = true)
         {
             if (await _CanUpdate_.WaitAsync(TimeSpan.FromMilliseconds(200)))
             {
@@ -431,19 +470,22 @@ namespace ImageCompare
                         {
                             try
                             {
-                                if (CompareImageForceScale)
+                                if (reload)
                                 {
-                                    if (image_s.CurrentSize.Width > MaxCompareSize || image_s.CurrentSize.Height > MaxCompareSize)
-                                        image_s.Reload(CompareResizeGeometry);
-                                    if (image_t.CurrentSize.Width > MaxCompareSize || image_t.CurrentSize.Height > MaxCompareSize)
-                                        image_t.Reload(CompareResizeGeometry);
-                                }
-                                else
-                                {
-                                    if (image_s.CurrentSize.Width != image_s.OriginalSize.Width && image_s.CurrentSize.Height != image_s.OriginalSize.Height)
-                                        image_s.Reload();
-                                    if (image_t.CurrentSize.Width != image_t.OriginalSize.Width && image_t.CurrentSize.Height != image_t.OriginalSize.Height)
-                                        image_t.Reload();
+                                    if (CompareImageForceScale)
+                                    {
+                                        if (image_s.CurrentSize.Width > MaxCompareSize || image_s.CurrentSize.Height > MaxCompareSize)
+                                            image_s.Reload(CompareResizeGeometry);
+                                        if (image_t.CurrentSize.Width > MaxCompareSize || image_t.CurrentSize.Height > MaxCompareSize)
+                                            image_t.Reload(CompareResizeGeometry);
+                                    }
+                                    else
+                                    {
+                                        if (image_s.CurrentSize.Width != image_s.OriginalSize.Width && image_s.CurrentSize.Height != image_s.OriginalSize.Height)
+                                            image_s.Reload();
+                                        if (image_t.CurrentSize.Width != image_t.OriginalSize.Width && image_t.CurrentSize.Height != image_t.OriginalSize.Height)
+                                            image_t.Reload();
+                                    }
                                 }
                                 ImageSource.Source = image_s.Source;
                                 ImageTarget.Source = image_t.Source;
@@ -508,9 +550,9 @@ namespace ImageCompare
         #endregion
 
         #region Image Load/Save Routines
-        private async void CopyImageToOther(bool source = true)
+        private void CopyImageToOther(bool source = true)
         {
-            await Dispatcher.InvokeAsync(() =>
+            RenderRun(new Action(() =>
             {
                 try
                 {
@@ -536,12 +578,12 @@ namespace ImageCompare
                     if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
-            }, DispatcherPriority.Render);
+            }));
         }
 
-        private async void LoadImageFromPrevFile(bool source = true)
+        private void LoadImageFromPrevFile(bool source = true)
         {
-            await Dispatcher.InvokeAsync(async () =>
+            RenderRun(new Action(async () =>
             {
                 var ret = false;
                 try
@@ -551,13 +593,12 @@ namespace ImageCompare
                     if (ret) UpdateImageViewer(assign: true);
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
-                return (ret);
-            });
+            }));
         }
 
-        private async void LoadImageFromNextFile(bool source = true)
+        private void LoadImageFromNextFile(bool source = true)
         {
-            await Dispatcher.InvokeAsync(async () =>
+            RenderRun(new Action(async () =>
             {
                 var ret = false;
                 try
@@ -567,13 +608,12 @@ namespace ImageCompare
                     if (ret) UpdateImageViewer(assign: true);
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
-                return (ret);
-            });
+            }));
         }
 
-        private async void LoadImageFromFiles(string[] files, bool source = true)
+        private void LoadImageFromFiles(string[] files, bool source = true)
         {
-            await Dispatcher.InvokeAsync(() =>
+            RenderRun(new Action(() =>
             {
                 try
                 {
@@ -604,7 +644,7 @@ namespace ImageCompare
                     }
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
-            }, DispatcherPriority.Render);
+            }));
         }
 
         private void SaveImageAs(bool source)
@@ -1033,44 +1073,44 @@ namespace ImageCompare
                 };
                 #endregion
                 #region Create MenuItem Click event handles
-                item_fh.Click += (obj, evt) => { this.InvokeAsync(() => { FlopImage((bool)(obj as MenuItem).Tag); }); };
-                item_fv.Click += (obj, evt) => { this.InvokeAsync(() => { FlipImage((bool)(obj as MenuItem).Tag); }); };
-                item_r090.Click += (obj, evt) => { this.InvokeAsync(() => { RotateImage((bool)(obj as MenuItem).Tag, 90); }); };
-                item_r180.Click += (obj, evt) => { this.InvokeAsync(() => { RotateImage((bool)(obj as MenuItem).Tag, 180); }); };
-                item_r270.Click += (obj, evt) => { this.InvokeAsync(() => { RotateImage((bool)(obj as MenuItem).Tag, 270); }); };
-                item_reset.Click += (obj, evt) => { this.InvokeAsync(() => { ResetImage((bool)(obj as MenuItem).Tag); }); };
+                item_fh.Click += (obj, evt) => { RenderRun(() => { FlopImage((bool)(obj as MenuItem).Tag); }); };
+                item_fv.Click += (obj, evt) => { RenderRun(() => { FlipImage((bool)(obj as MenuItem).Tag); }); };
+                item_r090.Click += (obj, evt) => { RenderRun(() => { RotateImage((bool)(obj as MenuItem).Tag, 90); }); };
+                item_r180.Click += (obj, evt) => { RenderRun(() => { RotateImage((bool)(obj as MenuItem).Tag, 180); }); };
+                item_r270.Click += (obj, evt) => { RenderRun(() => { RotateImage((bool)(obj as MenuItem).Tag, 270); }); };
+                item_reset.Click += (obj, evt) => { RenderRun(() => { ResetImage((bool)(obj as MenuItem).Tag); }); };
 
-                item_gray.Click += (obj, evt) => { this.InvokeAsync(() => { GrayscaleImage((bool)(obj as MenuItem).Tag); }); };
-                item_blur.Click += (obj, evt) => { this.InvokeAsync(() => { BlurImage((bool)(obj as MenuItem).Tag); }); };
-                item_sharp.Click += (obj, evt) => { this.InvokeAsync(() => { SharpImage((bool)(obj as MenuItem).Tag); }); };
+                item_gray.Click += (obj, evt) => { RenderRun(() => { GrayscaleImage((bool)(obj as MenuItem).Tag); }); };
+                item_blur.Click += (obj, evt) => { RenderRun(() => { BlurImage((bool)(obj as MenuItem).Tag); }); };
+                item_sharp.Click += (obj, evt) => { RenderRun(() => { SharpImage((bool)(obj as MenuItem).Tag); }); };
 
-                item_size_crop.Click += (obj, evt) => { this.InvokeAsync(() => { CropImage((bool)(obj as MenuItem).Tag); }); };
-                item_size_to_source.Click += (obj, evt) => { this.InvokeAsync(() => { ResizeToImage(false); }); };
-                item_size_to_target.Click += (obj, evt) => { this.InvokeAsync(() => { ResizeToImage(true); }); };
+                item_size_crop.Click += (obj, evt) => { RenderRun(() => { CropImage((bool)(obj as MenuItem).Tag); }); };
+                item_size_to_source.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(false); }); };
+                item_size_to_target.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(true); }); };
 
                 item_slice_h.Click += (obj, evt) =>
                 {
                     var sendto = Keyboard.Modifiers == ModifierKeys.None;
                     var first = Keyboard.Modifiers == ModifierKeys.Shift ? true : (Keyboard.Modifiers == ModifierKeys.Control ? false : true);
-                    this.InvokeAsync(() => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: false, sendto: sendto, first: first); });
+                    RenderRun(() => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: false, sendto: sendto, first: first); });
                 };
                 item_slice_v.Click += (obj, evt) =>
                 {
                     var sendto = Keyboard.Modifiers == ModifierKeys.None;
                     var first = Keyboard.Modifiers == ModifierKeys.Shift ? true : (Keyboard.Modifiers == ModifierKeys.Control ? false : true);
-                    this.InvokeAsync(() => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: true, sendto: sendto, first: first); });
+                    RenderRun(() => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: true, sendto: sendto, first: first); });
                 };
 
-                item_copyto_source.Click += (obj, evt) => { this.InvokeAsync(() => { CopyImageToOther(source); }); };
-                item_copyto_target.Click += (obj, evt) => { this.InvokeAsync(() => { CopyImageToOther(source); }); };
+                item_copyto_source.Click += (obj, evt) => { RenderRun(() => { CopyImageToOther(source); }); };
+                item_copyto_target.Click += (obj, evt) => { RenderRun(() => { CopyImageToOther(source); }); };
 
-                item_load_prev.Click += (obj, evt) => { this.InvokeAsync(() => { LoadImageFromPrevFile((bool)(obj as MenuItem).Tag); }); };
-                item_load_next.Click += (obj, evt) => { this.InvokeAsync(() => { LoadImageFromNextFile((bool)(obj as MenuItem).Tag); }); };
+                item_load_prev.Click += (obj, evt) => { RenderRun(() => { LoadImageFromPrevFile((bool)(obj as MenuItem).Tag); }); };
+                item_load_next.Click += (obj, evt) => { RenderRun(() => { LoadImageFromNextFile((bool)(obj as MenuItem).Tag); }); };
 
-                item_reload.Click += (obj, evt) => { this.InvokeAsync(() => { ReloadImage((bool)(obj as MenuItem).Tag); }); };
+                item_reload.Click += (obj, evt) => { RenderRun(() => { ReloadImage((bool)(obj as MenuItem).Tag); }); };
 
-                item_copyinfo.Click += (obj, evt) => { this.InvokeAsync(() => { CopyImageInfo((bool)(obj as MenuItem).Tag); }); };
-                item_copyimage.Click += (obj, evt) => { this.InvokeAsync(() => { CopyImage((bool)(obj as MenuItem).Tag); }); };
+                item_copyinfo.Click += (obj, evt) => { RenderRun(() => { CopyImageInfo((bool)(obj as MenuItem).Tag); }); };
+                item_copyimage.Click += (obj, evt) => { RenderRun(() => { CopyImage((bool)(obj as MenuItem).Tag); }); };
                 item_saveas.Click += (obj, evt) => { SaveImageAs((bool)(obj as MenuItem).Tag); };
                 #endregion
                 #region Add MenuItems to ContextMenu
@@ -1257,35 +1297,35 @@ namespace ImageCompare
                 };
                 #endregion
                 #region MoreEffects MenuItem Click event handles
-                item_more_oil.Click += (obj, evt) => { this.InvokeAsync(() => { OilImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_charcoal.Click += (obj, evt) => { this.InvokeAsync(() => { CharcoalImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_oil.Click += (obj, evt) => { RenderRun(() => { OilImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_charcoal.Click += (obj, evt) => { RenderRun(() => { CharcoalImage((bool)(obj as MenuItem).Tag); }); };
 
-                item_more_autoequalize.Click += (obj, evt) => { this.InvokeAsync(() => { AutoEqualizeImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_autoreducenoise.Click += (obj, evt) => { this.InvokeAsync(() => { ReduceNoiseImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_autoenhance.Click += (obj, evt) => { this.InvokeAsync(() => { AutoEnhanceImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_autolevel.Click += (obj, evt) => { this.InvokeAsync(() => { AutoLevelImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_autocontrast.Click += (obj, evt) => { this.InvokeAsync(() => { AutoContrastImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_autowhitebalance.Click += (obj, evt) => { this.InvokeAsync(() => { AutoWhiteBalanceImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_autogamma.Click += (obj, evt) => { this.InvokeAsync(() => { AutoGammaImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_autoequalize.Click += (obj, evt) => { RenderRun(() => { AutoEqualizeImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_autoreducenoise.Click += (obj, evt) => { RenderRun(() => { ReduceNoiseImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_autoenhance.Click += (obj, evt) => { RenderRun(() => { AutoEnhanceImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_autolevel.Click += (obj, evt) => { RenderRun(() => { AutoLevelImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_autocontrast.Click += (obj, evt) => { RenderRun(() => { AutoContrastImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_autowhitebalance.Click += (obj, evt) => { RenderRun(() => { AutoWhiteBalanceImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_autogamma.Click += (obj, evt) => { RenderRun(() => { AutoGammaImage((bool)(obj as MenuItem).Tag); }); };
 
-                item_more_autovignette.Click += (obj, evt) => { this.InvokeAsync(() => { AutoVignetteImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_invert.Click += (obj, evt) => { this.InvokeAsync(() => { InvertImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_polaroid.Click += (obj, evt) => { this.InvokeAsync(() => { PolaroidImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_posterize.Click += (obj, evt) => { this.InvokeAsync(() => { PosterizeImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_medianfilter.Click += (obj, evt) => { this.InvokeAsync(() => { MedianFilterImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_autovignette.Click += (obj, evt) => { RenderRun(() => { AutoVignetteImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_invert.Click += (obj, evt) => { RenderRun(() => { InvertImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_polaroid.Click += (obj, evt) => { RenderRun(() => { PolaroidImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_posterize.Click += (obj, evt) => { RenderRun(() => { PosterizeImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_medianfilter.Click += (obj, evt) => { RenderRun(() => { MedianFilterImage((bool)(obj as MenuItem).Tag); }); };
 
-                item_more_blueshift.Click += (obj, evt) => { this.InvokeAsync(() => { BlueShiftImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_autothreshold.Click += (obj, evt) => { this.InvokeAsync(() => { AutoThresholdImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_remap.Click += (obj, evt) => { this.InvokeAsync(() => { RemapImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_clut.Click += (obj, evt) => { this.InvokeAsync(() => { ClutImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_haldclut.Click += (obj, evt) => { this.InvokeAsync(() => { HaldClutImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_blueshift.Click += (obj, evt) => { RenderRun(() => { BlueShiftImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_autothreshold.Click += (obj, evt) => { RenderRun(() => { AutoThresholdImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_remap.Click += (obj, evt) => { RenderRun(() => { RemapImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_clut.Click += (obj, evt) => { RenderRun(() => { ClutImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_haldclut.Click += (obj, evt) => { RenderRun(() => { HaldClutImage((bool)(obj as MenuItem).Tag); }); };
 
-                item_more_meanshift.Click += (obj, evt) => { this.InvokeAsync(() => { MeanShiftImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_kmeans.Click += (obj, evt) => { this.InvokeAsync(() => { KmeansImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_meanshift.Click += (obj, evt) => { RenderRun(() => { MeanShiftImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_kmeans.Click += (obj, evt) => { RenderRun(() => { KmeansImage((bool)(obj as MenuItem).Tag); }); };
 
-                item_more_fillflood.Click += (obj, evt) => { this.InvokeAsync(() => { FillOutBoundBoxImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_setalphacolor.Click += (obj, evt) => { this.InvokeAsync(() => { SetColorToAlphaImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_createcolorimage.Click += (obj, evt) => { this.InvokeAsync(() => { CreateColorImage((bool)(obj as MenuItem).Tag, Keyboard.Modifiers == ModifierKeys.Shift); }); };
+                item_more_fillflood.Click += (obj, evt) => { RenderRun(() => { FillOutBoundBoxImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_setalphacolor.Click += (obj, evt) => { RenderRun(() => { SetColorToAlphaImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_createcolorimage.Click += (obj, evt) => { RenderRun(() => { CreateColorImage((bool)(obj as MenuItem).Tag, Keyboard.Modifiers == ModifierKeys.Shift); }); };
                 #endregion
                 #region Add MoreEffects MenuItems to MoreEffects
                 item_more.Items.Add(item_more_autoenhance);
@@ -1954,7 +1994,7 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
         }
 
-        private async void ImageActions_Click(object sender, RoutedEventArgs e)
+        private void ImageActions_Click(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
             if (sender == UILanguage)
@@ -1983,27 +2023,42 @@ namespace ImageCompare
             }
             else if (sender == ImageOpenSource)
             {
-                var action = ImageSource.GetInformation().LoadImageFromFile();
-                if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
+                RenderRun(new Action(() =>
+                {
+                    var action = ImageSource.GetInformation().LoadImageFromFile();
+                    if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
+                }));
             }
             else if (sender == ImageOpenTarget)
             {
-                var action = ImageTarget.GetInformation().LoadImageFromFile();
-                if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
+                RenderRun(new Action(() =>
+                {
+                    var action = ImageTarget.GetInformation().LoadImageFromFile();
+                    if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
+                }));
             }
             else if (sender == ImagePasteSource)
             {
-                var action = await ImageSource.GetInformation().LoadImageFromClipboard();
-                if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
+                RenderRun(new Action(async () =>
+                {
+                    var action = await ImageSource.GetInformation().LoadImageFromClipboard();
+                    if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
+                }));
             }
             else if (sender == ImagePasteTarget)
             {
-                var action = await ImageTarget.GetInformation().LoadImageFromClipboard();
-                if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
+                RenderRun(new Action(async () =>
+                {
+                    var action = await ImageTarget.GetInformation().LoadImageFromClipboard();
+                    if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
+                }));
             }
             else if (sender == ImageClear)
             {
-                CleanImage();
+                RenderRun(new Action(() =>
+                {
+                    CleanImage();
+                }));
             }
             else if (sender == ImageExchange)
             {
@@ -2015,13 +2070,19 @@ namespace ImageCompare
             }
             else if (sender == ImageCompose)
             {
-                LastOpIsCompose = true;
-                UpdateImageViewer(compose: true);
+                RenderRun(new Action(() =>
+                {
+                    LastOpIsCompose = true;
+                    UpdateImageViewer(compose: true);
+                }));
             }
             else if (sender == ImageCompare)
             {
-                LastOpIsCompose = false;
-                UpdateImageViewer();
+                RenderRun(new Action(() =>
+                {
+                    LastOpIsCompose = false;
+                    UpdateImageViewer();
+                }));
             }
             else if (sender == ImageCopyResult)
             {
@@ -2095,12 +2156,17 @@ namespace ImageCompare
             }
             else if (sender == UseSmallerImage)
             {
-                UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+                RenderRun(new Action(() =>
+                {
+                    UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+                }));
             }
             else if (sender == UseColorImage)
             {
-                //ChangeColorSpace();
-                UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+                RenderRun(new Action(() =>
+                {
+                    UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+                }));
             }
             else if (sender == UsedChannels)
             {

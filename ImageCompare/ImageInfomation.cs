@@ -99,7 +99,7 @@ namespace ImageCompare
 #if DEBUG
                                 catch (Exception ex) { Debug.WriteLine(ex.Message); }
 #else
-                                catch (Exception ex) { ex.ShowMessage();}
+                                catch (Exception ex) { ex.ShowMessage(); }
 #endif
                             }
                             else
@@ -110,11 +110,15 @@ namespace ImageCompare
                                     var obj = dataPackage.GetData(fmt, true);
                                     if (obj is MemoryStream)
                                     {
-                                        Original = new MagickImage((obj as MemoryStream), MagickFormat.Unknown);
-                                        FileName = string.Empty;
-                                        Modified = true;
-                                        ret = true;
-                                        break;
+                                        try
+                                        {
+                                            Original = new MagickImage(obj as MemoryStream);
+                                            FileName = string.Empty;
+                                            Modified = true;
+                                            ret = true;
+                                            break;
+                                        }
+                                        catch (Exception ex) { ex.ShowMessage(); }
                                     }
                                 }
                             }
@@ -448,6 +452,7 @@ namespace ImageCompare
 #endif
                     if (Current.AttributeNames != null)
                     {
+                        var exif = Current.HasProfile("exif") ? Current.GetExifProfile() : new ExifProfile();
                         tip.Add($"{"InfoTipAttributes".T()}");
                         foreach (var attr in Current.AttributeNames)
                         {
@@ -456,6 +461,12 @@ namespace ImageCompare
                                 var value = Current.GetAttribute(attr);
                                 if (string.IsNullOrEmpty(value)) continue;
                                 if (attr.Contains("WinXP")) value = value.DecodeHexUnicode();
+                                else if (attr.Equals("exif:Artist"))
+                                    value = exif.GetValue(ExifTag.Artist) != null ? exif.GetValue(ExifTag.Artist).Value : value;
+                                else if (attr.Equals("exif:Copyright"))
+                                    value = exif.GetValue(ExifTag.Copyright) != null ? exif.GetValue(ExifTag.Copyright).Value : value;
+                                else if (attr.Equals("exif:ImageDescription"))
+                                    value = exif.GetValue(ExifTag.ImageDescription) != null ? exif.GetValue(ExifTag.ImageDescription).Value : value;
                                 if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
                                 tip.Add($"  {attr.PadRight(32, ' ')}= { value }");
                             }
