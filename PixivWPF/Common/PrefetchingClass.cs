@@ -303,6 +303,8 @@ namespace PixivWPF.Common
                 var args = e.Argument is PrefetchingOpts ? e.Argument as PrefetchingOpts : new PrefetchingOpts();
                 if (!args.PrefetchingPreview) return (result);
 
+                State = TaskStatus.Running;
+
                 var comments = Comments;
                 var count = originals.Count;
                 bool paralllel = args.ParallelPrefetching;
@@ -318,11 +320,10 @@ namespace PixivWPF.Common
                             var size = url.QueryImageFileSize(cancelToken: PrefetchingTaskCancelTokenSource).GetAwaiter().GetResult();
                             if (size > 0)
                             {
-                                Comments = comments.Replace("]", $"] [ Q: {--count} / {originals.Count} ]");
-                                State = TaskStatus.Running;
+                                Comments = comments.Replace("]", $"] [ Q: {--count} / {originals.Count} ]");                                
                                 if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                                 else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke((double)Percentage, Comments, State);
-                                //this.DoEvents();
+                                this.DoEvents();
                             }
                         }
                         catch (Exception ex) { ex.ERROR("PREFETCHING"); }
@@ -345,10 +346,9 @@ namespace PixivWPF.Common
                                     if (size > 0)
                                     {
                                         Comments = comments.Replace("]", $"] [ Q: {--count} / {originals.Count} ]");
-                                        State = TaskStatus.Running;
                                         if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                                         else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke((double)Percentage, Comments, State);
-                                        //this.DoEvents();
+                                        this.DoEvents();
                                     }
                                 }
                                 catch (Exception ex) { ex.ERROR("PREFETCHING"); }
@@ -540,7 +540,7 @@ namespace PixivWPF.Common
                 {
                     Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
                     Comments = $"Done [ {count} / {total}, I:{illusts.Count} / A:{avatars.Count} / T:{page_thumbs.Count} / P:{page_previews.Count} ]";
-                    State = TaskStatus.RanToCompletion;
+                    //State = TaskStatus.RanToCompletion;
                     //if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                     //else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
                     //this.DoEvents();
