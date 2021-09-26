@@ -114,6 +114,7 @@ namespace ImageCompare
                                         FileName = string.Empty;
                                         Modified = true;
                                         ret = true;
+                                        break;
                                     }
                                 }
                             }
