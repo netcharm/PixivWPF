@@ -575,7 +575,7 @@ namespace ImageCompare
                             image_s.Original = new MagickImage(image_t.Current);
                         action = true;
                     }
-                    if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
+                    if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }));
@@ -590,7 +590,7 @@ namespace ImageCompare
                 {
                     var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                     ret = await image.LoadImageFromPrevFile();
-                    if (ret) UpdateImageViewer(assign: true);
+                    if (ret) UpdateImageViewer(assign: true, reload: true);
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }));
@@ -605,7 +605,7 @@ namespace ImageCompare
                 {
                     var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                     ret = await image.LoadImageFromNextFile();
-                    if (ret) UpdateImageViewer(assign: true);
+                    if (ret) UpdateImageViewer(assign: true, reload: true);
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }));
@@ -640,7 +640,7 @@ namespace ImageCompare
                             file_s = files.First();
                             action |= image.LoadImageFromFile(file_s, false);
                         }
-                        if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
+                        if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: true);
                     }
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
