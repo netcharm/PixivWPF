@@ -480,4 +480,7 @@
   <data name="InfoTipColorMapsSize" xml:space="preserve">
     <value>調色盤顏色數   =</value>
   </data>
+  <data name="RepeatLastAction.ToolTip" xml:space="preserve">
+    <value>再次執行之前的動作</value>
+  </data>
 </root>

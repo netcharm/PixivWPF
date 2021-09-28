@@ -24,6 +24,7 @@ using Xceed.Wpf.Toolkit;
 namespace ImageCompare
 {
     public enum ImageType { All = 0, Source = 1, Target = 2, Result = 3, None = 255 }
+    public enum ZoomFitMode { None = 0, All = 1, Width = 2, Height = 3 }
 
     /// <summary>
     /// MainWindow.xaml 的交互逻辑
@@ -140,6 +141,7 @@ namespace ImageCompare
         #endregion
 
         #region Render Background Worker Routines
+        private Action LastAction { get; set; } = null;
         private BackgroundWorker RenderWorker = null;
 
         private void InitRenderWorker()
@@ -161,6 +163,7 @@ namespace ImageCompare
                             await Task.Delay(1);
                             DoEvents();
                             action.Invoke();
+                            LastAction = action;
                         });
                     }
                 };
@@ -178,6 +181,48 @@ namespace ImageCompare
         #endregion
 
         #region Image Display Routines
+        private ZoomFitMode CurrentZoomFitMode
+        {
+            get
+            {
+                return (Dispatcher.Invoke(() =>
+                {
+                    var value = ZoomFitMode.All;
+                    if (ZoomFitNone.IsChecked ?? false) value = ZoomFitMode.None;
+                    else if (ZoomFitAll.IsChecked ?? false) value = ZoomFitMode.All;
+                    else if (ZoomFitWidth.IsChecked ?? false) value = ZoomFitMode.Width;
+                    else if (ZoomFitHeight.IsChecked ?? false) value = ZoomFitMode.Height;
+                    return (value);
+                }));
+            }
+            set
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (value == ZoomFitMode.None)
+                    {
+                        ZoomFitNone.IsChecked = true; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = false;
+                        ImageSourceBox.Stretch = Stretch.None; ImageTargetBox.Stretch = Stretch.None; ImageResultBox.Stretch = Stretch.None;
+                    }
+                    else if (value == ZoomFitMode.All)
+                    {
+                        ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = true; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = false;
+                        ImageSourceBox.Stretch = Stretch.Uniform; ImageTargetBox.Stretch = Stretch.Uniform; ImageResultBox.Stretch = Stretch.Uniform;
+                    }
+                    else if (value == ZoomFitMode.Width)
+                    {
+                        ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = true; ZoomFitHeight.IsChecked = false;
+                        ImageSourceBox.Stretch = Stretch.None; ImageTargetBox.Stretch = Stretch.None; ImageResultBox.Stretch = Stretch.None;
+                    }
+                    else if (value == ZoomFitMode.Height)
+                    {
+                        ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = true;
+                        ImageSourceBox.Stretch = Stretch.None; ImageTargetBox.Stretch = Stretch.None; ImageResultBox.Stretch = Stretch.None;
+                    }
+                    CalcDisplay(set_ratio: true);
+                });
+            }
+        }
         private SemaphoreSlim _CanUpdate_ = new SemaphoreSlim(1, 1);
         private Dictionary<Color, string> ColorNames = new Dictionary<Color, string>();
         private Point mouse_start;
@@ -725,22 +770,28 @@ namespace ImageCompare
                     var value = appSection.Settings["MasklightColorRecents"].Value;
                     if (!string.IsNullOrEmpty(value)) SetRecentColors(MasklightColorPick, value.Split(',').Select(v => v.Trim()));
                 }
+
                 if (appSection.Settings.AllKeys.Contains("ImageCompareFuzzy"))
                 {
                     var value = ImageCompareFuzzy.Value;
                     if (double.TryParse(appSection.Settings["ImageCompareFuzzy"].Value, out value)) ImageCompareFuzzy.Value = Math.Max(0, Math.Min(100, value));
                 }
-
                 if (appSection.Settings.AllKeys.Contains("ErrorMetricMode"))
                 {
                     var value = ErrorMetricMode;
-                    if (Enum.TryParse<ErrorMetric>(appSection.Settings["ErrorMetricMode"].Value, out value)) ErrorMetricMode = value;
+                    if (Enum.TryParse(appSection.Settings["ErrorMetricMode"].Value, out value)) ErrorMetricMode = value;
                 }
                 if (appSection.Settings.AllKeys.Contains("CompositeMode"))
                 {
                     var value = CompositeMode;
-                    if (Enum.TryParse<CompositeOperator>(appSection.Settings["CompositeMode"].Value, out value)) CompositeMode = value;
+                    if (Enum.TryParse(appSection.Settings["CompositeMode"].Value, out value)) CompositeMode = value;
                 }
+                if (appSection.Settings.AllKeys.Contains("ZoomFitMode"))
+                {
+                    var value = CurrentZoomFitMode;
+                    if (Enum.TryParse(appSection.Settings["ZoomFitMode"].Value, out value)) CurrentZoomFitMode = value;
+                }
+
                 if (appSection.Settings.AllKeys.Contains("UseSmallerImage"))
                 {
                     var value = UseSmallerImage.IsChecked ?? true;
@@ -853,6 +904,11 @@ namespace ImageCompare
                     appSection.Settings["CompositeMode"].Value = CompositeMode.ToString();
                 else
                     appSection.Settings.Add("CompositeMode", CompositeMode.ToString());
+
+                if (appSection.Settings.AllKeys.Contains("ZoomFitMode"))
+                    appSection.Settings["ZoomFitMode"].Value = CurrentZoomFitMode.ToString();
+                else
+                    appSection.Settings.Add("ZoomFitMode", CurrentZoomFitMode.ToString());
 
                 if (appSection.Settings.AllKeys.Contains("UseSmallerImage"))
                     appSection.Settings["UseSmallerImage"].Value = UseSmallerImage.IsChecked.ToString();
@@ -1847,16 +1903,22 @@ namespace ImageCompare
                     {
                         mouse_start = e.GetPosition(ImageSourceScroll);
                         mouse_origin = new Point(ImageSourceScroll.HorizontalOffset, ImageSourceScroll.VerticalOffset);
+                        var pos = e.GetPosition(ImageSource);
+                        ImageSource.GetInformation().LastClickPos = new PointD(pos.X, pos.Y);
                     }
                     else if (sender == ImageTargetBox)
                     {
                         mouse_start = e.GetPosition(ImageTargetScroll);
                         mouse_origin = new Point(ImageTargetScroll.HorizontalOffset, ImageTargetScroll.VerticalOffset);
+                        var pos = e.GetPosition(ImageTarget);
+                        ImageTarget.GetInformation().LastClickPos = new PointD(pos.X, pos.Y); 
                     }
                     else if (sender == ImageResultBox)
                     {
                         mouse_start = e.GetPosition(ImageResultScroll);
                         mouse_origin = new Point(ImageResultScroll.HorizontalOffset, ImageResultScroll.VerticalOffset);
+                        var pos = e.GetPosition(ImageResult);
+                        ImageResult.GetInformation().LastClickPos = new PointD(pos.X, pos.Y); 
                     }
                 }
             }
@@ -2071,6 +2133,10 @@ namespace ImageCompare
                 ImageTarget.Tag = st;
                 UpdateImageViewer(assign: true, compose: LastOpIsCompose);
             }
+            else if (sender == RepeatLastAction)
+            {
+                RenderRun(LastAction);
+            }
             else if (sender == ImageCompose)
             {
                 RenderRun(new Action(() =>
@@ -2099,63 +2165,19 @@ namespace ImageCompare
             }
             else if (sender == ZoomFitNone)
             {
-                if (ZoomFitNone.IsChecked ?? false)
-                {
-                    ImageSourceBox.Stretch = Stretch.None;
-                    ImageTargetBox.Stretch = Stretch.None;
-                    ImageResultBox.Stretch = Stretch.None;
-
-                    ZoomFitAll.IsChecked = false;
-                    ZoomFitWidth.IsChecked = false;
-                    ZoomFitHeight.IsChecked = false;
-
-                    CalcDisplay(set_ratio: true);
-                }
+                CurrentZoomFitMode = ZoomFitMode.None;
             }
             else if (sender == ZoomFitAll)
             {
-                if (ZoomFitAll.IsChecked ?? false)
-                {
-                    ImageSourceBox.Stretch = Stretch.Uniform;
-                    ImageTargetBox.Stretch = Stretch.Uniform;
-                    ImageResultBox.Stretch = Stretch.Uniform;
-
-                    ZoomFitNone.IsChecked = false;
-                    ZoomFitWidth.IsChecked = false;
-                    ZoomFitHeight.IsChecked = false;
-
-                    CalcDisplay(set_ratio: true);
-                }
+                CurrentZoomFitMode = ZoomFitMode.All;                
             }
             else if (sender == ZoomFitWidth)
             {
-                if (ZoomFitWidth.IsChecked ?? false)
-                {
-                    ImageSourceBox.Stretch = Stretch.None;
-                    ImageTargetBox.Stretch = Stretch.None;
-                    ImageResultBox.Stretch = Stretch.None;
-
-                    ZoomFitNone.IsChecked = false;
-                    ZoomFitAll.IsChecked = false;
-                    ZoomFitHeight.IsChecked = false;
-
-                    CalcDisplay(set_ratio: true);
-                }
+                CurrentZoomFitMode = ZoomFitMode.Width;
             }
             else if (sender == ZoomFitHeight)
             {
-                if (ZoomFitHeight.IsChecked ?? false)
-                {
-                    ImageSourceBox.Stretch = Stretch.None;
-                    ImageTargetBox.Stretch = Stretch.None;
-                    ImageResultBox.Stretch = Stretch.None;
-
-                    ZoomFitNone.IsChecked = false;
-                    ZoomFitAll.IsChecked = false;
-                    ZoomFitWidth.IsChecked = false;
-
-                    CalcDisplay(set_ratio: true);
-                }
+                CurrentZoomFitMode = ZoomFitMode.Height;
             }
             else if (sender == UseSmallerImage)
             {

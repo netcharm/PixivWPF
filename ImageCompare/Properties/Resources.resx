@@ -480,4 +480,7 @@
   <data name="InfoTipColorMapsSize" xml:space="preserve">
     <value>ColorMaps Size</value>
   </data>
+  <data name="RepeatLastAction.ToolTip" xml:space="preserve">
+    <value>Repeat Last Action</value>
+  </data>
 </root>

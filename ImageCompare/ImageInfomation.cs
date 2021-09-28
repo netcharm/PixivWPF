@@ -65,6 +65,8 @@ namespace ImageCompare
         public bool Loaded { get; set; } = false;
         public bool Modified { get; set; } = false;
 
+        public PointD LastClickPos { get; set; } = new PointD(0, 0);
+
         public bool FlipX { get; set; } = false;
         public bool FlipY { get; set; } = false;
         public double Rotated { get; set; } = .0;
