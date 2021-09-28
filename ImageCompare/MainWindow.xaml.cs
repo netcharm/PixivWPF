@@ -613,38 +613,41 @@ namespace ImageCompare
 
         private void LoadImageFromFiles(string[] files, bool source = true)
         {
-            RenderRun(new Action(() =>
+            //RenderRun(new Action(() =>
+            //{
+            try
             {
-                try
+                var action = false;
+                files = files.Where(f => !string.IsNullOrEmpty(f)).Where(f => Extensions.AllSupportedFormats.Keys.ToList().Select(e => $".{e.ToLower()}").ToList().Contains(Path.GetExtension(f).ToLower())).ToArray();
+                var count = files.Length;
+                var image_s = ImageSource.GetInformation();
+                var image_t = ImageTarget.GetInformation();
+                if (count > 0)
                 {
-                    var action = false;
-                    files = files.Where(f => !string.IsNullOrEmpty(f)).Where(f => Extensions.AllSupportedFormats.Keys.ToList().Select(e => $".{e.ToLower()}").ToList().Contains(Path.GetExtension(f).ToLower())).ToArray();
-                    var count = files.Length;
-                    var image_s = ImageSource.GetInformation();
-                    var image_t = ImageTarget.GetInformation();
-                    if (count > 0)
+                    var file_s = string.Empty;
+                    var file_t = string.Empty;
+                    if (count >= 2)
                     {
-                        var file_s = string.Empty;
-                        var file_t = string.Empty;
-                        if (count >= 2)
-                        {
-                            file_s = files.First();
-                            file_t = files.Skip(1).First();
+                        file_s = files.First();
+                        file_t = files.Skip(1).First();
 
-                            action |= image_s.LoadImageFromFile(file_s, false);
-                            action |= image_t.LoadImageFromFile(file_t, false);
-                        }
-                        else
-                        {
-                            var image  = source ? image_s : image_t;
-                            file_s = files.First();
-                            action |= image.LoadImageFromFile(file_s, false);
-                        }
-                        if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: true);
+                        action |= image_s.LoadImageFromFile(file_s, false);
+                        action |= image_t.LoadImageFromFile(file_t, false);
                     }
+                    else
+                    {
+                        var image  = source ? image_s : image_t;
+                        file_s = files.First();
+                        action |= image.LoadImageFromFile(file_s, false);
+                    }
+                    //RenderRun(new Action(() =>
+                    //{
+                    if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: true);
+                    //}));
                 }
-                catch (Exception ex) { ex.ShowMessage(); }
-            }));
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+            //}));
         }
 
         private void SaveImageAs(bool source)
