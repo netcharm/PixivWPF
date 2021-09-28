@@ -1843,6 +1843,10 @@ namespace ImageCompare
                         e.Handled = true;
                         if (ImageTarget.Source != null && ImageTarget.ContextMenu != null) ImageTarget.ContextMenu.IsOpen = true;
                     }
+                    else if(e.Key == Key.R || e.SystemKey == Key.R)
+                    {
+                        RenderRun(LastAction);
+                    }
                     _last_key_ = e.Key;
                     _last_key_time_ = DateTime.Now;
                 }
