@@ -177,9 +177,9 @@ namespace Pixeez
             };
             var httpClient = new HttpClient(handler, true){ Timeout=TimeSpan.FromSeconds(timeout) };
             httpClient.DefaultRequestHeaders.Add("App-OS", "ios");
-            httpClient.DefaultRequestHeaders.Add("App-OS-Version", "12.2");
+            httpClient.DefaultRequestHeaders.Add("App-OS-Version", "14.6");
             httpClient.DefaultRequestHeaders.Add("App-Version", "7.6.2");
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/7.6.2 (iOS 12.2; iPhone9,1)");
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/7.13.3 (iOS 14.6; iPhone13,2)");
             httpClient.DefaultRequestHeaders.Add("X-Client-Time", time);
             httpClient.DefaultRequestHeaders.Add("X-Client-Hash", $"{time}{HashSecret}".MD5Hash());
 
@@ -1628,7 +1628,7 @@ namespace Pixeez
 
             var param = new Dictionary<string, string>
             {
-                { "illust_id",illust_id.ToString() }
+                { "illust_id", illust_id.ToString() }
             };
             return await AccessNewApiAsync<UgoiraMetadata>(url, true, param);
         }
@@ -1644,9 +1644,9 @@ namespace Pixeez
 
             var param = new Dictionary<string, string>
             {
-                { "image_sizes", "px_128x128,small,medium,large,px_480mw" } ,
-                { "include_stats", "true" },
-                { "include_sanity_level", "true" },
+                //{ "image_sizes", "px_128x128,small,medium,large,px_480mw" } ,
+                //{ "include_stats", "true" },
+                //{ "include_sanity_level", "true" },
             };
 
             try
@@ -1656,6 +1656,31 @@ namespace Pixeez
             catch (Exception ex) { var r = ex.Message; }
             return (result);
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="illustId"></param>
+        /// <returns></returns>
+        public async Task<List<NormalWork>> GetIllustDetailAsync(long illustId)
+        {
+            var result = default(List<NormalWork>);
+            //var url = "https://public-api.secure.pixiv.net/v1/works/" + illustId.ToString() + ".json";
+            //var url = "https://app-api.pixiv.net/v1/illust/detail";
+            var url = "https://public-api.secure.pixiv.net/v1/illust/detail";
+
+            var param = new Dictionary<string, string>
+            {
+                { "illust_id", illustId.ToString() },
+            };
+
+            try
+            {
+                result = await AccessApiAsync<List<NormalWork>>(MethodType.GET, url, param);
+            }
+            catch (Exception ex) { var r = ex.Message; }
+            return (result);
+        }
+
         #endregion
     }
 }

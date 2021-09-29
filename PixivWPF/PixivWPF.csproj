@@ -265,6 +265,7 @@
     <Compile Include="Common\LoginDialog.xaml.cs">
       <DependentUpon>LoginDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Common\PixivAjaxIllust.cs" />
     <Compile Include="Common\PixivItemTile.xaml.cs">
       <DependentUpon>PixivItemTile.xaml</DependentUpon>
     </Compile>

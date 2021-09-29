@@ -420,10 +420,14 @@ namespace PixivWPF.Pages
                 else if (content.StartsWith("IllustID:", StringComparison.CurrentCultureIgnoreCase))
                 {
                     var query = Regex.Replace(content, @"^IllustID: *?(\d+).*?$", "$1", RegexOptions.IgnoreCase).Trim();
-                    var relatives = await tokens.GetWorksAsync(Convert.ToInt64(query));
+                    //var relatives = await tokens.GetWorksAsync(Convert.ToInt64(query));
+                    //var relatives = await tokens.GetIllustDetailAsync(Convert.ToInt64(query));
+                    var work = await Convert.ToInt64(query).SearchIllustById(tokens);
+                    var relatives = new List<Pixeez.Objects.Work>() { work };
+
                     next_url = string.Empty;
 
-                    if (relatives is List<Pixeez.Objects.NormalWork>)
+                    if (relatives is List<Pixeez.Objects.Work>)
                     {
                         foreach (var illust in relatives)
                         {
