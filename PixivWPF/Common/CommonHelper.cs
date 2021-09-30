@@ -5641,10 +5641,10 @@ namespace PixivWPF.Common
             if (tokens == null) return result;
             try
             {
-                var illusts = await tokens.GetWorksAsync(IllustID);
-                //var illusts = await tokens.GetIllustDetailAsync(IllustID);
+                dynamic illusts = await tokens.GetWorksAsync(IllustID) ?? await tokens.GetIllustDetailAsync(IllustID);
+                if(illusts == null) illusts = await IllustID.SearchIllustById(tokens);
                 if (illusts == null) await IllustID.SearchIllustById(tokens);
-                if (illusts is List<Pixeez.Objects.NormalWork>)
+                if (illusts is List<Pixeez.Objects.Work>)
                 {
                     foreach (var illust in illusts)
                     {
@@ -5655,17 +5655,7 @@ namespace PixivWPF.Common
                             break;
                         }
                     }
-                }
-                //var illusts = await tokens.GetUserFavoriteWorksAsync(IllustID, restrict: restrict ? "private" : "public");
-                //if (illusts is Pixeez.Objects.Illusts)
-                //{
-                //    foreach (var illust in illusts.illusts)
-                //    {
-                //        illust.Cache();
-                //        result = illust;
-                //        break;
-                //    }
-                //}            
+                }           
             }
             catch (Exception ex)
             {
@@ -6601,147 +6591,6 @@ namespace PixivWPF.Common
         #endregion
 
         #region Get Illust/User/UserInfo
-        public static async Task<Pixeez.Objects.Work> SearchIllustById(this long id, Pixeez.Tokens tokens = null)
-        {
-            Pixeez.Objects.Work result = null;
-
-            if (tokens == null) tokens = await ShowLogin();
-            if (tokens == null) return (result);
-
-            var url = $"https://www.pixiv.net/ajax/illust/{id}";
-            using (var response = await Application.Current.GetAsyncResponse(url, method: HttpMethod.Get))
-            {
-                if (response != null && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
-                {
-                    long length = response.Content.Headers.ContentLength ?? 0;
-                    var encodes = response.Content.Headers.ContentEncoding;
-                    if (length > 0)
-                    {
-                        string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
-                        using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
-                        {
-                            using (MemoryStream ms = new MemoryStream())
-                            {
-                                await sr.CopyToAsync(ms);
-                                //await sr.FlushAsync();
-                                ms.Seek(0, SeekOrigin.Begin);
-                                var buf = new byte[ms.Length];
-                                await ms.ReadAsync(buf, 0, (int)ms.Length);
-                                var content = Encoding.UTF8.GetString(buf);
-
-                                if (!string.IsNullOrEmpty(content))
-                                {
-                                    var json = JToken.Parse(content);
-                                    if (json != null)
-                                    {
-                                        JToken t_error = json.SelectToken("$..error", false);
-                                        var error = t_error != null ? Convert.ToBoolean(t_error) : true;
-                                        if (!error)
-                                        {
-                                            JToken t_body = json.SelectToken("$..body", false);
-                                            if (t_body != null)
-                                            {
-                                                JToken t_id = t_body.SelectToken("$..illustId", false);
-                                                var iid = t_id != null ? Convert.ToInt64(t_id) : 0;
-
-                                                JToken t_uid = t_body.SelectTokens("$..userId", false).FirstOrDefault();
-                                                var uid = t_uid != null ? Convert.ToInt64(t_uid) : 0;
-                                                JToken t_uname = t_body.SelectTokens("$..userName", false).FirstOrDefault();
-                                                var uname = t_uname != null ? Convert.ToString(t_uname) : string.Empty;
-                                                JToken t_uaccount = t_body.SelectTokens("$..userAccount", false).FirstOrDefault();
-                                                var uaccount = t_uaccount != null ? Convert.ToString(t_uaccount) : string.Empty;
-
-                                                JToken t_title = t_body.SelectTokens("$..illustTitle", false).FirstOrDefault();
-                                                var title = t_title != null ? Convert.ToString(t_title) : string.Empty;
-
-                                                JToken t_caption = t_body.SelectTokens("$..caption", false).FirstOrDefault();
-                                                var caption = t_caption != null ? Convert.ToString(t_title) : string.Empty;
-
-                                                JToken t_create_date = t_body.SelectTokens("$..createDate", false).FirstOrDefault();
-                                                DateTime create_date = t_create_date != null ? Convert.ToDateTime(t_create_date) : default(DateTime);
-                                                JToken t_upload_date = t_body.SelectTokens("$..uploadDate", false).FirstOrDefault();
-                                                DateTime upload_date = t_upload_date != null ? Convert.ToDateTime(t_upload_date) : default(DateTime);
-
-                                                var query = $"\"{uname}\" \"{title}\" \"{string.Join("", caption.Take(50))}\"";
-                                                var illusts = await tokens.SearchIllustWorksAsync(query, "title_and_caption");
-                                                if (illusts is Pixeez.Objects.Illusts)
-                                                {
-                                                    foreach (var illust in illusts.illusts)
-                                                    {
-                                                        if (illust.Id == iid)
-                                                        {
-                                                            result = illust;
-                                                            break;
-                                                        }
-                                                    }
-                                                }
-
-                                                if (result == null)
-                                                {
-                                                    JToken t_width = t_body.SelectToken("$..width", false);
-                                                    int width = t_width != null ? Convert.ToInt32(t_width) : 0;
-                                                    JToken t_height= t_body.SelectToken("$..height", false);
-                                                    int height = t_height != null ? Convert.ToInt32(t_height) : 0;
-
-                                                    JToken t_pagecount = t_body.SelectToken("$..pageCount", false);
-                                                    int pagecount = t_pagecount != null ? Convert.ToInt32(t_pagecount) : 0;
-
-                                                    JToken t_urls = t_body.SelectToken("$..urls", false);
-                                                    Dictionary<string, string> urls = new Dictionary<string, string>();
-                                                    if (t_urls != null)
-                                                    {
-                                                        var keys = new string[] { "mini", "thumb", "small", "regular", "original" };
-                                                        foreach (var key in keys)
-                                                        {
-                                                            var t_url = t_urls.SelectToken($"$..{key}");
-                                                            if (t_url != null) urls.Add(key, Convert.ToString(t_url));
-                                                        }
-                                                    }
-
-
-                                                    var user = await GetUser(uid);
-
-                                                    result = new Pixeez.Objects.IllustWork()
-                                                    {
-                                                        Id = id,
-                                                        user = new Pixeez.Objects.NewUser()
-                                                        {
-                                                            Id = user.Id,
-                                                            Account = user.Account,
-                                                            Name = user.Name,
-                                                            Email = user.Email,
-                                                            is_followed = user.is_followed,
-                                                            profile_image_urls = new Pixeez.Objects.ImageUrls() { Medium = user.GetAvatarUrl() },
-                                                        },
-                                                        ImageUrls = new Pixeez.Objects.ImageUrls(),
-                                                        PageCount = pagecount,
-                                                        meta_single_page = new Pixeez.Objects.MetaSinglePage() { OriginalImageUrl = urls.ContainsKey("original") ? urls["original"] : string.Empty },
-                                                        meta_pages = new Pixeez.Objects.MetaPages[] {
-                                                        },
-                                                        //tags =,
-                                                    };
-                                                    //result.us
-                                                    //result.Title = 
-                                                    await RefreshIllustBookmarkState(result);
-                                                    //await result.User = 
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                //var data = JsonConvert.DeserializeObject<Pixeez.Objects.UgoiraAjaxMetadata>(json);
-                                //if (data is Pixeez.Objects.UgoiraAjaxMetadata) result = data.Meta;
-                            }
-                            sr.Close();
-                            sr.Dispose();
-                        }
-                    }
-                }
-            }
-            return (result);
-        }
-
         public static async Task<Pixeez.Objects.Work> GetIllust(this long id, Pixeez.Tokens tokens = null)
         {
             var illust = id.FindIllust();

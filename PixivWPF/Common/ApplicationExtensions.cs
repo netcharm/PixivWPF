@@ -53,7 +53,7 @@ namespace PixivWPF.Common
 
     public static class ApplicationExtensions
     {
-        #region
+        #region Application Const Defines
         public static string strDownloadTitle { get; } = "Download Manager";
         public static string DownloadTitle(this Application app) { return (strDownloadTitle); }
         public static string strDropBoxTitle { get; } = "DropBox";
@@ -3103,11 +3103,51 @@ namespace PixivWPF.Common
             return (await client.GetResponseAsync());
         }
         
-        public static async Task<HttpResponseMessage> GetAsyncResponse(this Application app, string url, HttpMethod method = null)
+        public static async Task<HttpResponseMessage> GetAsyncResponse(this Application app, string url, HttpMethod method = null, HttpCompletionOption option = HttpCompletionOption.ResponseHeadersRead)
         {
             var request = Application.Current.GetHttpRequest(url, method);
             var httpClient = Application.Current.GetHttpClient();
-            return (await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead));
+            return (await httpClient.SendAsync(request, option));
+        }
+
+        public static async Task<string> GetRemoteJsonAsync(this Application app, string url, HttpMethod method = null)
+        {
+            string result = null;
+            try
+            {
+                if (!string.IsNullOrEmpty(url))
+                {
+                    using (var response = await Application.Current.GetHttpClient().GetAsync(url))
+                    {
+                        //response.EnsureSuccessStatusCode();
+                        if (response != null)// && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
+                        {
+                            long length = response.Content.Headers.ContentLength ?? 0;
+                            var encodes = response.Content.Headers.ContentEncoding;
+                            if (length > 0)
+                            {
+                                string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
+                                using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                                {
+                                    using (MemoryStream ms = new MemoryStream())
+                                    {
+                                        await sr.CopyToAsync(ms);
+                                        //await sr.FlushAsync();
+                                        ms.Seek(0, SeekOrigin.Begin);
+                                        var buf = new byte[ms.Length];
+                                        await ms.ReadAsync(buf, 0, (int)ms.Length);
+                                        result = Encoding.UTF8.GetString(buf);
+                                    }
+                                    sr.Close();
+                                    sr.Dispose();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("GetRemoteJson"); }
+            return (result);
         }
         #endregion
 
