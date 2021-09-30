@@ -576,6 +576,8 @@ namespace PixivWPF
                 Commands.OpenConfig.Execute(null);
             else if (sender == CommandMaintainCustomTag)
                 Commands.MaintainCustomTag.Execute(null);
+            else if (sender == CommandMaintainNetwork)
+                Commands.MaintainNetwork.Execute(null);
         }
 
         private void CommandRestart_DropDownOpened(object sender, EventArgs e)

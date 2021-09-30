@@ -381,6 +381,40 @@ namespace PixivWPF.Common
         #endregion
 
         #region Illust and MetaPage Helper
+        public static string GetAjaxMetaPageUrl(this string id)
+        {
+            if (string.IsNullOrEmpty(id)) return (string.Empty);
+            else return ($"https://www.pixiv.net/ajax/illust/{id}/pages");
+        }
+
+        public static string GetAjaxMetaPageUrl(this long id)
+        {
+            if (id == 0) return (string.Empty);
+            else return (GetAjaxMetaPageUrl(id.ToString()));
+        }
+
+        public static string GetAjaxMetaPageUrl(this long? id)
+        {
+            return (GetAjaxMetaPageUrl((id ?? 0).ToString()));
+        }
+
+        public static string GetAjaxIllustUrl(this string id)
+        {
+            if (string.IsNullOrEmpty(id)) return (string.Empty);
+            else return ($"https://www.pixiv.net/ajax/illust/{id}");
+        }
+
+        public static string GetAjaxIllustUrl(this long id)
+        {
+            if (id == 0) return (string.Empty);
+            else return (GetAjaxIllustUrl(id.ToString()));
+        }
+
+        public static string GetAjaxIllustUrl(this long? id)
+        {
+            return (GetAjaxIllustUrl((id ?? 0).ToString()));
+        }
+
         public static async Task<List<Pixeez.Objects.Page>> GetMetaPages(this string url, Pixeez.Tokens tokens = null)
         {
             List<Pixeez.Objects.Page> result = null;
@@ -415,6 +449,33 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static async Task<List<Pixeez.Objects.Page>> GetMetaPages(this Pixeez.Objects.NormalWork work, Pixeez.Tokens tokens = null)
+        {
+            if (work is Pixeez.Objects.Work)
+            {
+                return (await GetMetaPages(GetAjaxMetaPageUrl(work.Id), tokens));
+            }
+            else return (null);
+        }
+
+        public static async Task<Pixeez.Objects.Metadata> GetMetaData(this string url, Pixeez.Tokens tokens = null)
+        {
+            var pages = await GetMetaPages(url, tokens);
+            if (pages is List<Pixeez.Objects.Page> && pages.Count > 0)
+                return (new Pixeez.Objects.Metadata() { Pages = pages });
+            else 
+                return (null);
+        }
+
+        public static async Task<Pixeez.Objects.Metadata> GetMetaData(this Pixeez.Objects.Work work, Pixeez.Tokens tokens = null)
+        {
+            if (work is Pixeez.Objects.Work)
+            {
+                return (await GetMetaData(GetAjaxMetaPageUrl(work.Id), tokens));
+            }
+            else return (null);
+        }
+
         public static async Task<List<Pixeez.Objects.Work>> SearchIllustById(this long id, Pixeez.Tokens tokens = null, bool fuzzy = false)
         {
             List<Pixeez.Objects.Work> result = null;
@@ -422,7 +483,7 @@ namespace PixivWPF.Common
             if (tokens == null) tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return (result);
 
-            var url = $"https://www.pixiv.net/ajax/illust/{id}";
+            var url =GetAjaxIllustUrl(id);
             var json_text = await Application.Current.GetRemoteJsonAsync(url);
             if (!string.IsNullOrEmpty(json_text))
             {
@@ -478,7 +539,7 @@ namespace PixivWPF.Common
                         image_urls.Original = illust.ImageUrls.Original;
                         #endregion
 
-                        var pages_url = $"https://www.pixiv.net/ajax/illust/{id}/pages";
+                        var pages_url = GetAjaxMetaPageUrl(id);
                         List<Pixeez.Objects.Page> pages = illust.PageCount > 1 ? await GetMetaPages(pages_url, tokens) : null;
                         var meta_pages = pages.Select(p => new Pixeez.Objects.MetaPages() { ImageUrls = p.ImageUrls });
 

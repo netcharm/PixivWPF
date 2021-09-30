@@ -1031,8 +1031,9 @@ namespace PixivWPF.Common
                 var subset = illust as Pixeez.Objects.NormalWork;
                 if ((subset.PageCount ?? 0) >= 1 && subset.Metadata == null)
                 {
-                    var illust_n = await illust.RefreshIllust();
-                    if (illust_n is Pixeez.Objects.Work) illust = illust_n;
+                    subset.Metadata = await subset.GetMetaData();
+                    //var illust_n = await illust.RefreshIllust();
+                    //if (illust_n is Pixeez.Objects.Work) illust = illust_n;
                 }
                 if (illust.Metadata is Pixeez.Objects.Metadata)
                 {

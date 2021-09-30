@@ -208,6 +208,14 @@ namespace PixivWPF.Common
             }).InvokeAsync(true);
         });
 
+        public static ICommand MaintainNetwork { get; } = new DelegateCommand<string>(async obj =>
+        {
+            await new Action(() =>
+            {
+                Application.Current.ReleaseHttpClient();
+            }).InvokeAsync(true);
+        });
+
         public static ICommand Login { get; } = new DelegateCommand(() =>
         {
             var setting = Application.Current.LoadSetting();
@@ -1870,7 +1878,8 @@ namespace PixivWPF.Common
                             }
                             else
                             {
-                                illust = await illust.RefreshIllust();
+                                illust.Metadata = await illust.GetMetaData();
+                                //illust = await illust.RefreshIllust();
                                 if (illust != null && illust.Metadata != null && illust.Metadata.Pages != null)
                                 {
                                     illust.Cache();

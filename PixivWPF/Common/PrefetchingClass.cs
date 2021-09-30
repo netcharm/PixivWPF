@@ -109,7 +109,8 @@ namespace PixivWPF.Common
                                 var subset = illust as Pixeez.Objects.NormalWork;
                                 if ((subset.PageCount ?? 0) >= 1 && subset.Metadata == null)
                                 {
-                                    illust = await illust.RefreshIllust();
+                                    subset.Metadata = await subset.GetMetaData();
+                                    //illust = await illust.RefreshIllust();
                                 }
                                 if (illust != null && illust.Metadata is Pixeez.Objects.Metadata)
                                 {
@@ -162,7 +163,8 @@ namespace PixivWPF.Common
                                 var subset = illust as Pixeez.Objects.NormalWork;
                                 if ((subset.PageCount ?? 0) >= 1 && subset.Metadata == null)
                                 {
-                                    illust = await illust.RefreshIllust();
+                                    subset.Metadata = await subset.GetMetaData();
+                                    //illust = await illust.RefreshIllust();
                                 }
                                 if (illust != null && illust.Metadata is Pixeez.Objects.Metadata)
                                 {
@@ -215,7 +217,8 @@ namespace PixivWPF.Common
                                 var subset = illust as Pixeez.Objects.NormalWork;
                                 if ((subset.PageCount ?? 0) >= 1 && subset.Metadata == null)
                                 {
-                                    illust = await illust.RefreshIllust();
+                                    subset.Metadata = await subset.GetMetaData();
+                                    //illust = await illust.RefreshIllust();
                                 }
                                 if (illust != null && illust.Metadata is Pixeez.Objects.Metadata)
                                 {
@@ -303,9 +306,9 @@ namespace PixivWPF.Common
                 var args = e.Argument is PrefetchingOpts ? e.Argument as PrefetchingOpts : new PrefetchingOpts();
                 if (!args.PrefetchingPreview) return (result);
 
-                State = TaskStatus.Running;
+                State = TaskStatus.WaitingToRun;
 
-                var comments = Comments;
+                var comments = Comments.Substring(0, Comments.IndexOf("]")+1);
                 var count = originals.Count;
                 bool paralllel = args.ParallelPrefetching;
                 var parallels = args.PrefetchingDownloadParallel;

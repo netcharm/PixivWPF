@@ -2018,8 +2018,9 @@ namespace PixivWPF.Pages
                         var subset = item.Illust as Pixeez.Objects.NormalWork;
                         if ((subset.PageCount ?? 0) >= 1 && subset.Metadata == null)
                         {
-                            var illust = await item.Illust.RefreshIllust();
-                            if (illust is Pixeez.Objects.Work) item.Illust = illust;
+                            item.Illust.Metadata = await subset.GetMetaData();
+                            //var illust = await item.Illust.RefreshIllust();
+                            //if (illust is Pixeez.Objects.Work) item.Illust = illust;
                         }
                         if (item.Illust.Metadata is Pixeez.Objects.Metadata)
                         {
