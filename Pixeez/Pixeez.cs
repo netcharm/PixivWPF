@@ -473,7 +473,8 @@ namespace Pixeez
             AsyncResponse result = null;
             using (var httpClient = PIXIV.Client(Auth.Proxy, Auth.ProxyBypass, Auth.UsingProxy, Auth.TimeOut))
             {
-                httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
+                //httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
+                httpClient.DefaultRequestHeaders.Add("Referer", "https://public-api.secure.pixiv.net/");
                 result = await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient);
             }
             return (result);
@@ -1632,6 +1633,7 @@ namespace Pixeez
             };
             return await AccessNewApiAsync<UgoiraMetadata>(url, true, param);
         }
+
         /// <summary>
         /// <para>Available parameters:</para>
         /// <para>- <c>long</c> illustId (required)</para>
@@ -1644,9 +1646,9 @@ namespace Pixeez
 
             var param = new Dictionary<string, string>
             {
-                //{ "image_sizes", "px_128x128,small,medium,large,px_480mw" } ,
-                //{ "include_stats", "true" },
-                //{ "include_sanity_level", "true" },
+                { "image_sizes", "px_128x128,small,medium,large,px_480mw" } ,
+                { "include_stats", "true" },
+                { "include_sanity_level", "true" },
             };
 
             try
@@ -1656,6 +1658,7 @@ namespace Pixeez
             catch (Exception ex) { var r = ex.Message; }
             return (result);
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -1671,6 +1674,7 @@ namespace Pixeez
             var param = new Dictionary<string, string>
             {
                 { "illust_id", illustId.ToString() },
+                { "filter", "for_android" }
             };
 
             try

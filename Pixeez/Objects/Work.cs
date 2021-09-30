@@ -113,7 +113,7 @@ namespace Pixeez.Objects
     public class UgoiraMetadata
     {
         [JsonProperty("ugoira_metadata")]
-        public UgoiraInfo Metadata  { get; set; }
+        public UgoiraInfo Metadata { get; set; }
     }
 
     public class UgoiraAjaxMetadata
@@ -203,8 +203,6 @@ namespace Pixeez.Objects
 
         [JsonProperty("reuploaded_time")]
         public string ReuploadedTime { get; set; }
-
-
 
         [JsonProperty("is_manga")]
         public bool? IsManga { get; set; }
