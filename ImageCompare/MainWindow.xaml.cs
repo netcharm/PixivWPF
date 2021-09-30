@@ -1670,8 +1670,8 @@ namespace ImageCompare
             #endregion
 
             #region Default Zoom Ratio
-            ZoomFitAll.IsChecked = true;
-            ImageActions_Click(ZoomFitAll, e);
+            //ZoomFitAll.IsChecked = true;
+            //ImageActions_Click(ZoomFitAll, e);
             #endregion
 
             if (ImageSource.Tag == null) ImageSource.Tag = new ImageInformation() { Tagetment = ImageSource };
