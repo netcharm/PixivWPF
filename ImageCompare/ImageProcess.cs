@@ -965,11 +965,15 @@ namespace ImageCompare
                 {
                     if (image.Current.ColorFuzz.ToDouble() != ImageCompareFuzzy.Value) image.Current.ColorFuzz = new Percentage(ImageCompareFuzzy.Value);
                     image.Current.BackgroundColor = MasklightColor ?? MagickColors.Transparent;
-                    image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, 1);
-                    image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, image.Current.Width - 2, 1);
-                    image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, image.Current.Width - 2, image.Current.Height - 2);
-                    image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, image.Current.Height - 2);
-                    image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, image.LastClickPos);
+                    if (image.LastClickPos == null)
+                    {
+                        image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, 1);
+                        image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, image.Current.Width - 2, 1);
+                        image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, image.Current.Width - 2, image.Current.Height - 2);
+                        image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, image.Current.Height - 2);
+                    }
+                    else
+                        image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, image.LastClickPos);
                     action = true;
                 }
 
