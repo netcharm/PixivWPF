@@ -4965,7 +4965,7 @@ namespace PixivWPF.Common
             if (DownloadTaskCache is ConcurrentDictionary<string, byte[]> && DownloadTaskCache.ContainsKey(file))
             {
                 byte[] d = null;
-                if(DownloadTaskCache.TryGetValue(file, out d))
+                if (DownloadTaskCache.TryGetValue(file, out d))
                 {
                     if (d is byte[]) result = d.Length;
                 }
@@ -4992,7 +4992,7 @@ namespace PixivWPF.Common
                 file.WaitFileUnlock();
                 File.WriteAllText(file, json, new UTF8Encoding(true));
             }
-            catch(Exception ex) { ex.ERROR("SaveImageFileSizeData"); }
+            catch (Exception ex) { ex.ERROR("SaveImageFileSizeData"); }
         }
 
         public static void LoadImageFileSizeData(this string file)
@@ -5642,7 +5642,7 @@ namespace PixivWPF.Common
             try
             {
                 dynamic illusts = await tokens.GetWorksAsync(IllustID) ?? await tokens.GetIllustDetailAsync(IllustID);
-                if(illusts == null) illusts = await IllustID.SearchIllustById(tokens);
+                if (illusts == null) illusts = await IllustID.SearchIllustById(tokens);
                 if (illusts == null) await IllustID.SearchIllustById(tokens);
                 if (illusts is List<Pixeez.Objects.Work>)
                 {
@@ -5655,7 +5655,7 @@ namespace PixivWPF.Common
                             break;
                         }
                     }
-                }           
+                }
             }
             catch (Exception ex)
             {
@@ -6484,6 +6484,18 @@ namespace PixivWPF.Common
                 UserCache[user.Id] = user;
         }
 
+        public static void Cache(this Pixeez.Objects.User user)
+        {
+            if (user is Pixeez.Objects.UserBase)
+                (user as Pixeez.Objects.UserBase).Cache();
+        }
+
+        public static void Cache(this Pixeez.Objects.NewUser user)
+        {
+            if (user is Pixeez.Objects.UserBase)
+                (user as Pixeez.Objects.UserBase).Cache();
+        }
+
         public static void Cache(this Pixeez.Objects.Work illust)
         {
             if (illust is Pixeez.Objects.Work)
@@ -6509,6 +6521,18 @@ namespace PixivWPF.Common
                 }
                 IllustCache[illust.Id] = illust;
             }
+        }
+
+        public static void Cache(this Pixeez.Objects.IllustWork illust)
+        {
+            if (illust is Pixeez.Objects.Work)
+                (illust as Pixeez.Objects.Work).Cache();
+        }
+
+        public static void Cache(this Pixeez.Objects.NormalWork illust)
+        {
+            if (illust is Pixeez.Objects.Work)
+                (illust as Pixeez.Objects.Work).Cache();
         }
 
         public static void Cache(this Pixeez.Objects.UserInfo userinfo)
