@@ -144,7 +144,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Config load/save relative
+        #region Config load/save Related
         private static SemaphoreSlim CanConfigRead = new SemaphoreSlim(1, 1);
         private static SemaphoreSlim CanConfigWrite = new SemaphoreSlim(1, 1);
 
@@ -444,7 +444,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Load/Save tag relative
+        #region Load/Save tag Related
         private bool using_tts_slice = true;
         public bool TextSlicingUsingTTS
         {
@@ -671,7 +671,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Pixiv account relative
+        #region Pixiv account Related
         private string accesstoken = string.Empty;
         public string AccessToken
         {
@@ -887,7 +887,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region UI theme/font relative
+        #region UI theme/font Related
         [JsonIgnore]
         private FontFamily fontfamily = SystemFonts.MessageFontFamily;
         [JsonIgnore]
@@ -940,7 +940,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Mouse relative
+        #region Mouse Related
         private bool mouse_xbutton_reverse = false;
         public bool ReverseMouseXButton
         {
@@ -953,7 +953,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region network relative
+        #region network Related
         private string proxy = string.Empty;
         public string Proxy
         {
@@ -988,7 +988,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Download relative
+        #region Download Related
         private bool download_by_api = true;
         public bool DownloadByAPI
         {
@@ -1180,7 +1180,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region History relative
+        #region History Related
         private int history_max = 150;
         public int HistoryMax
         {
@@ -1221,7 +1221,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Viewing relative
+        #region Viewing Related
         private PixivPage default_page = PixivPage.Recommanded;
         [JsonConverter(typeof(StringEnumConverter))]
         public PixivPage DefaultPage
@@ -1477,7 +1477,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Favorite/Follow relative
+        #region Favorite/Follow Related
         private bool private_fav_prefer = false;
         public bool PrivateFavPrefer
         {
@@ -1512,7 +1512,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Selection behavior relative
+        #region Selection behavior Related
         private bool open_with_selection_order = true;
         public bool OpenWithSelectionOrder
         {
@@ -1536,7 +1536,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Speech relative
+        #region Speech Related
         private Dictionary<string, string> speech_names = SpeechTTS.GetNames();
         public Dictionary<string, string> SpeechPreferList
         {
@@ -1640,7 +1640,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Shell bridge relative
+        #region Shell bridge Related
         private string shell_search_app = "PixivWPFSearch.exe";
         public string ShellSearchBridgeApplication
         {
@@ -1786,7 +1786,7 @@ namespace PixivWPF.Common
 
         #endregion
 
-        #region Window relative
+        #region Window Related
         private Point dropbox_pos = new Point(0, 0);
         public Point DropBoxPosition
         {
@@ -1824,7 +1824,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Template relative
+        #region Template Related
         private DateTime contents_template_time = new DateTime(0);
         public DateTime ContentsTemplateTime
         {
@@ -1900,7 +1900,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Storage monitor relative
+        #region Storage monitor Related
         private string save_folder = string.Empty;
         private string SaveFolder
         {

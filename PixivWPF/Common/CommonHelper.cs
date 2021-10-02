@@ -6802,7 +6802,7 @@ namespace PixivWPF.Common
         #endregion
         #endregion
 
-        #region UI Element Relative
+        #region UI Element Related
         public static string GetUid(this object obj)
         {
             string result = string.Empty;

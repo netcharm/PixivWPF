@@ -55,8 +55,8 @@ namespace PixivWPF.Pages
         private string PreviewImagePath { get; set; } = string.Empty;
         private string AvatarImageUrl { get; set; } = string.Empty;
 
-        private string CurrentRelativeURL { get; set; } = string.Empty;
-        private string NextRelativeURL { get; set; } = string.Empty;
+        private string CurrentRelatedURL { get; set; } = string.Empty;
+        private string RelatedNextURL { get; set; } = string.Empty;
 
         private string CurrentFavoriteURL { get; set; } = string.Empty;
         private string NextFavoriteURL { get; set; } = string.Empty;
@@ -766,7 +766,7 @@ namespace PixivWPF.Pages
         }
         #endregion
 
-        #region Illust/User info relative methods
+        #region Illust/User info related methods
         public void UpdateIllustTitle()
         {
             try
@@ -918,7 +918,7 @@ namespace PixivWPF.Pages
                     if (illustid == -1 || illustid == work_id) UpdateDownloadedMark(Contents, exists);
                     UpdateUg();
                 }
-                foreach (var illusts in new List<ImageListGrid>() { SubIllusts, RelativeItems, FavoriteItems })
+                foreach (var illusts in new List<ImageListGrid>() { SubIllusts, RelatedItems, FavoriteItems })
                 {
                     if (illusts.Items.Count > 0)
                     {
@@ -1081,7 +1081,7 @@ namespace PixivWPF.Pages
                         if (illustid == -1 || illustid == work_id) UpdateFavMark(Contents.Illust);
                     }
                 }
-                foreach (var illusts in new List<ImageListGrid>() { SubIllusts, RelativeItems, FavoriteItems })
+                foreach (var illusts in new List<ImageListGrid>() { SubIllusts, RelatedItems, FavoriteItems })
                 {
                     if (illusts.Items.Count > 0)
                     {
@@ -1103,8 +1103,8 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (RelativeItems.IsKeyboardFocusWithin)
-                    Commands.ChangeIllustLikeState.Execute(RelativeItems);
+                if (RelatedItems.IsKeyboardFocusWithin)
+                    Commands.ChangeIllustLikeState.Execute(RelatedItems);
                 else if (FavoriteItems.IsKeyboardFocusWithin)
                     Commands.ChangeIllustLikeState.Execute(FavoriteItems);
                 else if (Contents.IsWork())
@@ -1117,8 +1117,8 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (RelativeItems.IsKeyboardFocusWithin)
-                    Commands.ChangeUserLikeState.Execute(RelativeItems);
+                if (RelatedItems.IsKeyboardFocusWithin)
+                    Commands.ChangeUserLikeState.Execute(RelatedItems);
                 else if (FavoriteItems.IsKeyboardFocusWithin)
                     Commands.ChangeUserLikeState.Execute(FavoriteItems);
                 else if (Contents.HasUser())
@@ -1131,8 +1131,8 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (RelativeItems.IsKeyboardFocusWithin)
-                    Commands.OpenUser.Execute(RelativeItems);
+                if (RelatedItems.IsKeyboardFocusWithin)
+                    Commands.OpenUser.Execute(RelatedItems);
                 else if (FavoriteItems.IsKeyboardFocusWithin)
                     Commands.OpenUser.Execute(FavoriteItems);
                 else if (Contents.IsWork())
@@ -1145,12 +1145,12 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (RelativeItems.IsKeyboardFocusWithin || RelativeItemsExpander.IsKeyboardFocusWithin)
-                    Commands.OpenDownloaded.Execute(RelativeItems);
+                if (RelatedItems.IsKeyboardFocusWithin || RelatedItemsExpander.IsKeyboardFocusWithin)
+                    Commands.OpenDownloaded.Execute(RelatedItems);
                 else if (FavoriteItems.IsKeyboardFocusWithin || FavoriteItemsExpander.IsKeyboardFocusWithin)
                     Commands.OpenDownloaded.Execute(FavoriteItems);
-                else if (RelativeItems.SelectedItems.FirstOrDefault() != null && RelativeItems.SelectedItems.FirstOrDefault().IsFocused)
-                    Commands.OpenDownloaded.Execute(RelativeItems);
+                else if (RelatedItems.SelectedItems.FirstOrDefault() != null && RelatedItems.SelectedItems.FirstOrDefault().IsFocused)
+                    Commands.OpenDownloaded.Execute(RelatedItems);
                 else if (FavoriteItems.SelectedItems.FirstOrDefault() != null && FavoriteItems.SelectedItems.FirstOrDefault().IsFocused)
                     Commands.OpenDownloaded.Execute(FavoriteItems);
                 else if (Contents.IsWork())
@@ -1188,12 +1188,12 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (RelativeItems.IsKeyboardFocusWithin || RelativeItemsExpander.IsKeyboardFocusWithin)
-                    Commands.OpenCachedImage.Execute(RelativeItems);
+                if (RelatedItems.IsKeyboardFocusWithin || RelatedItemsExpander.IsKeyboardFocusWithin)
+                    Commands.OpenCachedImage.Execute(RelatedItems);
                 else if (FavoriteItems.IsKeyboardFocusWithin || FavoriteItemsExpander.IsKeyboardFocusWithin)
                     Commands.OpenCachedImage.Execute(FavoriteItems);
-                else if (RelativeItems.SelectedItems.FirstOrDefault() != null && RelativeItems.SelectedItems.FirstOrDefault().IsFocused)
-                    Commands.OpenCachedImage.Execute(RelativeItems);
+                else if (RelatedItems.SelectedItems.FirstOrDefault() != null && RelatedItems.SelectedItems.FirstOrDefault().IsFocused)
+                    Commands.OpenCachedImage.Execute(RelatedItems);
                 else if (FavoriteItems.SelectedItems.FirstOrDefault() != null && FavoriteItems.SelectedItems.FirstOrDefault().IsFocused)
                     Commands.OpenCachedImage.Execute(FavoriteItems);
                 else if (Contents.IsWork())
@@ -1228,12 +1228,12 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (RelativeItems.IsKeyboardFocusWithin || RelativeItemsExpander.IsKeyboardFocusWithin)
-                    Commands.OpenFileProperties.Execute(RelativeItems);
+                if (RelatedItems.IsKeyboardFocusWithin || RelatedItemsExpander.IsKeyboardFocusWithin)
+                    Commands.OpenFileProperties.Execute(RelatedItems);
                 else if (FavoriteItems.IsKeyboardFocusWithin || FavoriteItemsExpander.IsKeyboardFocusWithin)
                     Commands.OpenFileProperties.Execute(FavoriteItems);
-                else if (RelativeItems.SelectedItems.FirstOrDefault() != null && RelativeItems.SelectedItems.FirstOrDefault().IsFocused)
-                    Commands.OpenFileProperties.Execute(RelativeItems);
+                else if (RelatedItems.SelectedItems.FirstOrDefault() != null && RelatedItems.SelectedItems.FirstOrDefault().IsFocused)
+                    Commands.OpenFileProperties.Execute(RelatedItems);
                 else if (FavoriteItems.SelectedItems.FirstOrDefault() != null && FavoriteItems.SelectedItems.FirstOrDefault().IsFocused)
                     Commands.OpenFileProperties.Execute(FavoriteItems);
                 else if (Contents.IsWork())
@@ -1273,12 +1273,12 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (RelativeItems.IsKeyboardFocusWithin || RelativeItemsExpander.IsKeyboardFocusWithin)
-                    Commands.SaveIllust.Execute(RelativeItems);
+                if (RelatedItems.IsKeyboardFocusWithin || RelatedItemsExpander.IsKeyboardFocusWithin)
+                    Commands.SaveIllust.Execute(RelatedItems);
                 else if (FavoriteItems.IsKeyboardFocusWithin || FavoriteItemsExpander.IsKeyboardFocusWithin)
                     Commands.SaveIllust.Execute(FavoriteItems);
-                else if (RelativeItems.SelectedItems.FirstOrDefault() != null && RelativeItems.SelectedItems.FirstOrDefault().IsFocused)
-                    Commands.SaveIllust.Execute(RelativeItems);
+                else if (RelatedItems.SelectedItems.FirstOrDefault() != null && RelatedItems.SelectedItems.FirstOrDefault().IsFocused)
+                    Commands.SaveIllust.Execute(RelatedItems);
                 else if (FavoriteItems.SelectedItems.FirstOrDefault() != null && FavoriteItems.SelectedItems.FirstOrDefault().IsFocused)
                     Commands.SaveIllust.Execute(FavoriteItems);
                 else if (SubIllusts.Items.Count > 0)
@@ -1293,12 +1293,12 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (RelativeItems.IsKeyboardFocusWithin || RelativeItemsExpander.IsKeyboardFocusWithin)
-                    Commands.SaveIllustAll.Execute(RelativeItems);
+                if (RelatedItems.IsKeyboardFocusWithin || RelatedItemsExpander.IsKeyboardFocusWithin)
+                    Commands.SaveIllustAll.Execute(RelatedItems);
                 else if (FavoriteItems.IsKeyboardFocusWithin || FavoriteItemsExpander.IsKeyboardFocusWithin)
                     Commands.SaveIllustAll.Execute(FavoriteItems);
-                else if (RelativeItems.SelectedItems.FirstOrDefault() != null && RelativeItems.SelectedItems.FirstOrDefault().IsFocused)
-                    Commands.SaveIllustAll.Execute(RelativeItems);
+                else if (RelatedItems.SelectedItems.FirstOrDefault() != null && RelatedItems.SelectedItems.FirstOrDefault().IsFocused)
+                    Commands.SaveIllustAll.Execute(RelatedItems);
                 else if (FavoriteItems.SelectedItems.FirstOrDefault() != null && FavoriteItems.SelectedItems.FirstOrDefault().IsFocused)
                     Commands.SaveIllustAll.Execute(FavoriteItems);
                 else if (Contents.IsWork())
@@ -1336,10 +1336,10 @@ namespace PixivWPF.Pages
             {
                 CopyPreview(loadfromfile: true);
             }
-            else if (RelativeItems.IsFocused || RelativeItems.IsKeyboardFocusWithin || RelativeItems.IsKeyboardFocused)
+            else if (RelatedItems.IsFocused || RelatedItems.IsKeyboardFocusWithin || RelatedItems.IsKeyboardFocused)
             {
                 List<string> info = new List<string>();
-                foreach (var item in RelativeItems.GetSelected(WithSelectionOrder: false, NonForAll: true))
+                foreach (var item in RelatedItems.GetSelected(WithSelectionOrder: false, NonForAll: true))
                 {
                     info.Add($"ID:{item.ID}, UID:{item.UserID}");
                     info.Add($"INFO: {item.ToolTip}");
@@ -1547,7 +1547,7 @@ namespace PixivWPF.Pages
                             if (Contents.Count <= 1 || Contents.IsUser()) items.Add(Contents);
                             else if (Contents.Count <= 30) items.AddRange(SubIllusts.Items.Where(p => p.Index != Contents.Index));
                             else items.AddRange((await Contents.Illust.PageItems(touch: true)).Where(p => p.Index != Contents.Index));
-                            items.AddRange(RelativeItems.Items);
+                            items.AddRange(RelatedItems.Items);
                             items.AddRange(FavoriteItems.Items);
                             items = items.Distinct().ToList();
                             if (items.Count > 0)
@@ -1560,7 +1560,7 @@ namespace PixivWPF.Pages
                         if (full)
                         {
                             SubIllusts.UpdateTilesImage(overwrite);
-                            RelativeItems.UpdateTilesImage(overwrite);
+                            RelatedItems.UpdateTilesImage(overwrite);
                             FavoriteItems.UpdateTilesImage(overwrite);
                             if (Contents.IsWork())
                             {
@@ -1577,8 +1577,8 @@ namespace PixivWPF.Pages
                         {
                             if (SubIllustsExpander.IsKeyboardFocusWithin || SubIllusts.IsKeyboardFocusWithin)
                                 SubIllusts.UpdateTilesImage(overwrite);
-                            else if (RelativeItemsExpander.IsKeyboardFocusWithin || RelativeItems.IsKeyboardFocusWithin)
-                                RelativeItems.UpdateTilesImage(overwrite);
+                            else if (RelatedItemsExpander.IsKeyboardFocusWithin || RelatedItems.IsKeyboardFocusWithin)
+                                RelatedItems.UpdateTilesImage(overwrite);
                             else if (FavoriteItemsExpander.IsKeyboardFocusWithin || FavoriteItems.IsKeyboardFocusWithin)
                                 FavoriteItems.UpdateTilesImage(overwrite);
                             else
@@ -1779,17 +1779,19 @@ namespace PixivWPF.Pages
                 }
                 UpdateSubPageNav();
 
-                RelativeItems.ClearAsync(setting.BatchClearThumbnails);
-                RelativeItemsExpander.Header = "Related Illusts";
-                RelativeItemsExpander.IsExpanded = false;
-                RelativeItemsExpander.Show();
-                RelativeNextPage.Hide();
+                RelatedItems.ClearAsync(setting.BatchClearThumbnails);
+                RelatedItemsExpander.Header = "Related Illusts";
+                RelatedItemsExpander.IsExpanded = false;
+                RelatedItemsExpander.Show();
+                RelatedNextPage.Hide();
+                RelatedRefresh.Hide();
 
                 FavoriteItems.ClearAsync(setting.BatchClearThumbnails);
                 FavoriteItemsExpander.Header = "Author Favorite";
                 FavoriteItemsExpander.IsExpanded = false;
                 FavoriteItemsExpander.Show();
                 FavoriteNextPage.Hide();
+                FavoriteRefresh.Hide();
 #if DEBUG
                 CommentsExpander.IsExpanded = false;
                 CommentsNavigator.Hide();
@@ -1933,10 +1935,10 @@ namespace PixivWPF.Pages
                 SubIllustsExpander.Hide();
                 PreviewBadge.Hide();
 
-                RelativeItemsExpander.Header = "Illusts";
-                RelativeItemsExpander.Show();
-                RelativeNextPage.Hide();
-                RelativeItemsExpander.IsExpanded = false;
+                RelatedItemsExpander.Header = "Illusts";
+                RelatedItemsExpander.Show();
+                RelatedNextPage.Hide();
+                RelatedItemsExpander.IsExpanded = false;
 
                 FavoriteItemsExpander.Header = "Favorite";
                 FavoriteItemsExpander.Show();
@@ -1965,7 +1967,7 @@ namespace PixivWPF.Pages
         }
         #endregion
 
-        #region Subillusts/Relative illusts/Favorite illusts helper
+        #region Subillusts/Related illusts/Favorite illusts helper
         private async Task ShowIllustPages(PixivItem item, int index = 0, int page = 0, int count = -1)
         {
             try
@@ -2065,17 +2067,17 @@ namespace PixivWPF.Pages
             }).InvokeAsync();
         }
 
-        private List<long?> relative_illusts = new List<long?>();
-        private async Task ShowRelativeInline(PixivItem item, string next_url = "", bool append = false)
+        private List<long?> related_illusts = new List<long?>();
+        private async Task ShowRelatedInline(PixivItem item, string next_url = "", bool append = false)
         {
             try
             {
-                RelativeItems.Wait();
-                if (!(relative_illusts is List<long?>)) relative_illusts = new List<long?>();
+                RelatedItems.Wait();
+                if (!(related_illusts is List<long?>)) related_illusts = new List<long?>();
                 if (!append)
                 {
-                    RelativeItems.Clear(setting.BatchClearThumbnails);
-                    relative_illusts.Clear();
+                    RelatedItems.Clear(setting.BatchClearThumbnails);
+                    related_illusts.Clear();
                 }
 
                 var tokens = await CommonHelper.ShowLogin();
@@ -2083,55 +2085,55 @@ namespace PixivWPF.Pages
 
                 var lastUrl = next_url;
                 if (string.IsNullOrEmpty(next_url)) FavoriteNextPage.ToolTip = null;
-                var relatives = string.IsNullOrEmpty(next_url) ? await tokens.GetRelatedWorks(item.Illust.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
-                next_url = relatives.next_url ?? string.Empty;
+                var related = string.IsNullOrEmpty(next_url) ? await tokens.GetRelatedWorks(item.Illust.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
+                next_url = related.next_url ?? string.Empty;
 
-                if (relatives.illusts is Array)
+                if (related.illusts is Array)
                 {
-                    RelativeNextPage.Show(!next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase));
+                    RelatedNextPage.Show(!next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase));
 
                     if (!append)
                     {
-                        RelativeItemsExpander.Tag = lastUrl;
-                        CurrentRelativeURL = lastUrl;
+                        RelatedItemsExpander.Tag = lastUrl;
+                        CurrentRelatedURL = lastUrl;
                     }
-                    NextRelativeURL = next_url;
-                    RelativeNextPage.Tag = next_url;
-                    RelativeNextPage.ToolTip = next_url.CalcUrlPageHint(0, RelativeNextPage.ToolTip is string ? RelativeNextPage.ToolTip as string : null);
-                    RelativeNextPage.Show(show: !string.IsNullOrEmpty(CurrentRelativeURL) || !string.IsNullOrEmpty(next_url));
-                    RelativeNextAppend.Show(show: !string.IsNullOrEmpty(CurrentRelativeURL) || !string.IsNullOrEmpty(next_url));
+                    RelatedNextURL = next_url;
+                    RelatedNextPage.Tag = next_url;
+                    RelatedNextPage.ToolTip = next_url.CalcUrlPageHint(0, RelatedNextPage.ToolTip is string ? RelatedNextPage.ToolTip as string : null);
+                    RelatedNextPage.Show(show: !string.IsNullOrEmpty(CurrentRelatedURL) || !string.IsNullOrEmpty(next_url));
+                    RelatedNextAppend.Show(show: !string.IsNullOrEmpty(CurrentRelatedURL) || !string.IsNullOrEmpty(next_url));
 
-                    foreach (var illust in relatives.illusts)
+                    foreach (var illust in related.illusts)
                     {
-                        if (relative_illusts.Contains(illust.Id)) continue;
-                        relative_illusts.Add(illust.Id);
+                        if (related_illusts.Contains(illust.Id)) continue;
+                        related_illusts.Add(illust.Id);
                         illust.Cache();
-                        illust.AddTo(RelativeItems.Items, relatives.next_url);
+                        illust.AddTo(RelatedItems.Items, related.next_url);
                         this.DoEvents();
                     }
                     this.DoEvents();
-                    //RelativeItems.UpdateTilesImage();
-                    if (relatives.illusts.Count() <= 0) "No Result".ShowToast("INFO", tag: "ShowRelative");
+                    //RelatedItems.UpdateTilesImage();
+                    if (related.illusts.Count() <= 0) "No Result".ShowToast("INFO", tag: "ShowRelated");
                     else UpdateThumb();
                 }
             }
             catch (Exception ex)
             {
-                ex.ERROR(this.Name ?? "RelativeItems");
+                ex.ERROR(this.Name ?? "RelatedItems");
             }
             finally
             {
-                RelativeItems.Ready();
-                if (RelativeItems.Items.Count > 0) { RelativeRefresh.Show(); RelativeCompare.Show(); }
-                else { RelativeRefresh.Hide(); RelativeCompare.Hide(); }
+                RelatedItems.Ready();
+                if (RelatedItems.Items.Count > 0) { RelatedRefresh.Show(); RelatedCompare.Show(); }
+                else { RelatedRefresh.Hide(); RelatedCompare.Hide(); }
             }
         }
 
-        private async void ShowRelativeInlineAsync(PixivItem item, string next_url = "", bool append = false)
+        private async void ShowRelatedInlineAsync(PixivItem item, string next_url = "", bool append = false)
         {
             await new Action(async () =>
             {
-                await ShowRelativeInline(item, next_url, append);
+                await ShowRelatedInline(item, next_url, append);
             }).InvokeAsync();
         }
 
@@ -2139,53 +2141,53 @@ namespace PixivWPF.Pages
         {
             try
             {
-                RelativeItems.Wait();
-                if (!(relative_illusts is List<long?>)) relative_illusts = new List<long?>();
+                RelatedItems.Wait();
+                if (!(related_illusts is List<long?>)) related_illusts = new List<long?>();
                 if (!append)
                 {
-                    RelativeItems.Clear(setting.BatchClearThumbnails);
-                    relative_illusts.Clear();
+                    RelatedItems.Clear(setting.BatchClearThumbnails);
+                    related_illusts.Clear();
                 }
 
                 var tokens = await CommonHelper.ShowLogin();
                 if (tokens == null) return;
 
                 var lastUrl = next_url;
-                var relatives = string.IsNullOrEmpty(next_url) ? await tokens.GetUserWorksAsync(user.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
-                next_url = relatives.next_url ?? string.Empty;
+                var related = string.IsNullOrEmpty(next_url) ? await tokens.GetUserWorksAsync(user.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
+                next_url = related.next_url ?? string.Empty;
 
-                if (relatives.illusts is Array)
+                if (related.illusts is Array)
                 {
-                    RelativeNextPage.Show(!next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase));
+                    RelatedNextPage.Show(!next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase));
 
                     if (!append)
                     {
-                        RelativeItemsExpander.Tag = lastUrl;
-                        CurrentRelativeURL = lastUrl;
+                        RelatedItemsExpander.Tag = lastUrl;
+                        CurrentRelatedURL = lastUrl;
                     }
-                    NextRelativeURL = next_url;
-                    RelativeNextPage.Tag = next_url;
-                    RelativeNextPage.ToolTip = CurrentRelativeURL.CalcUrlPageHint(IllustSize.Text);
-                    RelativePrevPage.ToolTip = RelativeNextPage.ToolTip;
+                    RelatedNextURL = next_url;
+                    RelatedNextPage.Tag = next_url;
+                    RelatedNextPage.ToolTip = CurrentRelatedURL.CalcUrlPageHint(IllustSize.Text);
+                    RelatedPrevPage.ToolTip = RelatedNextPage.ToolTip;
                     if (!append)
                     {
-                        RelativePrevPage.Tag = string.IsNullOrEmpty(CurrentRelativeURL) ? Contents.MakeUserWorkNextUrl().CalcPrevUrl(totals: IllustSize.Text) : CurrentRelativeURL.CalcPrevUrl(totals: IllustSize.Text);
+                        RelatedPrevPage.Tag = string.IsNullOrEmpty(CurrentRelatedURL) ? Contents.MakeUserWorkNextUrl().CalcPrevUrl(totals: IllustSize.Text) : CurrentRelatedURL.CalcPrevUrl(totals: IllustSize.Text);
                     }
-                    RelativePrevPage.Show(show: IllustSize.Text.CalcTotalPages() > 1);
-                    RelativeNextPage.Show(show: IllustSize.Text.CalcTotalPages() > 1);
-                    RelativeNextAppend.Show(show: IllustSize.Text.CalcTotalPages() > 1);
+                    RelatedPrevPage.Show(show: IllustSize.Text.CalcTotalPages() > 1);
+                    RelatedNextPage.Show(show: IllustSize.Text.CalcTotalPages() > 1);
+                    RelatedNextAppend.Show(show: IllustSize.Text.CalcTotalPages() > 1);
 
-                    foreach (var illust in relatives.illusts)
+                    foreach (var illust in related.illusts)
                     {
-                        if (relative_illusts.Contains(illust.Id)) continue;
-                        relative_illusts.Add(illust.Id);
+                        if (related_illusts.Contains(illust.Id)) continue;
+                        related_illusts.Add(illust.Id);
                         illust.Cache();
-                        illust.AddTo(RelativeItems.Items, relatives.next_url);
+                        illust.AddTo(RelatedItems.Items, related.next_url);
                         this.DoEvents();
                     }
                     this.DoEvents();
-                    //RelativeItems.UpdateTilesImage();
-                    if (relatives.illusts.Count() <= 0) "No Result".ShowToast("INFO", tag: "ShowUserWorks");
+                    //RelatedItems.UpdateTilesImage();
+                    if (related.illusts.Count() <= 0) "No Result".ShowToast("INFO", tag: "ShowUserWorks");
                     else UpdateThumb();
                 }
             }
@@ -2195,9 +2197,9 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                RelativeItems.Ready();
-                if (RelativeItems.Items.Count > 0) RelativeRefresh.Show();
-                else RelativeRefresh.Hide();
+                RelatedItems.Ready();
+                if (RelatedItems.Items.Count > 0) RelatedRefresh.Show();
+                else RelatedRefresh.Hide();
             }
         }
 
@@ -2328,10 +2330,10 @@ namespace PixivWPF.Pages
         public void FirstIllust()
         {
             if (InSearching) return;
-            if (RelativeItems.IsKeyboardFocusWithin)
+            if (RelatedItems.IsKeyboardFocusWithin)
             {
-                RelativeItems.MoveCurrentToFirst();
-                RelativeItems.ScrollIntoView(RelativeItems.SelectedItem);
+                RelatedItems.MoveCurrentToFirst();
+                RelatedItems.ScrollIntoView(RelatedItems.SelectedItem);
             }
             else if (FavoriteItems.IsKeyboardFocusWithin)
             {
@@ -2343,10 +2345,10 @@ namespace PixivWPF.Pages
         public void LastIllust()
         {
             if (InSearching) return;
-            if (RelativeItems.IsKeyboardFocusWithin)
+            if (RelatedItems.IsKeyboardFocusWithin)
             {
-                RelativeItems.MoveCurrentToLast();
-                RelativeItems.ScrollIntoView(RelativeItems.SelectedItem);
+                RelatedItems.MoveCurrentToLast();
+                RelatedItems.ScrollIntoView(RelatedItems.SelectedItem);
             }
             else if (FavoriteItems.IsKeyboardFocusWithin)
             {
@@ -2426,7 +2428,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                RelativeItems.Filter = filter.GetFilter();
+                RelatedItems.Filter = filter.GetFilter();
                 FavoriteItems.Filter = filter.GetFilter();
             }
             catch (Exception ex)
@@ -2441,12 +2443,12 @@ namespace PixivWPF.Pages
             {
                 if (filter is FilterParam)
                 {
-                    RelativeItems.Filter = filter.GetFilter();
+                    RelatedItems.Filter = filter.GetFilter();
                     FavoriteItems.Filter = filter.GetFilter();
                 }
                 else
                 {
-                    RelativeItems.Filter = null;
+                    RelatedItems.Filter = null;
                     FavoriteItems.Filter = null;
                 }
             }
@@ -2459,7 +2461,7 @@ namespace PixivWPF.Pages
         public dynamic GetTilesCount()
         {
             List<string> tips = new List<string>();
-            tips.Add($"Relative: {RelativeItems.ItemsCount}({RelativeItems.SelectedItems.Count}) of {RelativeItems.Items.Count}");
+            tips.Add($"Related : {RelatedItems.ItemsCount}({RelatedItems.SelectedItems.Count}) of {RelatedItems.Items.Count}");
             tips.Add($"Favorite: {FavoriteItems.ItemsCount}({FavoriteItems.SelectedItems.Count}) of {FavoriteItems.Items.Count}");
             return (string.Join(Environment.NewLine, tips));
         }
@@ -2501,7 +2503,7 @@ namespace PixivWPF.Pages
 
                         SubIllusts.Clear(batch: false, force: true);
                         this.DoEvents();
-                        RelativeItems.Clear(batch: false, force: true);
+                        RelatedItems.Clear(batch: false, force: true);
                         this.DoEvents();
                         FavoriteItems.Clear(batch: false, force: true);
                         this.DoEvents();
@@ -2563,7 +2565,7 @@ namespace PixivWPF.Pages
         {
             ParentWindow = Window.GetWindow(this);
 
-            RelativeItems.Columns = 5;
+            RelatedItems.Columns = 5;
             FavoriteItems.Columns = 5;
 
             IllustDetailWait.Hide();
@@ -2589,12 +2591,12 @@ namespace PixivWPF.Pages
             SubIllustRefresh.MouseOverAction();
             SubIllustCompare.MouseOverAction();
 
-            RelativePrevPage.MouseOverAction();
-            RelativeNextPage.MouseOverAction();
-            RelativeNextAppend.MouseOverAction();
-            RelativeRefresh.MouseOverAction();
-            RelativeCompare.MouseOverAction();
-            RelativeCompare.Hide();
+            RelatedPrevPage.MouseOverAction();
+            RelatedNextPage.MouseOverAction();
+            RelatedNextAppend.MouseOverAction();
+            RelatedRefresh.MouseOverAction();
+            RelatedCompare.MouseOverAction();
+            RelatedCompare.Hide();
 
             FavoritePrevPage.MouseOverAction();
             FavoriteNextPage.MouseOverAction();
@@ -2969,9 +2971,9 @@ namespace PixivWPF.Pages
             SubIllustsExpander.IsExpanded = !SubIllustsExpander.IsExpanded;
         }
 
-        private void ActionShowRelative_Click(object sender, RoutedEventArgs e)
+        private void ActionShowRelated_Click(object sender, RoutedEventArgs e)
         {
-            if (!RelativeItemsExpander.IsExpanded) RelativeItemsExpander.IsExpanded = true;
+            if (!RelatedItemsExpander.IsExpanded) RelatedItemsExpander.IsExpanded = true;
         }
 
         private void ActionShowFavorite_Click(object sender, RoutedEventArgs e)
@@ -3169,10 +3171,10 @@ namespace PixivWPF.Pages
                         else if (host == IllustTitle) text = IllustTitle.Text;
                         else if (host == IllustDateInfo || host == IllustDate) text = IllustDate.Text;
                         else if (host == SubIllustsExpander || host == SubIllusts) text = IllustTitle.Text;
-                        else if (host == RelativeItemsExpander || host == RelativeItems)
+                        else if (host == RelatedItemsExpander || host == RelatedItems)
                         {
                             List<string> lines = new List<string>();
-                            foreach (PixivItem item in RelativeItems.GetSelected())
+                            foreach (PixivItem item in RelatedItems.GetSelected())
                             {
                                 lines.Add(item.Illust.Title);
                             }
@@ -3235,10 +3237,10 @@ namespace PixivWPF.Pages
                         else if (host == IllustTitle) text = IllustTitle.Text;
                         else if (host == IllustDateInfo || host == IllustDate) text = IllustDate.Text;
                         else if (host == SubIllustsExpander || host == SubIllusts) text = IllustTitle.Text;
-                        else if (host == RelativeItemsExpander || host == RelativeItems)
+                        else if (host == RelatedItemsExpander || host == RelatedItems)
                         {
                             List<string> lines = new List<string>();
-                            foreach (PixivItem item in RelativeItems.GetSelected())
+                            foreach (PixivItem item in RelatedItems.GetSelected())
                             {
                                 lines.Add(item.Illust.Title);
                             }
@@ -3390,14 +3392,14 @@ namespace PixivWPF.Pages
                     else if (Keyboard.Modifiers == ModifierKeys.Alt)
                         SubIllusts.UpdateTilesImage(true);
                 }
-                else if (sender == RelativeRefresh)
+                else if (sender == RelatedRefresh)
                 {
                     if (Keyboard.Modifiers == ModifierKeys.None)
-                        RelativeItems.UpdateTilesImage();
+                        RelatedItems.UpdateTilesImage();
                     else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                        RelativeItems.UpdateTilesImage(true);
+                        RelatedItems.UpdateTilesImage(true);
                     else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
-                        RelativeItemsExpander_Expanded(sender, e);
+                        RelatedItemsExpander_Expanded(sender, e);
                 }
                 else if (sender == FavoriteRefresh)
                 {
@@ -3649,7 +3651,7 @@ namespace PixivWPF.Pages
             {
                 IList<PixivItem> items = new List<PixivItem>();
                 var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
-                if (host == RelativeItems || host == RelativeItemsExpander) items = RelativeItems.GetSelected();
+                if (host == RelatedItems || host == RelatedItemsExpander) items = RelatedItems.GetSelected();
                 else if (host == FavoriteItems || host == FavoriteItemsExpander) items = FavoriteItems.GetSelected();
                 try
                 {
@@ -3719,7 +3721,7 @@ namespace PixivWPF.Pages
 
                 IList<PixivItem> items = new List<PixivItem>();
                 var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
-                if (host == RelativeItems || host == RelativeItemsExpander) items = RelativeItems.GetSelected();
+                if (host == RelatedItems || host == RelatedItemsExpander) items = RelatedItems.GetSelected();
                 else if (host == FavoriteItems || host == FavoriteItemsExpander) items = FavoriteItems.GetSelected();
                 try
                 {
@@ -3946,29 +3948,29 @@ namespace PixivWPF.Pages
         }
         #endregion
 
-        #region Relative Panel related routines
-        private void RelativeItemsExpander_Expanded(object sender, RoutedEventArgs e)
+        #region Related Panel related routines
+        private void RelatedItemsExpander_Expanded(object sender, RoutedEventArgs e)
         {
             if (Contents.HasUser())
             {
                 if (Contents.IsWork())
-                    ShowRelativeInlineAsync(Contents);
+                    ShowRelatedInlineAsync(Contents);
                 else if (Contents.IsUser())
                     ShowUserWorksInlineAsync(Contents.User);
             }
         }
 
-        private void RelativeItemsExpander_Collapsed(object sender, RoutedEventArgs e)
+        private void RelatedItemsExpander_Collapsed(object sender, RoutedEventArgs e)
         {
             IllustDetailWait.Hide();
         }
 
-        private void RelativeItemsExpander_MouseDown(object sender, MouseButtonEventArgs e)
+        private void RelatedItemsExpander_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            RelativeItems.Focusable = true;
-            RelativeItems.Focus();
-            Keyboard.Focus(RelativeItems);
-            var item = RelativeItems.SelectedItems.FirstOrDefault();
+            RelatedItems.Focusable = true;
+            RelatedItems.Focus();
+            Keyboard.Focus(RelatedItems);
+            var item = RelatedItems.SelectedItems.FirstOrDefault();
             if (item != null)
             {
                 item.Focusable = true;
@@ -3977,75 +3979,75 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void ActionOpenRelative_Click(object sender, RoutedEventArgs e)
+        private void ActionOpenRelated_Click(object sender, RoutedEventArgs e)
         {
-            Commands.Open.Execute(RelativeItems);
+            Commands.Open.Execute(RelatedItems);
         }
 
-        private void ActionCopyRelativeIllustID_Click(object sender, RoutedEventArgs e)
+        private void ActionCopyRelatedIllustID_Click(object sender, RoutedEventArgs e)
         {
-            Commands.CopyArtworkIDs.Execute(RelativeItems);
+            Commands.CopyArtworkIDs.Execute(RelatedItems);
         }
 
-        private void RelativeItems_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void RelatedItems_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             e.Handled = false;
-            RelativeItems.UpdateTilesState();
+            RelatedItems.UpdateTilesState();
             //UpdateLikeState();
-            if (RelativeItems.SelectedItem.IsWork())
+            if (RelatedItems.SelectedItem.IsWork())
             {
                 int id = -1;
-                int.TryParse(RelativeItems.SelectedItem.ID, out id);
+                int.TryParse(RelatedItems.SelectedItem.ID, out id);
                 false.UpdateLikeStateAsync(id);
-                RelativeItems.SelectedItem.Focus();
+                RelatedItems.SelectedItem.Focus();
             }
             e.Handled = true;
         }
 
-        private void RelativeItems_MouseWheel(object sender, MouseWheelEventArgs e)
+        private void RelatedItems_MouseWheel(object sender, MouseWheelEventArgs e)
         {
 
         }
 
-        private void RelativeItems_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private void RelatedItems_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             try
             {
-                if (e.LeftButton == MouseButtonState.Pressed) Commands.OpenWork.Execute(RelativeItems);
+                if (e.LeftButton == MouseButtonState.Pressed) Commands.OpenWork.Execute(RelatedItems);
             }
             catch (Exception ex) { ex.ERROR(); }
         }
 
-        private void RelativeItems_KeyUp(object sender, KeyEventArgs e)
+        private void RelatedItems_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                Commands.Open.Execute(RelativeItems);
+                Commands.Open.Execute(RelatedItems);
             }
         }
 
-        private void RelativePrevPage_Click(object sender, RoutedEventArgs e)
+        private void RelatedPrevPage_Click(object sender, RoutedEventArgs e)
         {
             if (Contents.HasUser())
             {
-                var prev_url = RelativePrevPage.Tag is string ? RelativePrevPage.Tag as string : string.Empty;
+                var prev_url = RelatedPrevPage.Tag is string ? RelatedPrevPage.Tag as string : string.Empty;
 
                 if (Contents.IsWork())
-                    ShowRelativeInlineAsync(Contents, prev_url);
+                    ShowRelatedInlineAsync(Contents, prev_url);
                 else if (Contents.IsUser())
                     ShowUserWorksInlineAsync(Contents.User, prev_url);
             }
         }
 
-        private void RelativeNextPage_Click(object sender, RoutedEventArgs e)
+        private void RelatedNextPage_Click(object sender, RoutedEventArgs e)
         {
             if (Contents.HasUser())
             {
-                var append = sender == RelativeNextAppend ? true : false;
-                var next_url = RelativeNextPage.Tag is string ? RelativeNextPage.Tag as string : string.Empty;
+                var append = sender == RelatedNextAppend ? true : false;
+                var next_url = RelatedNextPage.Tag is string ? RelatedNextPage.Tag as string : string.Empty;
 
                 if (Contents.IsWork())
-                    ShowRelativeInlineAsync(Contents, next_url, append);
+                    ShowRelatedInlineAsync(Contents, next_url, append);
                 else if (Contents.IsUser())
                     ShowUserWorksInlineAsync(Contents.User, next_url, append);
             }
@@ -4227,9 +4229,9 @@ namespace PixivWPF.Pages
                         catch (Exception ex) { ex.ERROR(); continue; }
                     }
                 }
-                else if (host == RelativeItemsExpander || host == RelativeItems || host == FavoriteItemsExpander || host == FavoriteItems)
+                else if (host == RelatedItemsExpander || host == RelatedItems || host == FavoriteItemsExpander || host == FavoriteItems)
                 {
-                    var target = host == RelativeItemsExpander || host == RelativeItems ? RelativeItemsExpander : FavoriteItemsExpander;
+                    var target = host == RelatedItemsExpander || host == RelatedItems ? RelatedItemsExpander : FavoriteItemsExpander;
                     foreach (dynamic item in (sender as ContextMenu).Items)
                     {
                         try
@@ -4287,9 +4289,9 @@ namespace PixivWPF.Pages
                             Commands.CopyArtworkIDs.Execute(Contents);
                         }
                     }
-                    else if (host == RelativeItemsExpander || host == RelativeItems)
+                    else if (host == RelatedItemsExpander || host == RelatedItems)
                     {
-                        Commands.CopyArtworkIDs.Execute(RelativeItems);
+                        Commands.CopyArtworkIDs.Execute(RelatedItems);
                     }
                     else if (host == FavoriteItemsExpander || host == FavoriteItems)
                     {
@@ -4314,8 +4316,8 @@ namespace PixivWPF.Pages
                 var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
                 if (host == SubIllustsExpander || host == SubIllusts || host == PreviewBox)
                     target = SubIllusts;
-                else if (host == RelativeItemsExpander || host == RelativeItems)
-                    target = RelativeItems;
+                else if (host == RelatedItemsExpander || host == RelatedItems)
+                    target = RelatedItems;
                 else if (host == FavoriteItemsExpander || host == FavoriteItems)
                     target = FavoriteItems;
                 else if (host == CommentsExpander || host == IllustCommentsHost)
@@ -4349,9 +4351,9 @@ namespace PixivWPF.Pages
                     {
                         Commands.OpenWorkPreview.Execute(SubIllusts);
                     }
-                    else if (host == RelativeItemsExpander || host == RelativeItems)
+                    else if (host == RelatedItemsExpander || host == RelatedItems)
                     {
-                        Commands.OpenWork.Execute(RelativeItems);
+                        Commands.OpenWork.Execute(RelatedItems);
                     }
                     else if (host == FavoriteItemsExpander || host == FavoriteItems)
                     {
@@ -4419,19 +4421,19 @@ namespace PixivWPF.Pages
                             }
                         }
                     }
-                    else if (host == RelativeItemsExpander || host == RelativeItems)
+                    else if (host == RelatedItemsExpander || host == RelatedItems)
                     {
                         if (uid.Equals("ActionSendIllustToInstance", StringComparison.CurrentCultureIgnoreCase))
                         {
                             if (Keyboard.Modifiers == ModifierKeys.None)
-                                Commands.SendToOtherInstance.Execute(RelativeItems);
+                                Commands.SendToOtherInstance.Execute(RelatedItems);
                             else
-                                Commands.ShellSendToOtherInstance.Execute(RelativeItems);
+                                Commands.ShellSendToOtherInstance.Execute(RelatedItems);
                         }
                         else if (uid.Equals("ActionSendAuthorToInstance", StringComparison.CurrentCultureIgnoreCase))
                         {
                             var ids = new List<string>();
-                            foreach (var item in RelativeItems.GetSelected())
+                            foreach (var item in RelatedItems.GetSelected())
                             {
                                 var id = $"uid:{item.UserID}";
                                 if (!ids.Contains(id)) ids.Add(id);
@@ -4490,9 +4492,9 @@ namespace PixivWPF.Pages
                         {
                             Commands.Compare.Execute(SubIllusts);
                         }
-                        else if (host == RelativeItemsExpander || host == RelativeItems)
+                        else if (host == RelatedItemsExpander || host == RelatedItems)
                         {
-                            Commands.Compare.Execute(RelativeItems);
+                            Commands.Compare.Execute(RelatedItems);
                         }
                         else if (host == FavoriteItemsExpander || host == FavoriteItems)
                         {
@@ -4506,7 +4508,7 @@ namespace PixivWPF.Pages
                     }
                 }
                 else if (sender == SubIllustCompare) { Commands.Compare.Execute(SubIllusts); }
-                else if (sender == RelativeCompare) { Commands.Compare.Execute(RelativeItems); }
+                else if (sender == RelatedCompare) { Commands.Compare.Execute(RelatedItems); }
                 else if (sender == FavoriteCompare) { Commands.Compare.Execute(FavoriteItems); }
                 else if (sender == PreviewCompare)
                 {
@@ -4528,7 +4530,7 @@ namespace PixivWPF.Pages
                     {
                         SubIllustPagesNav_Click(SubIllustPrevPages, e);
                     }
-                    else if (host == RelativeItemsExpander || host == RelativeItems)
+                    else if (host == RelatedItemsExpander || host == RelatedItems)
                     {
 
                     }
@@ -4558,9 +4560,9 @@ namespace PixivWPF.Pages
                     {
                         SubIllustPagesNav_Click(SubIllustNextPages, e);
                     }
-                    else if (host == RelativeItemsExpander || host == RelativeItems)
+                    else if (host == RelatedItemsExpander || host == RelatedItems)
                     {
-                        RelativeNextPage_Click(append ? RelativeNextAppend : RelativeNextPage, e);
+                        RelatedNextPage_Click(append ? RelatedNextAppend : RelatedNextPage, e);
                     }
                     else if (host == FavoriteItemsExpander || host == FavoriteItems)
                     {
@@ -4589,9 +4591,9 @@ namespace PixivWPF.Pages
                         {
                             Commands.SaveIllust.Execute(SubIllusts);
                         }
-                        else if (host == RelativeItemsExpander || host == RelativeItems)
+                        else if (host == RelatedItemsExpander || host == RelatedItems)
                         {
-                            Commands.SaveIllust.Execute(RelativeItems);
+                            Commands.SaveIllust.Execute(RelatedItems);
                         }
                         else if (host == FavoriteItemsExpander || host == FavoriteItems)
                         {
@@ -4617,9 +4619,9 @@ namespace PixivWPF.Pages
                         {
                             Commands.SaveIllustAll.Execute(Contents);
                         }
-                        else if (host == RelativeItemsExpander || host == RelativeItems)
+                        else if (host == RelatedItemsExpander || host == RelatedItems)
                         {
-                            Commands.SaveIllustAll.Execute(RelativeItems);
+                            Commands.SaveIllustAll.Execute(RelatedItems);
                         }
                         else if (host == FavoriteItemsExpander || host == FavoriteItems)
                         {
@@ -4665,9 +4667,9 @@ namespace PixivWPF.Pages
                         {
                             Commands.OpenDownloaded.Execute(SubIllusts);
                         }
-                        else if (host == RelativeItemsExpander || host == RelativeItems)
+                        else if (host == RelatedItemsExpander || host == RelatedItems)
                         {
-                            Commands.OpenDownloaded.Execute(RelativeItems);
+                            Commands.OpenDownloaded.Execute(RelatedItems);
                         }
                         else if (host == FavoriteItemsExpander || host == FavoriteItems)
                         {
@@ -4680,9 +4682,9 @@ namespace PixivWPF.Pages
                         {
                             Commands.OpenFileProperties.Execute(SubIllusts);
                         }
-                        else if (host == RelativeItemsExpander || host == RelativeItems)
+                        else if (host == RelatedItemsExpander || host == RelatedItems)
                         {
-                            Commands.OpenFileProperties.Execute(RelativeItems);
+                            Commands.OpenFileProperties.Execute(RelatedItems);
                         }
                         else if (host == FavoriteItemsExpander || host == FavoriteItems)
                         {
@@ -4712,13 +4714,13 @@ namespace PixivWPF.Pages
                                 ShowIllustPagesAsync(Contents, page_index, page_number);
                             }
                         }
-                        else if (host == RelativeItemsExpander || host == RelativeItems)
+                        else if (host == RelatedItemsExpander || host == RelatedItems)
                         {
                             if (Contents.HasUser())
                             {
-                                var current_url = RelativeItemsExpander.Tag is string ? RelativeItemsExpander.Tag as string : string.Empty;
+                                var current_url = RelatedItemsExpander.Tag is string ? RelatedItemsExpander.Tag as string : string.Empty;
                                 if (Contents.IsWork())
-                                    ShowRelativeInlineAsync(Contents, current_url);
+                                    ShowRelatedInlineAsync(Contents, current_url);
                                 else if (Contents.IsUser())
                                     ShowUserWorksInlineAsync(Contents.User, current_url);
                             }
@@ -4738,9 +4740,9 @@ namespace PixivWPF.Pages
                         {
                             SubIllusts.UpdateTilesImage();
                         }
-                        else if (host == RelativeItemsExpander || host == RelativeItems)
+                        else if (host == RelatedItemsExpander || host == RelatedItems)
                         {
-                            RelativeItems.UpdateTilesImage();
+                            RelatedItems.UpdateTilesImage();
                         }
                         else if (host == FavoriteItemsExpander || host == FavoriteItems)
                         {

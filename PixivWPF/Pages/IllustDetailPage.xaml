@@ -49,6 +49,7 @@
                 </MenuItem.Icon>
             </MenuItem>
         </ContextMenu>
+        
         <ContextMenu x:Key="ActionFollowAuthor">
             <MenuItem x:Uid="ActionFollowAuthorPublic" Header="Public" Click="ActionFollowAuthor_Click">
                 <MenuItem.Icon>
@@ -78,6 +79,7 @@
                 </MenuItem.Icon>
             </MenuItem>
         </ContextMenu>
+        
         <ContextMenu x:Key="ActionIllust">
             <MenuItem x:Uid="ActionIllustNewWindow" Header="Open Illust in New Window" Click="ActionIllustInfo_Click">
                 <MenuItem.Icon>
@@ -167,7 +169,7 @@
                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionIllustRelative" Header="Show Relative Illusts" Click="ActionShowRelative_Click">
+            <MenuItem x:Uid="ActionIllustRelated" Header="Show Related Illusts" Click="ActionShowRelated_Click">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xE155;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -366,6 +368,7 @@
                 </MenuItem.Icon>
             </MenuItem>
         </ContextMenu>
+        
         <ContextMenu x:Name="MenuSpeech" x:Key="MenuSpeech">
             <MenuItem x:Name="miSpeechAuto" x:Uid="SpeechAuto" Header="Auto Detect" Click="ActionSpeech_Click" >
                 <MenuItem.Icon>
@@ -1098,33 +1101,33 @@
                     </Button>
                 </StackPanel>
 
-                <!-- Illust Relatives -->
-                <Expander Grid.Row="5" x:Name="RelativeItemsExpander" x:Uid="RelativeItemsExpander" 
+                <!-- Illust Related -->
+                <Expander Grid.Row="5" x:Name="RelatedItemsExpander" x:Uid="RalatedItemsExpander" 
                           Margin="0,4,0,0"
                           IsExpanded="True" ExpandDirection="Down"
-                          Visibility="Collapsed" Header="Relative Illust Gallery"
+                          Visibility="Collapsed" Header="Related Illust Gallery"
                           ContextMenu="{StaticResource MenuGallaryAction}"
                           ContextMenuOpening="IllustActions_ContextMenuOpening"
-                          MouseDown="RelativeItemsExpander_MouseDown"
-                          Expanded="RelativeItemsExpander_Expanded" Collapsed="RelativeItemsExpander_Collapsed">
-                    <Common:ImageListGrid x:Name="RelativeItems" x:Uid="RelativeItems"
+                          MouseDown="RelatedItemsExpander_MouseDown"
+                          Expanded="RelatedItemsExpander_Expanded" Collapsed="RelatedItemsExpander_Collapsed">
+                    <Common:ImageListGrid x:Name="RelatedItems" x:Uid="RalatedItems"
                                           Columns="5" TileWidth="128" TileHeight="128"
                                           Focusable="True"
                                           SelectionMode="Extended"
-                                          SelectionChanged="RelativeItems_SelectionChanged" 
-                                          MouseDoubleClick="RelativeItems_MouseDoubleClick" 
-                                          MouseWheel="RelativeItems_MouseWheel" 
-                                          KeyUp="RelativeItems_KeyUp" />
+                                          SelectionChanged="RelatedItems_SelectionChanged" 
+                                          MouseDoubleClick="RelatedItems_MouseDoubleClick" 
+                                          MouseWheel="RelatedItems_MouseWheel" 
+                                          KeyUp="RelatedItems_KeyUp" />
                 </Expander>
                 <StackPanel Grid.Row="5" Orientation="Horizontal" Margin="0,4,0,0"
                             HorizontalAlignment="Right" VerticalAlignment="Top" >
                     <Button 
-                        x:Name="RelativePrevPage" x:Uid="RelativePrevPage"
+                        x:Name="RelatedPrevPage" x:Uid="RalatedPrevPage"
                         Visibility="Collapsed" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
-                        Click="RelativePrevPage_Click">
+                        Click="RelatedPrevPage_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE112;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
@@ -1132,12 +1135,12 @@
                         </Button.Content>
                     </Button>
                     <Button 
-                        x:Name="RelativeNextPage" x:Uid="RelativeNextPage"
+                        x:Name="RelatedNextPage" x:Uid="RalatedNextPage"
                         Visibility="Collapsed" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
-                        Click="RelativeNextPage_Click">
+                        Click="RelatedNextPage_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
@@ -1145,12 +1148,12 @@
                         </Button.Content>
                     </Button>
                     <Button 
-                        x:Name="RelativeNextAppend" x:Uid="RelativeNextAppend"
-                        Visibility="{Binding Visibility, ElementName=RelativeNextPage, Mode=OneWay}" FontWeight="Normal"
+                        x:Name="RelatedNextAppend" x:Uid="RelatedNextAppend"
+                        Visibility="{Binding Visibility, ElementName=RelatedNextPage, Mode=TwoWay}" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
-                        Click="RelativeNextPage_Click">
+                        Click="RelatedNextPage_Click">
                         <Button.Content>
                             <TextBlock Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
@@ -1158,8 +1161,8 @@
                         </Button.Content>
                     </Button>
                     <Button 
-                        x:Name="RelativeCompare" x:Uid="ActionCompare" ToolTip="Compare Selecteor"
-                        Visibility="{Binding ElementName=SubIllustRefresh, Path=Visibility, Mode=OneWay}" FontWeight="Normal"
+                        x:Name="RelatedCompare" x:Uid="ActionCompare" ToolTip="Compare Selecteor"
+                        Visibility="{Binding ElementName=RelatedRefresh, Path=Visibility, Mode=TwoWay}" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
@@ -1171,7 +1174,7 @@
                         </Button.Content>
                     </Button>
                     <Button 
-                        x:Name="RelativeRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
+                        x:Name="RelatedRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
                         Visibility="Collapsed" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
@@ -1186,7 +1189,7 @@
                 </StackPanel>
 
                 <!-- Illust Author Favorites -->
-                <Expander Grid.Row="6" x:Name="FavoriteItemsExpander" x:Uid="RelativeItemsExpander" 
+                <Expander Grid.Row="6" x:Name="FavoriteItemsExpander" x:Uid="FavoriteItemsExpander" 
                           Margin="0,4,0,0"
                           IsExpanded="True" ExpandDirection="Down"
                           Visibility="Collapsed" Header="Author Favorites Gallery"
@@ -1194,7 +1197,7 @@
                           ContextMenuOpening="IllustActions_ContextMenuOpening"
                           MouseDown="FavoriteItemsExpander_MouseDown"
                           Collapsed="FavoriteItemsExpander_Collapsed" Expanded="FavoriteItemsExpander_Expanded">
-                    <Common:ImageListGrid x:Name="FavoriteItems" x:Uid="RelativeItems"
+                    <Common:ImageListGrid x:Name="FavoriteItems" x:Uid="FavoriteItems"
                                           Columns="5" TileWidth="128" TileHeight="128"
                                           Focusable="True"
                                           SelectionMode="Extended"
@@ -1233,7 +1236,7 @@
                     </Button>
                     <Button 
                         x:Name="FavoriteNextAppend" x:Uid="FavoriteNextAppend"
-                        Visibility="{Binding Visibility, ElementName=FavoriteNextPage, Mode=OneWay}" FontWeight="Normal"
+                        Visibility="{Binding Visibility, ElementName=FavoriteNextPage, Mode=TwoWay}" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
@@ -1246,7 +1249,7 @@
                     </Button>
                     <Button 
                         x:Name="FavoriteCompare" x:Uid="ActionCompare" ToolTip="Compare Selecteor"
-                        Visibility="{Binding ElementName=SubIllustRefresh, Path=Visibility, Mode=OneWay}" FontWeight="Normal"
+                        Visibility="{Binding ElementName=FavoriteRefresh, Path=Visibility, Mode=TwoWay}" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"

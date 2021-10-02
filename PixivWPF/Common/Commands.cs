@@ -96,8 +96,8 @@ namespace PixivWPF.Common
             bool result = false;
             try
             {
-                if (gallery.Name.Equals("RelativeItems", StringComparison.CurrentCultureIgnoreCase) ||
-                    gallery.Name.Equals("ResultItems", StringComparison.CurrentCultureIgnoreCase) ||
+                if (gallery.Name.Equals("ResultItems", StringComparison.CurrentCultureIgnoreCase) ||
+                    gallery.Name.Equals("RelatedItems", StringComparison.CurrentCultureIgnoreCase) ||
                     gallery.Name.Equals("FavoriteItems", StringComparison.CurrentCultureIgnoreCase) ||
                     gallery.Name.Equals("HistoryItems", StringComparison.CurrentCultureIgnoreCase))
                     result = true;
@@ -3035,7 +3035,7 @@ namespace PixivWPF.Common
         });
         #endregion
 
-        #region Like/Unlile Work/User relative
+        #region Like/Unlile Work/User Related
         public static ICommand LikeIllust { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
@@ -3312,7 +3312,7 @@ namespace PixivWPF.Common
         });
         #endregion
 
-        #region PixivPedia relative
+        #region PixivPedia Related
         private static async void OpenPediaWindow(string contents)
         {
             if (!string.IsNullOrEmpty(contents))

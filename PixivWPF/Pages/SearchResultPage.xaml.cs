@@ -402,11 +402,11 @@ namespace PixivWPF.Pages
                     SearchFilter.Visibility = Visibility.Collapsed;
 
                     var query = Regex.Replace(content, @"^UserId: *?(\d+).*?$", "$1", RegexOptions.IgnoreCase).Trim();
-                    var relatives = await tokens.GetUsersAsync(Convert.ToInt64(query));
+                    var related = await tokens.GetUsersAsync(Convert.ToInt64(query));
 
-                    if (relatives is List<Pixeez.Objects.User>)
+                    if (related is List<Pixeez.Objects.User>)
                     {
-                        foreach (var user in relatives)
+                        foreach (var user in related)
                         {
                             if (id_user.Contains(user.Id)) continue;
                             id_user.Add(user.Id);
@@ -421,14 +421,14 @@ namespace PixivWPF.Pages
                 {
                     var query = Regex.Replace(content, @"^IllustID: *?(\d+).*?$", "$1", RegexOptions.IgnoreCase).Trim();
                     var id = Convert.ToInt64(query);
-                    dynamic relatives = await tokens.GetWorksAsync(id) ?? await tokens.GetIllustDetailAsync(id);
-                    if (relatives == null) relatives = await id.SearchIllustById(tokens);
+                    dynamic related = await tokens.GetWorksAsync(id) ?? await tokens.GetIllustDetailAsync(id);
+                    if (related == null) related = await id.SearchIllustById(tokens);
 
                     next_url = string.Empty;
 
-                    if (relatives is List<Pixeez.Objects.Work>)
+                    if (related is List<Pixeez.Objects.Work>)
                     {
-                        foreach (Pixeez.Objects.Work illust in relatives)
+                        foreach (Pixeez.Objects.Work illust in related)
                         {
                             if (id_illust.Contains(illust.Id)) continue;
                             id_illust.Add(illust.Id);
@@ -443,14 +443,14 @@ namespace PixivWPF.Pages
                 {
                     var query = Regex.Replace(content, @"^User:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
                     query = string.IsNullOrEmpty(filter) ? query : $"{query} {filter}";
-                    var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchUserAsync(query) :
+                    var related = string.IsNullOrEmpty(next_url) ? await tokens.SearchUserAsync(query) :
                         await tokens.AccessNewApiAsync<Pixeez.Objects.UsersSearchResult>(next_url);
-                    next_url = relatives.next_url ?? string.Empty;
+                    next_url = related.next_url ?? string.Empty;
 
-                    if (relatives is Pixeez.Objects.UsersSearchResult)
+                    if (related is Pixeez.Objects.UsersSearchResult)
                     {
                         ResultExpander.Tag = next_url;
-                        foreach (var user in relatives.Users)
+                        foreach (var user in related.Users)
                         {
                             if (id_user.Contains(user.User.Id)) continue;
                             user.User.Cache();
@@ -465,12 +465,12 @@ namespace PixivWPF.Pages
                 {
                     var query = Regex.Replace(content, @"^Fuzzy:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
                     query = string.IsNullOrEmpty(filter) ? query : $"{query} {filter}";
-                    var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "title_and_caption") :
+                    var related = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "title_and_caption") :
                         await tokens.AccessNewApiAsync<Pixeez.Objects.Illusts>(next_url);
-                    if (relatives is Pixeez.Objects.Illusts)
+                    if (related is Pixeez.Objects.Illusts)
                     {
                         ResultExpander.Tag = next_url;
-                        foreach (var illust in relatives.illusts)
+                        foreach (var illust in related.illusts)
                         {
                             if (id_illust.Contains(illust.Id)) continue;
                             illust.Cache();
@@ -485,18 +485,18 @@ namespace PixivWPF.Pages
                 {
                     var query = Regex.Replace(content, @"^Tag:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
                     query = string.IsNullOrEmpty(filter) ? query : $"{query} {filter}";
-                    var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "exact_match_for_tags") :
+                    var related = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "exact_match_for_tags") :
                         await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
-                    next_url = relatives.next_url ?? string.Empty;
+                    next_url = related.next_url ?? string.Empty;
 
-                    if (relatives is Pixeez.Objects.Illusts && relatives.illusts is Array)
+                    if (related is Pixeez.Objects.Illusts && related.illusts is Array)
                     {
                         ResultExpander.Tag = next_url;
-                        foreach (var illust in relatives.illusts)
+                        foreach (var illust in related.illusts)
                         {
                             if (id_illust.Contains(illust.Id)) continue;
                             illust.Cache();
-                            illust.AddTo(ResultItems.Items, relatives.next_url);
+                            illust.AddTo(ResultItems.Items, related.next_url);
                             id_illust.Add(illust.Id);
                             this.DoEvents();
                         }
@@ -507,17 +507,17 @@ namespace PixivWPF.Pages
                 {
                     var query = Regex.Replace(content, @"^Fuzzy Tag:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
                     query = string.IsNullOrEmpty(filter) ? query : $"{query} {filter}";
-                    var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "partial_match_for_tags") : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
-                    next_url = relatives.next_url ?? string.Empty;
+                    var related = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "partial_match_for_tags") : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
+                    next_url = related.next_url ?? string.Empty;
 
-                    if (relatives is Pixeez.Objects.Illusts && relatives.illusts is Array)
+                    if (related is Pixeez.Objects.Illusts && related.illusts is Array)
                     {
                         ResultExpander.Tag = next_url;
-                        foreach (var illust in relatives.illusts)
+                        foreach (var illust in related.illusts)
                         {
                             if (id_illust.Contains(illust.Id)) continue;
                             illust.Cache();
-                            illust.AddTo(ResultItems.Items, relatives.next_url);
+                            illust.AddTo(ResultItems.Items, related.next_url);
                             id_illust.Add(illust.Id);
                             this.DoEvents();
                         }
@@ -528,17 +528,17 @@ namespace PixivWPF.Pages
                 {
                     var query = Regex.Replace(content, @"^Caption:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
                     query = string.IsNullOrEmpty(filter) ? query : $"{query} {filter}";
-                    var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "title_and_caption") : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
-                    next_url = relatives.next_url ?? string.Empty;
+                    var related = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "title_and_caption") : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
+                    next_url = related.next_url ?? string.Empty;
 
-                    if (relatives is Pixeez.Objects.Illusts && relatives.illusts is Array)
+                    if (related is Pixeez.Objects.Illusts && related.illusts is Array)
                     {
                         ResultExpander.Tag = next_url;
-                        foreach (var illust in relatives.illusts)
+                        foreach (var illust in related.illusts)
                         {
                             if (id_illust.Contains(illust.Id)) continue;
                             illust.Cache();
-                            illust.AddTo(ResultItems.Items, relatives.next_url);
+                            illust.AddTo(ResultItems.Items, related.next_url);
                             id_illust.Add(illust.Id);
                             this.DoEvents();
                         }
