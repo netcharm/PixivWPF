@@ -254,6 +254,10 @@ namespace PixivWPF.Pages
                 if (!(cancelDownloading is CancellationTokenSource) || cancelDownloading.IsCancellationRequested)
                     cancelDownloading = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
 
+                StatusFollowed.Show(show: Contents.IsFollowed);
+                StatusFaorited.Show(show: Contents.IsFavorited);
+                StatusDownloaded.Show(show: Contents.IsDownloaded);
+
                 down_rate.Clear();
                 down_rate.Enqueue(0);
                 down_totalelapsed = TimeSpan.FromSeconds(0);
@@ -362,9 +366,6 @@ namespace PixivWPF.Pages
                     }
                     else PreviewWait.Fail();
                 }
-                StatusFollowed.Show(show: Contents.IsFollowed);
-                StatusFaorited.Show(show: Contents.IsFavorited);
-                StatusDownloaded.Show(show: Contents.IsDownloaded);
             }
             catch (Exception ex) { ex.ERROR(System.Reflection.MethodBase.GetCurrentMethod().Name); }
             finally

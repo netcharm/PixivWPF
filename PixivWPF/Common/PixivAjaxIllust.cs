@@ -182,7 +182,7 @@ namespace PixivWPF.Common
                         tg.Add(tag);
                     }
                 }
-                else
+                else if (_Tags_.Tags is IEnumerable<AjaxTag>)
                 {
                     foreach (var tag in _Tags_.Tags)
                     {
@@ -198,9 +198,12 @@ namespace PixivWPF.Common
             get
             {
                 List<Pixeez.Objects.MoreTag> tg = new List<Pixeez.Objects.MoreTag>();
-                foreach (var tag in _Tags_.Tags)
+                if (_Tags_.Tags is IEnumerable<AjaxTag>)
                 {
-                    tg.Add(new Pixeez.Objects.MoreTag() { Original = tag.Tag, Translated = string.IsNullOrEmpty(tag.TranslationEn) ? string.Empty : tag.TranslationEn });
+                    foreach (var tag in _Tags_.Tags)
+                    {
+                        tg.Add(new Pixeez.Objects.MoreTag() { Original = tag.Tag, Translated = string.IsNullOrEmpty(tag.TranslationEn) ? string.Empty : tag.TranslationEn });
+                    }
                 }
                 return tg;
             }
@@ -530,21 +533,29 @@ namespace PixivWPF.Common
 
                         #region Set Image Urls
                         var image_urls = new Pixeez.Objects.ImageUrls();
-                        image_urls.Small = illust.ImageUrls.Mini;
-                        image_urls.Px128x128 = illust.ImageUrls.Thumbnail;
-                        image_urls.SquareMedium = illust.ImageUrls.Thumbnail;
-                        image_urls.Medium = illust.ImageUrls.Medium;
-                        image_urls.Px480mw = illust.ImageUrls.Medium;
-                        image_urls.Large = illust.ImageUrls.Large;
-                        image_urls.Original = illust.ImageUrls.Original;
+                        if (illust.ImageUrls is AjaxIllustImageUrls)
+                        {
+                            image_urls.Small = illust.ImageUrls.Mini;
+                            image_urls.Px128x128 = illust.ImageUrls.Thumbnail;
+                            image_urls.SquareMedium = illust.ImageUrls.Thumbnail;
+                            image_urls.Medium = illust.ImageUrls.Medium;
+                            image_urls.Px480mw = illust.ImageUrls.Medium;
+                            image_urls.Large = illust.ImageUrls.Large;
+                            image_urls.Original = illust.ImageUrls.Original;
+                        }
                         #endregion
 
+                        #region Get MetaPages
                         var pages_url = GetAjaxMetaPageUrl(id);
                         List<Pixeez.Objects.Page> pages = illust.PageCount > 1 ? await GetMetaPages(pages_url, tokens) : null;
-                        var meta_pages = pages.Select(p => new Pixeez.Objects.MetaPages() { ImageUrls = p.ImageUrls });
+                        var meta_pages = pages is List<Pixeez.Objects.Page> ? pages.Select(p => new Pixeez.Objects.MetaPages() { ImageUrls = p.ImageUrls }) : null;
+                        #endregion
 
+                        #region Get Tags
                         var tags = illust.MoreTags.Select(t => new Pixeez.Objects.Tag() { Name = t.Original, TranslatedName = t.Translated }).ToArray();
+                        #endregion
 
+                        #region Create IllustWork
                         var i = new Pixeez.Objects.IllustWork()
                         {
                             Type = "illust",
@@ -563,13 +574,15 @@ namespace PixivWPF.Common
                             total_bookmarks = illust.BookmarkCount,
                             total_view = illust.ViewCount,
                             tags = tags,
-                            meta_pages = meta_pages.ToArray(),
+                            meta_pages = meta_pages is IEnumerable<Pixeez.Objects.Page> ?  meta_pages.ToArray() : null,
                             meta_single_page = new Pixeez.Objects.MetaSinglePage() {  OriginalImageUrl = image_urls.Original },
                         };
                         await i.RefreshIllustBookmarkState();
+                        #endregion
+
                         result = new List<Pixeez.Objects.Work>() { i };
                     }
-                    else work.Message.ShowToast("Get Illust By Id");
+                    else work.Message.ShowToast("GetIllustById");
                 }
                 catch (Exception ex) { ex.ERROR("SearchIllustById"); }
             }

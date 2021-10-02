@@ -3046,7 +3046,7 @@ namespace PixivWPF.Common
             return (httpClient);
         }
 
-        public static HttpRequestMessage GetHttpRequest(this Application app, string url, HttpMethod method = null, long? range_start = null, long? range_count = null)
+        public static HttpRequestMessage GetHttpRequest(this Application app, string url, HttpMethod method = null, long? range_start = null, long? range_count = null, bool xclient = true)
         {
             HttpRequestMessage request = null;
             if (!string.IsNullOrEmpty(url))
@@ -3056,8 +3056,8 @@ namespace PixivWPF.Common
                     var setting = LoadSetting(app);
                     var clientHash = new PixivClientHash();
                     request = new HttpRequestMessage(method == null ? HttpMethod.Get : method, url);
-                    request.Headers.Add("X-Client-Time", clientHash.Time);
-                    request.Headers.Add("X-Client-Hash", clientHash.Hash);
+                    if (xclient) request.Headers.Add("X-Client-Time", clientHash.Time);
+                    if (xclient) request.Headers.Add("X-Client-Hash", clientHash.Hash);
                     request.Properties["RequestTimeout"] = TimeSpan.FromSeconds(setting.DownloadHttpTimeout);
 
                     var start = (range_start ?? 0) <= 0 ? "0" : $"{range_start}";
@@ -3103,9 +3103,9 @@ namespace PixivWPF.Common
             return (await client.GetResponseAsync());
         }
         
-        public static async Task<HttpResponseMessage> GetAsyncResponse(this Application app, string url, HttpMethod method = null, HttpCompletionOption option = HttpCompletionOption.ResponseHeadersRead)
+        public static async Task<HttpResponseMessage> GetAsyncResponse(this Application app, string url, HttpMethod method = null, HttpCompletionOption option = HttpCompletionOption.ResponseHeadersRead, bool xclient = true)
         {
-            var request = Application.Current.GetHttpRequest(url, method);
+            var request = Application.Current.GetHttpRequest(url, method, xclient: xclient);
             var httpClient = Application.Current.GetHttpClient();
             return (await httpClient.SendAsync(request, option));
         }
@@ -3117,7 +3117,8 @@ namespace PixivWPF.Common
             {
                 if (!string.IsNullOrEmpty(url))
                 {
-                    using (var response = await Application.Current.GetHttpClient().GetAsync(url))
+                    //using (var response = await Application.Current.GetHttpClient().GetAsync(url))
+                    using (var response = await Application.Current.GetAsyncResponse(url, xclient: false))
                     {
                         //response.EnsureSuccessStatusCode();
                         if (response != null)// && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
