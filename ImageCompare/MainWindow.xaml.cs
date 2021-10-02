@@ -685,10 +685,10 @@ namespace ImageCompare
                         file_s = files.First();
                         action |= image.LoadImageFromFile(file_s, false);
                     }
-                    //RenderRun(new Action(() =>
-                    //{
-                    if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: true);
-                    //}));
+                    if (action) RenderRun(new Action(() =>
+                    {
+                        UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: true);
+                    }));
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
