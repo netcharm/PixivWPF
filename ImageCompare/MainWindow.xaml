@@ -242,7 +242,8 @@
 
         <!-- Image Source Preview -->
         <ScrollViewer Grid.Row="1" Grid.Column="0" x:Name="ImageSourceScroll" x:Uid="ImageSourceScroll" AllowDrop="True" Focusable="False" 
-            ScrollChanged="ImageScroll_ScrollChanged" MouseDown="ImageScroll_MouseDown"
+            ScrollChanged="ImageScroll_ScrollChanged" PreviewMouseWheel="ImageBox_MouseWheel"
+            MouseDown="ImageScroll_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
             <Viewbox x:Name="ImageSourceBox" x:Uid="ImageSourceBox" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
@@ -266,7 +267,8 @@
         </ScrollViewer>
         <!-- Image Target Preview -->
         <ScrollViewer Grid.Row="1" Grid.Column="2" x:Name="ImageTargetScroll" x:Uid="ImageTargetScroll" AllowDrop="True" Focusable="False" 
-                      ScrollChanged="ImageScroll_ScrollChanged" MouseDown="ImageScroll_MouseDown"
+            ScrollChanged="ImageScroll_ScrollChanged" PreviewMouseWheel="ImageBox_MouseWheel"
+            MouseDown="ImageScroll_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
             <Viewbox x:Name="ImageTargetBox" x:Uid="ImageTargetBox" Stretch="Uniform" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
@@ -290,7 +292,8 @@
         </ScrollViewer>
         <!-- Image Result Preview -->
         <ScrollViewer Grid.Row="1" Grid.Column="1" x:Name="ImageResultScroll" x:Uid="ImageResultScroll" Focusable="False" 
-            ScrollChanged="ImageScroll_ScrollChanged" MouseDown="ImageScroll_MouseDown"
+            ScrollChanged="ImageScroll_ScrollChanged" PreviewMouseWheel="ImageBox_MouseWheel"
+            MouseDown="ImageScroll_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
             <Viewbox x:Uid="ImageResultBox" x:Name="ImageResultBox" Stretch="Uniform" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
