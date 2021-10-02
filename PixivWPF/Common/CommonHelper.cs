@@ -5646,7 +5646,7 @@ namespace PixivWPF.Common
                 if (illusts == null) await IllustID.SearchIllustById(tokens);
                 if (illusts is List<Pixeez.Objects.Work>)
                 {
-                    foreach (var illust in illusts)
+                    foreach (Pixeez.Objects.Work illust in illusts)
                     {
                         illust.Cache();
                         if (illust.Id == IllustID)
