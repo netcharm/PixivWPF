@@ -342,7 +342,7 @@ namespace ImageCompare
             double offset_x = -1, offset_y = -1;
             if (sender == ImageSourceBox || sender == ImageSourceScroll)
             {
-                if (ImageSourceBox.Stretch == Stretch.None)
+                if (ImageSourceBox.Stretch == Stretch.None && ImageSource.GetInformation().ValidCurrent)
                 {
                     Point factor = new Point(ImageSourceScroll.ExtentWidth/ImageSourceScroll.ActualWidth, ImageSourceScroll.ExtentHeight/ImageSourceScroll.ActualHeight);
                     Vector v = mouse_start - e.GetPosition(ImageSourceScroll);
@@ -352,7 +352,7 @@ namespace ImageCompare
             }
             else if (sender == ImageTargetBox || sender == ImageTargetScroll)
             {
-                if (ImageTargetBox.Stretch == Stretch.None)
+                if (ImageTargetBox.Stretch == Stretch.None && ImageTarget.GetInformation().ValidCurrent)
                 {
                     Point factor = new Point(ImageTargetScroll.ExtentWidth/ImageTargetScroll.ActualWidth, ImageTargetScroll.ExtentHeight/ImageTargetScroll.ActualHeight);
                     Vector v = mouse_start - e.GetPosition(ImageTargetScroll);
@@ -362,7 +362,7 @@ namespace ImageCompare
             }
             else if (sender == ImageResultBox || sender == ImageResultScroll)
             {
-                if (ImageResultBox.Stretch == Stretch.None)
+                if (ImageResultBox.Stretch == Stretch.None && ImageResult.GetInformation().ValidCurrent)
                 {
                     Point factor = new Point(ImageResultScroll.ExtentWidth/ImageResultScroll.ActualWidth, ImageResultScroll.ExtentHeight/ImageResultScroll.ActualHeight);
                     Vector v = mouse_start - e.GetPosition(ImageResultScroll);
@@ -1973,21 +1973,30 @@ namespace ImageCompare
                 {
                     if (sender == ImageSourceBox || sender == ImageSourceScroll)
                     {
-                        e.Handled = true;
-                        mouse_start = e.GetPosition(ImageSourceScroll);
-                        mouse_origin = new Point(ImageSourceScroll.HorizontalOffset, ImageSourceScroll.VerticalOffset);
+                        if (ImageSource.GetInformation().ValidCurrent)
+                        {
+                            e.Handled = true;
+                            mouse_start = e.GetPosition(ImageSourceScroll);
+                            mouse_origin = new Point(ImageSourceScroll.HorizontalOffset, ImageSourceScroll.VerticalOffset);
+                        }
                     }
                     else if (sender == ImageTargetBox || sender == ImageTargetScroll)
                     {
-                        e.Handled = true;
-                        mouse_start = e.GetPosition(ImageTargetScroll);
-                        mouse_origin = new Point(ImageTargetScroll.HorizontalOffset, ImageTargetScroll.VerticalOffset);
+                        if (ImageTarget.GetInformation().ValidCurrent)
+                        {
+                            e.Handled = true;
+                            mouse_start = e.GetPosition(ImageTargetScroll);
+                            mouse_origin = new Point(ImageTargetScroll.HorizontalOffset, ImageTargetScroll.VerticalOffset);
+                        }
                     }
                     else if (sender == ImageResultBox || sender == ImageResultScroll)
                     {
-                        e.Handled = true;
-                        mouse_start = e.GetPosition(ImageResultScroll);
-                        mouse_origin = new Point(ImageResultScroll.HorizontalOffset, ImageResultScroll.VerticalOffset);
+                        if (ImageResult.GetInformation().ValidCurrent)
+                        {
+                            e.Handled = true;
+                            mouse_start = e.GetPosition(ImageResultScroll);
+                            mouse_origin = new Point(ImageResultScroll.HorizontalOffset, ImageResultScroll.VerticalOffset);
+                        }
                     }
                 }
             }
