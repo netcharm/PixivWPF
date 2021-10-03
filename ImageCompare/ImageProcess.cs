@@ -973,7 +973,7 @@ namespace ImageCompare
                         image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, image.Current.Height - 2);
                     }
                     else
-                        image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, image.LastClickPos);
+                        image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, image.LastClickPos ?? image.DefaultOrigin);
                     action = true;
                 }
 

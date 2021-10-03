@@ -278,20 +278,23 @@ namespace ImageCompare
         {
             if (colors is IEnumerable<Color> && colors.Count() > 0)
             {
-                picker.RecentColors.Clear();
-                var ct = Colors.Transparent;
-                foreach (var color in colors)
+                Dispatcher.Invoke(() =>
                 {
-                    try
+                    picker.RecentColors.Clear();
+                    var ct = Colors.Transparent;
+                    foreach (var color in colors)
                     {
-                        var ci = picker.AvailableColors.Where(c => c.Color.Equals(color)).FirstOrDefault();
-                        if (ci != null && !picker.RecentColors.Contains(ci)) picker.RecentColors.Add(ci);
-                        else if (color.A == ct.A && color.R == ct.R && color.G == ct.G && color.B == ct.B) continue;
-                        else if (picker.RecentColors.Where(c => c.Color.Equals(color)).Count() <= 0)
-                            picker.RecentColors.Add(new ColorItem(color, ColorToHex(color)));
+                        try
+                        {
+                            var ci = picker.AvailableColors.Where(c => c.Color.Equals(color)).FirstOrDefault();
+                            if (ci != null && !picker.RecentColors.Contains(ci)) picker.RecentColors.Add(ci);
+                            else if (color.A == ct.A && color.R == ct.R && color.G == ct.G && color.B == ct.B) continue;
+                            else if (picker.RecentColors.Where(c => c.Color.Equals(color)).Count() <= 0)
+                                picker.RecentColors.Add(new ColorItem(color, ColorToHex(color)));
+                        }
+                        catch (Exception ex) { ex.ShowMessage(); continue; }
                     }
-                    catch (Exception ex) { ex.ShowMessage(); continue; }
-                }
+                });
             }
         }
 
@@ -299,7 +302,6 @@ namespace ImageCompare
         {
             if (colors is IEnumerable<string> && colors.Count() > 0)
             {
-                picker.RecentColors.Clear();
                 SetRecentColors(picker, colors.Select(c => (Color)ColorConverter.ConvertFromString(c)));
             }
         }
@@ -373,18 +375,21 @@ namespace ImageCompare
 
         private void SyncScrollOffset(Point offset)
         {
-            if (offset.X >= 0)
+            Dispatcher.Invoke(() =>
             {
-                ImageSourceScroll.ScrollToHorizontalOffset(offset.X);
-                ImageTargetScroll.ScrollToHorizontalOffset(offset.X);
-                ImageResultScroll.ScrollToHorizontalOffset(offset.X);
-            }
-            if (offset.Y >= 0)
-            {
-                ImageSourceScroll.ScrollToVerticalOffset(offset.Y);
-                ImageTargetScroll.ScrollToVerticalOffset(offset.Y);
-                ImageResultScroll.ScrollToVerticalOffset(offset.Y);
-            }
+                if (offset.X >= 0)
+                {
+                    ImageSourceScroll.ScrollToHorizontalOffset(offset.X);
+                    ImageTargetScroll.ScrollToHorizontalOffset(offset.X);
+                    ImageResultScroll.ScrollToHorizontalOffset(offset.X);
+                }
+                if (offset.Y >= 0)
+                {
+                    ImageSourceScroll.ScrollToVerticalOffset(offset.Y);
+                    ImageTargetScroll.ScrollToVerticalOffset(offset.Y);
+                    ImageResultScroll.ScrollToVerticalOffset(offset.Y);
+                }
+            });
         }
 
         private void CalcDisplay(bool set_ratio = true)
@@ -664,10 +669,11 @@ namespace ImageCompare
                 var action = false;
                 files = files.Where(f => !string.IsNullOrEmpty(f)).Where(f => Extensions.AllSupportedFormats.Keys.ToList().Select(e => $".{e.ToLower()}").ToList().Contains(Path.GetExtension(f).ToLower())).ToArray();
                 var count = files.Length;
-                var image_s = ImageSource.GetInformation();
-                var image_t = ImageTarget.GetInformation();
                 if (count > 0)
                 {
+                    var image_s = ImageSource.GetInformation();
+                    var image_t = ImageTarget.GetInformation();
+
                     var file_s = string.Empty;
                     var file_t = string.Empty;
                     if (count >= 2)
@@ -1551,6 +1557,8 @@ namespace ImageCompare
             DefaultCompareToolTip = ImageCompare.ToolTip as string;
             DefaultComposeToolTip = ImageCompose.ToolTip as string;
 
+            ProcessStatus.Opacity = 0.66;
+
             if (DefaultFontFamily == null) DefaultFontFamily = new FontFamily(DefaultFontFamilyName);
             #endregion
 
@@ -1842,7 +1850,7 @@ namespace ImageCompare
                         e.Handled = true;
                         if (ImageTarget.Source != null && ImageTarget.ContextMenu != null) ImageTarget.ContextMenu.IsOpen = true;
                     }
-                    else if(e.Key == Key.R || e.SystemKey == Key.R)
+                    else if (e.Key == Key.R || e.SystemKey == Key.R)
                     {
                         RenderRun(LastAction);
                     }
@@ -1900,97 +1908,118 @@ namespace ImageCompare
         private void ImageBox_MouseDown(object sender, MouseButtonEventArgs e)
         {
             e.Handled = false;
-            if (e.Device is MouseDevice)
+            try
             {
-                if (e.ChangedButton == MouseButton.Left)
+                if (e.Device is MouseDevice)
+                {
+                    if (e.ChangedButton == MouseButton.Left)
+                    {
+                        var image_s = ImageSource.GetInformation();
+                        var image_t = ImageTarget.GetInformation();
+                        var image_r = ImageResult.GetInformation();
+                        if (sender == ImageSourceBox || sender == ImageSourceScroll)
+                        {
+                            e.Handled = true;
+                            mouse_start = e.GetPosition(ImageSourceScroll);
+                            mouse_origin = new Point(ImageSourceScroll.HorizontalOffset, ImageSourceScroll.VerticalOffset);
+                            var pos = e.GetPosition(ImageSource);
+                            ImageSource.GetInformation().LastClickPos = new PointD(pos.X, pos.Y);
+                        }
+                        else if (sender == ImageTargetBox || sender == ImageTargetScroll)
+                        {
+                            e.Handled = true;
+                            mouse_start = e.GetPosition(ImageTargetScroll);
+                            mouse_origin = new Point(ImageTargetScroll.HorizontalOffset, ImageTargetScroll.VerticalOffset);
+                            var pos = e.GetPosition(ImageTarget);
+                            ImageTarget.GetInformation().LastClickPos = new PointD(pos.X, pos.Y);
+                        }
+                        else if (sender == ImageResultBox || sender == ImageResultScroll)
+                        {
+                            e.Handled = true;
+                            mouse_start = e.GetPosition(ImageResultScroll);
+                            mouse_origin = new Point(ImageResultScroll.HorizontalOffset, ImageResultScroll.VerticalOffset);
+                            var pos = e.GetPosition(ImageResult);
+                            ImageResult.GetInformation().LastClickPos = new PointD(pos.X, pos.Y);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage("MouseClick"); }
+        }
+
+        private void ImageBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            try
+            {
+                if (e.LeftButton == MouseButtonState.Pressed)
+                {
+                    e.Handled = true;
+                    var offset = sender is Viewbox || sender is ScrollViewer ? CalcScrollOffset(sender as FrameworkElement, e) : new Point(-1, -1);
+#if DEBUG
+                    Debug.WriteLine($"Original : [{mouse_origin.X:F0}, {mouse_origin.Y:F0}], Start : [{mouse_start.X:F0}, {mouse_start.Y:F0}] => Move : [{offset.X:F0}, {offset.Y:F0}]");
+                    //Debug.WriteLine($"Move Y: {offset_y}");
+#endif
+                    SyncScrollOffset(offset);
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage("MouseMove"); }
+        }
+
+        private void ImageBox_MouseEnter(object sender, MouseEventArgs e)
+        {
+            try
+            {
+                if (e.LeftButton == MouseButtonState.Pressed)
                 {
                     if (sender == ImageSourceBox || sender == ImageSourceScroll)
                     {
                         e.Handled = true;
                         mouse_start = e.GetPosition(ImageSourceScroll);
                         mouse_origin = new Point(ImageSourceScroll.HorizontalOffset, ImageSourceScroll.VerticalOffset);
-                        var pos = e.GetPosition(ImageSource);
-                        ImageSource.GetInformation().LastClickPos = new PointD(pos.X, pos.Y);
                     }
                     else if (sender == ImageTargetBox || sender == ImageTargetScroll)
                     {
                         e.Handled = true;
                         mouse_start = e.GetPosition(ImageTargetScroll);
                         mouse_origin = new Point(ImageTargetScroll.HorizontalOffset, ImageTargetScroll.VerticalOffset);
-                        var pos = e.GetPosition(ImageTarget);
-                        ImageTarget.GetInformation().LastClickPos = new PointD(pos.X, pos.Y); 
                     }
                     else if (sender == ImageResultBox || sender == ImageResultScroll)
                     {
                         e.Handled = true;
                         mouse_start = e.GetPosition(ImageResultScroll);
                         mouse_origin = new Point(ImageResultScroll.HorizontalOffset, ImageResultScroll.VerticalOffset);
-                        var pos = e.GetPosition(ImageResult);
-                        ImageResult.GetInformation().LastClickPos = new PointD(pos.X, pos.Y); 
                     }
                 }
             }
-        }
-
-        private void ImageBox_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                e.Handled = true;
-                var offset = sender is Viewbox || sender is ScrollViewer ? CalcScrollOffset(sender as FrameworkElement, e) : new Point(-1, -1);
-#if DEBUG
-                Debug.WriteLine($"Original : [{mouse_origin.X:F0}, {mouse_origin.Y:F0}], Start : [{mouse_start.X:F0}, {mouse_start.Y:F0}] => Move : [{offset.X:F0}, {offset.Y:F0}]");
-                //Debug.WriteLine($"Move Y: {offset_y}");
-#endif
-                SyncScrollOffset(offset);
-            }
-        }
-
-        private void ImageBox_MouseEnter(object sender, MouseEventArgs e)
-        {
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                if (sender == ImageSourceBox || sender == ImageSourceScroll)
-                {
-                    e.Handled = true;
-                    mouse_start = e.GetPosition(ImageSourceScroll);
-                    mouse_origin = new Point(ImageSourceScroll.HorizontalOffset, ImageSourceScroll.VerticalOffset);
-                }
-                else if (sender == ImageTargetBox || sender == ImageTargetScroll)
-                {
-                    e.Handled = true;
-                    mouse_start = e.GetPosition(ImageTargetScroll);
-                    mouse_origin = new Point(ImageTargetScroll.HorizontalOffset, ImageTargetScroll.VerticalOffset);
-                }
-                else if (sender == ImageResultBox || sender == ImageResultScroll)
-                {
-                    e.Handled = true;
-                    mouse_start = e.GetPosition(ImageResultScroll);
-                    mouse_origin = new Point(ImageResultScroll.HorizontalOffset, ImageResultScroll.VerticalOffset);
-                }
-            }
+            catch (Exception ex) { ex.ShowMessage("MouseEnter"); }
         }
 
         private void ImageBox_MouseLeave(object sender, MouseEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed)
+            try
             {
-                e.Handled = true;
-                var offset = sender is Viewbox || sender is ScrollViewer ? CalcScrollOffset(sender as FrameworkElement, e) : new Point(-1, -1);
+                if (e.LeftButton == MouseButtonState.Pressed)
+                {
+                    e.Handled = true;
+                    var offset = sender is Viewbox || sender is ScrollViewer ? CalcScrollOffset(sender as FrameworkElement, e) : new Point(-1, -1);
+                }
             }
+            catch (Exception ex) { ex.ShowMessage("MouseLeave"); }
         }
 
         private void ZoomRatio_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (IsLoaded && (ZoomFitNone.IsChecked ?? false))
+            try
             {
-                try
+                if (IsLoaded && (ZoomFitNone.IsChecked ?? false))
                 {
+
                     e.Handled = true;
                     LastZoomRatio = ZoomRatio.Value;
+
                 }
-                catch (Exception ex) { ex.ShowMessage(); }
             }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         private void ImageCompareFuzzy_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -2182,7 +2211,7 @@ namespace ImageCompare
             }
             else if (sender == ZoomFitAll)
             {
-                CurrentZoomFitMode = ZoomFitMode.All;                
+                CurrentZoomFitMode = ZoomFitMode.All;
             }
             else if (sender == ZoomFitWidth)
             {

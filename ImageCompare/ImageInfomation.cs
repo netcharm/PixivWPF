@@ -65,17 +65,22 @@ namespace ImageCompare
         public bool Loaded { get; set; } = false;
         public bool Modified { get; set; } = false;
 
-        private PointD _LastClickPos_ = new PointD(0, 0);
-        public PointD LastClickPos
+        public PointD DefaultOrigin { get; } = new PointD(0, 0);
+        private PointD? _LastClickPos_ = null;
+        public PointD? LastClickPos
         {
             get { return (_LastClickPos_); }
             set
             {
-                //var x = Math.Max(0, Math.Min(Current.Width, value.X));
-                //var y = Math.Max(0, Math.Min(Current.Height, value.X));
-                var x = 0 <= value.X && value.X < Current.Width ? value.X : _LastClickPos_.X;
-                var y = 0 <= value.Y && value.Y < Current.Height ? value.Y : _LastClickPos_.Y;
-                _LastClickPos_ = new PointD(x, y);
+                if (ValidCurrent && value.HasValue)
+                {
+                    var point = value ?? DefaultOrigin;
+                    //var x = Math.Max(0, Math.Min(Current.Width, point.X));
+                    //var y = Math.Max(0, Math.Min(Current.Height, point.X));
+                    var x = 0 <= point.X && point.X < Current.Width ? point.X : (_LastClickPos_ ?? DefaultOrigin).X;
+                    var y = 0 <= point.Y && point.Y < Current.Height ? point.Y : (_LastClickPos_ ?? DefaultOrigin).Y;
+                    _LastClickPos_ = new PointD(x, y);
+                }
             }
         }
 
