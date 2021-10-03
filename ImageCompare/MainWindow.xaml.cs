@@ -599,7 +599,7 @@ namespace ImageCompare
         #endregion
 
         #region Image Load/Save Routines
-        private void CopyImageToOther(bool source = true)
+        private void CopyImageToOpposite(bool source = true)
         {
             RenderRun(new Action(() =>
             {
@@ -613,7 +613,10 @@ namespace ImageCompare
                         if (image_t.ValidOriginal)
                             image_t.Current = new MagickImage(image_s.Current);
                         else
+                        {
                             image_t.Original = new MagickImage(image_s.Current);
+                            image_t.FileName = image_s.FileName;
+                        }
                         action = true;
                     }
                     else if (image_t.ValidCurrent)
@@ -621,7 +624,10 @@ namespace ImageCompare
                         if (image_s.ValidOriginal)
                             image_s.Current = new MagickImage(image_t.Current);
                         else
+                        {
                             image_s.Original = new MagickImage(image_t.Current);
+                            image_s.FileName = image_t.FileName;
+                        }
                         action = true;
                     }
                     if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
@@ -1165,8 +1171,8 @@ namespace ImageCompare
                     RenderRun(() => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: true, sendto: sendto, first: first); });
                 };
 
-                item_copyto_source.Click += (obj, evt) => { RenderRun(() => { CopyImageToOther(source); }); };
-                item_copyto_target.Click += (obj, evt) => { RenderRun(() => { CopyImageToOther(source); }); };
+                item_copyto_source.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(source); }); };
+                item_copyto_target.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(source); }); };
 
                 item_load_prev.Click += (obj, evt) => { RenderRun(() => { LoadImageFromPrevFile((bool)(obj as MenuItem).Tag); }); };
                 item_load_next.Click += (obj, evt) => { RenderRun(() => { LoadImageFromNextFile((bool)(obj as MenuItem).Tag); }); };
