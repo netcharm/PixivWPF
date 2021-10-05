@@ -1374,11 +1374,21 @@ namespace PixivWPF.Common
                     {
                         url = illust.meta_single_page.OriginalImageUrl;
                     }
-                    else if (p_count > 1 && illust.meta_pages.Count() == p_count)
+                    else if (p_count > 1)
                     {
-                        idx = Math.Max(0, Math.Min(idx, p_count - 1));
-                        var page = illust.meta_pages[idx];
-                        url = page.GetOriginalUrl();
+                        if (illust.PageCount > 1 && illust.meta_pages == null)
+                        {
+                            Func<List<Pixeez.Objects.MetaPages>> GetPages = () => { return(illust.GetMetaPages().ConfigureAwait(true).GetAwaiter().GetResult()); };
+                            var meta_pages = illust.GetMetaPages().ConfigureAwait(true).GetAwaiter().GetResult();
+                            if (meta_pages is List<Pixeez.Objects.MetaPages>) illust.meta_pages = meta_pages.ToArray();
+                        }
+                        if (illust.meta_pages is IEnumerable<Pixeez.Objects.MetaPages> && illust.meta_pages.Count() == p_count)
+                        {
+
+                            idx = Math.Max(0, Math.Min(idx, p_count - 1));
+                            var page = illust.meta_pages[idx];
+                            url = page.GetOriginalUrl();
+                        }
                     }
                 }
                 catch (Exception ex) { ex.ERROR("GetOriginalUrl"); }

@@ -5031,7 +5031,7 @@ namespace PixivWPF.Common
                 try
                 {
                     setting = Application.Current.LoadSetting();
-                    HttpClient client = Application.Current.GetHttpClient(is_download: true);
+                    HttpClient client = Application.Current.GetHttpClient(is_download: false);
                     using (var request = Application.Current.GetHttpRequest(url))
                     {
                         using (response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancelToken.Token))
@@ -5901,6 +5901,7 @@ namespace PixivWPF.Common
                     var i = illust as Pixeez.Objects.NormalWork;
                     i.IsLiked = is_bookmarked;
                 }
+                illust.Cache();
                 result.State = true;
                 result.Restrict = restrict;
                 result.IsBookmarked = is_bookmarked;

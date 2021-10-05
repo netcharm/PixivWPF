@@ -2002,9 +2002,14 @@ namespace PixivWPF.Pages
 
                     var idx = page * count;
                     if (item.Illust is Pixeez.Objects.IllustWork)
-                    {
+                        {
                         var subset = item.Illust as Pixeez.Objects.IllustWork;
-                        if (subset.meta_pages.Count() > 1)
+                        if (subset.PageCount > 1 && subset.meta_pages == null)
+                        {
+                            var meta_pages = await subset.GetMetaPages();
+                            if (meta_pages is List<Pixeez.Objects.MetaPages>) subset.meta_pages = meta_pages.ToArray();
+                        }
+                        if (subset.meta_pages is IEnumerable<Pixeez.Objects.MetaPages> && subset.meta_pages.Count() > 1)
                         {
                             var pages = subset.meta_pages.Skip(idx).Take(count).ToList();
                             for (var i = 0; i < pages.Count; i++)

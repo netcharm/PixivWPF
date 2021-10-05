@@ -461,6 +461,18 @@ namespace PixivWPF.Common
             else return (null);
         }
 
+        public static async Task<List<Pixeez.Objects.MetaPages>> GetMetaPages(this Pixeez.Objects.Work work, Pixeez.Tokens tokens = null)
+        {
+            List<Pixeez.Objects.MetaPages> result = null;
+            if (work is Pixeez.Objects.Work)
+            {
+                var pages_url = GetAjaxMetaPageUrl(work.Id);
+                List<Pixeez.Objects.Page> pages = work.PageCount > 1 ? await GetMetaPages(pages_url, tokens) : null;
+                result = pages is List<Pixeez.Objects.Page> ? pages.Select(p => new Pixeez.Objects.MetaPages() { ImageUrls = p.ImageUrls }).ToList() : null;
+            }
+            return (result);
+        }
+
         public static async Task<Pixeez.Objects.Metadata> GetMetaData(this string url, Pixeez.Tokens tokens = null)
         {
             var pages = await GetMetaPages(url, tokens);
@@ -574,10 +586,11 @@ namespace PixivWPF.Common
                             total_bookmarks = illust.BookmarkCount,
                             total_view = illust.ViewCount,
                             tags = tags,
-                            meta_pages = meta_pages is IEnumerable<Pixeez.Objects.Page> ?  meta_pages.ToArray() : null,
+                            meta_pages = meta_pages is IEnumerable<Pixeez.Objects.MetaPages> ?  meta_pages.ToArray() : null,
                             meta_single_page = new Pixeez.Objects.MetaSinglePage() {  OriginalImageUrl = image_urls.Original },
                         };
                         await i.RefreshIllustBookmarkState();
+                        i.Cache();
                         #endregion
 
                         result = new List<Pixeez.Objects.Work>() { i };
