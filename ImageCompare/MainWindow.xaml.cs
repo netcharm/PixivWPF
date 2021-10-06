@@ -2240,14 +2240,14 @@ namespace ImageCompare
             {
                 RenderRun(new Action(() =>
                 {
-                    UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+                    UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: true);
                 }));
             }
             else if (sender == UseColorImage)
             {
                 RenderRun(new Action(() =>
                 {
-                    UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+                    UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: true);
                 }));
             }
             else if (sender == UsedChannels)

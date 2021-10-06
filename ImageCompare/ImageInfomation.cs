@@ -257,7 +257,7 @@ namespace ImageCompare
             return (result);
         }
 
-        public void Save(string file, string ext = ".png")
+        public void Save(string file, string ext = ".png", MagickFormat format = MagickFormat.Unknown)
         {
             if (ValidCurrent)
             {
@@ -265,7 +265,11 @@ namespace ImageCompare
                 {
                     var e = Path.GetExtension(file);
                     if (string.IsNullOrEmpty(e)) file = $"{file}{ext}";
-                    Current.Write(file);
+                    if (e.Equals(".png8", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        Current.Write(Path.ChangeExtension(file, ".png"), MagickFormat.Png8);
+                    }
+                    else Current.Write(file, format);
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }
@@ -279,19 +283,21 @@ namespace ImageCompare
                 {
                     var file_str = "File".T();
                     var dlgSave = new Microsoft.Win32.SaveFileDialog() {  CheckPathExists = true, ValidateNames = true, DefaultExt = ".png" };
-                    dlgSave.Filter = $"PNG {file_str}| *.png|JPEG {file_str}|*.jpg;*.jpeg|TIFF {file_str}|*.tif;*.tiff|BITMAP {file_str}|*.bmp";
+                    dlgSave.Filter = $"PNG {file_str}| *.png|PNG8 {file_str}| *.png|JPEG {file_str}|*.jpg;*.jpeg|TIFF {file_str}|*.tif;*.tiff|BITMAP {file_str}|*.bmp";
                     dlgSave.FilterIndex = 1;
                     if (dlgSave.ShowDialog() ?? false)
                     {
                         var file = dlgSave.FileName;
                         var ext = Path.GetExtension(file);
                         var filters = dlgSave.Filter.Split('|');
+                        var filter = filters[(dlgSave.FilterIndex - 1) * 2];
                         if (string.IsNullOrEmpty(ext))
                         {
-                            ext = filters[(dlgSave.FilterIndex - 1) * 2].Replace("*", "");
+                            ext = filters[(dlgSave.FilterIndex - 1) * 2 + 1].Replace("*", "");
                             file = $"{file}{ext}";
                         }
-                        Save(file);
+                        var fmt = filter.StartsWith("png8", StringComparison.CurrentCultureIgnoreCase) ? MagickFormat.Png8 : MagickFormat.Unknown;
+                        Save(file, format: fmt);
                     }
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
