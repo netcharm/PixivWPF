@@ -88,6 +88,23 @@ namespace ImageCompare
         public bool FlipY { get; set; } = false;
         public double Rotated { get; set; } = .0;
 
+        public void FixDPI()
+        {
+            if (ValidCurrent)
+            {
+                var dpi = Application.Current.GetSystemDPI();
+                if (Current.Density is Density && Current.Density.X > 0 && Current.Density.Y > 0)
+                {
+                    var unit = Current.Density.ChangeUnits(DensityUnit.PixelsPerInch);
+                    if (unit.X <= 0 || unit.Y <= 0)
+                        Current.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
+                    else
+                        Current.Density = new Density(Math.Round(unit.X), Math.Round(unit.Y), DensityUnit.PixelsPerInch);
+                }
+                else Current.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
+            }
+        }
+
         public async Task<bool> LoadImageFromClipboard()
         {
             var result = await Application.Current.Dispatcher.InvokeAsync(() =>
@@ -265,6 +282,9 @@ namespace ImageCompare
                 {
                     var e = Path.GetExtension(file);
                     if (string.IsNullOrEmpty(e)) file = $"{file}{ext}";
+
+                    FixDPI();
+
                     if (e.Equals(".png8", StringComparison.CurrentCultureIgnoreCase))
                     {
                         Current.Write(Path.ChangeExtension(file, ".png"), MagickFormat.Png8);
