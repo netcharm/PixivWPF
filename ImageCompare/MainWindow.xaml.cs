@@ -630,7 +630,7 @@ namespace ImageCompare
                         }
                         action = true;
                     }
-                    if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+                    if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }));
