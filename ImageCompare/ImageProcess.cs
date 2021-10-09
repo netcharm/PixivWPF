@@ -137,7 +137,7 @@ namespace ImageCompare
                 else
                     action = ImageTarget.GetInformation().ResetTransform();
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage();; }
         }
@@ -226,7 +226,7 @@ namespace ImageCompare
                 else
                     action = ImageTarget.GetInformation().Reload();
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage();; }
         }
