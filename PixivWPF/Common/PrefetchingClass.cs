@@ -361,7 +361,7 @@ namespace PixivWPF.Common
                     }
                 }
                 $"Query Original Imagee File Size : {Environment.NewLine}  Done [ {originals.Count} ]".ShowToast("INFO", tag: args.Name ?? Name ?? GetType().Name);
-                State = TaskStatus.RanToCompletion;
+                State = count <= 0 ? TaskStatus.RanToCompletion : TaskStatus.Faulted;
                 if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                 else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke((double)Percentage, Comments, State);
                 result = true;

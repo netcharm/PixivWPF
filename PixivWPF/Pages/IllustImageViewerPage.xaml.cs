@@ -254,10 +254,6 @@ namespace PixivWPF.Pages
                 if (!(cancelDownloading is CancellationTokenSource) || cancelDownloading.IsCancellationRequested)
                     cancelDownloading = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
 
-                StatusFollowed.Show(show: Contents.IsFollowed);
-                StatusFaorited.Show(show: Contents.IsFavorited);
-                StatusDownloaded.Show(show: Contents.IsDownloaded);
-
                 down_rate.Clear();
                 down_rate.Enqueue(0);
                 down_totalelapsed = TimeSpan.FromSeconds(0);
@@ -417,10 +413,16 @@ namespace PixivWPF.Pages
                         ActionViewPageSep.Hide();
                     }
 
+                    StatusFollowed.Show(show: Contents.IsFollowed);
+                    StatusFaorited.Show(show: Contents.IsFavorited);
+                    StatusDownloaded.Show(show: Contents.IsDownloaded);
+
                     StringBuilder sb = new StringBuilder();
                     sb.AppendLine($"Favorited  = {Contents.Illust.IsLiked()}");
                     sb.AppendLine($"Page Index = {Contents.Index + 1} / {Contents.Count}");
                     sb.AppendLine($"Downloaded = {Contents.Illust.IsDownloaded(Contents.Index)}");
+                    sb.AppendLine($"Original   = {Contents.Illust.GetOriginalUrl(Contents.Index).GetImageName(Contents.Count <= 1)} [{(await Contents.Illust.GetOriginalUrl(Contents.Index).QueryImageFileSize() ?? -1).SmartFileSize()}]");
+
                     InfoBar.ToolTip = sb.ToString().Trim();
                     StatusBar.ToolTip = InfoBar.ToolTip;
 
@@ -1079,7 +1081,8 @@ namespace PixivWPF.Pages
         private void ActionCompare_Click(object sender, RoutedEventArgs e)
         {
             //Commands.Compare.Execute(Contents);
-            Commands.Compare.Execute(IsOriginal ? OriginalImageUrl.GetImageCachePath() : PreviewImageUrl.GetImageCachePath());
+            //Commands.Compare.Execute(IsOriginal ? OriginalImageUrl.GetImageCachePath() : PreviewImageUrl.GetImageCachePath());
+            Commands.Compare.Execute(new CompareItem() { Item = Contents, Type = IsOriginal ? CompareType.Original : CompareType.Large });
         }
 
         /// <summary>

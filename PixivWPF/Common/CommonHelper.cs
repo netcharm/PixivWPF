@@ -131,6 +131,13 @@ namespace PixivWPF.Common
         public string Text { get; set; } = string.Empty;
     }
 
+    public enum CompareType { Auto = 0, Thumb = 1, Preview = 2, Large = 3, Original = 4 };
+    public class CompareItem
+    {
+        public PixivItem Item { get; set; } = null;
+        public CompareType Type { get; set; } = CompareType.Auto;
+    }
+
     #region DPI Helper
     public class DPI
     {

@@ -1701,8 +1701,14 @@ namespace PixivWPF.Pages
                 if (string.IsNullOrEmpty(IllustSanity.Text)) IllustSanityInfo.Hide();
                 else IllustSanityInfo.Show();
 
-                IllustDate.Text = item.Illust.GetDateTime().ToString("yyyy-MM-dd HH:mm:ss");
-                IllustDateInfo.ToolTip = IllustDate.Text;
+                var dt = item.Illust.GetDateTime();
+                var local = CultureInfo.CurrentCulture.ThreeLetterWindowsLanguageName.ToUpper();
+                var japan = CultureInfo.GetCultureInfo("ja-JP").ThreeLetterWindowsLanguageName.ToUpper();
+                var local_dt = dt.ToString("yyyy-MM-dd HH:mm:sszzz");
+                var japan_dt = new DateTimeOffset(dt).ToOffset(TimeSpan.FromHours(9)).ToString("yyyy-MM-dd HH:mm:sszzz");
+
+                IllustDate.Text = dt.ToString("yyyy-MM-dd HH:mm:ss");
+                IllustDateInfo.ToolTip = $"{local}: {local_dt}{Environment.NewLine}{japan}: {japan_dt}";
                 IllustDateInfo.Show();
 
                 if (ContextMenuActionItems.ContainsKey("ActionCopyIllustDate"))

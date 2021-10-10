@@ -645,11 +645,63 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Compare { get; } = new DelegateCommand<dynamic>(async obj =>
+        public static ICommand Compare { get; } = new DelegateCommand<dynamic>(async (obj) =>
         {
             if (obj is string)
             {
                 Compare.Execute(new string[] { obj });
+            }
+            else if (obj is CompareItem && (obj as CompareItem).Item is PixivItem)
+            {
+                var item = (obj as CompareItem).Item;
+                var type = (obj as CompareItem).Type;
+                if (item.IsWork())
+                {
+                    if (type == CompareType.Auto) Compare.Invoke(item);
+                    else
+                    {
+                        if (item.Count > 1)
+                        {
+                            var id_0 = item.Index;
+                            var id_1 = item.Index < item.Count - 1 ? item.Index + 1 : (item.Index - 1);
+                            switch (type)
+                            {
+                                case CompareType.Original:
+                                    Compare.Execute(new string[] {
+                                        item.Illust.GetOriginalUrl(id_0).GetImageCacheFile(),
+                                        item.Illust.GetOriginalUrl(id_1).GetImageCacheFile()
+                                    });
+                                    break;
+                                case CompareType.Large:
+                                    Compare.Execute(new string[] {
+                                        item.Illust.GetPreviewUrl(id_0, large: true).GetImageCacheFile(),
+                                        item.Illust.GetPreviewUrl(id_1, large: true).GetImageCacheFile()
+                                    });
+                                    break;
+                                case CompareType.Preview:
+                                    Compare.Execute(new string[] {
+                                        item.Illust.GetPreviewUrl(id_0).GetImageCacheFile(),
+                                        item.Illust.GetPreviewUrl(id_1).GetImageCacheFile()
+                                    });
+                                    break;
+                                case CompareType.Thumb:
+                                    Compare.Execute(new string[] {
+                                        item.Illust.GetThumbnailUrl(id_0).GetImageCacheFile(),
+                                        item.Illust.GetThumbnailUrl(id_1).GetImageCacheFile()
+                                    });
+                                    break;
+                                default:
+                                    Compare.Invoke(item);
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            var id = $"{item.Illust.GetPreviewUrl(item.Index).GetImageCacheFile()}";
+                            Compare.Execute(new string[] { id });
+                        }
+                    }
+                }
             }
             else if (obj is IEnumerable<string>)
             {
@@ -679,7 +731,10 @@ namespace PixivWPF.Common
                     {
                         var id_0 = item.Index;
                         var id_1 = item.Index < item.Count - 1 ? item.Index + 1 : (item.Index - 1);
-                        Compare.Execute(new string[] { item.Illust.GetPreviewUrl(id_0).GetImageCacheFile(), item.Illust.GetPreviewUrl(id_1).GetImageCacheFile() });
+                        Compare.Execute(new string[] {
+                            item.Illust.GetPreviewUrl(id_0).GetImageCacheFile(),
+                            item.Illust.GetPreviewUrl(id_1).GetImageCacheFile()
+                        });
                     }
                     else
                     {

@@ -1,5 +1,5 @@
 @ECHO OFF
-SETLOCAL 
+REM SETLOCAL 
 
 SET FFMPEG=ffmpeg.exe
 SET FFMPEG_METHOD="X"
@@ -11,8 +11,9 @@ REM SET FFMPEG_OUT_OPT=-vsync vfr -vf "format=yuv444p" -crf 16 -r 120
 REM SET FFMPEG_OUT_OPT=-vsync vfr -vf "format=yuv444p,pad=ceil(iw/2)*2:ceil(ih/2)*2" -crf 16 -r 120
 SET FFMPEG_OUT_OPT=-vsync vfr -vf "format=yuv444p,pad=ceil(iw/2)*2:ceil(ih/2)*2"
 
-SET FN=%~dpn1%
-SET FT=%~dpn1%.txt
+SET FN=%~dpn1
+SET FT=%~dpn1.txt
+SET FI=%~n1.txt
 SET FM=%FN%.mp4
 SET FW=%FN%.webm
 SET FZ=%FN%.zip
@@ -26,13 +27,14 @@ IF EXIST %FZ% (
     IF NOT EXIST "%FN%" (MKDIR "%FN%")
     PUSHD "%FN%"
     TAR -xf "%FZ%"
-    "%FFMPEG%" %FFMPEG_OPT_CAT% -i "%FT%" %FFMPEG_OUT_OPT% %FFMPEG_META_OPT% "%FO%"
+    COPY /B/Y "%FT%"
+    "%FFMPEG%" %FFMPEG_OPT_CAT% -i "%FI%" %FFMPEG_OUT_OPT% %FFMPEG_META_OPT% "%FO%"
     POPD
     RMDIR /S /Q "%FN%"
   ) ELSE (
     "%FFMPEG%" %FFMPEG_OPT_ZIP% -i "%FZ%" %FFMPEG_OUT_OPT% %FFMPEG_META_OPT% "%FO%"
   )
-  TIMEOUT /T 1
+  TIMEOUT /T 2
 )
 GOTO RUN
 
@@ -43,6 +45,5 @@ IF EXIST "%FO%" (
 GOTO END
 
 :END
-ENDLOCAL 
+REM ENDLOCAL 
 REM PAUSE
-
