@@ -1544,7 +1544,7 @@ namespace PixivWPF.Pages
             }
             else
             {
-                Pixeez.Objects.User user = null;
+                Pixeez.Objects.UserBase user = null;
                 if (uid == 0)
                 {
                     uid = setting.MyID;
@@ -1552,7 +1552,7 @@ namespace PixivWPF.Pages
                 }
                 else
                 {
-                    user = (Pixeez.Objects.User)uid.FindUser();
+                    user = uid.FindUser();
                 }
 
                 if (Keyboard.Modifiers == ModifierKeys.Control || !(user is Pixeez.Objects.User))

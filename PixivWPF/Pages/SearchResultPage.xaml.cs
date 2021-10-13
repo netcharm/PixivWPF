@@ -402,15 +402,17 @@ namespace PixivWPF.Pages
                     SearchFilter.Visibility = Visibility.Collapsed;
 
                     var query = Regex.Replace(content, @"^UserId: *?(\d+).*?$", "$1", RegexOptions.IgnoreCase).Trim();
-                    var related = await tokens.GetUsersAsync(Convert.ToInt64(query));
+                    var id = Convert.ToInt64(query);
+                    dynamic related = await tokens.GetUsersAsync(Convert.ToInt64(query));
+                    if (related == null) related = await id.SearchUserById(tokens);
 
-                    if (related is List<Pixeez.Objects.User>)
+                    if (related is List<Pixeez.Objects.UserBase>)
                     {
                         foreach (var user in related)
                         {
                             if (id_user.Contains(user.Id)) continue;
                             id_user.Add(user.Id);
-                            user.Cache();
+                            (user as Pixeez.Objects.UserBase).Cache();
                             user.AddTo(ResultItems.Items, next_url);
                             this.DoEvents();
                         }
@@ -423,7 +425,6 @@ namespace PixivWPF.Pages
                     var id = Convert.ToInt64(query);
                     dynamic related = await tokens.GetWorksAsync(id) ?? await tokens.GetIllustDetailAsync(id);
                     if (related == null) related = await id.SearchIllustById(tokens);
-
                     next_url = string.Empty;
 
                     if (related is List<Pixeez.Objects.Work>)

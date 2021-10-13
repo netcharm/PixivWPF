@@ -473,8 +473,8 @@ namespace Pixeez
             AsyncResponse result = null;
             using (var httpClient = PIXIV.Client(Auth.Proxy, Auth.ProxyBypass, Auth.UsingProxy, Auth.TimeOut))
             {
-                //httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
-                httpClient.DefaultRequestHeaders.Add("Referer", "https://public-api.secure.pixiv.net/");
+                httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
+                //httpClient.DefaultRequestHeaders.Add("Referer", "https://public-api.secure.pixiv.net/");
                 result = await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient);
             }
             return (result);

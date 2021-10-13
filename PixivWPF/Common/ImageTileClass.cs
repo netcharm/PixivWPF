@@ -827,7 +827,7 @@ namespace PixivWPF.Common
                             BadgeVisibility = (illust.PageCount ?? 0) > 1 ? Visibility.Visible : Visibility.Collapsed,
                             IsDisplayFavMark = true,
                             IsFavorited = illust.IsLiked(),
-                            IsFollowed = illust.User.IsLiked(),
+                            IsFollowed = illust.User == null ? false : illust.User.IsLiked(),
                             Sanity = sanity,
                             DisplayBadge = (illust.PageCount ?? 0) > 1 ? true : false,
                             Illust = illust,

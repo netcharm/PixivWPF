@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Windows;
+using System.Globalization;
 
 namespace PixivWPF.Common
 {
@@ -251,7 +252,7 @@ namespace PixivWPF.Common
         protected internal new List<string> Tags { get; set; }
     }
 
-    public class AjaxIllust
+    public class AjaxIllustData
     {
         [JsonProperty("error")]
         public bool Error { get; set; }
@@ -262,6 +263,179 @@ namespace PixivWPF.Common
         [JsonProperty("body")]
         public AjaxIllustWork Illust { get; set; }
     }
+
+    public class AjaxUserBackground
+    {
+        [JsonProperty("repeat")]
+        public bool? Repeat { get; set; }
+
+        [JsonProperty("color")]
+        public System.Windows.Media.Color? Color { get; set; }
+
+        [JsonProperty("url")]
+        public string Url { get; set; }
+
+        [JsonProperty("isPrivate")]
+        public bool? IsPrivate { get; set; }
+    }
+
+    public class AjaxUser
+    {
+        [JsonProperty("userId")]
+        public string UserId { get; set; }
+        public long? Id
+        {
+            get
+            {
+                long id = 0;
+                if (!string.IsNullOrEmpty(UserId) && long.TryParse(UserId, out id))
+                    return (id);
+                else return (null);
+            }
+        }
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("image")]
+        public string Image { get; set; }
+
+        [JsonProperty("imageBig")]
+        public string ImageBig { get; set; }
+
+        [JsonProperty("premium")]
+        public bool Premium { get; set; }
+
+        [JsonProperty("isFollowed")]
+        public bool IsFollowed { get; set; }
+
+        [JsonProperty("isMypixiv")]
+        public bool IsMypixiv { get; set; }
+
+        [JsonProperty("isBlocking")]
+        public bool IsBlocking { get; set; }
+
+        [JsonProperty("background")]
+        public AjaxUserBackground Background { get; set; }
+
+        [JsonProperty("sketchLiveId")]
+        public string SketchLiveId { get; set; }
+
+        [JsonProperty("partial")]
+        public int Partial { get; set; }
+
+        [JsonProperty("acceptRequest")]
+        public bool AcceptRequest { get; set; }
+
+        [JsonProperty("sketchLives")]
+        public List<object> SketchLives { get; set; }
+    }
+
+    public class AjaxUserData
+    {
+        [JsonProperty("error")]
+        public bool Error { get; set; }
+
+        [JsonProperty("message")]
+        public string Message { get; set; }
+
+        [JsonProperty("body")]
+        public AjaxUser User { get; set; }
+    }
+
+    public class AjaxUserProfileBookmarkCountType
+    {
+        [JsonProperty("illust")]
+        public int Illust { get; set; }
+
+        [JsonProperty("novel")]
+        public int Novel { get; set; }
+    }
+
+    public class AjaxUserProfileBookmarkCount
+    {
+        [JsonProperty("public")]
+        public AjaxUserProfileBookmarkCountType Public { get; set; }
+
+        [JsonProperty("private")]
+        public AjaxUserProfileBookmarkCountType Private { get; set; }
+    }
+
+    public class AjaxUserProfileExternalSiteWorksStatus
+    {
+        [JsonProperty("booth")]
+        public bool Booth { get; set; }
+
+        [JsonProperty("sketch")]
+        public bool Sketch { get; set; }
+
+        [JsonProperty("vroidHub")]
+        public bool VroidHub { get; set; }
+    }
+
+    public class AjaxUserProfileRequestPostWorks
+    {
+        [JsonProperty("artworks")]
+        public List<AjaxIllustWork> Artworks { get; set; }
+
+        [JsonProperty("novels")]
+        public List<AjaxIllustWork> Novels { get; set; }
+    }
+
+    public class AjaxUserProfileRequest
+    {
+        [JsonProperty("showRequestTab")]
+        public bool ShowRequestTab { get; set; }
+
+        [JsonProperty("showRequestSentTab")]
+        public bool ShowRequestSentTab { get; set; }
+
+        [JsonProperty("postWorks")]
+        public AjaxUserProfileRequestPostWorks PostWorks { get; set; }
+    }
+
+    public class AjaxUserProfile
+    {
+        [JsonProperty("illusts")]
+        public Dictionary<string, AjaxIllustWork> Illusts { get; set; }
+
+        [JsonProperty("manga")]
+        public Dictionary<string, AjaxIllustWork> Manga { get; set; }
+
+        [JsonProperty("novels")]
+        public Dictionary<string, AjaxIllustWork> Novels { get; set; }
+
+        [JsonProperty("mangaSeries")]
+        public Dictionary<string, AjaxIllustWork> MangaSeries { get; set; }
+
+        [JsonProperty("novelSeries")]
+        public Dictionary<string, AjaxIllustWork> NovelSeries { get; set; }
+
+        [JsonProperty("pickup")]
+        public List<AjaxIllustWork> Pickup { get; set; }
+
+        [JsonProperty("bookmarkCount")]
+        public AjaxUserProfileBookmarkCount BookmarkCount { get; set; }
+
+        [JsonProperty("externalSiteWorksStatus")]
+        public AjaxUserProfileExternalSiteWorksStatus ExternalSiteWorksStatus { get; set; }
+
+        [JsonProperty("request")]
+        public AjaxUserProfileRequest Request { get; set; }
+    }
+
+    public class AjaxUserProfileData
+    {
+        [JsonProperty("error")]
+        public bool Error { get; set; }
+
+        [JsonProperty("message")]
+        public string Message { get; set; }
+
+        [JsonProperty("body")]
+        public AjaxUserProfile Profile { get; set; }
+    }
+
 
     static class PixivAjaxHelper
     {
@@ -504,13 +678,13 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    var work = JToken.Parse(json_text).ToObject<AjaxIllust>();
+                    var work = JToken.Parse(json_text).ToObject<AjaxIllustData>();
                     if (!work.Error)
                     {
                         var illust = work.Illust;
 
                         #region Get/Set user
-                        var userbase = await illust.UserId.GetUser();
+                        var userbase = await illust.UserId.GetUser();// ?? await illust.UserId.GetAjaxUser();
                         Pixeez.Objects.NewUser new_user = userbase is Pixeez.Objects.NewUser ? userbase as Pixeez.Objects.NewUser : null;
                         Pixeez.Objects.User user = userbase is Pixeez.Objects.User ? user = userbase as Pixeez.Objects.User : null;
                         if (userbase != null)
@@ -599,6 +773,129 @@ namespace PixivWPF.Common
                 }
                 catch (Exception ex) { ex.ERROR("SearchIllustById"); }
             }
+            return (result);
+        }
+        #endregion
+
+        #region User and Profile Helper
+        public static string GetAjaxUserUrl(this string id)
+        {
+            if (string.IsNullOrEmpty(id)) return (string.Empty);
+            else return ($"https://www.pixiv.net/ajax/user/{id}");
+        }
+
+        public static string GetAjaxUserUrl(this long id)
+        {
+            if (id == 0) return (string.Empty);
+            else return (GetAjaxUserUrl(id.ToString()));
+        }
+
+        public static string GetAjaxUserUrl(this long? id)
+        {
+            return (GetAjaxUserUrl((id ?? 0).ToString()));
+        }
+
+        public static string GetAjaxUserProfileUrl(this string id)
+        {
+            if (string.IsNullOrEmpty(id)) return (string.Empty);
+            else return ($"https://www.pixiv.net/ajax/user/{id}/profile/all?lang={CultureInfo.CurrentCulture.TwoLetterISOLanguageName}");
+        }
+
+        public static string GetAjaxUserProfileUrl(this long id)
+        {
+            if (id == 0) return (string.Empty);
+            else return (GetAjaxUserProfileUrl(id.ToString()));
+        }
+
+        public static string GetAjaxUserProfileUrl(this long? id)
+        {
+            return (GetAjaxUserProfileUrl((id ?? 0).ToString()));
+        }
+
+        public static async Task<Pixeez.Objects.UserBase> GetAjaxUser(this string id, Pixeez.Tokens tokens = null)
+        {
+            long uid = 0;
+            if (!string.IsNullOrEmpty(id) && long.TryParse(id, out uid)) return (await GetAjaxUser(uid, tokens));
+            else return (null);
+        }
+
+        public static async Task<Pixeez.Objects.UserBase> GetAjaxUser(this long id, Pixeez.Tokens tokens = null)
+        {
+            Pixeez.Objects.UserBase result = null;
+            if (tokens == null) tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return (result);
+
+            var url = GetAjaxUserUrl(id);
+            var json_text = await Application.Current.GetRemoteJsonAsync(url);
+            if (!string.IsNullOrEmpty(json_text))
+            {
+                try
+                {
+                    var user = JToken.Parse(json_text).ToObject<AjaxUserData>();
+                    if (!user.Error)
+                    {
+                        var info = await tokens.GetUserInfoAsync(id.ToString());
+                        if (info is Pixeez.Objects.UserInfo)
+                        {
+                            info.Cache();
+                            info.user.Cache();
+                            result = info.user;
+                        }
+                    }
+                }
+                catch (Exception ex) { ex.ERROR("GetAjaxUser"); }
+            }
+            return (result);
+        }
+
+        public static async Task<Pixeez.Objects.UserBase> GetAjaxUserProfile(this string id, Pixeez.Tokens tokens = null)
+        {
+            long uid = 0;
+            if (!string.IsNullOrEmpty(id) && long.TryParse(id, out uid)) return (await GetAjaxUserProfile(uid, tokens));
+            else return (null);
+        }
+
+        public static async Task<Pixeez.Objects.UserBase> GetAjaxUserProfile(this long id, Pixeez.Tokens tokens = null)
+        {
+            Pixeez.Objects.UserBase result = null;
+            if (tokens == null) tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return (result);
+
+            var url = GetAjaxUserProfileUrl(id);
+            var json_text = await Application.Current.GetRemoteJsonAsync(url);
+            if (!string.IsNullOrEmpty(json_text))
+            {
+                try
+                {
+                    var user = JToken.Parse(json_text).ToObject<AjaxUserProfileData>();
+                    if (!user.Error)
+                    {
+                        var profile = user.Profile;
+                        if (profile is AjaxUserProfile)
+                        {
+                            var user_profile = new Pixeez.Objects.Profile();
+                            user_profile.Contacts = new Pixeez.Objects.Contacts();
+                            //user_profile.id
+
+                            //result = profile.user;
+                        }
+                    }
+                }
+                catch (Exception ex) { ex.ERROR("GetAjaxUserProfile"); }
+            }
+            return (result);
+        }
+
+        public static async Task<List<Pixeez.Objects.UserBase>> SearchUserById(this long id, Pixeez.Tokens tokens = null)
+        {
+            var result = new List<Pixeez.Objects.UserBase>();
+
+            if (tokens == null) tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return (result);
+
+            var user = await GetAjaxUser(id, tokens);
+            if (user is Pixeez.Objects.UserBase) result.Add(user);
+
             return (result);
         }
         #endregion

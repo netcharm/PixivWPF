@@ -5650,7 +5650,6 @@ namespace PixivWPF.Common
             {
                 dynamic illusts = await tokens.GetWorksAsync(IllustID) ?? await tokens.GetIllustDetailAsync(IllustID);
                 if (illusts == null) illusts = await IllustID.SearchIllustById(tokens);
-                if (illusts == null) await IllustID.SearchIllustById(tokens);
                 if (illusts is List<Pixeez.Objects.Work>)
                 {
                     foreach (Pixeez.Objects.Work illust in illusts)
@@ -5699,11 +5698,11 @@ namespace PixivWPF.Common
                     if (User is Pixeez.Objects.User)
                     {
                         var u = User as Pixeez.Objects.User;
-                        u.IsFollowed = user.IsFollowed;
-                        u.IsFollower = user.IsFollower;
-                        u.IsFollowing = user.IsFollowing;
-                        u.IsFriend = user.IsFriend;
-                        u.IsPremium = user.IsFriend;
+                        u.IsFollowed = user is Pixeez.Objects.NewUser ? (user as Pixeez.Objects.NewUser).is_followed : (user as Pixeez.Objects.User).IsFollowed;
+                        u.IsFollower = user is Pixeez.Objects.NewUser ? u.IsFollower : (user as Pixeez.Objects.User).IsFollower;
+                        u.IsFollowing = user is Pixeez.Objects.NewUser ? u.IsFollower : (user as Pixeez.Objects.User).IsFollowing;
+                        u.IsFriend = user is Pixeez.Objects.NewUser ? u.IsFriend : (user as Pixeez.Objects.User).IsFriend;
+                        u.IsPremium = user is Pixeez.Objects.NewUser ? u.IsPremium : (user as Pixeez.Objects.User).IsPremium;
                     }
                 }
             }
@@ -5711,9 +5710,9 @@ namespace PixivWPF.Common
             return (user);
         }
 
-        public static async Task<Pixeez.Objects.User> RefreshUser(this string UserID, Pixeez.Tokens tokens = null, bool restrict = true)
+        public static async Task<Pixeez.Objects.UserBase> RefreshUser(this string UserID, Pixeez.Tokens tokens = null, bool restrict = true)
         {
-            Pixeez.Objects.User result = null;
+            Pixeez.Objects.UserBase result = null;
             if (!string.IsNullOrEmpty(UserID))
             {
                 try
@@ -5725,9 +5724,9 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<Pixeez.Objects.User> RefreshUser(this long UserID, Pixeez.Tokens tokens = null, bool restrict = true)
+        public static async Task<Pixeez.Objects.UserBase> RefreshUser(this long UserID, Pixeez.Tokens tokens = null, bool restrict = true)
         {
-            Pixeez.Objects.User result = null;
+            Pixeez.Objects.UserBase result = null;
             if (UserID < 0) return (result);
             setting = Application.Current.LoadSetting();
             var force = UserID == 0 && !(setting.MyInfo is Pixeez.Objects.User) ? true : false;
@@ -5735,11 +5734,36 @@ namespace PixivWPF.Common
             if (tokens == null) return (result);
             try
             {
-                var users = await tokens.GetUsersAsync(UserID);
+                dynamic users = await tokens.GetUsersAsync(UserID);
+                if (users == null) users = await UserID.SearchUserById(tokens);
                 foreach (var user in users)
                 {
-                    user.Cache();
-                    if (user.Id.Value == UserID) result = user;
+                    var ub = user as Pixeez.Objects.UserBase;
+                    ub.Cache();
+                    if (ub.Id.Value == UserID) result = ub;
+                    //{
+                    //    if (user is Pixeez.Objects.User)
+                    //        result = user;
+                    //    else if (user is Pixeez.Objects.NewUser)
+                    //    {
+                    //        var nu = user as Pixeez.Objects.NewUser;
+                    //        result = new Pixeez.Objects.User()
+                    //        {
+                    //            Id = nu.Id,
+                    //            Name = nu.Name,
+                    //            IsFollowed = nu.is_followed,
+                    //            ProfileImageUrls = new Pixeez.Objects.ProfileImageUrls()
+                    //            {
+                    //                Px16x16 = nu.profile_image_urls.Small,
+                    //                Px50x50 = nu.profile_image_urls.Small,
+                    //                medium = nu.profile_image_urls.Px128x128,
+                    //                Px170x170 = nu.profile_image_urls.Medium
+                    //            },
+                    //            Account = nu.Account,
+                    //            Email = nu.Email,
+                    //        };
+                    //    }
+                    //}
                 }
             }
             catch (Exception ex)

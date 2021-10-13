@@ -697,8 +697,24 @@ namespace PixivWPF.Common
                         }
                         else
                         {
-                            var id = $"{item.Illust.GetPreviewUrl(item.Index).GetImageCacheFile()}";
-                            Compare.Execute(new string[] { id });
+                            switch (type)
+                            {
+                                case CompareType.Original:
+                                    Compare.Execute(new string[] { $"{item.Illust.GetOriginalUrl(item.Index).GetImageCacheFile()}" });
+                                    break;
+                                case CompareType.Large:
+                                    Compare.Execute(new string[] { $"{item.Illust.GetPreviewUrl(item.Index, large: true).GetImageCacheFile()}" });
+                                    break;
+                                case CompareType.Preview:
+                                    Compare.Execute(new string[] { $"{item.Illust.GetPreviewUrl(item.Index, large: false).GetImageCacheFile()}" });
+                                    break;
+                                case CompareType.Thumb:
+                                    Compare.Execute(new string[] { $"{item.Illust.GetThumbnailUrl(item.Index).GetImageCacheFile()}" });
+                                    break;
+                                default:
+                                    Compare.Invoke(item);
+                                    break;
+                            }
                         }
                     }
                 }

@@ -789,15 +789,15 @@ namespace PixivWPF.Common
             }
         }
 
-        private Pixeez.Objects.User myinfo = null;
+        private Pixeez.Objects.UserBase myinfo = null;
         [JsonIgnore]
-        public Pixeez.Objects.User MyInfo
+        public Pixeez.Objects.UserBase MyInfo
         {
             get { return (Cache is Setting ? Cache.myinfo : myinfo); }
             set
             {
                 myinfo = value;
-                if (value is Pixeez.Objects.User)
+                if (value is Pixeez.Objects.UserBase)
                 {
                     UID = myinfo.Id.Value.ToString();
                 }
@@ -828,7 +828,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (myinfo is Pixeez.Objects.User)
+                if (myinfo is Pixeez.Objects.UserBase)
                     return (myinfo.Id.Value);
                 else
                     return (GetMyId());
