@@ -1129,11 +1129,11 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async void AddTo(this Pixeez.Objects.User user, IList<PixivItem> Collection, string nexturl = "")
+        public static async void AddTo(this Pixeez.Objects.UserBase user, IList<PixivItem> Collection, string nexturl = "")
         {
             try
             {
-                if (user is Pixeez.Objects.User && Collection is IList<PixivItem>)
+                if (user is Pixeez.Objects.UserBase && Collection is IList<PixivItem>)
                 {
                     var u = user.UserItem(nexturl);
                     Collection.Add(u);

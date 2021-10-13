@@ -408,11 +408,11 @@ namespace PixivWPF.Pages
 
                     if (related is List<Pixeez.Objects.UserBase>)
                     {
-                        foreach (var user in related)
+                        foreach (Pixeez.Objects.UserBase user in related)
                         {
                             if (id_user.Contains(user.Id)) continue;
                             id_user.Add(user.Id);
-                            (user as Pixeez.Objects.UserBase).Cache();
+                            user.Cache();
                             user.AddTo(ResultItems.Items, next_url);
                             this.DoEvents();
                         }
