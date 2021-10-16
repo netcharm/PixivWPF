@@ -1668,13 +1668,13 @@ namespace Pixeez
         {
             var result = default(List<NormalWork>);
             //var url = "https://public-api.secure.pixiv.net/v1/works/" + illustId.ToString() + ".json";
-            //var url = "https://app-api.pixiv.net/v1/illust/detail";
-            var url = "https://public-api.secure.pixiv.net/v1/illust/detail";
+            var url = "https://app-api.pixiv.net/v1/illust/detail";
+            //var url = "https://public-api.secure.pixiv.net/v1/illust/detail";
 
             var param = new Dictionary<string, string>
             {
                 { "illust_id", illustId.ToString() },
-                { "filter", "for_android" }
+                //{ "filter", "for_android" }
             };
 
             try

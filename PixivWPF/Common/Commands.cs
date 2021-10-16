@@ -216,6 +216,14 @@ namespace PixivWPF.Common
             }).InvokeAsync(true);
         });
 
+        public static ICommand MaintainDetailPage { get; } = new DelegateCommand<string>(async obj =>
+        {
+            await new Action(() =>
+            {
+                Application.Current.ReCreateDetailPage();
+            }).InvokeAsync(true);
+        });
+
         public static ICommand Login { get; } = new DelegateCommand(() =>
         {
             var setting = Application.Current.LoadSetting();

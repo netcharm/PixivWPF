@@ -420,8 +420,10 @@ namespace PixivWPF
 
 #if DEBUG
             CommandAttachMetaFolder.Show();
+            CommandMaintainDetailPage.Show();
 #else
             CommandAttachMetaFolder.Hide();
+            CommandMaintainDetailPage.Hide();
 #endif                        
             Contents = new Pages.TilesPage() { Name = "CategoryTiles", FontFamily = FontFamily };
             Content = Contents;
@@ -578,6 +580,8 @@ namespace PixivWPF
                 Commands.MaintainCustomTag.Execute(null);
             else if (sender == CommandMaintainNetwork)
                 Commands.MaintainNetwork.Execute(null);
+            else if (sender == CommandMaintainDetailPage)
+                Commands.MaintainDetailPage.Execute(null);
         }
 
         private void CommandRestart_DropDownOpened(object sender, EventArgs e)

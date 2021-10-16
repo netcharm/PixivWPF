@@ -25,7 +25,20 @@ namespace PixivWPF.Pages
     public partial class TilesPage : Page, IDisposable
     {
         public MainWindow ParentWindow { get; private set; }
-        private IllustDetailPage detail_page = new IllustDetailPage() { Name="IllustDetail" };
+        private IllustDetailPage _detail_page_ = new IllustDetailPage() { Name = "IllustDetail", ShowsNavigationUI = false };
+        public IllustDetailPage DetailPage
+        {
+            get { return (_detail_page_); }
+            set
+            {
+                _detail_page_ = value;
+                IllustDetail.Content = _detail_page_;
+                //IllustDetail.SandboxExternalContent = false;
+                //IllustDetail.DataContext = _detail_page_;
+                IllustDetail.Refresh();
+                //IllustDetail.NavigationUIVisibility = System.Windows.Navigation.NavigationUIVisibility.Automatic;
+            }
+        }
 
         internal string lastSelectedId = string.Empty;
         internal List<long> ids = new List<long>();
@@ -40,8 +53,8 @@ namespace PixivWPF.Pages
         #region Update UI helper
         internal void UpdateTheme()
         {
-            if (detail_page is IllustDetailPage)
-                detail_page.UpdateTheme();
+            if (DetailPage is IllustDetailPage)
+                DetailPage.UpdateTheme();
         }
 
         public async void UpdateIllustTagsAsync()
@@ -144,7 +157,7 @@ namespace PixivWPF.Pages
         protected internal void UpdateTilesThumb(bool overwrite = false)
         {
             ImageTiles.UpdateTilesImage(overwrite);
-            if (detail_page is IllustDetailPage) detail_page.UpdateThumb(true, overwrite);
+            if (DetailPage is IllustDetailPage) DetailPage.UpdateThumb(true, overwrite);
         }
 
         public void UpdateTiles()
@@ -349,37 +362,37 @@ namespace PixivWPF.Pages
 
         public void OpenIllust()
         {
-            if (detail_page is IllustDetailPage) detail_page.OpenIllust();
+            if (DetailPage is IllustDetailPage) DetailPage.OpenIllust();
         }
 
         public void OpenCachedImage()
         {
-            if (detail_page is IllustDetailPage) detail_page.OpenCachedImage();
+            if (DetailPage is IllustDetailPage) DetailPage.OpenCachedImage();
         }
 
         public void OpenImageProperties()
         {
-            if (detail_page is IllustDetailPage) detail_page.OpenImageProperties();
+            if (DetailPage is IllustDetailPage) DetailPage.OpenImageProperties();
         }
 
         public void OpenWork()
         {
-            if (detail_page is IllustDetailPage) detail_page.OpenInNewWindow();
+            if (DetailPage is IllustDetailPage) DetailPage.OpenInNewWindow();
         }
 
         public void OpenUser()
         {
-            if (detail_page is IllustDetailPage) detail_page.OpenUser();
+            if (DetailPage is IllustDetailPage) DetailPage.OpenUser();
         }
 
         public void SaveIllust()
         {
-            if (detail_page is IllustDetailPage) detail_page.SaveIllust();
+            if (DetailPage is IllustDetailPage) DetailPage.SaveIllust();
         }
 
         public void SaveIllustAll()
         {
-            if (detail_page is IllustDetailPage) detail_page.SaveIllustAll();
+            if (DetailPage is IllustDetailPage) DetailPage.SaveIllustAll();
         }
 
         public void SaveUgoira()
@@ -389,7 +402,7 @@ namespace PixivWPF.Pages
 
         public void CopyPreview()
         {
-            if (detail_page is IllustDetailPage) detail_page.CopyPreview();
+            if (DetailPage is IllustDetailPage) DetailPage.CopyPreview();
         }
 
         public void JumpTo(string id)
@@ -453,12 +466,12 @@ namespace PixivWPF.Pages
 
         public void PrevIllustPage()
         {
-            if (detail_page is IllustDetailPage) detail_page.PrevIllustPage();
+            if (DetailPage is IllustDetailPage) DetailPage.PrevIllustPage();
         }
 
         public void NextIllustPage()
         {
-            if (detail_page is IllustDetailPage) detail_page.NextIllustPage();
+            if (DetailPage is IllustDetailPage) DetailPage.NextIllustPage();
         }
 
         private int FirstInView(out int count)
@@ -530,8 +543,8 @@ namespace PixivWPF.Pages
                 else
                     ImageTiles.Filter = null;
 
-                if (detail_page is IllustDetailPage)
-                    detail_page.SetFilter(filter);
+                if (DetailPage is IllustDetailPage)
+                    DetailPage.SetFilter(filter);
             }
             catch (Exception ex)
             {
@@ -544,8 +557,8 @@ namespace PixivWPF.Pages
             List<string> tips = new List<string>();
             tips.Add($"Illust  : {ImageTiles.ItemsCount} of {ImageTiles.Items.Count}");
             tips.Add($"Page    : {ImageTiles.CurrentPage} of {ImageTiles.TotalPages}");
-            if (detail_page is IllustDetailPage)
-                tips.Add(detail_page.GetTilesCount());
+            if (DetailPage is IllustDetailPage)
+                tips.Add(DetailPage.GetTilesCount());
             return (string.Join(Environment.NewLine, tips));
         }
         #endregion
@@ -612,7 +625,7 @@ namespace PixivWPF.Pages
             await new Action(async () =>
             {
                 await Task.Delay(1);
-                IllustDetail.Content = detail_page;
+                IllustDetail.Content = DetailPage;
                 this.DoEvents();
                 CategoryMenu.IsPaneOpen = false;
                 this.DoEvents();
@@ -641,19 +654,19 @@ namespace PixivWPF.Pages
                 if (e.XButton1 == MouseButtonState.Pressed)
                 {
                     e.Handled = true;
-                    if (detail_page is IllustDetailPage)
+                    if (DetailPage is IllustDetailPage)
                     {
-                        if (setting.ReverseMouseXButton) detail_page.NextIllustPage();
-                        else detail_page.PrevIllustPage();
+                        if (setting.ReverseMouseXButton) DetailPage.NextIllustPage();
+                        else DetailPage.PrevIllustPage();
                     }
                 }
                 else if (e.XButton2 == MouseButtonState.Pressed)
                 {
                     e.Handled = true;
-                    if (detail_page is IllustDetailPage)
+                    if (DetailPage is IllustDetailPage)
                     {
-                        if (setting.ReverseMouseXButton) detail_page.PrevIllustPage();
-                        else detail_page.NextIllustPage();
+                        if (setting.ReverseMouseXButton) DetailPage.PrevIllustPage();
+                        else DetailPage.NextIllustPage();
                     }
                 }
             }
@@ -862,7 +875,7 @@ namespace PixivWPF.Pages
                         item.IsFollowed = item.User.IsLiked();
                     }
 
-                    var ID_O = detail_page.Contents is PixivItem ? detail_page.Contents.ID : string.Empty;
+                    var ID_O = DetailPage.Contents is PixivItem ? DetailPage.Contents.ID : string.Empty;
                     var ID_N = item is PixivItem ? item.ID : string.Empty;
 
                     if (string.IsNullOrEmpty(ID_O) || !ID_N.Equals(ID_O, StringComparison.CurrentCultureIgnoreCase))
@@ -871,8 +884,7 @@ namespace PixivWPF.Pages
                             $"ID: {item.ID}, {item.Illust.Title} Loading...".INFO();
                         else if (item.IsUser())
                             $"UserID: {item.ID}, {item.User.Name} Loading...".INFO();
-                        //detail_page.Contents = item;
-                        detail_page.UpdateDetail(item);
+                        DetailPage.UpdateDetail(item);
                     }
 
                     item.Focus();

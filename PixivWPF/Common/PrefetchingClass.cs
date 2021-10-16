@@ -363,7 +363,8 @@ namespace PixivWPF.Common
                 $"Query Original Imagee File Size : {Environment.NewLine}  Done [ {originals.Count} ]".ShowToast("INFO", tag: args.Name ?? Name ?? GetType().Name);
                 State = count <= 0 ? TaskStatus.RanToCompletion : TaskStatus.Faulted;
                 if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
-                else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke((double)Percentage, Comments, State);
+                else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
+                setting.SaveImageFileSizeData();
                 result = true;
             }
             return (result);

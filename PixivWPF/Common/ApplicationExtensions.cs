@@ -1190,6 +1190,29 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
+        
+        public static bool ReCreateDetailPage(this Application app)
+        {
+            var result = false;
+            var main = app.GetMainWindow();
+            if (main is MainWindow)
+            {
+                var tile = main.Contents;
+                if (tile is TilesPage)
+                {
+                    PixivItem content = null;
+                    if (tile.DetailPage is IllustDetailPage)
+                    {
+                        content = tile.DetailPage.Contents;
+                        tile.DetailPage.Dispose();
+                    }
+                    tile.DetailPage = new IllustDetailPage() { ShowsNavigationUI = false, Name = "IllustDetail" };
+                    tile.DetailPage.UpdateDetail(content);
+                    result = true;
+                }
+            }
+            return (result);
+        }
         #endregion
 
         #region Application DropBox

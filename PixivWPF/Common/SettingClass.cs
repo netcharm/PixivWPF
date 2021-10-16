@@ -304,10 +304,7 @@ namespace PixivWPF.Common
                         configfile.WaitFileUnlock();
                         File.WriteAllText(configfile, text, new UTF8Encoding(true));
 
-                        if (Cache.SaveQueriedOriginalImageSizeInfo)
-                        {
-                            Path.Combine(AppPath, Cache.OriginalImageSizeInfoFile).SaveImageFileSizeData();
-                        }
+                        Cache.SaveImageFileSizeData();
 
                         SaveTags();
 
@@ -419,10 +416,7 @@ namespace PixivWPF.Common
 
                             Pixeez.Auth.TimeOut = Cache.DownloadHttpTimeout;
 
-                            if (Cache.SaveQueriedOriginalImageSizeInfo)
-                            {
-                                Path.Combine(AppPath, Cache.OriginalImageSizeInfoFile).LoadImageFileSizeData();
-                            }
+                            Cache.LoadImageFileSizeData();
 
                             if (StartUp) "Config Setting Reloaded".ShowToast("INFO");
                         }
@@ -667,6 +661,24 @@ namespace PixivWPF.Common
                 {
                     if (CustomWildcardTagsReadWrite is SemaphoreSlim && CustomWildcardTagsReadWrite.CurrentCount <= 0) CustomWildcardTagsReadWrite.Release();
                 }
+            }
+        }
+        #endregion
+
+        #region Load/Save Image File Size Data
+        public void LoadImageFileSizeData()
+        {
+            if (Cache.SaveQueriedOriginalImageSizeInfo)
+            {
+                Path.Combine(AppPath, Cache.OriginalImageSizeInfoFile).LoadImageFileSizeData();
+            }
+        }
+
+        public void SaveImageFileSizeData()
+        {
+            if (Cache.SaveQueriedOriginalImageSizeInfo)
+            {
+                Path.Combine(AppPath, Cache.OriginalImageSizeInfoFile).SaveImageFileSizeData();
             }
         }
         #endregion
