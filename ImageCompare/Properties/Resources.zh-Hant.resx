@@ -483,4 +483,7 @@
   <data name="RepeatLastAction.ToolTip" xml:space="preserve">
     <value>再次執行之前的動作</value>
   </data>
+  <data name="SetAlphaToColor.Header" xml:space="preserve">
+    <value>透明通道設為指定顏色</value>
+  </data>
 </root>

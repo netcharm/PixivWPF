@@ -1347,10 +1347,16 @@ namespace ImageCompare
                     Tag = source
                 };
 
-                var item_more_setalphacolor = new MenuItem()
+                var item_more_setalphatocolor = new MenuItem()
                 {
                     Header = "Set Color To Alpha",
                     Uid = "SetColorToAlpha",
+                    Tag = source
+                };
+                var item_more_setcolortoalpha = new MenuItem()
+                {
+                    Header = "Set Alpha To Color",
+                    Uid = "SetAlphaToColor",
                     Tag = source
                 };
                 var item_more_createcolorimage = new MenuItem()
@@ -1394,7 +1400,8 @@ namespace ImageCompare
                 item_more_kmeans.Click += (obj, evt) => { RenderRun(() => { KmeansImage((bool)(obj as MenuItem).Tag); }); };
 
                 item_more_fillflood.Click += (obj, evt) => { RenderRun(() => { FillOutBoundBoxImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_setalphacolor.Click += (obj, evt) => { RenderRun(() => { SetColorToAlphaImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_setalphatocolor.Click += (obj, evt) => { RenderRun(() => { SetAlphaToColorImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_setcolortoalpha.Click += (obj, evt) => { RenderRun(() => { SetColorToAlphaImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_createcolorimage.Click += (obj, evt) => { RenderRun(() => { CreateColorImage((bool)(obj as MenuItem).Tag, Keyboard.Modifiers == ModifierKeys.Shift); }); };
                 #endregion
                 #region Add MoreEffects MenuItems to MoreEffects
@@ -1426,7 +1433,8 @@ namespace ImageCompare
                 item_more.Items.Add(new Separator());
                 item_more.Items.Add(item_more_fillflood);
                 item_more.Items.Add(item_more_createcolorimage);
-                item_more.Items.Add(item_more_setalphacolor);
+                item_more.Items.Add(item_more_setalphatocolor);
+                item_more.Items.Add(item_more_setcolortoalpha);
                 #endregion
                 target.ContextMenuOpening += (obj, evt) =>
                 {

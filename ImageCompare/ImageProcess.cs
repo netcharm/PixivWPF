@@ -81,7 +81,7 @@ namespace ImageCompare
                 if (src.ToolTip is string && !string.IsNullOrEmpty(src.ToolTip as string))
                     Clipboard.SetText(src.ToolTip as string);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -95,7 +95,7 @@ namespace ImageCompare
                 var src = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 src.CopyToClipboard();
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace ImageCompare
                     ImageTarget.GetInformation().ChangeColorSpace(CompareImageForceColor);
                 }
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -162,7 +162,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -185,7 +185,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -208,7 +208,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -228,7 +228,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -246,7 +246,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -270,7 +270,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -296,7 +296,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -319,7 +319,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -348,7 +348,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -392,7 +392,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -445,7 +445,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -476,7 +476,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -500,7 +500,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -523,7 +523,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -546,7 +546,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -570,7 +570,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -592,7 +592,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -614,7 +614,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -636,7 +636,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -660,7 +660,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -683,7 +683,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -705,7 +705,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -727,7 +727,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -744,12 +744,15 @@ namespace ImageCompare
                 if (image.ValidCurrent)
                 {
                     image.Current.AutoThreshold(AutoThresholdMethod.OTSU);
+                    image.Current.ColorSpace = ColorSpace.Gray;
+                    image.Current.ColorType = ColorType.Palette;
+                    image.Current.Depth = 8;
                     action = true;
                 }
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -772,7 +775,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -796,7 +799,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -829,7 +832,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -852,7 +855,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -875,7 +878,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -898,7 +901,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -922,7 +925,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -945,7 +948,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -979,7 +982,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         /// <summary>
@@ -998,6 +1001,34 @@ namespace ImageCompare
                 if (image.ValidCurrent)
                 {
                     if (image.Current.ColorFuzz.ToDouble() != ImageCompareFuzzy.Value) image.Current.ColorFuzz = new Percentage(ImageCompareFuzzy.Value);
+                    if (image.Current.HasAlpha)
+                    {
+                        image.Current.ColorAlpha(MasklightColor ?? image.Current.BackgroundColor);
+                        action = true;
+                    }
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        private void SetAlphaToColorImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var radius = WeakEffects ? 5 : 10;
+                var sigma = WeakEffects ? 0.25 : 0.5;
+
+                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                if (image.ValidCurrent)
+                {
+                    if (image.Current.ColorFuzz.ToDouble() != ImageCompareFuzzy.Value) image.Current.ColorFuzz = new Percentage(ImageCompareFuzzy.Value);
                     var alpha = new MagickImage(MasklightColor ?? image.Current.BackgroundColor, image.Current.Width, image.Current.Height);
                     image.Current.Composite(alpha, CompositeOperator.ChangeMask);
                     action = true;
@@ -1005,9 +1036,9 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -1034,7 +1065,7 @@ namespace ImageCompare
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
-            catch (Exception ex) { ex.ShowMessage();; }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
         #endregion
 
@@ -1093,7 +1124,7 @@ namespace ImageCompare
                         }
                     }
                 }
-                catch (Exception ex) { ex.ShowMessage();; }
+                catch (Exception ex) { ex.ShowMessage(); }
                 finally
                 {
                     st.Stop();

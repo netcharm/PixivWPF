@@ -475,12 +475,15 @@
     <value>Set Color To Alpha</value>
   </data>
   <data name="SetColorToAlpha.Header" xml:space="preserve">
-    <value>Create Image By Color</value>
+    <value>Set Color To Alpha</value>
   </data>
   <data name="InfoTipColorMapsSize" xml:space="preserve">
     <value>ColorMaps Size</value>
   </data>
   <data name="RepeatLastAction.ToolTip" xml:space="preserve">
     <value>Repeat Last Action</value>
+  </data>
+  <data name="SetAlphaToColor.Header" xml:space="preserve">
+    <value>Set Alpha To Color</value>
   </data>
 </root>

@@ -532,10 +532,12 @@ namespace ImageCompare
                 tip.Add($"{"InfoTipMemoryUsage".T()} {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth / 8)}");
 #endif
                     tip.Add($"{"InfoTipDisplayMemory".T()} {((long)(Current.Width * Current.Height * 4)).SmartFileSize()}");
-                    if (!string.IsNullOrEmpty(Current.FileName))
-                        tip.Add($"{"InfoTipFileName".T()} {Current.FileName}");
-                    else if (!string.IsNullOrEmpty(FileName))
+                    if (!string.IsNullOrEmpty(FileName))
                         tip.Add($"{"InfoTipFileName".T()} {FileName}");
+                    else if (ValidOriginal && !string.IsNullOrEmpty(Original.FileName))
+                        tip.Add($"{"InfoTipFileName".T()} {Original.FileName}");
+                    else if (!string.IsNullOrEmpty(Current.FileName))
+                        tip.Add($"{"InfoTipFileName".T()} {Current.FileName}");
                     result = string.Join(Environment.NewLine, tip);
                     st.Stop();
 #if DEBUG
