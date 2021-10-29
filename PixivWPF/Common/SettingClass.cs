@@ -966,6 +966,17 @@ namespace PixivWPF.Common
         #endregion
 
         #region network Related
+        private bool using_ajax_api = false;
+        public bool UsingAjaxAPI
+        {
+            get { return (Cache is Setting ? Cache.using_ajax_api : using_ajax_api); }
+            set
+            {
+                using_ajax_api = value;
+                if (Cache is Setting) Cache.using_ajax_api = using_ajax_api;
+            }
+        }
+
         private string proxy = string.Empty;
         public string Proxy
         {

@@ -403,7 +403,7 @@ namespace PixivWPF.Pages
 
                     var query = Regex.Replace(content, @"^UserId: *?(\d+).*?$", "$1", RegexOptions.IgnoreCase).Trim();
                     var id = Convert.ToInt64(query);
-                    dynamic related = await tokens.GetUsersAsync(Convert.ToInt64(query));
+                    dynamic related = setting.UsingAjaxAPI ? null : await tokens.GetUsersAsync(Convert.ToInt64(query));
                     if (related == null) related = await id.SearchUserById(tokens);
 
                     if (related is List<Pixeez.Objects.UserBase>)
@@ -423,7 +423,7 @@ namespace PixivWPF.Pages
                 {
                     var query = Regex.Replace(content, @"^IllustID: *?(\d+).*?$", "$1", RegexOptions.IgnoreCase).Trim();
                     var id = Convert.ToInt64(query);
-                    dynamic related = await tokens.GetWorksAsync(id) ?? await tokens.GetIllustDetailAsync(id);
+                    dynamic related = setting.UsingAjaxAPI ? null : await tokens.GetWorksAsync(id) ?? await tokens.GetIllustDetailAsync(id);
                     if (related == null) related = await id.SearchIllustById(tokens);
                     next_url = string.Empty;
 

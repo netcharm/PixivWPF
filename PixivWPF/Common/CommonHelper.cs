@@ -5648,7 +5648,7 @@ namespace PixivWPF.Common
             if (tokens == null) return result;
             try
             {
-                dynamic illusts = await tokens.GetWorksAsync(IllustID) ?? await tokens.GetIllustDetailAsync(IllustID);
+                dynamic illusts = setting.UsingAjaxAPI ? null : await tokens.GetWorksAsync(IllustID) ?? await tokens.GetIllustDetailAsync(IllustID);
                 if (illusts == null) illusts = await IllustID.SearchIllustById(tokens);
                 if (illusts is List<Pixeez.Objects.Work>)
                 {
@@ -5734,7 +5734,7 @@ namespace PixivWPF.Common
             if (tokens == null) return (result);
             try
             {
-                dynamic users = await tokens.GetUsersAsync(UserID);
+                dynamic users = setting.UsingAjaxAPI ? null : await tokens.GetUsersAsync(UserID);
                 if (users == null) users = await UserID.SearchUserById(tokens);
                 foreach (var user in users)
                 {
