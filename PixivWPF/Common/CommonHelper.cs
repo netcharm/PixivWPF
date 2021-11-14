@@ -1561,36 +1561,38 @@ namespace PixivWPF.Common
                 {
                     var ptags = TagsT2S is ConcurrentDictionary<string, string>;
                     var ctags = TagsCache is ConcurrentDictionary<string, string>;
-
-                    var ipos = result.IndexOf("💬");
-                    var trans = ipos > 0 ? result.Substring(ipos) : string.Empty;
-                    var text = ipos > 0 ? result.Replace(trans, string.Empty).Trim() : result;
-                    var culture = src.DetectCulture();
-                    if (culture == null || (culture is CultureInfo && culture.IetfLanguageTag.Equals(CultureInfo.CurrentUICulture.IetfLanguageTag)))
-                        culture = CultureInfo.GetCultureInfo("ja-jp");
-                    var slice_words = Speech.Slice(src, culture);
-                    if (slice_words is IList<string>)
+                    if (ptags && !TagsT2S.ContainsKey(src))
                     {
-                        foreach (var word in slice_words)
+                        var ipos = result.IndexOf("💬");
+                        var trans = ipos > 0 ? result.Substring(ipos) : string.Empty;
+                        var text = ipos > 0 ? result.Replace(trans, string.Empty).Trim() : result;
+                        var culture = src.DetectCulture();
+                        if (culture == null || (culture is CultureInfo && culture.IetfLanguageTag.Equals(CultureInfo.CurrentUICulture.IetfLanguageTag)))
+                            culture = CultureInfo.GetCultureInfo("ja-jp");
+                        var slice_words = Speech.Slice(src, culture);
+                        if (slice_words is IList<string>)
                         {
-                            if (ctags && TagsT2S.ContainsKey(word))
+                            foreach (var word in slice_words)
                             {
-                                text = text.Replace(word, TagsT2S[word]);
-                                matches.Add($"CustomTags => {word}");
-                                CustomTagsMatched = true;
-                            }
-                            else if (ptags && TagsCache.ContainsKey(word))
-                            {
-                                var alpha = TagsCache[word].IsAlpha();
-                                if (!TagsCache[word].IsAlpha())
+                                if (ctags && TagsT2S.ContainsKey(word))
                                 {
-                                    text = text.Replace(word, TagsCache[word]);
-                                    matches.Add($"Tags => {word}");
-                                    TagsMatched = true;
+                                    text = text.Replace(word, TagsT2S[word]);
+                                    matches.Add($"CustomTags => {word}");
+                                    CustomTagsMatched = true;
+                                }
+                                else if (ptags && TagsCache.ContainsKey(word))
+                                {
+                                    var alpha = TagsCache[word].IsAlpha();
+                                    if (!TagsCache[word].IsAlpha())
+                                    {
+                                        text = text.Replace(word, TagsCache[word]);
+                                        matches.Add($"Tags => {word}");
+                                        TagsMatched = true;
+                                    }
                                 }
                             }
+                            result = string.IsNullOrEmpty(trans) ? text : $"{text}{Environment.NewLine}{trans}";
                         }
-                        result = string.IsNullOrEmpty(trans) ? text : $"{text}{Environment.NewLine}{trans}";
                     }
                 }
                 #endregion
