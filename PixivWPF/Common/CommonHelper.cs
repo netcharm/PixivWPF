@@ -4991,6 +4991,22 @@ namespace PixivWPF.Common
 
         private static ConcurrentDictionary<string, long?> _ImageFileSizeCache_ = new ConcurrentDictionary<string, long?>();
 
+        public static IList<string> TrimImageFileSizeData(this ConcurrentDictionary<string, long?> data, int keep = 10000)
+        {
+            List<string> result = new List<string>();
+            if (data is ConcurrentDictionary<string, long?>)
+            {
+                try
+                {
+                    var datelist = data.Select(o => new KeyValuePair<string, DateTime>(o.Key, o.Key.ParseDateTime())).OrderByDescending(o => o.Value);
+                    var dates = datelist.Take(keep).ToDictionary(o => o.Key, o => o.Value);
+                    result = dates.Keys.ToList();
+                }
+                catch (Exception ex) { ex.ERROR("TrimImageFileSizeData"); }
+            }
+            return (result);
+        }
+
         public static void SaveImageFileSizeData(this string file)
         {
             try
@@ -5012,7 +5028,8 @@ namespace PixivWPF.Common
                     {
                         var json = File.ReadAllText(file);
                         var data = JsonConvert.DeserializeObject<ConcurrentDictionary<string, long?>>(json);
-                        var keys = data.Keys.ToList();
+                        var keys = TrimImageFileSizeData(data);
+                        if (keys.Count <= 0) keys = data.Keys.ToList();
                         _ImageFileSizeCache_.Clear();
                         foreach (var k in keys)
                         {
