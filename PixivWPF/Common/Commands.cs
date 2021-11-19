@@ -1755,39 +1755,41 @@ namespace PixivWPF.Common
         {
             if (obj is string && !string.IsNullOrEmpty((string)obj))
             {
-                var content = CommonHelper.ParseLink((string)obj);
-                if (!string.IsNullOrEmpty(content))
+                try
                 {
-                    if (content.StartsWith("IllustID:", StringComparison.CurrentCultureIgnoreCase))
+                    var content = CommonHelper.ParseLink((string)obj);
+                    if (!string.IsNullOrEmpty(content))
                     {
-                        var illust = content.ParseID().FindIllust();
-                        if (illust is Pixeez.Objects.Work)
+                        if (content.StartsWith("IllustID:", StringComparison.CurrentCultureIgnoreCase))
                         {
-                            Open.Execute(illust);
+                            var illust = content.ParseID().FindIllust();
+                            if (illust is Pixeez.Objects.Work)
+                            {
+                                Open.Execute(illust);
+                                return;
+                            }
+                        }
+                        else if (content.StartsWith("UserID:", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            var user = content.ParseID().FindUser();
+                            if (user is Pixeez.Objects.UserBase)
+                            {
+                                OpenUser.Execute(user);
+                                return;
+                            }
+                        }
+
+                        var title = $"Searching {content} ...";
+                        if (Application.Current.ContentWindowExists(title))
+                        {
+                            await title.ActiveByTitle();
                             return;
                         }
-                    }
-                    else if (content.StartsWith("UserID:", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        var user = content.ParseID().FindUser();
-                        if (user is Pixeez.Objects.UserBase)
+
+                        await new Action(async () =>
                         {
-                            OpenUser.Execute(user);
-                            return;
-                        }
-                    }
-
-                    var title = $"Searching {content} ...";
-                    if (Application.Current.ContentWindowExists(title))
-                    {
-                        await title.ActiveByTitle();
-                        return;
-                    }
-
-                    await new Action(async () =>
-                    {
-                        var page = new SearchResultPage() { Name = "SearchResult", FontFamily = setting.FontFamily, Contents = content, Title = title };
-                        var viewer = new ContentWindow(title)
+                            var page = new SearchResultPage() { Name = "SearchResult", FontFamily = setting.FontFamily, Contents = content, Title = title };
+                            var viewer = new ContentWindow(title)
                         {
                             Title = title,
                             Width = WIDTH_SEARCH,
@@ -1799,11 +1801,13 @@ namespace PixivWPF.Common
                             FontFamily = setting.FontFamily,
                             Content = page
                         };
-                        viewer.Show();
-                        await Task.Delay(1);
-                        Application.Current.DoEvents();
-                    }).InvokeAsync();
+                            viewer.Show();
+                            await Task.Delay(1);
+                            Application.Current.DoEvents();
+                        }).InvokeAsync();
+                    }
                 }
+                catch(Exception ex) { ex.ERROR("OpenSearch"); }
             }
             else if (obj is IEnumerable<string>)
             {

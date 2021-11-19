@@ -7204,6 +7204,9 @@ namespace PixivWPF.Common
 
             if (!string.IsNullOrEmpty(text))
             {
+                var patten = @"^(User|Fuzzy|Tag|Fuzzy Tag): ?";
+                text = Regex.Replace(text, patten, "", RegexOptions.IgnoreCase).Trim();
+
                 if (Regex.IsMatch(text, @"^\d+$", RegexOptions.IgnoreCase))
                 {
                     result.Add($"IllustID: {text}");
@@ -7218,12 +7221,14 @@ namespace PixivWPF.Common
                 }
                 else
                 {
+                    original = Regex.Replace(original, patten, "", RegexOptions.IgnoreCase).Trim();
                     text = original.Trim();
                     result.Add($"User: {text}");
                     result.Add($"Fuzzy: {text}");
                     result.Add($"Tag: {text}");
                     result.Add($"Fuzzy Tag: {text}");
                 }
+                result = result.Distinct().ToList();
                 //result.Add($"Caption: {text}");
             }
 

@@ -863,7 +863,7 @@ namespace PixivWPF.Common
         {
             if (!(_ContentWindows_ is ConcurrentDictionary<string, ContentWindow>))
                 _ContentWindows_ = new ConcurrentDictionary<string, ContentWindow>();
-            return (_ContentWindows_.ContainsKey(title) && _ContentWindows_[title] is ContentWindow ? true : false);
+            return (_ContentWindows_.ContainsKey(title) && _ContentWindows_[title] is ContentWindow && _ContentWindows_[title].Visibility == Visibility.Visible ? true : false);
         }
 
         public static MainWindow GetMainWindow(this Application app)
