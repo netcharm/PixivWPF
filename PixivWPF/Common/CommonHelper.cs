@@ -5968,6 +5968,8 @@ namespace PixivWPF.Common
         {
             Tuple<bool, Pixeez.Objects.Work> result = new Tuple<bool, Pixeez.Objects.Work>(illust.IsLiked(), illust);
 
+            setting = Application.Current.LoadSetting();
+
             var tokens = await ShowLogin();
             if (tokens == null) return (result);
 
@@ -5975,7 +5977,7 @@ namespace PixivWPF.Common
             try
             {
                 var mode = pub ? "public" : "private";
-                ret = await tokens.AddMyFavoriteWorksAsync((long)illust.Id, illust.Tags, mode);
+                ret = await tokens.AddMyFavoriteWorksAsync((long)illust.Id, setting.FavBookmarkWithTags ? illust.Tags : null, mode);
                 if (!ret) return (result);
             }
             catch (Exception ex) { ex.ERROR("AddMyFavoriteWorksAsync"); }

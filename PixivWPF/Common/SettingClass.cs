@@ -1533,6 +1533,17 @@ namespace PixivWPF.Common
                 if (Cache is Setting) Cache.toggle_fav_bookmark_state = toggle_fav_bookmark_state;
             }
         }
+
+        private bool fav_bookmark_with_tags = false;
+        public bool FavBookmarkWithTags
+        {
+            get { return (Cache is Setting ? Cache.fav_bookmark_with_tags : fav_bookmark_with_tags); }
+            set
+            {
+                fav_bookmark_with_tags = value;
+                if (Cache is Setting) Cache.fav_bookmark_with_tags = fav_bookmark_with_tags;
+            }
+        }
         #endregion
 
         #region Selection behavior Related
