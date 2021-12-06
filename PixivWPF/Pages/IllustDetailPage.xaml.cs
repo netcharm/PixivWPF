@@ -1740,6 +1740,8 @@ namespace PixivWPF.Pages
                 }
                 else
                 {
+                    UpdateIllustTitle();
+
                     IllustTagsHtml.DocumentText = string.Empty;
                     IllustTagExpander.Hide();
                     IllustTagPedia.Hide();
