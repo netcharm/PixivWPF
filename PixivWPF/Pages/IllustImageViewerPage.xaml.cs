@@ -52,6 +52,8 @@ namespace PixivWPF.Pages
         }
         public CustomImageSource PreviewImage { get; private set; } = new CustomImageSource();
 
+        private string DefaultOriginalToolTip { get; set; } = string.Empty;
+
         internal void UpdateTheme()
         {
             btnViewPrevPage.Enable(btnViewPrevPage.IsEnabled, btnViewPrevPage.IsVisible);
@@ -356,6 +358,7 @@ namespace PixivWPF.Pages
                         sb.AppendLine($"Original      = {Contents.Illust.GetOriginalUrl(Contents.Index).GetImageName(Contents.Count <= 1)} [{(await Contents.Illust.GetOriginalUrl(Contents.Index).QueryImageFileSize() ?? -1).SmartFileSize()}]");
                         InfoBar.ToolTip = sb.ToString().Trim();
                         StatusBar.ToolTip = InfoBar.ToolTip;
+                        btnViewOriginalPage.ToolTip = $"{DefaultOriginalToolTip}{Environment.NewLine}========================{Environment.NewLine}{InfoBar.ToolTip}";
 
                         Page_SizeChanged(null, null);
                         PreviewWait.Hide();
@@ -425,6 +428,7 @@ namespace PixivWPF.Pages
 
                     InfoBar.ToolTip = sb.ToString().Trim();
                     StatusBar.ToolTip = InfoBar.ToolTip;
+                    btnViewOriginalPage.ToolTip = $"{DefaultOriginalToolTip}{Environment.NewLine}========================{Environment.NewLine}{InfoBar.ToolTip}";
 
                     PreviewImage = await GetPreviewImage(overwrite);
 
@@ -656,6 +660,8 @@ namespace PixivWPF.Pages
                 ParentWindow = Window.GetWindow(this);
                 if (ParentWindow is Window)
                 {
+                    DefaultOriginalToolTip = btnViewOriginalPage.ToolTip is string ? btnViewOriginalPage.ToolTip as string : string.Empty;
+
                     ZoomBar.Hide();
 
                     #region ToolButton MouseOver action
