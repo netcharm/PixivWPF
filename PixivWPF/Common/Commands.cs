@@ -1306,17 +1306,12 @@ namespace PixivWPF.Common
                         var illust = item.Illust;
 
                         string fp = string.Empty;
-                        if (item.Count > 1)
-                        {
-                            if (item.IsPage() || item.IsPages())
-                                illust.IsDownloadedAsync(out fp, item.Index);
-                            else
-                                illust.IsPartDownloadedAsync(out fp);
-                        }
+
+                        if (item.HasPages() || item.IsPage() || item.IsPages() || item.Count > 1)
+                            illust.IsDownloadedAsync(out fp, item.Index);
                         else
-                        {
                             illust.IsPartDownloadedAsync(out fp);
-                        }
+
                         if (string.IsNullOrEmpty(fp))
                             OpenWorkPreview.Execute(item);
                         else
@@ -1512,7 +1507,7 @@ namespace PixivWPF.Common
                     {
                         var illust = item.Illust;
 
-                        if (item.IsPage())
+                        if (item.HasPages() || item.IsPage() || item.IsPages() || item.Count > 1)
                         {
                             string fp = string.Empty;
                             item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index >= 0 ? item.Index : 0, touch: false);
