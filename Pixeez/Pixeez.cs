@@ -165,7 +165,7 @@ namespace Pixeez
             var Proxy = proxy;
             var UsingProxy = !string.IsNullOrEmpty(proxy) && useproxy;
             //ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-            string time = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:sszzz");
+            string time = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss+00:00");
 
             HttpClientHandler handler = new HttpClientHandler()
             {
@@ -178,7 +178,7 @@ namespace Pixeez
             var httpClient = new HttpClient(handler, true){ Timeout=TimeSpan.FromSeconds(timeout) };
             httpClient.DefaultRequestHeaders.Add("App-OS", "ios");
             httpClient.DefaultRequestHeaders.Add("App-OS-Version", "14.6");
-            httpClient.DefaultRequestHeaders.Add("App-Version", "7.6.2");
+            //httpClient.DefaultRequestHeaders.Add("App-Version", "7.6.2");
             httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/7.13.3 (iOS 14.6; iPhone13,2)");
             httpClient.DefaultRequestHeaders.Add("X-Client-Time", time);
             httpClient.DefaultRequestHeaders.Add("X-Client-Hash", $"{time}{HashSecret}".MD5Hash());

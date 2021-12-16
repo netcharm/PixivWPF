@@ -592,6 +592,12 @@ namespace PixivWPF.Common
             return (GetAjaxIllustUrl((id ?? 0).ToString()));
         }
 
+        /// <summary>
+        /// Will 404 when not login, so function failed :-(
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="tokens"></param>
+        /// <returns></returns>
         public static async Task<List<Pixeez.Objects.Page>> GetMetaPages(this string url, Pixeez.Tokens tokens = null)
         {
             List<Pixeez.Objects.Page> result = null;

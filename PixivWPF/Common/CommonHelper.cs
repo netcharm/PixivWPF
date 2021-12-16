@@ -1520,20 +1520,20 @@ namespace PixivWPF.Common
                         {
                             if (string.IsNullOrEmpty(v)) return (v);
                             var vs = Regex.Replace(v, @"\$(\d+)(%.*?%)", idx =>
-                                {
-                                    var i = int.Parse(idx.Groups[1].Value);
-                                    var t = idx.Groups[2].Value.Trim('%');
-                                    if (t.StartsWith("!"))
-                                        return (m.Groups[i].Success ? string.Empty : $"{t.Substring(1)}");
-                                    else
-                                        return (m.Groups[i].Success ? $"{t}" : string.Empty);
-                                });
+                            {
+                                var i = int.Parse(idx.Groups[1].Value);
+                                var t = idx.Groups[2].Value.Trim('%');
+                                if (t.StartsWith("!"))
+                                    return (m.Groups[i].Success ? string.Empty : $"{t.Substring(1)}");
+                                else
+                                    return (m.Groups[i].Success ? $"{t}" : string.Empty);
+                            });
                             for (int i = 0; i < m.Groups.Count; i++)
                             {
                                 vs = vs.Replace($"${i}", m.Groups[i].Value);
                             }
                             if (!keys.Contains(k) && !string.IsNullOrEmpty(m.Value)) { keys.Add(k); vt = vt.Replace(m.Value, vs); }
-                            else { if (vt.Contains(vs)) vs = string.Empty; }
+                            else { if (vt.Contains(vs) && vs.Length > 2) vs = string.Empty; }
                             return (vs);
                         }, RegexOptions.IgnoreCase);
                     }

@@ -2932,6 +2932,50 @@ namespace PixivWPF.Common
         {
             await DelayAsync(ms);
         }
+
+        /// <summary>
+        /// href: https://blog.csdn.net/WPwalter/article/details/79616368
+        /// 
+        /// 通过 PushFrame（进入一个新的消息循环）的方式来同步等待一个必须使用 await 才能等待的异步操作。
+        /// 由于使用了消息循环，所以并不会阻塞 UI 线程。<para/>
+        /// 此方法适用于将一个 async/await 模式的异步代码转换为同步代码。<para/>
+        /// </summary>
+        /// <remarks>
+        /// 此方法适用于任何线程，包括 UI 线程、非 UI 线程、STA 线程、MTA 线程。
+        /// </remarks>
+        /// <typeparam name="TResult">
+        /// 异步方法返回值的类型。
+        /// 我们认为只有包含返回值的方法才会出现无法从异步转为同步的问题，所以必须要求异步方法返回一个值。
+        /// </typeparam>
+        /// <param name="task">异步的带有返回值的任务。</param>
+        /// <returns>异步方法在同步返回过程中的返回值。</returns>
+        public static TResult AwaitByPushFrame<TResult>(this Task<TResult> task)
+        {
+            if (task == null) throw new ArgumentNullException(nameof(task));
+            System.Diagnostics.Contracts.Contract.EndContractBlock();
+
+            var frame = new DispatcherFrame();
+            task.ContinueWith(t =>
+            {
+                frame.Continue = false;
+            });
+            Dispatcher.PushFrame(frame);
+            return task.Result;
+        }
+
+        public static TResult AwaitByPushFrame<TResult>(this Application app, Task<TResult> task)
+        {
+            if (task == null) throw new ArgumentNullException(nameof(task));
+            System.Diagnostics.Contracts.Contract.EndContractBlock();
+
+            var frame = new DispatcherFrame();
+            task.ContinueWith(t =>
+            {
+                frame.Continue = false;
+            });
+            Dispatcher.PushFrame(frame);
+            return task.Result;
+        }
         #endregion
 
         #region Network Common Helper
@@ -2943,7 +2987,7 @@ namespace PixivWPF.Common
 
         private class PixivClientHash
         {
-            private string time = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:sszzz");
+            private string time = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss+00:00");
             public string Time { get { return (time); } }
             public string Hash { get { return ($"{time}{HashSecret}".MD5Hash()); } }
         }
@@ -2999,10 +3043,9 @@ namespace PixivWPF.Common
                 };
                 //httpClient.DefaultRequestHeaders.Add("Content-Type", "application/octet-stream");
                 httpClient.DefaultRequestHeaders.Add("App-OS", "ios");
-                httpClient.DefaultRequestHeaders.Add("App-OS-Version", "12.2");
-                httpClient.DefaultRequestHeaders.Add("App-Version", "7.6.2");
-                httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/7.6.2 (iOS 12.2; iPhone9,1)");
-                //httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
+                httpClient.DefaultRequestHeaders.Add("App-OS-Version", "14.6");
+                //httpClient.DefaultRequestHeaders.Add("App-Version", "7.6.2");
+                httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/7.13.3 (iOS 14.6; iPhone13,2)");
                 httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
                 //httpClient.DefaultRequestHeaders.Add("Connection", "Close");
                 httpClient.DefaultRequestHeaders.Add("Connection", "Keep-Alive");

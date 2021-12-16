@@ -1376,18 +1376,26 @@ namespace PixivWPF.Common
                     }
                     else if (p_count > 1)
                     {
-                        if (illust.PageCount > 1 && illust.meta_pages == null)
+                        if (idx <= 0 && illust.ImageUrls is Pixeez.Objects.ImageUrls && !string.IsNullOrEmpty(illust.ImageUrls.Original))
                         {
-                            Func<List<Pixeez.Objects.MetaPages>> GetPages = () => { return(illust.GetMetaPages().ConfigureAwait(true).GetAwaiter().GetResult()); };
-                            var meta_pages = illust.GetMetaPages().ConfigureAwait(true).GetAwaiter().GetResult();
-                            if (meta_pages is List<Pixeez.Objects.MetaPages>) illust.meta_pages = meta_pages.ToArray();
+                            url = illust.ImageUrls.Original;
                         }
-                        if (illust.meta_pages is IEnumerable<Pixeez.Objects.MetaPages> && illust.meta_pages.Count() == p_count)
+                        else
                         {
+                            if (illust.PageCount > 1 && illust.meta_pages == null)
+                            {
+                                //Func<List<Pixeez.Objects.MetaPages>> GetPages = () => { return(illust.GetMetaPages().ConfigureAwait(true).GetAwaiter().GetResult()); };
+                                //var meta_pages = illust.GetMetaPages().ConfigureAwait(true).GetAwaiter().GetResult();
+                                var meta_pages = illust.GetMetaPages().AwaitByPushFrame();
+                                if (meta_pages is List<Pixeez.Objects.MetaPages>) illust.meta_pages = meta_pages.ToArray();
+                            }
+                            if (illust.meta_pages is IEnumerable<Pixeez.Objects.MetaPages> && illust.meta_pages.Count() == p_count)
+                            {
 
-                            idx = Math.Max(0, Math.Min(idx, p_count - 1));
-                            var page = illust.meta_pages[idx];
-                            url = page.GetOriginalUrl();
+                                idx = Math.Max(0, Math.Min(idx, p_count - 1));
+                                var page = illust.meta_pages[idx];
+                                url = page.GetOriginalUrl();
+                            }
                         }
                     }
                 }
