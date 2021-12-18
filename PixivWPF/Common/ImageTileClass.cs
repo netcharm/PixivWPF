@@ -1376,21 +1376,27 @@ namespace PixivWPF.Common
                     }
                     else if (p_count > 1)
                     {
-                        if (idx <= 0 && illust.ImageUrls is Pixeez.Objects.ImageUrls && !string.IsNullOrEmpty(illust.ImageUrls.Original))
+                        if ((idx < 0 || (idx == 0 || !(illust.meta_pages is IEnumerable<Pixeez.Objects.MetaPages>))) && 
+                            illust.ImageUrls is Pixeez.Objects.ImageUrls && !string.IsNullOrEmpty(illust.ImageUrls.Original))
                         {
                             url = illust.ImageUrls.Original;
                         }
                         else
                         {
-                            if (illust.PageCount > 1 && illust.meta_pages == null)
+                            if (illust.meta_pages == null)
                             {
                                 //Func<List<Pixeez.Objects.MetaPages>> GetPages = () => { return(illust.GetMetaPages().ConfigureAwait(true).GetAwaiter().GetResult()); };
-                                //var meta_pages = illust.GetMetaPages().ConfigureAwait(true).GetAwaiter().GetResult();
-                                var meta_pages = illust.GetMetaPages().AwaitByPushFrame();
-                                if (meta_pages is List<Pixeez.Objects.MetaPages>) illust.meta_pages = meta_pages.ToArray();
+                                //var pages = illust.GetMetaPages().ConfigureAwait(true).GetAwaiter().GetResult();
+                                var pages = illust.GetMetaPages().AwaitByPushFrame();
+                                if (pages is List<Pixeez.Objects.MetaPages>) illust.meta_pages = pages.ToArray();
                             }
                             if (illust.meta_pages is IEnumerable<Pixeez.Objects.MetaPages> && illust.meta_pages.Count() == p_count)
                             {
+                                if (illust.ImageUrls == null && illust.meta_pages is IEnumerable<Pixeez.Objects.MetaPages> && illust.meta_pages.Count() > 0)
+                                    illust.ImageUrls = illust.meta_pages[0].ImageUrls;
+                                else if (illust.ImageUrls is Pixeez.Objects.ImageUrls && string.IsNullOrEmpty(illust.ImageUrls.Original) &&
+                                    illust.meta_pages is IEnumerable<Pixeez.Objects.MetaPages> && illust.meta_pages.Count() > 0)
+                                    illust.ImageUrls.Original = illust.meta_pages[0].ImageUrls.Original;
 
                                 idx = Math.Max(0, Math.Min(idx, p_count - 1));
                                 var page = illust.meta_pages[idx];

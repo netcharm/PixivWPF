@@ -6569,6 +6569,9 @@ namespace PixivWPF.Common
                                 illust.ImageUrls.Large = illust_old.ImageUrls.Large;
                         }
                     }
+                    if ((illust_old.Metadata != null && illust_old.Metadata.Pages != null) &&
+                        (illust.Metadata == null || illust.Metadata.Pages == null))
+                        illust.Metadata = illust_old.Metadata;
                 }
                 IllustCache[illust.Id] = illust;
             }
