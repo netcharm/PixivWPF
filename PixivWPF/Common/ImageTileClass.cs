@@ -1379,7 +1379,10 @@ namespace PixivWPF.Common
                         if ((idx < 0 || (idx == 0 || !(illust.meta_pages is IEnumerable<Pixeez.Objects.MetaPages>))) && 
                             illust.ImageUrls is Pixeez.Objects.ImageUrls && !string.IsNullOrEmpty(illust.ImageUrls.Original))
                         {
-                            url = illust.ImageUrls.Original;
+                            if (illust.meta_pages is IEnumerable<Pixeez.Objects.MetaPages> && illust.meta_pages.Count() > 0)
+                                url = string.IsNullOrEmpty(illust.meta_pages[0].ImageUrls.Original) ? illust.ImageUrls.Original : illust.meta_pages[0].ImageUrls.Original;
+                            else
+                                url = illust.ImageUrls.Original;
                         }
                         else
                         {
