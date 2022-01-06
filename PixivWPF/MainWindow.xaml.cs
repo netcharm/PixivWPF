@@ -469,7 +469,7 @@ namespace PixivWPF
             var fmts = e.Data.GetFormats(true);
             if (new List<string>(fmts).Contains("Text"))
             {
-                e.Effects = DragDropEffects.Link;
+                e.Effects = DragDropEffects.Copy;
             }
         }
 

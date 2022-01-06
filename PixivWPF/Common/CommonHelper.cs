@@ -906,6 +906,7 @@ namespace PixivWPF.Common
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/(en/)?users?/\d+)" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/member.*?\.php\?.*?illust_id=\d+).*?" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/member.*?\.php\?id=\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://pixiv\.net/[iu]/\d+).*?" + href_suffix, opt));
 
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net/img-.*?/\d+_p\d+" + regex_img_ext + ")" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net/img-.*?/(\d+)_p\d+.*?" + regex_img_ext + ")" + href_suffix, opt));
@@ -1017,6 +1018,16 @@ namespace PixivWPF.Common
                         {
                             var id = Regex.Replace(link, @"^.*?/\d{2}/(\d+)(_.*?)?"+regex_img_ext+"$", "$1", RegexOptions.IgnoreCase);
                             link = id.ArtworkLink();
+                        }
+                        else if(Regex.IsMatch(link, @"i/(\d+)$", RegexOptions.IgnoreCase))
+                        {
+                            var id = Regex.Replace(link, @".*?i/(\d+)$", "$1", RegexOptions.IgnoreCase);
+                            link = id.ArtworkLink();
+                        }
+                        else if (Regex.IsMatch(link, @"u/(\d+)$", RegexOptions.IgnoreCase))
+                        {
+                            var id = Regex.Replace(link, @".*?u/(\d+)$", "$1", RegexOptions.IgnoreCase);
+                            link = id.ArtistLink();
                         }
                         if (!links.Contains(link)) links.Add(link.Contains(".pixiv.") ? link.Replace("http://", "https://") : link);
                     }
