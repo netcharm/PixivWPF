@@ -1607,6 +1607,8 @@ namespace PixivWPF.Pages
                 var force = ModifierKeys.Control.IsModified();
                 if (item.IsWork())
                 {
+                    this.Invoke(() => { PreviewBadge.Opacity = PreviewBadge.IsMouseOver || PreviewBadge.IsMouseDirectlyOver ? 0.75 : 0.33; });
+
                     PrefetchingImagesTask.Name = $"IllustPagePrefetching_{item.ID}";
                     Contents = item;
                     await new Action(async () =>
@@ -2750,6 +2752,16 @@ namespace PixivWPF.Pages
                 }
             }
             catch (Exception ex) { ex.ERROR("IllustDetailPreviewMouseDown"); }
+        }
+
+        private void PreviewBadge_MouseEnter(object sender, MouseEventArgs e)
+        {
+            this.Invoke(() => { PreviewBadge.Opacity = 0.75; });
+        }
+
+        private void PreviewBadge_MouseLeave(object sender, MouseEventArgs e)
+        {
+            this.Invoke(() => { PreviewBadge.Opacity = 0.25; });
         }
 
         #region Preview Popup
@@ -4767,6 +4779,7 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(); }
         }
         #endregion
+
     }
 
 }

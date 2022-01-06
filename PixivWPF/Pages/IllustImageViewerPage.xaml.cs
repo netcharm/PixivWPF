@@ -386,6 +386,8 @@ namespace PixivWPF.Pages
             {
                 if (item.IsWork())
                 {
+                    this.Invoke(() => { PreviewBadge.Opacity = PreviewBadge.IsMouseOver || PreviewBadge.IsMouseDirectlyOver ? 0.75 : 0.33; });
+
                     Contents = item;
                     var illust = Contents.Illust as Pixeez.Objects.Work;
 
@@ -727,6 +729,16 @@ namespace PixivWPF.Pages
                 }
             }
             catch (Exception ex) { ex.ERROR("PageSizeChanged"); }
+        }
+
+        private void PreviewBadge_MouseEnter(object sender, MouseEventArgs e)
+        {
+            this.Invoke(() => { PreviewBadge.Opacity = 0.75; });
+        }
+
+        private void PreviewBadge_MouseLeave(object sender, MouseEventArgs e)
+        {
+            this.Invoke(() => { PreviewBadge.Opacity = 0.25; });
         }
 
         private void Preview_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -1126,5 +1138,6 @@ namespace PixivWPF.Pages
                 rel.Y = (e.VerticalOffset + 0.5 * e.ViewportHeight) / e.ExtentHeight;
             }
         }
+
     }
 }

@@ -733,9 +733,10 @@
                         </Grid>
                     </ContentControl>
                     <mah:Badged Grid.Row="0" x:Name="PreviewBadge" x:Uid="PreviewBadge"
-                            Margin="0,0,0,20"  Visibility="Collapsed" Opacity="0.75"
+                            Margin="0,0,0,20"  Visibility="Collapsed" Opacity="0.33"
                             BadgeFontFamily="{DynamicResource MonoSpaceFamily}" BadgeFontSize="16"
-                            BadgePlacementMode="Bottom" BadgeMargin="8,2" />
+                            BadgePlacementMode="Bottom" BadgeMargin="8,2" 
+                            MouseEnter="PreviewBadge_MouseEnter" MouseLeave="PreviewBadge_MouseLeave" />
                 </Grid>
 
                 <!-- Illust Author Info -->
