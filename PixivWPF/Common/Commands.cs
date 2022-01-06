@@ -1307,10 +1307,10 @@ namespace PixivWPF.Common
 
                         string fp = string.Empty;
 
-                        if (item.HasPages() || item.IsPage() || item.IsPages() || item.Count > 1)
-                            illust.IsDownloadedAsync(out fp, item.Index);
+                        if ((item.HasPages() || item.IsPage() || item.IsPages() || item.Count > 1) && item.Index >= 0)
+                            illust.IsDownloadedAsync(out fp, item.Index, touch: false);
                         else
-                            illust.IsPartDownloadedAsync(out fp);
+                            illust.IsPartDownloadedAsync(out fp, touch: false);
 
                         if (string.IsNullOrEmpty(fp))
                             OpenWorkPreview.Execute(item);
@@ -1394,7 +1394,7 @@ namespace PixivWPF.Common
                         if (item.Index >= 0)
                         {
                             string fp = string.Empty;
-                            item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index);
+                            item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index, touch: false);
                             string fp_d = item.IsDownloaded ? fp : string.Empty;
                             string fp_o = illust.GetOriginalUrl(item.Index).GetImageCachePath();
                             string fp_p = illust.GetPreviewUrl(item.Index, large: setting.ShowLargePreview).GetImageCachePath();
@@ -1406,7 +1406,7 @@ namespace PixivWPF.Common
                         else
                         {
                             string fp = string.Empty;
-                            item.IsDownloaded = illust.IsPartDownloadedAsync(out fp);
+                            item.IsDownloaded = illust.IsPartDownloadedAsync(out fp, touch: false);
                             string fp_d = item.IsDownloaded ? fp : string.Empty;
                             string fp_o = illust.GetOriginalUrl().GetImageCachePath();
                             string fp_p = illust.GetPreviewUrl(large: setting.ShowLargePreview).GetImageCachePath();
