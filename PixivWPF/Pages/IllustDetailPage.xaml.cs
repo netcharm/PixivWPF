@@ -1428,7 +1428,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void SetIllustStateInfo(bool querysize = true)
+        private void SetIllustStateInfo(bool querysize = true)
         {
             string tip = null;
             if (Contents.IsWork())
@@ -1456,32 +1456,36 @@ namespace PixivWPF.Pages
                     stat_tip.Add($"Favorited : {Illust.Stats.FavoritedCount.Public} / {Illust.Stats.FavoritedCount.Private}");
                 }
                 stat_tip.Add($"Size      : {Illust.Width}x{Illust.Height}");
-                var size = querysize ? $" [{(await Illust.GetOriginalUrl().QueryImageFileSize() ?? -1).SmartFileSize()}]" : string.Empty;
-                stat_tip.Add($"Original  : {Illust.GetOriginalUrl().GetImageName(Contents.Count <= 1)}{size}");
                 tip = string.Join(Environment.NewLine, stat_tip).Trim();
 
                 IllustViewed.Text = stat_viewed;
                 IllustFavorited.Text = stat_favorited;
 
                 IllustStatInfo.ToolTip = string.IsNullOrEmpty(tip) ? null : tip;
+                UpdateIllustStateInfo(querysize);
             }
         }
 
-        private async void UpdateIllustStateInfo()
+        private async void UpdateIllustStateInfo(bool querysize = true)
         {
             if (Contents.IsWork())
             {
+                var found = false;
                 if (IllustStatInfo.ToolTip is string)
                 {
+                    var size = querysize ? $" [{(await Contents.Illust.GetOriginalUrl(Contents.Index).QueryImageFileSize() ?? -1).SmartFileSize()}]" : string.Empty;
+                    var original = $"Original  : {Contents.Illust.GetOriginalUrl(Contents.Index).GetImageName(Contents.Count <= 1)}{size}";
                     var tips = (IllustStatInfo.ToolTip as string).Split(new string[] { Environment.NewLine, "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
                     for (int i = 0; i < tips.Count; i++)
                     {
                         if (tips[i].StartsWith("Original  :"))
                         {
-                            tips[i] = $"Original  : {Contents.Illust.GetOriginalUrl(Contents.Index).GetImageName(Contents.Count <= 1)} [{(await Contents.Illust.GetOriginalUrl(Contents.Index).QueryImageFileSize() ?? -1).SmartFileSize()}]";
+                            found = true;
+                            tips[i] = original;
                         }
                     }
-                    IllustStatInfo.ToolTip = string.Join(Environment.NewLine, tips);
+                    if (!found) tips.Add(original);
+                    IllustStatInfo.ToolTip = string.Join(Environment.NewLine, tips).Trim();
                 }
             }
         }
@@ -3092,6 +3096,8 @@ namespace PixivWPF.Pages
                                     Preview.Source = img.Source;
                                     PreviewImagePath = img.SourcePath;
                                     PreviewWait.Hide();
+                                    //SetIllustStateInfo();
+                                    UpdateIllustStateInfo();
                                 }
                                 else PreviewWait.Fail();
                             }
