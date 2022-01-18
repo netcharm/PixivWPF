@@ -422,11 +422,15 @@ namespace PixivWPF.Pages
                     StatusFaorited.Show(show: Contents.IsFavorited);
                     StatusDownloaded.Show(show: Contents.IsDownloaded);
 
+                    var setting = Application.Current.LoadSetting();
+                    var size = setting.QueryOriginalImageSize ? $" [{(await Contents.Illust.GetOriginalUrl(Contents.Index).QueryImageFileSize() ?? -1).SmartFileSize()}]" : string.Empty;
+                    var original = $"Original  : {Contents.Illust.GetOriginalUrl(Contents.Index).GetImageName(Contents.Count <= 1)}{size}";
+
                     StringBuilder sb = new StringBuilder();
                     sb.AppendLine($"Favorited  = {Contents.Illust.IsLiked()}");
                     sb.AppendLine($"Page Index = {Contents.Index + 1} / {Contents.Count}");
                     sb.AppendLine($"Downloaded = {Contents.Illust.IsDownloaded(Contents.Index)}");
-                    sb.AppendLine($"Original   = {Contents.Illust.GetOriginalUrl(Contents.Index).GetImageName(Contents.Count <= 1)} [{(await Contents.Illust.GetOriginalUrl(Contents.Index).QueryImageFileSize() ?? -1).SmartFileSize()}]");
+                    sb.AppendLine(original);
 
                     InfoBar.ToolTip = sb.ToString().Trim();
                     StatusBar.ToolTip = InfoBar.ToolTip;
@@ -898,6 +902,7 @@ namespace PixivWPF.Pages
                     InfoBar.Margin = new Thickness(16, 16, 16, 32);
                     StatusBar.Margin = new Thickness(16, 16, 16, 52);
                     ActionBar.Margin = new Thickness(0, 0, 16, 16);
+                    PreviewBadge.Margin = new Thickness(0, 0, 0, 36);
                     ZoomRatio.Value = LastZoomRatio;
                 }
                 else
@@ -921,6 +926,7 @@ namespace PixivWPF.Pages
                     InfoBar.Margin = new Thickness(16);
                     StatusBar.Margin = new Thickness(16, 16, 16, 36);
                     ActionBar.Margin = new Thickness(0);
+                    PreviewBadge.Margin = new Thickness(0, 0, 0, 20);
                     ZoomRatio.Value = 1.0;
                 }
                 //ActionViewFullSize.IsChecked = IsFullSize;

@@ -2696,9 +2696,10 @@ namespace PixivWPF.Pages
 
             IllustStatInfo.ToolTipOpening += (obj, evt) =>
             {
+                var setting = Application.Current.LoadSetting();
                 if (IllustStatInfo.ToolTip is string && (IllustStatInfo.ToolTip as string).Equals(waiting, StringComparison.CurrentCultureIgnoreCase))
-                    SetIllustStateInfo();
-                else UpdateIllustStateInfo();
+                    SetIllustStateInfo(querysize: setting.QueryOriginalImageSize);
+                else UpdateIllustStateInfo(querysize: setting.QueryOriginalImageSize);
             };
             if (Contents.HasUser()) UpdateDetail(Contents);
         }
