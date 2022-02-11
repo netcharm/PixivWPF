@@ -1608,6 +1608,8 @@ namespace PixivWPF.Pages
                 page_number = 0;
                 page_index = 0;
 
+                lastMouseDown = Environment.TickCount;
+
                 var force = ModifierKeys.Control.IsModified();
                 if (item.IsWork())
                 {
