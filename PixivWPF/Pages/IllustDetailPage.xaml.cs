@@ -3487,7 +3487,7 @@ namespace PixivWPF.Pages
             Commands.OpenTags.Execute(tag_type);
         }
 
-        private long lastMouseDown = Environment.TickCount;
+        private int lastMouseDown = Environment.TickCount;
         private void IllustInfo_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.Timestamp - lastMouseDown > 100)

@@ -1159,7 +1159,10 @@ namespace PixivWPF.Common
                     if (item.IsPage() || item.IsPages())
                         item.IsDownloaded = item.Illust.IsDownloadedAsync(item.Index);
                     else
-                        item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
+                    {
+                        if (item.HasPages() && item.Index < 0) item.Index = 0;
+                        item.IsDownloaded = item.HasPages() ? item.Illust.IsDownloadedAsync(item.Index) : item.Illust.IsPartDownloadedAsync();
+                    }
 
                     //var suffix = item.Count > 1 ? $" - {item.Index}/{item.Count}" : string.Empty;
                     var suffix = item.Count > 1 ? $"_{item.Index}_{item.Count}".Replace("-1", "0") : string.Empty;
