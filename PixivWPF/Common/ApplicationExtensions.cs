@@ -3056,9 +3056,12 @@ namespace PixivWPF.Common
                 httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("zh_CN");
                 httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("ja_JP");
 
-                var start = !continuation || range_start <= 0 ? "0" : $"{range_start}";
-                var end = range_count > 0 ? $"{range_count}" : string.Empty;
-                httpClient.DefaultRequestHeaders.Add("Range", $"bytes={start}-{end}");
+                if (continuation && range_start >= 0 && range_count > 0)
+                {
+                    var start = !continuation || range_start <= 0 ? "0" : $"{range_start}";
+                    var end = range_count > 0 ? $"{range_count}" : string.Empty;
+                    httpClient.DefaultRequestHeaders.Add("Range", $"bytes={start}-{end}");
+                }
             }
             catch (Exception ex) { ex.ERROR("CreateHttpClient"); }
             return (httpClient);
@@ -3080,6 +3083,7 @@ namespace PixivWPF.Common
                                 httpClient.CancelPendingRequests();
                                 httpClient.Dispose();
                                 httpClient = null;
+                                "Releasing Successes!".DEBUG($"ReleaseHttpClient_{client}");
                             }
                         }
                     }
@@ -3094,18 +3098,20 @@ namespace PixivWPF.Common
             HttpClient httpClient = null;
             if ((setting.UsingProxy && !is_download) || (setting.DownloadUsingProxy && is_download))
             {
-                if (!HttpClientList.TryGetValue(setting.Proxy, out httpClient) || !(httpClient is HttpClient))
+                if (!HttpClientList.TryGetValue(setting.Proxy, out httpClient))
                 {
-                    httpClient = CreateHttpClient(app, continuation, range_start, range_count);
+                    httpClient = CreateHttpClient(app, continuation, 0, 0);
                     HttpClientList.AddOrUpdate(setting.Proxy, httpClient, (k, v) => httpClient);
+                    "Creating Successes!".DEBUG($"GetHttpClient_{setting.Proxy}");
                 }
             }
             else
             {
-                if (!HttpClientList.TryGetValue("noproxy", out httpClient) || !(httpClient is HttpClient))
+                if (!HttpClientList.TryGetValue("noproxy", out httpClient))
                 {
-                    httpClient = CreateHttpClient(app, continuation, range_start, range_count);
+                    httpClient = CreateHttpClient(app, continuation, 0, 0);
                     HttpClientList.AddOrUpdate("noproxy", httpClient, (k, v) => httpClient);
+                    "Creating Successes!".DEBUG($"GetHttpClient_noproxy");
                 }
             }
             //httpClient.Timeout = TimeSpan.FromSeconds(setting.DownloadHttpTimeout);
