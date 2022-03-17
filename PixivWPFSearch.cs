@@ -344,18 +344,67 @@ namespace netcharm
             return false;
         }
 
+        private static bool InstanceExists(bool WaitClose = false, int WaitTime = 0, int WaitInterval = 500, bool ReleaseOnly = false)
+        {
+            return (InstanceExists(WaitClose, TimeSpan.FromMilliseconds(WaitTime), TimeSpan.FromMilliseconds(WaitInterval), ReleaseOnly));
+        }
+
+        private static bool InstanceExists(bool WaitClose = false, TimeSpan WaitTime = default(TimeSpan), TimeSpan WaitInterval=default(TimeSpan), bool ReleaseOnly = false)
+        {
+            bool result = false;
+            var pipe = "PixivWPF*";
+            try
+            {
+                if (WaitTime.TotalMilliseconds == 0) WaitTime = TimeSpan.FromSeconds(60);
+                if (WaitInterval.TotalMilliseconds == 0) WaitInterval = TimeSpan.FromMilliseconds(500);
+
+                int wait_count = 0;
+                int wait_total = (int)(WaitTime.TotalMilliseconds / WaitInterval.TotalMilliseconds);
+                System.Threading.SemaphoreSlim tasks = new System.Threading.SemaphoreSlim(0, 1);
+                do
+                {
+                    //System.Diagnostics.Debug.WriteLine("Waiting...");
+                    var pipes = System.IO.Directory.GetFiles("\\\\.\\pipe\\", pipe);
+                    var pipe_list = ReleaseOnly ? pipes.Where(p => !p.ToUpper().Contains("DEBUG")) : pipes;
+
+                    if (pipe_list.Count() <= 0) { result = false; break; }
+                    else if (WaitClose)
+                    {
+                        //System.Threading.Thread.Sleep(WaitInterval);
+                        if (tasks.Wait(WaitInterval))
+                        {
+
+                        }
+                    }
+                    wait_count++;
+                } while (wait_count < wait_total);
+                if (tasks is System.Threading.SemaphoreSlim)
+                {
+                    if (tasks.CurrentCount < 1) tasks.Release();
+                    tasks.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "ERROR!", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            return (result);
+        }
+
         private static void UpgradeFiles(string[] files)
         {
             if (files.Length <= 0) return;
+
+            InstanceExists(WaitClose: true, WaitTime: TimeSpan.FromSeconds(65));
             var wait_count = 0;
-            do
-            {
-                if (System.IO.Directory.GetFiles("\\\\.\\pipe\\", "PixivWPF*").Count() <= 0) break;
-                System.Threading.Thread.Sleep(1000);
-                wait_count++;
-            } while (wait_count < 60);
-            //System.Threading.Thread.Sleep(2000);
-            System.Threading.Tasks.Task.Delay(5000).GetAwaiter().GetResult();
+            //do
+            //{
+            //    if (System.IO.Directory.GetFiles("\\\\.\\pipe\\", "PixivWPF*").Count() <= 0) break;
+            //    System.Threading.Thread.Sleep(1000);
+            //    wait_count++;
+            //} while (wait_count < 60);
+            ////System.Threading.Thread.Sleep(2000);
+            //System.Threading.Tasks.Task.Delay(5000).GetAwaiter().GetResult();
 
             List<string> f_upgraded = new List<string>();
             List<string> f_skiped = new List<string>();

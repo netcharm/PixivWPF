@@ -3010,7 +3010,7 @@ namespace PixivWPF.Common
             }
         }
 
-        private static HttpClient CreateHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
+        private static HttpClient CreateHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0, bool useproxy = false)
         {
             var setting = LoadSetting(app);
             var buffersize = 100 * 1024 * 1024;
@@ -3032,7 +3032,8 @@ namespace PixivWPF.Common
                     MaxRequestContentBufferSize = buffersize,
                     //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
                     Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, setting.ProxyBypass.ToArray()),
-                    UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.DownloadUsingProxy ? false : true
+                    //UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.DownloadUsingProxy ? false : true
+                    UseProxy = !useproxy || string.IsNullOrEmpty(setting.Proxy) ? false : true
                 };
 
                 //Maybe HttpClientFactory.Create() 
@@ -3094,13 +3095,15 @@ namespace PixivWPF.Common
 
         public static HttpClient GetHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0, bool is_download = false)
         {
-            var setting = LoadSetting(app);
             HttpClient httpClient = null;
-            if ((setting.UsingProxy && !is_download) || (setting.DownloadUsingProxy && is_download))
+            var setting = LoadSetting(app);
+            var no_proxy = string.IsNullOrEmpty(setting.Proxy);
+            if(no_proxy) "No Proxy Setting!".DEBUG($"GetHttpClient_{setting.Proxy}");
+            if (!no_proxy && ((setting.UsingProxy && !is_download) || (setting.DownloadUsingProxy && is_download)))
             {
                 if (!HttpClientList.TryGetValue(setting.Proxy, out httpClient))
                 {
-                    httpClient = CreateHttpClient(app, continuation, 0, 0);
+                    httpClient = CreateHttpClient(app, continuation, 0, 0, useproxy: true);
                     HttpClientList.AddOrUpdate(setting.Proxy, httpClient, (k, v) => httpClient);
                     "Creating Successes!".DEBUG($"GetHttpClient_{setting.Proxy}");
                 }
@@ -3109,7 +3112,7 @@ namespace PixivWPF.Common
             {
                 if (!HttpClientList.TryGetValue("noproxy", out httpClient))
                 {
-                    httpClient = CreateHttpClient(app, continuation, 0, 0);
+                    httpClient = CreateHttpClient(app, continuation, 0, 0, useproxy: false);
                     HttpClientList.AddOrUpdate("noproxy", httpClient, (k, v) => httpClient);
                     "Creating Successes!".DEBUG($"GetHttpClient_noproxy");
                 }

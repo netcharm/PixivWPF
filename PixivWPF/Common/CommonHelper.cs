@@ -5044,7 +5044,7 @@ namespace PixivWPF.Common
                         _ImageFileSizeCache_.Clear();
                         foreach (var k in keys)
                         {
-                            _ImageFileSizeCache_.TryAdd(k.Trim(), data[k]);
+                            if (data[k] > 0) _ImageFileSizeCache_.TryAdd(k.Trim(), data[k]);
                         }
                     }
                     catch (Exception ex) { ex.ERROR("LoadImageFileSizeData"); }
@@ -5162,7 +5162,7 @@ namespace PixivWPF.Common
                                     var pos = range.From ?? 0;
                                     var Length = range.Length ?? 0;
                                     if (progressAction is Action<double, double>) progressAction.Invoke(pos, Length);
-                                    _ImageFileSizeCache_.AddOrUpdate(url, Length, (k, v) => Length);
+                                    if (length > 0) _ImageFileSizeCache_.AddOrUpdate(url, Length, (k, v) => Length);
 
                                     string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
                                     using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())

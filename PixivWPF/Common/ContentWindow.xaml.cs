@@ -216,6 +216,21 @@ namespace PixivWPF.Common
                 this.WindowState = WindowState.Minimized;
                 //this.Hide();
 
+                //foreach (var c in this.GetChildren<Control>())
+                //{
+                //    try
+                //    {
+                //        if ((c as Control).ToolTip != null)
+                //        {
+                //           new Action(() => {
+                //                ToolTipService.SetIsEnabled(c as Control, false);
+                //                (c as Control).ToolTip = null;
+                //            }).Invoke();
+                //        }
+                //    }
+                //    catch (Exception ex) { ex.ERROR("MetroWindow_Closing_RemoveToolTip"); }
+                //}
+
                 if (Content is DownloadManagerPage)
                     (Content as DownloadManagerPage).Pos = new Point(this.Left, this.Top);
                 else if (Content is HistoryPage)

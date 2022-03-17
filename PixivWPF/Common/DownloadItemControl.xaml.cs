@@ -1341,6 +1341,21 @@ namespace PixivWPF.Common
 
         ~DownloadItem()
         {
+            //foreach (var c in this.GetChildren<Control>())
+            //{
+            //    try
+            //    {
+            //        if ((c as Control).ToolTip != null)
+            //        {
+            //            this.Dispatcher.Invoke(() => {
+            //                ToolTipService.SetIsEnabled(c as Control, false);
+            //                (c as Control).ToolTip = null;
+            //            });
+            //        }
+            //    }
+            //    catch(Exception ex) { ex.ERROR("DownloadItem_RemoveToolTip"); }
+            //}
+
             Dispose(false);
         }
 
