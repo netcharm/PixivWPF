@@ -2933,6 +2933,11 @@ namespace PixivWPF.Pages
                         Commands.CopyText.Execute(href);
                     }
                 }
+                else if (uid.Equals("ActionAuthorNewWindow", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (Contents.HasUser())
+                        Commands.OpenUser.Execute(Contents.User);
+                }
                 else if (uid.Equals("ActionAuthorWebLink", StringComparison.CurrentCultureIgnoreCase))
                 {
                     if (Contents.HasUser())

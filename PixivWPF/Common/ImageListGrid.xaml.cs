@@ -748,7 +748,7 @@ namespace PixivWPF.Common
                 var total = needUpdate.Count() + cached.Count() + downloaded.Count();
                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
 
-                if (total > 0)
+                if (total >= 0)
                 {
                     var setting = Application.Current.LoadSetting();
                     var parallel = setting.PrefetchingDownloadParallel;

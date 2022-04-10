@@ -99,6 +99,12 @@
                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <MenuItem x:Uid="ActionAuthorNewWindow" Header="Open Author in New Window" Click="ActionIllustInfo_Click">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xE8A7;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
             <MenuItem x:Uid="ActionAuthorWebLink" Header="Copy Author Weblink" Click="ActionIllustInfo_Click">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xE167;" FontSize="16" FontFamily="Segoe MDL2 Assets"
