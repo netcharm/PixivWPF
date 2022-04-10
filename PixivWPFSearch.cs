@@ -373,7 +373,7 @@ namespace netcharm
                         //System.Threading.Thread.Sleep(WaitInterval);
                         if (tasks.Wait(WaitInterval))
                         {
-
+                            System.Diagnostics.Debug.WriteLine("Wait Instance Exit ......");
                         }
                     }
                     wait_count++;
@@ -397,14 +397,14 @@ namespace netcharm
 
             InstanceExists(WaitClose: true, WaitTime: TimeSpan.FromSeconds(65));
             var wait_count = 0;
-            //do
-            //{
-            //    if (System.IO.Directory.GetFiles("\\\\.\\pipe\\", "PixivWPF*").Count() <= 0) break;
-            //    System.Threading.Thread.Sleep(1000);
-            //    wait_count++;
-            //} while (wait_count < 60);
-            ////System.Threading.Thread.Sleep(2000);
-            //System.Threading.Tasks.Task.Delay(5000).GetAwaiter().GetResult();
+            do
+            {
+                if (System.IO.Directory.GetFiles("\\\\.\\pipe\\", "pixivwpf*").Count() <= 0) break;
+                System.Threading.Thread.Sleep(1000);
+                wait_count++;
+            } while (wait_count < 60);
+            //system.threading.thread.sleep(2000);
+            System.Threading.Tasks.Task.Delay(5000).GetAwaiter().GetResult();
 
             List<string> f_upgraded = new List<string>();
             List<string> f_skiped = new List<string>();

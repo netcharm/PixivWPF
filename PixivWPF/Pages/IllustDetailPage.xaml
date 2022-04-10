@@ -99,9 +99,9 @@
                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionAuthorNewWindow" Header="Open Author in New Window" Click="ActionIllustInfo_Click">
+            <MenuItem x:Uid="ActionIllustAuthorInfo" Header="Author Detail" Click="ActionIllustAuthourInfo_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE8A7;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                    <TextBlock Margin="4,0,0,0" Text="&#xE136;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
@@ -158,13 +158,6 @@
             <MenuItem x:Uid="ActionCopyIllustDate" Header="Illust Date" Click="ActionIllustInfo_Click" ToolTip="Click to copy illust date">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xEC92;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </MenuItem.Icon>
-            </MenuItem>
-            <Separator />
-            <MenuItem x:Uid="ActionIllustAuthorInfo" Header="Author Detail" Click="ActionIllustAuthourInfo_Click">
-                <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE136;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
