@@ -690,7 +690,19 @@ namespace PixivWPF.Common
                     {
                         mshtml.IHTMLTxtRange range = currentSelection.createRange() as mshtml.IHTMLTxtRange;
                         if (range != null)
-                            sb.AppendLine(html ? range.htmlText : range.text);
+                        {
+                            mshtml.IHTMLElement root = range.parentElement();
+                            if(root.tagName.Equals("html", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                var bodies = browser.Document.GetElementsByTagName("body");
+                                foreach (System.Windows.Forms.HtmlElement body in bodies)
+                                {
+                                    sb.AppendLine(html ? body.InnerHtml : body.InnerText);
+                                }
+                            }
+                            else
+                              sb.AppendLine(html ? range.htmlText : range.text);
+                        }
                     }
                     else if (all_without_selection)
                     {
