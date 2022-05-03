@@ -28,6 +28,7 @@ namespace PixivWPF.Pages
         private double LastZoomRatio = 1.0;
         private bool ActionZoomFitOp { get; set; } = false;
 
+        private List<string> _urls_ = new List<string>();
         private string PreviewImageUrl = string.Empty;
         private string OriginalImageUrl = string.Empty;
         private Func<bool> GetOriginalCheckState = null;
@@ -280,6 +281,7 @@ namespace PixivWPF.Pages
                 var c_item = Contents;
                 if (IsOriginal)
                 {
+                    if (_urls_ is List<string>) _urls_.Add(OriginalImageUrl);
                     using (var original = await OriginalImageUrl.LoadImageFromUrl(overwrite, progressAction: reportProgress, cancelToken: cancelDownloading))
                     {
                         if (original.Source != null && !string.IsNullOrEmpty(original.SourcePath))
@@ -293,6 +295,7 @@ namespace PixivWPF.Pages
                 }
                 else
                 {
+                    if (_urls_ is List<string>) _urls_.Add(PreviewImageUrl);
                     using (var preview = await PreviewImageUrl.LoadImageFromUrl(overwrite, progressAction: reportProgress, cancelToken: cancelDownloading))
                     {
                         if (setting.SmartPreview &&
@@ -643,6 +646,17 @@ namespace PixivWPF.Pages
             try
             {
                 StopPrefetching();
+
+                #region Clear downloading cache for this illust.
+                if (Contents.IsWork() && _urls_ is List<string>)
+                {
+                    foreach (var url in _urls_)
+                    {
+                        try { if (!string.IsNullOrEmpty(url)) url.GetImageCacheFile().CleenLastDownloaded(); }
+                        catch { }
+                    }
+                }
+                #endregion
 
                 Preview.Dispose();
                 if (PreviewImage is CustomImageSource) PreviewImage.Source = null;

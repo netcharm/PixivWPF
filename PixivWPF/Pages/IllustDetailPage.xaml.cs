@@ -51,6 +51,7 @@ namespace PixivWPF.Pages
         private int page_number = 0;
         private int page_index = 0;
 
+        private List<string> _urls_ = new List<string>();
         private string PreviewImageUrl { get; set; } = string.Empty;
         private string PreviewImagePath { get; set; } = string.Empty;
         private string AvatarImageUrl { get; set; } = string.Empty;
@@ -1610,6 +1611,15 @@ namespace PixivWPF.Pages
 
                 lastMouseDown = Environment.TickCount;
 
+                if (Contents.IsWork() && _urls_ is List<string>)
+                {
+                    foreach (var url in _urls_)
+                    {
+                        try { if (!string.IsNullOrEmpty(url)) url.GetImageCacheFile().CleenLastDownloaded(); }
+                        catch { }
+                    }
+                }
+
                 var force = ModifierKeys.Control.IsModified();
                 if (item.IsWork())
                 {
@@ -2018,7 +2028,7 @@ namespace PixivWPF.Pages
 
                     var idx = page * count;
                     if (item.Illust is Pixeez.Objects.IllustWork)
-                        {
+                    {
                         var subset = item.Illust as Pixeez.Objects.IllustWork;
                         if (subset.PageCount > 1 && subset.meta_pages == null)
                         {
@@ -2521,6 +2531,55 @@ namespace PixivWPF.Pages
                         StopPrefetching();
 
                         if (PrefetchingImagesTask is PrefetchingTask) PrefetchingImagesTask.Dispose();
+
+                        #region Clear downloading cache for this illust.
+                        if (Contents.IsWork() && _urls_ is List<string>)
+                        {
+                            foreach (var url in _urls_)
+                            {
+                                try { if (!string.IsNullOrEmpty(url)) url.GetImageCacheFile().ClearDownloading(); }
+                                catch { }
+                            }
+                        }
+                        //if (Contents.IsWork())
+                        //{
+                        //    var previews = new List<string>();
+                        //    var illust = Contents.Illust;
+                        //    if (Contents.HasPages())
+                        //    {
+                        //        if (illust is Pixeez.Objects.IllustWork)
+                        //        {
+                        //            var subset = illust as Pixeez.Objects.IllustWork;
+                        //            if (subset.meta_pages.Count() > 1)
+                        //            {
+                        //                foreach (var page in subset.meta_pages)
+                        //                {
+                        //                    try { previews.Add(page.GetPreviewUrl()); }
+                        //                    catch { }
+                        //                }
+                        //            }
+                        //        }
+                        //        else if (illust is Pixeez.Objects.NormalWork)
+                        //        {
+                        //            var subset = illust as Pixeez.Objects.NormalWork;
+                        //            if (illust.Metadata is Pixeez.Objects.Metadata)
+                        //            {
+                        //                foreach (var page in illust.Metadata.Pages)
+                        //                {
+                        //                    try { previews.Add(page.GetPreviewUrl()); }
+                        //                    catch { }
+                        //                }
+                        //            }
+                        //        }
+                        //    }
+                        //    previews.Add(illust.GetPreviewUrl(large: setting.ShowLargePreview));
+                        //    foreach (var url in previews)
+                        //    {
+                        //        try { if (!string.IsNullOrEmpty(url)) url.GetImageCacheFile().CleenLastDownloaded(); }
+                        //        catch { }
+                        //    }
+                        //}
+                        #endregion
 
                         SubIllusts.Clear(batch: false, force: true);
                         this.DoEvents();
@@ -3070,6 +3129,7 @@ namespace PixivWPF.Pages
                         if (c_item.IsSameIllust(Contents)) PreviewWait.Show();
 
                         PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index, large: setting.ShowLargePreview);
+                        if(_urls_ is List<string>) _urls_.Add(PreviewImageUrl);
                         if (Keyboard.Modifiers == ModifierKeys.Control) { PreviewImageUrl.GetImageCacheFile().ClearDownloading(); }
 
                         using (var img = await PreviewImageUrl.LoadImageFromUrl(overwrite, progressAction: PreviewWait.ReportPercentage, cancelToken: cancelDownloading))
@@ -3132,6 +3192,7 @@ namespace PixivWPF.Pages
 
                         var c_item = Contents;
                         AvatarImageUrl = Contents.User.GetAvatarUrl();
+                        if (_urls_ is List<string>) _urls_.Add(AvatarImageUrl);
                         using (var img = await AvatarImageUrl.LoadImageFromUrl(overwrite, size: Application.Current.GetDefaultAvatarSize(), cancelToken: cancelDownloading))
                         {
                             if (c_item.IsSameIllust(Contents))

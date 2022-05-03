@@ -323,7 +323,7 @@ namespace PixivWPF.Common
                             var size = url.QueryImageFileSize(cancelToken: PrefetchingTaskCancelTokenSource).GetAwaiter().GetResult();
                             if (size > 0)
                             {
-                                Comments = comments.Replace("]", $"] [ Q: {--count} / {originals.Count} ]");                                
+                                Comments = comments.Replace("]", $"] [ Q: {--count} / {originals.Count} ]");
                                 if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                                 else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke((double)Percentage, Comments, State);
                                 this.DoEvents();
@@ -468,13 +468,14 @@ namespace PixivWPF.Common
                                 else
                                 {
                                     var _downReport = DownloadProgressActions.ContainsKey(url) ? DownloadProgressActions[url] : null;
-                                    file = url.DownloadCacheFile(args.Overwrite, progressAction: _downReport, cancelToken: PrefetchingTaskCancelTokenSource).GetAwaiter().GetResult();
-                                    if (!string.IsNullOrEmpty(file))
+                                    var f_ret = url.DownloadCacheFile(args.Overwrite, progressAction: _downReport, cancelToken: PrefetchingTaskCancelTokenSource).GetAwaiter().GetResult();
+                                    if (!string.IsNullOrEmpty(f_ret))
                                     {
                                         PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
                                         //if (!PrefetchedList.TryAdd(url, true)) PrefetchedList.TryUpdate(url, true, false);
                                         count = count - 1;
                                     }
+                                    else file.CleenLastDownloaded();
                                 }
                             }
                             if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; State = TaskStatus.Canceled; loopstate.Stop(); }
@@ -513,13 +514,14 @@ namespace PixivWPF.Common
                                         else
                                         {
                                             var _downReport = DownloadProgressActions.ContainsKey(url) ? DownloadProgressActions[url] : null;
-                                            file = await url.DownloadCacheFile(args.Overwrite, progressAction: _downReport, cancelToken: PrefetchingTaskCancelTokenSource);
-                                            if (!string.IsNullOrEmpty(file))
+                                            var f_ret = await url.DownloadCacheFile(args.Overwrite, progressAction: _downReport, cancelToken: PrefetchingTaskCancelTokenSource);
+                                            if (!string.IsNullOrEmpty(f_ret))
                                             {
                                                 PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
                                                 //if (!PrefetchedList.TryAdd(url, true)) PrefetchedList.TryUpdate(url, true, false);
                                                 count = count - 1;
                                             }
+                                            else file.CleenLastDownloaded();
                                         }
                                     }
                                     if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; State = TaskStatus.Canceled; return; }
