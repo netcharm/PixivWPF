@@ -650,6 +650,7 @@ namespace PixivWPF
             var title = Contents.TargetPage.ToString();
             if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
             {
+                DatePicker.DisplayDateEnd = DateTime.Now;
                 DatePickerPopup.IsOpen = true;
             }
         }
