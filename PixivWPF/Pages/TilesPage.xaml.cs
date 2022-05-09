@@ -927,6 +927,8 @@ namespace PixivWPF.Pages
             }
             else $"Append illusts from category \"{target.ToString()}\" ...".INFO();
 
+            setting = Application.Current.LoadSetting();
+
             ImageTiles.SelectedIndex = -1;
             LastPage = target;
             switch (target)
@@ -1500,13 +1502,15 @@ namespace PixivWPF.Pages
 
                 if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
-                var date = SelectedDate.Date == DateTime.Now.Date ? string.Empty : (SelectedDate - TimeSpan.FromDays(1)).ToString("yyyy-MM-dd");
-                var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition, 1, 30, date) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                int count = 2;
+                var rank_date_fmt = "yyyy-MM-dd";
+                var date = SelectedDate.Date == DateTime.Now.Date ? DateTime.Now : (SelectedDate - TimeSpan.FromDays(setting.RankingDateOffset));
+                date = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(date, Application.Current.GetTokyoTimeZone().Id);
+                var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition, 1, 30, date.ToString(rank_date_fmt)) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                int count = 1;
                 while (count <= 7 && (root.illusts == null || root.illusts.Length <= 0))
                 {
-                    date = (SelectedDate - TimeSpan.FromDays(count)).ToString("yyyy-MM-dd");
-                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition, 1, 30, date) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                    date = SelectedDate - TimeSpan.FromDays(setting.RankingDateOffset + count);
+                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition, 1, 30, date.ToString(rank_date_fmt)) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
                     count++;
                 }
                 nexturl = root.next_url ?? string.Empty;

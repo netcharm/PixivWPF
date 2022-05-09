@@ -1455,6 +1455,17 @@ namespace PixivWPF.Common
             }
         }
 
+        private int ranking_date_offset = 1;
+        public int RankingDateOffset
+        {
+            get { return (Cache is Setting ? Cache.ranking_date_offset : ranking_date_offset); }
+            set
+            {
+                ranking_date_offset = value;
+                if (Cache is Setting) Cache.ranking_date_offset = ranking_date_offset;
+            }
+        }
+
         private bool save_query_image_size = true;
         public bool SaveQueriedOriginalImageSizeInfo
         {
