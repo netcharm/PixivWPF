@@ -1169,8 +1169,11 @@ namespace PixivWPF.Common
                     var title = $"Preview ID: {item.ID}, {item.Subject}";
                     if (Application.Current.ContentWindowExists(title))
                     {
-                        await title.ActiveByTitle();
-                        return;
+                        if (!(Keyboard.Modifiers == ModifierKeys.Control))
+                        {
+                            await title.ActiveByTitle();
+                            return;
+                        }
                     }
 
                     await new Action(async () =>
@@ -1245,6 +1248,9 @@ namespace PixivWPF.Common
                 {
                     var item = obj as PixivItem;
                     if (item.HasUser()) OpenUser.Execute(item.User);
+                    else if (!string.IsNullOrEmpty(item.UserID)) OpenSearch.Execute($"UserID: {item.UserID}");
+                    else if (item.User is Pixeez.Objects.UserBase && (item.User.Id ?? 0) > 0) OpenSearch.Execute($"UserID: {item.User.Id}");
+                    else if (item.User is Pixeez.Objects.UserBase && !string.IsNullOrEmpty(item.User.Name)) OpenSearch.Execute($"User: {item.User.Name}");
                 }
                 else if (obj is ImageListGrid)
                 {

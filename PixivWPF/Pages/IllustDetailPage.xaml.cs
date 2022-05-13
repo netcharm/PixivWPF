@@ -3047,6 +3047,10 @@ namespace PixivWPF.Pages
                     else if (Contents.IsWork())
                         Commands.OpenUser.Execute(Contents.User);
                 }
+                else if (Contents.IsWork())
+                {
+                    Commands.OpenUser.Execute(Contents);
+                }
             }
             else if (sender == AuthorAvatarWait)
             {
