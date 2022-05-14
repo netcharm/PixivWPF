@@ -1689,6 +1689,9 @@ namespace PixivWPF.Pages
                 Preview.Source = Application.Current.GetNullPreview();
                 PreviewImagePath = string.Empty;
 
+                if (item.User == null) item.User = item.Illust.User;
+                if (string.IsNullOrEmpty(item.UserID) && item.User is Pixeez.Objects.UserBase) item.UserID = $"{item.User.Id}";
+
                 UpdateUg(item.IsUgoira());
 
                 if (item.Count <= 1) UpdateDownloadedMark();
