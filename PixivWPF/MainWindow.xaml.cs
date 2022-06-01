@@ -105,6 +105,20 @@ namespace PixivWPF
             }).Invoke(async: false);
         }
 
+        public void SetMemoryUsage()
+        {
+            this.BeginInvoke(() =>
+            {
+                try
+                {
+                    var pb = Application.Current.MemoryUsage(is_private:true).SmartFileSize(trimzero: false, padleft: 7);
+                    var ws = Application.Current.MemoryUsage(is_private:false).SmartFileSize(trimzero: false, padleft: 7);
+                    NavPageTitle.ToolTip = $"Memory Usage:{Environment.NewLine}Private Bytes = {pb}{Environment.NewLine}Working Set   = {ws}";
+                }
+                catch (Exception ex) { ex.ERROR("SetMemoryUsage Error!"); }
+            });
+        }
+
         public void SetDropBoxState(bool state)
         {
             CommandDropbox.IsChecked = state;
@@ -531,6 +545,11 @@ namespace PixivWPF
                     Contents.ShowImages(Contents.TargetPage, false, Contents.GetLastSelectedID());
                 }
             }
+        }
+
+        private void NavPageTitle_ToolTipOpening(object sender, ToolTipEventArgs e)
+        {
+            SetMemoryUsage();
         }
 
         private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)
@@ -989,5 +1008,6 @@ namespace PixivWPF
             if (Content is Pages.TilesPage)
                 (Content as Pages.TilesPage).StopPrefetching();
         }
+
     }
 }

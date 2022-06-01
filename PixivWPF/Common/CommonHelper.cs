@@ -2471,7 +2471,7 @@ namespace PixivWPF.Common
 
         public static Func<double, string> SmartSpeedRateFunc = (v) => { return(SmartSpeedRate(v)); };
 
-        public static string SmartSpeedRate(this long v, double factor = 1, bool unit = true, int padleft = 0) { return (SmartSpeedRate((double)v, factor, unit, padleft: padleft)); }
+        public static string SmartSpeedRate(this long v, double factor = 1, bool unit = true, bool trimzero = true, int padleft = 0) { return (SmartSpeedRate((double)v, factor, unit, trimzero: trimzero, padleft: padleft)); }
 
         public static string SmartSpeedRate(this double v, double factor = 1, bool unit = true, bool trimzero = false, int padleft = 0)
         {
@@ -2487,7 +2487,7 @@ namespace PixivWPF.Common
 
         public static Func<double, string> SmartFileSizeFunc = (v) => { return(SmartFileSize(v)); };
 
-        public static string SmartFileSize(this long v, double factor = 1, bool unit = true, int padleft = 0) { return (SmartFileSize((double)v, factor, unit, padleft: padleft)); }
+        public static string SmartFileSize(this long v, double factor = 1, bool unit = true, bool trimzero = true, int padleft = 0) { return (SmartFileSize((double)v, factor, unit, trimzero: trimzero, padleft: padleft)); }
 
         public static string SmartFileSize(this double v, double factor = 1, bool unit = true, bool trimzero = true, int padleft = 0)
         {

@@ -184,7 +184,7 @@
                     </MenuItem>
                 </mah:DropDownButton.Items>
             </mah:DropDownButton>
-            <TextBlock x:Name="NavPageTitle" x:Uid="NavPageTitle" Margin="4,0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            <TextBlock x:Name="NavPageTitle" x:Uid="NavPageTitle" Margin="4,0" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Unknown" ToolTipOpening="NavPageTitle_ToolTipOpening"/>
         </mah:WindowCommands>
     </mah:MetroWindow.LeftWindowCommands>
 
