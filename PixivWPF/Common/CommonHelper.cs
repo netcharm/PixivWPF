@@ -8423,16 +8423,16 @@ namespace PixivWPF.Common
             return VisualTreeHelper.GetChild(dpo, path[0]).GetVisualChildFromTreePath(newPath.ToArray());
         }
 
-        public static childItem FindVisualChild<childItem>(DependencyObject obj) where childItem : DependencyObject
+        public static T FindVisualChild<T>(DependencyObject obj) where T : DependencyObject
         {
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
             {
                 DependencyObject child = VisualTreeHelper.GetChild(obj, i);
-                if (child != null && child is childItem)
-                    return (childItem)child;
+                if (child != null && child is T)
+                    return (T)child;
                 else
                 {
-                    childItem childOfChild = FindVisualChild<childItem>(child);
+                    T childOfChild = FindVisualChild<T>(child);
                     if (childOfChild != null)
                         return childOfChild;
                 }
@@ -8440,16 +8440,16 @@ namespace PixivWPF.Common
             return null;
         }
 
-        public static childItem FindVisualChild<childItem>(this DependencyObject parent, DependencyObject obj) where childItem : DependencyObject
+        public static T FindVisualChild<T>(this DependencyObject parent, DependencyObject obj) where T : DependencyObject
         {
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
             {
                 DependencyObject child = VisualTreeHelper.GetChild(parent, i);
-                if (child != null && child is childItem && child == obj)
-                    return (childItem)child;
+                if (child != null && child is T && child == obj)
+                    return (T)child;
                 else
                 {
-                    childItem childOfChild = child.FindVisualChild<childItem>(obj);
+                    T childOfChild = child.FindVisualChild<T>(obj);
                     if (childOfChild != null)
                         return childOfChild;
                 }

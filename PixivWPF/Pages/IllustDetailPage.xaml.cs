@@ -1620,6 +1620,7 @@ namespace PixivWPF.Pages
                     }
                 }
 
+                var tooltip = string.Empty;
                 var force = ModifierKeys.Control.IsModified();
                 if (item.IsWork())
                 {
@@ -1627,6 +1628,7 @@ namespace PixivWPF.Pages
 
                     PrefetchingImagesTask.Name = $"IllustPagePrefetching_{item.ID}";
                     Contents = item;
+                    tooltip = $"{item.ID}, {item.Illust.Title}";
                     await new Action(async () =>
                     {
                         //IllustDetailWait.Show();
@@ -1645,6 +1647,7 @@ namespace PixivWPF.Pages
                 {
                     PrefetchingImagesTask.Name = $"UserPagePrefetching_{item.ID}";
                     Contents = item;
+                    tooltip = $"{item.User.Id}, {item.User.Name}";
                     await new Action(async () =>
                     {
                         //IllustDetailWait.Show();
@@ -1660,6 +1663,11 @@ namespace PixivWPF.Pages
                     }).InvokeAsync();
                 }
                 IllustDetailViewer.ScrollToTop();
+                if (ParentWindow is ContentWindow && !string.IsNullOrEmpty(tooltip))
+                {
+                    (ParentWindow as ContentWindow).SetToolTip("CommandRefresh", tooltip, append: true, append_seprate: Environment.NewLine);
+                    (ParentWindow as ContentWindow).SetToolTip("CommandRefreshThumb", tooltip, append: true, append_seprate: Environment.NewLine);
+                }
             }
             catch (Exception ex)
             {
@@ -1694,7 +1702,7 @@ namespace PixivWPF.Pages
 
                 UpdateUg(item.IsUgoira());
 
-                if (item.Count <= 1) UpdateDownloadedMark();
+                if (item.Count <= 1) UpdateDownloadedMark();                
 
                 IllustSize.Text = $"{item.Illust.Width}x{item.Illust.Height}";
 
@@ -1734,6 +1742,11 @@ namespace PixivWPF.Pages
 
                 if (ContextMenuActionItems.ContainsKey("ActionCopyIllustDate"))
                     ContextMenuActionItems["ActionCopyIllustDate"].Header = item.Illust.GetDateTime().ToString("yyyy-MM-dd HH:mm:sszzz");
+
+                if (ContextMenuActionItems.ContainsKey("ActionCopyIllustID"))
+                    ContextMenuActionItems["ActionCopyIllustID"].Header = $"Copy Illust ID : {item.Illust.Id}";
+                if (ContextMenuActionItems.ContainsKey("ActionCopyAuthorID"))
+                    ContextMenuActionItems["ActionCopyAuthorID"].Header = $"Copy Author ID : {item.User.Id}";
 
                 FollowAuthor.Show();
                 UpdateFollowMark(item.Illust.User);
@@ -2952,17 +2965,6 @@ namespace PixivWPF.Pages
                     else
                         Commands.CopyText.Execute($"title:{IllustTitle.Text}");
                 }
-                else if (uid.Equals("ActionCopyIllustAuthor", StringComparison.CurrentCultureIgnoreCase) || sender == IllustAuthor)
-                {
-                    if (Keyboard.Modifiers == ModifierKeys.None)
-                        Commands.CopyText.Execute($"{IllustAuthor.Text}");
-                    else
-                        Commands.CopyArtistIDs.Execute(Contents);
-                }
-                else if (uid.Equals("ActionCopyAuthorID", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    if (Contents.HasUser()) Commands.CopyArtistIDs.Execute(Contents);
-                }
                 else if (uid.Equals("ActionCopyIllustID", StringComparison.CurrentCultureIgnoreCase) || sender == PreviewCopyIllustID)
                 {
                     if (Contents.IsWork()) Commands.CopyArtworkIDs.Execute(Contents);
@@ -2995,14 +2997,6 @@ namespace PixivWPF.Pages
                         Commands.CopyText.Execute(href);
                     }
                 }
-                else if (uid.Equals("ActionAuthorWebLink", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    if (Contents.HasUser())
-                    {
-                        var href = Contents.UserID.ArtistLink();
-                        Commands.CopyText.Execute(href);
-                    }
-                }
                 else if (uid.Equals("ActionSendIllustToInstance", StringComparison.CurrentCultureIgnoreCase))
                 {
                     if (Contents.IsWork())
@@ -3014,6 +3008,50 @@ namespace PixivWPF.Pages
                             else
                                 Commands.ShellSendToOtherInstance.Execute(Contents);
                         }).InvokeAsync();
+                    }
+                }
+                e.Handled = true;
+            }
+            catch (Exception ex) { ex.ERROR("IllustActions"); }
+        }
+
+        private async void ActionAuthourInfo_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var uid = sender.GetUid();
+                if (uid.Equals("ActionAuthorInfo", StringComparison.CurrentCultureIgnoreCase) || sender == btnAuthorAvatar)
+                {
+                    if (Contents.HasUser())
+                    {
+                        if (Keyboard.Modifiers == ModifierKeys.Control)
+                            Commands.ShellSendToOtherInstance.Execute(Contents.User);
+                        else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                            ActionRefreshAvatar();
+                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                            ActionRefreshAvatar(true);
+                        else if (Contents.IsWork())
+                            Commands.OpenUser.Execute(Contents.User);
+                    }
+                    else if (Contents.IsWork())
+                    {
+                        Commands.OpenUser.Execute(Contents);
+                    }
+                }
+                else if (uid.Equals("ActionAuthorWebPage", StringComparison.CurrentCultureIgnoreCase) || sender == btnAuthorAvatar)
+                {
+                    if (Contents.HasUser())
+                    {
+                        var href = Contents.UserID.ArtistLink();
+                        href.OpenUrlWithShell();
+                    }
+                }
+                else if (uid.Equals("ActionAuthorWebLink", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (Contents.HasUser())
+                    {
+                        var href = Contents.UserID.ArtistLink();
+                        Commands.CopyText.Execute(href);
                     }
                 }
                 else if (uid.Equals("ActionSendAuthorToInstance", StringComparison.CurrentCultureIgnoreCase))
@@ -3029,39 +3067,27 @@ namespace PixivWPF.Pages
                         }).InvokeAsync();
                     }
                 }
-                e.Handled = true;
-            }
-            catch (Exception ex) { ex.ERROR("IllustActions"); }
-        }
-
-        private void ActionIllustAuthourInfo_Click(object sender, RoutedEventArgs e)
-        {
-            var uid = sender.GetUid();
-            if (uid.Equals("ActionIllustAuthorInfo", StringComparison.CurrentCultureIgnoreCase) || sender == btnAuthorAvatar)
-            {
-                if (Contents.HasUser())
+                else if (uid.Equals("ActionCopyAuthor", StringComparison.CurrentCultureIgnoreCase) || sender == IllustAuthor)
                 {
-                    if (Keyboard.Modifiers == ModifierKeys.Control)
-                        Commands.ShellSendToOtherInstance.Execute(Contents.User);
-                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                    if (Keyboard.Modifiers == ModifierKeys.None)
+                        Commands.CopyText.Execute($"{IllustAuthor.Text}");
+                    else
+                        Commands.CopyArtistIDs.Execute(Contents);
+                }
+                else if (uid.Equals("ActionCopyAuthorID", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (Contents.HasUser()) Commands.CopyArtistIDs.Execute(Contents);
+                }
+                else if (sender == AuthorAvatarWait)
+                {
+                    if (Keyboard.Modifiers == ModifierKeys.None)
                         ActionRefreshAvatar();
                     else if (Keyboard.Modifiers == ModifierKeys.Alt)
                         ActionRefreshAvatar(true);
-                    else if (Contents.IsWork())
-                        Commands.OpenUser.Execute(Contents.User);
                 }
-                else if (Contents.IsWork())
-                {
-                    Commands.OpenUser.Execute(Contents);
-                }
+                e.Handled = true;
             }
-            else if (sender == AuthorAvatarWait)
-            {
-                if (Keyboard.Modifiers == ModifierKeys.None)
-                    ActionRefreshAvatar();
-                else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                    ActionRefreshAvatar(true);
-            }
+            catch (Exception ex) { ex.ERROR("IllustActions"); }
         }
 
         private void ActionShowIllustPages_Click(object sender, RoutedEventArgs e)

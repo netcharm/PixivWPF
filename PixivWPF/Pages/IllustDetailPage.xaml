@@ -99,34 +99,34 @@
                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionIllustAuthorInfo" Header="Author Detail" Click="ActionIllustAuthourInfo_Click">
-                <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE136;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </MenuItem.Icon>
-            </MenuItem>
-            <MenuItem x:Uid="ActionAuthorWebLink" Header="Copy Author Weblink" Click="ActionIllustInfo_Click">
-                <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE167;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </MenuItem.Icon>
-            </MenuItem>
-            <Separator />
             <MenuItem x:Uid="ActionSendIllustToInstance" Header="Send Illust To Other Instance" Click="ActionIllustInfo_Click">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xE724;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionSendAuthorToInstance" Header="Send Author To Other Instance" Click="ActionIllustInfo_Click">
+            <Separator />
+            <MenuItem x:Uid="ActionAuthorInfo" Header="Open Author Detail" Click="ActionAuthourInfo_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE725;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                    <TextBlock Margin="4,0,0,0" Text="&#xE136;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionCompare" Header="Compare Selected"  Click="ActionCompare_Click">
+            <MenuItem x:Uid="ActionAuthorWebPage" Header="Open Author in Browser" Click="ActionAuthourInfo_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE11E;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                    <TextBlock Margin="4,0,0,0" Text="&#xF6FA;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Uid="ActionAuthorWebLink" Header="Copy Author Weblink" Click="ActionAuthourInfo_Click">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xE167;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Uid="ActionSendAuthorToInstance" Header="Send Author To Other Instance" Click="ActionAuthourInfo_Click">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xE725;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
@@ -137,7 +137,7 @@
                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionCopyIllustAuthor" Header="Copy Author Name" Click="ActionIllustInfo_Click">
+            <MenuItem x:Uid="ActionCopyAuthor" Header="Copy Author Name" Click="ActionAuthourInfo_Click">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xE16F;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -149,7 +149,7 @@
                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionCopyAuthorID" Header="Copy Author ID" Click="ActionIllustInfo_Click">
+            <MenuItem x:Uid="ActionCopyAuthorID" Header="Copy Author ID" Click="ActionAuthourInfo_Click">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xE16F;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -181,6 +181,12 @@
                 </MenuItem.Icon>
             </MenuItem>
             <Separator/>
+            <MenuItem x:Uid="ActionCompare" Header="Compare Selected"  Click="ActionCompare_Click">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xE11E;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
             <MenuItem x:Uid="ActionRefreshIllust" Header="Refresh Illust" Click="ActionRefresh_Click" >
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -756,10 +762,10 @@
                             ToolTip="Click to Open User Infomation Window"
                             Width="64" Height="64" BorderThickness="0" BorderBrush="Transparent"
                             Background="Transparent" Foreground="Transparent"
-                            Click="ActionIllustAuthourInfo_Click"/>
+                            Click="ActionAuthourInfo_Click"/>
                     <Common:ProgressRingCloud 
                         Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="AuthorAvatarWait" Size="48" Visibility="Collapsed" 
-                        ReloadEnabled="True" ReloadClick="ActionIllustAuthourInfo_Click"
+                        ReloadEnabled="True" ReloadClick="ActionAuthourInfo_Click"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
                         ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="10" ShadowDepth="1" ShadowOpacity="1"
                         VerticalAlignment="Center" HorizontalAlignment="Center"/>

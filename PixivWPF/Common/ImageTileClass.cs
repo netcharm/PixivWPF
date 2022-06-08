@@ -837,7 +837,7 @@ namespace PixivWPF.Common
                             Subject = title,
                             DisplayTitle = true,
                             Caption = illust.Caption,
-                            ToolTip = $"📅[{illust.GetDateTime()}]{tooltip}",
+                            ToolTip = $"📅[{illust.GetDateTime()}][{illust.Id}]{tooltip}",
                             IsDownloaded = work_type != PixivItemType.Work || illust == null ? false : illust.IsPartDownloadedAsync(touch: false),
                             Tag = illust
                         };

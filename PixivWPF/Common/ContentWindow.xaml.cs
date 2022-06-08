@@ -105,6 +105,30 @@ namespace PixivWPF.Common
             }).Invoke(async: false);
         }
 
+        public void SetToolTip(string element, string tooltip, bool append = false, string append_seprate = default(string))
+        {
+            this.BeginInvoke(() =>
+            {
+                try
+                {
+                    var control = this.FindByName<Control>(element);
+                    if (control is Control)
+                    {
+                        control.ToolTip = append ? $"{control.ToolTip}{append_seprate}{tooltip}" : $"{tooltip}";
+                    }
+                    else
+                    {
+                        var child = this.FindVisualChild<Control>(control);
+                        if (child is Control)
+                        {
+                            child.ToolTip = append ? $"{child.ToolTip}{append_seprate}{tooltip}" : $"{tooltip}";
+                        }
+                    }
+                }
+                catch (Exception ex) { ex.ERROR("ContentWindowSetToolTip"); }
+            });
+        }
+
         public void JumpTo(string id)
         {
             try
