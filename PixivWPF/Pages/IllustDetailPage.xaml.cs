@@ -2010,6 +2010,31 @@ namespace PixivWPF.Pages
         #endregion
 
         #region Subillusts/Related illusts/Favorite illusts helper
+        private void UpdateGalleryTooltip(object sender)
+        {
+            ImageListGrid gallery = null;
+            if (sender is ImageListGrid)
+                gallery = sender as ImageListGrid;
+            else if (sender is Expander)
+                gallery = (sender as Expander).FindChild<ImageListGrid>();
+
+            if (gallery is ImageListGrid)
+            {
+                var CR = Environment.NewLine;
+                var count_displayed = $"{gallery.ItemsCount}".PadLeft(5);
+                var count_selected = $"{gallery.SelectedItems.Count}".PadLeft(5);
+                var count_total = $"{gallery.Items.Count}".PadLeft(5);
+                var text = $"{"Displayed".PadRight(10)} : {count_displayed}{CR}{"Selected".PadRight(10)} : {count_selected}{CR}{"Total".PadRight(10)} : {count_total}";
+                var expander = gallery.TryFindParent<Expander>();
+                if (expander is Expander) expander.ToolTip = string.IsNullOrEmpty(text) ? null : text;
+            }
+        }
+
+        private void GalleryPanel_ToolTipOpening(object sender, ToolTipEventArgs e)
+        {
+            UpdateGalleryTooltip(sender);
+        }
+
         private async Task ShowIllustPages(PixivItem item, int index = 0, int page = 0, int count = -1)
         {
             try
@@ -2098,6 +2123,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
+                UpdateGalleryTooltip(SubIllusts);
                 SubIllusts.Ready();
                 this.DoEvents();
             }
@@ -2170,6 +2196,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
+                UpdateGalleryTooltip(RelatedItems);
                 RelatedItems.Ready();
                 if (RelatedItems.Items.Count > 0) { RelatedRefresh.Show(); RelatedCompare.Show(); }
                 else { RelatedRefresh.Hide(); RelatedCompare.Hide(); }
@@ -2244,6 +2271,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
+                UpdateGalleryTooltip(RelatedItems);
                 RelatedItems.Ready();
                 if (RelatedItems.Items.Count > 0) RelatedRefresh.Show();
                 else RelatedRefresh.Hide();
@@ -2320,6 +2348,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
+                UpdateGalleryTooltip(FavoriteItems);
                 FavoriteItems.Ready();
                 if (FavoriteItems.Items.Count > 0) { FavoriteRefresh.Show(); FavoriteCompare.Show(); }
                 else { FavoriteItems.Hide(); FavoriteCompare.Hide(); }
@@ -2958,7 +2987,7 @@ namespace PixivWPF.Pages
             try
             {
                 var uid = sender.GetUid();
-                if (uid.Equals("ActionCopyIllustTitle", StringComparison.CurrentCultureIgnoreCase) || sender == IllustTitle)
+                if (uid.Equals("ActionCopyIllustTitle", StringComparison.CurrentCultureIgnoreCase))
                 {
                     if (Keyboard.Modifiers == ModifierKeys.None)
                         Commands.CopyText.Execute($"{IllustTitle.Text}");
@@ -2973,7 +3002,7 @@ namespace PixivWPF.Pages
                 {
                     CopyPreview();
                 }
-                else if (uid.Equals("ActionCopyIllustDate", StringComparison.CurrentCultureIgnoreCase) || sender == IllustDate || sender == IllustDateInfo)
+                else if (uid.Equals("ActionCopyIllustDate", StringComparison.CurrentCultureIgnoreCase))
                 {
                     if (ContextMenuActionItems.ContainsKey(uid)) Commands.CopyText.Execute(ContextMenuActionItems[uid].Header);
                 }
@@ -3009,6 +3038,10 @@ namespace PixivWPF.Pages
                                 Commands.ShellSendToOtherInstance.Execute(Contents);
                         }).InvokeAsync();
                     }
+                }
+                else if (new object[] { IllustTitle, IllustAuthor, IllustDateInfo, IllustDate }.Contains(sender))
+                {
+                    ActionCopySelectedText_Click(sender, e);
                 }
                 e.Handled = true;
             }

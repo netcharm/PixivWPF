@@ -261,9 +261,15 @@ namespace PixivWPF.Common
                     (Content as HistoryPage).Pos = new Point(this.Left, this.Top);
 
                 if (Content is IllustDetailPage)
+                {
+                    if ((Content as IllustDetailPage).Contents.HasUser()) (Content as IllustDetailPage).Contents.AddToHistory();
                     (Content as IllustDetailPage).Dispose();
+                }
                 else if (Content is IllustImageViewerPage)
+                {
+                    if ((Content as IllustImageViewerPage).Contents.HasUser()) (Content as IllustImageViewerPage).Contents.AddToHistory();
                     (Content as IllustImageViewerPage).Dispose();
+                }
                 else if (Content is HistoryPage)
                     (Content as HistoryPage).Dispose();
                 else if (Content is SearchResultPage)
