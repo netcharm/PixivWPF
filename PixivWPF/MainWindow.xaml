@@ -296,6 +296,11 @@
                                 <TextBlock Text="&#xE968;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             </MenuItem.Icon>
                         </MenuItem>
+                        <MenuItem x:Name="CommandMaintainMemoryUsage" x:Uid="CommandMaintainMemoryUsage" Header="Maintain Memory Usage" Click="CommandApplication_Click" >
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE964;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
                         <MenuItem x:Name="CommandMaintainDetailPage" x:Uid="CommandMaintainDetailPage" Header="Maintain Detail Display" Click="CommandApplication_Click" >
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE12A;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>

@@ -216,6 +216,14 @@ namespace PixivWPF.Common
             }).InvokeAsync(true);
         });
 
+        public static ICommand MaintainMemoryUsage { get; } = new DelegateCommand<string>(async obj =>
+        {
+            await new Action(() =>
+            {
+                Application.Current.GC("MaintainMemoryUsage", wait: true, system_memory: true);
+            }).InvokeAsync(true);
+        });
+
         public static ICommand MaintainDetailPage { get; } = new DelegateCommand<string>(async obj =>
         {
             await new Action(() =>

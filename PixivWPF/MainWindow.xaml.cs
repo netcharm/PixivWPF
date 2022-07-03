@@ -599,6 +599,8 @@ namespace PixivWPF
                 Commands.MaintainCustomTag.Execute(null);
             else if (sender == CommandMaintainNetwork)
                 Commands.MaintainNetwork.Execute(null);
+            else if (sender == CommandMaintainMemoryUsage)
+                Commands.MaintainMemoryUsage.Execute(null);
             else if (sender == CommandMaintainDetailPage)
                 Commands.MaintainDetailPage.Execute(null);
         }

@@ -292,7 +292,7 @@ namespace PixivWPF.Common
                 {
                     var name = Content is Page ? (Content as Page).Name ?? (Content as Page).GetType().Name : Title;
                     Content = null;
-                    Application.Current.GC(name: name, wait: true);
+                    Application.Current.GC(name: name, wait: Application.Current.LoadSetting().WaitGC);
                 }
                 Application.Current.RemoveContentWindows(this);
             }

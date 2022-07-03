@@ -77,6 +77,17 @@ namespace PixivWPF.Common
             }
         }
 
+        private bool wait_gc_pending = false;
+        public bool WaitGC
+        {
+            get { return (Cache is Setting ? Cache.wait_gc_pending : wait_gc_pending); }
+            set
+            {
+                wait_gc_pending = value;
+                if (Cache is Setting) Cache.wait_gc_pending = wait_gc_pending;
+            }
+        }
+
         private bool calc_system_memory_usage = false;
         public bool CalcSystemMemoryUsage
         {

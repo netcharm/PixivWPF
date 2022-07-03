@@ -369,6 +369,8 @@ namespace PixivWPF.Common
 
         private SpeechSynthesizer slice_synth = null;
         private List<string> slice_words = new List<string>();
+        private int last_speak_text_pos = 0;
+        private int last_speak_text_len = 0;        
         public bool IsSlicing { get; private set; } = false;
 
         public static Dictionary<string, string> GetNames()
@@ -394,7 +396,9 @@ namespace PixivWPF.Common
 
             if (sender == slice_synth) IsSlicing = true;
             slice_words.Clear();
-
+            last_speak_text_pos = 0;
+            last_speak_text_len = 0;
+            
             if (CancelRequested) { synth.SpeakAsyncCancel(e.Prompt); synth.SpeakAsyncCancelAll(); PlayQueue.Clear(); return; }
 
             if (SpeakStarted is Action<SpeakStartedEventArgs>) SpeakStarted.Invoke(e);
@@ -404,7 +408,12 @@ namespace PixivWPF.Common
         {
             if (synth == null) return;
 
-            slice_words.Add(e.Text);
+            if (e.CharacterPosition > last_speak_text_pos || e.CharacterCount != last_speak_text_len)
+            {
+                slice_words.Add(e.Text);
+                last_speak_text_pos = e.CharacterPosition;
+                last_speak_text_len = e.CharacterCount;
+            }
 
             if (e.Cancelled || CancelRequested) { synth.SpeakAsyncCancel(e.Prompt); synth.SpeakAsyncCancelAll(); PlayQueue.Clear(); return; }
 
