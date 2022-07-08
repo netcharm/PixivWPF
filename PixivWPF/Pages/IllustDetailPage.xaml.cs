@@ -972,9 +972,9 @@ namespace PixivWPF.Pages
                     var index = item.Index;
                     if (index < 0)
                     {
-                        var download = downloaded ?? item.Illust.IsPartDownloadedAsync(out fp, touch: true);
+                        var download = downloaded ?? item.Illust.IsPartDownloadedAsync(out fp, touch: exists ?? false);
                         item.IsDownloaded = download;
-                        if (item.IsDownloaded)
+                        if (download)
                         {
                             IllustDownloaded.Show();
                             IllustDownloaded.Tag = fp;
@@ -991,7 +991,7 @@ namespace PixivWPF.Pages
                     }
                     else
                     {
-                        var download = downloaded ?? item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(out fp, (item.Illust.PageCount ?? 0) <= 1, touch: true);
+                        var download = downloaded ?? item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(out fp, (item.Illust.PageCount ?? 0) <= 1, touch: exists ?? false);
                         item.IsDownloaded = download;
                         if (download)
                         {

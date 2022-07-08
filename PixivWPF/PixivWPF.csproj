@@ -257,6 +257,7 @@
     <Compile Include="Common\DownloadItemControl.xaml.cs">
       <DependentUpon>DownloadItemControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Common\ExifData.cs" />
     <Compile Include="Common\FakeStylusPlugIn.cs" />
     <Compile Include="Common\HistoryClass.cs" />
     <Compile Include="Common\ImageListGrid.xaml.cs">

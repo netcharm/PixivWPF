@@ -26,17 +26,19 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Xml;
 
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using WPFNotification.Core.Configuration;
 using WPFNotification.Model;
 using WPFNotification.Services;
+using CompactExifLib;
 using PixivWPF.Pages;
-using Newtonsoft.Json.Linq;
 
 namespace PixivWPF.Common
 {
@@ -332,6 +334,33 @@ namespace PixivWPF.Common
             }
             disposed = true;
         }
+    }
+    #endregion
+
+    #region Metadata Infomation
+    public class MetaInfo
+    {
+        public bool TouchProfiles { get; set; } = true;
+
+        public DateTime? DateCreated { get; set; } = null;
+        public DateTime? DateModified { get; set; } = null;
+        public DateTime? DateAccesed { get; set; } = null;
+
+        public DateTime? DateAcquired { get; set; } = null;
+        public DateTime? DateTaken { get; set; } = null;
+
+        public string Title { get; set; } = null;
+        public string Subject { get; set; } = null;
+        public string Keywords { get; set; } = null;
+        public string Comment { get; set; } = null;
+        public string Author { get; set; } = null;
+        public string Copyright { get; set; } = null;
+
+        public int? Rating { get; set; } = null;
+        public int? Ranking { get; set; } = null;
+
+        public Dictionary<string, string> Attributes { get; set; } = null;
+        //public Dictionary<string, IImageProfile> Profiles { get; set; } = null;
     }
     #endregion
 
@@ -692,7 +721,7 @@ namespace PixivWPF.Common
                         if (range != null)
                         {
                             mshtml.IHTMLElement root = range.parentElement();
-                            if(root.tagName.Equals("html", StringComparison.CurrentCultureIgnoreCase))
+                            if (root.tagName.Equals("html", StringComparison.CurrentCultureIgnoreCase))
                             {
                                 var bodies = browser.Document.GetElementsByTagName("body");
                                 foreach (System.Windows.Forms.HtmlElement body in bodies)
@@ -701,7 +730,7 @@ namespace PixivWPF.Common
                                 }
                             }
                             else
-                              sb.AppendLine(html ? range.htmlText : range.text);
+                                sb.AppendLine(html ? range.htmlText : range.text);
                         }
                     }
                     else if (all_without_selection)
@@ -1031,7 +1060,7 @@ namespace PixivWPF.Common
                             var id = Regex.Replace(link, @"^.*?/\d{2}/(\d+)(_.*?)?"+regex_img_ext+"$", "$1", RegexOptions.IgnoreCase);
                             link = id.ArtworkLink();
                         }
-                        else if(Regex.IsMatch(link, @"i/(\d+)$", RegexOptions.IgnoreCase))
+                        else if (Regex.IsMatch(link, @"i/(\d+)$", RegexOptions.IgnoreCase))
                         {
                             var id = Regex.Replace(link, @".*?i/(\d+)$", "$1", RegexOptions.IgnoreCase);
                             link = id.ArtworkLink();
@@ -1377,7 +1406,7 @@ namespace PixivWPF.Common
                     }
                     var sd = new SortedDictionary<string, string>(_TagsT2S, StringComparer.CurrentCultureIgnoreCase);
                     //Sort(tags);
-                    var tags_o = JsonConvert.SerializeObject(sd, Formatting.Indented);
+                    var tags_o = JsonConvert.SerializeObject(sd, Newtonsoft.Json.Formatting.Indented);
                     if (save) File.WriteAllText(tag_file, tags_o, new UTF8Encoding(true));
                 }
                 catch (Exception ex) { ex.ERROR($"MaintainCustomTagFile_{Path.GetFileName(tag_file)}"); }
@@ -2743,60 +2772,906 @@ namespace PixivWPF.Common
         }
 
         private static bool IsShellSupported = Microsoft.WindowsAPICodePack.Shell.ShellObject.IsPlatformSupported;
-        private static ConcurrentDictionary<string, bool> _Touching_ = new ConcurrentDictionary<string, bool>();
-        private static ConcurrentDictionary<string, bool> _Attaching_ = new ConcurrentDictionary<string, bool>();
+        private static ConcurrentDictionary<string, long> _Touching_ = new ConcurrentDictionary<string, long>();
+        private static ConcurrentDictionary<string, long> _Attaching_ = new ConcurrentDictionary<string, long>();
         private static SemaphoreSlim _CanAttaching_ = new SemaphoreSlim(5, 5);
 
         private static bool IsMetaAttaching(this string file)
         {
-            return (_Attaching_ is ConcurrentDictionary<string, bool> && _Attaching_.ContainsKey(file));
+            return (_Attaching_ is ConcurrentDictionary<string, long> && _Attaching_.ContainsKey(file));
         }
 
         private static bool IsMetaAttaching(this FileInfo fileinfo)
         {
-            return (_Attaching_ is ConcurrentDictionary<string, bool> && _Attaching_.ContainsKey(fileinfo.FullName));
+            return (_Attaching_ is ConcurrentDictionary<string, long> && _Attaching_.ContainsKey(fileinfo.FullName));
         }
 
         private static bool IsTouching(this string file)
         {
-            return (_Touching_ is ConcurrentDictionary<string, bool> && _Touching_.ContainsKey(file));
+            return (_Touching_ is ConcurrentDictionary<string, long> && _Touching_.ContainsKey(file));
         }
 
         private static bool IsTouching(this FileInfo fileinfo)
         {
-            return (_Touching_ is ConcurrentDictionary<string, bool> && _Touching_.ContainsKey(fileinfo.FullName));
+            return (_Touching_ is ConcurrentDictionary<string, long> && _Touching_.ContainsKey(fileinfo.FullName));
         }
 
+        #region XML Formating Helper
+        private static List<string> xmp_ns = new List<string> { "rdf", "xmp", "dc", "exif", "tiff", "iptc", "MicrosoftPhoto" };
+        private static Dictionary<string, string> xmp_ns_lookup = new Dictionary<string, string>()
+        {
+            {"rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#" },
+            {"xmp", "http://ns.adobe.com/xap/1.0/" },
+            {"dc", "http://purl.org/dc/elements/1.1/" },
+            //{"iptc", "http://ns.adobe.com/iptc/1.0/" },
+            {"exif", "http://ns.adobe.com/exif/1.0/" },
+            {"tiff", "http://ns.adobe.com/tiff/1.0/" },
+            {"photoshop", "http://ns.adobe.com/photoshop/1.0/" },
+            {"MicrosoftPhoto", "http://ns.microsoft.com/photo/1.0" },
+            //{"MicrosoftPhoto", "http://ns.microsoft.com/photo/1.0/" },
+            //{"MicrosoftPhoto", "http://ns.microsoft.com/photo/1.2/" },
+        };
+
+        private static string FormatXML(string xml)
+        {
+            var result = xml;
+            try
+            {
+                var doc = new XmlDocument();
+                doc.LoadXml(xml);
+                result = FormatXML(doc);
+            }
+            catch (Exception ex) { ex.Message.ERROR("FormatXML"); }
+            return (result);
+        }
+
+        private static string FormatXML(XmlDocument xml)
+        {
+            var result = xml.OuterXml;
+            using (var ms = new MemoryStream())
+            {
+                var writer = new XmlTextWriter(ms, Encoding.UTF8);
+                writer.Formatting = System.Xml.Formatting.Indented;
+                xml.WriteContentTo(writer);
+                writer.Flush();
+                ms.Flush();
+                ms.Seek(0, SeekOrigin.Begin);
+                using (var sr = new StreamReader(ms)) { result = sr.ReadToEnd(); }
+                result = result.Replace("\"", "'");
+                foreach (var ns in xmp_ns) { result = result.Replace($" xmlns:{ns}='{ns}'", ""); }
+            }
+            return (result);
+        }
+
+        private static string FormatXML(XmlNode xml)
+        {
+            var result = xml.OuterXml;
+            using (var ms = new MemoryStream())
+            {
+                var writer = new XmlTextWriter(ms, Encoding.UTF8);
+                writer.Formatting = System.Xml.Formatting.Indented;
+                xml.WriteTo(writer);
+                writer.Flush();
+                ms.Flush();
+                ms.Seek(0, SeekOrigin.Begin);
+                using (var sr = new StreamReader(ms)) { result = sr.ReadToEnd(); }
+            }
+            return (result);
+        }
+
+        private static string FormatXML(XmlElement xml)
+        {
+            var result = xml.OuterXml;
+            using (var ms = new MemoryStream())
+            {
+                var writer = new XmlTextWriter(ms, Encoding.UTF8);
+                writer.Formatting = System.Xml.Formatting.Indented;
+                xml.WriteTo(writer);
+                writer.Flush();
+                ms.Flush();
+                ms.Seek(0, SeekOrigin.Begin);
+                using (var sr = new StreamReader(ms)) { result = sr.ReadToEnd(); }
+            }
+            return (result);
+        }
+
+        private static string FormatXML(XmlDocument xml, bool merge_nodes)
+        {
+            var result = FormatXML(xml);
+            if (merge_nodes && xml is XmlDocument)
+            {
+                foreach (XmlElement root in xml.DocumentElement.ChildNodes)
+                {
+                    var elements_list = new Dictionary<string, XmlElement>();
+                    Func<XmlElement, IList<XmlElement>> ChildList = (elements)=>
+                    {
+                        var list = new List<XmlElement>();
+                        foreach(XmlElement node in elements.ChildNodes) list.Add(node);
+                        return(list);
+                    };
+                    foreach (XmlElement node in ChildList.Invoke(root))
+                    {
+                        foreach (XmlAttribute attr in node.Attributes)
+                        {
+                            if (attr.Name.StartsWith("xmlns:"))
+                            {
+                                var key = attr.Name.Substring(6);
+                                if (xmp_ns_lookup.ContainsKey(key))
+                                {
+                                    if (!elements_list.ContainsKey(key) || elements_list[key] == null)
+                                    {
+                                        elements_list[key] = xml.CreateElement("rdf:Description", "rdf");
+                                        elements_list[key].SetAttribute($"xmlns:{key}", xmp_ns_lookup[key]);
+                                    }
+                                }
+                                else
+                                {
+                                    if (!elements_list.ContainsKey(key) || elements_list[key] == null)
+                                    {
+                                        elements_list[key] = xml.CreateElement("rdf:Description", "rdf");
+                                        elements_list[key].SetAttribute($"xmlns:{key}", attr.Value);
+                                    }
+                                }
+                                if (!xmp_ns.Contains(key)) xmp_ns.Append(key);
+                            }
+                            else
+                            {
+                                var keys = attr.Name.Split(':');
+                                var key = keys[0];
+                                var xmlns = $"xmlns:{key}";
+                                if (node.HasAttribute(xmlns))
+                                {
+                                    var value = node.GetAttribute(xmlns);
+                                    if (!elements_list.ContainsKey(key) || elements_list[key] == null)
+                                    {
+                                        elements_list[key] = xml.CreateElement("rdf:Description", "rdf");
+                                        elements_list[key].SetAttribute($"xmlns:{key}", value);
+                                    }
+                                    if (!xmp_ns.Contains(key)) xmp_ns.Append(key);
+                                    var child = xml.CreateElement(attr.Name, key);
+                                    child.InnerText = attr.Value;
+                                    elements_list[key].AppendChild(child);
+                                }
+                            }
+                        }
+
+                        try
+                        {
+                            foreach (XmlElement item in ChildList.Invoke(node))
+                            {
+                                var xmlns = $"xmlns:{item.Prefix}";
+                                var ns = item.NamespaceURI;
+                                if (item.HasAttribute(xmlns))
+                                {
+                                    if (!xmp_ns_lookup.ContainsKey(item.Prefix)) { xmp_ns_lookup.Add(item.Prefix, item.GetAttribute(xmlns)); }
+                                    if (!elements_list.ContainsKey(item.Prefix) || elements_list[item.Prefix] == null)
+                                    {
+                                        elements_list[item.Prefix] = xml.CreateElement("rdf:Description", "rdf");
+                                        elements_list[item.Prefix].SetAttribute($"xmlns:{item.Prefix}", xmp_ns_lookup[item.Prefix]);
+                                    }
+                                    item.RemoveAttribute(xmlns);
+                                }
+                                else
+                                {
+                                    if (!xmp_ns_lookup.ContainsKey(item.Prefix)) { xmp_ns_lookup.Add(item.Prefix, ns); }
+                                    if (!elements_list.ContainsKey(item.Prefix) || elements_list[item.Prefix] == null)
+                                    {
+                                        elements_list[item.Prefix] = xml.CreateElement("rdf:Description", "rdf");
+                                        elements_list[item.Prefix].SetAttribute($"xmlns:{item.Prefix}", xmp_ns_lookup[item.Prefix]);
+                                    }
+                                }
+                                elements_list[item.Prefix].AppendChild(item);
+                            }
+                            root.RemoveChild(node);
+                        }
+                        catch (Exception ex) { ex.Message.ERROR("FormatXML"); }
+                    }
+                    foreach (var kv in elements_list) { if (kv.Value is XmlElement && kv.Value.HasChildNodes) root.AppendChild(kv.Value); }
+                }
+                result = FormatXML(xml);
+            }
+            return (result);
+        }
+
+        private static string FormatXML(string xml, bool merge_nodes)
+        {
+            var result = xml;
+            if (!string.IsNullOrEmpty(xml))
+            {
+                XmlDocument xml_doc = new XmlDocument();
+                xml_doc.LoadXml(xml);
+                result = FormatXML(xml_doc, merge_nodes);
+            }
+            return (result);
+        }
+
+        private static string TouchXMP(FileInfo fi, string xml, MetaInfo meta)
+        {
+            if (meta is MetaInfo)
+            {
+                var title = meta is MetaInfo ? meta.Title ?? Path.GetFileNameWithoutExtension(fi.Name) : Path.GetFileNameWithoutExtension(fi.Name);
+                var subject = meta is MetaInfo ? meta.Subject : title;
+                var authors = meta is MetaInfo ? meta.Author : string.Empty;
+                var copyright = meta is MetaInfo ? meta.Copyright : authors;
+                var keywords = meta is MetaInfo ? meta.Keywords : string.Empty;
+                var comment = meta is MetaInfo ? meta.Comment : string.Empty;
+                var rating = meta is MetaInfo ? meta.Rating : null;
+                if (!string.IsNullOrEmpty(title)) title.Replace("\0", string.Empty).TrimEnd('\0');
+                if (!string.IsNullOrEmpty(subject)) subject.Replace("\0", string.Empty).TrimEnd('\0');
+                if (!string.IsNullOrEmpty(authors)) authors.Replace("\0", string.Empty).TrimEnd('\0');
+                if (!string.IsNullOrEmpty(copyright)) copyright.Replace("\0", string.Empty).TrimEnd('\0');
+                if (!string.IsNullOrEmpty(keywords)) keywords.Replace("\0", string.Empty).TrimEnd('\0');
+                if (!string.IsNullOrEmpty(comment)) comment.Replace("\0", string.Empty).TrimEnd('\0');
+
+                var dc = (meta is MetaInfo ? meta.DateCreated ?? meta.DateAcquired ?? meta.DateTaken : null) ?? fi.CreationTime;
+                var dm = (meta is MetaInfo ? meta.DateModified ?? meta.DateAcquired ?? meta.DateTaken : null) ?? fi.LastWriteTime;
+                var da = (meta is MetaInfo ? meta.DateAccesed ?? meta.DateAcquired ?? meta.DateTaken : null) ?? fi.LastAccessTime;
+
+                // 2021:09:13 11:00:16
+                var dc_exif = dc.ToString("yyyy:MM:dd HH:mm:ss");
+                var dm_exif = dm.ToString("yyyy:MM:dd HH:mm:ss");
+                var da_exif = da.ToString("yyyy:MM:dd HH:mm:ss");
+                // 2021:09:13T11:00:16
+                var dc_xmp = dc.ToString("yyyy:MM:dd HH:mm:ss");
+                var dm_xmp = dm.ToString("yyyy:MM:dd HH:mm:ss");
+                var da_xmp = da.ToString("yyyy:MM:dd HH:mm:ss");
+                // 2021-09-13T06:38:49+00:00
+                var dc_date = dc.ToString("yyyy-MM-ddTHH:mm:sszzz");
+                var dm_date = dm.ToString("yyyy-MM-ddTHH:mm:sszzz");
+                var da_date = da.ToString("yyyy-MM-ddTHH:mm:sszzz");
+                // 2021-08-26T12:23:49
+                var dc_ms = dc.ToString("yyyy-MM-ddTHH:mm:sszzz");
+                var dm_ms = dm.ToString("yyyy-MM-ddTHH:mm:sszzz");
+                var da_ms = da.ToString("yyyy-MM-ddTHH:mm:sszzz");
+                // 2021-08-26T12:23:49.002
+                var dc_msxmp = dc.ToString("yyyy-MM-ddTHH:mm:ss.fff");
+                var dm_msxmp = dm.ToString("yyyy-MM-ddTHH:mm:ss.fff");
+                var da_msxmp = da.ToString("yyyy-MM-ddTHH:mm:ss.fff");
+                // 2021-09-13T08:38:13Z
+                var dc_png = dc.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                var dm_png = dm.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                var da_png = da.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                // 2021:09:13 11:00:16+08:00
+                var dc_misc = dc.ToString("yyyy:MM:dd HH:mm:sszzz");
+                var dm_misc = dm.ToString("yyyy:MM:dd HH:mm:sszzz");
+                var da_misc = da.ToString("yyyy:MM:dd HH:mm:sszzz");
+
+                var keyword_list = string.IsNullOrEmpty(keywords) ? new List<string>() : keywords.Split(new char[] { ';', '#' }, StringSplitOptions.RemoveEmptyEntries).Select(k => k.Trim()).Where(k => !string.IsNullOrEmpty(k)).Distinct();
+                keywords = string.Join("; ", keyword_list);
+
+                #region Init a XMP contents
+                if (string.IsNullOrEmpty(xml))
+                {
+                    //var xml = $"<?xpacket begin='?' id='W5M0MpCehiHzreSzNTczkc9d'?>{Environment.NewLine}<x:xmpmeta xmlns:x=\"adobe:ns:meta/\"><rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"><rdf:Description rdf:about=\"uuid:faf5bdd5-ba3d-11da-ad31-d33d75182f1b\" xmlns:MicrosoftPhoto=\"http://ns.microsoft.com/photo/1.0/\"><MicrosoftPhoto:DateAcquired>{dm_msxmp}</MicrosoftPhoto:DateAcquired></rdf:Description></rdf:RDF></x:xmpmeta>{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}                            <?xpacket end='w'?>";
+                    //var xml = $"<?xpacket begin='?' id='W5M0MpCehiHzreSzNTczkc9d'?><x:xmpmeta xmlns:x=\"adobe:ns:meta/\"><rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"><rdf:Description rdf:about=\"uuid:faf5bdd5-ba3d-11da-ad31-d33d75182f1b\" xmlns:MicrosoftPhoto=\"http://ns.microsoft.com/photo/1.0/\"><MicrosoftPhoto:DateAcquired>{dm_msxmp}</MicrosoftPhoto:DateAcquired><MicrosoftPhoto:DateTaken>{dm_msxmp}</MicrosoftPhoto:DateTaken></rdf:Description><rdf:Description about='' xmlns:exif='http://ns.adobe.com/exif/1.0/'><exif:DateTimeDigitized>{dm_ms}</exif:DateTimeDigitized><exif:DateTimeOriginal>{dm_ms}</exif:DateTimeOriginal></rdf:Description></rdf:RDF></x:xmpmeta><?xpacket end='w'?>";
+
+                    xml = $"<?xpacket begin='?' id='W5M0MpCehiHzreSzNTczkc9d'?><x:xmpmeta xmlns:x=\"adobe:ns:meta/\"><rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"></rdf:RDF></x:xmpmeta><?xpacket end='w'?>";
+                }
+                #endregion
+                try
+                {
+                    var xml_doc = new XmlDocument();
+                    xml_doc.LoadXml(xml);
+                    var root_nodes = xml_doc.GetElementsByTagName("rdf:RDF");
+                    if (root_nodes.Count >= 1)
+                    {
+                        var root_node = root_nodes.Item(0);
+                        #region Title node
+                        if (xml_doc.GetElementsByTagName("dc:title").Count <= 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("xmlns:dc", xmp_ns_lookup["dc"]);
+                            desc.AppendChild(xml_doc.CreateElement("dc:title", "dc"));
+                            root_node.AppendChild(desc);
+                        }
+                        #endregion
+                        #region Comment node
+                        if (xml_doc.GetElementsByTagName("dc:description").Count <= 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("xmlns:dc", xmp_ns_lookup["dc"]);
+                            desc.AppendChild(xml_doc.CreateElement("dc:description", "dc"));
+                            root_node.AppendChild(desc);
+                        }
+                        #endregion
+                        #region Author node
+                        if (xml_doc.GetElementsByTagName("dc:creator").Count <= 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("xmlns:dc", xmp_ns_lookup["dc"]);
+                            desc.AppendChild(xml_doc.CreateElement("dc:creator", "dc"));
+                            root_node.AppendChild(desc);
+                        }
+                        if (xml_doc.GetElementsByTagName("xmp:creator").Count <= 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("xmlns:xmp", xmp_ns_lookup["xmp"]);
+                            desc.AppendChild(xml_doc.CreateElement("xmp:creator", "xmp"));
+                            root_node.AppendChild(desc);
+                        }
+                        #endregion
+                        #region Keywords node
+                        if (xml_doc.GetElementsByTagName("dc:subject").Count <= 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("xmlns:dc", xmp_ns_lookup["dc"]);
+                            desc.AppendChild(xml_doc.CreateElement("dc:subject", "dc"));
+                            root_node.AppendChild(desc);
+                        }
+                        if (xml_doc.GetElementsByTagName("MicrosoftPhoto:LastKeywordXMP").Count <= 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("xmlns:MicrosoftPhoto", xmp_ns_lookup["MicrosoftPhoto"]);
+                            desc.AppendChild(xml_doc.CreateElement("MicrosoftPhoto:LastKeywordXMP", "MicrosoftPhoto"));
+                            root_node.AppendChild(desc);
+                        }
+                        if (xml_doc.GetElementsByTagName("MicrosoftPhoto:LastKeywordIPTC").Count <= 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("xmlns:MicrosoftPhoto", xmp_ns_lookup["MicrosoftPhoto"]);
+                            desc.AppendChild(xml_doc.CreateElement("MicrosoftPhoto:LastKeywordIPTC", "MicrosoftPhoto"));
+                            root_node.AppendChild(desc);
+                        }
+                        if (xml_doc.GetElementsByTagName("MicrosoftPhoto:LastKeywordIPTC_TIFF_IRB").Count <= 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("xmlns:MicrosoftPhoto", xmp_ns_lookup["MicrosoftPhoto"]);
+                            desc.AppendChild(xml_doc.CreateElement("MicrosoftPhoto:LastKeywordIPTC_TIFF_IRB", "MicrosoftPhoto"));
+                            root_node.AppendChild(desc);
+                        }
+                        #endregion
+                        #region Copyright node
+                        if (xml_doc.GetElementsByTagName("dc:rights").Count <= 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("xmlns:dc", xmp_ns_lookup["dc"]);
+                            desc.AppendChild(xml_doc.CreateElement("dc:rights", "dc"));
+                            root_node.AppendChild(desc);
+                        }
+                        #endregion
+                        #region CreateTime node
+                        if (xml_doc.GetElementsByTagName("xmp:CreateDate").Count <= 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("rdf:about", "uuid:faf5bdd5-ba3d-11da-ad31-d33d75182f1b");
+                            desc.SetAttribute("xmlns:xmp", xmp_ns_lookup["xmp"]);
+                            desc.AppendChild(xml_doc.CreateElement("xmp:CreateDate", "xmp"));
+                            root_node.AppendChild(desc);
+                        }
+                        #endregion
+                        #region ModifyDate node
+                        if (xml_doc.GetElementsByTagName("xmp:ModifyDate").Count <= 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("rdf:about", "uuid:faf5bdd5-ba3d-11da-ad31-d33d75182f1b");
+                            desc.SetAttribute("xmlns:xmp", xmp_ns_lookup["xmp"]);
+                            desc.AppendChild(xml_doc.CreateElement("xmp:ModifyDate", "xmp"));
+                            root_node.AppendChild(desc);
+                        }
+                        #endregion
+                        #region DateTimeOriginal node
+                        if (xml_doc.GetElementsByTagName("xmp:DateTimeOriginal").Count <= 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("rdf:about", "uuid:faf5bdd5-ba3d-11da-ad31-d33d75182f1b");
+                            desc.SetAttribute("xmlns:xmp", xmp_ns_lookup["xmp"]);
+                            desc.AppendChild(xml_doc.CreateElement("xmp:DateTimeOriginal", "xmp"));
+                            root_node.AppendChild(desc);
+                        }
+                        #endregion
+                        #region DateTimeDigitized node
+                        if (xml_doc.GetElementsByTagName("xmp:DateTimeDigitized").Count <= 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("rdf:about", "uuid:faf5bdd5-ba3d-11da-ad31-d33d75182f1b");
+                            desc.SetAttribute("xmlns:xmp", xmp_ns_lookup["xmp"]);
+                            desc.AppendChild(xml_doc.CreateElement("xmp:DateTimeDigitized", "xmp"));
+                            root_node.AppendChild(desc);
+                        }
+                        #endregion
+                        #region Ranking/Rating node
+                        if (xml_doc.GetElementsByTagName("xmp:Rating").Count <= 0 && rating > 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("rdf:about", "uuid:faf5bdd5-ba3d-11da-ad31-d33d75182f1b");
+                            desc.SetAttribute("xmlns:xmp", xmp_ns_lookup["xmp"]);
+                            desc.AppendChild(xml_doc.CreateElement("xmp:Rating", "xmp"));
+                            root_node.AppendChild(desc);
+                        }
+                        if (xml_doc.GetElementsByTagName("MicrosoftPhoto:Rating").Count <= 0 && rating > 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("rdf:about", "uuid:faf5bdd5-ba3d-11da-ad31-d33d75182f1b");
+                            desc.SetAttribute("xmlns:MicrosoftPhoto", xmp_ns_lookup["MicrosoftPhoto"]);
+                            desc.AppendChild(xml_doc.CreateElement("MicrosoftPhoto:Rating", "MicrosoftPhoto"));
+                            root_node.AppendChild(desc);
+                        }
+                        #endregion
+                        #region EXIF DateTime node
+                        if (xml_doc.GetElementsByTagName("exif:DateTimeDigitized").Count <= 0)
+                        {
+                            if (xml_doc.GetElementsByTagName("exif:DateTimeOriginal").Count > 0)
+                            {
+                                var node_msdt = xml_doc.GetElementsByTagName("exif:DateTimeOriginal").Item(0);
+                                node_msdt.ParentNode.AppendChild(xml_doc.CreateElement("exif:DateTimeDigitized", "exif"));
+                            }
+                            else
+                            {
+                                var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                                desc.SetAttribute("rdf:about", "");
+                                desc.SetAttribute("xmlns:exif", xmp_ns_lookup["exif"]);
+                                desc.AppendChild(xml_doc.CreateElement("exif:DateTimeDigitized", "exif"));
+                                root_node.AppendChild(desc);
+                            }
+                        }
+                        if (xml_doc.GetElementsByTagName("exif:DateTimeOriginal").Count <= 0)
+                        {
+                            if (xml_doc.GetElementsByTagName("exif:DateTimeDigitized").Count > 0)
+                            {
+                                var node_msdt = xml_doc.GetElementsByTagName("exif:DateTimeDigitized").Item(0);
+                                node_msdt.ParentNode.AppendChild(xml_doc.CreateElement("exif:DateTimeOriginal", "exif"));
+                            }
+                            else
+                            {
+                                var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                                desc.SetAttribute("rdf:about", "");
+                                desc.SetAttribute("xmlns:exif", xmp_ns_lookup["exif"]);
+                                desc.AppendChild(xml_doc.CreateElement("exif:DateTimeOriginal", "exif"));
+                                root_node.AppendChild(desc);
+                            }
+                        }
+                        #endregion
+                        #region TIFF DateTime node
+                        if (xml_doc.GetElementsByTagName("tiff:DateTime").Count <= 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("rdf:about", "");
+                            desc.SetAttribute("xmlns:tiff", xmp_ns_lookup["tiff"]);
+                            desc.AppendChild(xml_doc.CreateElement("tiff:DateTime", "tiff"));
+                            root_node.AppendChild(desc);
+                        }
+                        #endregion
+                        #region MicrosoftPhoto DateTime node
+                        if (xml_doc.GetElementsByTagName("MicrosoftPhoto:DateAcquired").Count <= 0)
+                        {
+                            if (xml_doc.GetElementsByTagName("MicrosoftPhoto:DateTaken").Count > 0)
+                            {
+                                var node_msdt = xml_doc.GetElementsByTagName("MicrosoftPhoto:DateTaken").Item(0);
+                                node_msdt.ParentNode.AppendChild(xml_doc.CreateElement("MicrosoftPhoto:DateAcquired", "MicrosoftPhoto"));
+                            }
+                            else
+                            {
+                                var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                                desc.SetAttribute("rdf:about", "uuid:faf5bdd5-ba3d-11da-ad31-d33d75182f1b");
+                                desc.SetAttribute("xmlns:MicrosoftPhoto", xmp_ns_lookup["MicrosoftPhoto"]);
+                                desc.AppendChild(xml_doc.CreateElement("MicrosoftPhoto:DateAcquired", "MicrosoftPhoto"));
+                                root_node.AppendChild(desc);
+                            }
+                        }
+                        if (xml_doc.GetElementsByTagName("MicrosoftPhoto:DateTaken").Count <= 0)
+                        {
+                            if (xml_doc.GetElementsByTagName("MicrosoftPhoto:DateAcquired").Count > 0)
+                            {
+                                var node_msdt = xml_doc.GetElementsByTagName("MicrosoftPhoto:DateAcquired").Item(0);
+                                node_msdt.ParentNode.AppendChild(xml_doc.CreateElement("MicrosoftPhoto:DateTaken", "MicrosoftPhoto"));
+                            }
+                            else
+                            {
+                                var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                                desc.SetAttribute("rdf:about", "uuid:faf5bdd5-ba3d-11da-ad31-d33d75182f1b");
+                                desc.SetAttribute("xmlns:MicrosoftPhoto", xmp_ns_lookup["MicrosoftPhoto"]);
+                                desc.AppendChild(xml_doc.CreateElement("MicrosoftPhoto:DateTaken", "MicrosoftPhoto"));
+                                root_node.AppendChild(desc);
+                            }
+                        }
+                        #endregion
+
+                        #region xml nodes updating
+                        var rdf_attr = "xmlns:rdf";
+                        var rdf_value = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+                        Action<XmlElement, dynamic> add_rdf_li = new Action<XmlElement, dynamic>((element, text)=>
+                    {
+                        if (text is string && !string.IsNullOrEmpty(text as string))
+                        {
+                            var items = (text as string).Split(new string[] { ";", "#" }, StringSplitOptions.RemoveEmptyEntries).Select(k => k.Trim()).Where(k => !string.IsNullOrEmpty(k)).Distinct();
+                            foreach (var item in items)
+                            {
+                                var node_author_li = xml_doc.CreateElement("rdf:li", "rdf");
+                                node_author_li.InnerText = item;
+                                element.AppendChild(node_author_li);
+                            }
+                        }
+                        else if(text is IEnumerable<string> && (text as IEnumerable<string>).Count() > 0)
+                        {
+                            foreach (var item in (text as IEnumerable<string>))
+                            {
+                                var node_author_li = xml_doc.CreateElement("rdf:li", "rdf");
+                                node_author_li.InnerText = item;
+                                element.AppendChild(node_author_li);
+                            }
+                        }
+                    });
+                        foreach (XmlNode node in xml_doc.GetElementsByTagName("rdf:Description"))
+                        {
+                            foreach (XmlNode child in node.ChildNodes)
+                            {
+                                if (child.Name.Equals("dc:title", StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    child.RemoveAll();
+                                    var node_title = xml_doc.CreateElement("rdf:Alt", "rdf");
+                                    var node_title_li = xml_doc.CreateElement("rdf:li", "rdf");
+                                    node_title_li.SetAttribute("xml:lang", "x-default");
+                                    node_title_li.InnerText = title;
+                                    node_title.AppendChild(node_title_li);
+                                    child.AppendChild(node_title);
+                                }
+                                else if (child.Name.Equals("dc:description", StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    child.RemoveAll();
+                                    var node_comment = xml_doc.CreateElement("rdf:Alt", "rdf");
+                                    var node_comment_li = xml_doc.CreateElement("rdf:li", "rdf");
+                                    node_comment_li.SetAttribute("xml:lang", "x-default");
+                                    node_comment_li.InnerText = comment;
+                                    node_comment.AppendChild(node_comment_li);
+                                    child.AppendChild(node_comment);
+                                }
+                                else if (child.Name.Equals("xmp:creator", StringComparison.CurrentCultureIgnoreCase) ||
+                                    child.Name.Equals("dc:creator", StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    child.RemoveAll();
+                                    var node_author = xml_doc.CreateElement("rdf:Seq", "rdf");
+                                    node_author.SetAttribute(rdf_attr, rdf_value);
+                                    add_rdf_li.Invoke(node_author, authors);
+                                    child.AppendChild(node_author);
+                                }
+                                else if (child.Name.Equals("dc:rights", StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    child.RemoveAll();
+                                    var node_rights = xml_doc.CreateElement("rdf:Bag", "rdf");
+                                    node_rights.SetAttribute(rdf_attr, rdf_value);
+                                    add_rdf_li.Invoke(node_rights, copyright);
+                                    child.AppendChild(node_rights);
+                                }
+                                else if (child.Name.Equals("dc:subject", StringComparison.CurrentCultureIgnoreCase) ||
+                                    child.Name.StartsWith("MicrosoftPhoto:LastKeyword", StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    child.RemoveAll();
+                                    var node_subject = xml_doc.CreateElement("rdf:Bag", "rdf");
+                                    node_subject.SetAttribute(rdf_attr, rdf_value);
+                                    add_rdf_li.Invoke(node_subject, keyword_list);
+                                    child.AppendChild(node_subject);
+                                }
+                                else if (child.Name.Equals("MicrosoftPhoto:Rating", StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    child.InnerText = $"{rating}";
+                                    //if (rating > 0) child.InnerText = $"{rating}";
+                                    //else child.ParentNode.RemoveChild(child);
+                                }
+                                else if (child.Name.Equals("xmp:Rating", StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    var rating_level = 0;
+                                    if (rating >= 99) rating_level = 5;
+                                    else if (rating >= 75) rating_level = 4;
+                                    else if (rating >= 50) rating_level = 3;
+                                    else if (rating >= 25) rating_level = 2;
+                                    else if (rating >= 01) rating_level = 1;
+                                    child.InnerText = $"{rating_level}";
+                                    //if (rating_level > 0) child.InnerText = $"{rating_level}";
+                                    //else child.ParentNode.RemoveChild(child);
+                                }
+                                else if (child.Name.Equals("xmp:CreateDate", StringComparison.CurrentCultureIgnoreCase))
+                                    child.InnerText = dc_xmp;
+                                else if (child.Name.Equals("xmp:ModifyDate", StringComparison.CurrentCultureIgnoreCase))
+                                    child.InnerText = dm_xmp;
+                                else if (child.Name.Equals("xmp:DateTimeOriginal", StringComparison.CurrentCultureIgnoreCase))
+                                    child.InnerText = dm_date;
+                                else if (child.Name.Equals("xmp:DateTimeDigitized", StringComparison.CurrentCultureIgnoreCase))
+                                    child.InnerText = dm_date;
+                                else if (child.Name.Equals("MicrosoftPhoto:DateAcquired", StringComparison.CurrentCultureIgnoreCase))
+                                    child.InnerText = dm_msxmp;
+                                else if (child.Name.Equals("MicrosoftPhoto:DateTaken", StringComparison.CurrentCultureIgnoreCase))
+                                    child.InnerText = dm_msxmp;
+                                else if (child.Name.Equals("exif:DateTimeDigitized", StringComparison.CurrentCultureIgnoreCase))
+                                    child.InnerText = dm_ms;
+                                else if (child.Name.Equals("exif:DateTimeOriginal", StringComparison.CurrentCultureIgnoreCase))
+                                    child.InnerText = dm_ms;
+                                else if (child.Name.Equals("tiff:DateTime", StringComparison.CurrentCultureIgnoreCase))
+                                    child.InnerText = dm_ms;
+                            }
+                        }
+                        #endregion
+                        #region pretty xml
+                        xml = FormatXML(xml_doc, true);
+                        #endregion
+                    }
+                }
+                catch
+                {
+                    #region Title
+                    var pattern_title = @"(<dc:title>.*?<rdf:li.*?xml:lang='.*?')(>).*?(</rdf:li></rdf:Alt></dc:title>)";
+                    if (Regex.IsMatch(xml, pattern_title, RegexOptions.IgnoreCase | RegexOptions.Multiline))
+                    {
+                        xml = Regex.Replace(xml, pattern_title, $"$1$2{title}$3", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+                        xml = xml.Replace("$2", ">");
+                    }
+                    else
+                    {
+                        var title_xml = $"<rdf:Description rdf:about='' xmlns:dc='http://purl.org/dc/elements/1.1/'><dc:title><rdf:Alt><rdf:li xml:lang='x-default'>{title}</rdf:li></rdf:Alt></dc:title></rdf:Description>";
+                        xml = Regex.Replace(xml, @"(</rdf:RDF>.*?</x:xmpmeta>)", $"{title_xml}$1", RegexOptions.IgnoreCase);
+                    }
+                    #endregion
+                    #region MS Photo DateAcquired
+                    var pattern_ms_da = @"(<MicrosoftPhoto:DateAcquired>).*?(</MicrosoftPhoto:DateAcquired>)";
+                    if (Regex.IsMatch(xml, pattern_ms_da, RegexOptions.IgnoreCase))
+                    {
+                        xml = Regex.Replace(xml, pattern_ms_da, $"$1{dm_msxmp}$2", RegexOptions.IgnoreCase);
+                        xml = xml.Replace("$1", "<MicrosoftPhoto:DateAcquired>");
+                    }
+                    else
+                    {
+                        var msda_xml = $"<rdf:Description rdf:about=\"uuid:faf5bdd5-ba3d-11da-ad31-d33d75182f1b\" xmlns:MicrosoftPhoto=\"http://ns.microsoft.com/photo/1.0/\"><MicrosoftPhoto:DateAcquired>{dm_msxmp}</MicrosoftPhoto:DateAcquired></rdf:Description>";
+                        xml = Regex.Replace(xml, @"(</rdf:RDF></x:xmpmeta>)", $"{msda_xml}$1", RegexOptions.IgnoreCase);
+                    }
+                    #endregion
+                    #region MS Photo DateTaken
+                    var pattern_ms_dt = @"(<MicrosoftPhoto:DateTaken>).*?(</MicrosoftPhoto:DateTaken>)";
+                    if (Regex.IsMatch(xml, pattern_ms_dt, RegexOptions.IgnoreCase))
+                    {
+                        xml = Regex.Replace(xml, pattern_ms_dt, $"$1{dm_msxmp}$2", RegexOptions.IgnoreCase);
+                        xml = xml.Replace("$1", "<MicrosoftPhoto:DateTaken>");
+                    }
+                    else
+                    {
+                        var msdt_xml = $"<rdf:Description rdf:about=\"uuid:faf5bdd5-ba3d-11da-ad31-d33d75182f1b\" xmlns:MicrosoftPhoto=\"http://ns.microsoft.com/photo/1.0/\"><MicrosoftPhoto:DateTaken>{dm_msxmp}</MicrosoftPhoto:DateTaken></rdf:Description>";
+                        xml = Regex.Replace(xml, @"(</rdf:RDF></x:xmpmeta>)", $"{msdt_xml}$1", RegexOptions.IgnoreCase);
+                    }
+                    #endregion
+                    #region tiff:DateTime
+                    var pattern_tiff_dt = @"(<tiff:DateTime>).*?(</tiff:DateTime>)";
+                    if (Regex.IsMatch(xml, pattern_tiff_dt, RegexOptions.IgnoreCase))
+                    {
+                        xml = Regex.Replace(xml, pattern_tiff_dt, $"$1{dm_ms}$2", RegexOptions.IgnoreCase);
+                        xml = xml.Replace("$1", "<tiff:DateTime>");
+                    }
+                    else
+                    {
+                        var tiffdt_xml = $"<rdf:Description rdf:about='' xmlns:tiff='http://ns.adobe.com/tiff/1.0/'><tiff:DateTime>{dm_ms}</tiff:DateTime></rdf:Description>";
+                        xml = Regex.Replace(xml, @"(</rdf:RDF></x:xmpmeta>)", $"{tiffdt_xml}$1", RegexOptions.IgnoreCase);
+                    }
+                    #endregion
+                    #region exif:DateTimeDigitized
+                    var pattern_exif_dd = @"(<exif:DateTimeDigitized>).*?(</exif:DateTimeDigitized>)";
+                    if (Regex.IsMatch(xml, pattern_exif_dd, RegexOptions.IgnoreCase))
+                    {
+                        xml = Regex.Replace(xml, pattern_exif_dd, $"$1{dm_ms}$2", RegexOptions.IgnoreCase);
+                        xml = xml.Replace("$1", "<exif:DateTimeDigitized>");
+                    }
+                    else
+                    {
+                        var exifdo_xml = $"<rdf:Description rdf:about='' xmlns:exif='http://ns.adobe.com/exif/1.0/'><exif:DateTimeDigitized>{dm_ms}</exif:DateTimeDigitized></rdf:Description>";
+                        xml = Regex.Replace(xml, @"(</rdf:RDF></x:xmpmeta>)", $"{exifdo_xml}$1", RegexOptions.IgnoreCase);
+                    }
+                    #endregion
+                    #region exif:DateTimeOriginal
+                    var pattern_exif_do = @"(<exif:DateTimeOriginal>).*?(</exif:DateTimeOriginal>)";
+                    if (Regex.IsMatch(xml, pattern_exif_do, RegexOptions.IgnoreCase))
+                    {
+                        xml = Regex.Replace(xml, pattern_exif_do, $"$1{dm_ms}$2", RegexOptions.IgnoreCase);
+                        xml = xml.Replace("$1", "<exif:DateTimeOriginal>");
+                    }
+                    else
+                    {
+                        var exifdo_xml = $"<rdf:Description rdf:about='' xmlns:exif='http://ns.adobe.com/exif/1.0/'><exif:DateTimeOriginal>{dm_ms}</exif:DateTimeOriginal></rdf:Description>";
+                        xml = Regex.Replace(xml, @"(</rdf:RDF></x:xmpmeta>)", $"{exifdo_xml}$1", RegexOptions.IgnoreCase);
+                    }
+                    #endregion
+                }
+            }
+            return (xml);
+        }
+        #endregion
+
+        public static bool AttachMetaInfoInternal(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "")
+        {
+            var result = false;
+            try
+            {
+                if (fileinfo.Exists)
+                {
+                    if (string.IsNullOrEmpty(id)) id = GetIllustId(fileinfo.Name);
+                    var illust = id.FindIllust();
+                    if (illust is Pixeez.Objects.Work && (dt != null || dt.Ticks > 0))
+                    {
+                        var uid = $"{illust.User.Id}";
+                        //var exif = new ExifData(fileinfo.FullName, ExifLoadOptions.CreateEmptyBlock);
+                        var exif = new ExifData(fileinfo.FullName);
+                        if (exif is ExifData)
+                        {
+                            var meta = new MetaInfo()
+                            {
+                                DateCreated = dt,
+                                DateModified = dt,
+                                DateAccesed = dt,
+                                DateAcquired = dt,
+                                DateTaken = dt,
+
+                                Title = illust.Title.FilterInvalidChar().TrimEnd(),
+                                Subject = id.ArtworkLink(),
+                                Author = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}",
+                                Copyright = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}",
+                                Keywords = string.Join("; ", illust.Tags.Select(t => t.Replace(";", "；⸵")).Distinct(StringComparer.CurrentCultureIgnoreCase)),
+                                Comment = illust.Caption.HtmlToText(),
+
+                                Rating = illust.IsLiked() ? 75 : 0,
+                                Ranking = illust.IsLiked() ? 4 : 0,
+                            };
+
+                            //exif.SetDateChanged(dt);
+                            //exif.SetDateDigitized(dt);
+                            //exif.SetDateTaken(dt);
+
+                            DateTime date;
+                            if (exif.GetTagValue(ExifTag.DateTime, out date))
+                            {
+                                if (date.Ticks != dt.Ticks) exif.SetDateChanged(dt);
+                            }
+                            else exif.SetDateChanged(dt);
+                            if (exif.GetTagValue(ExifTag.DateTimeDigitized, out date))
+                            {
+                                if (date.Ticks != dt.Ticks) exif.SetDateDigitized(dt);
+                            }
+                            else exif.SetDateDigitized(dt);
+                            if (exif.GetTagValue(ExifTag.DateTimeOriginal, out date))
+                            {
+                                if (date.Ticks != dt.Ticks) exif.SetDateTaken(dt);
+                            }
+                            else exif.SetDateTaken(dt);
+                            if (exif.GetTagValue(ExifTag.SubsecTimeDigitized, out date))
+                            {
+                                if (date.Ticks != dt.Ticks) exif.SetTagValue(ExifTag.SubsecTimeDigitized, dt, ExifDateFormat.DateAndTime);
+                            }
+                            else exif.SetTagValue(ExifTag.SubsecTimeDigitized, dt, ExifDateFormat.DateAndTime);
+                            if (exif.GetTagValue(ExifTag.SubsecTimeOriginal, out date))
+                            {
+                                if (date.Ticks != dt.Ticks) exif.SetTagValue(ExifTag.SubsecTimeOriginal, dt, ExifDateFormat.DateAndTime);
+                            }
+                            else exif.SetTagValue(ExifTag.SubsecTimeOriginal, dt, ExifDateFormat.DateAndTime);
+
+                            exif.SetTagRawData(ExifTag.XpTitle, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Title), Encoding.Unicode.GetBytes(meta.Title));
+                            exif.SetTagValue(ExifTag.ImageDescription, meta.Title, StrCoding.Utf8);
+                            exif.SetTagRawData(ExifTag.XpSubject, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Subject), Encoding.Unicode.GetBytes(meta.Subject));
+                            exif.SetTagRawData(ExifTag.XpKeywords, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Keywords), Encoding.Unicode.GetBytes(meta.Keywords));
+                            exif.SetTagRawData(ExifTag.XpAuthor, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Author), Encoding.Unicode.GetBytes(meta.Author));
+                            exif.SetTagValue(ExifTag.Artist,meta.Author, StrCoding.Utf8);
+                            exif.SetTagValue(ExifTag.Copyright, meta.Copyright, StrCoding.Utf8);
+                            exif.SetTagRawData(ExifTag.XpComment, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Comment), Encoding.Unicode.GetBytes(meta.Comment));
+                            exif.SetTagValue(ExifTag.UserComment, meta.Comment, StrCoding.Utf8);
+
+                            exif.SetTagRawData(ExifTag.XpRanking, ExifTagType.UShort, 1, BitConverter.GetBytes((short)meta.Ranking).Reverse().ToArray());
+                            exif.SetTagRawData(ExifTag.XpRating, ExifTagType.UShort, 1, BitConverter.GetBytes((short)meta.Rating).Reverse().ToArray());
+
+                            var xmp = string.Empty;
+                            exif.GetTagValue(ExifTag.XmpMetadata, out xmp, StrCoding.Utf8);
+                            xmp = TouchXMP(fileinfo, xmp, meta);
+                            //exif.SetTagValue(ExifTag.XmpMetadata, xmp, StrCoding.Utf8);
+                            exif.SetTagRawData(ExifTag.XmpMetadata, ExifTagType.Byte, Encoding.UTF8.GetByteCount(xmp), Encoding.UTF8.GetBytes(xmp));
+                            exif.Save(fileinfo.FullName);
+                            result = true;
+                        }
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                // Error occurred while reading image file
+                ex.Message.ERROR("TouchXMP");
+            }
+            return (result);
+        }
+
+        public static async Task<bool> AttachMetaInfoInternalAsync(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "")
+        {
+            return(await Task.Run<bool>(() => { return (AttachMetaInfoInternal(fileinfo, dt, id)); }));
+        }
+
+        private static ConcurrentDictionary<string, long> LastAttachMetaInfo = new ConcurrentDictionary<string, long>();
         public static async Task<bool> AttachMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "")
         {
             var result = false;
-            if (IsShellSupported && _Attaching_.TryAdd(fileinfo.FullName, true) && await _CanAttaching_.WaitAsync(TimeSpan.FromSeconds(60)))
+            var now = DateTime.Now.Ticks;
+            var interval = Application.Current.LoadSetting().DownloadTouchInterval;
+            var capacities = Application.Current.LoadSetting().DownloadTouchCapatices;
+            if (IsShellSupported && _Attaching_.TryAdd(fileinfo.FullName, now) && await _CanAttaching_.WaitAsync(TimeSpan.FromSeconds(60)))
             {
                 try
                 {
 #if DEBUG
                     System.Diagnostics.Debug.WriteLine($"=> Touching Meta : {fileinfo.Name} Started ...");
 #endif
-                    if (string.IsNullOrEmpty(id)) id = GetIllustId(fileinfo.Name);
-                    var illust = id.FindIllust();
-                    if (illust is Pixeez.Objects.Work && (dt != null || dt.Ticks > 0))
+                    if (!LastAttachMetaInfo.ContainsKey(fileinfo.FullName) || (now - LastAttachMetaInfo[fileinfo.FullName] > TimeSpan.FromMilliseconds(interval).Ticks))
                     {
-                        var uid = $"{illust.User.Id}";
+                        LastAttachMetaInfo.AddOrUpdate(fileinfo.FullName, _Attaching_[fileinfo.FullName], (k, v) => _Attaching_[fileinfo.FullName]);
+                        long tick = now;
+                        if (LastAttachMetaInfo.Count > capacities)
+                            LastAttachMetaInfo.TryRemove(LastAttachMetaInfo.First().Key, out tick);
 
-                        bool is_png = fileinfo.IsPng();
-                        bool is_img = fileinfo.IsImage();
-                        bool is_mov = fileinfo.IsMovie();
-                        bool is_zip = fileinfo.IsZip();
-
-                        string name = Path.GetFileNameWithoutExtension(fileinfo.Name);
-
-                        using (var sh = Microsoft.WindowsAPICodePack.Shell.ShellFile.FromFilePath(fileinfo.FullName))
+                        if (string.IsNullOrEmpty(id)) id = GetIllustId(fileinfo.Name);
+                        var illust = id.FindIllust();
+                        if (illust is Pixeez.Objects.Work && (dt != null || dt.Ticks > 0))
                         {
-                            if (is_img)
+                            var uid = $"{illust.User.Id}";
+
+                            bool is_png = fileinfo.IsPng();
+                            bool is_img = fileinfo.IsImage();
+                            bool is_mov = fileinfo.IsMovie();
+                            bool is_zip = fileinfo.IsZip();
+
+                            string name = Path.GetFileNameWithoutExtension(fileinfo.Name);
+
+                            using (var sh = Microsoft.WindowsAPICodePack.Shell.ShellFile.FromFilePath(fileinfo.FullName))
                             {
-                                if (sh.Properties.System.Photo.DateTaken.Value == null || sh.Properties.System.Photo.DateTaken.Value.Value.Ticks != dt.Ticks)
-                                    sh.Properties.System.Photo.DateTaken.Value = dt;
-                                if (!is_png)
+                                if (is_img)
+                                {
+                                    if (!is_png)
+                                    {
+                                        if (sh.Properties.System.Photo.DateTaken.Value == null || sh.Properties.System.Photo.DateTaken.Value.Value.Ticks != dt.Ticks)
+                                            sh.Properties.System.Photo.DateTaken.Value = dt;
+
+                                        if (sh.Properties.System.DateAcquired.Value == null || sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks)
+                                            sh.Properties.System.DateAcquired.Value = dt;
+
+                                        sh.Properties.System.Subject.AllowSetTruncatedValue = true;
+                                        if (sh.Properties.System.Subject.Value == null || !sh.Properties.System.Subject.Value.Equals(id.ArtworkLink()))
+                                            sh.Properties.System.Subject.Value = id.ArtworkLink();
+
+                                        var title = illust.Title.FilterInvalidChar().TrimEnd();
+                                        sh.Properties.System.Title.AllowSetTruncatedValue = true;
+                                        if (sh.Properties.System.Title.Value == null || !sh.Properties.System.Title.Value.Equals(title))
+                                            sh.Properties.System.Title.Value = title;
+
+                                        sh.Properties.System.Author.AllowSetTruncatedValue = true;
+                                        if (sh.Properties.System.Author.Value == null)
+                                            sh.Properties.System.Author.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+
+                                        var tags = illust.Tags.Select(t => t.Replace(";", "；⸵")).Distinct(StringComparer.CurrentCultureIgnoreCase).ToArray();
+                                        sh.Properties.System.Keywords.AllowSetTruncatedValue = true;
+                                        if (sh.Properties.System.Keywords.Value == null || sh.Properties.System.Keywords.Value.Length != tags.Length)
+                                            sh.Properties.System.Keywords.Value = tags;
+
+                                        sh.Properties.System.Copyright.AllowSetTruncatedValue = true;
+                                        if (sh.Properties.System.Copyright.Value == null)
+                                            sh.Properties.System.Copyright.Value = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}".Trim(';');
+
+                                        var comment = illust.Caption.HtmlToText();
+                                        sh.Properties.System.Comment.AllowSetTruncatedValue = true;
+                                        if (sh.Properties.System.Comment.Value == null || !sh.Properties.System.Comment.Value.Equals(comment))
+                                        {
+                                            if (string.IsNullOrEmpty(comment)) sh.Properties.System.Comment.ClearValue();
+                                            else sh.Properties.System.Comment.Value = comment;
+                                        }
+
+                                        //if (sh.Properties.System.Contact.Webpage.Value == null) sh.Properties.System.Contact.Webpage.Value = id.ArtworkLink();
+
+                                        //if (sh.Properties.System.Media.AuthorUrl.Value == null) sh.Properties.System.Media.AuthorUrl.Value = uid.ArtistLink();
+                                        //if (sh.Properties.System.Media.PromotionUrl.Value == null) sh.Properties.System.Media.PromotionUrl.Value = id.ArtworkLink();
+
+                                        if (illust.IsLiked())
+                                        {
+                                            if (sh.Properties.System.SimpleRating.Value != 4)
+                                                sh.Properties.System.SimpleRating.Value = 4;
+                                        }
+                                        else
+                                        {
+                                            if (sh.Properties.System.SimpleRating.Value != null)
+                                                sh.Properties.System.SimpleRating.ClearValue();
+                                        }
+                                    }
+                                    else if (is_png)
+                                    {
+                                        result = AttachMetaInfoInternal(fileinfo, dt, id);
+                                    }
+                                }
+                                else if (is_mov && !is_zip)
                                 {
                                     if (sh.Properties.System.DateAcquired.Value == null || sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks)
                                         sh.Properties.System.DateAcquired.Value = dt;
@@ -2819,9 +3694,9 @@ namespace PixivWPF.Common
                                     if (sh.Properties.System.Keywords.Value == null || sh.Properties.System.Keywords.Value.Length != tags.Length)
                                         sh.Properties.System.Keywords.Value = tags;
 
-                                    sh.Properties.System.Copyright.AllowSetTruncatedValue = true;
-                                    if (sh.Properties.System.Copyright.Value == null)
-                                        sh.Properties.System.Copyright.Value = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}".Trim(';');
+                                    //sh.Properties.System.Copyright.AllowSetTruncatedValue = true;
+                                    //if (sh.Properties.System.Copyright.Value == null)
+                                    //    sh.Properties.System.Copyright.Value = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}".Trim(';');
 
                                     var comment = illust.Caption.HtmlToText();
                                     sh.Properties.System.Comment.AllowSetTruncatedValue = true;
@@ -2830,11 +3705,6 @@ namespace PixivWPF.Common
                                         if (string.IsNullOrEmpty(comment)) sh.Properties.System.Comment.ClearValue();
                                         else sh.Properties.System.Comment.Value = comment;
                                     }
-
-                                    //if (sh.Properties.System.Contact.Webpage.Value == null) sh.Properties.System.Contact.Webpage.Value = id.ArtworkLink();
-
-                                    //if (sh.Properties.System.Media.AuthorUrl.Value == null) sh.Properties.System.Media.AuthorUrl.Value = uid.ArtistLink();
-                                    //if (sh.Properties.System.Media.PromotionUrl.Value == null) sh.Properties.System.Media.PromotionUrl.Value = id.ArtworkLink();
 
                                     if (illust.IsLiked())
                                     {
@@ -2846,138 +3716,94 @@ namespace PixivWPF.Common
                                         if (sh.Properties.System.SimpleRating.Value != null)
                                             sh.Properties.System.SimpleRating.ClearValue();
                                     }
+
+                                    if (sh.Properties.System.Media.DateEncoded.Value == null || sh.Properties.System.Media.DateEncoded.Value.Value.Ticks != dt.Ticks)
+                                        sh.Properties.System.Media.DateEncoded.Value = dt;
+                                    if (sh.Properties.System.Media.DateReleased.Value == null)
+                                        sh.Properties.System.Media.DateReleased.Value = dt.ToString("yyyy/MM/ddTHH:mm:sszzz");
+                                    if (sh.Properties.System.Media.Year.Value == null)
+                                        sh.Properties.System.Media.Year.Value = (uint)dt.Year;
+
+                                    sh.Properties.System.Media.Subtitle.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Media.Subtitle.Value == null || !sh.Properties.System.Media.Subtitle.Value.Equals(id.ArtworkLink()))
+                                        sh.Properties.System.Media.Subtitle.Value = id.ArtworkLink();
+
+                                    sh.Properties.System.Media.ContentDistributor.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Media.ContentDistributor.Value == null)
+                                        sh.Properties.System.Media.ContentDistributor.Value = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}".Trim(';');
+
+                                    if (sh.Properties.System.Media.AuthorUrl.Value == null)
+                                        sh.Properties.System.Media.AuthorUrl.Value = uid.ArtistLink();
+                                    if (sh.Properties.System.Media.UserWebUrl.Value == null)
+                                        sh.Properties.System.Media.UserWebUrl.Value = uid.ArtistLink();
+                                    if (sh.Properties.System.Media.PromotionUrl.Value == null)
+                                        sh.Properties.System.Media.PromotionUrl.Value = id.ArtworkLink();
+
+                                    sh.Properties.System.Media.Producer.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Media.Producer.Value == null)
+                                        sh.Properties.System.Media.Producer.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+                                    sh.Properties.System.Media.Writer.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Media.Writer.Value == null)
+                                        sh.Properties.System.Media.Writer.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+                                    sh.Properties.System.Media.EncodedBy.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Media.EncodedBy.Value == null)
+                                        sh.Properties.System.Media.EncodedBy.Value = illust.User.Name;
+                                    sh.Properties.System.Media.Publisher.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Media.Publisher.Value == null)
+                                        sh.Properties.System.Media.Publisher.Value = illust.User.Name;
+
+                                    sh.Properties.System.Media.MetadataContentProvider.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Media.MetadataContentProvider.Value == null)
+                                        sh.Properties.System.Media.MetadataContentProvider.Value = illust.User.Name;
+
+                                    sh.Properties.System.Video.Director.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Video.Director.Value == null)
+                                        sh.Properties.System.Video.Director.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+
+                                    sh.Properties.System.Music.Artist.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Music.Artist.Value == null)
+                                        sh.Properties.System.Music.Artist.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+                                    sh.Properties.System.Music.AlbumArtist.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Music.AlbumArtist.Value == null)
+                                        sh.Properties.System.Music.AlbumArtist.Value = illust.User.Name;
+                                    sh.Properties.System.Music.AlbumTitle.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Music.AlbumTitle.Value == null)
+                                        sh.Properties.System.Music.AlbumTitle.Value = title;
+                                    sh.Properties.System.Music.Composer.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Music.Composer.Value == null)
+                                        sh.Properties.System.Music.Composer.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+                                    sh.Properties.System.Music.Conductor.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Music.Conductor.Value == null)
+                                        sh.Properties.System.Music.Conductor.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+                                    sh.Properties.System.Music.Genre.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Music.Genre.Value == null)
+                                        sh.Properties.System.Music.Genre.Value = new string[] { "Pixiv", "Comic", "Anime", "Game", "CG", "Japan" };
+                                    sh.Properties.System.Music.Mood.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Music.Mood.Value == null)
+                                        sh.Properties.System.Music.Mood.Value = "Happy";
+                                    sh.Properties.System.Music.Period.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Music.Period.Value == null)
+                                        sh.Properties.System.Music.Period.Value = dt.ToString("yyyy");
                                 }
+                                //sh.Update();
                             }
-                            else if (is_mov && !is_zip)
-                            {
-                                if (sh.Properties.System.DateAcquired.Value == null || sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks)
-                                    sh.Properties.System.DateAcquired.Value = dt;
-
-                                sh.Properties.System.Subject.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Subject.Value == null || !sh.Properties.System.Subject.Value.Equals(id.ArtworkLink()))
-                                    sh.Properties.System.Subject.Value = id.ArtworkLink();
-
-                                var title = illust.Title.FilterInvalidChar().TrimEnd();
-                                sh.Properties.System.Title.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Title.Value == null || !sh.Properties.System.Title.Value.Equals(title))
-                                    sh.Properties.System.Title.Value = title;
-
-                                sh.Properties.System.Author.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Author.Value == null)
-                                    sh.Properties.System.Author.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
-
-                                var tags = illust.Tags.Select(t => t.Replace(";", "；⸵")).Distinct(StringComparer.CurrentCultureIgnoreCase).ToArray();
-                                sh.Properties.System.Keywords.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Keywords.Value == null || sh.Properties.System.Keywords.Value.Length != tags.Length)
-                                    sh.Properties.System.Keywords.Value = tags;
-
-                                //sh.Properties.System.Copyright.AllowSetTruncatedValue = true;
-                                //if (sh.Properties.System.Copyright.Value == null)
-                                //    sh.Properties.System.Copyright.Value = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}".Trim(';');
-
-                                var comment = illust.Caption.HtmlToText();
-                                sh.Properties.System.Comment.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Comment.Value == null || !sh.Properties.System.Comment.Value.Equals(comment))
-                                {
-                                    if (string.IsNullOrEmpty(comment)) sh.Properties.System.Comment.ClearValue();
-                                    else sh.Properties.System.Comment.Value = comment;
-                                }
-
-                                if (illust.IsLiked())
-                                {
-                                    if (sh.Properties.System.SimpleRating.Value != 4)
-                                        sh.Properties.System.SimpleRating.Value = 4;
-                                }
-                                else
-                                {
-                                    if (sh.Properties.System.SimpleRating.Value != null)
-                                        sh.Properties.System.SimpleRating.ClearValue();
-                                }
-
-                                if (sh.Properties.System.Media.DateEncoded.Value == null || sh.Properties.System.Media.DateEncoded.Value.Value.Ticks != dt.Ticks)
-                                    sh.Properties.System.Media.DateEncoded.Value = dt;
-                                if (sh.Properties.System.Media.DateReleased.Value == null)
-                                    sh.Properties.System.Media.DateReleased.Value = dt.ToString("yyyy/MM/ddTHH:mm:sszzz");
-                                if (sh.Properties.System.Media.Year.Value == null)
-                                    sh.Properties.System.Media.Year.Value = (uint)dt.Year;
-
-                                sh.Properties.System.Media.Subtitle.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Media.Subtitle.Value == null || !sh.Properties.System.Media.Subtitle.Value.Equals(id.ArtworkLink()))
-                                    sh.Properties.System.Media.Subtitle.Value = id.ArtworkLink();
-
-                                sh.Properties.System.Media.ContentDistributor.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Media.ContentDistributor.Value == null)
-                                    sh.Properties.System.Media.ContentDistributor.Value = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}".Trim(';');
-
-                                if (sh.Properties.System.Media.AuthorUrl.Value == null)
-                                    sh.Properties.System.Media.AuthorUrl.Value = uid.ArtistLink();
-                                if (sh.Properties.System.Media.UserWebUrl.Value == null)
-                                    sh.Properties.System.Media.UserWebUrl.Value = uid.ArtistLink();
-                                if (sh.Properties.System.Media.PromotionUrl.Value == null)
-                                    sh.Properties.System.Media.PromotionUrl.Value = id.ArtworkLink();
-
-                                sh.Properties.System.Media.Producer.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Media.Producer.Value == null)
-                                    sh.Properties.System.Media.Producer.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
-                                sh.Properties.System.Media.Writer.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Media.Writer.Value == null)
-                                    sh.Properties.System.Media.Writer.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
-                                sh.Properties.System.Media.EncodedBy.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Media.EncodedBy.Value == null)
-                                    sh.Properties.System.Media.EncodedBy.Value = illust.User.Name;
-                                sh.Properties.System.Media.Publisher.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Media.Publisher.Value == null)
-                                    sh.Properties.System.Media.Publisher.Value = illust.User.Name;
-
-                                sh.Properties.System.Media.MetadataContentProvider.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Media.MetadataContentProvider.Value == null)
-                                    sh.Properties.System.Media.MetadataContentProvider.Value = illust.User.Name;
-
-                                sh.Properties.System.Video.Director.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Video.Director.Value == null)
-                                    sh.Properties.System.Video.Director.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
-
-                                sh.Properties.System.Music.Artist.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Music.Artist.Value == null)
-                                    sh.Properties.System.Music.Artist.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
-                                sh.Properties.System.Music.AlbumArtist.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Music.AlbumArtist.Value == null)
-                                    sh.Properties.System.Music.AlbumArtist.Value = illust.User.Name;
-                                sh.Properties.System.Music.AlbumTitle.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Music.AlbumTitle.Value == null)
-                                    sh.Properties.System.Music.AlbumTitle.Value = title;
-                                sh.Properties.System.Music.Composer.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Music.Composer.Value == null)
-                                    sh.Properties.System.Music.Composer.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
-                                sh.Properties.System.Music.Conductor.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Music.Conductor.Value == null)
-                                    sh.Properties.System.Music.Conductor.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
-                                sh.Properties.System.Music.Genre.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Music.Genre.Value == null)
-                                    sh.Properties.System.Music.Genre.Value = new string[] { "Pixiv", "Comic", "Anime", "Game", "CG", "Japan" };
-                                sh.Properties.System.Music.Mood.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Music.Mood.Value == null)
-                                    sh.Properties.System.Music.Mood.Value = "Happy";
-                                sh.Properties.System.Music.Period.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Music.Period.Value == null)
-                                    sh.Properties.System.Music.Period.Value = dt.ToString("yyyy");
-                            }
-                            //sh.Update();
                         }
-                    }
-                    //if (fileinfo.CreationTime.Ticks != dt.Ticks) fileinfo.CreationTime = dt;
-                    //if (fileinfo.LastWriteTime.Ticks != dt.Ticks) fileinfo.LastWriteTime = dt;
-                    //if (fileinfo.LastAccessTime.Ticks != dt.Ticks) fileinfo.LastAccessTime = dt;
-                    result = true;
+                        //if (fileinfo.CreationTime.Ticks != dt.Ticks) fileinfo.CreationTime = dt;
+                        //if (fileinfo.LastWriteTime.Ticks != dt.Ticks) fileinfo.LastWriteTime = dt;
+                        //if (fileinfo.LastAccessTime.Ticks != dt.Ticks) fileinfo.LastAccessTime = dt;
+                        result = true;
 #if DEBUG
-                    System.Diagnostics.Debug.WriteLine($"=> Touching Meta : {fileinfo.Name} Finished!");
+                        System.Diagnostics.Debug.WriteLine($"=> Touching Meta : {fileinfo.Name} Finished!");
 #endif
+                    }
                 }
                 catch (Exception ex) { ex.ERROR($"AttachMetaInfo_{fileinfo.Name}"); }
                 finally
                 {
                     if (_CanAttaching_ is SemaphoreSlim && _CanAttaching_.CurrentCount < 5) _CanAttaching_.Release();
-                    _Attaching_.TryRemove(fileinfo.FullName, out result);
+                    result = true;
+                    long tick;
+                    _Attaching_.TryRemove(fileinfo.FullName, out tick);
                 }
             }
             return (result);
@@ -3159,53 +3985,65 @@ namespace PixivWPF.Common
             }
         }
 
+        private static ConcurrentDictionary<string, long> LastTouch = new ConcurrentDictionary<string, long>();
         public static void Touch(this FileInfo fileinfo, string url, bool local = false, bool meta = true)
         {
             try
             {
-                if (_Touching_.TryAdd(fileinfo.FullName, true))
+                var now = DateTime.Now.Ticks;
+                var interval = Application.Current.LoadSetting().DownloadTouchInterval;
+                var capacities = Application.Current.LoadSetting().DownloadTouchCapatices;
+                if (_Touching_.TryAdd(fileinfo.FullName, DateTime.Now.Ticks))
                 {
-                    if (url.StartsWith("http", StringComparison.CurrentCultureIgnoreCase))
+                    if (!LastTouch.ContainsKey(fileinfo.FullName) || (now - LastTouch[fileinfo.FullName] > TimeSpan.FromMilliseconds(interval).Ticks))
                     {
-                        new Action(async () =>
+                        LastTouch.AddOrUpdate(fileinfo.FullName, _Touching_[fileinfo.FullName], (k, v) => _Touching_[fileinfo.FullName]);
+                        long tick = now;
+                        if (LastTouch.Count > capacities)
+                            LastTouch.TryRemove(LastTouch.First().Key, out tick);
+
+                        if (url.StartsWith("http", StringComparison.CurrentCultureIgnoreCase))
                         {
-                            try
+                            new Action(async () =>
                             {
-                                var fdt = url.ParseDateTime();
-                                if (fdt.Year <= 1601) return;
-                                var meta_ret = true;
-                                setting = Application.Current.LoadSetting();
-                                //if (setting.DownloadAttachMetaInfo && meta && await fileinfo.WaitFileUnlockAsync())
-                                if (setting.DownloadAttachMetaInfo && meta && fileinfo.WaitFileUnlock())
+                                try
                                 {
-                                    meta_ret = await fileinfo.AttachMetaInfo(dt: fdt);
-                                    fileinfo = new FileInfo(fileinfo.FullName);
-                                }
-                                //if (await fileinfo.WaitFileUnlockAsync())
-                                if (meta_ret && fileinfo.WaitFileUnlock())
-                                {
+                                    var fdt = url.ParseDateTime();
+                                    if (fdt.Year <= 1601) return;
+                                    var meta_ret = true;
+                                    setting = Application.Current.LoadSetting();
+                                    //if (setting.DownloadAttachMetaInfo && meta && await fileinfo.WaitFileUnlockAsync())
+                                    if (setting.DownloadAttachMetaInfo && meta && fileinfo.WaitFileUnlock())
+                                    {
+                                        meta_ret = await fileinfo.AttachMetaInfo(dt: fdt);
+                                        fileinfo = new FileInfo(fileinfo.FullName);
+                                    }
+                                    //if (await fileinfo.WaitFileUnlockAsync())
+                                    if (meta_ret && fileinfo.WaitFileUnlock())
+                                    {
 #if DEBUG
                                     Debug.WriteLine($"=> Touching Time : {fileinfo.Name}");
 #endif
-                                    if (fileinfo.CreationTime.Ticks != fdt.Ticks) fileinfo.CreationTime = fdt;
-                                    if (fileinfo.LastWriteTime.Ticks != fdt.Ticks) fileinfo.LastWriteTime = fdt;
-                                    if (fileinfo.LastAccessTime.Ticks != fdt.Ticks) fileinfo.LastAccessTime = fdt;
+                                        if (fileinfo.CreationTime.Ticks != fdt.Ticks) fileinfo.CreationTime = fdt;
+                                        if (fileinfo.LastWriteTime.Ticks != fdt.Ticks) fileinfo.LastWriteTime = fdt;
+                                        if (fileinfo.LastAccessTime.Ticks != fdt.Ticks) fileinfo.LastAccessTime = fdt;
 
-                                    if (fileinfo.Extension.Equals(".png", StringComparison.CurrentCultureIgnoreCase) ||
-                                        fileinfo.Extension.Equals(".jpg", StringComparison.CurrentCultureIgnoreCase) ||
-                                        fileinfo.Extension.Equals(".webp", StringComparison.CurrentCultureIgnoreCase) ||
-                                        fileinfo.Extension.Equals(".gif", StringComparison.CurrentCultureIgnoreCase))
-                                    {
-                                        int idx = -1;
-                                        var illust = await fileinfo.FullName.GetIllustId(out idx).GetIllust();
-                                        var fname = illust.GetOriginalUrl(idx).GetImageName((illust.PageCount ?? 0) <= 1);
-                                        if (!fileinfo.Name.Equals(fname)) fileinfo.MoveTo(Path.Combine(fileinfo.DirectoryName, fname));
+                                        if (fileinfo.Extension.Equals(".png", StringComparison.CurrentCultureIgnoreCase) ||
+                                            fileinfo.Extension.Equals(".jpg", StringComparison.CurrentCultureIgnoreCase) ||
+                                            fileinfo.Extension.Equals(".webp", StringComparison.CurrentCultureIgnoreCase) ||
+                                            fileinfo.Extension.Equals(".gif", StringComparison.CurrentCultureIgnoreCase))
+                                        {
+                                            int idx = -1;
+                                            var illust = await fileinfo.FullName.GetIllustId(out idx).GetIllust();
+                                            var fname = illust.GetOriginalUrl(idx).GetImageName((illust.PageCount ?? 0) <= 1);
+                                            if (!fileinfo.Name.Equals(fname)) fileinfo.MoveTo(Path.Combine(fileinfo.DirectoryName, fname));
+                                        }
                                     }
                                 }
-                            }
-                            catch (Exception ex) { var id = fileinfo is FileInfo ? fileinfo.Name : url.GetIllustId(); ex.ERROR($"Touch_{id}"); }
-                            finally { bool fn = false; _Touching_.TryRemove(fileinfo.FullName, out fn); }
-                        }).Invoke(async: true);
+                                catch (Exception ex) { var id = fileinfo is FileInfo ? fileinfo.Name : url.GetIllustId(); ex.ERROR($"Touch_{id}"); }
+                                finally { long ticks; _Touching_.TryRemove(fileinfo.FullName, out ticks); }
+                            }).Invoke(async: true);
+                        }
                     }
                 }
             }
@@ -3390,9 +4228,12 @@ namespace PixivWPF.Common
                         var ext = Path.GetExtension(e.Name).ToLower();
                         if (ext_imgs.Contains(ext) || ext_movs.Contains(ext))
                         {
-                            e.FullPath.DownloadedCacheAdd();
-                            UpdateDownloadStateAsync(GetIllustId(e.Name), true);
-                            lastDownloadEventTick = DateTime.Now;
+                            if (!_Attaching_.ContainsKey(e.FullPath))
+                            {
+                                e.FullPath.DownloadedCacheAdd();
+                                UpdateDownloadStateAsync(GetIllustId(e.Name), true);
+                                lastDownloadEventTick = DateTime.Now;
+                            }
                         }
                     }
                 }
@@ -3410,9 +4251,12 @@ namespace PixivWPF.Common
                     var ext = Path.GetExtension(e.Name).ToLower();
                     if (ext_imgs.Contains(ext) || ext_movs.Contains(ext))
                     {
-                        e.FullPath.DownloadedCacheRemove();
-                        UpdateDownloadStateAsync(GetIllustId(e.Name), false);
-                        lastDownloadEventTick = DateTime.Now;
+                        if (!_Attaching_.ContainsKey(e.FullPath))
+                        {
+                            e.FullPath.DownloadedCacheRemove();
+                            UpdateDownloadStateAsync(GetIllustId(e.Name), false);
+                            lastDownloadEventTick = DateTime.Now;
+                        }
                     }
                 }
             }
@@ -5042,7 +5886,7 @@ namespace PixivWPF.Common
         {
             try
             {
-                var json = JsonConvert.SerializeObject(_ImageFileSizeCache_, Formatting.Indented);
+                var json = JsonConvert.SerializeObject(_ImageFileSizeCache_, Newtonsoft.Json.Formatting.Indented);
                 file.WaitFileUnlock();
                 File.WriteAllText(file, json, new UTF8Encoding(true));
             }

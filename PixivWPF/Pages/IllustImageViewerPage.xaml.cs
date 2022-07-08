@@ -427,7 +427,7 @@ namespace PixivWPF.Pages
 
                     var setting = Application.Current.LoadSetting();
                     var size = setting.QueryOriginalImageSize ? $" [{(await Contents.Illust.GetOriginalUrl(Contents.Index).QueryImageFileSize() ?? -1).SmartFileSize()}]" : string.Empty;
-                    var original = $"Original  : {Contents.Illust.GetOriginalUrl(Contents.Index).GetImageName(Contents.Count <= 1)}{size}";
+                    var original = $"Original   = {Contents.Illust.GetOriginalUrl(Contents.Index).GetImageName(Contents.Count <= 1)}{size}";
 
                     StringBuilder sb = new StringBuilder();
                     sb.AppendLine($"Favorited  = {Contents.Illust.IsLiked()}");

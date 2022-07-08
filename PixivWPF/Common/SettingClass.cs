@@ -1195,6 +1195,28 @@ namespace PixivWPF.Common
             }
         }
 
+        private int download_touch_interval = 5000;
+        public int DownloadTouchInterval
+        {
+            get { return (Cache is Setting ? Cache.download_touch_interval : download_touch_interval); }
+            set
+            {
+                download_touch_interval = value;
+                if (Cache is Setting) Cache.download_touch_interval = download_touch_interval;
+            }
+        }
+
+        private int download_touch_capacities = 1000;
+        public int DownloadTouchCapatices
+        {
+            get { return (Cache is Setting ? Cache.download_touch_capacities : download_touch_capacities); }
+            set
+            {
+                download_touch_capacities = value;
+                if (Cache is Setting) Cache.download_touch_capacities = download_touch_capacities;
+            }
+        }
+
         [JsonIgnore]
         private string lastfolder = string.Empty;
         [JsonIgnore]
