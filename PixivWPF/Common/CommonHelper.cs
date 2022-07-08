@@ -3537,15 +3537,65 @@ namespace PixivWPF.Common
                             }
                             else exif.SetTagValue(ExifTag.SubsecTimeOriginal, dt, ExifDateFormat.DateAndTime);
 
-                            exif.SetTagRawData(ExifTag.XpTitle, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Title), Encoding.Unicode.GetBytes(meta.Title));
-                            exif.SetTagValue(ExifTag.ImageDescription, meta.Title, StrCoding.Utf8);
-                            exif.SetTagRawData(ExifTag.XpSubject, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Subject), Encoding.Unicode.GetBytes(meta.Subject));
-                            exif.SetTagRawData(ExifTag.XpKeywords, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Keywords), Encoding.Unicode.GetBytes(meta.Keywords));
-                            exif.SetTagRawData(ExifTag.XpAuthor, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Author), Encoding.Unicode.GetBytes(meta.Author));
-                            exif.SetTagValue(ExifTag.Artist,meta.Author, StrCoding.Utf8);
-                            exif.SetTagValue(ExifTag.Copyright, meta.Copyright, StrCoding.Utf8);
-                            exif.SetTagRawData(ExifTag.XpComment, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Comment), Encoding.Unicode.GetBytes(meta.Comment));
-                            exif.SetTagValue(ExifTag.UserComment, meta.Comment, StrCoding.Utf8);
+                            if (string.IsNullOrEmpty(meta.Title))
+                            {
+                                exif.RemoveTag(ExifTag.XpTitle);
+                                exif.RemoveTag(ExifTag.ImageDescription);
+                            }
+                            else
+                            {
+                                exif.SetTagRawData(ExifTag.XpTitle, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Title), Encoding.Unicode.GetBytes(meta.Title));
+                                exif.SetTagValue(ExifTag.ImageDescription, meta.Title, StrCoding.Utf8);
+                            }
+
+                            if (string.IsNullOrEmpty(meta.Subject))
+                            {
+                                exif.RemoveTag(ExifTag.XpSubject);
+                            }
+                            else
+                            {
+                                exif.SetTagRawData(ExifTag.XpSubject, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Subject), Encoding.Unicode.GetBytes(meta.Subject));
+                            }
+
+                            if (string.IsNullOrEmpty(meta.Keywords))
+                            {
+                                exif.RemoveTag(ExifTag.XpKeywords);
+                            }
+                            else
+                            {
+                                exif.SetTagRawData(ExifTag.XpKeywords, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Keywords), Encoding.Unicode.GetBytes(meta.Keywords));
+                            }
+
+                            if (string.IsNullOrEmpty(meta.Author))
+                            {
+                                exif.RemoveTag(ExifTag.XpAuthor);
+                                exif.RemoveTag(ExifTag.Artist);
+                            }
+                            else
+                            {
+                                exif.SetTagRawData(ExifTag.XpAuthor, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Author), Encoding.Unicode.GetBytes(meta.Author));
+                                exif.SetTagValue(ExifTag.Artist, meta.Author, StrCoding.Utf8);
+                            }
+
+                            if (string.IsNullOrEmpty(meta.Copyright))
+                            {
+                                exif.RemoveTag(ExifTag.Copyright);
+                            }
+                            else
+                            {
+                                exif.SetTagValue(ExifTag.Copyright, meta.Copyright, StrCoding.Utf8);
+                            }
+
+                            if (string.IsNullOrEmpty(meta.Comment))
+                            {
+                                exif.RemoveTag(ExifTag.XpComment);
+                                exif.RemoveTag(ExifTag.UserComment);
+                            }
+                            else
+                            {
+                                exif.SetTagRawData(ExifTag.XpComment, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Comment), Encoding.Unicode.GetBytes(meta.Comment));
+                                exif.SetTagValue(ExifTag.UserComment, meta.Comment, StrCoding.Utf8);
+                            }
 
                             exif.SetTagRawData(ExifTag.XpRanking, ExifTagType.UShort, 1, BitConverter.GetBytes((short)meta.Ranking).Reverse().ToArray());
                             exif.SetTagRawData(ExifTag.XpRating, ExifTagType.UShort, 1, BitConverter.GetBytes((short)meta.Rating).Reverse().ToArray());
@@ -3612,11 +3662,11 @@ namespace PixivWPF.Common
                             {
                                 if (is_img)
                                 {
+                                    if (sh.Properties.System.Photo.DateTaken.Value == null || sh.Properties.System.Photo.DateTaken.Value.Value.Ticks != dt.Ticks)
+                                        sh.Properties.System.Photo.DateTaken.Value = dt;
+
                                     if (!is_png)
                                     {
-                                        if (sh.Properties.System.Photo.DateTaken.Value == null || sh.Properties.System.Photo.DateTaken.Value.Value.Ticks != dt.Ticks)
-                                            sh.Properties.System.Photo.DateTaken.Value = dt;
-
                                         if (sh.Properties.System.DateAcquired.Value == null || sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks)
                                             sh.Properties.System.DateAcquired.Value = dt;
 
