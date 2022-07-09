@@ -3594,7 +3594,7 @@ namespace PixivWPF.Common
                             else
                             {
                                 exif.SetTagRawData(ExifTag.XpComment, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Comment), Encoding.Unicode.GetBytes(meta.Comment));
-                                exif.SetTagValue(ExifTag.UserComment, meta.Comment, StrCoding.Utf8);
+                                exif.SetTagValue(ExifTag.UserComment, meta.Comment, StrCoding.IdCode_Utf16);
                             }
 
                             exif.SetTagRawData(ExifTag.XpRanking, ExifTagType.UShort, 1, BitConverter.GetBytes((short)meta.Ranking).Reverse().ToArray());
