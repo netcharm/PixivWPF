@@ -34,6 +34,12 @@
                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <MenuItem x:Name="ActionCopyIllustJSON"  x:Uid="ActionCopyIllustJson" Header="Copy Illust Info as JSON/XML" Click="ActionCopyIllustJSON_Click" ToolTip="Click to copy illust info as JSON/XML">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xE16F;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
             <MenuItem x:Uid="ActionOpenIllust" Header="Open Selected Illusts" Click="ActionOpenSelected_Click" >
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xE8A7;" FontSize="16" FontFamily="Segoe MDL2 Assets"

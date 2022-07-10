@@ -411,6 +411,11 @@ namespace PixivWPF.Pages
             Commands.CopyArtworkIDs.Execute(HistoryItems);
         }
 
+        private void ActionCopyIllustJSON_Click(object sender, RoutedEventArgs e)
+        {
+            Commands.CopyJson.Execute(HistoryItems);
+        }
+
         private void ActionCopyWeblink_Click(object sender, RoutedEventArgs e)
         {
             UpdateLikeState();

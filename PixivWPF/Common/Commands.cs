@@ -352,14 +352,14 @@ namespace PixivWPF.Common
                     var xml = illust.IllustToXml();
 
                     var dataObject = new DataObject();
+                    if (xmldoc is System.Xml.XmlDocument)
+                    {
+                        //dataObject.SetData("XmlDocument", xmldoc);
+                        dataObject.SetData("Xml", xml);
+                    }
                     dataObject.SetData("PixivIllustJSON", json);
                     dataObject.SetData("PixivJSON", json);
                     dataObject.SetData("JSON", json);
-                    if (xmldoc is System.Xml.XmlDocument)
-                    {
-                        dataObject.SetData("XmlDocument", xmldoc);
-                        dataObject.SetData("Xml", xml);
-                    }
                     dataObject.SetData(DataFormats.Text, json);
                     dataObject.SetData(DataFormats.UnicodeText, json);
                     Clipboard.SetDataObject(dataObject, true);
@@ -369,6 +369,25 @@ namespace PixivWPF.Common
                     var illust = (obj as PixivItem).Illust;
                     CopyJson.Execute(illust);
                 }
+                else if (obj is ImageListGrid)
+                {
+                    var gallery = obj as ImageListGrid;
+                    if (IsNormalGallary(gallery))
+                    {
+                        var item = gallery.SelectedItem;
+                        if (item.IsWork()) CopyJson.Execute(item);
+                    }
+                    else if (IsPagesGallary(gallery))
+                    {
+                        var page = gallery.TryFindParent<IllustDetailPage>();
+                        if (page is IllustDetailPage)
+                        {
+                            if (page.Contents is PixivItem && page.Contents.IsWork())
+                                CopyJson.Execute(page.Contents);
+                        }
+                    }
+                }
+
             }
             catch (Exception ex) { ex.ERROR("CopyJson"); }
         });

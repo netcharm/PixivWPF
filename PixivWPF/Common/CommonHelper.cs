@@ -3495,7 +3495,7 @@ namespace PixivWPF.Common
                                 DateAcquired = dt,
                                 DateTaken = dt,
 
-                                Title = illust.Title.FilterInvalidChar().TrimEnd(),
+                                Title = illust.Title.KatakanaHalfToFull().FilterInvalidChar().TrimEnd(),
                                 Subject = id.ArtworkLink(),
                                 Author = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}",
                                 Copyright = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}",
@@ -3674,7 +3674,7 @@ namespace PixivWPF.Common
                                         if (sh.Properties.System.Subject.Value == null || !sh.Properties.System.Subject.Value.Equals(id.ArtworkLink()))
                                             sh.Properties.System.Subject.Value = id.ArtworkLink();
 
-                                        var title = illust.Title.FilterInvalidChar().TrimEnd();
+                                        var title = illust.Title.KatakanaHalfToFull().FilterInvalidChar().TrimEnd();
                                         sh.Properties.System.Title.AllowSetTruncatedValue = true;
                                         if (sh.Properties.System.Title.Value == null || !sh.Properties.System.Title.Value.Equals(title))
                                             sh.Properties.System.Title.Value = title;
@@ -6367,8 +6367,8 @@ namespace PixivWPF.Common
                     var json = JObject.FromObject(work);
                     result.Add("id", JToken.FromObject(work.Id));
                     result.Add("date", JToken.FromObject(work.GetDateTime()));
-                    result.Add("title", JToken.FromObject(work.Title));
-                    result.Add("description", JToken.FromObject(work.Caption));
+                    result.Add("title", JToken.FromObject(work.Title.KatakanaHalfToFull().FilterInvalidChar()));
+                    result.Add("description", JToken.FromObject(work.Caption.HtmlToText()));
                     result.Add("tags", JToken.FromObject(string.Join(" ", work.Tags.Select(t=>$"#{t}"))));
                     result.Add("favorited", JToken.FromObject(work.IsBookMarked()));
                     result.Add("downloaded", JToken.FromObject(work.IsDownloaded(0, touch: false)));

@@ -592,6 +592,12 @@ namespace PixivWPF.Pages
             Commands.CopyArtworkIDs.Execute(ResultItems);
         }
 
+
+        private void ActionCopyIllustJSON_Click(object sender, RoutedEventArgs e)
+        {
+            Commands.CopyJson.Execute(ResultItems);
+        }
+
         private void ActionCopyWeblink_Click(object sender, RoutedEventArgs e)
         {
             UpdateLikeState();
@@ -881,5 +887,6 @@ namespace PixivWPF.Pages
             ResultNextPage.Show();
         }
         #endregion
+
     }
 }

@@ -826,6 +826,8 @@ namespace PixivWPF.Pages
             {
                 if (sender == ActionCopyIllustID)
                     Commands.CopyArtworkIDs.Execute(Contents);
+                else if (sender == ActionCopyIllustJSON)
+                    Commands.CopyJson.Execute(Contents);
                 else if (sender == ActionOpenIllust || sender == btnOpenIllust)
                     Commands.Open.Execute(Contents.Illust);
                 else if (sender == ActionOpenAuthor)
