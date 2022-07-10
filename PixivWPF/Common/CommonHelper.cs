@@ -6347,6 +6347,106 @@ namespace PixivWPF.Common
             return (work is Pixeez.Objects.IllustWork);
         }
 
+        public static bool HasUser(this Pixeez.Objects.Work work)
+        {
+            return (work is Pixeez.Objects.Work && work.User is Pixeez.Objects.UserBase);
+        }
+
+        public static bool HasNewUser(this Pixeez.Objects.Work work)
+        {
+            return (work is Pixeez.Objects.Work && work.User is Pixeez.Objects.NewUser);
+        }
+
+        public static JObject IllustToJObject(this Pixeez.Objects.Work work)
+        {
+            var result = new JObject();
+            try
+            {
+                if (work.IsWork() && work.HasUser())
+                {
+                    var json = JObject.FromObject(work);
+                    result.Add("id", JToken.FromObject(work.Id));
+                    result.Add("date", JToken.FromObject(work.GetDateTime()));
+                    result.Add("title", JToken.FromObject(work.Title));
+                    result.Add("description", JToken.FromObject(work.Caption));
+                    result.Add("tags", JToken.FromObject(string.Join(" ", work.Tags.Select(t=>$"#{t}"))));
+                    result.Add("favorited", JToken.FromObject(work.IsBookMarked()));
+                    result.Add("downloaded", JToken.FromObject(work.IsDownloaded(0, touch: false)));
+                    result.Add("weblink", JToken.FromObject($"{work.Id}".ArtworkLink()));
+                    result.Add("user", JToken.FromObject(work.User.Name));
+                    result.Add("userid", JToken.FromObject(work.User.Id));
+                    result.Add("userlink", JToken.FromObject($"{work.User.Id}".ArtistLink()));
+                }
+            }
+            catch (Exception ex) { ex.ERROR("IllustToJObject"); }
+            return (result);
+        }
+
+        public static string IllustToJSON(this Pixeez.Objects.Work work)
+        {
+            return(JsonConvert.SerializeObject(IllustToJObject(work), Newtonsoft.Json.Formatting.Indented));
+        }
+
+        public static XmlDocument IllustToXmlDocument(this Pixeez.Objects.Work work)
+        {
+            XmlDocument result = null;
+            try
+            {
+                var json = IllustToJSON(work);
+                var lines = json.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                lines.Insert(1, "'?xml': { '@version': '1.0', '@standalone': 'no' },");
+                lines.Insert(2, "'root': {");
+                lines.Add("}");
+                var xml_json = string.Join(Environment.NewLine, lines);
+                result = JsonConvert.DeserializeXmlNode(xml_json);
+
+                //result = new XmlDocument();
+                //var id = result.CreateElement("id");
+                //id.Value = $"{work.Id}";
+                ////result.CreateAttribute("id");
+                //result.AppendChild(id);
+
+                //var date = result.CreateElement("date");
+                //date.Value = $"{work.GetDateTime()}";
+                ////result.CreateAttribute("id");
+                //result.AppendChild(date);
+
+                //var id = result.CreateElement("id");
+                //id.Value = $"{work.Id}";
+                ////result.CreateAttribute("id");
+                //result.AppendChild(id);
+
+                //var id = result.CreateElement("id");
+                //id.Value = $"{work.Id}";
+                ////result.CreateAttribute("id");
+                //result.AppendChild(id);
+
+                //var id = result.CreateElement("id");
+                //id.Value = $"{work.Id}";
+                ////result.CreateAttribute("id");
+                //result.AppendChild(id);
+
+                //var id = result.CreateElement("id");
+                //id.Value = $"{work.Id}";
+                ////result.CreateAttribute("id");
+                //result.AppendChild(id);
+
+                //var id = result.CreateElement("id");
+                //id.Value = $"{work.Id}";
+                ////result.CreateAttribute("id");
+                //result.AppendChild(id);
+            }
+            catch (Exception ex) { ex.ERROR("IllustToXmlDocument"); }
+            return (result);
+        }
+
+        public static string IllustToXml(this Pixeez.Objects.Work work)
+        {
+            var xml = IllustToXmlDocument(work);
+            var xml_out = FormatXML(xml);
+            return (xml is XmlDocument ? xml_out : string.Empty);
+        }
+
         #region SameIllust
         public static bool IsSameIllust(this string id, int hash)
         {

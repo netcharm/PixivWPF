@@ -3006,6 +3006,10 @@ namespace PixivWPF.Pages
                 {
                     if (ContextMenuActionItems.ContainsKey(uid)) Commands.CopyText.Execute(ContextMenuActionItems[uid].Header);
                 }
+                else if (uid.Equals("ActionCopyIllustJson", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (Contents.IsWork()) Commands.CopyJson.Execute(Contents);
+                }
                 else if (uid.Equals("ActionIllustWebPage", StringComparison.CurrentCultureIgnoreCase))
                 {
                     if (Contents.IsWork())

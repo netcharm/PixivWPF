@@ -161,6 +161,12 @@
                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <MenuItem x:Uid="ActionCopyIllustJson" Header="Copy Illust Info as JSON/XML" Click="ActionIllustInfo_Click" ToolTip="Click to copy illust JSON">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xE16F;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>            
             <Separator />
             <MenuItem x:Uid="ActionIllustPages" Header="Show Illust Pages" Click="ActionShowIllustPages_Click">
                 <MenuItem.Icon>
@@ -629,6 +635,12 @@
                                 <MenuItem x:Name="PreviewCopyImage" x:Uid="ActionCopyImage" Header="Copy Preview" Visibility="Visible" Click="ActionIllustInfo_Click">
                                     <MenuItem.Icon>
                                         <TextBlock Margin="4,0,0,0" Text="&#xE295;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="PreviewCopyIllustJson" x:Uid="ActionCopyIllustJson" Header="Copy Illust Info as JSON/XML" Click="ActionIllustInfo_Click" ToolTip="Click to copy illust JSON">
+                                    <MenuItem.Icon>
+                                        <TextBlock Margin="4,0,0,0" Text="&#xE16F;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </MenuItem.Icon>
                                 </MenuItem>

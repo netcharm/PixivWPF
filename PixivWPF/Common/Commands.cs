@@ -340,6 +340,39 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("CopyHtml"); }
         });
 
+        public static ICommand CopyJson { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            try
+            {
+                if (obj is Pixeez.Objects.Work)
+                {
+                    var illust = obj as Pixeez.Objects.Work;
+                    var json = illust.IllustToJSON();
+                    var xmldoc = illust.IllustToXmlDocument();
+                    var xml = illust.IllustToXml();
+
+                    var dataObject = new DataObject();
+                    dataObject.SetData("PixivIllustJSON", json);
+                    dataObject.SetData("PixivJSON", json);
+                    dataObject.SetData("JSON", json);
+                    if (xmldoc is System.Xml.XmlDocument)
+                    {
+                        dataObject.SetData("XmlDocument", xmldoc);
+                        dataObject.SetData("Xml", xml);
+                    }
+                    dataObject.SetData(DataFormats.Text, json);
+                    dataObject.SetData(DataFormats.UnicodeText, json);
+                    Clipboard.SetDataObject(dataObject, true);
+                }
+                else if (obj is PixivItem)
+                {
+                    var illust = (obj as PixivItem).Illust;
+                    CopyJson.Execute(illust);
+                }
+            }
+            catch (Exception ex) { ex.ERROR("CopyJson"); }
+        });
+
         public static ICommand CopyArtworkIDs { get; } = new DelegateCommand<dynamic>(obj =>
         {
             var prefix = Keyboard.Modifiers == ModifierKeys.Control ? "id:" : string.Empty;
