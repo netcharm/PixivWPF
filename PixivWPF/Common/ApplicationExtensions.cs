@@ -1886,7 +1886,40 @@ namespace PixivWPF.Common
         private static ObservableCollection<PixivItem> history = new ObservableCollection<PixivItem>();
         public static ObservableCollection<PixivItem> History { get { return (HistorySource(null)); } }
 
-        public static async void HistoryAdd(this Application app, Pixeez.Objects.UserBase user, ObservableCollection<PixivItem> source)
+        public static bool InHistory(this Application app, PixivItem item)
+        {
+            var result = false;
+            try
+            {
+                result = item is PixivItem && history.Where(h => h.ID.Equals(item.ID) && h.Uid.Equals(item.Uid)).Count() > 0;
+            }
+            catch (Exception ex) { ex.ERROR("InHistory"); }
+            return (result);
+        }
+
+        public static bool InHistory(this Application app, Pixeez.Objects.UserBase user)
+        {
+            var result = false;
+            try
+            {
+                result = user is Pixeez.Objects.UserBase && history.Where(h => h.ID.Equals($"{user.Id ?? -1}")).Count() > 0;
+            }
+            catch (Exception ex) { ex.ERROR("InHistory"); }
+            return (result);
+        }
+
+        public static bool InHistory(this Application app, Pixeez.Objects.Work illust)
+        {
+            var result = false;
+            try
+            {
+                result = illust is Pixeez.Objects.Work && history.Where(h => h.ID.Equals($"{illust.Id ?? -1}")).Count() > 0;
+            }
+            catch (Exception ex) { ex.ERROR("InHistory"); }
+            return (result);
+        }
+
+        public static void HistoryAdd(this Application app, Pixeez.Objects.UserBase user, ObservableCollection<PixivItem> source)
         {
             if (source is ObservableCollection<PixivItem>)
             {
@@ -1910,14 +1943,7 @@ namespace PixivWPF.Common
                         u.User = user;
                         u.IsFollowed = u.Illust.IsLiked();
                         u.IsFavorited = u.User.IsLiked();
-                        if (u.Source == null)
-                        {
-                            using (var thumb = await u.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize()))
-                            {
-                                u.Source = thumb.Source;
-                                u.State = TaskStatus.RanToCompletion;
-                            }
-                        }
+                        //u.State = TaskStatus.RanToCompletion;
                         source.Move(source.IndexOf(u), 0);
                     }
                     else
@@ -1941,7 +1967,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async void HistoryAdd(this Application app, Pixeez.Objects.Work illust, ObservableCollection<PixivItem> source)
+        public static void HistoryAdd(this Application app, Pixeez.Objects.Work illust, ObservableCollection<PixivItem> source)
         {
             if (source is ObservableCollection<PixivItem>)
             {
@@ -1964,21 +1990,14 @@ namespace PixivWPF.Common
                     if (found.Count() >= 1)
                     {
                         var i = found.FirstOrDefault();
-                        source.Move(source.IndexOf(i), 0);
                         i.Illust = illust;
                         i.User = illust.User;
                         i.IsFollowed = i.Illust.IsLiked();
                         i.IsFavorited = i.User.IsLiked();
                         i.IsDownloaded = i.Illust.IsPartDownloaded(out file);
                         i.DownloadedFilePath = file;
-                        if (i.Source == null)
-                        {
-                            using (var thumb = await i.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize()))
-                            {
-                                i.Source = thumb.Source;
-                                i.State = TaskStatus.RanToCompletion;
-                            }
-                        }
+                        //i.State = TaskStatus.RanToCompletion;
+                        source.Move(source.IndexOf(i), 0);
                     }
                     else
                     {
@@ -2001,7 +2020,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async void HistoryAdd(this Application app, PixivItem item, ObservableCollection<PixivItem> source)
+        public static void HistoryAdd(this Application app, PixivItem item, ObservableCollection<PixivItem> source)
         {
             if (source is ObservableCollection<PixivItem>)
             {
@@ -2021,20 +2040,13 @@ namespace PixivWPF.Common
                     if (found.Count() >= 1)
                     {
                         var i = found.FirstOrDefault();
-                        source.Move(source.IndexOf(i), 0);
                         i.User = item.User;
                         i.Illust = item.Illust;
                         i.IsFollowed = item.IsFollowed;
                         i.IsFavorited = item.IsFavorited;
                         i.IsDownloaded = item.IsDownloaded;
-                        if (i.Source == null)
-                        {
-                            using (var thumb = await i.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize()))
-                            {
-                                i.Source = thumb.Source;
-                                i.State = TaskStatus.RanToCompletion;
-                            }
-                        }
+                        //i.State = TaskStatus.RanToCompletion;
+                        source.Move(source.IndexOf(i), 0);
                     }
                     else
                     {

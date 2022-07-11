@@ -533,6 +533,32 @@ namespace PixivWPF.Common
             return (id);
         }
 
+        private PixivItem FindItem(Image image)
+        {
+            PixivItem result = null;
+            try
+            {
+                var kv = ImageList.FirstOrDefault(i => i.Value == image);
+                var item = Items.FirstOrDefault(i => new string[] { $"i_{i.ID}", $"u_{i.ID}" }.Contains(kv.Key));
+                result = item is PixivItem ? item : null;
+            }
+            catch (Exception ex) { ex.ERROR("ImageListGrid.FindItem<Image>"); }
+            return (result);
+        }
+
+        private PixivItem FindItem(Canvas canvas)
+        {
+            PixivItem result = null;
+            try
+            {
+                var kv = CanvasList.FirstOrDefault(i => i.Value == canvas);
+                var item = Items.FirstOrDefault(i => new string[] { $"i_{i.ID}", $"u_{i.ID}" }.Contains(kv.Key));
+                result = item is PixivItem ? item : null;
+            }
+            catch (Exception ex) { ex.ERROR("ImageListGrid.FindItem<Canvas>"); }
+            return (result);
+        }
+
         public void Filtering(string filter)
         {
             if (PART_ImageTiles.Items.CanFilter)
@@ -996,6 +1022,41 @@ namespace PixivWPF.Common
             }
         }
 
+        public void UpdateTileImage(int index, bool overwrite = false)
+        {
+            if (0 <= index && index < Items.Count)
+            {
+                var item = Items[index];
+                var id = GetID(item);
+                var canvas = CanvasList.ContainsKey(id) ? CanvasList[id] : null;
+                var image = ImageList.ContainsKey(id) ? ImageList[id] : null;
+                if (item.State == TaskStatus.RanToCompletion)
+                {
+                    if (canvas is Canvas)
+                    {
+                        RenderCanvas(canvas, item.Source);
+                        CanvasList[id] = canvas;
+                    }
+                    else if (image is Image)
+                    {
+                        RenderImage(image, item.Source);
+                        ImageList[id] = image;
+                    }
+                }
+                else if (item.State == TaskStatus.Canceled)
+                {
+                    if (canvas is Canvas)
+                    {
+                        RenderCanvas(canvas, null);
+                    }
+                    else if (image is Image)
+                    {
+                        RenderImage(image, null);
+                    }
+                }
+            }
+        }
+
         public async void UpdateTilesImage(bool overwrite = false)
         {
             this.DoEvents();
@@ -1208,7 +1269,7 @@ namespace PixivWPF.Common
                 if (sender is Image)
                 {
                     var image = sender as Image;
-                    if (image.Source != null)
+                    if (image.Source != null && !Application.Current.InHistory(FindItem(image)))
                     {
                         image.Source = null;
                         image.UpdateLayout();
@@ -1217,7 +1278,7 @@ namespace PixivWPF.Common
                 else if (sender is Canvas)
                 {
                     var canvas = sender as Canvas;
-                    if (canvas.Background != null)
+                    if (canvas.Background != null && !Application.Current.InHistory(FindItem(canvas)))
                     {
                         canvas.Background = null;
                         canvas.UpdateLayout();
