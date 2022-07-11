@@ -3169,6 +3169,20 @@ namespace PixivWPF.Pages
                 else
                     Commands.OpenFileProperties.Execute(SubIllusts);
             }
+            else if (sender == ActionShowDownloadedMeta)
+            {
+                if (Contents.Count <= 1 || SubIllusts.SelectedItems.Count == 0)
+                    Commands.ShowMeta.Execute(Contents);
+                else
+                    Commands.ShowMeta.Execute(SubIllusts);
+            }
+            else if (sender == ActionTouchDownloadedMeta)
+            {
+                if (Contents.Count <= 1 || SubIllusts.SelectedItems.Count == 0)
+                    Commands.TouchMeta.Execute(Contents);
+                else
+                    Commands.TouchMeta.Execute(SubIllusts);
+            }
         }
 
         private void ActionRefreshPreview_Click(object sender, RoutedEventArgs e)
@@ -4882,6 +4896,36 @@ namespace PixivWPF.Pages
                         else if (host == FavoriteItemsExpander || host == FavoriteItems)
                         {
                             Commands.OpenFileProperties.Execute(FavoriteItems);
+                        }
+                    }
+                    else if (m.Uid.Equals("ActionShowDownloadedMeta", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        if (host == SubIllustsExpander || host == SubIllusts)
+                        {
+                            Commands.ShowMeta.Execute(SubIllusts);
+                        }
+                        else if (host == RelatedItemsExpander || host == RelatedItems)
+                        {
+                            Commands.ShowMeta.Execute(RelatedItems);
+                        }
+                        else if (host == FavoriteItemsExpander || host == FavoriteItems)
+                        {
+                            Commands.ShowMeta.Execute(FavoriteItems);
+                        }
+                    }
+                    else if (m.Uid.Equals("ActionTouchDownloadedMeta", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        if (host == SubIllustsExpander || host == SubIllusts)
+                        {
+                            Commands.TouchMeta.Execute(SubIllusts);
+                        }
+                        else if (host == RelatedItemsExpander || host == RelatedItems)
+                        {
+                            Commands.TouchMeta.Execute(RelatedItems);
+                        }
+                        else if (host == FavoriteItemsExpander || host == FavoriteItems)
+                        {
+                            Commands.TouchMeta.Execute(FavoriteItems);
                         }
                     }
                 }

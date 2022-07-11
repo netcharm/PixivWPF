@@ -1542,6 +1542,50 @@ namespace PixivWPF.Common
                 if (Cache is Setting) Cache.shell_compare_params = shell_compare_params;
             }
         }
+
+        private string shell_showmeta_cmd = "ShowMetaGUI.exe";
+        public string ShellShowMetaCmd
+        {
+            get { return (Cache is Setting ? Cache.shell_showmeta_cmd : shell_showmeta_cmd); }
+            set
+            {
+                shell_showmeta_cmd = value;
+                if (Cache is Setting) Cache.shell_showmeta_cmd = shell_showmeta_cmd;
+            }
+        }
+
+        private string shell_showmeta_params = "";
+        public string ShellShowMetaParams
+        {
+            get { return (Cache is Setting ? Cache.shell_showmeta_params : shell_showmeta_params); }
+            set
+            {
+                shell_showmeta_params = value;
+                if (Cache is Setting) Cache.shell_showmeta_params = shell_showmeta_params;
+            }
+        }
+
+        private string shell_touchmeta_cmd = "TouchMeta.exe";
+        public string ShellTouchMetaCmd
+        {
+            get { return (Cache is Setting ? Cache.shell_touchmeta_cmd : shell_touchmeta_cmd); }
+            set
+            {
+                shell_touchmeta_cmd = value;
+                if (Cache is Setting) Cache.shell_touchmeta_cmd = shell_touchmeta_cmd;
+            }
+        }
+
+        private string shell_touchmeta_params = "";
+        public string ShellTouchMetaParams
+        {
+            get { return (Cache is Setting ? Cache.shell_touchmeta_params : shell_touchmeta_params); }
+            set
+            {
+                shell_touchmeta_params = value;
+                if (Cache is Setting) Cache.shell_touchmeta_params = shell_touchmeta_params;
+            }
+        }
         #endregion
 
         #region Favorite/Follow Related

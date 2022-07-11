@@ -842,7 +842,7 @@ namespace PixivWPF.Common
             {
                 if (!(_ContentWindows_ is ConcurrentDictionary<string, ContentWindow>))
                     _ContentWindows_ = new ConcurrentDictionary<string, ContentWindow>();
-                var win_olds = _ContentWindows_.Where(cw => cw.Value == window);
+                var win_olds = _ContentWindows_.Where(cw => cw.Value == window || !cw.Value.IsLoaded);
                 foreach (var win in win_olds)
                 {
                     ContentWindow w = null;

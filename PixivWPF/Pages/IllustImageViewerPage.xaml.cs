@@ -867,6 +867,14 @@ namespace PixivWPF.Pages
                 {
                     Commands.OpenFileProperties.Execute(Contents);
                 }
+                else if (sender == ActionShowDownloadedMeta)
+                {
+                    Commands.ShowMeta.Execute(Contents);
+                }
+                else if (sender == ActionTouchDownloadedMeta)
+                {
+                    Commands.TouchMeta.Execute(Contents);
+                }
             }
         }
 

@@ -928,7 +928,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand OpenTouch { get; } = new DelegateCommand<dynamic>(async obj =>
+        public static ICommand OpenTouchFolder { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -986,7 +986,7 @@ namespace PixivWPF.Common
                     if (dlg.ShowDialog() == CommonFileDialogResult.Ok)
                     {
                         var result = dlg.FileName;
-                        OpenTouch.Execute(result);
+                        OpenTouchFolder.Execute(result);
                     }
                 }
                 else
@@ -1068,7 +1068,7 @@ namespace PixivWPF.Common
                     if (dlg.ShowDialog() == CommonFileDialogResult.Ok)
                     {
                         var result = dlg.FileName;
-                        OpenTouch.Execute(result);
+                        OpenTouchFolder.Execute(result);
                     }
                 }
                 else
@@ -1376,15 +1376,27 @@ namespace PixivWPF.Common
 
                         string fp = string.Empty;
 
-                        if ((item.HasPages() || item.IsPage() || item.IsPages() || item.Count > 1) && item.Index >= 0)
-                            illust.IsDownloadedAsync(out fp, item.Index, touch: false);
+                        //if ((item.HasPages() || item.IsPage() || item.IsPages() || item.Count > 1) && item.Index >= 0)
+                        //    illust.IsDownloadedAsync(out fp, item.Index, touch: false);
+                        if (item.HasPages() && item.Count > 1)
+                        {
+                            for (var i = 0; i < item.Count; i++)
+                            {
+                                if (illust.IsDownloadedAsync(out fp, i, touch: false)) fp.OpenFileWithShell();
+                            }
+                        }
                         else
-                            illust.IsPartDownloadedAsync(out fp, touch: false);
+                        {
+                            if (item.IsPage() || item.IsPages())
+                                illust.IsDownloadedAsync(out fp, item.Index, touch: false);
+                            else
+                                illust.IsPartDownloadedAsync(out fp, touch: false);
 
-                        if (string.IsNullOrEmpty(fp))
-                            OpenWorkPreview.Execute(item);
-                        else
-                            fp.OpenFileWithShell();
+                            if (string.IsNullOrEmpty(fp))
+                                OpenWorkPreview.Execute(item);
+                            else
+                                fp.OpenFileWithShell();
+                        }
                     }
                 }
                 else if (obj is ImageListGrid)
@@ -1439,6 +1451,203 @@ namespace PixivWPF.Common
                 {
                     var win = obj as Window;
                     if (win.Content is Page) OpenDownloaded.Execute(win.Content);
+                }
+            }
+            catch (Exception ex) { ex.ERROR("OpenDownloaded"); }
+        });
+
+        public static ICommand ShowMeta { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            try
+            {
+                var setting = Application.Current.LoadSetting();
+                if (obj is PixivItem)
+                {
+                    var item = obj as PixivItem;
+                    if (item.IsWork())
+                    {
+                        var illust = item.Illust;
+
+                        string fp = string.Empty;
+
+                        //if ((item.HasPages() || item.IsPage() || item.IsPages() || item.Count > 1) && item.Index >= 0)
+                        //    illust.IsDownloadedAsync(out fp, item.Index, touch: false);
+                        if (item.HasPages() && item.Count > 1)
+                        {
+                            for (var i = 0; i < item.Count; i++)
+                            {
+                                if (illust.IsDownloadedAsync(out fp, i, touch: false))
+                                    fp.OpenFileWithShell(command: setting.ShellShowMetaCmd, custom_params: setting.ShellShowMetaParams);
+                            }
+                        }
+                        else
+                        {
+                            if (item.IsPage() || item.IsPages())
+                                illust.IsDownloadedAsync(out fp, item.Index, touch: false);
+                            else
+                                illust.IsPartDownloadedAsync(out fp, touch: false);
+
+                            if (!string.IsNullOrEmpty(fp))
+                                fp.OpenFileWithShell(command: setting.ShellShowMetaCmd, custom_params: setting.ShellShowMetaParams);
+                        }
+                    }
+                }
+                else if (obj is ImageListGrid)
+                {
+                    await new Action(async () =>
+                    {
+                        var gallery = obj as ImageListGrid;
+                        foreach (var item in gallery.GetSelected())
+                        {
+                            await new Action(() =>
+                            {
+                                ShowMeta.Execute(item);
+                            }).InvokeAsync();
+                        }
+                    }).InvokeAsync();
+                }
+                else if (obj is IList<PixivItem>)
+                {
+                    await new Action(async () =>
+                    {
+                        var gallery = obj as IList<PixivItem>;
+                        foreach (var item in gallery)
+                        {
+                            await new Action(() =>
+                            {
+                                ShowMeta.Execute(item);
+                            }).InvokeAsync();
+                        }
+                    }).InvokeAsync();
+                }
+                else if (obj is TilesPage)
+                {
+                    (obj as TilesPage).OpenIllust();
+                }
+                else if (obj is IllustDetailPage)
+                {
+                    (obj as IllustDetailPage).OpenIllust();
+                }
+                else if (obj is IllustImageViewerPage)
+                {
+                    (obj as IllustImageViewerPage).OpenIllust();
+                }
+                else if (obj is SearchResultPage)
+                {
+                    (obj as SearchResultPage).OpenIllust();
+                }
+                else if (obj is HistoryPage)
+                {
+                    (obj as HistoryPage).OpenIllust();
+                }
+                else if (obj is Window)
+                {
+                    var win = obj as Window;
+                    if (win.Content is Page) ShowMeta.Execute(win.Content);
+                }
+            }
+            catch (Exception ex) { ex.ERROR("OpenDownloaded"); }
+        });
+
+        public static ICommand TouchMeta { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            try
+            {
+                var use_shell = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
+                var setting = Application.Current.LoadSetting();
+                if (obj is PixivItem)
+                {
+                    var item = obj as PixivItem;
+                    if (item.IsWork())
+                    {
+                        var illust = item.Illust;
+
+                        string fp = string.Empty;
+
+                        //if ((item.HasPages() || item.IsPage() || item.IsPages() || item.Count > 1) && item.Index >= 0)
+                        //    illust.IsDownloadedAsync(out fp, item.Index, touch: false);
+                        if (item.HasPages() && item.Count > 1)
+                        {
+                            for (var i = 0; i < item.Count; i++)
+                            {
+                                if (illust.IsDownloadedAsync(out fp, i, touch: false))
+                                {
+                                    if (use_shell)
+                                        fp.OpenFileWithShell(command: setting.ShellTouchMetaCmd, custom_params: setting.ShellTouchMetaParams);
+                                    else
+                                        item.TouchAsync(force: true);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (item.IsPage() || item.IsPages())
+                                illust.IsDownloadedAsync(out fp, item.Index, touch: false);
+                            else
+                                illust.IsPartDownloadedAsync(out fp, touch: false);
+
+                            if (!string.IsNullOrEmpty(fp))
+                            {
+                                if (use_shell)
+                                    fp.OpenFileWithShell(command: setting.ShellTouchMetaCmd, custom_params: setting.ShellTouchMetaParams);
+                                else
+                                    item.TouchAsync(force: true);
+                            }
+                        }
+                    }
+                }
+                else if (obj is ImageListGrid)
+                {
+                    await new Action(async () =>
+                    {
+                        var gallery = obj as ImageListGrid;
+                        foreach (var item in gallery.GetSelected())
+                        {
+                            await new Action(() =>
+                            {
+                                TouchMeta.Execute(item);
+                            }).InvokeAsync();
+                        }
+                    }).InvokeAsync();
+                }
+                else if (obj is IList<PixivItem>)
+                {
+                    await new Action(async () =>
+                    {
+                        var gallery = obj as IList<PixivItem>;
+                        foreach (var item in gallery)
+                        {
+                            await new Action(() =>
+                            {
+                                TouchMeta.Execute(item);
+                            }).InvokeAsync();
+                        }
+                    }).InvokeAsync();
+                }
+                else if (obj is TilesPage)
+                {
+                    (obj as TilesPage).OpenIllust();
+                }
+                else if (obj is IllustDetailPage)
+                {
+                    (obj as IllustDetailPage).OpenIllust();
+                }
+                else if (obj is IllustImageViewerPage)
+                {
+                    (obj as IllustImageViewerPage).OpenIllust();
+                }
+                else if (obj is SearchResultPage)
+                {
+                    (obj as SearchResultPage).OpenIllust();
+                }
+                else if (obj is HistoryPage)
+                {
+                    (obj as HistoryPage).OpenIllust();
+                }
+                else if (obj is Window)
+                {
+                    var win = obj as Window;
+                    if (win.Content is Page) TouchMeta.Execute(win.Content);
                 }
             }
             catch (Exception ex) { ex.ERROR("OpenDownloaded"); }

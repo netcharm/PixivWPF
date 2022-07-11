@@ -2396,7 +2396,7 @@ namespace PixivWPF.Common
                             var IsImage = ext_imgs.Contains(Path.GetExtension(file).ToLower()) ? true : false;
                             var ext = string.Join("|", ext_movs.Select(e => e.Substring(1)));
                             var IsUgoira = Regex.IsMatch(Path.GetFileName(file), $@"\d+_ugoira\d+x\d+\.({ext})", RegexOptions.IgnoreCase);
-                            if (AltViewer && IsImage)
+                            if (AltViewer && IsImage && string.IsNullOrEmpty(command))
                             {
                                 if (string.IsNullOrEmpty(setting.ShellImageViewerCmd) ||
                                     !setting.ShellImageViewerCmd.ToLower().Contains(setting.ShellImageViewer.ToLower()))
@@ -3471,7 +3471,96 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        public static bool AttachMetaInfoInternal(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "")
+        public static string GetMetaInfo(this FileInfo fileinfo)
+        {
+            var result = string.Empty;
+
+            try
+            {
+                if (fileinfo.Exists)
+                {
+                    var exif = new ExifData(fileinfo.FullName);
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine($"{"ImageType".PadRight(20)} : {exif.ImageType}");
+                    foreach (var TagName in Enum.GetNames(typeof(ExifTag)))
+                    {
+                        bool MSB = exif.ByteOrder == ExifByteOrder.BigEndian ? true : false;
+                        ExifTag tag;
+                        if (Enum.TryParse(TagName, out tag))
+                        {
+                            if (exif.TagExists(tag))
+                            {
+                                ExifTagType tag_type;
+                                if (exif.GetTagType(tag, out tag_type))
+                                {
+                                    dynamic tag_value = null;
+                                    switch(tag_type)
+                                    {
+                                        case ExifTagType.Ascii:
+                                            var value_a = string.Empty;
+                                            if (exif.GetTagValue(tag, out value_a, StrCoding.UsAscii)) tag_value = value_a;
+                                            break;
+                                        case ExifTagType.Double:
+                                            //var value_d = double;
+                                            //if (exif.GetTagValue(tag, out value_d)) tag_value = value_a;
+                                            break;
+                                        case ExifTagType.Float:
+                                            var value = string.Empty;
+                                            if (exif.GetTagValue(tag, out value_a, StrCoding.UsAscii)) tag_value = value_a;
+                                            break;
+                                        case ExifTagType.SByte:
+                                            //var value = string.Empty;
+                                            //if (exif.GetTagValue(tag, out value_a, StrCoding.UsAscii)) tag_value = value_a;
+                                            break;
+                                        case ExifTagType.Byte:
+                                            //var value = string.Empty;
+                                            //if (exif.GetTagValue(tag, out value_a, StrCoding.UsAscii)) tag_value = value_a;
+                                            break;
+                                        case ExifTagType.SShort:
+                                            //var value = string.Empty;
+                                            //if (exif.GetTagValue(tag, out value_a, StrCoding.UsAscii)) tag_value = value_a;
+                                            break;
+                                        case ExifTagType.UShort:
+                                            //var value = string.Empty;
+                                            //if (exif.GetTagValue(tag, out value_a, StrCoding.UsAscii)) tag_value = value_a;
+                                            break;
+                                        case ExifTagType.SLong:
+                                            //var value = string.Empty;
+                                            //if (exif.GetTagValue(tag, out value_a, StrCoding.UsAscii)) tag_value = value_a;
+                                            break;
+                                        case ExifTagType.ULong:
+                                            //var value = string.Empty;
+                                            //if (exif.GetTagValue(tag, out value_a, StrCoding.UsAscii)) tag_value = value_a;
+                                            break;
+                                        case ExifTagType.SRational:
+                                            //var value = string.Empty;
+                                            //if (exif.GetTagValue(tag, out value_a, StrCoding.UsAscii)) tag_value = value_a;
+                                            break;
+                                        case ExifTagType.URational:
+                                            //var value = string.Empty;
+                                            //if (exif.GetTagValue(tag, out value_a, StrCoding.UsAscii)) tag_value = value_a;
+                                            break;
+                                        case ExifTagType.Undefined:
+                                            //var value = string.Empty;
+                                            //if (exif.GetTagValue(tag, out value_a, StrCoding.UsAscii)) tag_value = value_a;
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                    sb.AppendLine($"{"TagName".PadRight(20)} : {""}");
+                                }                                
+                            }
+                        }
+                    }
+                    //foreach(var attr in exif.enu))
+                }                
+            }
+            catch(Exception ex) { ex.ERROR("GetMetaInfo"); }
+
+            return (result);
+        }
+
+        public static bool AttachMetaInfoInternal(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", bool force = false)
         {
             var result = false;
             try
@@ -3619,13 +3708,13 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> AttachMetaInfoInternalAsync(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "")
+        public static async Task<bool> AttachMetaInfoInternalAsync(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", bool force = false)
         {
             return(await Task.Run<bool>(() => { return (AttachMetaInfoInternal(fileinfo, dt, id)); }));
         }
 
         private static ConcurrentDictionary<string, long> LastAttachMetaInfo = new ConcurrentDictionary<string, long>();
-        public static async Task<bool> AttachMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "")
+        public static async Task<bool> AttachMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", bool force = false)
         {
             var result = false;
             var now = DateTime.Now.Ticks;
@@ -3638,7 +3727,7 @@ namespace PixivWPF.Common
 #if DEBUG
                     System.Diagnostics.Debug.WriteLine($"=> Touching Meta : {fileinfo.Name} Started ...");
 #endif
-                    if (!LastAttachMetaInfo.ContainsKey(fileinfo.FullName) || (now - LastAttachMetaInfo[fileinfo.FullName] > TimeSpan.FromMilliseconds(interval).Ticks))
+                    if (force || (!LastAttachMetaInfo.ContainsKey(fileinfo.FullName) || (now - LastAttachMetaInfo[fileinfo.FullName] > TimeSpan.FromMilliseconds(interval).Ticks)))
                     {
                         LastAttachMetaInfo.AddOrUpdate(fileinfo.FullName, _Attaching_[fileinfo.FullName], (k, v) => _Attaching_[fileinfo.FullName]);
                         long tick = now;
@@ -3859,7 +3948,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async void AttachMetaInfo(this string folder, Action progressAction = null)
+        public static async void AttachMetaInfo(this string folder, Action progressAction = null, bool force = false)
         {
             if (!string.IsNullOrEmpty(folder))
             {
@@ -3889,7 +3978,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void AttachMetaInfo(this DirectoryInfo folderinfo, bool recursion = false, CancellationTokenSource cancelSource = null, Action<BatchProgressInfo> reportAction = null, bool test = false)
+        public static void AttachMetaInfo(this DirectoryInfo folderinfo, bool recursion = false, CancellationTokenSource cancelSource = null, Action<BatchProgressInfo> reportAction = null, bool test = false, bool force = false)
         {
             if (Directory.Exists(folderinfo.FullName))
             {
@@ -3964,7 +4053,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void Touch(this DirectoryInfo folderinfo, bool recursion = false, CancellationTokenSource cancelSource = null, Action<BatchProgressInfo> reportAction = null, bool test = false)
+        public static void Touch(this DirectoryInfo folderinfo, bool recursion = false, CancellationTokenSource cancelSource = null, Action<BatchProgressInfo> reportAction = null, bool test = false, bool force = false)
         {
             if (Directory.Exists(folderinfo.FullName))
             {
@@ -4036,7 +4125,7 @@ namespace PixivWPF.Common
         }
 
         private static ConcurrentDictionary<string, long> LastTouch = new ConcurrentDictionary<string, long>();
-        public static void Touch(this FileInfo fileinfo, string url, bool local = false, bool meta = true)
+        public static void Touch(this FileInfo fileinfo, string url, bool local = false, bool meta = true, bool force = false)
         {
             try
             {
@@ -4045,7 +4134,7 @@ namespace PixivWPF.Common
                 var capacities = Application.Current.LoadSetting().DownloadTouchCapatices;
                 if (_Touching_.TryAdd(fileinfo.FullName, DateTime.Now.Ticks))
                 {
-                    if (!LastTouch.ContainsKey(fileinfo.FullName) || (now - LastTouch[fileinfo.FullName] > TimeSpan.FromMilliseconds(interval).Ticks))
+                    if (force || (!LastTouch.ContainsKey(fileinfo.FullName) || (now - LastTouch[fileinfo.FullName] > TimeSpan.FromMilliseconds(interval).Ticks)))
                     {
                         LastTouch.AddOrUpdate(fileinfo.FullName, _Touching_[fileinfo.FullName], (k, v) => _Touching_[fileinfo.FullName]);
                         long tick = now;
@@ -4065,14 +4154,14 @@ namespace PixivWPF.Common
                                     //if (setting.DownloadAttachMetaInfo && meta && await fileinfo.WaitFileUnlockAsync())
                                     if (setting.DownloadAttachMetaInfo && meta && fileinfo.WaitFileUnlock())
                                     {
-                                        meta_ret = await fileinfo.AttachMetaInfo(dt: fdt);
+                                        meta_ret = await fileinfo.AttachMetaInfo(dt: fdt, force: force);
                                         fileinfo = new FileInfo(fileinfo.FullName);
                                     }
                                     //if (await fileinfo.WaitFileUnlockAsync())
                                     if (meta_ret && fileinfo.WaitFileUnlock())
                                     {
 #if DEBUG
-                                    Debug.WriteLine($"=> Touching Time : {fileinfo.Name}");
+                                        Debug.WriteLine($"=> Touching Time : {fileinfo.Name}");
 #endif
                                         if (fileinfo.CreationTime.Ticks != fdt.Ticks) fileinfo.CreationTime = fdt;
                                         if (fileinfo.LastWriteTime.Ticks != fdt.Ticks) fileinfo.LastWriteTime = fdt;
@@ -4100,25 +4189,25 @@ namespace PixivWPF.Common
             catch (Exception ex) { var id = fileinfo is FileInfo ? fileinfo.Name : url.GetIllustId(); ex.ERROR($"Touch_{id}"); }
         }
 
-        public static void Touch(this string file, string url, bool local = false, bool meta = true)
+        public static void Touch(this string file, string url, bool local = false, bool meta = true, bool force = false)
         {
             try
             {
                 if (File.Exists(file) && file.WaitFileUnlock())
                 {
                     FileInfo fi = new FileInfo(file);
-                    fi.Touch(url, local, meta);
+                    fi.Touch(url, local, meta, force);
                 }
             }
             catch (Exception ex) { var id = Path.GetFileName(file); ex.ERROR($"Touch_{id}"); }
         }
 
-        public static void Touch(this string file, Pixeez.Objects.Work Illust, bool local = false, bool meta = true)
+        public static void Touch(this string file, Pixeez.Objects.Work Illust, bool local = false, bool meta = true, bool force = false)
         {
-            file.Touch(Illust.GetOriginalUrl(), local, meta);
+            file.Touch(Illust.GetOriginalUrl(), local, meta, force);
         }
 
-        public static void Touch(this PixivItem item, bool local = false, bool meta = true)
+        public static void Touch(this PixivItem item, bool local = false, bool meta = true, bool force = false)
         {
             if (item.IsPage())
             {
@@ -4136,29 +4225,29 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async void TouchAsync(this string file, string url, bool local = false, bool meta = true)
+        public static async void TouchAsync(this string file, string url, bool local = false, bool meta = true, bool force = false)
         {
-            await new Action(() => { Touch(file, url, local, meta); }).InvokeAsync();
+            await new Action(() => { Touch(file, url, local, meta, force); }).InvokeAsync();
         }
 
-        public static async void TouchAsync(this PixivItem item, bool local = false, bool meta = true)
+        public static async void TouchAsync(this PixivItem item, bool local = false, bool meta = true, bool force = false)
         {
-            await new Action(() => { Touch(item, local, meta); }).InvokeAsync();
+            await new Action(() => { Touch(item, local, meta, force); }).InvokeAsync();
         }
 
-        public static async void TouchAsync(this IEnumerable<string> files, string url, bool local = false, bool meta = true)
+        public static async void TouchAsync(this IEnumerable<string> files, string url, bool local = false, bool meta = true, bool force = false)
         {
             foreach (var file in files)
             {
-                await new Action(() => { Touch(file, url, local, meta); }).InvokeAsync();
+                await new Action(() => { Touch(file, url, local, meta, force); }).InvokeAsync();
             }
         }
 
-        public static async void TouchAsync(this IEnumerable<PixivItem> items, bool local = false, bool meta = true)
+        public static async void TouchAsync(this IEnumerable<PixivItem> items, bool local = false, bool meta = true, bool force = false)
         {
             foreach (var item in items)
             {
-                await new Action(() => { Touch(item, local, meta); }).InvokeAsync();
+                await new Action(() => { Touch(item, local, meta, force); }).InvokeAsync();
             }
         }
         #endregion

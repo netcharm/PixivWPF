@@ -525,6 +525,12 @@ namespace PixivWPF.Pages
                 else if (sender.GetUid().Equals("ActionOpenDownloaded"))
                     foreach (PixivItem item in HistoryItems.SelectedItems)
                         Commands.OpenDownloaded.Execute(item);
+                else if (sender.GetUid().Equals("ActionShowDownloadedMeta"))
+                    foreach (PixivItem item in HistoryItems.SelectedItems)
+                        Commands.ShowMeta.Execute(item);
+                else if (sender.GetUid().Equals("ActionTouchDownloadedMeta"))
+                    foreach (PixivItem item in HistoryItems.SelectedItems)
+                        Commands.TouchMeta.Execute(item);
             }
         }
 

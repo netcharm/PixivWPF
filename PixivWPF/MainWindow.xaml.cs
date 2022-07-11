@@ -612,7 +612,7 @@ namespace PixivWPF
 
         private void CommandTouch_Click(object sender, RoutedEventArgs e)
         {
-            Commands.OpenTouch.Execute(null);
+            Commands.OpenTouchFolder.Execute(null);
         }
 
         private void CommandAttachMeta_Click(object sender, RoutedEventArgs e)
