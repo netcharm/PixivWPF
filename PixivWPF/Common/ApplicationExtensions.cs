@@ -1886,59 +1886,7 @@ namespace PixivWPF.Common
         private static ObservableCollection<PixivItem> history = new ObservableCollection<PixivItem>();
         public static ObservableCollection<PixivItem> History { get { return (HistorySource(null)); } }
 
-        public static void HistoryAdd(this Application app, Pixeez.Objects.Work illust, ObservableCollection<PixivItem> source)
-        {
-            if (source is ObservableCollection<PixivItem>)
-            {
-                try
-                {
-                    var new_id = illust.Id ?? -1;
-                    if (source.Count() > 0)
-                    {
-                        var last_item = source.First();
-                        if (last_item.IsWork())
-                        {
-                            var last_id = last_item.Illust.Id ?? -1;
-                            if (last_id == new_id) return;
-                        }
-                    }
-
-                    var illusts = source.Where(i => i.IsWork()).Distinct();
-                    var found = illusts.Where(i => i.Illust.Id == new_id);
-                    var file = string.Empty;
-                    if (found.Count() >= 1)
-                    {
-                        var i = found.FirstOrDefault();
-                        i.Illust = illust;
-                        i.User = illust.User;
-                        i.IsFollowed = i.Illust.IsLiked();
-                        i.IsFavorited = i.User.IsLiked();
-                        i.IsDownloaded = i.Illust.IsPartDownloaded(out file);
-                        i.DownloadedFilePath = file;
-                        source.Move(source.IndexOf(i), 0);
-                    }
-                    else
-                    {
-                        source.Insert(0, illust.WorkItem());
-                        var setting = app.LoadSetting();
-                        if (source.Count > setting.HistoryLimit)
-                        {
-                            source.Last().State = TaskStatus.Canceled;
-                            source.Last().Source = null;
-                            Application.Current.DoEvents();
-                            source.Remove(source.Last());
-                        }
-                    }
-                    HistoryUpdate(app, source);
-                }
-                catch (Exception ex)
-                {
-                    ex.Message.ShowMessageBox("ERROR[HISTORY]");
-                }
-            }
-        }
-
-        public static void HistoryAdd(this Application app, Pixeez.Objects.UserBase user, ObservableCollection<PixivItem> source)
+        public static async void HistoryAdd(this Application app, Pixeez.Objects.UserBase user, ObservableCollection<PixivItem> source)
         {
             if (source is ObservableCollection<PixivItem>)
             {
@@ -1962,6 +1910,14 @@ namespace PixivWPF.Common
                         u.User = user;
                         u.IsFollowed = u.Illust.IsLiked();
                         u.IsFavorited = u.User.IsLiked();
+                        if (u.Source == null)
+                        {
+                            using (var thumb = await u.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize()))
+                            {
+                                u.Source = thumb.Source;
+                                u.State = TaskStatus.RanToCompletion;
+                            }
+                        }
                         source.Move(source.IndexOf(u), 0);
                     }
                     else
@@ -1985,7 +1941,67 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void HistoryAdd(this Application app, PixivItem item, ObservableCollection<PixivItem> source)
+        public static async void HistoryAdd(this Application app, Pixeez.Objects.Work illust, ObservableCollection<PixivItem> source)
+        {
+            if (source is ObservableCollection<PixivItem>)
+            {
+                try
+                {
+                    var new_id = illust.Id ?? -1;
+                    if (source.Count() > 0)
+                    {
+                        var last_item = source.First();
+                        if (last_item.IsWork())
+                        {
+                            var last_id = last_item.Illust.Id ?? -1;
+                            if (last_id == new_id) return;
+                        }
+                    }
+
+                    var illusts = source.Where(i => i.IsWork()).Distinct();
+                    var found = illusts.Where(i => i.Illust.Id == new_id);
+                    var file = string.Empty;
+                    if (found.Count() >= 1)
+                    {
+                        var i = found.FirstOrDefault();
+                        source.Move(source.IndexOf(i), 0);
+                        i.Illust = illust;
+                        i.User = illust.User;
+                        i.IsFollowed = i.Illust.IsLiked();
+                        i.IsFavorited = i.User.IsLiked();
+                        i.IsDownloaded = i.Illust.IsPartDownloaded(out file);
+                        i.DownloadedFilePath = file;
+                        if (i.Source == null)
+                        {
+                            using (var thumb = await i.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize()))
+                            {
+                                i.Source = thumb.Source;
+                                i.State = TaskStatus.RanToCompletion;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        source.Insert(0, illust.WorkItem());
+                        var setting = app.LoadSetting();
+                        if (source.Count > setting.HistoryLimit)
+                        {
+                            source.Last().State = TaskStatus.Canceled;
+                            source.Last().Source = null;
+                            Application.Current.DoEvents();
+                            source.Remove(source.Last());
+                        }
+                    }
+                    HistoryUpdate(app, source);
+                }
+                catch (Exception ex)
+                {
+                    ex.Message.ShowMessageBox("ERROR[HISTORY]");
+                }
+            }
+        }
+
+        public static async void HistoryAdd(this Application app, PixivItem item, ObservableCollection<PixivItem> source)
         {
             if (source is ObservableCollection<PixivItem>)
             {
@@ -2005,13 +2021,20 @@ namespace PixivWPF.Common
                     if (found.Count() >= 1)
                     {
                         var i = found.FirstOrDefault();
+                        source.Move(source.IndexOf(i), 0);
                         i.User = item.User;
                         i.Illust = item.Illust;
                         i.IsFollowed = item.IsFollowed;
                         i.IsFavorited = item.IsFavorited;
                         i.IsDownloaded = item.IsDownloaded;
-                        i.State = TaskStatus.RanToCompletion;
-                        source.Move(source.IndexOf(i), 0);
+                        if (i.Source == null)
+                        {
+                            using (var thumb = await i.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize()))
+                            {
+                                i.Source = thumb.Source;
+                                i.State = TaskStatus.RanToCompletion;
+                            }
+                        }
                     }
                     else
                     {
@@ -2034,14 +2057,14 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void HistoryAdd(this Application app, Pixeez.Objects.Work illust)
-        {
-            app.HistoryAdd(illust, history);
-        }
-
         public static void HistoryAdd(this Application app, Pixeez.Objects.UserBase user)
         {
             app.HistoryAdd(user, history);
+        }
+
+        public static void HistoryAdd(this Application app, Pixeez.Objects.Work illust)
+        {
+            app.HistoryAdd(illust, history);
         }
 
         public static void HistoryAdd(this Application app, PixivItem item)
