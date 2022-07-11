@@ -2378,6 +2378,7 @@ namespace PixivWPF.Common
                         var SysDir = Path.Combine(WinDir, Environment.Is64BitOperatingSystem ? "SysWOW64" : "System32", "OpenWith.exe");
                         var OpenWith = string.IsNullOrEmpty(WinDir) ? string.Empty : SysDir;
                         var openwith_exists = File.Exists(OpenWith) ?  true : false;
+                        var command_full = Path.IsPathRooted(command) ? command : command.Where().FirstOrDefault();
 
                         Application.Current.ReleaseKeyboardModifiers(use_keybd_event: true);
                         Application.Current.DoEvents();
@@ -2386,7 +2387,7 @@ namespace PixivWPF.Common
                         {
                             file.OpenShellProperties();
                         }
-                        else if (UsingOpenWith && openwith_exists)
+                        else if (string.IsNullOrEmpty(command_full) && UsingOpenWith && openwith_exists)
                         {
                             Process.Start(OpenWith, file);
                             result = true;
@@ -2396,7 +2397,7 @@ namespace PixivWPF.Common
                             var IsImage = ext_imgs.Contains(Path.GetExtension(file).ToLower()) ? true : false;
                             var ext = string.Join("|", ext_movs.Select(e => e.Substring(1)));
                             var IsUgoira = Regex.IsMatch(Path.GetFileName(file), $@"\d+_ugoira\d+x\d+\.({ext})", RegexOptions.IgnoreCase);
-                            if (AltViewer && IsImage && string.IsNullOrEmpty(command))
+                            if (AltViewer && IsImage && string.IsNullOrEmpty(command_full))
                             {
                                 if (string.IsNullOrEmpty(setting.ShellImageViewerCmd) ||
                                     !setting.ShellImageViewerCmd.ToLower().Contains(setting.ShellImageViewer.ToLower()))
@@ -2427,10 +2428,10 @@ namespace PixivWPF.Common
                             }
                             else
                             {
-                                if (string.IsNullOrEmpty(command))
+                                if (string.IsNullOrEmpty(command_full))
                                     Process.Start(file);
                                 else
-                                    Process.Start(command, $"{custom_params} \"{file}\"".Trim());
+                                    Process.Start(command_full, $"{custom_params} \"{file}\"".Trim());
                             }
                         }
                         result = true;
@@ -4132,7 +4133,8 @@ namespace PixivWPF.Common
                 var now = DateTime.Now.Ticks;
                 var interval = Application.Current.LoadSetting().DownloadTouchInterval;
                 var capacities = Application.Current.LoadSetting().DownloadTouchCapatices;
-                if (_Touching_.TryAdd(fileinfo.FullName, DateTime.Now.Ticks))
+                if (force ? (_Touching_.ContainsKey(fileinfo.FullName) ? _Touching_.TryUpdate(fileinfo.FullName, DateTime.Now.Ticks, _Touching_[fileinfo.FullName]) : _Touching_.TryAdd(fileinfo.FullName, DateTime.Now.Ticks)) : _Touching_.TryAdd(fileinfo.FullName, DateTime.Now.Ticks))
+//                if (_Touching_.TryAdd(fileinfo.FullName, DateTime.Now.Ticks))
                 {
                     if (force || (!LastTouch.ContainsKey(fileinfo.FullName) || (now - LastTouch[fileinfo.FullName] > TimeSpan.FromMilliseconds(interval).Ticks)))
                     {

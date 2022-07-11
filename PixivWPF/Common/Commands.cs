@@ -1376,13 +1376,18 @@ namespace PixivWPF.Common
 
                         string fp = string.Empty;
 
-                        //if ((item.HasPages() || item.IsPage() || item.IsPages() || item.Count > 1) && item.Index >= 0)
-                        //    illust.IsDownloadedAsync(out fp, item.Index, touch: false);
                         if (item.HasPages() && item.Count > 1)
                         {
-                            for (var i = 0; i < item.Count; i++)
+                            if (item.Index >= 0)
                             {
-                                if (illust.IsDownloadedAsync(out fp, i, touch: false)) fp.OpenFileWithShell();
+                                if (illust.IsDownloadedAsync(out fp, item.Index, touch: false)) fp.OpenFileWithShell();
+                            }
+                            else
+                            {
+                                for (var i = 0; i < item.Count; i++)
+                                {
+                                    if (illust.IsDownloadedAsync(out fp, i, touch: false)) fp.OpenFileWithShell();
+                                }
                             }
                         }
                         else
@@ -1470,14 +1475,20 @@ namespace PixivWPF.Common
 
                         string fp = string.Empty;
 
-                        //if ((item.HasPages() || item.IsPage() || item.IsPages() || item.Count > 1) && item.Index >= 0)
-                        //    illust.IsDownloadedAsync(out fp, item.Index, touch: false);
                         if (item.HasPages() && item.Count > 1)
                         {
-                            for (var i = 0; i < item.Count; i++)
+                            if (item.Index >= 0)
                             {
-                                if (illust.IsDownloadedAsync(out fp, i, touch: false))
+                                if (illust.IsDownloadedAsync(out fp, item.Index, touch: false))
                                     fp.OpenFileWithShell(command: setting.ShellShowMetaCmd, custom_params: setting.ShellShowMetaParams);
+                            }
+                            else
+                            {
+                                for (var i = 0; i < item.Count; i++)
+                                {
+                                    if (illust.IsDownloadedAsync(out fp, i, touch: false))
+                                        fp.OpenFileWithShell(command: setting.ShellShowMetaCmd, custom_params: setting.ShellShowMetaParams);
+                                }
                             }
                         }
                         else
@@ -1553,7 +1564,8 @@ namespace PixivWPF.Common
         {
             try
             {
-                var use_shell = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
+                var use_shell = Keyboard.Modifiers == ModifierKeys.Shift ? true : false;
+                var force = Keyboard.Modifiers == ModifierKeys.Control ? true : false;
                 var setting = Application.Current.LoadSetting();
                 if (obj is PixivItem)
                 {
@@ -1564,18 +1576,29 @@ namespace PixivWPF.Common
 
                         string fp = string.Empty;
 
-                        //if ((item.HasPages() || item.IsPage() || item.IsPages() || item.Count > 1) && item.Index >= 0)
-                        //    illust.IsDownloadedAsync(out fp, item.Index, touch: false);
                         if (item.HasPages() && item.Count > 1)
                         {
-                            for (var i = 0; i < item.Count; i++)
+                            if (item.Index >= 0)
                             {
-                                if (illust.IsDownloadedAsync(out fp, i, touch: false))
+                                if (illust.IsDownloadedAsync(out fp, item.Index, touch: false))
                                 {
                                     if (use_shell)
                                         fp.OpenFileWithShell(command: setting.ShellTouchMetaCmd, custom_params: setting.ShellTouchMetaParams);
                                     else
                                         item.TouchAsync(force: true);
+                                }
+                            }
+                            else
+                            {
+                                for (var i = 0; i < item.Count; i++)
+                                {
+                                    if (illust.IsDownloadedAsync(out fp, i, touch: false))
+                                    {
+                                        if (use_shell)
+                                            fp.OpenFileWithShell(command: setting.ShellTouchMetaCmd, custom_params: setting.ShellTouchMetaParams);
+                                        else
+                                            item.TouchAsync(force: true);
+                                    }
                                 }
                             }
                         }

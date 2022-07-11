@@ -700,6 +700,13 @@
                                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
+                                <Separator/>
+                                <MenuItem x:Name="PreviewSave" x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click">
+                                    <MenuItem.Icon>
+                                        <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
                                 <MenuItem x:Name="ActionShowDownloadedMeta" x:Uid="ActionShowDownloadedMeta" Header="Show Downloaded Metadata" Click="ActionOpenIllust_Click">
                                     <MenuItem.Icon>
                                         <TextBlock Margin="4,0,0,0" Text="&#xE114;" FontSize="16" FontFamily="Segoe MDL2 Assets"
@@ -709,13 +716,6 @@
                                 <MenuItem x:Name="ActionTouchDownloadedMeta" x:Uid="ActionTouchDownloadedMeta" Header="Touch Downloaded Metadata" Click="ActionOpenIllust_Click">
                                     <MenuItem.Icon>
                                         <TextBlock Margin="4,0,0,0" Text="&#xE114;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                                <Separator/>
-                                <MenuItem x:Name="PreviewSave" x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click">
-                                    <MenuItem.Icon>
-                                        <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
