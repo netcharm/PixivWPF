@@ -3472,13 +3472,143 @@ namespace PixivWPF.Common
         }
         #endregion
 
+        public static MetaInfo MakeMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "")
+        {
+            MetaInfo meta = null;
+            #region make meta struct
+            try
+            {
+                if (string.IsNullOrEmpty(id)) id = GetIllustId(fileinfo.Name);
+                var illust = id.FindIllust();
+                if (illust is Pixeez.Objects.Work && (dt != null || dt.Ticks > 0))
+                {
+                    var uid = $"{illust.User.Id}";
+                    meta = new MetaInfo()
+                    {
+                        DateCreated = dt,
+                        DateModified = dt,
+                        DateAccesed = dt,
+                        DateAcquired = dt,
+                        DateTaken = dt,
+
+                        Title = illust.Title.KatakanaHalfToFull().FilterInvalidChar().TrimEnd(),
+                        Subject = id.ArtworkLink(),
+                        Author = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}",
+                        Copyright = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}",
+                        Keywords = string.Join("; ", illust.Tags.Select(t => t.Replace(";", "；⸵")).Distinct(StringComparer.CurrentCultureIgnoreCase)),
+                        Comment = illust.Caption.HtmlToText(),
+
+                        Rating = illust.IsLiked() ? 75 : 0,
+                        Ranking = illust.IsLiked() ? 4 : 0,
+                    };
+                }
+            }
+            catch (Exception ex) { ex.ERROR("MakeMeteInfo"); }
+            #endregion
+            return (meta);
+        }
+
+        public static Dictionary<string, string> GetPngMetaInfo(this FileInfo fileinfo, Encoding encoding = default(Encoding))
+        {
+            var result = new Dictionary<string, string>();
+            try
+            {
+                if (fileinfo.Exists && fileinfo.Length > 0)
+                {
+                    if (encoding == default(Encoding)) encoding = Encoding.UTF8;
+
+                    string[] png_meta_chunk_text = new string[]{ "iTXt", "tEXt", "zTXt" };
+                    var png_r  = Hjg.Pngcs.FileHelper.CreatePngReader(fileinfo.FullName);
+                    if (png_r is Hjg.Pngcs.PngReader)
+                    {
+                        png_r.ChunkLoadBehaviour = Hjg.Pngcs.Chunks.ChunkLoadBehaviour.LOAD_CHUNK_IF_SAFE;
+                        var png_chunks = png_r.GetChunksList();
+                        foreach (var chunk in png_chunks.GetChunks())
+                        {
+                            if (png_meta_chunk_text.Contains(chunk.Id))
+                            {
+                                //var value = new byte[chunk.Length];
+                                var raw = chunk.CreateRawChunk();
+                                chunk.ParseFromRaw(raw);
+                                var data = encoding.GetString(raw.Data).Split('\0');
+                                var key = data.FirstOrDefault();
+                                var value = data.LastOrDefault();
+                                result[key] = value;
+                            }
+                        }
+                        png_r.End();
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("GetMetaInfoPng"); }
+            return (result);
+        }
+
+        public static bool UpdatePngMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", MetaInfo meta = null, Encoding encoding = default(Encoding))
+        {
+            var result = false;
+            try
+            {
+                if (encoding == default(Encoding)) encoding = Encoding.UTF8;
+
+                if (fileinfo.Exists && fileinfo.Length > 0)
+                {
+                    if (meta == null) meta = MakeMetaInfo(fileinfo, dt, id);
+                    if (meta is MetaInfo)
+                    {
+                        var png_r  = Hjg.Pngcs.FileHelper.CreatePngReader(fileinfo.FullName);
+                        if (png_r is Hjg.Pngcs.PngReader)
+                        {
+                            //png_r.ChunkLoadBehaviour = Hjg.Pngcs.Chunks.ChunkLoadBehaviour.LOAD_CHUNK_IF_SAFE;
+                            var imageinfo = png_r.ImgInfo;
+
+                            var png_f = $"{fileinfo.FullName}~";
+                            var png_w = Hjg.Pngcs.FileHelper.CreatePngWriter(png_f, png_r.ImgInfo, true);
+                            if (png_w is Hjg.Pngcs.PngWriter)
+                            {
+                                png_w.CopyChunksFirst(png_r, Hjg.Pngcs.Chunks.ChunkCopyBehaviour.COPY_ALL);
+                                for (int row = 0; row < png_r.ImgInfo.Rows; row++)
+                                {
+                                    Hjg.Pngcs.ImageLine il = png_r.ReadRow(row);
+                                    png_w.WriteRow(il, row);
+                                }
+
+                                var metainfo = new Dictionary<string, string>();
+                                metainfo["Creation Time"] = (meta.DateTaken ?? dt).ToString("yyyy:MM:dd HH:mm:sszzz");
+                                metainfo["Title"] = meta.Title;
+                                metainfo["Source"] = meta.Subject;
+                                metainfo["Comment"] = meta.Keywords;
+                                metainfo["Description"] = meta.Comment;
+                                metainfo["Author"] = meta.Author;
+                                metainfo["Copyright"] = meta.Author;
+
+                                var meta_png = png_w.GetMetadata();
+                                foreach (var kv in metainfo)
+                                {
+                                    meta_png.SetText(kv.Key, kv.Value);
+                                }
+
+                                png_r.End();
+                                png_w.End();
+                                fileinfo.Delete();
+                                File.Move(png_f, fileinfo.FullName);
+                                return (true);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("GetMetaInfoPng"); }
+            return (result);
+        }
+
         public static string GetMetaInfo(this FileInfo fileinfo)
         {
             var result = string.Empty;
 
             try
             {
-                if (fileinfo.Exists)
+                if (fileinfo.Exists && fileinfo.Length > 0)
                 {
                     var exif = new ExifData(fileinfo.FullName);
                     StringBuilder sb = new StringBuilder();
@@ -3495,7 +3625,7 @@ namespace PixivWPF.Common
                                 if (exif.GetTagType(tag, out tag_type))
                                 {
                                     dynamic tag_value = null;
-                                    switch(tag_type)
+                                    switch (tag_type)
                                     {
                                         case ExifTagType.Ascii:
                                             var value_a = string.Empty;
@@ -3549,14 +3679,14 @@ namespace PixivWPF.Common
                                             break;
                                     }
                                     sb.AppendLine($"{"TagName".PadRight(20)} : {""}");
-                                }                                
+                                }
                             }
                         }
                     }
                     //foreach(var attr in exif.enu))
-                }                
+                }
             }
-            catch(Exception ex) { ex.ERROR("GetMetaInfo"); }
+            catch (Exception ex) { ex.ERROR("GetMetaInfo"); }
 
             return (result);
         }
@@ -3566,66 +3696,19 @@ namespace PixivWPF.Common
             var result = false;
             try
             {
-                if (fileinfo.Exists)
+                if (fileinfo.Exists && fileinfo.Length > 0)
                 {
-                    if (string.IsNullOrEmpty(id)) id = GetIllustId(fileinfo.Name);
-                    var illust = id.FindIllust();
-                    if (illust is Pixeez.Objects.Work && (dt != null || dt.Ticks > 0))
+                    var exif = new ExifData(fileinfo.FullName);
+                    if (exif is ExifData)
                     {
-                        var uid = $"{illust.User.Id}";
-                        //var exif = new ExifData(fileinfo.FullName, ExifLoadOptions.CreateEmptyBlock);
-                        var exif = new ExifData(fileinfo.FullName);
-                        if (exif is ExifData)
+                        var meta = MakeMetaInfo(fileinfo, dt, id);
+                        if (meta is MetaInfo)
                         {
-                            var meta = new MetaInfo()
-                            {
-                                DateCreated = dt,
-                                DateModified = dt,
-                                DateAccesed = dt,
-                                DateAcquired = dt,
-                                DateTaken = dt,
-
-                                Title = illust.Title.KatakanaHalfToFull().FilterInvalidChar().TrimEnd(),
-                                Subject = id.ArtworkLink(),
-                                Author = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}",
-                                Copyright = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}",
-                                Keywords = string.Join("; ", illust.Tags.Select(t => t.Replace(";", "；⸵")).Distinct(StringComparer.CurrentCultureIgnoreCase)),
-                                Comment = illust.Caption.HtmlToText(),
-
-                                Rating = illust.IsLiked() ? 75 : 0,
-                                Ranking = illust.IsLiked() ? 4 : 0,
-                            };
-
-                            //exif.SetDateChanged(dt);
-                            //exif.SetDateDigitized(dt);
-                            //exif.SetDateTaken(dt);
-
-                            DateTime date;
-                            if (exif.GetTagValue(ExifTag.DateTime, out date))
-                            {
-                                if (date.Ticks != dt.Ticks) exif.SetDateChanged(dt);
-                            }
-                            else exif.SetDateChanged(dt);
-                            if (exif.GetTagValue(ExifTag.DateTimeDigitized, out date))
-                            {
-                                if (date.Ticks != dt.Ticks) exif.SetDateDigitized(dt);
-                            }
-                            else exif.SetDateDigitized(dt);
-                            if (exif.GetTagValue(ExifTag.DateTimeOriginal, out date))
-                            {
-                                if (date.Ticks != dt.Ticks) exif.SetDateTaken(dt);
-                            }
-                            else exif.SetDateTaken(dt);
-                            if (exif.GetTagValue(ExifTag.SubsecTimeDigitized, out date))
-                            {
-                                if (date.Ticks != dt.Ticks) exif.SetTagValue(ExifTag.SubsecTimeDigitized, dt, ExifDateFormat.DateAndTime);
-                            }
-                            else exif.SetTagValue(ExifTag.SubsecTimeDigitized, dt, ExifDateFormat.DateAndTime);
-                            if (exif.GetTagValue(ExifTag.SubsecTimeOriginal, out date))
-                            {
-                                if (date.Ticks != dt.Ticks) exif.SetTagValue(ExifTag.SubsecTimeOriginal, dt, ExifDateFormat.DateAndTime);
-                            }
-                            else exif.SetTagValue(ExifTag.SubsecTimeOriginal, dt, ExifDateFormat.DateAndTime);
+                            exif.SetDateChanged(meta.DateModified ?? dt);
+                            exif.SetDateDigitized(meta.DateAcquired ?? dt);
+                            exif.SetDateTaken(meta.DateTaken ?? dt);
+                            exif.SetTagValue(ExifTag.SubsecTimeDigitized, meta.DateAcquired ?? dt, ExifDateFormat.DateAndTime);
+                            exif.SetTagValue(ExifTag.SubsecTimeOriginal, meta.DateTaken ?? dt, ExifDateFormat.DateAndTime);
 
                             if (string.IsNullOrEmpty(meta.Title))
                             {
@@ -3701,17 +3784,17 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 // Error occurred while reading image file
-                ex.Message.ERROR("TouchXMP");
+                ex.Message.ERROR("AttachMetaInfoInternal");
             }
             return (result);
         }
 
         public static async Task<bool> AttachMetaInfoInternalAsync(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", bool force = false)
         {
-            return(await Task.Run<bool>(() => { return (AttachMetaInfoInternal(fileinfo, dt, id)); }));
+            return (await Task.Run<bool>(() => { return (AttachMetaInfoInternal(fileinfo, dt, id)); }));
         }
 
         private static ConcurrentDictionary<string, long> LastAttachMetaInfo = new ConcurrentDictionary<string, long>();
@@ -3721,23 +3804,25 @@ namespace PixivWPF.Common
             var now = DateTime.Now.Ticks;
             var interval = Application.Current.LoadSetting().DownloadTouchInterval;
             var capacities = Application.Current.LoadSetting().DownloadTouchCapatices;
-            if (IsShellSupported && _Attaching_.TryAdd(fileinfo.FullName, now) && await _CanAttaching_.WaitAsync(TimeSpan.FromSeconds(60)))
+            if (IsShellSupported && (force || !_Attaching_.ContainsKey(fileinfo.FullName) || now - _Attaching_[fileinfo.FullName] > TimeSpan.FromMilliseconds(interval).Ticks) && await _CanAttaching_.WaitAsync(TimeSpan.FromSeconds(60)))
             {
                 try
                 {
+                    _Attaching_.AddOrUpdate(fileinfo.FullName, now, (k, v) => now);
 #if DEBUG
                     System.Diagnostics.Debug.WriteLine($"=> Touching Meta : {fileinfo.Name} Started ...");
 #endif
-                    if (force || (!LastAttachMetaInfo.ContainsKey(fileinfo.FullName) || (now - LastAttachMetaInfo[fileinfo.FullName] > TimeSpan.FromMilliseconds(interval).Ticks)))
+                    if (force || !LastAttachMetaInfo.ContainsKey(fileinfo.FullName) || now - LastAttachMetaInfo[fileinfo.FullName] > TimeSpan.FromMilliseconds(interval).Ticks)
                     {
-                        LastAttachMetaInfo.AddOrUpdate(fileinfo.FullName, _Attaching_[fileinfo.FullName], (k, v) => _Attaching_[fileinfo.FullName]);
+#if DEBUG
+                        LastAttachMetaInfo.AddOrUpdate(fileinfo.FullName, now, (k, v) => now);
                         long tick = now;
                         if (LastAttachMetaInfo.Count > capacities)
                             LastAttachMetaInfo.TryRemove(LastAttachMetaInfo.First().Key, out tick);
-
+#endif
                         if (string.IsNullOrEmpty(id)) id = GetIllustId(fileinfo.Name);
                         var illust = id.FindIllust();
-                        if (illust is Pixeez.Objects.Work && (dt != null || dt.Ticks > 0))
+                        if (illust is Pixeez.Objects.Work && (dt != null || dt.Ticks > 0) && fileinfo.Length > 0)
                         {
                             var uid = $"{illust.User.Id}";
 
@@ -3757,6 +3842,7 @@ namespace PixivWPF.Common
 
                                     if (!is_png)
                                     {
+                                        #region jpg
                                         if (sh.Properties.System.DateAcquired.Value == null || sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks)
                                             sh.Properties.System.DateAcquired.Value = dt;
 
@@ -3805,14 +3891,19 @@ namespace PixivWPF.Common
                                             if (sh.Properties.System.SimpleRating.Value != null)
                                                 sh.Properties.System.SimpleRating.ClearValue();
                                         }
+
+                                        #endregion
                                     }
-                                    else if (is_png)
+                                    else if (is_png && fileinfo.Length > 0)
                                     {
+                                        if (Application.Current.LoadSetting().DownloadAttachPngMetaInfoUsingPngCs)
+                                            UpdatePngMetaInfo(fileinfo, dt, id);
                                         result = AttachMetaInfoInternal(fileinfo, dt, id);
                                     }
                                 }
                                 else if (is_mov && !is_zip)
                                 {
+                                    #region mov
                                     if (sh.Properties.System.DateAcquired.Value == null || sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks)
                                         sh.Properties.System.DateAcquired.Value = dt;
 
@@ -3924,14 +4015,17 @@ namespace PixivWPF.Common
                                     sh.Properties.System.Music.Period.AllowSetTruncatedValue = true;
                                     if (sh.Properties.System.Music.Period.Value == null)
                                         sh.Properties.System.Music.Period.Value = dt.ToString("yyyy");
+
+                                    #endregion
                                 }
                                 //sh.Update();
                             }
+                            result = true;
+                            $"{fileinfo.FullName}".INFO("AttachMetaInfo");
                         }
-                        //if (fileinfo.CreationTime.Ticks != dt.Ticks) fileinfo.CreationTime = dt;
-                        //if (fileinfo.LastWriteTime.Ticks != dt.Ticks) fileinfo.LastWriteTime = dt;
-                        //if (fileinfo.LastAccessTime.Ticks != dt.Ticks) fileinfo.LastAccessTime = dt;
-                        result = true;
+                        if (fileinfo.CreationTime.Ticks != dt.Ticks) fileinfo.CreationTime = dt;
+                        if (fileinfo.LastWriteTime.Ticks != dt.Ticks) fileinfo.LastWriteTime = dt;
+                        if (fileinfo.LastAccessTime.Ticks != dt.Ticks) fileinfo.LastAccessTime = dt;
 #if DEBUG
                         System.Diagnostics.Debug.WriteLine($"=> Touching Meta : {fileinfo.Name} Finished!");
 #endif
@@ -4133,8 +4227,8 @@ namespace PixivWPF.Common
                 var now = DateTime.Now.Ticks;
                 var interval = Application.Current.LoadSetting().DownloadTouchInterval;
                 var capacities = Application.Current.LoadSetting().DownloadTouchCapatices;
-                if (force ? (_Touching_.ContainsKey(fileinfo.FullName) ? _Touching_.TryUpdate(fileinfo.FullName, DateTime.Now.Ticks, _Touching_[fileinfo.FullName]) : _Touching_.TryAdd(fileinfo.FullName, DateTime.Now.Ticks)) : _Touching_.TryAdd(fileinfo.FullName, DateTime.Now.Ticks))
-//                if (_Touching_.TryAdd(fileinfo.FullName, DateTime.Now.Ticks))
+                if (force ? (_Touching_.ContainsKey(fileinfo.FullName) ? _Touching_.TryUpdate(fileinfo.FullName, now, _Touching_[fileinfo.FullName]) : _Touching_.TryAdd(fileinfo.FullName, now)) : _Touching_.TryAdd(fileinfo.FullName, now))
+                //                if (_Touching_.TryAdd(fileinfo.FullName, DateTime.Now.Ticks))
                 {
                     if (force || (!LastTouch.ContainsKey(fileinfo.FullName) || (now - LastTouch[fileinfo.FullName] > TimeSpan.FromMilliseconds(interval).Ticks)))
                     {
@@ -4214,14 +4308,14 @@ namespace PixivWPF.Common
             if (item.IsPage())
             {
                 string file = string.Empty;
-                item.IsDownloaded = item.Illust.IsDownloaded(out file, item.Index, item.Count <= 1);
+                item.IsDownloaded = item.Illust.IsDownloaded(out file, item.Index, item.Count <= 1, touch: force);
                 item.DownloadedFilePath = file;
                 item.DownloadedTooltip = file;
             }
             else if (item.IsWork())
             {
                 string file = string.Empty;
-                item.IsDownloaded = item.Illust.IsPartDownloaded(out file);
+                item.IsDownloaded = item.Illust.IsPartDownloaded(out file, touch: force);
                 item.DownloadedFilePath = file;
                 item.DownloadedTooltip = file;
             }
@@ -4776,7 +4870,7 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                if (touch && !string.IsNullOrEmpty(filepath)) filepath.TouchAsync(url, meta: true);
+                if (touch && !string.IsNullOrEmpty(filepath)) filepath.TouchAsync(url, meta: touch);
             }
             catch (Exception ex) { ex.ERROR("IsDownloaded"); }
             return (result);
@@ -4920,14 +5014,14 @@ namespace PixivWPF.Common
                         var files = Directory.EnumerateFiles(folder, $"{fn}_*.*").NaturalSort();
                         if (files.Count() > 0)
                         {
-                            if (touch) { files.Skip(1).TouchAsync(url, meta: true); }
+                            if (touch) { files.Skip(1).TouchAsync(url, meta: touch); }
                             filepath = files.First();
                             result = true;
                         }
                     }
                     if (result) break;
                 }
-                if (touch && !string.IsNullOrEmpty(filepath)) filepath.TouchAsync(url, meta: true);
+                if (touch && !string.IsNullOrEmpty(filepath)) filepath.TouchAsync(url, meta: touch);
             }
             catch (Exception ex) { ex.ERROR("IsPartDownloaded"); }
             return (result);
@@ -4960,7 +5054,7 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                if (touch && !string.IsNullOrEmpty(filepath)) filepath.TouchAsync(url, meta: true);
+                if (touch && !string.IsNullOrEmpty(filepath)) filepath.TouchAsync(url, meta: touch);
             }
             catch (Exception ex) { ex.ERROR("IsUgoiraDownloaded"); }
             return (result);
@@ -6460,7 +6554,7 @@ namespace PixivWPF.Common
                     result.Add("date", JToken.FromObject(work.GetDateTime()));
                     result.Add("title", JToken.FromObject(work.Title.KatakanaHalfToFull().FilterInvalidChar()));
                     result.Add("description", JToken.FromObject(work.Caption.HtmlToText()));
-                    result.Add("tags", JToken.FromObject(string.Join(" ", work.Tags.Select(t=>$"#{t}"))));
+                    result.Add("tags", JToken.FromObject(string.Join(" ", work.Tags.Select(t => $"#{t}"))));
                     result.Add("favorited", JToken.FromObject(work.IsBookMarked()));
                     result.Add("downloaded", JToken.FromObject(work.IsDownloaded(0, touch: false)));
                     result.Add("weblink", JToken.FromObject($"{work.Id}".ArtworkLink()));
@@ -6475,7 +6569,7 @@ namespace PixivWPF.Common
 
         public static string IllustToJSON(this Pixeez.Objects.Work work)
         {
-            return(JsonConvert.SerializeObject(IllustToJObject(work), Newtonsoft.Json.Formatting.Indented));
+            return (JsonConvert.SerializeObject(IllustToJObject(work), Newtonsoft.Json.Formatting.Indented));
         }
 
         public static XmlDocument IllustToXmlDocument(this Pixeez.Objects.Work work)
@@ -6663,6 +6757,26 @@ namespace PixivWPF.Common
         #endregion
 
         #region History routines
+        public static bool InHistory(this PixivItem item)
+        {
+            return (Application.Current.InHistory(item));
+        }
+
+        public static bool InHistory(this Pixeez.Objects.Work illust)
+        {
+            return (Application.Current.InHistory(illust));
+        }
+
+        public static bool InHistory(this Pixeez.Objects.User user)
+        {
+            return (Application.Current.InHistory(user));
+        }
+
+        public static bool InHistory(this Pixeez.Objects.UserBase user)
+        {
+            return (Application.Current.InHistory(user));
+        }
+
         public static void AddToHistory(this PixivItem item)
         {
             //Commands.AddToHistory.Execute(illust);
@@ -7110,6 +7224,7 @@ namespace PixivWPF.Common
                         var fail = ret && result.Item1 ? "is" : "isn't";
                         var pub_like = pub ? "Public" : "Private";
                         $"Illust \"{illust.Title}\" {fail} {pub_like} {info}!".ShowToast($"{title}", illust.GetThumbnailUrl(), title, pub_like);
+                        $"Illust \"{illust.Title}\" {fail} {pub_like} {info}!".INFO("LikeIllust");
                     }
                 }
                 catch (Exception ex)
@@ -7146,7 +7261,7 @@ namespace PixivWPF.Common
                         item.State = TaskStatus.RanToCompletion;
                     }
                 }
-                if (result && item.IsDownloaded) item.Touch();
+                if (result && item.IsDownloaded) Commands.TouchMeta.Execute(item);
             }
 
             return (result);
@@ -7228,6 +7343,7 @@ namespace PixivWPF.Common
                         var title = ret && result.Item1 ? "Failed" : "Succeed";
                         var fail = ret && result.Item1 ?  "isn't" : "is";
                         $"Illust \"{illust.Title}\" {fail} {info}!".ShowToast(title, illust.GetThumbnailUrl(), title);
+                        $"Illust \"{illust.Title}\" {fail} {info}!".INFO("UnLikeIllust");
                     }
                 }
                 catch (Exception ex)
@@ -7263,7 +7379,7 @@ namespace PixivWPF.Common
                         item.State = TaskStatus.RanToCompletion;
                     }
                 }
-                if (result && item.IsDownloaded) item.Touch();
+                if (result && item.IsDownloaded) Commands.TouchMeta.Execute(item);
             }
             return (result);
         }
@@ -7323,7 +7439,7 @@ namespace PixivWPF.Common
                 item.Illust = ret.Item2;
                 item.IsFavorited = result;
                 if (item.Source == null) item.State = TaskStatus.RanToCompletion;
-                if (result && item.IsDownloaded) item.Touch();
+                if (result && item.IsDownloaded) Commands.TouchMeta.Execute(item);
             }
             return (result);
         }
@@ -7390,6 +7506,7 @@ namespace PixivWPF.Common
                         var fail = ret && result.Item1 ?  "is" : "isn't";
                         var pub_like = pub ? "Public" : "Private";
                         $"User \"{user.Name ?? string.Empty}\" {fail} {pub_like} {info}!".ShowToast(title, user.GetAvatarUrl(), title, pub_like);
+                        $"User \"{user.Name ?? string.Empty}\" {fail} {pub_like} {info}!".INFO("LikeUser");
                     }
                 }
                 catch (Exception ex)
@@ -7498,6 +7615,7 @@ namespace PixivWPF.Common
                         var title = ret && result.Item1 ? "Failed" : "Succeed";
                         var fail = ret && result.Item1 ?  "isn't" : "is";
                         $"User \"{user.Name ?? string.Empty}\" {fail} {info}!".ShowToast(title, user.GetAvatarUrl(), title);
+                        $"User \"{user.Name ?? string.Empty}\" {fail} {info}!".INFO("UnLikeUser");
                     }
                 }
                 catch (Exception ex)
@@ -7889,6 +8007,12 @@ namespace PixivWPF.Common
             {
                 foreach (var win in Application.Current.Windows)
                 {
+                    //if (!is_user && illustid > 0)
+                    //{
+                    //    var illust = FindIllust(illustid);
+                    //    if (illust.IsWork()) Commands.TouchMeta.Execute(illust);
+                    //}
+
                     if (win is MainWindow)
                     {
                         var mw = win as MainWindow;

@@ -1195,7 +1195,18 @@ namespace PixivWPF.Common
             }
         }
 
-        private int download_touch_interval = 5000;
+        private bool download_attach_metainfo_pngcs = false;
+        public bool DownloadAttachPngMetaInfoUsingPngCs
+        {
+            get { return (Cache is Setting ? Cache.download_attach_metainfo_pngcs : download_attach_metainfo_pngcs); }
+            set
+            {
+                download_attach_metainfo_pngcs = value;
+                if (Cache is Setting) Cache.download_attach_metainfo_pngcs = download_attach_metainfo_pngcs;
+            }
+        }
+
+        private int download_touch_interval = 10000;
         public int DownloadTouchInterval
         {
             get { return (Cache is Setting ? Cache.download_touch_interval : download_touch_interval); }

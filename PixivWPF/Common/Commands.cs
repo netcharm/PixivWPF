@@ -1378,7 +1378,7 @@ namespace PixivWPF.Common
 
                         if (item.HasPages() && item.Count > 1)
                         {
-                            if (item.Index >= 0)
+                            if (item.Index >= 0 && item.Index < item.Count)
                             {
                                 if (illust.IsDownloadedAsync(out fp, item.Index, touch: false)) fp.OpenFileWithShell();
                             }
@@ -1567,7 +1567,13 @@ namespace PixivWPF.Common
                 var use_shell = Keyboard.Modifiers == ModifierKeys.Shift ? true : false;
                 var force = Keyboard.Modifiers == ModifierKeys.Control ? true : false;
                 var setting = Application.Current.LoadSetting();
-                if (obj is PixivItem)
+                if(obj is Pixeez.Objects.Work)
+                {
+                    var illust = obj as Pixeez.Objects.Work;
+                    var item = illust.WorkItem();
+                    TouchMeta.Execute(item);
+                }
+                else if (obj is PixivItem)
                 {
                     var item = obj as PixivItem;
                     if (item.IsWork())
@@ -1585,7 +1591,8 @@ namespace PixivWPF.Common
                                     if (use_shell)
                                         fp.OpenFileWithShell(command: setting.ShellTouchMetaCmd, custom_params: setting.ShellTouchMetaParams);
                                     else
-                                        item.TouchAsync(force: true);
+                                        await (new FileInfo(fp).AttachMetaInfo(item.Illust.GetDateTime(), item.ID, true));
+                                    //item.TouchAsync(force: true);
                                 }
                             }
                             else
@@ -1597,7 +1604,7 @@ namespace PixivWPF.Common
                                         if (use_shell)
                                             fp.OpenFileWithShell(command: setting.ShellTouchMetaCmd, custom_params: setting.ShellTouchMetaParams);
                                         else
-                                            item.TouchAsync(force: true);
+                                            await (new FileInfo(fp).AttachMetaInfo(item.Illust.GetDateTime(), item.ID, true));
                                     }
                                 }
                             }
@@ -1614,7 +1621,8 @@ namespace PixivWPF.Common
                                 if (use_shell)
                                     fp.OpenFileWithShell(command: setting.ShellTouchMetaCmd, custom_params: setting.ShellTouchMetaParams);
                                 else
-                                    item.TouchAsync(force: true);
+                                    await (new FileInfo(fp).AttachMetaInfo(item.Illust.GetDateTime(), item.ID, true));
+                                    //item.TouchAsync(force: true);
                             }
                         }
                     }
