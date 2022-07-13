@@ -988,6 +988,32 @@ namespace PixivWPF.Common
             return (titles);
         }
 
+        public static void ActiveWindowByTitle(this Application app, string title = null)
+        {
+            try
+            {
+                app.Dispatcher.Invoke(() =>
+                {
+                    if (string.IsNullOrEmpty(title) || title.Equals("Main", StringComparison.CurrentCultureIgnoreCase))
+                        Application.Current.MainWindow.Activate();
+                    else
+                    {
+                        foreach (Window win in app.Windows)
+                        {
+                            if (win is MainWindow) continue;
+                            else if (win is ContentWindow)
+                            {
+                                if (win.Title.Contains(title)) win.Activate();
+                            }
+                            else continue;
+                        }
+                    }
+                });
+            }
+            catch (Exception ex) { ex.ERROR(); }
+
+        }
+
         public static void SetTitle(this Application app, string title)
         {
             try

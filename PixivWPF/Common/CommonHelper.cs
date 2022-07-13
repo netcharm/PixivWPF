@@ -887,7 +887,7 @@ namespace PixivWPF.Common
             return (result.Trim().Trim(trim_char).HtmlDecode());
         }
 
-        private static string[] html_split = new string[] { Environment.NewLine, "\n", "\r", "\t", "url", "src", "href", "<p>", "</p>", "<br/>", "<br>", "<br />", "><", "</a>", ">", "&nbsp;", " " };
+        private static string[] html_split = new string[] { Environment.NewLine, "\n", "\r", "\t", "url", "src", "href", "<p>", "</p>", "<br/>", "<br>", "<br />", "><", "</a>", ">", "&nbsp;" };//, " " };
         public static IList<string> ParseLinks(this string html, bool is_src = false)
         {
             List<string> links = new List<string>();
@@ -980,6 +980,10 @@ namespace PixivWPF.Common
 
                 mr.Add(Regex.Matches(content, @"(Preview\sID:\s)(\d+),(.*?)$", opt));
 
+                mr.Add(Regex.Matches(content, @"(ID:\s)(\d+),(.*?)$", opt));
+
+                mr.Add(Regex.Matches(content, @"(User:\s)(.*?)\s/\s(\d+)\s/\s(.*?)$", opt));
+
                 mr.Add(Regex.Matches(content, @"((down(all)?|Downloading):\s?.*?)$", opt));
 
                 if (!Regex.IsMatch(content, @"^((https?)|(<a)|(href=)|(src=)|(id:)|(uid:)|(tag:)|(user:)|(title:)|(fuzzy:)|(down(all|load(ing)?)?:)|(illust/)|(illusts/)|(artworks/)|(user/)|(users/)).*?", opt))
@@ -1027,16 +1031,20 @@ namespace PixivWPF.Common
                     if (string.IsNullOrEmpty(link)) continue;
 
                     var downloads = Application.Current.OpenedWindowTitles();
-                    downloads = downloads.Concat(download_links).ToList();
-                    foreach (var di in downloads)
+                    foreach(var win in downloads)
                     {
-                        if (di.Contains(link))
-                        {
-                            linkexists = true;
-                            break;
-                        }
+                        Application.Current.ActiveWindowByTitle(win);
                     }
-                    if (linkexists) continue;
+                    //downloads = downloads.Concat(download_links).ToList();
+                    //foreach (var di in downloads)
+                    //{
+                    //    if (di.Contains(link))
+                    //    {
+                    //        linkexists = true;
+                    //        break;
+                    //    }
+                    //}
+                    //if (linkexists) continue;
 
                     if (link.Equals("user-profile", StringComparison.CurrentCultureIgnoreCase)) break;
                     else if (link.Equals("background", StringComparison.CurrentCultureIgnoreCase) || link.Equals("workspace", StringComparison.CurrentCultureIgnoreCase))
@@ -3891,7 +3899,7 @@ namespace PixivWPF.Common
                                             if (sh.Properties.System.SimpleRating.Value != null)
                                                 sh.Properties.System.SimpleRating.ClearValue();
                                         }
-
+                                        result = true;
                                         #endregion
                                     }
                                     else if (is_png && fileinfo.Length > 0)

@@ -1578,6 +1578,11 @@ namespace PixivWPF.Common
                     var item = illust.WorkItem();
                     TouchMeta.Execute(item);
                 }
+                else if(obj is IEnumerable<Pixeez.Objects.Work>)
+                {
+                    foreach (var illust in (obj as IEnumerable<Pixeez.Objects.Work>))
+                        TouchMeta.Execute(illust);
+                }
                 else if (obj is PixivItem)
                 {
                     var item = obj as PixivItem;

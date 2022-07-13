@@ -611,6 +611,8 @@ namespace PixivWPF.Common
                 {
                     new Action(() =>
                     {
+                        Application.Current.MainWindow.Dispatcher.Invoke(() => { Commands.TouchMeta.Execute(Items); });
+
                         PrefetchingTaskCancelTokenSource = new CancellationTokenSource();
                         PrefetchingBgWorker.RunWorkerAsync(Options);
                     }).Invoke(async: false);

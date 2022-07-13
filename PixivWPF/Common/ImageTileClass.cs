@@ -247,9 +247,9 @@ namespace PixivWPF.Common
             get
             {
                 if (UsePartDownloaded)
-                    return (IsPartDownloadedVisibility == Visibility.Visible ? true : Illust.IsPartDownloaded());
+                    return (IsPartDownloadedVisibility == Visibility.Visible ? true : Illust.IsPartDownloaded(touch: false));
                 else
-                    return (IsDownloadedVisibility == Visibility.Visible ? true : Illust.IsDownloaded(Count <= 1, index: Index));
+                    return (IsDownloadedVisibility == Visibility.Visible ? true : Illust.IsDownloaded(Count <= 1, index: Index, touch: false));
             }
             set
             {
