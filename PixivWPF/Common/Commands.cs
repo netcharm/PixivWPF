@@ -1567,7 +1567,12 @@ namespace PixivWPF.Common
                 var use_shell = Keyboard.Modifiers == ModifierKeys.Shift ? true : false;
                 var force = Keyboard.Modifiers == ModifierKeys.Control ? true : false;
                 var setting = Application.Current.LoadSetting();
-                if(obj is Pixeez.Objects.Work)
+                if (obj is int || obj is int? || obj is long || obj is long? || obj is string)
+                {
+                    var illust = $"{obj}".FindIllust();
+                    if (illust.IsWork()) TouchMeta.Execute(illust);
+                }
+                else if (obj is Pixeez.Objects.Work)
                 {
                     var illust = obj as Pixeez.Objects.Work;
                     var item = illust.WorkItem();
@@ -1592,7 +1597,6 @@ namespace PixivWPF.Common
                                         fp.OpenFileWithShell(command: setting.ShellTouchMetaCmd, custom_params: setting.ShellTouchMetaParams);
                                     else
                                         await (new FileInfo(fp).AttachMetaInfo(item.Illust.GetDateTime(), item.ID, true));
-                                    //item.TouchAsync(force: true);
                                 }
                             }
                             else
@@ -1622,7 +1626,6 @@ namespace PixivWPF.Common
                                     fp.OpenFileWithShell(command: setting.ShellTouchMetaCmd, custom_params: setting.ShellTouchMetaParams);
                                 else
                                     await (new FileInfo(fp).AttachMetaInfo(item.Illust.GetDateTime(), item.ID, true));
-                                    //item.TouchAsync(force: true);
                             }
                         }
                     }

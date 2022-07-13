@@ -1002,9 +1002,9 @@ namespace PixivWPF.Common
                 result = FileName;
                 EndTick = DateTime.Now;
 
-                FileName.Touch(Url, meta: true);
-
                 CleanBuffer();
+
+                FileName.Touch(Url, meta: true, force: true);
 
                 var state = "Succeed";
                 $"{FileName} {state}.".INFO("Download");

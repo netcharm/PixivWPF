@@ -2797,7 +2797,7 @@ namespace PixivWPF.Common
             return (_Touching_ is ConcurrentDictionary<string, long> && _Touching_.ContainsKey(fileinfo.FullName));
         }
 
-        #region XML Formating Helper
+        #region XMP XML Formating Helper
         private static List<string> xmp_ns = new List<string> { "rdf", "xmp", "dc", "exif", "tiff", "iptc", "MicrosoftPhoto" };
         private static Dictionary<string, string> xmp_ns_lookup = new Dictionary<string, string>()
         {
@@ -4017,11 +4017,12 @@ namespace PixivWPF.Common
                                         sh.Properties.System.Music.Period.Value = dt.ToString("yyyy");
 
                                     #endregion
+                                    result = true;
                                 }
                                 //sh.Update();
+                                var ret_info = result ? "Succeeded" : "Failed";
+                                $"{fileinfo.FullName} Metadata Update {ret_info}!".INFO("AttachMetaInfo");
                             }
-                            result = true;
-                            $"{fileinfo.FullName}".INFO("AttachMetaInfo");
                         }
                         if (fileinfo.CreationTime.Ticks != dt.Ticks) fileinfo.CreationTime = dt;
                         if (fileinfo.LastWriteTime.Ticks != dt.Ticks) fileinfo.LastWriteTime = dt;
@@ -4227,9 +4228,10 @@ namespace PixivWPF.Common
                 var now = DateTime.Now.Ticks;
                 var interval = Application.Current.LoadSetting().DownloadTouchInterval;
                 var capacities = Application.Current.LoadSetting().DownloadTouchCapatices;
-                if (force ? (_Touching_.ContainsKey(fileinfo.FullName) ? _Touching_.TryUpdate(fileinfo.FullName, now, _Touching_[fileinfo.FullName]) : _Touching_.TryAdd(fileinfo.FullName, now)) : _Touching_.TryAdd(fileinfo.FullName, now))
-                //                if (_Touching_.TryAdd(fileinfo.FullName, DateTime.Now.Ticks))
+                if (force || !_Touching_.ContainsKey(fileinfo.FullName) || now - _Touching_[fileinfo.FullName] > TimeSpan.FromMilliseconds(interval).Ticks)
                 {
+                    _Touching_.AddOrUpdate(fileinfo.FullName, now, (k, v) => now);
+
                     if (force || (!LastTouch.ContainsKey(fileinfo.FullName) || (now - LastTouch[fileinfo.FullName] > TimeSpan.FromMilliseconds(interval).Ticks)))
                     {
                         LastTouch.AddOrUpdate(fileinfo.FullName, _Touching_[fileinfo.FullName], (k, v) => _Touching_[fileinfo.FullName]);
@@ -4632,6 +4634,7 @@ namespace PixivWPF.Common
         {
             await new Action(() =>
             {
+                //if ((exists ?? false) && ((illustid ?? 0) > 0)) Commands.TouchMeta.Execute(illustid ?? 0);
                 foreach (var win in Application.Current.Windows)
                 {
                     if (win is MainWindow)
