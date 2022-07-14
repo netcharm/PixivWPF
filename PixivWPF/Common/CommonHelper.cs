@@ -1033,7 +1033,7 @@ namespace PixivWPF.Common
                     var downloads = Application.Current.OpenedWindowTitles();
                     foreach(var win in downloads)
                     {
-                        Application.Current.ActiveWindowByTitle(win);
+                        if (link.Equals(win)) Application.Current.ActiveWindowByTitle(win);
                     }
                     //downloads = downloads.Concat(download_links).ToList();
                     //foreach (var di in downloads)
@@ -5729,6 +5729,35 @@ namespace PixivWPF.Common
             return (await bitmap.ToBytes(fmt));
         }
 
+        public static byte[] ConvertImageTo(this byte[] buffer, string fmt)
+        {
+            byte[] result = null;
+            try
+            {
+                if (buffer is byte[] && buffer.Length > 0)
+                {
+                    System.Drawing.Imaging.ImageFormat pFmt = System.Drawing.Imaging.ImageFormat.MemoryBmp;
+
+                    fmt = fmt.ToLower();
+                    if (fmt.Equals("png")) pFmt = System.Drawing.Imaging.ImageFormat.Png;
+                    else if (fmt.Equals("jpg")) pFmt = System.Drawing.Imaging.ImageFormat.Jpeg;
+                    else return (buffer);
+
+                    using (var mi = new MemoryStream(buffer))
+                    {
+                        using (var mo = new MemoryStream())
+                        {
+                            var bmp = new System.Drawing.Bitmap(mi);
+                            bmp.Save(mo, pFmt);
+                            result = mo.ToArray();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("ConvertImageTo"); }
+            return (result);
+        }
+
         public static BitmapSource ConvertBitmapDPI(this BitmapSource source, double dpiX = 96, double dpiY = 96)
         {
             if (dpiX == source.DpiX || dpiY == source.DpiY) return (source);
@@ -6421,7 +6450,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> SaveImage(this string url, Pixeez.Tokens tokens, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
+        public static async Task<string> SaveImage(this string url, Pixeez.Tokens tokens, DateTime dt, bool is_meta_single_page = false, bool overwrite = true, bool jpeg = false, bool largepreview = false)
         {
             var file = await url.SaveImage(tokens, is_meta_single_page, overwrite);
             var id = url.GetIllustId();
@@ -6477,19 +6506,21 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void SaveImage(this string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
+        public static void SaveImage(this string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true, bool jpeg = false, bool largepreview = false)
         {
             Commands.AddDownloadItem.Execute(new DownloadParams()
             {
                 Url = url,
                 ThumbUrl = thumb,
+                SaveAsJPEG = jpeg,
+                SaveLargePreview = largepreview,
                 Timestamp = dt,
                 IsSinglePage = is_meta_single_page,
                 OverwriteExists = overwrite
             });
         }
 
-        public static void SaveImages(Dictionary<Tuple<string, bool>, Tuple<string, DateTime>> files, bool overwrite = true)
+        public static void SaveImages(Dictionary<Tuple<string, bool>, Tuple<string, DateTime>> files, bool overwrite = true, bool jpeg = false, bool largepreview = false)
         {
             foreach (var file in files)
             {
@@ -6497,7 +6528,7 @@ namespace PixivWPF.Common
                 var is_meta_single_page =  file.Key.Item2;
                 var thumb = file.Value.Item1;
                 var dt = file.Value.Item2;
-                url.SaveImage(thumb, dt, is_meta_single_page, overwrite);
+                url.SaveImage(thumb, dt, is_meta_single_page, overwrite, jpeg: jpeg, largepreview: largepreview);
             }
             SystemSounds.Beep.Play();
         }

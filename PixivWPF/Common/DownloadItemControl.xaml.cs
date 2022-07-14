@@ -95,10 +95,26 @@ namespace PixivWPF.Common
                 url = value;
                 UpdateLikeState();
                 FileName = Application.Current.SaveTarget(url.GetImageName(singlefile));
+                if (UseLargePreview)
+                {
+                    var id = url.GetIllustId();
+                    var illust = id.FindIllust();
+                    if (illust.IsWork())
+                        FileName = illust.GetOriginalUrl().GetImageName(singlefile);
+                    else
+                    {
+                        FileName = Regex.Replace(FileName, @"_p(\d+)_marter.*?\.", "$1.");
+                        if (singlefile) FileName = FileName.Replace("_0.", ".");
+                    }
+                    FileName = Application.Current.SaveTarget(FileName);
+                }
                 if (!string.IsNullOrEmpty(FileName)) Name = Path.GetFileNameWithoutExtension(FileName);
                 NotifyPropertyChanged("UrlChanged");
             }
         }
+
+        public bool UseLargePreview { get; set; } = false;
+        public bool SaveAsJPEG { get; set; } = false;
 
         public string IllustSID { get { return (Url.GetIllustId()); } }
         public Pixeez.Objects.Work Illust { get { return (IllustSID.FindIllust()); } }
@@ -377,6 +393,12 @@ namespace PixivWPF.Common
         {
             get { return (Info is DownloadInfo ? Info.Url : string.Empty); }
             set { if (Info is DownloadInfo) Info.Url = value; }
+        }
+
+        public bool SaveAsJPEG
+        {
+            get { return (Info is DownloadInfo ? Info.SaveAsJPEG : false); }
+            set { if (Info is DownloadInfo) Info.SaveAsJPEG = value; }
         }
 
         public ImageSource Thumbnail
@@ -1137,14 +1159,25 @@ namespace PixivWPF.Common
                 {
                     State = DownloadState.Writing;
                     UpdateProgress();
-                    File.WriteAllBytes(FileName, bytes);
-                    File.SetCreationTime(FileName, FileTime);
-                    File.SetLastWriteTime(FileName, FileTime);
-                    File.SetLastAccessTime(FileName, FileTime);
-                    PART_OpenFile.IsEnabled = true;
-                    PART_OpenFolder.IsEnabled = true;
-                    FailReason = $"downloaded from remote site.";
-                    State = DownloadState.Finished;
+                    if (SaveAsJPEG)
+                    {
+                        var ret = bytes.ConvertImageTo("jpg");
+                        if (ret is byte[] && ret.Length > 16)
+                            File.WriteAllBytes(FileName, ret);
+                    }
+                    else
+                        File.WriteAllBytes(FileName, bytes);
+
+                    if (File.Exists(FileName))
+                    {
+                        File.SetCreationTime(FileName, FileTime);
+                        File.SetLastWriteTime(FileName, FileTime);
+                        File.SetLastAccessTime(FileName, FileTime);
+                        PART_OpenFile.IsEnabled = true;
+                        PART_OpenFolder.IsEnabled = true;
+                        FailReason = $"downloaded from remote site.";
+                        State = DownloadState.Finished;
+                    }
                 }).InvokeAsync(true);
             }
             catch (Exception ex)
@@ -1174,14 +1207,28 @@ namespace PixivWPF.Common
                         var fi = new FileInfo(source);
                         Length = Received = fi.Length;
                         finishedProgress = new Tuple<double, double>(Received, Length);
-                        File.Copy(source, FileName, true);
-                        File.SetCreationTime(FileName, FileTime);
-                        File.SetLastWriteTime(FileName, FileTime);
-                        File.SetLastAccessTime(FileName, FileTime);
-                        PART_OpenFile.IsEnabled = true;
-                        PART_OpenFolder.IsEnabled = true;
-                        FailReason = $"copied from cached image.";
-                        State = DownloadState.Finished;
+
+                        if (File.Exists(source))
+                        {
+                            if (SaveAsJPEG)
+                            {
+                                var ret = File.ReadAllBytes(source).ConvertImageTo("jpg");
+                                File.WriteAllBytes(FileName, ret);
+                            }
+                            else
+                                File.Copy(source, FileName, true);
+                        }
+
+                        if (File.Exists(FileName))
+                        {
+                            File.SetCreationTime(FileName, FileTime);
+                            File.SetLastWriteTime(FileName, FileTime);
+                            File.SetLastAccessTime(FileName, FileTime);
+                            PART_OpenFile.IsEnabled = true;
+                            PART_OpenFolder.IsEnabled = true;
+                            FailReason = $"copied from cached image.";
+                            State = DownloadState.Finished;
+                        }
                     }).InvokeAsync(true);
                 }
             }
@@ -1307,12 +1354,12 @@ namespace PixivWPF.Common
             CheckProperties();
         }
 
-        public DownloadItem(string url, bool autostart = true)
+        public DownloadItem(string url, bool autostart = true, bool jpeg = false)
         {
             InitializeComponent();
             setting = Application.Current.LoadSetting();
 
-            Info = new DownloadInfo() { Instance = this };
+            Info = new DownloadInfo() { Instance = this, SaveAsJPEG = jpeg };
 
             InitProgress();
 
@@ -1488,6 +1535,10 @@ namespace PixivWPF.Common
             else if (sender == miOpenImageProperties)
             {
                 FileName.OpenShellProperties();
+            }
+            else if (sender == miShowImageMeta)
+            {
+                Commands.ShowMeta.Execute(FileName);
             }
         }
     }

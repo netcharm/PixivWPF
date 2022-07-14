@@ -18,11 +18,16 @@ namespace PixivWPF.Pages
     public class DownloadParams
     {
         public string Url { get; set; } = string.Empty;
+        public bool SaveAsJPEG { get; set; } = false;
         public string ThumbUrl { get; set; } = string.Empty;
         public DateTime Timestamp { get; set; } = default(DateTime);
         public bool IsSinglePage { get; set; } = false;
         public bool OverwriteExists { get; set; } = true;
+        public bool SaveLargePreview { get; set; } = false;
     }
+
+    [Flags]
+    public enum DownloadType { None = 0, AsJPEG = 1, UsingLargePreview = 2, All = 0xFFFF };
 
     /// <summary>
     /// DownloadManagerPage.xaml 的交互逻辑
@@ -298,7 +303,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        internal async void Add(string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
+        internal async void Add(string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true, bool jpeg = false, bool largepreview = false)
         {
             setting = Application.Current.LoadSetting();
 
@@ -315,6 +320,8 @@ namespace PixivWPF.Pages
                     var item = new DownloadInfo()
                     {
                         AutoStart = AutoStart,
+                        SaveAsJPEG = jpeg,
+                        UseLargePreview = largepreview,
                         SingleFile = is_meta_single_page,
                         Overwrite = overwrite,
                         ThumbnailUrl = thumb,

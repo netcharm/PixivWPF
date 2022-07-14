@@ -1003,7 +1003,8 @@ namespace PixivWPF.Common
                             if (win is MainWindow) continue;
                             else if (win is ContentWindow)
                             {
-                                if (win.Title.Contains(title)) win.Activate();
+                                if (win.Title.Equals(title, StringComparison.CurrentCultureIgnoreCase)) win.Activate();
+                                else continue;
                             }
                             else continue;
                         }

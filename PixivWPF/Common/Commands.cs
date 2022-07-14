@@ -1466,7 +1466,27 @@ namespace PixivWPF.Common
             try
             {
                 var setting = Application.Current.LoadSetting();
-                if (obj is PixivItem)
+                if (obj is string)
+                {
+                    var str = obj as string;
+                    if (!string.IsNullOrEmpty(str))
+                    {
+                        if (File.Exists(str))
+                            str.OpenFileWithShell(command: setting.ShellShowMetaCmd, custom_params: setting.ShellShowMetaParams);
+                        else
+                        {
+                            var illust = $"{str}".FindIllust();
+                            if (illust.IsWork()) ShowMeta.Execute(illust);
+                        }
+                    }
+                }
+                else if (obj is Pixeez.Objects.Work)
+                {
+                    var illust = obj as Pixeez.Objects.Work;
+                    var item = illust.WorkItem();
+                    ShowMeta.Execute(item);
+                }
+                else if (obj is PixivItem)
                 {
                     var item = obj as PixivItem;
                     if (item.IsWork())
@@ -1505,31 +1525,37 @@ namespace PixivWPF.Common
                 }
                 else if (obj is ImageListGrid)
                 {
-                    await new Action(async () =>
+                    var gallery = obj as ImageListGrid;
+                    if (gallery.Count > 0)
                     {
-                        var gallery = obj as ImageListGrid;
-                        foreach (var item in gallery.GetSelected())
+                        await new Action(async () =>
                         {
-                            await new Action(() =>
+                            foreach (var item in gallery.GetSelected())
                             {
-                                ShowMeta.Execute(item);
-                            }).InvokeAsync();
-                        }
-                    }).InvokeAsync();
+                                await new Action(() =>
+                                {
+                                    ShowMeta.Execute(item);
+                                }).InvokeAsync();
+                            }
+                        }).InvokeAsync();
+                    }
                 }
                 else if (obj is IList<PixivItem>)
                 {
-                    await new Action(async () =>
+                    var gallery = obj as IList<PixivItem>;
+                    if (gallery.Count < 0)
                     {
-                        var gallery = obj as IList<PixivItem>;
-                        foreach (var item in gallery)
+                        await new Action(async () =>
                         {
-                            await new Action(() =>
+                            foreach (var item in gallery)
                             {
-                                ShowMeta.Execute(item);
-                            }).InvokeAsync();
-                        }
-                    }).InvokeAsync();
+                                await new Action(() =>
+                                {
+                                    ShowMeta.Execute(item);
+                                }).InvokeAsync();
+                            }
+                        }).InvokeAsync();
+                    }
                 }
                 else if (obj is TilesPage)
                 {
@@ -1567,10 +1593,24 @@ namespace PixivWPF.Common
                 var use_shell = Keyboard.Modifiers == ModifierKeys.Shift ? true : false;
                 var force = Keyboard.Modifiers == ModifierKeys.Control ? true : false;
                 var setting = Application.Current.LoadSetting();
-                if (obj is int || obj is int? || obj is long || obj is long? || obj is string)
+                if (obj is int || obj is int? || obj is long || obj is long?)
                 {
                     var illust = $"{obj}".FindIllust();
                     if (illust.IsWork()) TouchMeta.Execute(illust);
+                }
+                else if(obj is string)
+                {
+                    var str = obj as string;
+                    if (!string.IsNullOrEmpty(str))
+                    {
+                        if (File.Exists(str))
+                            str.OpenFileWithShell(command: setting.ShellShowMetaCmd, custom_params: setting.ShellShowMetaParams);
+                        else
+                        {
+                            var illust = $"{str}".FindIllust();
+                            if (illust.IsWork()) TouchMeta.Execute(illust);
+                        }
+                    }
                 }
                 else if (obj is Pixeez.Objects.Work)
                 {
@@ -2014,7 +2054,7 @@ namespace PixivWPF.Common
                 if (_downManager is DownloadManagerPage && obj is DownloadParams)
                 {
                     var dp = obj as DownloadParams;
-                    _downManager.Add(dp.Url, dp.ThumbUrl, dp.Timestamp, dp.IsSinglePage, dp.OverwriteExists);
+                    _downManager.Add(dp.Url, dp.ThumbUrl, dp.Timestamp, dp.IsSinglePage, dp.OverwriteExists, jpeg: dp.SaveAsJPEG, largepreview: dp.SaveLargePreview);
                 }
             }).InvokeAsync();
         });
@@ -2148,45 +2188,88 @@ namespace PixivWPF.Common
 
         public static ICommand SaveIllust { get; } = new DelegateCommand<dynamic>(async obj =>
         {
-            if (obj is PixivItem)
+            if (obj is KeyValuePair<PixivItem, DownloadType>)
             {
+                var kv = (KeyValuePair<PixivItem, DownloadType>)obj;
+                var item = kv.Key;
+                var type = kv.Value;
+
                 await new Action(() =>
                 {
-                    var item = obj as PixivItem;
                     if (item.IsWork())
                     {
                         var dt = item.Illust.GetDateTime();
                         var is_meta_single_page = (item.Illust.PageCount ?? 0) <= 1 ? true : false;
                         if (item.IsPage() || item.IsPages())
                         {
-                            var url = item.Illust.GetOriginalUrl(item.Index);
+                            var url = type.HasFlag(DownloadType.UsingLargePreview) ? item.Illust.GetPreviewUrl(item.Index, large: true) : item.Illust.GetOriginalUrl(item.Index);
                             if (!string.IsNullOrEmpty(url))
                             {
-                                url.SaveImage(item.Illust.GetThumbnailUrl(item.Index), dt, is_meta_single_page);
+                                url.SaveImage(
+                                    item.Illust.GetThumbnailUrl(item.Index), 
+                                    dt, is_meta_single_page, 
+                                    jpeg: type.HasFlag(DownloadType.AsJPEG), 
+                                    largepreview: type.HasFlag(DownloadType.UsingLargePreview)
+                                );
                             }
                         }
                         else if (item.Illust is Pixeez.Objects.Work)
                         {
-                            var url = item.Illust.GetOriginalUrl(item.Index);
+                            var url = type.HasFlag(DownloadType.UsingLargePreview) ? item.Illust.GetPreviewUrl(item.Index, large: true) : item.Illust.GetOriginalUrl(item.Index);
                             if (!string.IsNullOrEmpty(url))
                             {
-                                url.SaveImage(item.Illust.GetThumbnailUrl(item.Index), dt, is_meta_single_page);
+                                url.SaveImage(
+                                    item.Illust.GetThumbnailUrl(item.Index), 
+                                    dt, is_meta_single_page, 
+                                    jpeg: type.HasFlag(DownloadType.AsJPEG),
+                                    largepreview: type.HasFlag(DownloadType.UsingLargePreview)
+                                );
                             }
                         }
+                    }
+                }).InvokeAsync();
+            }
+            else if (obj is KeyValuePair<PixivItem, bool>)
+            {
+                var kv = (KeyValuePair<PixivItem, bool>)obj;
+                var item = kv.Key;
+                var jpeg = kv.Value;
+
+                SaveIllust.Execute(new KeyValuePair<PixivItem, DownloadType>(obj as PixivItem, DownloadType.AsJPEG));
+            }
+            else if (obj is PixivItem)
+            {
+                SaveIllust.Execute(new KeyValuePair<PixivItem, bool>(obj as PixivItem, false));
+            }
+            else if (obj is KeyValuePair<ImageListGrid, DownloadType>)
+            {
+                setting = Application.Current.LoadSetting();
+                var kv = (KeyValuePair<ImageListGrid, DownloadType>)obj;
+                var gallery = kv.Key as ImageListGrid;
+                var type = kv.Value;
+                await new Action(async () =>
+                {
+                    foreach (var item in gallery.GetSelected())
+                    {
+                        await new Action(() =>
+                        {
+                            SaveIllust.Execute(new KeyValuePair<PixivItem, DownloadType>(obj as PixivItem, type));
+                        }).InvokeAsync();
                     }
                 }).InvokeAsync();
             }
             else if (obj is ImageListGrid)
             {
                 setting = Application.Current.LoadSetting();
+                var gallery = obj as ImageListGrid;
+                var type = DownloadType.None;
                 await new Action(async () =>
                 {
-                    var gallery = obj as ImageListGrid;
                     foreach (var item in gallery.GetSelected())
                     {
                         await new Action(() =>
                         {
-                            SaveIllust.Execute(item);
+                            SaveIllust.Execute(new KeyValuePair<PixivItem, DownloadType>(obj as PixivItem, type));
                         }).InvokeAsync();
                     }
                 }).InvokeAsync();

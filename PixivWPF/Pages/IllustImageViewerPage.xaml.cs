@@ -536,11 +536,25 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR("OpenImageProperties"); }
         }
 
-        public void SaveIllust()
+        public void SaveIllust(object sender = null)
         {
             try
             {
-                if (Contents.IsWork()) Commands.SaveIllust.Execute(Contents);
+                if (Contents.IsWork())
+                {
+                    if (sender != null)
+                    {
+                        var uid = sender.GetUid();
+                        var type = DownloadType.None;
+
+                        if (uid.Equals("ActionSaveIllustJpeg")) type = DownloadType.AsJPEG;
+                        else if (uid.Equals("ActionSaveIllustPreview")) type = DownloadType.UsingLargePreview;
+                        var item = new KeyValuePair<PixivItem, DownloadType>(Contents, type);
+                        Commands.SaveIllust.Execute(item);
+                    }
+                    else
+                        Commands.SaveIllust.Execute(Contents);
+                }
             }
             catch (Exception ex) { ex.ERROR(); }
         }
@@ -890,7 +904,7 @@ namespace PixivWPF.Pages
 
         private void ActionSaveIllust_Click(object sender, RoutedEventArgs e)
         {
-            SaveIllust();
+            SaveIllust(sender);
         }
 
         private void ActionViewFullSize_Click(object sender, RoutedEventArgs e)

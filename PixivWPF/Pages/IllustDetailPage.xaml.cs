@@ -4074,25 +4074,42 @@ namespace PixivWPF.Pages
 
         private void ActionSaveIllust_Click(object sender, RoutedEventArgs e)
         {
+            var uid = sender.GetUid();
+            var type = DownloadType.None;
+
+            if (uid.Equals("ActionSaveIllustJpeg")) type = DownloadType.AsJPEG;
+            else if(uid.Equals("ActionSaveIllustPreview")) type = DownloadType.UsingLargePreview;
+
             if (SubIllusts.SelectedItems != null && SubIllusts.SelectedItems.Count > 0)
             {
-                Commands.SaveIllust.Execute(SubIllusts);
+                var items = new KeyValuePair<ImageListGrid, DownloadType>(SubIllusts, type);
+                Commands.SaveIllust.Execute(items);
             }
             else if (SubIllusts.SelectedItem.IsWork())
             {
-                var item = SubIllusts.SelectedItem;
+                var item = new KeyValuePair<PixivItem, DownloadType>(SubIllusts.SelectedItem, type);
                 Commands.SaveIllust.Execute(item);
             }
             else if (Contents.IsWork())
             {
-                Commands.SaveIllust.Execute(Contents);
+                var item = new KeyValuePair<PixivItem, DownloadType>(Contents, type);
+                Commands.SaveIllust.Execute(item);
             }
         }
 
         private void ActionSaveAllIllust_Click(object sender, RoutedEventArgs e)
         {
+            var uid = sender.GetUid();
+            var type = DownloadType.None;
+
+            if (uid.Equals("ActionSaveIllustJpeg")) type = DownloadType.AsJPEG;
+            else if (uid.Equals("ActionSaveIllustPreview")) type = DownloadType.UsingLargePreview;
+
             if (Contents.IsWork() && Contents.Count > 0)
-                Commands.SaveIllustAll.Execute(Contents);
+            {
+                var item = new KeyValuePair<PixivItem, DownloadType>(Contents, type);
+                Commands.SaveIllustAll.Execute(item);
+            }
         }
 
         private void SubPageNav_Clicked(object sender, RoutedEventArgs e)
