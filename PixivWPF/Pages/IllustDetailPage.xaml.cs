@@ -4078,7 +4078,7 @@ namespace PixivWPF.Pages
             var type = DownloadType.None;
 
             if (uid.Equals("ActionSaveIllustJpeg")) type = DownloadType.AsJPEG;
-            else if(uid.Equals("ActionSaveIllustPreview")) type = DownloadType.UsingLargePreview;
+            else if(uid.Equals("ActionSaveIllustPreview")) type = DownloadType.UseLargePreview;
 
             if (SubIllusts.SelectedItems != null && SubIllusts.SelectedItems.Count > 0)
             {
@@ -4103,7 +4103,7 @@ namespace PixivWPF.Pages
             var type = DownloadType.None;
 
             if (uid.Equals("ActionSaveIllustJpeg")) type = DownloadType.AsJPEG;
-            else if (uid.Equals("ActionSaveIllustPreview")) type = DownloadType.UsingLargePreview;
+            else if (uid.Equals("ActionSaveIllustPreview")) type = DownloadType.UseLargePreview;
 
             if (Contents.IsWork() && Contents.Count > 0)
             {
