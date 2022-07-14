@@ -4741,7 +4741,7 @@ namespace PixivWPF.Common
             public bool Exists { get; set; } = false;
         }
 
-        internal static bool IsDownloadedAsync(this Pixeez.Objects.Work illust, bool is_meta_single_page = false, int index = -1, bool touch = true)
+        internal static bool IsDownloadedAsync(this Pixeez.Objects.Work illust, bool is_meta_single_page = false, int index = -1, bool touch = false)
         {
             if (illust is Pixeez.Objects.Work)
                 return (illust.GetOriginalUrl(index).IsDownloadedAsync(is_meta_single_page, touch));
@@ -4749,7 +4749,7 @@ namespace PixivWPF.Common
                 return (false);
         }
 
-        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, bool is_meta_single_page = false, int index = -1, bool touch = true)
+        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, bool is_meta_single_page = false, int index = -1, bool touch = false)
         {
             if (illust is Pixeez.Objects.Work)
                 return (illust.GetOriginalUrl(index).IsDownloaded(is_meta_single_page, touch));
@@ -4757,7 +4757,7 @@ namespace PixivWPF.Common
                 return (false);
         }
 
-        internal static bool IsDownloadedAsync(this Pixeez.Objects.Work illust, out string filepath, bool is_meta_single_page = false, int index = -1, bool touch = true)
+        internal static bool IsDownloadedAsync(this Pixeez.Objects.Work illust, out string filepath, bool is_meta_single_page = false, int index = -1, bool touch = false)
         {
             if (illust is Pixeez.Objects.Work)
                 return (illust.GetOriginalUrl(index).IsDownloadedAsync(out filepath, is_meta_single_page, touch));
@@ -4768,7 +4768,7 @@ namespace PixivWPF.Common
             }
         }
 
-        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, out string filepath, bool is_meta_single_page = false, int index = -1, bool touch = true)
+        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, out string filepath, bool is_meta_single_page = false, int index = -1, bool touch = false)
         {
             if (illust is Pixeez.Objects.Work)
                 return (illust.GetOriginalUrl(index).IsDownloaded(out filepath, is_meta_single_page, touch));
@@ -4779,7 +4779,7 @@ namespace PixivWPF.Common
             }
         }
 
-        internal static bool IsDownloadedAsync(this Pixeez.Objects.Work illust, int index = -1, bool touch = true)
+        internal static bool IsDownloadedAsync(this Pixeez.Objects.Work illust, int index = -1, bool touch = false)
         {
             if (illust is Pixeez.Objects.Work)
                 return (illust.GetOriginalUrl(index).IsDownloadedAsync(touch: touch));
@@ -4787,7 +4787,7 @@ namespace PixivWPF.Common
                 return (false);
         }
 
-        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, int index = -1, bool touch = true)
+        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, int index = -1, bool touch = false)
         {
             if (illust is Pixeez.Objects.Work)
                 return (illust.GetOriginalUrl(index).IsDownloaded(touch: touch));
@@ -4795,7 +4795,7 @@ namespace PixivWPF.Common
                 return (false);
         }
 
-        internal static bool IsDownloadedAsync(this Pixeez.Objects.Work illust, out string filepath, int index = -1, bool is_meta_single_page = false, bool touch = true)
+        internal static bool IsDownloadedAsync(this Pixeez.Objects.Work illust, out string filepath, int index = -1, bool is_meta_single_page = false, bool touch = false)
         {
             if (illust is Pixeez.Objects.Work)
                 return (illust.GetOriginalUrl(index).IsDownloadedAsync(out filepath, is_meta_single_page, touch));
@@ -4806,7 +4806,7 @@ namespace PixivWPF.Common
             }
         }
 
-        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, out string filepath, int index = -1, bool is_meta_single_page = false, bool touch = true)
+        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, out string filepath, int index = -1, bool is_meta_single_page = false, bool touch = false)
         {
             if (illust is Pixeez.Objects.Work)
                 return (illust.GetOriginalUrl(index).IsDownloaded(out filepath, is_meta_single_page, touch));
@@ -4818,7 +4818,7 @@ namespace PixivWPF.Common
         }
 
         private static Func<string, bool, bool, bool> IsDownloadedFunc = (url, meta, touch) => IsDownloaded(url, meta, touch);
-        internal static bool IsDownloadedAsync(this string url, bool is_meta_single_page = false, bool touch = true)
+        internal static bool IsDownloadedAsync(this string url, bool is_meta_single_page = false, bool touch = false)
         {
             return (IsDownloadedFunc(url, is_meta_single_page, touch));
         }
@@ -4832,7 +4832,7 @@ namespace PixivWPF.Common
             return(state);
         };
 
-        internal static bool IsDownloadedAsync(this string url, out string filepath, bool is_meta_single_page = false, bool touch = true)
+        internal static bool IsDownloadedAsync(this string url, out string filepath, bool is_meta_single_page = false, bool touch = false)
         {
             filepath = string.Empty;
             var result = IsDownloadedFileFunc(url, filepath, is_meta_single_page, touch);
@@ -4840,13 +4840,13 @@ namespace PixivWPF.Common
             return (result.Exists); ;
         }
 
-        internal static bool IsDownloaded(this string url, bool is_meta_single_page = false, bool touch = true)
+        internal static bool IsDownloaded(this string url, bool is_meta_single_page = false, bool touch = false)
         {
             string fp = string.Empty;
             return (IsDownloaded(url, out fp, is_meta_single_page, touch));
         }
 
-        internal static bool IsDownloaded(this string url, out string filepath, bool is_meta_single_page = false, bool touch = true)
+        internal static bool IsDownloaded(this string url, out string filepath, bool is_meta_single_page = false, bool touch = false)
         {
             bool result = false;
             filepath = string.Empty;
@@ -4889,7 +4889,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region IsPartDownloaded
-        internal static bool IsPartDownloadedAsync(this PixivItem item, bool touch = true)
+        internal static bool IsPartDownloadedAsync(this PixivItem item, bool touch = false)
         {
             if (item.Illust is Pixeez.Objects.Work)
                 return (item.Illust.GetOriginalUrl().IsPartDownloadedAsync(touch));
@@ -4897,7 +4897,7 @@ namespace PixivWPF.Common
                 return (false);
         }
 
-        internal static bool IsPartDownloaded(this PixivItem item, bool touch = true)
+        internal static bool IsPartDownloaded(this PixivItem item, bool touch = false)
         {
             if (item.Illust is Pixeez.Objects.Work)
                 return (item.Illust.GetOriginalUrl().IsPartDownloaded(touch));
@@ -4905,7 +4905,7 @@ namespace PixivWPF.Common
                 return (false);
         }
 
-        internal static bool IsPartDownloadedAsync(this PixivItem item, out string filepath, bool touch = true)
+        internal static bool IsPartDownloadedAsync(this PixivItem item, out string filepath, bool touch = false)
         {
             if (item.Illust is Pixeez.Objects.Work)
                 return (item.Illust.GetOriginalUrl().IsPartDownloadedAsync(out filepath, touch));
@@ -4916,7 +4916,7 @@ namespace PixivWPF.Common
             }
         }
 
-        internal static bool IsPartDownloaded(this PixivItem item, out string filepath, bool touch = true)
+        internal static bool IsPartDownloaded(this PixivItem item, out string filepath, bool touch = false)
         {
             if (item.Illust is Pixeez.Objects.Work)
                 return (item.Illust.GetOriginalUrl().IsPartDownloaded(out filepath, touch));
@@ -4927,7 +4927,7 @@ namespace PixivWPF.Common
             }
         }
 
-        internal static bool IsPartDownloadedAsync(this Pixeez.Objects.Work illust, bool touch = true)
+        internal static bool IsPartDownloadedAsync(this Pixeez.Objects.Work illust, bool touch = false)
         {
             if (illust is Pixeez.Objects.Work)
                 return (illust.GetOriginalUrl().IsPartDownloadedAsync(touch: touch));
@@ -4935,7 +4935,7 @@ namespace PixivWPF.Common
                 return (false);
         }
 
-        internal static bool IsPartDownloaded(this Pixeez.Objects.Work illust, bool touch = true)
+        internal static bool IsPartDownloaded(this Pixeez.Objects.Work illust, bool touch = false)
         {
             if (illust is Pixeez.Objects.Work)
                 return (illust.GetOriginalUrl().IsPartDownloaded(touch: touch));
@@ -4943,7 +4943,7 @@ namespace PixivWPF.Common
                 return (false);
         }
 
-        internal static bool IsPartDownloadedAsync(this Pixeez.Objects.Work illust, out string filepath, bool touch = true)
+        internal static bool IsPartDownloadedAsync(this Pixeez.Objects.Work illust, out string filepath, bool touch = false)
         {
             if (illust is Pixeez.Objects.Work)
                 return (illust.GetOriginalUrl().IsPartDownloadedAsync(out filepath, touch: touch));
@@ -4954,7 +4954,7 @@ namespace PixivWPF.Common
             }
         }
 
-        internal static bool IsPartDownloaded(this Pixeez.Objects.Work illust, out string filepath, bool touch = true)
+        internal static bool IsPartDownloaded(this Pixeez.Objects.Work illust, out string filepath, bool touch = false)
         {
             if (illust is Pixeez.Objects.Work)
                 return (illust.GetOriginalUrl().IsPartDownloaded(out filepath, touch: touch));
@@ -4966,7 +4966,7 @@ namespace PixivWPF.Common
         }
 
         private static Func<string, bool, bool> IsPartDownloadedFunc = (url, touch) => IsPartDownloaded(url, touch);
-        internal static bool IsPartDownloadedAsync(this string url, bool touch = true)
+        internal static bool IsPartDownloadedAsync(this string url, bool touch = false)
         {
             return (IsPartDownloaded(url, touch));
         }
@@ -4980,7 +4980,7 @@ namespace PixivWPF.Common
             return(state);
         };
 
-        internal static bool IsPartDownloadedAsync(this string url, out string filepath, bool touch = true)
+        internal static bool IsPartDownloadedAsync(this string url, out string filepath, bool touch = false)
         {
             filepath = string.Empty;
             var result = IsPartDownloadedFileFunc(url, filepath, touch);
@@ -4988,13 +4988,13 @@ namespace PixivWPF.Common
             return (result.Exists);
         }
 
-        internal static bool IsPartDownloaded(this string url, bool touch = true)
+        internal static bool IsPartDownloaded(this string url, bool touch = false)
         {
             string fp = string.Empty;
             return (IsPartDownloaded(url, out fp, touch));
         }
 
-        internal static bool IsPartDownloaded(this string url, out string filepath, bool touch = true)
+        internal static bool IsPartDownloaded(this string url, out string filepath, bool touch = false)
         {
             bool result = false;
             filepath = string.Empty;

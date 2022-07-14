@@ -151,7 +151,7 @@ namespace PixivWPF.Pages
                 {
                     i.IsFavorited = illust.IsLiked();
                     i.IsFollowed = illust.User.IsLiked();
-                    i.IsDownloaded = illust.IsDownloaded(index_n);
+                    i.IsDownloaded = illust.IsDownloaded(index_n, touch: false);
                     i.NextURL = Contents.NextURL;
                     i.Thumb = illust.GetThumbnailUrl(index_n);
                     i.Index = index_n;
@@ -432,7 +432,7 @@ namespace PixivWPF.Pages
                     StringBuilder sb = new StringBuilder();
                     sb.AppendLine($"Favorited  = {Contents.Illust.IsLiked()}");
                     sb.AppendLine($"Page Index = {Contents.Index + 1} / {Contents.Count}");
-                    sb.AppendLine($"Downloaded = {Contents.Illust.IsDownloaded(Contents.Index)}");
+                    sb.AppendLine($"Downloaded = {Contents.Illust.IsDownloaded(Contents.Index, touch: false)}");
                     sb.AppendLine(original);
 
                     InfoBar.ToolTip = sb.ToString().Trim();

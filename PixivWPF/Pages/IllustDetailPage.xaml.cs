@@ -1394,13 +1394,21 @@ namespace PixivWPF.Pages
                     var state = PrefetchingImagesTask.State;
                     if (ParentWindow is MainWindow) (ParentWindow as MainWindow).SetPrefetchingProgress(percent, tooltip, state);
                     if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
-                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted || state == TaskStatus.Canceled) UpdateThumb(prefetching: false);
+                    if (state == TaskStatus.RanToCompletion ||
+                        state == TaskStatus.Faulted ||
+                        state == TaskStatus.Canceled ||
+                        (state != TaskStatus.WaitingForChildrenToComplete && percent >= 100))
+                        UpdateThumb(prefetching: false);
                 },
                 ReportProgress = (percent, tooltip, state) =>
                 {
                     if (ParentWindow is MainWindow) (ParentWindow as MainWindow).SetPrefetchingProgress(percent, tooltip, state);
                     if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
-                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted || state == TaskStatus.Canceled) UpdateThumb(prefetching: false);
+                    if (state == TaskStatus.RanToCompletion ||
+                        state == TaskStatus.Faulted ||
+                        state == TaskStatus.Canceled ||
+                        (state != TaskStatus.WaitingForChildrenToComplete && percent >= 100))
+                        UpdateThumb(prefetching: false);
                 }
             };
         }
@@ -1802,9 +1810,9 @@ namespace PixivWPF.Pages
 
                 SubIllustUpdateTimer.Stop();
                 PreviewBadge.Badge = $"1 / {item.Count}";
-                if (item.IsWork() && (item.Illust.PageCount ?? 0) > 1)
+                if (item.HasPages())
                 {
-                    var total = item.Illust.PageCount ?? 0;
+                    var total = item.Count;
                     page_count = total / PAGE_ITEMS + (total % PAGE_ITEMS > 0 ? 1 : 0);
 
                     item.Index = 0;
@@ -1818,6 +1826,7 @@ namespace PixivWPF.Pages
                     SubIllustsExpander.Hide();
                     PreviewBadge.Hide();
                     page_count = 0;
+                    if (item.IsPartDownloaded(touch: false)) Commands.TouchMeta.Execute(item);
                 }
                 UpdateSubPageNav();
 

@@ -682,6 +682,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        private IList<PixivItem> LastItems = new List<PixivItem>();
+        private void TouchImage()
+        {
+            Commands.TouchMeta.Execute(ItemList.Where(t => !LastItems.Contains(t) && t.IsDownloaded).ToList());
+        }
+
         public async void Clear(bool batch = true, bool force = false)
         {
             Cancel();
@@ -1016,6 +1022,7 @@ namespace PixivWPF.Common
             }
             finally
             {
+                LastItems = ItemList.Where(t => t.IsDownloaded).ToList();
                 this.DoEvents();
                 Task.Delay(1).GetAwaiter().GetResult();
                 ReleaseUpdateLock();
@@ -1071,6 +1078,7 @@ namespace PixivWPF.Common
                     {
                         new Action(() =>
                         {
+                            TouchImage();
                             UpdateTileTaskCancelSrc = new CancellationTokenSource();
                             UpdateTileTask.RunWorkerAsync(overwrite);
                         }).Invoke(async: false);

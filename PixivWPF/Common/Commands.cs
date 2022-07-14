@@ -1637,31 +1637,37 @@ namespace PixivWPF.Common
                 }
                 else if (obj is ImageListGrid)
                 {
-                    await new Action(async () =>
+                    var gallery = obj as ImageListGrid;
+                    if (gallery.Count > 0)
                     {
-                        var gallery = obj as ImageListGrid;
-                        foreach (var item in gallery.GetSelected())
+                        await new Action(async () =>
                         {
-                            await new Action(() =>
+                            foreach (var item in gallery.GetSelected())
                             {
-                                TouchMeta.Execute(item);
-                            }).InvokeAsync();
-                        }
-                    }).InvokeAsync();
+                                await new Action(() =>
+                                {
+                                    TouchMeta.Execute(item);
+                                }).InvokeAsync();
+                            }
+                        }).InvokeAsync();
+                    }
                 }
                 else if (obj is IList<PixivItem>)
                 {
-                    await new Action(async () =>
+                    var gallery = obj as IList<PixivItem>;
+                    if (gallery.Count > 0)
                     {
-                        var gallery = obj as IList<PixivItem>;
-                        foreach (var item in gallery)
+                        await new Action(async () =>
                         {
-                            await new Action(() =>
+                            foreach (var item in gallery)
                             {
-                                TouchMeta.Execute(item);
-                            }).InvokeAsync();
-                        }
-                    }).InvokeAsync();
+                                await new Action(() =>
+                                {
+                                    TouchMeta.Execute(item);
+                                }).InvokeAsync();
+                            }
+                        }).InvokeAsync();
+                    }
                 }
                 else if (obj is TilesPage)
                 {

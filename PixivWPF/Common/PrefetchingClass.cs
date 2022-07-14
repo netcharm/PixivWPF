@@ -306,7 +306,7 @@ namespace PixivWPF.Common
                 var args = e.Argument is PrefetchingOpts ? e.Argument as PrefetchingOpts : new PrefetchingOpts();
                 if (!args.PrefetchingPreview) return (result);
 
-                State = TaskStatus.WaitingToRun;
+                State = TaskStatus.WaitingForChildrenToComplete;
 
                 var comments = Comments.Substring(0, Comments.IndexOf("]")+1);
                 var count = originals.Count;
@@ -611,8 +611,6 @@ namespace PixivWPF.Common
                 {
                     new Action(() =>
                     {
-                        Application.Current.MainWindow.Dispatcher.Invoke(() => { Commands.TouchMeta.Execute(Items); });
-
                         PrefetchingTaskCancelTokenSource = new CancellationTokenSource();
                         PrefetchingBgWorker.RunWorkerAsync(Options);
                     }).Invoke(async: false);
