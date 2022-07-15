@@ -3335,11 +3335,11 @@ namespace CompactExifLib
                     IfdTagTable.Add(t.TagId, t);
                 }
 #if DEBUG
-        int k = t.ValueIndex + t.AllocatedByteCount;
-        for (int i = t.ValueIndex; i < k; i++)
-        {
-          t.ValueData[i] = 0xcc;
-        }
+                int k = t.ValueIndex + t.AllocatedByteCount;
+                for (int i = t.ValueIndex; i < k; i++)
+                {
+                    t.ValueData[i] = 0xcc;
+                }
 #endif
             }
             return (t);
@@ -3897,6 +3897,13 @@ namespace CompactExifLib
         XpSubject = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.XpSubject,
         XpRanking = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.XpRanking,
         XpRating = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.XpRating,
+        Rating = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.XpRanking,
+        RatingPercent = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.XpRating,
+
+        PixelUnit = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.PixelUnit,
+        PixelPerUnitX = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.PixelPerUnitX,
+        PixelPerUnitY = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.PixelPerUnitY,
+
         PrimaryDataPadding = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.Padding,
 
         // IFD Private Data
@@ -4106,8 +4113,15 @@ namespace CompactExifLib
         XpKeywords = 0x9c9e,
         XpSubject = 0x9c9f,
         // Custom Rating/Ranking
+        Rating = 0x4746,
+        RatingPercent = 0x4749,
         XpRanking = 0x4746,
         XpRating = 0x4749,
+
+        PixelUnit = 0x5110,
+        PixelPerUnitX = 0x5111,
+        PixelPerUnitY = 0x5112,
+
         Padding = 0xea1c,
 
         // IFD Thumbnail Data

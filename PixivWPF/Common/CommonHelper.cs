@@ -2066,7 +2066,8 @@ namespace PixivWPF.Common
             int idx = -1;
             if (!string.IsNullOrEmpty(url))
             {
-                var idx_s = Regex.Replace(Path.GetFileName(url), @"\d+_.*?(\d+)\.\w+", "$1", RegexOptions.IgnoreCase);
+                //var idx_s = Regex.Replace(Path.GetFileName(url), @"\d+_.*?p?(\d+)\.\w+", "$1", RegexOptions.IgnoreCase);
+                var idx_s = Regex.Replace(Path.GetFileName(url), @"\d+_p?(\d+)(_.*?)?\.\w+", "$1", RegexOptions.IgnoreCase);
                 int.TryParse(idx_s, out idx);
             }
             return (idx);

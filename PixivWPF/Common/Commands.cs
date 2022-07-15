@@ -1604,7 +1604,15 @@ namespace PixivWPF.Common
                     if (!string.IsNullOrEmpty(str))
                     {
                         if (File.Exists(str))
-                            str.OpenFileWithShell(command: setting.ShellShowMetaCmd, custom_params: setting.ShellShowMetaParams);
+                        {
+                            var id = str.GetIllustId();
+                            var idx = str.GetIllustPageIndex();
+                            var illust = id.FindIllust();
+                            if (use_shell)
+                                str.OpenFileWithShell(command: setting.ShellTouchMetaCmd, custom_params: setting.ShellTouchMetaParams);
+                            else
+                                await (new FileInfo(str).AttachMetaInfo(illust.GetDateTime(), id, true));
+                        }
                         else
                         {
                             var illust = $"{str}".FindIllust();

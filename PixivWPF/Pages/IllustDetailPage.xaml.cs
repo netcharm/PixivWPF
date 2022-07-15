@@ -1710,7 +1710,7 @@ namespace PixivWPF.Pages
 
                 UpdateUg(item.IsUgoira());
 
-                if (item.Count <= 1) UpdateDownloadedMark();                
+                if (item.Count <= 1) UpdateDownloadedMark();
 
                 IllustSize.Text = $"{item.Illust.Width}x{item.Illust.Height}";
 
@@ -3222,7 +3222,7 @@ namespace PixivWPF.Pages
                         if (c_item.IsSameIllust(Contents)) PreviewWait.Show();
 
                         PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index, large: setting.ShowLargePreview);
-                        if(_urls_ is List<string>) _urls_.Add(PreviewImageUrl);
+                        if (_urls_ is List<string>) _urls_.Add(PreviewImageUrl);
                         if (Keyboard.Modifiers == ModifierKeys.Control) { PreviewImageUrl.GetImageCacheFile().ClearDownloading(); }
 
                         using (var img = await PreviewImageUrl.LoadImageFromUrl(overwrite, progressAction: PreviewWait.ReportPercentage, cancelToken: cancelDownloading))
@@ -4078,7 +4078,7 @@ namespace PixivWPF.Pages
             var type = DownloadType.None;
 
             if (uid.Equals("ActionSaveIllustJpeg")) type = DownloadType.AsJPEG;
-            else if(uid.Equals("ActionSaveIllustPreview")) type = DownloadType.UseLargePreview;
+            else if (uid.Equals("ActionSaveIllustPreview")) type = DownloadType.UseLargePreview;
 
             if (SubIllusts.SelectedItems != null && SubIllusts.SelectedItems.Count > 0)
             {
@@ -4816,21 +4816,32 @@ namespace PixivWPF.Pages
             {
                 if (sender is MenuItem)
                 {
+                    var uid = sender.GetUid();
+                    var type = DownloadType.None;
+
+                    if (uid.Equals("ActionSaveIllustsJpeg")) type = DownloadType.AsJPEG;
+                    else if (uid.Equals("ActionSaveIllustsPreview")) type = DownloadType.UseLargePreview;
+
                     var m = sender as MenuItem;
                     var host = (m.Parent as ContextMenu).PlacementTarget;
-                    if (m.Uid.Equals("ActionSaveIllusts", StringComparison.CurrentCultureIgnoreCase))
+                    if (m.Uid.Equals("ActionSaveIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                        m.Uid.Equals("ActionSaveIllustsJpeg", StringComparison.CurrentCultureIgnoreCase) ||
+                        m.Uid.Equals("ActionSaveIllustsPreview", StringComparison.CurrentCultureIgnoreCase))
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
-                            Commands.SaveIllust.Execute(SubIllusts);
+                            var items = new KeyValuePair<ImageListGrid, DownloadType>(SubIllusts, type);
+                            Commands.SaveIllust.Execute(items);
                         }
                         else if (host == RelatedItemsExpander || host == RelatedItems)
                         {
-                            Commands.SaveIllust.Execute(RelatedItems);
+                            var items = new KeyValuePair<ImageListGrid, DownloadType>(RelatedItems, type);
+                            Commands.SaveIllust.Execute(items);
                         }
                         else if (host == FavoriteItemsExpander || host == FavoriteItems)
                         {
-                            Commands.SaveIllust.Execute(FavoriteItems);
+                            var items = new KeyValuePair<ImageListGrid, DownloadType>(FavoriteItems, type);
+                            Commands.SaveIllust.Execute(items);
                         }
                     }
                 }
@@ -4844,21 +4855,32 @@ namespace PixivWPF.Pages
             {
                 if (sender is MenuItem)
                 {
+                    var uid = sender.GetUid();
+                    var type = DownloadType.None;
+
+                    if (uid.Equals("ActionSaveIllustsJpegAll")) type = DownloadType.AsJPEG;
+                    else if (uid.Equals("ActionSaveIllustsPreviewAll")) type = DownloadType.UseLargePreview;
+
                     var m = sender as MenuItem;
                     var host = (m.Parent as ContextMenu).PlacementTarget;
-                    if (m.Uid.Equals("ActionSaveIllustsAll", StringComparison.CurrentCultureIgnoreCase))
+                    if (m.Uid.Equals("ActionSaveIllustsAll", StringComparison.CurrentCultureIgnoreCase) ||
+                        m.Uid.Equals("ActionSaveIllustsJpegAll", StringComparison.CurrentCultureIgnoreCase) ||
+                        m.Uid.Equals("ActionSaveIllustsPreviewAll", StringComparison.CurrentCultureIgnoreCase))
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
-                            Commands.SaveIllustAll.Execute(Contents);
+                            var items = new KeyValuePair<PixivItem, DownloadType>(Contents, type);
+                            Commands.SaveIllustAll.Execute(items);
                         }
                         else if (host == RelatedItemsExpander || host == RelatedItems)
                         {
-                            Commands.SaveIllustAll.Execute(RelatedItems);
+                            var items = new KeyValuePair<ImageListGrid, DownloadType>(RelatedItems, type);
+                            Commands.SaveIllustAll.Execute(items);
                         }
                         else if (host == FavoriteItemsExpander || host == FavoriteItems)
                         {
-                            Commands.SaveIllustAll.Execute(FavoriteItems);
+                            var items = new KeyValuePair<ImageListGrid, DownloadType>(FavoriteItems, type);
+                            Commands.SaveIllustAll.Execute(items);
                         }
                     }
                 }

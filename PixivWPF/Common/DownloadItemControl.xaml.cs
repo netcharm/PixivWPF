@@ -20,7 +20,7 @@ namespace PixivWPF.Common
 {
     public enum DownloadState { Idle, Downloading, Paused, Finished, Failed, Writing, Deleted, NonExists, Remove, Unknown }
 
-    public class DownloadStateMark: IDisposable
+    public class DownloadStateMark : IDisposable
     {
         public string Mark { get; set; } = string.Empty;
         public Brush Foreground { get; set; } = Application.Current.GetForegroundBrush();
@@ -98,9 +98,10 @@ namespace PixivWPF.Common
                 if (UseLargePreview)
                 {
                     var id = url.GetIllustId();
+                    var idx = url.GetIllustPageIndex();
                     var illust = id.FindIllust();
                     if (illust.IsWork())
-                        FileName = illust.GetOriginalUrl().GetImageName(singlefile);
+                        FileName = illust.GetOriginalUrl(singlefile ? 0 : idx).GetImageName(singlefile);
                     else
                     {
                         FileName = Regex.Replace(FileName, @"_p(\d+)_marter.*?\.", "$1.");
@@ -1539,6 +1540,10 @@ namespace PixivWPF.Common
             else if (sender == miShowImageMeta)
             {
                 Commands.ShowMeta.Execute(FileName);
+            }
+            else if (sender == miTouchImageMeta)
+            {
+                Commands.TouchMeta.Execute(FileName);
             }
         }
     }
