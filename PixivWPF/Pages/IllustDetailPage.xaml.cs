@@ -4430,6 +4430,14 @@ namespace PixivWPF.Pages
                                 item.Header = "Save Selected Pages";
                             else if (item.Uid.Equals("ActionSaveIllustsAll", StringComparison.CurrentCultureIgnoreCase))
                                 item.Header = "Save All Pages";
+                            else if (item.Uid.Equals("ActionSaveIllustsJpeg", StringComparison.CurrentCultureIgnoreCase))
+                                item.Header = "Save Selected Pages As JPEG";
+                            else if (item.Uid.Equals("ActionSaveIllustsJpegAll", StringComparison.CurrentCultureIgnoreCase))
+                                item.Header = "Save All Pages As JPEG";
+                            else if (item.Uid.Equals("ActionSaveIllustsPreview", StringComparison.CurrentCultureIgnoreCase))
+                                item.Header = "Save Selected Pages Large Preview";
+                            else if (item.Uid.Equals("ActionSaveIllustsPreviewAll", StringComparison.CurrentCultureIgnoreCase))
+                                item.Header = "Save All Pages Large Preview";
                         }
                         catch (Exception ex) { ex.ERROR(); continue; }
                     }
