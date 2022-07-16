@@ -140,15 +140,21 @@
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
+                <MenuItem x:Uid="ActionConvertIllustPreview" Header="Convert Illust Page To JPEG" Click="ActionSaveIllust_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>                
                 <MenuItem x:Uid="ActionSaveIllustPreview" Header="Save Illust Page Large Preview" Click="ActionSaveIllust_Click">
                     <MenuItem.Icon>
-                        <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                        <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Uid="ActionSaveIllustJpeg" Header="Save Illust Page As JPEG" Click="ActionSaveIllust_Click">
                     <MenuItem.Icon>
-                        <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                        <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>

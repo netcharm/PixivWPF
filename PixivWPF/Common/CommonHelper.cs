@@ -5759,6 +5759,33 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static async Task<string> ConvertImageTo(this string file, string fmt, bool keep_name = false)
+        {
+            string result = string.Empty;
+            try
+            {
+                if (!string.IsNullOrEmpty(file) && File.Exists(file))
+                {
+                    var ret = File.ReadAllBytes(file).ConvertImageTo(fmt);
+                    var fout = keep_name ? file : Path.ChangeExtension(file, $".{fmt}");
+                    File.WriteAllBytes(fout, ret);
+
+                    var id = fout.GetIllustId();
+                    var idx = fout.GetIllustPageIndex();
+                    var illust = id.FindIllust();
+                    await new FileInfo(fout).AttachMetaInfo(illust.GetDateTime(), id, true);
+
+                    result = fout;
+                    if (string.IsNullOrEmpty(fout))
+                        $"Convert {file} To JPEG Failed!".INFO($"ConvertImageTo_{fmt}");
+                    else
+                        $"Convert {file} To JPEG Succeed!".INFO($"ConvertImageTo_{fmt}");
+                }
+            }
+            catch (Exception ex) { ex.ERROR($"ConvertImageTo_{ fmt}"); }
+            return (result);
+        }
+
         public static BitmapSource ConvertBitmapDPI(this BitmapSource source, double dpiX = 96, double dpiY = 96)
         {
             if (dpiX == source.DpiX || dpiY == source.DpiY) return (source);

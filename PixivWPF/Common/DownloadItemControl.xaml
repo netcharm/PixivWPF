@@ -84,6 +84,12 @@
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
+                <MenuItem x:Name="miConvertImageToJpeg" x:Uid="ConvertImageToJpeg" Header="Convert Image To JPEG" Click="miActions_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <MenuItem x:Name="miTouchImageMeta" x:Uid="TouchImageMeta" Header="Touch Image Metadata" Click="miActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Margin="4,0,0,0" Text="&#xE114;" FontSize="16" FontFamily="Segoe MDL2 Assets"
@@ -176,11 +182,11 @@
                    Foreground="{DynamicResource MahApps.Brushes.Text}" 
                    Text="{Binding FolderName, Mode=OneWay}" TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"/>
         <mah:MetroProgressBar Grid.Row="3" Grid.Column="1" x:Name="PART_DownloadProgress" x:Uid="DownloadProgress"
-                              Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                              Tag="{Binding Progress, Mode=OneWay}" IsEnabled="True"
-                              Height="18" IsIndeterminate="False" Minimum="0" Maximum="100" Margin="2"
-                              Value="{Binding ProgressPercent, Mode=OneWay, IsAsync=True, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
-                              HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                    Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                    Tag="{Binding Progress, Mode=OneWay}" IsEnabled="True"
+                    Height="18" IsIndeterminate="False" Minimum="0" Maximum="100" Margin="2"
+                    Value="{Binding ProgressPercent, Mode=OneWay, IsAsync=True, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
         <TextBlock Grid.Row="3" Grid.Column="1" x:Name="PART_DownloadProgressPercent" 
                    HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
                    TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow">
@@ -210,8 +216,21 @@
                        HorizontalAlignment="Left" VerticalAlignment="Center" />
             <StackPanel Grid.Column="1" x:Name="OpenPanel" x:Uid="OpenPanel" Margin="0,0,0,2"
                     Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <mah:ToggleSwitch x:Name="PART_SaveAsJPEG" x:Uid="OptionSaveAsJPEG" Margin="2,0,-8,0" Toggled="miActions_Click"                                  
+                        ToolTip="SaveAsJPEG On/Off" RenderTransformOrigin="0.5,0.5"
+                        Width="48" ClipToBounds="True" UseLayoutRounding="True"
+                        FlowDirection="RightToLeft" OnContent="JPG" OffContent="KEEP"
+                        HorizontalAlignment="Right" VerticalAlignment="Center"
+                        HorizontalContentAlignment="Right" VerticalContentAlignment="Center" 
+                        BorderBrush="{DynamicResource MahApps.Brushes.Accent}" ContentPadding="0,0,0,0">
+                    <mah:ToggleSwitch.RenderTransform>
+                        <ScaleTransform ScaleX=".85" ScaleY=".85" />
+                    </mah:ToggleSwitch.RenderTransform>
+                </mah:ToggleSwitch>
                 <Button x:Name="PART_CopyIllustID" x:Uid="ActionCopyIllustID" Margin="2,0,2,0" Click="miActions_Click"
                         ToolTip="Copy Illust ID" 
+                        HorizontalAlignment="Right" VerticalAlignment="Center"
+                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"                        
                         Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
                         BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                         Foreground="{DynamicResource MahApps.Brushes.Text}" 
@@ -221,6 +240,8 @@
                 </Button>
                 <Button x:Name="PART_OpenIllust" x:Uid="ActionOpenIllust" Margin="2,0,2,0" Click="miActions_Click"
                         ToolTip="Open Illust" 
+                        HorizontalAlignment="Right" VerticalAlignment="Center"
+                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"                        
                         Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
                         BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                         Foreground="{DynamicResource MahApps.Brushes.Text}" 
@@ -230,6 +251,8 @@
                 </Button>
                 <Button x:Name="PART_Remove" x:Uid="ActionRemove" Margin="2,0,2,0" Click="miActions_Click"
                         ToolTip="Remove Item" 
+                        HorizontalAlignment="Right" VerticalAlignment="Center"
+                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"                        
                         Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
                         BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                         Foreground="{DynamicResource MahApps.Brushes.Text}" 
@@ -239,6 +262,8 @@
                 </Button>
                 <Button x:Name="PART_StopDownload" x:Uid="ActionStop" Margin="2,0,2,0" Click="miActions_Click"
                         ToolTip="Stop Downloading" 
+                        HorizontalAlignment="Right" VerticalAlignment="Center"
+                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"                        
                         Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
                         BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                         Foreground="{DynamicResource MahApps.Brushes.Text}" 

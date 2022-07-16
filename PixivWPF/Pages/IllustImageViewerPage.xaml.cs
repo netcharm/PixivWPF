@@ -550,10 +550,18 @@ namespace PixivWPF.Pages
                         if (uid.Equals("ActionSaveIllustJpeg")) type = DownloadType.AsJPEG;
                         else if (uid.Equals("ActionSaveIllustPreview")) type = DownloadType.UseLargePreview;
                         var item = new KeyValuePair<PixivItem, DownloadType>(Contents, type);
-                        Commands.SaveIllust.Execute(item);
+                        if (uid.Equals("ActionConvertIllustPreview"))
+                            Commands.ConvertToJpeg.Execute(item);
+                        else
+                            Commands.SaveIllust.Execute(item);
                     }
                     else
+                    {
+                        //if (uid.Equals("ActionConvertIllustPreview"))
+                        //    Commands.ConvertToJpeg.Execute(Contents);
+                        //else
                         Commands.SaveIllust.Execute(Contents);
+                    }
                 }
             }
             catch (Exception ex) { ex.ERROR(); }

@@ -1397,10 +1397,7 @@ namespace PixivWPF.Common
                             else
                                 illust.IsPartDownloadedAsync(out fp, touch: false);
 
-                            if (string.IsNullOrEmpty(fp))
-                                OpenWorkPreview.Execute(item);
-                            else
-                                fp.OpenFileWithShell();
+                            if (!string.IsNullOrEmpty(fp)) fp.OpenFileWithShell();
                         }
                     }
                 }
@@ -1716,31 +1713,6 @@ namespace PixivWPF.Common
                             }
                         }).InvokeAsync();
                     }
-                }
-                else if (obj is TilesPage)
-                {
-                    (obj as TilesPage).OpenIllust();
-                }
-                else if (obj is IllustDetailPage)
-                {
-                    (obj as IllustDetailPage).OpenIllust();
-                }
-                else if (obj is IllustImageViewerPage)
-                {
-                    (obj as IllustImageViewerPage).OpenIllust();
-                }
-                else if (obj is SearchResultPage)
-                {
-                    (obj as SearchResultPage).OpenIllust();
-                }
-                else if (obj is HistoryPage)
-                {
-                    (obj as HistoryPage).OpenIllust();
-                }
-                else if (obj is Window)
-                {
-                    var win = obj as Window;
-                    if (win.Content is Page) TouchMeta.Execute(win.Content);
                 }
             }
             catch (Exception ex) { ex.ERROR("OpenDownloaded"); }
@@ -2192,6 +2164,139 @@ namespace PixivWPF.Common
                     }
                 }).InvokeAsync();
             }
+        });
+
+        public static ICommand ConvertToJpeg { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            try
+            {
+                var keep_name = Keyboard.Modifiers == ModifierKeys.Shift ? true : false;
+                var setting = Application.Current.LoadSetting();
+                if (obj is int || obj is int? || obj is long || obj is long?)
+                {
+                    var illust = $"{obj}".FindIllust();
+                    if (illust.IsWork()) ConvertToJpeg.Execute(illust);
+                }
+                else if (obj is string)
+                {
+                    var str = obj as string;
+                    if (!string.IsNullOrEmpty(str))
+                    {
+                        if (File.Exists(str))
+                        {
+                            var id = str.GetIllustId();
+                            var idx = str.GetIllustPageIndex();
+                            var illust = id.FindIllust();
+                            await str.ConvertImageTo("jpg", keep_name: keep_name);
+                        }
+                        else
+                        {
+                            var illust = $"{str}".FindIllust();
+                            if (illust.IsWork()) ConvertToJpeg.Execute(illust);
+                        }
+                    }
+                }
+                else if (obj is Pixeez.Objects.Work)
+                {
+                    var illust = obj as Pixeez.Objects.Work;
+                    var item = illust.WorkItem();
+                    ConvertToJpeg.Execute(item);
+                }
+                else if (obj is IEnumerable<Pixeez.Objects.Work>)
+                {
+                    foreach (var illust in (obj as IEnumerable<Pixeez.Objects.Work>))
+                        ConvertToJpeg.Execute(illust);
+                }
+                else if (obj is PixivItem)
+                {
+                    var item = obj as PixivItem;
+                    if (item.IsWork())
+                    {
+                        var illust = item.Illust;
+
+                        string fp = string.Empty;
+
+                        if (item.HasPages() && item.Count > 1)
+                        {
+                            if (item.Index >= 0)
+                            {
+                                if (illust.IsDownloadedAsync(out fp, item.Index, touch: false))
+                                {
+                                    await fp.ConvertImageTo("jpg", keep_name: keep_name);
+                                }
+                            }
+                            else
+                            {
+                                for (var i = 0; i < item.Count; i++)
+                                {
+                                    if (illust.IsDownloadedAsync(out fp, i, touch: false))
+                                    {
+                                        await fp.ConvertImageTo("jpg", keep_name: keep_name);
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (item.IsPage() || item.IsPages())
+                                illust.IsDownloadedAsync(out fp, item.Index, touch: false);
+                            else
+                                illust.IsPartDownloadedAsync(out fp, touch: false);
+
+                            await fp.ConvertImageTo("jpg", keep_name: keep_name);
+                        }
+                    }
+                }
+                else if (obj is KeyValuePair<PixivItem, DownloadType>)
+                {
+                    var kv = (KeyValuePair<PixivItem, DownloadType>)obj;
+                    var item = kv.Key;
+                    var type = kv.Value;
+                    ConvertToJpeg.Execute(item);
+                }
+                else if (obj is KeyValuePair<ImageListGrid, DownloadType>)
+                {
+                    var kv = (KeyValuePair<ImageListGrid, DownloadType>)obj;
+                    var item = kv.Key;
+                    var type = kv.Value;
+                    ConvertToJpeg.Execute(item);
+                }
+                else if (obj is ImageListGrid)
+                {
+                    var gallery = obj as ImageListGrid;
+                    if (gallery.Count > 0)
+                    {
+                        await new Action(async () =>
+                        {
+                            foreach (var item in gallery.GetSelected())
+                            {
+                                await new Action(() =>
+                                {
+                                    ConvertToJpeg.Execute(item);
+                                }).InvokeAsync();
+                            }
+                        }).InvokeAsync();
+                    }
+                }
+                else if (obj is IList<PixivItem>)
+                {
+                    var gallery = obj as IList<PixivItem>;
+                    if (gallery.Count > 0)
+                    {
+                        await new Action(async () =>
+                        {
+                            foreach (var item in gallery)
+                            {
+                                await new Action(() =>
+                                {
+                                    ConvertToJpeg.Execute(item);
+                                }).InvokeAsync();
+                            }
+                        }).InvokeAsync();
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("OpenDownloaded"); }
         });
 
         public static ICommand SaveIllust { get; } = new DelegateCommand<dynamic>(async obj =>

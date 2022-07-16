@@ -235,7 +235,19 @@
                     <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                          Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
-            </MenuItem>            
+            </MenuItem>
+            <MenuItem x:Uid="ActionConvertIllustJpeg" Header="Convert Illust Page To JPEG" Click="ActionSaveIllust_Click">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Uid="ActionConvertIllustJpegAll" Header="Convert All Illust Pages To JPEG" Click="ActionSaveAllIllust_Click">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                         Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
             <Separator x:Uid="SepratorUgoira"/>
             <MenuItem x:Uid="ActionSavePreviewUgoiraFile" Header="Save Preview Ugoira File" Click="ActionUgoiraGet_Click">
                 <MenuItem.Icon>
@@ -415,6 +427,18 @@
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionSaveIllustsPreviewAll" Header="Save All Illust Pages Large Preview" Click="ActionSaveIllustsAll_Click">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                         Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Uid="ActionConvertIllustJpeg" Header="Convert Illust Page To JPEG" Click="ActionSaveIllust_Click">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Uid="ActionConvertIllustJpegAll" Header="Convert All Illust Pages To JPEG" Click="ActionSaveAllIllust_Click">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                          Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -763,6 +787,12 @@
                                     </MenuItem.Icon>
                                 </MenuItem>
                                 <MenuItem x:Uid="ActionSaveIllustPreview" Header="Save Illust Page Large Preview" Click="ActionSaveIllust_Click">
+                                    <MenuItem.Icon>
+                                        <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Uid="ActionConvertIllustJpeg" Header="Convert Illust Page To JPEG" Click="ActionSaveIllust_Click">
                                     <MenuItem.Icon>
                                         <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>

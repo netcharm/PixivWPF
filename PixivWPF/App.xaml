@@ -22,6 +22,14 @@
                 <ResourceDictionary Source="pack://application:,,,/Common/ToastUI.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
+            <!-- Do your override here -->
+            <SolidColorBrush x:Key="MahApps.Brushes.ToggleSwitch.StrokeOff" Color="{DynamicResource MahApps.Colors.Accent}" />
+            <SolidColorBrush x:Key="MahApps.Brushes.ToggleSwitch.StrokeOffPointerOver" Color="{DynamicResource MahApps.Colors.Accent}" />
+            <SolidColorBrush x:Key="MahApps.Brushes.ToggleSwitch.StrokeOffPressed" Color="{DynamicResource MahApps.Colors.Accent}" />
+            <SolidColorBrush x:Key="MahApps.Brushes.ToggleSwitch.KnobFillOff" Color="{DynamicResource MahApps.Colors.Accent}" />
+            <SolidColorBrush x:Key="MahApps.Brushes.ToggleSwitch.KnobFillOffPointerOver" Color="{DynamicResource MahApps.Colors.Accent}" />
+            <SolidColorBrush x:Key="MahApps.Brushes.ToggleSwitch.KnobFillOffPressed" Color="{DynamicResource MahApps.Colors.Accent}" />
+
             <ScaleTransform x:Key="FontStretchSemiCondensed" ScaleX="0.75" />
             <ScaleTransform x:Key="FontStretchCondensed" ScaleX="0.8" />
             <ScaleTransform x:Key="FontStretchExpanded" ScaleX="1.2" />

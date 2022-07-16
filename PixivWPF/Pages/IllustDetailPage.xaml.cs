@@ -4083,17 +4083,26 @@ namespace PixivWPF.Pages
             if (SubIllusts.SelectedItems != null && SubIllusts.SelectedItems.Count > 0)
             {
                 var items = new KeyValuePair<ImageListGrid, DownloadType>(SubIllusts, type);
-                Commands.SaveIllust.Execute(items);
+                if (uid.Equals("ActionConvertIllustJpeg"))
+                    Commands.ConvertToJpeg.Execute(items);
+                else
+                    Commands.SaveIllust.Execute(items);
             }
             else if (SubIllusts.SelectedItem.IsWork())
             {
                 var item = new KeyValuePair<PixivItem, DownloadType>(SubIllusts.SelectedItem, type);
-                Commands.SaveIllust.Execute(item);
+                if (uid.Equals("ActionConvertIllustJpeg"))
+                    Commands.ConvertToJpeg.Execute(item);
+                else
+                    Commands.SaveIllust.Execute(item);
             }
             else if (Contents.IsWork())
             {
                 var item = new KeyValuePair<PixivItem, DownloadType>(Contents, type);
-                Commands.SaveIllust.Execute(item);
+                if (uid.Equals("ActionConvertIllustJpeg"))
+                    Commands.ConvertToJpeg.Execute(item);
+                else
+                    Commands.SaveIllust.Execute(item);
             }
         }
 
@@ -4108,7 +4117,10 @@ namespace PixivWPF.Pages
             if (Contents.IsWork() && Contents.Count > 0)
             {
                 var item = new KeyValuePair<PixivItem, DownloadType>(Contents, type);
-                Commands.SaveIllustAll.Execute(item);
+                if (uid.Equals("ActionConvertIllustJpeg"))
+                    Commands.ConvertToJpeg.Execute(item);
+                else
+                    Commands.SaveIllustAll.Execute(item);
             }
         }
 
@@ -4834,22 +4846,32 @@ namespace PixivWPF.Pages
                     var host = (m.Parent as ContextMenu).PlacementTarget;
                     if (m.Uid.Equals("ActionSaveIllusts", StringComparison.CurrentCultureIgnoreCase) ||
                         m.Uid.Equals("ActionSaveIllustsJpeg", StringComparison.CurrentCultureIgnoreCase) ||
-                        m.Uid.Equals("ActionSaveIllustsPreview", StringComparison.CurrentCultureIgnoreCase))
+                        m.Uid.Equals("ActionSaveIllustsPreview", StringComparison.CurrentCultureIgnoreCase) ||
+                        m.Uid.Equals("ActionConvertIllustJpeg", StringComparison.CurrentCultureIgnoreCase))
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
                             var items = new KeyValuePair<ImageListGrid, DownloadType>(SubIllusts, type);
-                            Commands.SaveIllust.Execute(items);
+                            if (uid.Equals("ActionConvertIllustJpeg"))
+                                Commands.ConvertToJpeg.Execute(items);
+                            else
+                                Commands.SaveIllust.Execute(items);
                         }
                         else if (host == RelatedItemsExpander || host == RelatedItems)
                         {
                             var items = new KeyValuePair<ImageListGrid, DownloadType>(RelatedItems, type);
-                            Commands.SaveIllust.Execute(items);
+                            if (uid.Equals("ActionConvertIllustJpeg"))
+                                Commands.ConvertToJpeg.Execute(items);
+                            else
+                                Commands.SaveIllust.Execute(items);
                         }
                         else if (host == FavoriteItemsExpander || host == FavoriteItems)
                         {
                             var items = new KeyValuePair<ImageListGrid, DownloadType>(FavoriteItems, type);
-                            Commands.SaveIllust.Execute(items);
+                            if (uid.Equals("ActionConvertIllustJpeg"))
+                                Commands.ConvertToJpeg.Execute(items);
+                            else
+                                Commands.SaveIllust.Execute(items);
                         }
                     }
                 }
@@ -4873,22 +4895,32 @@ namespace PixivWPF.Pages
                     var host = (m.Parent as ContextMenu).PlacementTarget;
                     if (m.Uid.Equals("ActionSaveIllustsAll", StringComparison.CurrentCultureIgnoreCase) ||
                         m.Uid.Equals("ActionSaveIllustsJpegAll", StringComparison.CurrentCultureIgnoreCase) ||
-                        m.Uid.Equals("ActionSaveIllustsPreviewAll", StringComparison.CurrentCultureIgnoreCase))
+                        m.Uid.Equals("ActionSaveIllustsPreviewAll", StringComparison.CurrentCultureIgnoreCase) ||
+                        m.Uid.Equals("ActionConvertIllustJpegAll", StringComparison.CurrentCultureIgnoreCase))                    
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
                             var items = new KeyValuePair<PixivItem, DownloadType>(Contents, type);
-                            Commands.SaveIllustAll.Execute(items);
+                            if (uid.Equals("ActionConvertIllustJpegAll"))
+                                Commands.ConvertToJpeg.Execute(items);
+                            else
+                                Commands.SaveIllustAll.Execute(items);
                         }
                         else if (host == RelatedItemsExpander || host == RelatedItems)
                         {
                             var items = new KeyValuePair<ImageListGrid, DownloadType>(RelatedItems, type);
-                            Commands.SaveIllustAll.Execute(items);
+                            if (uid.Equals("ActionConvertIllustJpegAll"))
+                                Commands.ConvertToJpeg.Execute(items);
+                            else
+                                Commands.SaveIllustAll.Execute(items);
                         }
                         else if (host == FavoriteItemsExpander || host == FavoriteItems)
                         {
                             var items = new KeyValuePair<ImageListGrid, DownloadType>(FavoriteItems, type);
-                            Commands.SaveIllustAll.Execute(items);
+                            if (uid.Equals("ActionConvertIllustJpegAll"))
+                                Commands.ConvertToJpeg.Execute(items);
+                            else
+                                Commands.SaveIllustAll.Execute(items);
                         }
                     }
                 }

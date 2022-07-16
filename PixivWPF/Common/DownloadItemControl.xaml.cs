@@ -1350,6 +1350,8 @@ namespace PixivWPF.Common
 
             Info = new DownloadInfo() { Instance = this };
 
+            PART_SaveAsJPEG.IsOn = Info.SaveAsJPEG;
+
             InitProgress();
 
             CheckProperties();
@@ -1361,6 +1363,8 @@ namespace PixivWPF.Common
             setting = Application.Current.LoadSetting();
 
             Info = new DownloadInfo() { Instance = this, SaveAsJPEG = jpeg };
+
+            PART_SaveAsJPEG.IsOn = Info.SaveAsJPEG;
 
             InitProgress();
 
@@ -1381,6 +1385,8 @@ namespace PixivWPF.Common
                 Info = new DownloadInfo() { Instance = this };
 
             Info.Instance = this;
+
+            PART_SaveAsJPEG.IsOn = Info.SaveAsJPEG;
 
             InitProgress();
 
@@ -1442,7 +1448,10 @@ namespace PixivWPF.Common
         {
             CheckProperties();
             setting = Application.Current.LoadSetting();
+            
             //PART_DownloadProgress.IsEnabled = true;
+            PART_SaveAsJPEG.IsOn = Info.SaveAsJPEG;
+
             if (AutoStart)
             {
                 if (State == DownloadState.Finished || State == DownloadState.Downloading) return;
@@ -1452,6 +1461,7 @@ namespace PixivWPF.Common
                     if (IsStart && !IsDownloading) Start(setting.DownloadWithFailResume);
                 }
             }
+
             if (Info is DownloadInfo && Info.Illust.IsUgoira() && !string.IsNullOrEmpty(Info.FileName))
             {
                 new Action(async () =>
@@ -1544,6 +1554,14 @@ namespace PixivWPF.Common
             else if (sender == miTouchImageMeta)
             {
                 Commands.TouchMeta.Execute(FileName);
+            }
+            else if (sender == miConvertImageToJpeg)
+            {
+                Commands.ConvertToJpeg.Execute(FileName);
+            }
+            else if (sender == PART_SaveAsJPEG)
+            {
+                SaveAsJPEG = PART_SaveAsJPEG.IsOn;
             }
         }
     }
