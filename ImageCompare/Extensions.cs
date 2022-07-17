@@ -619,6 +619,9 @@ namespace ImageCompare
                     }
                 }
 
+                result.Add("spa", "MikuMikuDance SPA File");
+                result.Add("sph", "MikuMikuDance SPH File");
+
                 //var fmts = Enum.GetNames(typeof(MagickFormat));
                 //foreach (var fmt in fmts)
                 //{

@@ -1092,7 +1092,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public async void UpdateTilesState(PixivItem work = null, long? id = -1, bool is_user = false, bool touch = true)
+        public async void UpdateTilesState(PixivItem work = null, long? id = -1, bool is_user = false, bool touch = false)
         {
             if (IsTileUpdating || IsBusy) return;
             if (Items is ObservableCollection<PixivItem> && Items.Count > 0)

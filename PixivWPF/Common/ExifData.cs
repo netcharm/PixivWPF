@@ -3903,6 +3903,8 @@ namespace CompactExifLib
         PixelUnit = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.PixelUnit,
         PixelPerUnitX = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.PixelPerUnitX,
         PixelPerUnitY = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.PixelPerUnitY,
+        Gamma = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.Gamma,
+        ICCProfileDescriptor = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.ICCProfileDescriptor,
 
         PrimaryDataPadding = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.Padding,
 
@@ -4121,6 +4123,9 @@ namespace CompactExifLib
         PixelUnit = 0x5110,
         PixelPerUnitX = 0x5111,
         PixelPerUnitY = 0x5112,
+
+        Gamma = 0x0301,
+        ICCProfileDescriptor = 0x0302,
 
         Padding = 0xea1c,
 

@@ -1031,7 +1031,7 @@ namespace PixivWPF.Common
                     if (string.IsNullOrEmpty(link)) continue;
 
                     var downloads = Application.Current.OpenedWindowTitles();
-                    foreach(var win in downloads)
+                    foreach (var win in downloads)
                     {
                         if (link.Equals(win)) Application.Current.ActiveWindowByTitle(win);
                     }
@@ -4048,6 +4048,11 @@ namespace PixivWPF.Common
                     result = true;
                     long tick;
                     _Attaching_.TryRemove(fileinfo.FullName, out tick);
+#if DEBUG
+                    //try { } catch (Exception ex) { ex.StackTrace.DEBUG("AttachMetaCallStacl"); }
+                    var trace = new System.Diagnostics.StackTrace(true);
+                    trace.ToString().DEBUG("AttachMetaCallStack");
+#endif
                 }
             }
             return (result);
@@ -4230,7 +4235,7 @@ namespace PixivWPF.Common
         }
 
         private static ConcurrentDictionary<string, long> LastTouch = new ConcurrentDictionary<string, long>();
-        public static void Touch(this FileInfo fileinfo, string url, bool local = false, bool meta = true, bool force = false)
+        public static void Touch(this FileInfo fileinfo, string url, bool local = false, bool meta = false, bool force = false)
         {
             try
             {
@@ -4296,7 +4301,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { var id = fileinfo is FileInfo ? fileinfo.Name : url.GetIllustId(); ex.ERROR($"Touch_{id}"); }
         }
 
-        public static void Touch(this string file, string url, bool local = false, bool meta = true, bool force = false)
+        public static void Touch(this string file, string url, bool local = false, bool meta = false, bool force = false)
         {
             try
             {
@@ -4309,12 +4314,12 @@ namespace PixivWPF.Common
             catch (Exception ex) { var id = Path.GetFileName(file); ex.ERROR($"Touch_{id}"); }
         }
 
-        public static void Touch(this string file, Pixeez.Objects.Work Illust, bool local = false, bool meta = true, bool force = false)
+        public static void Touch(this string file, Pixeez.Objects.Work Illust, bool local = false, bool meta = false, bool force = false)
         {
             file.Touch(Illust.GetOriginalUrl(), local, meta, force);
         }
 
-        public static void Touch(this PixivItem item, bool local = false, bool meta = true, bool force = false)
+        public static void Touch(this PixivItem item, bool local = false, bool meta = false, bool force = false)
         {
             if (item.IsPage())
             {
@@ -4332,7 +4337,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async void TouchAsync(this string file, string url, bool local = false, bool meta = true, bool force = false)
+        public static async void TouchAsync(this string file, string url, bool local = false, bool meta = false, bool force = false)
         {
             await new Action(() => { Touch(file, url, local, meta, force); }).InvokeAsync();
         }
@@ -4342,7 +4347,7 @@ namespace PixivWPF.Common
             await new Action(() => { Touch(item, local, meta, force); }).InvokeAsync();
         }
 
-        public static async void TouchAsync(this IEnumerable<string> files, string url, bool local = false, bool meta = true, bool force = false)
+        public static async void TouchAsync(this IEnumerable<string> files, string url, bool local = false, bool meta = false, bool force = false)
         {
             foreach (var file in files)
             {

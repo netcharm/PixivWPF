@@ -1561,7 +1561,10 @@ namespace PixivWPF.Common
             }
             else if (sender == PART_SaveAsJPEG)
             {
-                SaveAsJPEG = PART_SaveAsJPEG.IsOn;
+                if (State == DownloadState.Finished)
+                    PART_SaveAsJPEG.IsOn = SaveAsJPEG;
+                else
+                    SaveAsJPEG = PART_SaveAsJPEG.IsOn;
             }
         }
     }
