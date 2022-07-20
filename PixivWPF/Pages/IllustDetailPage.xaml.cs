@@ -1018,6 +1018,7 @@ namespace PixivWPF.Pages
         {
             try
             {
+                var old_state = BookmarkIllust.Tag;
                 if (illust.IsLiked())
                 {
                     //BookmarkIllustAlt.Tag = SymbolIcon_Favorited; // &#xEB52;
@@ -1032,6 +1033,8 @@ namespace PixivWPF.Pages
                     if (ContextMenuActionItems.ContainsKey("ActionBookmarkIllustRemove"))
                         ContextMenuActionItems["ActionBookmarkIllustRemove"].IsEnabled = false;
                 }
+                //if (!(BookmarkIllust.Tag as string).Equals(old_state as string))
+                //    Commands.TouchMeta.Execute(illust);
                 this.DoEvents();
             }
             catch (Exception ex) { ex.ERROR("FAVMARK"); }
@@ -1160,7 +1163,7 @@ namespace PixivWPF.Pages
                     {
                         if (Contents.IsDownloaded)
                             Commands.OpenDownloaded.Execute(Contents);
-                        else
+                        else if (setting.OpenPreviewForNotDownloaded)
                             Commands.OpenWorkPreview.Execute(Contents);
                     }
                     else if (SubIllusts.SelectedItems.Count > 0)
@@ -1169,7 +1172,7 @@ namespace PixivWPF.Pages
                         {
                             if (item.IsDownloaded)
                                 Commands.OpenDownloaded.Execute(item);
-                            else
+                            else if(setting.OpenPreviewForNotDownloaded)
                                 Commands.OpenWorkPreview.Execute(item);
                         }
                     }
@@ -1177,7 +1180,7 @@ namespace PixivWPF.Pages
                     {
                         if (SubIllusts.Items[0].IsDownloaded)
                             Commands.OpenDownloaded.Execute(SubIllusts.Items[0]);
-                        else
+                        else if (setting.OpenPreviewForNotDownloaded)
                             Commands.OpenWorkPreview.Execute(SubIllusts.Items[0]);
                     }
                 }
@@ -1826,7 +1829,7 @@ namespace PixivWPF.Pages
                     SubIllustsExpander.Hide();
                     PreviewBadge.Hide();
                     page_count = 0;
-                    if (item.IsPartDownloaded(touch: false)) Commands.TouchMeta.Execute(item);
+                    if (item.IsDownloaded) Commands.TouchMeta.Execute(item);
                 }
                 UpdateSubPageNav();
 

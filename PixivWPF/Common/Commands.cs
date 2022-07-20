@@ -1978,7 +1978,14 @@ namespace PixivWPF.Common
 
         public static ICommand Open { get; } = new DelegateCommand<dynamic>(obj =>
         {
-            if (obj is ImageListGrid)
+            if (obj is IEnumerable<PixivItem>)
+            {
+                foreach (var item in (obj as IEnumerable<PixivItem>))
+                {
+                    OpenItem.Execute(obj);
+                }
+            }
+            else if (obj is ImageListGrid)
             {
                 OpenGallery.Execute(obj);
             }
@@ -2067,8 +2074,8 @@ namespace PixivWPF.Common
                             var viewer = new ContentWindow(title)
                             {
                                 Title = title,
-                                MinWidth = WIDTH_MIN + 80,
-                                MinHeight = HEIGHT_MIN,
+                                MinWidth = 860,
+                                MinHeight = 536,
                                 Width = setting.DownloadManagerPosition.Width <= WIDTH_MIN + 80 ? WIDTH_MIN + 80 : setting.DownloadManagerPosition.Width,
                                 Height = setting.DownloadManagerPosition.Height <= HEIGHT_MIN ? HEIGHT_MIN : setting.DownloadManagerPosition.Height,
                                 Left = setting.DownloadManagerPosition.Left >=0 ? setting.DownloadManagerPosition.Left : _downManager.Pos.X,

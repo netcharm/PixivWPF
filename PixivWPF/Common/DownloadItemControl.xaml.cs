@@ -715,31 +715,37 @@ namespace PixivWPF.Common
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
+                        //PART_SaveAsJPEG.IsEnabled = false;
                     }
                     else if (State == DownloadState.NonExists)
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
+                        //PART_SaveAsJPEG.IsEnabled = true;
                     }
                     else if (State == DownloadState.Downloading)
                     {
                         miRemove.IsEnabled = false;
                         miStopDownload.IsEnabled = true;
+                        //PART_SaveAsJPEG.IsEnabled = true;
                     }
                     else if (State == DownloadState.Writing)
                     {
                         miRemove.IsEnabled = false;
                         miStopDownload.IsEnabled = false;
+                        //PART_SaveAsJPEG.IsEnabled = false;
                     }
                     else if (State == DownloadState.Idle)
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
+                        //PART_SaveAsJPEG.IsEnabled = true;
                     }
                     else if (State == DownloadState.Failed)
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
+                        //PART_SaveAsJPEG.IsEnabled = true;
                     }
                     else if (State == DownloadState.Remove)
                     {
@@ -749,6 +755,7 @@ namespace PixivWPF.Common
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
+                        //PART_SaveAsJPEG.IsEnabled = true;
                     }
 
                     if (DownloadStatusMark.ContainsKey(State))
@@ -775,6 +782,8 @@ namespace PixivWPF.Common
                     PART_OpenIllust.IsEnabled = miOpenIllust.IsEnabled;
                     PART_OpenFile.IsEnabled = miOpenImage.IsEnabled;
                     PART_OpenFolder.IsEnabled = miOpenFolder.IsEnabled;
+
+                    PART_SaveAsJPEG.IsEnabled = !PART_OpenFile.IsEnabled;
                 }
                 catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_CheckProperties"); }
             }
@@ -1448,7 +1457,7 @@ namespace PixivWPF.Common
         {
             CheckProperties();
             setting = Application.Current.LoadSetting();
-            
+
             //PART_DownloadProgress.IsEnabled = true;
             PART_SaveAsJPEG.IsOn = Info.SaveAsJPEG;
 

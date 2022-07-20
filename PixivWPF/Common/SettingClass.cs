@@ -1367,6 +1367,17 @@ namespace PixivWPF.Common
             }
         }
 
+        private bool open_preview_if_not_notdownloaded = false;
+        public bool OpenPreviewForNotDownloaded
+        {
+            get { return (Cache is Setting ? Cache.open_preview_if_not_notdownloaded : open_preview_if_not_notdownloaded); }
+            set
+            {
+                open_preview_if_not_notdownloaded = value;
+                if (Cache is Setting) Cache.open_preview_if_not_notdownloaded = open_preview_if_not_notdownloaded;
+            }
+        }
+
         private bool show_large_preview = false;
         public bool ShowLargePreview
         {

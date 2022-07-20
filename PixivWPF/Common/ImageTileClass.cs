@@ -70,6 +70,9 @@ namespace PixivWPF.Common
         public double TileWidth { get; set; } = 128.0;
         public double TileHeight { get; set; } = 128.0;
 
+        private bool touching = true;
+        public bool Touch { get { var need_touch = touching; touching = true; return (need_touch); } set { touching = value; } }
+
         private ImageSource source = null;
         public ImageSource Source
         {
@@ -1811,6 +1814,22 @@ namespace PixivWPF.Common
                 {
                     if (item.ItemType == PixivItemType.Pages ||
                         item.ItemType == PixivItemType.Page)
+                        result = item.Illust is Pixeez.Objects.Work ? true : false;
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+
+        public static bool IsNotPage(this PixivItem item)
+        {
+            bool result = false;
+            try
+            {
+                if (item is PixivItem)
+                {
+                    if (item.ItemType != PixivItemType.Pages ||
+                        item.ItemType != PixivItemType.Page)
                         result = item.Illust is Pixeez.Objects.Work ? true : false;
                 }
             }

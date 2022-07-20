@@ -551,6 +551,7 @@ namespace PixivWPF.Pages
                 if (ResultItems.Items.Count() == 1 && no_filter)
                 {
                     ResultItems.SelectedIndex = 0;
+                    //foreach (var item in ResultItems.Items) item.Touch = false;
                     Commands.Open.Execute(ResultItems);
                 }
                 if (ResultItems.Items.Count() <= 1 && no_filter)
@@ -591,7 +592,6 @@ namespace PixivWPF.Pages
         {
             Commands.CopyArtworkIDs.Execute(ResultItems);
         }
-
 
         private void ActionCopyIllustJSON_Click(object sender, RoutedEventArgs e)
         {

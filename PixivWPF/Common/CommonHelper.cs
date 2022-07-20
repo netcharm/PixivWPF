@@ -353,8 +353,8 @@ namespace PixivWPF.Common
         public string Subject { get; set; } = null;
         public string Keywords { get; set; } = null;
         public string Comment { get; set; } = null;
-        public string Author { get; set; } = null;
-        public string Copyright { get; set; } = null;
+        public string Authors { get; set; } = null;
+        public string Copyrights { get; set; } = null;
 
         public int? Rating { get; set; } = null;
         public int? Ranking { get; set; } = null;
@@ -2499,9 +2499,10 @@ namespace PixivWPF.Common
                 var fail = string.IsNullOrEmpty(di.FailReason) ? string.Empty : $", Reason: {di.FailReason.Replace(Environment.NewLine, $"\t{Environment.NewLine}")}".Trim();
                 var delta = di.EndTime - di.StartTime;
                 var rate = delta.TotalSeconds <= 0 ? 0 : di.Received / delta.TotalSeconds;
+                var size = di.State == Common.DownloadState.Finished && File.Exists(di.FileName) ? (new FileInfo(di.FileName)).Length.SmartFileSize() : "????";
                 result.Add($"URL    : {di.Url}");
                 result.Add($"File   : {di.FileName}, {di.FileTime.ToString("yyyy-MM-dd HH:mm:sszzz")}");
-                result.Add($"State  : {di.State}{fail}");
+                result.Add($"State  : {di.State}{fail}, Disk Usage : {size}");
                 result.Add($"Elapsed: {di.StartTime.ToString("yyyy-MM-dd HH:mm:sszzz")} -> {di.EndTime.ToString("yyyy-MM-dd HH:mm:sszzz")}, {delta.SmartElapsed()} s");
                 result.Add($"Status : {di.Received.SmartFileSize()} / {di.Length.SmartFileSize()} ({di.Received} Bytes / {di.Length} Bytes), Rate ≈ {rate.SmartSpeedRate()}");
             }
@@ -3001,8 +3002,8 @@ namespace PixivWPF.Common
             {
                 var title = meta is MetaInfo ? meta.Title ?? Path.GetFileNameWithoutExtension(fi.Name) : Path.GetFileNameWithoutExtension(fi.Name);
                 var subject = meta is MetaInfo ? meta.Subject : title;
-                var authors = meta is MetaInfo ? meta.Author : string.Empty;
-                var copyright = meta is MetaInfo ? meta.Copyright : authors;
+                var authors = meta is MetaInfo ? meta.Authors : string.Empty;
+                var copyright = meta is MetaInfo ? meta.Copyrights : authors;
                 var keywords = meta is MetaInfo ? meta.Keywords : string.Empty;
                 var comment = meta is MetaInfo ? meta.Comment : string.Empty;
                 var rating = meta is MetaInfo ? meta.Rating : null;
@@ -3481,6 +3482,223 @@ namespace PixivWPF.Common
         }
         #endregion
 
+        #region PngCs Routines for Update PNG Image Metadata
+        private static string DecompressGzipBytesToText(byte[] bytes, Encoding encoding = default(Encoding), int skip = 2)
+        {
+            var result = string.Empty;
+            try
+            {
+                if (encoding == default(Encoding)) encoding = Encoding.UTF8;
+                using (var msi = new MemoryStream(bytes))
+                {
+                    using (var mso = new MemoryStream())
+                    {
+                        using (var ds = new System.IO.Compression.GZipStream(msi, System.IO.Compression.CompressionMode.Decompress))
+                        {
+                            ds.CopyTo(mso);
+                            ds.Close();
+                        }
+                        var ret = mso.ToArray();
+                        try
+                        {
+                            var text = string.Join("", encoding.GetString(ret).Split().Skip(2));
+                            var buff = new byte[text.Length/2];
+                            for (var i = 0; i < text.Length / 2; i++)
+                            {
+                                buff[i] = Convert.ToByte($"0x{text[2 * i]}{text[2 * i + 1]}", 16);
+                            }
+                            result = encoding.GetString(buff.Skip(skip).ToArray());
+                        }
+                        catch (Exception ex) { ex.ERROR("DecompressGzipBytesToText"); };
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("DecompressGzipBytesToText"); }
+            return (result);
+        }
+
+        public static Dictionary<string, string> GetPngMetaInfo(FileInfo fileinfo, Encoding encoding = default(Encoding))
+        {
+            var result = new Dictionary<string, string>();
+            try
+            {
+                string[] png_meta_chunk_text = new string[]{ "iTXt", "tEXt", "zTXt" };
+                if (fileinfo.Exists && fileinfo.Length > 0)
+                {
+                    if (encoding == default(Encoding)) encoding = Encoding.UTF8;
+                    var png_r  = Hjg.Pngcs.FileHelper.CreatePngReader(fileinfo.FullName);
+                    if (png_r is Hjg.Pngcs.PngReader)
+                    {
+                        png_r.ChunkLoadBehaviour = Hjg.Pngcs.Chunks.ChunkLoadBehaviour.LOAD_CHUNK_ALWAYS;
+                        var png_chunks = png_r.GetChunksList();
+                        foreach (var chunk in png_chunks.GetChunks())
+                        {
+                            if (png_meta_chunk_text.Contains(chunk.Id))
+                            {
+                                var raw = chunk.CreateRawChunk();
+                                chunk.ParseFromRaw(raw);
+
+                                var data = encoding.GetString(raw.Data).Split('\0');
+                                var key = data.FirstOrDefault();
+                                var value = string.Empty;
+                                if (chunk.Id.Equals("zTXt"))
+                                {
+                                    value = DecompressGzipBytesToText(raw.Data.Skip(key.Length + 2).ToArray());
+                                    if ((raw.Data.Length > key.Length + 2) && string.IsNullOrEmpty(value)) value = "(Decodeing Error)";
+                                }
+                                else if (chunk.Id.Equals("iTXt"))
+                                {
+                                    var vs = raw.Data.Skip(key.Length+1).ToArray();
+                                    var compress_flag = vs[0];
+                                    var compress_method = vs[1];
+                                    var language_tag = string.Empty;
+                                    var translate_tag = string.Empty;
+                                    var text = string.Empty;
+
+                                    if (vs[2] == 0 && vs[3] == 0)
+                                        text = compress_flag == 1 ? DecompressGzipBytesToText(vs.Skip(4).ToArray()) : encoding.GetString(vs.Skip(4).ToArray());
+                                    else if (vs[2] == 0 && vs[3] != 0)
+                                    {
+                                        var trans = vs.Skip(3).TakeWhile(c => c != 0);
+                                        translate_tag = encoding.GetString(trans.ToArray());
+
+                                        var txt = vs.Skip(3).Skip(trans.Count()).SkipWhile(c => c==0);
+                                        text = compress_flag == 1 ? DecompressGzipBytesToText(txt.ToArray()) : encoding.GetString(txt.ToArray());
+                                    }
+
+                                    value = $"{(int)compress_flag}, {(int)compress_method}, {language_tag}, {translate_tag}, {text}";
+                                }
+                                else
+                                    value = string.Join(", ", data.Skip(1));
+
+                                result[key] = value;
+                            }
+                        }
+                        png_r.End();
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("GetPngMetaInfo"); }
+            return (result);
+        }
+
+        private static bool PngUpdateTextMetadata(string fileName, Dictionary<string, string> metainfo, bool keeptime = false)
+        {
+            var result = false;
+            if (File.Exists(fileName) && metainfo is Dictionary<string, string>)
+            {
+                var fileinfo = new FileInfo(fileName);
+                var dtc = fileinfo.CreationTime;
+                var dtm = fileinfo.LastWriteTime;
+                var dta = fileinfo.LastAccessTime;
+                using (var mso = new MemoryStream())
+                {
+                    using (var msi = new MemoryStream(File.ReadAllBytes(fileName)))
+                    {
+                        if (msi.Length > 0)
+                        {
+                            var png_r = new Hjg.Pngcs.PngReader(msi);
+                            if (png_r is Hjg.Pngcs.PngReader)
+                            {
+                                png_r.SetCrcCheckDisabled();
+                                png_r.ChunkLoadBehaviour = Hjg.Pngcs.Chunks.ChunkLoadBehaviour.LOAD_CHUNK_ALWAYS;
+                                var png_w = new Hjg.Pngcs.PngWriter(mso, png_r.ImgInfo);
+                                if (png_w is Hjg.Pngcs.PngWriter)
+                                {
+                                    png_w.ShouldCloseStream = false;
+                                    png_w.CopyChunksFirst(png_r, Hjg.Pngcs.Chunks.ChunkCopyBehaviour.COPY_ALL);
+
+                                    var meta = png_w.GetMetadata();
+                                    foreach (var kv in metainfo)
+                                    {
+                                        if (kv.Key.Equals(Hjg.Pngcs.Chunks.PngChunkTextVar.KEY_Creation_Time))
+                                        {
+                                            var chunk_ct = new Hjg.Pngcs.Chunks.PngChunkTEXT(png_r.ImgInfo);
+                                            chunk_ct.SetKeyVal(kv.Key, kv.Value);
+                                            chunk_ct.Priority = true;
+                                            meta.QueueChunk(chunk_ct);
+                                        }
+                                        else
+                                        {
+                                            var chunk = meta.SetText(kv.Key, kv.Value);
+                                            chunk.Priority = true;
+                                        }
+                                    }
+
+                                    for (int row = 0; row < png_r.ImgInfo.Rows; row++)
+                                    {
+                                        Hjg.Pngcs.ImageLine il = png_r.ReadRow(row);
+                                        png_w.WriteRow(il, row);
+                                    }
+
+                                    png_w.End();
+                                }
+                                png_r.End();
+                            }
+                        }
+                    }
+                    File.WriteAllBytes(fileName, mso.ToArray());
+                }
+                if (keeptime)
+                {
+                    fileinfo.CreationTime = dtc;
+                    fileinfo.LastWriteTime = dtm;
+                    fileinfo.LastAccessTime = dta;
+                }
+                result = true;
+            }
+            return (result);
+        }
+
+        public static bool UpdatePngMetaInfo(this FileInfo fileinfo, DateTime? dt = null, MetaInfo meta = null, Encoding encoding = default(Encoding))
+        {
+            var result = false;
+            try
+            {
+                if (fileinfo.Exists && fileinfo.Length > 0 && meta is MetaInfo)
+                {
+                    var metainfo = new Dictionary<string, string>();
+
+                    metainfo[Hjg.Pngcs.Chunks.PngChunkTextVar.KEY_Creation_Time] = (meta.DateTaken ?? dt ?? DateTime.Now).ToString("yyyy:MM:dd HH:mm:sszzz");
+                    metainfo[Hjg.Pngcs.Chunks.PngChunkTextVar.KEY_Title] = string.IsNullOrEmpty(meta.Title) ? "" : meta.Title;
+                    metainfo[Hjg.Pngcs.Chunks.PngChunkTextVar.KEY_Source] = string.IsNullOrEmpty(meta.Subject) ? "" : meta.Subject;
+                    metainfo[Hjg.Pngcs.Chunks.PngChunkTextVar.KEY_Comment] = string.IsNullOrEmpty(meta.Keywords) ? "" : meta.Keywords;
+                    metainfo[Hjg.Pngcs.Chunks.PngChunkTextVar.KEY_Description] = string.IsNullOrEmpty(meta.Comment) ? "" : meta.Comment;
+                    metainfo[Hjg.Pngcs.Chunks.PngChunkTextVar.KEY_Author] = string.IsNullOrEmpty(meta.Authors) ? "" : meta.Authors;
+                    metainfo[Hjg.Pngcs.Chunks.PngChunkTextVar.KEY_Copyright] = string.IsNullOrEmpty(meta.Authors) ? "" : meta.Authors;
+                    //Hjg.Pngcs.Chunks.PngChunkTextVar.KEY_Software
+                    //Hjg.Pngcs.Chunks.PngChunkTextVar.KEY_Disclaimer
+                    //Hjg.Pngcs.Chunks.PngChunkTextVar.KEY_Warning
+
+                    //result  = Hjg.Pngcs.FileHelper.PngUpdateTextMetadata(fileinfo.FullName, metainfo, keeptime: true);
+                    result = PngUpdateTextMetadata(fileinfo.FullName, metainfo, keeptime: true);
+                }
+            }
+            catch (Exception ex) { ex.ERROR("UpdatePngMetaInfo"); }
+            return (result);
+        }
+
+        public static bool UpdatePngMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", MetaInfo meta = null, Encoding encoding = default(Encoding))
+        {
+            var result = false;
+            try
+            {
+                if (encoding == default(Encoding)) encoding = Encoding.UTF8;
+
+                if (fileinfo.Exists && fileinfo.Length > 0)
+                {
+                    if (meta == null) meta = MakeMetaInfo(fileinfo, dt, id);
+                    if (meta is MetaInfo)
+                    {
+                        result = UpdatePngMetaInfo(fileinfo, dt, meta);
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("GetMetaInfoPng"); }
+            return (result);
+        }
+        #endregion
+
         public static MetaInfo MakeMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "")
         {
             MetaInfo meta = null;
@@ -3502,8 +3720,8 @@ namespace PixivWPF.Common
 
                         Title = illust.Title.KatakanaHalfToFull().FilterInvalidChar().TrimEnd(),
                         Subject = id.ArtworkLink(),
-                        Author = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}",
-                        Copyright = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}",
+                        Authors = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}",
+                        Copyrights = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}",
                         Keywords = string.Join("; ", illust.Tags.Select(t => t.Replace(";", "；⸵")).Distinct(StringComparer.CurrentCultureIgnoreCase)),
                         Comment = illust.Caption.HtmlToText(),
 
@@ -3515,100 +3733,6 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("MakeMeteInfo"); }
             #endregion
             return (meta);
-        }
-
-        public static Dictionary<string, string> GetPngMetaInfo(this FileInfo fileinfo, Encoding encoding = default(Encoding))
-        {
-            var result = new Dictionary<string, string>();
-            try
-            {
-                if (fileinfo.Exists && fileinfo.Length > 0)
-                {
-                    if (encoding == default(Encoding)) encoding = Encoding.UTF8;
-
-                    string[] png_meta_chunk_text = new string[]{ "iTXt", "tEXt", "zTXt" };
-                    var png_r  = Hjg.Pngcs.FileHelper.CreatePngReader(fileinfo.FullName);
-                    if (png_r is Hjg.Pngcs.PngReader)
-                    {
-                        png_r.ChunkLoadBehaviour = Hjg.Pngcs.Chunks.ChunkLoadBehaviour.LOAD_CHUNK_IF_SAFE;
-                        var png_chunks = png_r.GetChunksList();
-                        foreach (var chunk in png_chunks.GetChunks())
-                        {
-                            if (png_meta_chunk_text.Contains(chunk.Id))
-                            {
-                                //var value = new byte[chunk.Length];
-                                var raw = chunk.CreateRawChunk();
-                                chunk.ParseFromRaw(raw);
-                                var data = encoding.GetString(raw.Data).Split('\0');
-                                var key = data.FirstOrDefault();
-                                var value = data.LastOrDefault();
-                                result[key] = value;
-                            }
-                        }
-                        png_r.End();
-                    }
-                }
-            }
-            catch (Exception ex) { ex.ERROR("GetMetaInfoPng"); }
-            return (result);
-        }
-
-        public static bool UpdatePngMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", MetaInfo meta = null, Encoding encoding = default(Encoding))
-        {
-            var result = false;
-            try
-            {
-                if (encoding == default(Encoding)) encoding = Encoding.UTF8;
-
-                if (fileinfo.Exists && fileinfo.Length > 0)
-                {
-                    if (meta == null) meta = MakeMetaInfo(fileinfo, dt, id);
-                    if (meta is MetaInfo)
-                    {
-                        var png_r  = Hjg.Pngcs.FileHelper.CreatePngReader(fileinfo.FullName);
-                        if (png_r is Hjg.Pngcs.PngReader)
-                        {
-                            //png_r.ChunkLoadBehaviour = Hjg.Pngcs.Chunks.ChunkLoadBehaviour.LOAD_CHUNK_IF_SAFE;
-                            var imageinfo = png_r.ImgInfo;
-
-                            var png_f = $"{fileinfo.FullName}~";
-                            var png_w = Hjg.Pngcs.FileHelper.CreatePngWriter(png_f, png_r.ImgInfo, true);
-                            if (png_w is Hjg.Pngcs.PngWriter)
-                            {
-                                png_w.CopyChunksFirst(png_r, Hjg.Pngcs.Chunks.ChunkCopyBehaviour.COPY_ALL);
-                                for (int row = 0; row < png_r.ImgInfo.Rows; row++)
-                                {
-                                    Hjg.Pngcs.ImageLine il = png_r.ReadRow(row);
-                                    png_w.WriteRow(il, row);
-                                }
-
-                                var metainfo = new Dictionary<string, string>();
-                                metainfo["Creation Time"] = (meta.DateTaken ?? dt).ToString("yyyy:MM:dd HH:mm:sszzz");
-                                metainfo["Title"] = meta.Title;
-                                metainfo["Source"] = meta.Subject;
-                                metainfo["Comment"] = meta.Keywords;
-                                metainfo["Description"] = meta.Comment;
-                                metainfo["Author"] = meta.Author;
-                                metainfo["Copyright"] = meta.Author;
-
-                                var meta_png = png_w.GetMetadata();
-                                foreach (var kv in metainfo)
-                                {
-                                    meta_png.SetText(kv.Key, kv.Value);
-                                }
-
-                                png_r.End();
-                                png_w.End();
-                                fileinfo.Delete();
-                                File.Move(png_f, fileinfo.FullName);
-                                return (true);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex) { ex.ERROR("GetMetaInfoPng"); }
-            return (result);
         }
 
         public static string GetMetaInfo(this FileInfo fileinfo)
@@ -3707,12 +3831,15 @@ namespace PixivWPF.Common
             {
                 if (fileinfo.Exists && fileinfo.Length > 0)
                 {
+                    var setting = Application.Current.LoadSetting();
                     var exif = new ExifData(fileinfo.FullName);
                     if (exif is ExifData)
                     {
                         var meta = MakeMetaInfo(fileinfo, dt, id);
                         if (meta is MetaInfo)
                         {
+                            if (setting.DownloadAttachPngMetaInfoUsingPngCs) UpdatePngMetaInfo(fileinfo, dt, meta);
+
                             exif.SetDateChanged(meta.DateModified ?? dt);
                             exif.SetDateDigitized(meta.DateAcquired ?? dt);
                             exif.SetDateTaken(meta.DateTaken ?? dt);
@@ -3748,24 +3875,24 @@ namespace PixivWPF.Common
                                 exif.SetTagRawData(ExifTag.XpKeywords, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Keywords), Encoding.Unicode.GetBytes(meta.Keywords));
                             }
 
-                            if (string.IsNullOrEmpty(meta.Author))
+                            if (string.IsNullOrEmpty(meta.Authors))
                             {
                                 exif.RemoveTag(ExifTag.XpAuthor);
                                 exif.RemoveTag(ExifTag.Artist);
                             }
                             else
                             {
-                                exif.SetTagRawData(ExifTag.XpAuthor, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Author), Encoding.Unicode.GetBytes(meta.Author));
-                                exif.SetTagValue(ExifTag.Artist, meta.Author, StrCoding.Utf8);
+                                exif.SetTagRawData(ExifTag.XpAuthor, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Authors), Encoding.Unicode.GetBytes(meta.Authors));
+                                exif.SetTagValue(ExifTag.Artist, meta.Authors, StrCoding.Utf8);
                             }
 
-                            if (string.IsNullOrEmpty(meta.Copyright))
+                            if (string.IsNullOrEmpty(meta.Copyrights))
                             {
                                 exif.RemoveTag(ExifTag.Copyright);
                             }
                             else
                             {
-                                exif.SetTagValue(ExifTag.Copyright, meta.Copyright, StrCoding.Utf8);
+                                exif.SetTagValue(ExifTag.Copyright, meta.Copyrights, StrCoding.Utf8);
                             }
 
                             if (string.IsNullOrEmpty(meta.Comment))
@@ -3779,13 +3906,13 @@ namespace PixivWPF.Common
                                 exif.SetTagValue(ExifTag.UserComment, meta.Comment, StrCoding.IdCode_Utf16);
                             }
 
-                            exif.SetTagRawData(ExifTag.XpRanking, ExifTagType.UShort, 1, BitConverter.GetBytes((short)meta.Ranking).Reverse().ToArray());
-                            exif.SetTagRawData(ExifTag.XpRating, ExifTagType.UShort, 1, BitConverter.GetBytes((short)meta.Rating).Reverse().ToArray());
+                            exif.SetTagValue(ExifTag.Rating, meta.Ranking ?? 0, TagType: ExifTagType.UShort);
+                            exif.SetTagValue(ExifTag.RatingPercent, meta.Rating ?? 0, TagType: ExifTagType.UShort);
 
                             var xmp = string.Empty;
                             exif.GetTagValue(ExifTag.XmpMetadata, out xmp, StrCoding.Utf8);
                             xmp = TouchXMP(fileinfo, xmp, meta);
-                            //exif.SetTagValue(ExifTag.XmpMetadata, xmp, StrCoding.Utf8);
+                            //exif.SetTagValue(CompactExifLib.ExifTag.XmpMetadata, xmp, StrCoding.Utf8);
                             exif.SetTagRawData(ExifTag.XmpMetadata, ExifTagType.Byte, Encoding.UTF8.GetByteCount(xmp), Encoding.UTF8.GetBytes(xmp));
                             exif.Save(fileinfo.FullName);
                             result = true;
@@ -4033,6 +4160,7 @@ namespace PixivWPF.Common
                                 $"{fileinfo.FullName} Metadata Update {ret_info}!".INFO("AttachMetaInfo");
                             }
                         }
+                        fileinfo.Refresh();
                         if (fileinfo.CreationTime.Ticks != dt.Ticks) fileinfo.CreationTime = dt;
                         if (fileinfo.LastWriteTime.Ticks != dt.Ticks) fileinfo.LastWriteTime = dt;
                         if (fileinfo.LastAccessTime.Ticks != dt.Ticks) fileinfo.LastAccessTime = dt;
@@ -7336,7 +7464,7 @@ namespace PixivWPF.Common
                         item.State = TaskStatus.RanToCompletion;
                     }
                 }
-                if (result && item.IsDownloaded) Commands.TouchMeta.Execute(item);
+                if (result && item.IsDownloaded) Commands.TouchMeta.Execute(item.Illust);
             }
 
             return (result);
@@ -7454,7 +7582,7 @@ namespace PixivWPF.Common
                         item.State = TaskStatus.RanToCompletion;
                     }
                 }
-                if (result && item.IsDownloaded) Commands.TouchMeta.Execute(item);
+                if (result && item.IsDownloaded) Commands.TouchMeta.Execute(item.Illust);
             }
             return (result);
         }
@@ -7514,7 +7642,7 @@ namespace PixivWPF.Common
                 item.Illust = ret.Item2;
                 item.IsFavorited = result;
                 if (item.Source == null) item.State = TaskStatus.RanToCompletion;
-                if (result && item.IsDownloaded) Commands.TouchMeta.Execute(item);
+                if (result && item.IsDownloaded) Commands.TouchMeta.Execute(item.Illust);
             }
             return (result);
         }

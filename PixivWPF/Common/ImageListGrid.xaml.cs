@@ -685,7 +685,7 @@ namespace PixivWPF.Common
         private IList<PixivItem> LastItems = new List<PixivItem>();
         private void TouchImage()
         {
-            Commands.TouchMeta.Execute(ItemList.Where(t => !LastItems.Contains(t) && t.IsDownloaded).ToList());
+            Commands.TouchMeta.Execute(ItemList.Where(t => t.IsNotPage() && t.IsDownloaded && !LastItems.Contains(t)).ToList());
         }
 
         public async void Clear(bool batch = true, bool force = false)

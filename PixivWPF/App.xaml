@@ -29,6 +29,10 @@
             <SolidColorBrush x:Key="MahApps.Brushes.ToggleSwitch.KnobFillOff" Color="{DynamicResource MahApps.Colors.Accent}" />
             <SolidColorBrush x:Key="MahApps.Brushes.ToggleSwitch.KnobFillOffPointerOver" Color="{DynamicResource MahApps.Colors.Accent}" />
             <SolidColorBrush x:Key="MahApps.Brushes.ToggleSwitch.KnobFillOffPressed" Color="{DynamicResource MahApps.Colors.Accent}" />
+            <SolidColorBrush x:Key="MahApps.Brushes.ToggleSwitch.ContainerBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="MahApps.Brushes.ToggleSwitch.ContainerBackgroundPointerOver" Color="Transparent" />
+            <SolidColorBrush x:Key="MahApps.Brushes.ToggleSwitch.ContainerBackgroundPressed" Color="Transparent" />
+            <SolidColorBrush x:Key="MahApps.Brushes.ToggleSwitch.ContainerBackgroundDisabled" Color="Transparent" />
 
             <ScaleTransform x:Key="FontStretchSemiCondensed" ScaleX="0.75" />
             <ScaleTransform x:Key="FontStretchCondensed" ScaleX="0.8" />

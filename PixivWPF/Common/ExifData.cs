@@ -3895,10 +3895,10 @@ namespace CompactExifLib
         XpAuthor = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.XpAuthor,
         XpKeywords = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.XpKeywords,
         XpSubject = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.XpSubject,
-        XpRanking = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.XpRanking,
-        XpRating = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.XpRating,
-        Rating = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.XpRanking,
-        RatingPercent = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.XpRating,
+        //XpRanking = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.XpRanking,
+        //XpRating = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.XpRating,
+        Rating = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.Rating,
+        RatingPercent = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.RatingPercent,
 
         PixelUnit = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.PixelUnit,
         PixelPerUnitX = (ExifIfd.PrimaryData << ExifData.IfdShift) | ExifTagId.PixelPerUnitX,
@@ -4115,10 +4115,10 @@ namespace CompactExifLib
         XpKeywords = 0x9c9e,
         XpSubject = 0x9c9f,
         // Custom Rating/Ranking
+        //XpRanking = 0x4746,
+        //XpRating = 0x4749,
         Rating = 0x4746,
         RatingPercent = 0x4749,
-        XpRanking = 0x4746,
-        XpRating = 0x4749,
 
         PixelUnit = 0x5110,
         PixelPerUnitX = 0x5111,
