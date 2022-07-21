@@ -1482,21 +1482,32 @@ namespace PixivWPF.Pages
         {
             if (Contents.IsWork())
             {
-                var found = false;
                 if (IllustStatInfo.ToolTip is string)
                 {
                     var size = querysize ? $" [{(await Contents.Illust.GetOriginalUrl(Contents.Index).QueryImageFileSize() ?? -1).SmartFileSize()}]" : string.Empty;
                     var original = $"Original  : {Contents.Illust.GetOriginalUrl(Contents.Index).GetImageName(Contents.Count <= 1)}{size}";
+                    var diskusage = IllustDownloaded.IsShown() && (IllustDownloaded.ToolTip is string) ? $"FileSize  : {new System.IO.FileInfo(IllustDownloaded.ToolTip as string).Length.SmartFileSize()}" : string.Empty;
                     var tips = (IllustStatInfo.ToolTip as string).Split(new string[] { Environment.NewLine, "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+                    var found_orig = false;
+                    var found_size = false;
                     for (int i = 0; i < tips.Count; i++)
                     {
                         if (tips[i].StartsWith("Original  :"))
                         {
-                            found = true;
+                            found_orig = true;
                             tips[i] = original;
                         }
+                        else if (tips[i].StartsWith("FileSize  :"))
+                        {
+                            found_size = true;
+                            if (string.IsNullOrEmpty(diskusage)) tips.RemoveAt(i);
+                            else tips[i] = diskusage;
+                        }
                     }
-                    if (!found) tips.Add(original);
+                    if (!found_orig) tips.Add(original);
+                    if (!found_size && !string.IsNullOrEmpty(diskusage)) tips.Add(diskusage);
+
                     IllustStatInfo.ToolTip = string.Join(Environment.NewLine, tips).Trim();
                 }
             }
@@ -4080,8 +4091,9 @@ namespace PixivWPF.Pages
             var uid = sender.GetUid();
             var type = DownloadType.None;
 
-            if (uid.Equals("ActionSaveIllustJpeg")) type = DownloadType.AsJPEG;
-            else if (uid.Equals("ActionSaveIllustPreview")) type = DownloadType.UseLargePreview;
+            if (Keyboard.Modifiers == ModifierKeys.Shift) type |= DownloadType.ConvertKeepName;
+            if (uid.Equals("ActionSaveIllustJpeg")) type |= DownloadType.AsJPEG;
+            else if (uid.Equals("ActionSaveIllustPreview")) type |= DownloadType.UseLargePreview;
 
             if (SubIllusts.SelectedItems != null && SubIllusts.SelectedItems.Count > 0)
             {
@@ -4114,8 +4126,9 @@ namespace PixivWPF.Pages
             var uid = sender.GetUid();
             var type = DownloadType.None;
 
-            if (uid.Equals("ActionSaveIllustJpeg")) type = DownloadType.AsJPEG;
-            else if (uid.Equals("ActionSaveIllustPreview")) type = DownloadType.UseLargePreview;
+            if (Keyboard.Modifiers == ModifierKeys.Shift) type |= DownloadType.ConvertKeepName;
+            if (uid.Equals("ActionSaveIllustJpeg")) type |= DownloadType.AsJPEG;
+            else if (uid.Equals("ActionSaveIllustPreview")) type |= DownloadType.UseLargePreview;
 
             if (Contents.IsWork() && Contents.Count > 0)
             {
@@ -4842,8 +4855,9 @@ namespace PixivWPF.Pages
                     var uid = sender.GetUid();
                     var type = DownloadType.None;
 
-                    if (uid.Equals("ActionSaveIllustsJpeg")) type = DownloadType.AsJPEG;
-                    else if (uid.Equals("ActionSaveIllustsPreview")) type = DownloadType.UseLargePreview;
+                    if (Keyboard.Modifiers == ModifierKeys.Shift) type |= DownloadType.ConvertKeepName;
+                    if (uid.Equals("ActionSaveIllustsJpeg")) type |= DownloadType.AsJPEG;
+                    else if (uid.Equals("ActionSaveIllustsPreview")) type |= DownloadType.UseLargePreview;
 
                     var m = sender as MenuItem;
                     var host = (m.Parent as ContextMenu).PlacementTarget;
@@ -4891,8 +4905,9 @@ namespace PixivWPF.Pages
                     var uid = sender.GetUid();
                     var type = DownloadType.None;
 
-                    if (uid.Equals("ActionSaveIllustsJpegAll")) type = DownloadType.AsJPEG;
-                    else if (uid.Equals("ActionSaveIllustsPreviewAll")) type = DownloadType.UseLargePreview;
+                    if (Keyboard.Modifiers == ModifierKeys.Shift) type |= DownloadType.ConvertKeepName;
+                    if (uid.Equals("ActionSaveIllustsJpegAll")) type |= DownloadType.AsJPEG;
+                    else if (uid.Equals("ActionSaveIllustsPreviewAll")) type |= DownloadType.UseLargePreview;
 
                     var m = sender as MenuItem;
                     var host = (m.Parent as ContextMenu).PlacementTarget;

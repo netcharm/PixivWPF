@@ -2216,7 +2216,16 @@ namespace PixivWPF.Common
                 }
                 else if (obj is PixivItem)
                 {
-                    var item = obj as PixivItem;
+                    var type = setting.ConvertKeepName || keep_name ? DownloadType.ConvertKeepName : DownloadType.None;
+                    var item = new KeyValuePair<PixivItem, DownloadType>(obj, type);
+                    ConvertToJpeg.Execute(item);
+                }
+                else if (obj is KeyValuePair<PixivItem, DownloadType>)
+                {
+                    var kv = (KeyValuePair<PixivItem, DownloadType>)obj;
+                    var item = kv.Key;
+                    var type = kv.Value;
+                    keep_name = setting.ConvertKeepName || type.HasFlag(DownloadType.ConvertKeepName) ? true : false;
                     if (item.IsWork())
                     {
                         var illust = item.Illust;
@@ -2254,23 +2263,12 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                else if (obj is KeyValuePair<PixivItem, DownloadType>)
-                {
-                    var kv = (KeyValuePair<PixivItem, DownloadType>)obj;
-                    var item = kv.Key;
-                    var type = kv.Value;
-                    ConvertToJpeg.Execute(item);
-                }
                 else if (obj is KeyValuePair<ImageListGrid, DownloadType>)
                 {
                     var kv = (KeyValuePair<ImageListGrid, DownloadType>)obj;
-                    var item = kv.Key;
+                    var gallery = kv.Key;
                     var type = kv.Value;
-                    ConvertToJpeg.Execute(item);
-                }
-                else if (obj is ImageListGrid)
-                {
-                    var gallery = obj as ImageListGrid;
+
                     if (gallery.Count > 0)
                     {
                         await new Action(async () =>
@@ -2279,10 +2277,19 @@ namespace PixivWPF.Common
                             {
                                 await new Action(() =>
                                 {
-                                    ConvertToJpeg.Execute(item);
+                                    ConvertToJpeg.Execute(new KeyValuePair<PixivItem, DownloadType>(item, type));
                                 }).InvokeAsync();
                             }
                         }).InvokeAsync();
+                    }
+                }
+                else if (obj is ImageListGrid)
+                {
+                    var gallery = obj as ImageListGrid;
+                    if (gallery.Count > 0)
+                    {
+                        var type = setting.ConvertKeepName || Keyboard.Modifiers == ModifierKeys.Shift ? DownloadType.ConvertKeepName : DownloadType.None;
+                        ConvertToJpeg.Execute(new KeyValuePair<ImageListGrid, DownloadType>(gallery, type));
                     }
                 }
                 else if (obj is IList<PixivItem>)

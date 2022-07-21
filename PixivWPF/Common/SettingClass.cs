@@ -1608,6 +1608,17 @@ namespace PixivWPF.Common
                 if (Cache is Setting) Cache.shell_touchmeta_params = shell_touchmeta_params;
             }
         }
+
+        private bool convert_keep_name = true;
+        public bool ConvertKeepName
+        {
+            get { return (Cache is Setting ? Cache.convert_keep_name : convert_keep_name); }
+            set
+            {
+                convert_keep_name = value;
+                if (Cache is Setting) Cache.convert_keep_name = convert_keep_name;
+            }
+        }
         #endregion
 
         #region Favorite/Follow Related
