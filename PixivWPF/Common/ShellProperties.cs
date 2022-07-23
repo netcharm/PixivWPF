@@ -71,7 +71,7 @@ namespace PixivWPF.Common
         public static int Show(IEnumerable<string> Filenames)
         {
             StringCollection Files = new StringCollection();
-            Files.AddRange(Filenames.ToArray());
+            Files.AddRange(Filenames.Where(f => !string.IsNullOrEmpty(f) && File.Exists(f)).ToArray());
             var data = new DataObject();
             data.SetData("Preferred DropEffect", new MemoryStream(new byte[] { 5, 0, 0, 0 }), true);
             data.SetData("Shell IDList Array", CreateShellIDList(Files), true);
@@ -84,6 +84,11 @@ namespace PixivWPF.Common
         public static int Show(params string[] Filenames)
         {
             return Show(Filenames as IEnumerable<string>);
+        }
+
+        public static int Show(string file)
+        {
+            return (Show(new string[] { file }));
         }
         #endregion
         //private const int SW_SHOW = 5;
@@ -130,12 +135,18 @@ namespace PixivWPF.Common
             {
                 var pdtobj = new DataObject();
                 var flist = new StringCollection();
-                flist.AddRange(FileNames);
+                flist.AddRange(FileNames.Where(f => !string.IsNullOrEmpty(f) && File.Exists(f)).ToArray());
                 pdtobj.SetFileDropList(flist);
                 if (SHMultiFileProperties(pdtobj, 0) == 0 /*S_OK*/) result = true;
             }
             catch (Exception ex) { ex.ERROR("ShowFileProperties"); }
             return (result);
+        }
+
+        public static bool ShowFileProperties(string file)
+        {
+            if (string.IsNullOrEmpty(file) || !File.Exists(file)) return (false);
+            else return (ShowFileProperties(new string[] { file }));
         }
         #endregion
     }

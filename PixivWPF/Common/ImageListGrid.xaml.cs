@@ -1172,8 +1172,19 @@ namespace PixivWPF.Common
                 UpdateTileTask.DoWork += UpdateTileTask_DoWork;
             }
 
+            MouseMove += ImageListGrid_MouseMove;
+
             ItemList.Clear();
             PART_ImageTiles.ItemsSource = ItemList;
+        }
+
+        private void ImageListGrid_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Shift && e.LeftButton == MouseButtonState.Pressed)
+            {
+                this.DragOut(this);
+                e.Handled = true;
+            }
         }
 
         ~ImageListGrid()

@@ -832,7 +832,11 @@ namespace PixivWPF.Pages
         {
             if (sender == PreviewBox && e.LeftButton == MouseButtonState.Pressed)
             {
-                if (PreviewBox.Stretch == Stretch.None)
+                if(Keyboard.Modifiers == ModifierKeys.Shift)
+                {
+                    this.DragOut(Contents);
+                }
+                else if (PreviewBox.Stretch == Stretch.None)
                 {
                     Point factor = new Point(PreviewScroll.ExtentWidth/PreviewScroll.ActualWidth, PreviewScroll.ExtentHeight/PreviewScroll.ActualHeight);
                     Vector v = start - e.GetPosition(PreviewScroll);

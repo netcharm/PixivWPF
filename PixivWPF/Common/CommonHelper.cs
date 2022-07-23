@@ -2553,6 +2553,58 @@ namespace PixivWPF.Common
             elapsed = trimzero && msec ? $"{elapsed}{ms_str}".TrimEnd('0').TrimEnd('.') : $"{elapsed}{ms_str}";
             return ((unit ? $"{elapsed} s" : elapsed).PadLeft(padleft));
         }
+        
+        public static void DragOut(this DependencyObject sender, PixivItem item)
+        {
+            try
+            {
+                if (item.IsWork())
+                {
+                    var file = item.Illust.GetPreviewUrl(item.Index).GetImageCacheFile();
+                    var dp = new DataObject();
+                    dp.SetFileDropList(new StringCollection() { file });
+                    dp.SetData("Text", file);
+
+                    DragDrop.DoDragDrop(sender, dp, DragDropEffects.Copy);
+                }
+            }
+            catch (Exception ex) { ex.ERROR("DragOut"); }
+        }
+
+        public static void DragOut(this DependencyObject sender, ImageListGrid gallery)
+        {
+            try
+            {
+                DragOut(sender, gallery.GetSelected());
+            }
+            catch (Exception ex) { ex.ERROR("DragOut"); }
+        }
+
+        public static void DragOut(this DependencyObject sender, IEnumerable<PixivItem> items)
+        {
+            try
+            {
+                var files = new List<string>();
+                foreach (var item in items)
+                {
+                    if (item.IsWork())
+                    {
+                        var file = item.Illust.GetPreviewUrl(item.Index).GetImageCacheFile();
+                        if (!string.IsNullOrEmpty(file)) files.Add(file);
+                    }
+                }
+                if (files.Count > 0)
+                {
+                    var dp = new DataObject();
+                    var sc = new StringCollection();
+                    sc.AddRange(files.ToArray());
+                    dp.SetFileDropList(sc);
+                    dp.SetData("Text", string.Join(Environment.NewLine, files));
+                    DragDrop.DoDragDrop(sender, dp, DragDropEffects.Copy);
+                }
+            }
+            catch (Exception ex) { ex.ERROR("DragOut"); }
+        }
         #endregion
 
         #region ImageListGrid page calculating

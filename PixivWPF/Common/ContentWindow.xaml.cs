@@ -324,6 +324,7 @@ namespace PixivWPF.Common
             {
                 e.Effects = DragDropEffects.Copy;
             }
+            else e.Effects = DragDropEffects.None;
         }
 
         private void MetroWindow_Drop(object sender, DragEventArgs e)

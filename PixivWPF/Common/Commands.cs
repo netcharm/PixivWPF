@@ -2232,16 +2232,16 @@ namespace PixivWPF.Common
 
                         string fp = string.Empty;
 
-                        if (item.HasPages() && item.Count > 1)
+                        if (item.HasPages() && item.IsNotPage())
                         {
-                            if (item.Index >= 0)
-                            {
-                                if (illust.IsDownloadedAsync(out fp, item.Index, touch: false))
-                                {
-                                    await fp.ConvertImageTo("jpg", keep_name: keep_name);
-                                }
-                            }
-                            else
+                            //if (item.Index >= 0)
+                            //{
+                            //    if (illust.IsDownloadedAsync(out fp, item.Index, touch: false))
+                            //    {
+                            //        await fp.ConvertImageTo("jpg", keep_name: keep_name);
+                            //    }
+                            //}
+                            //else
                             {
                                 for (var i = 0; i < item.Count; i++)
                                 {

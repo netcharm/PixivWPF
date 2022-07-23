@@ -106,10 +106,10 @@ namespace PixivWPF.Common
                 }
             }
 
-            if (!(result.Source is ImageSource) && (url.IsDownloadedAsync(out fp, true) || url.IsDownloadedAsync(out fp)))
-            {
-                result = await fp.LoadImageFromFile(size);
-            }
+            //if (!(result.Source is ImageSource) && (url.IsDownloadedAsync(out fp, true) || url.IsDownloadedAsync(out fp)))
+            //{
+            //    result = await fp.LoadImageFromFile(size);
+            //}
 
             if (result.Source is ImageSource && !string.IsNullOrEmpty(id))
             {

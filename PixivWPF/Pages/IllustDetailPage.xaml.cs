@@ -151,7 +151,7 @@ namespace PixivWPF.Pages
                 hitResultsList.Clear();
                 // Perform the hit test against a given portion of the visual object tree.
                 VisualTreeHelper.HitTest(PreviewBox, null, new HitTestResultCallback(MyHitTestResult), new PointHitTestParameters(pt));
-                if (hitResultsList.Count > 1)
+                if (hitResultsList.Count >= 1)
                 {
                     // Perform action on hit visual object.
                     foreach (var element in hitResultsList)
@@ -396,7 +396,7 @@ namespace PixivWPF.Pages
             {
                 var bg = Theme.WhiteColor;
                 browser = new WebBrowserEx()
-                {
+                {                    
                     BackColor = System.Drawing.Color.FromArgb(0xFF, bg.R, bg.G, bg.B),
                     Height = 0,
                     DocumentText = string.Empty.GetHtmlFromTemplate(),
@@ -685,6 +685,13 @@ namespace PixivWPF.Pages
                     bCancel = false;
                 }
                 catch (Exception ex) { ex.ERROR("BROWSER"); }
+            }
+            // The WebBrowser control is checking the Uri 
+            else if (e.Url.ToString() != "Place your url string here") //ex: "http://stackoverflow.com"
+            {
+                // Uri is not the same so it cancels the process
+                e.Cancel = true;
+                return;
             }
         }
 
@@ -3695,11 +3702,11 @@ namespace PixivWPF.Pages
                         Commands.OpenWorkPreview.Execute(SubIllusts);
                     }
                 }
-                else if (IsElement(btnSubPagePrev, e) && btnSubPagePrev.IsVisible && btnSubPagePrev.IsEnabled)
+                else if (Keyboard.Modifiers == ModifierKeys.None && IsElement(btnSubPagePrev, e) && btnSubPagePrev.IsVisible && btnSubPagePrev.IsEnabled)
                     PrevIllustPage();
-                else if (IsElement(btnSubPageNext, e) && btnSubPageNext.IsVisible && btnSubPageNext.IsEnabled)
+                else if (Keyboard.Modifiers == ModifierKeys.None && IsElement(btnSubPageNext, e) && btnSubPageNext.IsVisible && btnSubPageNext.IsEnabled)
                     NextIllustPage();
-                else if (setting.EnabledMiniToolbar && PreviewPopup is Popup)
+                else if (setting.EnabledMiniToolbar && Keyboard.Modifiers == ModifierKeys.None && PreviewPopup is Popup)
                     PopupOpen(PreviewPopup);
                 else
                     e.Handled = false;
@@ -3718,13 +3725,18 @@ namespace PixivWPF.Pages
         {
             if (Contents.HasPages())
             {
-                if (IsElement(btnSubPagePrev, e) && btnSubPagePrev.IsVisible && btnSubPagePrev.IsEnabled)
+                if (Keyboard.Modifiers == ModifierKeys.Shift && e.LeftButton == MouseButtonState.Pressed)
+                {
+                    this.DragOut(Contents);
+                    e.Handled = true;
+                }
+                else if (Keyboard.Modifiers == ModifierKeys.None && IsElement(btnSubPagePrev, e) && btnSubPagePrev.IsVisible && btnSubPagePrev.IsEnabled)
                 {
                     btnSubPagePrev.MinWidth = 48;
                     btnSubPageNext.MinWidth = 32;
                     e.Handled = true;
                 }
-                else if (IsElement(btnSubPageNext, e) && btnSubPageNext.IsVisible && btnSubPageNext.IsEnabled)
+                else if (Keyboard.Modifiers == ModifierKeys.None && IsElement(btnSubPageNext, e) && btnSubPageNext.IsVisible && btnSubPageNext.IsEnabled)
                 {
                     btnSubPagePrev.MinWidth = 32;
                     btnSubPageNext.MinWidth = 48;
@@ -3734,6 +3746,14 @@ namespace PixivWPF.Pages
                 {
                     btnSubPagePrev.MinWidth = 32;
                     btnSubPageNext.MinWidth = 32;
+                    e.Handled = true;
+                }
+            }
+            else if(Contents.IsWork())
+            {
+                if (IsElement(PreviewRect, e) && Keyboard.Modifiers == ModifierKeys.Shift && e.LeftButton == MouseButtonState.Pressed )
+                {
+                    this.DragOut(Contents);
                     e.Handled = true;
                 }
             }
@@ -4133,7 +4153,7 @@ namespace PixivWPF.Pages
             if (Contents.IsWork() && Contents.Count > 0)
             {
                 var item = new KeyValuePair<PixivItem, DownloadType>(Contents, type);
-                if (uid.Equals("ActionConvertIllustJpeg"))
+                if (uid.Equals("ActionConvertIllustJpegAll"))
                     Commands.ConvertToJpeg.Execute(item);
                 else
                     Commands.SaveIllustAll.Execute(item);
@@ -4864,12 +4884,12 @@ namespace PixivWPF.Pages
                     if (m.Uid.Equals("ActionSaveIllusts", StringComparison.CurrentCultureIgnoreCase) ||
                         m.Uid.Equals("ActionSaveIllustsJpeg", StringComparison.CurrentCultureIgnoreCase) ||
                         m.Uid.Equals("ActionSaveIllustsPreview", StringComparison.CurrentCultureIgnoreCase) ||
-                        m.Uid.Equals("ActionConvertIllustJpeg", StringComparison.CurrentCultureIgnoreCase))
+                        m.Uid.Equals("ActionConvertIllustsJpeg", StringComparison.CurrentCultureIgnoreCase))
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
                             var items = new KeyValuePair<ImageListGrid, DownloadType>(SubIllusts, type);
-                            if (uid.Equals("ActionConvertIllustJpeg"))
+                            if (uid.Equals("ActionConvertIllustsJpeg"))
                                 Commands.ConvertToJpeg.Execute(items);
                             else
                                 Commands.SaveIllust.Execute(items);
@@ -4877,7 +4897,7 @@ namespace PixivWPF.Pages
                         else if (host == RelatedItemsExpander || host == RelatedItems)
                         {
                             var items = new KeyValuePair<ImageListGrid, DownloadType>(RelatedItems, type);
-                            if (uid.Equals("ActionConvertIllustJpeg"))
+                            if (uid.Equals("ActionConvertIllustsJpeg"))
                                 Commands.ConvertToJpeg.Execute(items);
                             else
                                 Commands.SaveIllust.Execute(items);
@@ -4885,7 +4905,7 @@ namespace PixivWPF.Pages
                         else if (host == FavoriteItemsExpander || host == FavoriteItems)
                         {
                             var items = new KeyValuePair<ImageListGrid, DownloadType>(FavoriteItems, type);
-                            if (uid.Equals("ActionConvertIllustJpeg"))
+                            if (uid.Equals("ActionConvertIllustsJpeg"))
                                 Commands.ConvertToJpeg.Execute(items);
                             else
                                 Commands.SaveIllust.Execute(items);
@@ -4914,12 +4934,12 @@ namespace PixivWPF.Pages
                     if (m.Uid.Equals("ActionSaveIllustsAll", StringComparison.CurrentCultureIgnoreCase) ||
                         m.Uid.Equals("ActionSaveIllustsJpegAll", StringComparison.CurrentCultureIgnoreCase) ||
                         m.Uid.Equals("ActionSaveIllustsPreviewAll", StringComparison.CurrentCultureIgnoreCase) ||
-                        m.Uid.Equals("ActionConvertIllustJpegAll", StringComparison.CurrentCultureIgnoreCase))                    
+                        m.Uid.Equals("ActionConvertIllustsJpegAll", StringComparison.CurrentCultureIgnoreCase))                    
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
                             var items = new KeyValuePair<PixivItem, DownloadType>(Contents, type);
-                            if (uid.Equals("ActionConvertIllustJpegAll"))
+                            if (uid.Equals("ActionConvertIllustsJpegAll"))
                                 Commands.ConvertToJpeg.Execute(items);
                             else
                                 Commands.SaveIllustAll.Execute(items);
@@ -4927,7 +4947,7 @@ namespace PixivWPF.Pages
                         else if (host == RelatedItemsExpander || host == RelatedItems)
                         {
                             var items = new KeyValuePair<ImageListGrid, DownloadType>(RelatedItems, type);
-                            if (uid.Equals("ActionConvertIllustJpegAll"))
+                            if (uid.Equals("ActionConvertIllustsJpegAll"))
                                 Commands.ConvertToJpeg.Execute(items);
                             else
                                 Commands.SaveIllustAll.Execute(items);
@@ -4935,7 +4955,7 @@ namespace PixivWPF.Pages
                         else if (host == FavoriteItemsExpander || host == FavoriteItems)
                         {
                             var items = new KeyValuePair<ImageListGrid, DownloadType>(FavoriteItems, type);
-                            if (uid.Equals("ActionConvertIllustJpegAll"))
+                            if (uid.Equals("ActionConvertIllustsJpegAll"))
                                 Commands.ConvertToJpeg.Execute(items);
                             else
                                 Commands.SaveIllustAll.Execute(items);

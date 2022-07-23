@@ -1733,18 +1733,26 @@ namespace ImageCompare
 #if DEBUG
             Debug.WriteLine(string.Join(", ", fmts));
 #endif
-            if (new List<string>(fmts).Contains("FileDrop"))
+            if (fmts.Contains("FileDrop") || fmts.Contains("Text"))
             {
-                e.Effects = DragDropEffects.Link;
+                e.Effects = DragDropEffects.Copy;
             }
         }
 
         private void Window_Drop(object sender, DragEventArgs e)
         {
             var fmts = e.Data.GetFormats(true);
-            if (new List<string>(fmts).Contains("FileDrop"))
+            if (e.Data.GetDataPresent("FileDrop"))
             {
                 var files = e.Data.GetData("FileDrop");
+                if (files is IEnumerable<string>)
+                {
+                    LoadImageFromFiles((files as IEnumerable<string>).ToArray(), e.Source == ImageSourceScroll || e.Source == ImageSource ? true : false);
+                }
+            }
+            else if (e.Data.GetDataPresent("Text"))
+            {
+                var files = (e.Data.GetData("Text") as string).Split();
                 if (files is IEnumerable<string>)
                 {
                     LoadImageFromFiles((files as IEnumerable<string>).ToArray(), e.Source == ImageSourceScroll || e.Source == ImageSource ? true : false);
