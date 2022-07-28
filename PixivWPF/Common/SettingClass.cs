@@ -1184,6 +1184,17 @@ namespace PixivWPF.Common
             }
         }
 
+        private bool download_convert_using_mem = true;
+        public bool DownloadConvertUsingMemory
+        {
+            get { return (Cache is Setting ? Cache.download_convert_using_mem : download_convert_using_mem); }
+            set
+            {
+                download_convert_using_mem = value;
+                if (Cache is Setting) Cache.download_convert_using_mem = download_convert_using_mem;
+            }
+        }
+
         private bool download_attach_metainfo = false;
         public bool DownloadAttachMetaInfo
         {
@@ -1195,6 +1206,17 @@ namespace PixivWPF.Common
             }
         }
 
+        private bool download_attach_metainfo_shell = true;
+        public bool DownloadAttachMetaInfoUsingShell
+        {
+            get { return (Cache is Setting ? Cache.download_attach_metainfo_shell : download_attach_metainfo_shell); }
+            set
+            {
+                download_attach_metainfo_shell = value;
+                if (Cache is Setting) Cache.download_attach_metainfo_shell = download_attach_metainfo_shell;
+            }
+        }
+
         private bool download_attach_metainfo_pngcs = false;
         public bool DownloadAttachPngMetaInfoUsingPngCs
         {
@@ -1203,6 +1225,17 @@ namespace PixivWPF.Common
             {
                 download_attach_metainfo_pngcs = value;
                 if (Cache is Setting) Cache.download_attach_metainfo_pngcs = download_attach_metainfo_pngcs;
+            }
+        }
+
+        private bool download_attach_metainfo_using_mem = true;
+        public bool DownloadAttachMetaInfoUsingMemory
+        {
+            get { return (Cache is Setting ? Cache.download_attach_metainfo_using_mem : download_attach_metainfo_using_mem); }
+            set
+            {
+                download_attach_metainfo_using_mem = value;
+                if (Cache is Setting) Cache.download_attach_metainfo_using_mem = download_attach_metainfo_using_mem;
             }
         }
 

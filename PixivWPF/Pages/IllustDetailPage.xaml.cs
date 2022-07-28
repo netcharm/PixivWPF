@@ -1593,7 +1593,7 @@ namespace PixivWPF.Pages
 
                         if (full)
                         {
-                            SubIllusts.UpdateTilesImage(overwrite);
+                            SubIllusts.UpdateTilesImage(overwrite, touch: false);
                             RelatedItems.UpdateTilesImage(overwrite);
                             FavoriteItems.UpdateTilesImage(overwrite);
                             if (Contents.IsWork())
@@ -1828,6 +1828,9 @@ namespace PixivWPF.Pages
                     IllustDescHtml.DocumentText = string.Empty;
                     IllustDescExpander.Hide();
                 }
+                item.Index = -1;
+                if (item.IsDownloaded) Commands.TouchMeta.Execute(item);
+
 
                 SubIllustUpdateTimer.Stop();
                 PreviewBadge.Badge = $"1 / {item.Count}";
@@ -1847,7 +1850,6 @@ namespace PixivWPF.Pages
                     SubIllustsExpander.Hide();
                     PreviewBadge.Hide();
                     page_count = 0;
-                    if (item.IsDownloaded) Commands.TouchMeta.Execute(item);
                 }
                 UpdateSubPageNav();
 
@@ -2143,7 +2145,7 @@ namespace PixivWPF.Pages
                     UpdateDownloadedMark(SubIllusts.SelectedItem);
 
                     this.DoEvents();
-                    if (ParentWindow is MainWindow) SubIllusts.UpdateTilesImage();
+                    if (ParentWindow is MainWindow) SubIllusts.UpdateTilesImage(touch: false);
                     else if (ParentWindow is ContentWindow) UpdateThumb();
                 }
             }

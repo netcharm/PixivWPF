@@ -546,7 +546,7 @@ namespace PixivWPF.Pages
                         this.DoEvents();
                     }
                 }
-                ResultItems.UpdateTilesImage();
+                ResultItems.UpdateTilesImage(touch: ResultItems.Count > 1);
 
                 if (ResultItems.Items.Count() == 1 && no_filter)
                 {

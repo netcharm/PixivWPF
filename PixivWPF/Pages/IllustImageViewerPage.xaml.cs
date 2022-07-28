@@ -834,7 +834,7 @@ namespace PixivWPF.Pages
             {
                 if(Keyboard.Modifiers == ModifierKeys.Shift)
                 {
-                    this.DragOut(Contents);
+                    this.DragOut(Contents, IsOriginal);
                 }
                 else if (PreviewBox.Stretch == Stretch.None)
                 {

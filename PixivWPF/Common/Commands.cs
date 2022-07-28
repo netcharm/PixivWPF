@@ -2234,21 +2234,11 @@ namespace PixivWPF.Common
 
                         if (item.HasPages() && item.IsNotPage())
                         {
-                            //if (item.Index >= 0)
-                            //{
-                            //    if (illust.IsDownloadedAsync(out fp, item.Index, touch: false))
-                            //    {
-                            //        await fp.ConvertImageTo("jpg", keep_name: keep_name);
-                            //    }
-                            //}
-                            //else
+                            for (var i = 0; i < item.Count; i++)
                             {
-                                for (var i = 0; i < item.Count; i++)
+                                if (illust.IsDownloadedAsync(out fp, i, touch: false))
                                 {
-                                    if (illust.IsDownloadedAsync(out fp, i, touch: false))
-                                    {
-                                        await fp.ConvertImageTo("jpg", keep_name: keep_name);
-                                    }
+                                    await fp.ConvertImageTo("jpg", keep_name: keep_name);
                                 }
                             }
                         }

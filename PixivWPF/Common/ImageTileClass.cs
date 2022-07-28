@@ -1828,7 +1828,8 @@ namespace PixivWPF.Common
             {
                 if (item is PixivItem)
                 {
-                    if (item.ItemType != PixivItemType.Pages ||
+                    if (item.ItemType != PixivItemType.User &&
+                        item.ItemType != PixivItemType.Pages &&
                         item.ItemType != PixivItemType.Page)
                         result = item.Illust is Pixeez.Objects.Work ? true : false;
                 }
@@ -1925,8 +1926,6 @@ namespace PixivWPF.Common
                     if (item.ItemType == PixivItemType.Manga ||
                         item.ItemType == PixivItemType.Work ||
                         item.ItemType == PixivItemType.Works ||
-                        item.ItemType == PixivItemType.Page ||
-                        item.ItemType == PixivItemType.Pages ||
                         item.ItemType == PixivItemType.Ugoira)
                         result = item.Illust is Pixeez.Objects.Work && item.Count > 1 ? true : false;
                 }
@@ -1945,8 +1944,8 @@ namespace PixivWPF.Common
                     if (item.ItemType == PixivItemType.Manga ||
                         item.ItemType == PixivItemType.Work ||
                         item.ItemType == PixivItemType.Works ||
-                        item.ItemType == PixivItemType.Page ||
-                        item.ItemType == PixivItemType.Pages ||
+                        //item.ItemType == PixivItemType.Page ||
+                        //item.ItemType == PixivItemType.Pages ||
                         item.ItemType == PixivItemType.Ugoira)
                         result = item.Illust is Pixeez.Objects.Work && item.Count == 1 ? true : false;
                 }

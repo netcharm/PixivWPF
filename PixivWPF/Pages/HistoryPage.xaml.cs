@@ -115,7 +115,7 @@ namespace PixivWPF.Pages
                     UpdateDownloadState();
                     this.DoEvents();
                 }
-                HistoryItems.UpdateTilesImage(overwrite);
+                HistoryItems.UpdateTilesImage(overwrite, touch: false);
             }
             catch (Exception ex)
             {

@@ -434,6 +434,14 @@ namespace PixivWPF.Common
             if (e.Handled) return;
             MouseDown?.Invoke(sender, e);
         }
+
+        public new event MouseMoveEventHandler MouseMove;
+        public delegate void MouseMoveEventHandler(object sender, MouseEventArgs e);
+        private void PART_ImageTiles_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.Handled) return;
+            MouseMove?.Invoke(sender, e);
+        }
         #endregion
 
         #region Properties Handler
@@ -1064,7 +1072,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public async void UpdateTilesImage(bool overwrite = false)
+        public async void UpdateTilesImage(bool overwrite = false, bool touch = true)
         {
             this.DoEvents();
             if (ItemList.Count <= 0) return;
@@ -1078,7 +1086,7 @@ namespace PixivWPF.Common
                     {
                         new Action(() =>
                         {
-                            TouchImage();
+                            if (touch) TouchImage();
                             UpdateTileTaskCancelSrc = new CancellationTokenSource();
                             UpdateTileTask.RunWorkerAsync(overwrite);
                         }).Invoke(async: false);
@@ -1172,18 +1180,34 @@ namespace PixivWPF.Common
                 UpdateTileTask.DoWork += UpdateTileTask_DoWork;
             }
 
-            MouseMove += ImageListGrid_MouseMove;
+            PreviewMouseMove += ImageListGrid_MouseMove;
+            PreviewMouseDown += ImageListGrid_MouseDown;
 
             ItemList.Clear();
             PART_ImageTiles.ItemsSource = ItemList;
+        }
+
+        private Point last_mouse_pos;
+        private void ImageListGrid_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Shift && e.ChangedButton == MouseButton.Left && e.LeftButton == MouseButtonState.Pressed)
+            {
+                last_mouse_pos = e.GetPosition(this);
+                //e.Handled = true;
+            }
         }
 
         private void ImageListGrid_MouseMove(object sender, MouseEventArgs e)
         {
             if (Keyboard.Modifiers == ModifierKeys.Shift && e.LeftButton == MouseButtonState.Pressed)
             {
-                this.DragOut(this);
-                e.Handled = true;
+                var pos = e.GetPosition(this);
+                if (last_mouse_pos.X == 0 && last_mouse_pos.Y == 0) last_mouse_pos = pos;
+                if (Point.Subtract(pos, last_mouse_pos).LengthSquared >= 100 || pos.Distance(last_mouse_pos) >= 10)
+                {
+                    this.DragOut(this);
+                    e.Handled = true;
+                }
             }
         }
 
