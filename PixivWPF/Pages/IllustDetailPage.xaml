@@ -80,7 +80,7 @@
             </MenuItem>
         </ContextMenu>
         
-        <ContextMenu x:Key="ActionIllust">
+        <ContextMenu x:Key="ActionIllust" Opened="DownloadAction_Opened">
             <MenuItem x:Uid="ActionIllustNewWindow" Header="Open Illust in New Window" Click="ActionIllustInfo_Click">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xE8A7;" FontSize="16" FontFamily="Segoe MDL2 Assets"
@@ -236,6 +236,7 @@
                          Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <Separator x:Uid="ActionConvertIllustJpegSep"/>
             <MenuItem x:Uid="ActionConvertIllustJpeg" Header="Convert Illust Page To JPEG" Click="ActionSaveIllust_Click">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
@@ -269,6 +270,59 @@
             </MenuItem>            
         </ContextMenu>
 
+        <ContextMenu x:Name="DownloadAction" x:Key="DownloadAction" Opened="DownloadAction_Opened">
+            <MenuItem x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Uid="ActionSaveIllustJpeg" Header="Save Illust Page As JPEG" Click="ActionSaveIllust_Click">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Uid="ActionSaveIllustPreview" Header="Save Illust Page Large Preview" Click="ActionSaveIllust_Click">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <Separator x:Uid="ActionConvertIllustJpegSep"/>
+            <MenuItem x:Uid="ActionConvertIllustJpeg" Header="Convert Illust Page To JPEG" Click="ActionSaveIllust_Click">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <Separator x:Uid="ActionDownloadedSep"/>
+            <MenuItem x:Uid="ActionShowDownloadedMeta" Header="Show Downloaded Metadata" Click="ActionOpenIllust_Click">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xE114;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Uid="ActionTouchDownloadedMeta" Header="Touch Downloaded Metadata" Click="ActionOpenIllust_Click">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xE114;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Uid="ActionOpenDownloaded" Header="Open Downloaded Illust" Click="ActionOpenIllust_Click">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xE118;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Uid="OpenFileProperties" Header="View Downloaded Properties" Click="ActionOpenIllust_Click">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xEA1F;" FontSize="16" FontFamily="Segoe MDL2 Assets"                                            
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
+        </ContextMenu>
+        
         <ContextMenu x:Name="MenuGallaryAction" x:Key="MenuGallaryAction" Opened="MenuGallaryAction_Opened">
             <MenuItem x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="ActionCopyIllustID_Click" >
                 <MenuItem.Icon>
@@ -432,6 +486,7 @@
                          Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <Separator x:Name="ActionMetaSeparator" x:Uid="ActionMetaSeparator"/>
             <MenuItem x:Uid="ActionConvertIllustsJpeg" Header="Convert Illust Page To JPEG" Click="ActionSaveIllusts_Click">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
@@ -444,7 +499,7 @@
                          Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <Separator x:Name="ActionMetaSeparator" x:Uid="ActionMetaSeparator"/>
+            <Separator/>
             <MenuItem x:Uid="ActionShowDownloadedMeta" Header="Show Downloaded Metadata" Click="ActionOpenDownloaded_Click">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xE114;" FontSize="16" FontFamily="Segoe MDL2 Assets"
@@ -470,7 +525,7 @@
                 </MenuItem.Icon>
             </MenuItem>
         </ContextMenu>
-        
+       
         <ContextMenu x:Name="MenuSpeech" x:Key="MenuSpeech">
             <MenuItem x:Name="miSpeechAuto" x:Uid="SpeechAuto" Header="Auto Detect" Click="ActionSpeech_Click" >
                 <MenuItem.Icon>
@@ -716,7 +771,7 @@
                     </Grid>
                     <ContentControl Grid.Row="0" x:Name="PreviewBox">
                         <ContentControl.ContextMenu>
-                            <ContextMenu>
+                            <ContextMenu Opened="DownloadAction_Opened">
                                 <MenuItem x:Name="PreviewCopyIllustID" x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Visibility="Visible" Click="ActionIllustInfo_Click">
                                     <MenuItem.Icon>
                                         <TextBlock Margin="4,0,0,0" Text="&#xE16F;" FontSize="16" FontFamily="Segoe MDL2 Assets"
@@ -792,13 +847,14 @@
                                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
+                                <Separator x:Uid="ActionConvertIllustJpegSep"/>
                                 <MenuItem x:Uid="ActionConvertIllustJpeg" Header="Convert Illust Page To JPEG" Click="ActionSaveIllust_Click">
                                     <MenuItem.Icon>
                                         <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
-                                <Separator/>
+                                <Separator x:Uid="ActionDownloadedSep"/>
                                 <MenuItem x:Name="ActionShowDownloadedMeta" x:Uid="ActionShowDownloadedMeta" Header="Show Downloaded Metadata" Click="ActionOpenIllust_Click">
                                     <MenuItem.Icon>
                                         <TextBlock Margin="4,0,0,0" Text="&#xE114;" FontSize="16" FontFamily="Segoe MDL2 Assets"
@@ -962,12 +1018,12 @@
                                 Margin="2,0,4,0" HorizontalAlignment="Right" VerticalAlignment="Center"
                                 Text="&#xE118;" FontSize="16" FontFamily="Segoe MDL2 Assets" FontWeight="Black"
                                 MouseDown="IllustDownloaded_MouseDown"
-                                Foreground="{DynamicResource MahApps.Brushes.Accent}" />                            
-                            <TextBlock x:Name="IllustSizeIcon" 
+                                Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                            <TextBlock x:Name="IllustSizeIcon" ContextMenu="{DynamicResource DownloadAction}"
                                 Text="&#xE1CA;" FontSize="16" FontFamily="Segoe MDL2 Assets" FontWeight="Black"
                                 Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                            <TextBlock x:Name="IllustSize" Margin="2,0,4,0" 
+                            <TextBlock x:Name="IllustSize" Margin="2,0,4,0" ContextMenu="{DynamicResource DownloadAction}"
                                Foreground="{DynamicResource MahApps.Brushes.Text}"
                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             <TextBlock x:Name="IllustViewedIcon" 

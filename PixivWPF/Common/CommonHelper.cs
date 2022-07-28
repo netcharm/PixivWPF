@@ -8973,7 +8973,7 @@ namespace PixivWPF.Common
 
         public static void Show(this object element, bool parent = false)
         {
-            if (element is UIElement) element.Show(parent);
+            if (element is UIElement) (element as UIElement).Show(parent);
         }
 
         public static void Hide(this UIElement element, bool parent = false)
