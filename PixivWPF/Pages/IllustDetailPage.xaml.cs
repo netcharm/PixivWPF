@@ -2915,19 +2915,27 @@ namespace PixivWPF.Pages
                 {
                     "ActionConvertIllustJpegSep",
                     "ActionConvertIllustJpeg", "ActionConvertIllustJpegAll",
+                    "ActionReduceIllustJpeg", "ActionReduceIllustJpegAll",
                     "ActionDownloadedSep",
-                    "ActionShowDownloadedMeta", "ActionTouchDownloadedMeta", "ActionOpenDownloaded", "OpenFileProperties"
+                    "ActionShowDownloadedMeta", "ActionTouchDownloadedMeta",
+                    "ActionOpenDownloaded", "OpenFileProperties"
                 };
-                var conv_list = new string[] { "ActionConvertIllustJpegSep", "ActionConvertIllustJpeg", "ActionConvertIllustJpegAll" };
+                var conv_list = new string[] 
+                {
+                    //"ActionConvertIllustJpegSep",
+                    "ActionConvertIllustJpeg", "ActionConvertIllustJpegAll",
+                    //"ActionReduceIllustJpeg", "ActionReduceIllustJpegAll",
+                };
                 var jpeg_list = new string[]
                 {
                     "ActionSaveIllustJpeg", "ActionSaveIllustJpegAll",
-                    //"ActionConvertIllustJpegSep", "ActionConvertIllustJpeg", "ActionConvertIllustJpegAll"
                 };
                 var ugoira_list = new string[] { "SepratorUgoira", "ActionSavePreviewUgoiraFile", "ActionSaveOriginalUgoiraFile", "ActionOpenUgoiraFile" };
 
                 var file = Contents.Illust.GetOriginalUrl(Contents.Index);
                 var is_jpg = System.IO.Path.GetExtension(file).Equals(".jpg", StringComparison.CurrentCultureIgnoreCase);
+                var is_down = Contents.Illust.IsDownloaded(Contents.Index);
+                var single = Contents.Count <= 1;
                 var menus = sender as ContextMenu;
                 foreach (var item in menus.Items)
                 {
@@ -2935,7 +2943,7 @@ namespace PixivWPF.Pages
                     {
                         var uid = item.GetUid();
 
-                        if (!Contents.IsDownloaded && down_list.Contains(uid))
+                        if (!is_down && down_list.Contains(uid))
                         {
                             item.Hide();
                         }
@@ -2944,6 +2952,7 @@ namespace PixivWPF.Pages
                             if (is_jpg && conv_list.Contains(uid)) item.Hide();
                             else if (is_jpg && jpeg_list.Contains(uid)) item.Hide();
                             else if (!Contents.IsUgoira() && ugoira_list.Contains(uid)) item.Hide();
+                            else if (single && uid.Contains("All")) item.Hide();
                             else (item as UIElement).Show();
                         }
                     }
@@ -4168,6 +4177,8 @@ namespace PixivWPF.Pages
                 var items = new KeyValuePair<ImageListGrid, DownloadType>(SubIllusts, type);
                 if (uid.Equals("ActionConvertIllustJpeg"))
                     Commands.ConvertToJpeg.Execute(items);
+                else if (uid.Equals("ActionReduceIllustJpeg"))
+                    Commands.ConvertToJpeg.Execute(items);
                 else
                     Commands.SaveIllust.Execute(items);
             }
@@ -4176,6 +4187,8 @@ namespace PixivWPF.Pages
                 var item = new KeyValuePair<PixivItem, DownloadType>(SubIllusts.SelectedItem, type);
                 if (uid.Equals("ActionConvertIllustJpeg"))
                     Commands.ConvertToJpeg.Execute(item);
+                else if (uid.Equals("ActionReduceIllustJpeg"))
+                    Commands.ConvertToJpeg.Execute(item);
                 else
                     Commands.SaveIllust.Execute(item);
             }
@@ -4183,6 +4196,8 @@ namespace PixivWPF.Pages
             {
                 var item = new KeyValuePair<PixivItem, DownloadType>(Contents, type);
                 if (uid.Equals("ActionConvertIllustJpeg"))
+                    Commands.ConvertToJpeg.Execute(item);
+                else if (uid.Equals("ActionReduceIllustJpeg"))
                     Commands.ConvertToJpeg.Execute(item);
                 else
                     Commands.SaveIllust.Execute(item);
@@ -4202,6 +4217,8 @@ namespace PixivWPF.Pages
             {
                 var item = new KeyValuePair<PixivItem, DownloadType>(Contents.Illust.WorkItem(), type);
                 if (uid.Equals("ActionConvertIllustJpegAll"))
+                    Commands.ConvertToJpeg.Execute(item);
+                else if (uid.Equals("ActionReduceIllustJpegAll"))
                     Commands.ConvertToJpeg.Execute(item);
                 else
                     Commands.SaveIllustAll.Execute(item);
@@ -4939,6 +4956,8 @@ namespace PixivWPF.Pages
                             var items = new KeyValuePair<ImageListGrid, DownloadType>(SubIllusts, type);
                             if (uid.Equals("ActionConvertIllustsJpeg"))
                                 Commands.ConvertToJpeg.Execute(items);
+                            else if (uid.Equals("ActionReduceIllustsJpeg"))
+                                Commands.ReduceJpeg.Execute(items);
                             else
                                 Commands.SaveIllust.Execute(items);
                         }
@@ -4947,6 +4966,8 @@ namespace PixivWPF.Pages
                             var items = new KeyValuePair<ImageListGrid, DownloadType>(RelatedItems, type);
                             if (uid.Equals("ActionConvertIllustsJpeg"))
                                 Commands.ConvertToJpeg.Execute(items);
+                            else if (uid.Equals("ActionReduceIllustsJpeg"))
+                                Commands.ReduceJpeg.Execute(items);
                             else
                                 Commands.SaveIllust.Execute(items);
                         }
@@ -4955,6 +4976,8 @@ namespace PixivWPF.Pages
                             var items = new KeyValuePair<ImageListGrid, DownloadType>(FavoriteItems, type);
                             if (uid.Equals("ActionConvertIllustsJpeg"))
                                 Commands.ConvertToJpeg.Execute(items);
+                            else if (uid.Equals("ActionReduceIllustsJpeg"))
+                                Commands.ReduceJpeg.Execute(items);
                             else
                                 Commands.SaveIllust.Execute(items);
                         }
@@ -4989,6 +5012,8 @@ namespace PixivWPF.Pages
                             var items = new KeyValuePair<PixivItem, DownloadType>(Contents.Illust.WorkItem(), type);
                             if (uid.Equals("ActionConvertIllustsJpegAll"))
                                 Commands.ConvertToJpeg.Execute(items);
+                            else if (uid.Equals("ActionReduceIllustsJpegAll"))
+                                Commands.ReduceJpeg.Execute(items);
                             else
                                 Commands.SaveIllustAll.Execute(items);
                         }
@@ -4997,6 +5022,8 @@ namespace PixivWPF.Pages
                             var items = new KeyValuePair<ImageListGrid, DownloadType>(RelatedItems, type);
                             if (uid.Equals("ActionConvertIllustsJpegAll"))
                                 Commands.ConvertToJpeg.Execute(items);
+                            else if (uid.Equals("ActionReduceIllustsJpegAll"))
+                                Commands.ReduceJpeg.Execute(items);
                             else
                                 Commands.SaveIllustAll.Execute(items);
                         }
@@ -5005,6 +5032,8 @@ namespace PixivWPF.Pages
                             var items = new KeyValuePair<ImageListGrid, DownloadType>(FavoriteItems, type);
                             if (uid.Equals("ActionConvertIllustsJpegAll"))
                                 Commands.ConvertToJpeg.Execute(items);
+                            else if (uid.Equals("ActionReduceIllustsJpegAll"))
+                                Commands.ReduceJpeg.Execute(items);
                             else
                                 Commands.SaveIllustAll.Execute(items);
                         }

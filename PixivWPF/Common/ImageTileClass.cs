@@ -1327,7 +1327,7 @@ namespace PixivWPF.Common
                     {
                         url = string.Empty;
                     }
-                    else if (p_count > 1 && illust.meta_pages.Count() == p_count)
+                    else if (p_count > 1 && illust.meta_pages != null && illust.meta_pages.Count() == p_count)
                     {
                         idx = Math.Max(0, Math.Min(idx, p_count - 1));
                         var page = illust.meta_pages[idx];
@@ -1352,7 +1352,7 @@ namespace PixivWPF.Common
                     {
                         url = string.Empty;
                     }
-                    else if (p_count > 1 && illust.meta_pages.Count() == p_count)
+                    else if (p_count > 1 && illust.meta_pages != null && illust.meta_pages.Count() == p_count)
                     {
                         idx = Math.Max(0, Math.Min(idx, p_count - 1));
                         var page = illust.meta_pages[idx];

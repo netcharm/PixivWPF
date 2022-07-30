@@ -1568,6 +1568,10 @@ namespace PixivWPF.Common
             {
                 Commands.ConvertToJpeg.Execute(FileName);
             }
+            else if (sender == miReduceJpegSize)
+            {
+                Commands.ReduceJpeg.Execute(FileName);
+            }
             else if (sender == PART_SaveAsJPEG)
             {
                 if (State == DownloadState.Finished)

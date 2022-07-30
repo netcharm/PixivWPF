@@ -120,7 +120,7 @@ namespace PixivWPF.Common
                 if (field != null)
                 {
                     object axIWebBrowser2 = field.GetValue(this);
-                    axIWebBrowser2.GetType().InvokeMember("Silent", BindingFlags.SetProperty, null, axIWebBrowser2, new object[] { true });
+                    if(axIWebBrowser2 != null) axIWebBrowser2.GetType().InvokeMember("Silent", BindingFlags.SetProperty, null, axIWebBrowser2, new object[] { true });
                 }
             }
             catch (Exception ex) { ex.ERROR(); }
@@ -4177,11 +4177,11 @@ namespace PixivWPF.Common
             {
                 if (exif is ExifData && meta is MetaInfo)
                 {
-                    exif.SetDateChanged(meta.DateModified ?? dt);
-                    exif.SetDateDigitized(meta.DateAcquired ?? dt);
                     exif.SetDateTaken(meta.DateTaken ?? dt);
-                    exif.SetTagValue(ExifTag.SubsecTimeDigitized, meta.DateAcquired ?? dt, ExifDateFormat.DateAndTime);
-                    exif.SetTagValue(ExifTag.SubsecTimeOriginal, meta.DateTaken ?? dt, ExifDateFormat.DateAndTime);
+                    exif.SetDateDigitized(meta.DateAcquired ?? dt);
+                    exif.SetDateChanged(meta.DateModified ?? dt);
+                    //exif.SetTagValue(ExifTag.SubsecTimeOriginal, meta.DateTaken ?? dt, ExifDateFormat.DateAndTime);
+                    //exif.SetTagValue(ExifTag.SubsecTimeDigitized, meta.DateAcquired ?? dt, ExifDateFormat.DateAndTime);
 
                     if (string.IsNullOrEmpty(meta.Title))
                     {
@@ -5354,7 +5354,7 @@ namespace PixivWPF.Common
         internal static bool IsDownloaded(this Pixeez.Objects.Work illust, int index = -1, bool touch = false)
         {
             if (illust is Pixeez.Objects.Work)
-                return (illust.GetOriginalUrl(index).IsDownloaded(touch: touch));
+                return (illust.GetOriginalUrl(index).IsDownloaded(is_meta_single_page: index == -1 || illust.PageCount <= 1, touch: touch));
             else
                 return (false);
         }
@@ -6293,7 +6293,21 @@ namespace PixivWPF.Common
             return (await bitmap.ToBytes(fmt));
         }
 
-        public static byte[] ConvertImageTo(this byte[] buffer, string fmt)
+        private static System.Drawing.Imaging.ImageCodecInfo GetEncoderInfo(string mimeType)
+        {
+            // Get image codecs for all image formats 
+            var codecs = System.Drawing.Imaging.ImageCodecInfo.GetImageEncoders();
+
+            // Find the correct image codec 
+            for (int i = 0; i < codecs.Length; i++)
+            {
+                if (codecs[i].MimeType == mimeType) return codecs[i];
+            }
+
+            return null;
+        }
+
+        public static byte[] ConvertImageTo(this byte[] buffer, string fmt, int quality = 85)
         {
             byte[] result = null;
             try
@@ -6312,7 +6326,16 @@ namespace PixivWPF.Common
                         using (var mo = new MemoryStream())
                         {
                             var bmp = new System.Drawing.Bitmap(mi);
-                            bmp.Save(mo, pFmt);
+
+                            var codec_info = GetEncoderInfo("image/jpeg");
+                            var qualityParam = new System.Drawing.Imaging.EncoderParameter(System.Drawing.Imaging.Encoder.Quality, quality);
+                            var encoderParams = new System.Drawing.Imaging.EncoderParameters(1);
+                            encoderParams.Param[0] = qualityParam;
+
+                            if (pFmt == System.Drawing.Imaging.ImageFormat.Jpeg)
+                                bmp.Save(mo, codec_info, encoderParams);
+                            else
+                                bmp.Save(mo, pFmt);
                             result = mo.ToArray();
                         }
                     }
@@ -6322,7 +6345,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> ConvertImageTo(this string file, string fmt, bool keep_name = false)
+        public static async Task<string> ConvertImageTo(this string file, string fmt, bool keep_name = false, int quality = 85)
         {
             string result = string.Empty;
             try
@@ -6345,7 +6368,7 @@ namespace PixivWPF.Common
                             using (var msi = new MemoryStream(File.ReadAllBytes(file)))
                             {
                                 var exif_in = GetExifData(msi, dm);
-                                using (var msp = new MemoryStream(msi.ToArray().ConvertImageTo(fmt)))
+                                using (var msp = new MemoryStream(msi.ToArray().ConvertImageTo(fmt, quality: quality)))
                                 {
                                     msp.Seek(0, SeekOrigin.Begin);
                                     var exif_out = new ExifData(msp);
@@ -6363,7 +6386,7 @@ namespace PixivWPF.Common
                     {
                         var exif_in = fi.GetExifData();
 
-                        var bytes = File.ReadAllBytes(file).ConvertImageTo(fmt);
+                        var bytes = File.ReadAllBytes(file).ConvertImageTo(fmt, quality: quality);
                         File.WriteAllBytes(fout, bytes);
 
                         var exif_out = new ExifData(fout);
@@ -6390,6 +6413,11 @@ namespace PixivWPF.Common
             }
             catch (Exception ex) { ex.ERROR($"ConvertImageTo_{ fmt}"); }
             return (result);
+        }
+
+        public static async Task<string> ReduceImageFileSize(this string file, string fmt, bool keep_name = false, int quality = 85)
+        {
+            return (await ConvertImageTo(file, fmt, keep_name, quality));
         }
 
         public static BitmapSource ConvertBitmapDPI(this BitmapSource source, double dpiX = 96, double dpiY = 96)

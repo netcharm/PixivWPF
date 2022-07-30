@@ -2194,7 +2194,7 @@ namespace PixivWPF.Common
                             var id = str.GetIllustId();
                             var idx = str.GetIllustPageIndex();
                             var illust = id.FindIllust();
-                            await str.ConvertImageTo("jpg", keep_name: keep_name);
+                            await str.ConvertImageTo("jpg", keep_name: keep_name, quality: setting.DownloadConvertJpegQuality);
                         }
                         else
                         {
@@ -2238,7 +2238,7 @@ namespace PixivWPF.Common
                             {
                                 if (illust.IsDownloadedAsync(out fp, i, touch: false))
                                 {
-                                    await fp.ConvertImageTo("jpg", keep_name: keep_name);
+                                    await fp.ConvertImageTo("jpg", keep_name: keep_name, quality: setting.DownloadConvertJpegQuality);
                                 }
                             }
                         }
@@ -2249,7 +2249,7 @@ namespace PixivWPF.Common
                             else
                                 illust.IsPartDownloadedAsync(out fp, touch: false);
 
-                            await fp.ConvertImageTo("jpg", keep_name: keep_name);
+                            await fp.ConvertImageTo("jpg", keep_name: keep_name, quality: setting.DownloadConvertJpegQuality);
                         }
                     }
                 }
@@ -2294,6 +2294,136 @@ namespace PixivWPF.Common
                                 await new Action(() =>
                                 {
                                     ConvertToJpeg.Execute(item);
+                                }).InvokeAsync();
+                            }
+                        }).InvokeAsync();
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("OpenDownloaded"); }
+        });
+
+        public static ICommand ReduceJpeg { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            try
+            {
+                var keep_name = Keyboard.Modifiers == ModifierKeys.Shift ? true : false;
+                var setting = Application.Current.LoadSetting();
+                if (obj is int || obj is int? || obj is long || obj is long?)
+                {
+                    var illust = $"{obj}".FindIllust();
+                    if (illust.IsWork()) ReduceJpeg.Execute(illust);
+                }
+                else if (obj is string)
+                {
+                    var str = obj as string;
+                    if (!string.IsNullOrEmpty(str))
+                    {
+                        if (File.Exists(str))
+                        {
+                            var id = str.GetIllustId();
+                            var idx = str.GetIllustPageIndex();
+                            var illust = id.FindIllust();
+                            await str.ReduceImageFileSize("jpg", keep_name: keep_name, quality: setting.DownloadRecudeJpegQuality);
+                        }
+                        else
+                        {
+                            var illust = $"{str}".FindIllust();
+                            if (illust.IsWork()) ReduceJpeg.Execute(illust);
+                        }
+                    }
+                }
+                else if (obj is Pixeez.Objects.Work)
+                {
+                    var illust = obj as Pixeez.Objects.Work;
+                    var item = illust.WorkItem();
+                    ReduceJpeg.Execute(item);
+                }
+                else if (obj is IEnumerable<Pixeez.Objects.Work>)
+                {
+                    foreach (var illust in (obj as IEnumerable<Pixeez.Objects.Work>))
+                        ReduceJpeg.Execute(illust);
+                }
+                else if (obj is PixivItem)
+                {
+                    var type = setting.ConvertKeepName || keep_name ? DownloadType.ConvertKeepName : DownloadType.None;
+                    var item = new KeyValuePair<PixivItem, DownloadType>(obj, type);
+                    ReduceJpeg.Execute(item);
+                }
+                else if (obj is KeyValuePair<PixivItem, DownloadType>)
+                {
+                    var kv = (KeyValuePair<PixivItem, DownloadType>)obj;
+                    var item = kv.Key;
+                    var type = kv.Value;
+                    keep_name = setting.ConvertKeepName || type.HasFlag(DownloadType.ConvertKeepName) ? true : false;
+                    if (item.IsWork())
+                    {
+                        var illust = item.Illust;
+
+                        string fp = string.Empty;
+
+                        if (item.HasPages() && item.IsNotPage())
+                        {
+                            for (var i = 0; i < item.Count; i++)
+                            {
+                                if (illust.IsDownloadedAsync(out fp, i, touch: false))
+                                {
+                                    await fp.ReduceImageFileSize("jpg", keep_name: keep_name, quality: setting.DownloadRecudeJpegQuality);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (item.IsPage() || item.IsPages())
+                                illust.IsDownloadedAsync(out fp, item.Index, touch: false);
+                            else
+                                illust.IsPartDownloadedAsync(out fp, touch: false);
+
+                            await fp.ReduceImageFileSize("jpg", keep_name: keep_name, quality: setting.DownloadRecudeJpegQuality);
+                        }
+                    }
+                }
+                else if (obj is KeyValuePair<ImageListGrid, DownloadType>)
+                {
+                    var kv = (KeyValuePair<ImageListGrid, DownloadType>)obj;
+                    var gallery = kv.Key;
+                    var type = kv.Value;
+
+                    if (gallery.Count > 0)
+                    {
+                        await new Action(async () =>
+                        {
+                            foreach (var item in gallery.GetSelected())
+                            {
+                                await new Action(() =>
+                                {
+                                    ReduceJpeg.Execute(new KeyValuePair<PixivItem, DownloadType>(item, type));
+                                }).InvokeAsync();
+                            }
+                        }).InvokeAsync();
+                    }
+                }
+                else if (obj is ImageListGrid)
+                {
+                    var gallery = obj as ImageListGrid;
+                    if (gallery.Count > 0)
+                    {
+                        var type = setting.ConvertKeepName || Keyboard.Modifiers == ModifierKeys.Shift ? DownloadType.ConvertKeepName : DownloadType.None;
+                        ReduceJpeg.Execute(new KeyValuePair<ImageListGrid, DownloadType>(gallery, type));
+                    }
+                }
+                else if (obj is IList<PixivItem>)
+                {
+                    var gallery = obj as IList<PixivItem>;
+                    if (gallery.Count > 0)
+                    {
+                        await new Action(async () =>
+                        {
+                            foreach (var item in gallery)
+                            {
+                                await new Action(() =>
+                                {
+                                    ReduceJpeg.Execute(item);
                                 }).InvokeAsync();
                             }
                         }).InvokeAsync();
