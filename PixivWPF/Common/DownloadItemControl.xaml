@@ -90,9 +90,15 @@
                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Name="miReduceJpegSize" x:Uid="ReduceJpegSize" Header="Reduce JPEG Image File Size" Click="miActions_Click">
+                <MenuItem x:Name="miReduceJpegSize" x:Uid="ReduceJpegSize" Header="Reduce JPEG File Size" Click="miActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Name="miShowImageMeta" x:Uid="ShowImageMeta" Header="Show Image Metadata" Click="miActions_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE114;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
@@ -100,12 +106,6 @@
                     <MenuItem.Icon>
                         <TextBlock Margin="4,0,0,0" Text="&#xE114;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem x:Name="miShowImageMeta" x:Uid="ShowImageMeta" Header="Show Image Metadata" Click="miActions_Click">
-                    <MenuItem.Icon>
-                        <TextBlock Margin="4,0,0,0" Text="&#xE114;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="miOpenImageProperties" x:Uid="OpenFileProperties" Header="View Image Properties" Click="miActions_Click">

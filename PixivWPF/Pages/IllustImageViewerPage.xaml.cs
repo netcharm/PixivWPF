@@ -550,8 +550,10 @@ namespace PixivWPF.Pages
                         if (uid.Equals("ActionSaveIllustJpeg")) type = DownloadType.AsJPEG;
                         else if (uid.Equals("ActionSaveIllustPreview")) type = DownloadType.UseLargePreview;
                         var item = new KeyValuePair<PixivItem, DownloadType>(Contents, type);
-                        if (uid.Equals("ActionConvertIllustPreview"))
+                        if (uid.Equals("ActionConvertIllustJpeg"))
                             Commands.ConvertToJpeg.Execute(item);
+                        if (uid.Equals("ActionReduceIllustJpeg"))
+                            Commands.ReduceJpeg.Execute(item);
                         else
                             Commands.SaveIllust.Execute(item);
                     }
@@ -786,6 +788,65 @@ namespace PixivWPF.Pages
             e.Handled = true;
             if (ViewerActionMore.IsOpen) return;
             ChangeIllustPage(-Math.Sign(e.Delta));
+        }
+
+        private void DownloadAction_Opened(object sender, RoutedEventArgs e)
+        {
+            if (sender is ContextMenu && Contents.IsWork())
+            {
+                var down_list = new string[]
+                {
+                    "ActionConvertIllustJpegSep",
+                    "ActionConvertIllustJpeg", "ActionConvertIllustJpegAll",
+                    "ActionReduceIllustJpeg", "ActionReduceIllustJpegAll",
+                    "ActionDownloadedSep",
+                    "ActionShowDownloadedMeta", "ActionTouchDownloadedMeta",
+                    "ActionOpenDownloaded", "ActionOpenDownloadedProperties"
+                };
+                var conv_list = new string[]
+                {
+                    //"ActionConvertIllustJpegSep",
+                    "ActionConvertIllustJpeg", "ActionConvertIllustJpegAll",
+                    //"ActionReduceIllustJpeg", "ActionReduceIllustJpegAll",
+                };
+                var jpeg_list = new string[]
+                {
+                    "ActionSaveIllustJpeg", "ActionSaveIllustJpegAll",
+                };
+                var ugoira_list = new string[] { "SepratorUgoira", "ActionSavePreviewUgoiraFile", "ActionSaveOriginalUgoiraFile", "ActionOpenUgoiraFile" };
+
+                var file = Contents.Illust.GetOriginalUrl(Contents.Index);
+                var is_jpg = System.IO.Path.GetExtension(file).Equals(".jpg", StringComparison.CurrentCultureIgnoreCase);
+                var is_down = Contents.Illust.IsDownloaded(Contents.Index);
+                var single = Contents.Count <= 1;
+                var menus = sender as ContextMenu;
+                foreach (var item in menus.Items)
+                {
+                    if (item is MenuItem || item is Separator)
+                    {
+                        var uid = item.GetUid();
+
+                        if (!is_down && down_list.Contains(uid))
+                        {
+                            item.Hide();
+                        }
+                        else
+                        {
+                            if (is_jpg && conv_list.Contains(uid)) item.Hide();
+                            //else if (is_jpg && jpeg_list.Contains(uid)) item.Hide();
+                            else if (item is MenuItem && jpeg_list.Contains(uid))
+                            {
+                                var all = uid.EndsWith("All") ? " All " : " ";
+                                (item as MenuItem).Header = is_jpg ? $"Save{all}Illust Page And Reduce It" : $"Save{all}Illust Page As JPEG";
+                                if (single && uid.EndsWith("All")) item.Hide();
+                            }
+                            else if (!Contents.IsUgoira() && ugoira_list.Contains(uid)) item.Hide();
+                            else if (single && uid.Contains("All")) item.Hide();
+                            else (item as UIElement).Show();
+                        }
+                    }
+                }
+            }
         }
 
         private Point start;

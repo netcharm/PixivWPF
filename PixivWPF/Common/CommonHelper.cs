@@ -2500,9 +2500,10 @@ namespace PixivWPF.Common
                 var delta = di.EndTime - di.StartTime;
                 var rate = delta.TotalSeconds <= 0 ? 0 : di.Received / delta.TotalSeconds;
                 var size = di.State == Common.DownloadState.Finished && File.Exists(di.FileName) ? (new FileInfo(di.FileName)).Length.SmartFileSize() : "????";
+                var fmt = di.SaveAsJPEG ? $"JPG_Q={di.JPEGQuality}" : $"{Path.GetExtension(di.FileName).Trim('.').ToUpper()}";
                 result.Add($"URL    : {di.Url}");
                 result.Add($"File   : {di.FileName}, {di.FileTime.ToString("yyyy-MM-dd HH:mm:sszzz")}");
-                result.Add($"State  : {di.State}{fail}, Disk Usage : {size}");
+                result.Add($"State  : {di.State}{fail} Disk Usage : {size}, {fmt}");
                 result.Add($"Elapsed: {di.StartTime.ToString("yyyy-MM-dd HH:mm:sszzz")} -> {di.EndTime.ToString("yyyy-MM-dd HH:mm:sszzz")}, {delta.SmartElapsed()} s");
                 result.Add($"Status : {di.Received.SmartFileSize()} / {di.Length.SmartFileSize()} ({di.Received} Bytes / {di.Length} Bytes), Rate ≈ {rate.SmartSpeedRate()}");
             }
@@ -6345,9 +6346,11 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> ConvertImageTo(this string file, string fmt, bool keep_name = false, int quality = 85)
+        public static async Task<string> ConvertImageTo(this string file, string fmt, bool keep_name = false, int quality = 85, bool reduce = false)
         {
             string result = string.Empty;
+            var feature = reduce ? "Reduce" : "Convert";
+            var InfoTitle = $"{feature}ImageTo_{fmt.ToUpper()}_Q={quality}";
             try
             {
                 if (!string.IsNullOrEmpty(file) && File.Exists(file))
@@ -6377,6 +6380,11 @@ namespace PixivWPF.Common
                                     msp.Seek(0, SeekOrigin.Begin);
                                     mso.Seek(0, SeekOrigin.Begin);
                                     exif_out.Save(msp, mso);
+                                    if (exif_out.ImageType == exif_in.ImageType && mso.Length >= fi.Length)
+                                    {
+                                        $"{feature} {file} To {fmt.ToUpper()} Failed!".INFO(InfoTitle);
+                                        throw new Exception($"{feature}ed File Size : {mso.Length} >= Original File Size : {fi.Length}!", new WarningException());
+                                    }
                                 }
                             }
                             File.WriteAllBytes(fout, mso.ToArray());
@@ -6387,6 +6395,14 @@ namespace PixivWPF.Common
                         var exif_in = fi.GetExifData();
 
                         var bytes = File.ReadAllBytes(file).ConvertImageTo(fmt, quality: quality);
+                        if (((fmt.Equals("jpg", StringComparison.CurrentCultureIgnoreCase) && exif_in.ImageType == ImageType.Jpeg) ||
+                             (fmt.Equals("jpeg", StringComparison.CurrentCultureIgnoreCase) && exif_in.ImageType == ImageType.Jpeg) ||
+                             (fmt.Equals("png", StringComparison.CurrentCultureIgnoreCase) && exif_in.ImageType == ImageType.Png)) &&
+                            bytes.Length >= fi.Length)
+                        {
+                            $"{feature} {file} To {fmt.ToUpper()} Failed!".INFO(InfoTitle);
+                            throw new Exception($"{feature}ed File Size : {bytes.Length} >= Original File Size : {fi.Length}!", new WarningException());
+                        }
                         File.WriteAllBytes(fout, bytes);
 
                         var exif_out = new ExifData(fout);
@@ -6406,18 +6422,18 @@ namespace PixivWPF.Common
 
                     result = fout;
                     if (string.IsNullOrEmpty(fout))
-                        $"Convert {file} To {fmt.ToUpper()} Failed!".INFO($"ConvertImageTo_{fmt}");
+                        $"{feature} {file} To {fmt.ToUpper()} Failed!".INFO(InfoTitle);
                     else
-                        $"Convert {file} To {fmt.ToUpper()} Succeed!".INFO($"ConvertImageTo_{fmt}");
+                        $"{feature} {file} To {fmt.ToUpper()} Succeed!".INFO(InfoTitle);
                 }
             }
-            catch (Exception ex) { ex.ERROR($"ConvertImageTo_{ fmt}"); }
+            catch (Exception ex) { ex.ERROR(InfoTitle, no_stack: ex is WarningException); }
             return (result);
         }
 
         public static async Task<string> ReduceImageFileSize(this string file, string fmt, bool keep_name = false, int quality = 85)
         {
-            return (await ConvertImageTo(file, fmt, keep_name, quality));
+            return (await ConvertImageTo(file, fmt, keep_name: true, quality: quality, reduce: true));
         }
 
         public static BitmapSource ConvertBitmapDPI(this BitmapSource source, double dpiX = 96, double dpiY = 96)
@@ -6885,7 +6901,7 @@ namespace PixivWPF.Common
                         request.Dispose();
                     }
                 }
-                catch (Exception ex) { ex.ERROR($"QueryImageFileSize_{Path.GetFileName(url)}"); }
+                catch (Exception ex) { ex.Message.ERROR($"QueryImageFileSize_{Path.GetFileName(url)}"); }
             }
             return (result);
         }
@@ -10312,6 +10328,117 @@ namespace PixivWPF.Common
             }
             catch (Exception ex) { ex.ERROR("ClearArray"); }
         }
+
+        public static sbyte Between(this sbyte value, sbyte range_l, sbyte range_h)
+        {
+            if (range_l < range_h)
+                return (Math.Max(range_l, Math.Min(range_h, value)));
+            else if (range_l > range_h)
+                return (Math.Max(range_h, Math.Min(range_l, value)));
+            else
+                return (range_l);
+        }
+
+        public static byte Between(this byte value, byte range_l, byte range_h)
+        {
+            if (range_l < range_h)
+                return (Math.Max(range_l, Math.Min(range_h, value)));
+            else if (range_l > range_h)
+                return (Math.Max(range_h, Math.Min(range_l, value)));
+            else
+                return (range_l);
+        }
+
+        public static short Between(this short value, short range_l, short range_h)
+        {
+            if (range_l < range_h)
+                return (Math.Max(range_l, Math.Min(range_h, value)));
+            else if (range_l > range_h)
+                return (Math.Max(range_h, Math.Min(range_l, value)));
+            else
+                return (range_l);
+        }
+
+        public static ushort Between(this ushort value, ushort range_l, ushort range_h)
+        {
+            if (range_l < range_h)
+                return (Math.Max(range_l, Math.Min(range_h, value)));
+            else if (range_l > range_h)
+                return (Math.Max(range_h, Math.Min(range_l, value)));
+            else
+                return (range_l);
+        }
+
+        public static int Between(this int value, int range_l, int range_h)
+        {
+            if (range_l < range_h)
+                return (Math.Max(range_l, Math.Min(range_h, value)));
+            else if (range_l > range_h)
+                return (Math.Max(range_h, Math.Min(range_l, value)));
+            else
+                return (range_l);
+        }
+
+        public static uint Between(this uint value, uint range_l, uint range_h)
+        {
+            if (range_l < range_h)
+                return (Math.Max(range_l, Math.Min(range_h, value)));
+            else if (range_l > range_h)
+                return (Math.Max(range_h, Math.Min(range_l, value)));
+            else
+                return (range_l);
+        }
+
+        public static long Between(this long value, long range_l, long range_h)
+        {
+            if (range_l < range_h)
+                return (Math.Max(range_l, Math.Min(range_h, value)));
+            else if (range_l > range_h)
+                return (Math.Max(range_h, Math.Min(range_l, value)));
+            else
+                return (range_l);
+        }
+
+        public static ulong Between(this ulong value, ulong range_l, ulong range_h)
+        {
+            if (range_l < range_h)
+                return (Math.Max(range_l, Math.Min(range_h, value)));
+            else if (range_l > range_h)
+                return (Math.Max(range_h, Math.Min(range_l, value)));
+            else
+                return (range_l);
+        }
+
+        public static decimal Between(this decimal value, decimal range_l, decimal range_h)
+        {
+            if (range_l < range_h)
+                return (Math.Max(range_l, Math.Min(range_h, value)));
+            else if (range_l > range_h)
+                return (Math.Max(range_h, Math.Min(range_l, value)));
+            else
+                return (range_l);
+        }
+
+        public static float Between(this float value, float range_l, float range_h)
+        {
+            if (range_l < range_h)
+                return (Math.Max(range_l, Math.Min(range_h, value)));
+            else if (range_l > range_h)
+                return (Math.Max(range_h, Math.Min(range_l, value)));
+            else
+                return (range_l);
+        }
+
+        public static double Between(this double value, double range_l, double range_h)
+        {
+            if (range_l < range_h)
+                return (Math.Max(range_l, Math.Min(range_h, value)));
+            else if (range_l > range_h)
+                return (Math.Max(range_h, Math.Min(range_l, value)));
+            else
+                return (range_l);
+        }
+
         #endregion
 
         #region WPF UI Helper

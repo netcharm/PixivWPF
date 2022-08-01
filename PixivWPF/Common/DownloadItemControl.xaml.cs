@@ -116,6 +116,7 @@ namespace PixivWPF.Common
 
         public bool UseLargePreview { get; set; } = false;
         public bool SaveAsJPEG { get; set; } = false;
+        public int JPEGQuality { get; set; } = Application.Current.LoadSetting().DownloadConvertJpegQuality;
 
         public string IllustSID { get { return (Url.GetIllustId()); } }
         public Pixeez.Objects.Work Illust { get { return (IllustSID.FindIllust()); } }
@@ -402,6 +403,12 @@ namespace PixivWPF.Common
             set { if (Info is DownloadInfo) Info.SaveAsJPEG = value; }
         }
 
+        public int JPEGQuality
+        {
+            get { return (Info is DownloadInfo ? Info.JPEGQuality : setting.DownloadConvertJpegQuality); }
+            set { if (Info is DownloadInfo) Info.JPEGQuality = value; }
+        }
+        
         public ImageSource Thumbnail
         {
             get { return (Info is DownloadInfo ? Info.Thumbnail : null); }
@@ -783,7 +790,7 @@ namespace PixivWPF.Common
                     PART_OpenFile.IsEnabled = miOpenImage.IsEnabled;
                     PART_OpenFolder.IsEnabled = miOpenFolder.IsEnabled;
 
-                    PART_SaveAsJPEG.IsEnabled = !PART_OpenFile.IsEnabled;
+                    PART_SaveAsJPEG.IsEnabled = !PART_OpenFile.IsEnabled || State == DownloadState.Downloading;
                 }
                 catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_CheckProperties"); }
             }
@@ -1039,7 +1046,8 @@ namespace PixivWPF.Common
                 FileName.Touch(Url, meta: true, force: true);
 
                 var state = "Succeed";
-                $"{FileName} {state}.".INFO("Download");
+                var as_jpeg = SaveAsJPEG ? $" As JPEG_Q={setting.DownloadConvertJpegQuality} " : " ";
+                $"{FileName}{as_jpeg}{state}.".INFO("Download");
                 if (setting.DownloadCompletedToast)
                     $"{Path.GetFileName(FileName)} is saved!".ShowDownloadToast(state, ThumbnailUrl, FileName, state);
                 if (setting.DownloadCompletedSound && StartTick.DeltaSeconds(EndTick) > setting.DownloadCompletedSoundForElapsedSeconds)
@@ -1171,9 +1179,16 @@ namespace PixivWPF.Common
                     UpdateProgress();
                     if (SaveAsJPEG)
                     {
+                        setting = Application.Current.LoadSetting();
+                        JPEGQuality = setting.DownloadConvertJpegQuality;
                         var ret = bytes.ConvertImageTo("jpg");
                         if (ret is byte[] && ret.Length > 16)
-                            File.WriteAllBytes(FileName, ret);
+                        {
+                            if (ret.Length >= bytes.Length)
+                                File.WriteAllBytes(FileName, bytes);
+                            else
+                                File.WriteAllBytes(FileName, ret);
+                        }
                     }
                     else
                         File.WriteAllBytes(FileName, bytes);
@@ -1222,8 +1237,14 @@ namespace PixivWPF.Common
                         {
                             if (SaveAsJPEG)
                             {
-                                var ret = File.ReadAllBytes(source).ConvertImageTo("jpg");
-                                File.WriteAllBytes(FileName, ret);
+                                setting = Application.Current.LoadSetting();
+                                JPEGQuality = setting.DownloadConvertJpegQuality;
+                                var bytes = File.ReadAllBytes(source);
+                                var ret = bytes.ConvertImageTo("jpg");
+                                if (ret.Length >= bytes.Length)
+                                    File.WriteAllBytes(FileName, bytes);
+                                else
+                                    File.WriteAllBytes(FileName, ret);
                             }
                             else
                                 File.Copy(source, FileName, true);
@@ -1273,7 +1294,7 @@ namespace PixivWPF.Common
             if (msg_title.IsMessagePopup(msg_content)) { State = DownloadState.Finished; return; }
 
             bool delta = true;
-            if (File.Exists(FileName))
+            if (File.Exists(FileName) && (_DownloadBuffer == null || _DownloadBuffer.Length <= 0))
             {
                 delta = new FileInfo(FileName).CreationTime.DeltaNowMillisecond() > setting.DownloadTimeSpan ? true : false;
                 if (!delta) return;

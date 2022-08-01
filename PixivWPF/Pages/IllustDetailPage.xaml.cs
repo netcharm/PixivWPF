@@ -2918,7 +2918,7 @@ namespace PixivWPF.Pages
                     "ActionReduceIllustJpeg", "ActionReduceIllustJpegAll",
                     "ActionDownloadedSep",
                     "ActionShowDownloadedMeta", "ActionTouchDownloadedMeta",
-                    "ActionOpenDownloaded", "OpenFileProperties"
+                    "ActionOpenDownloaded", "ActionOpenDownloadedProperties"
                 };
                 var conv_list = new string[] 
                 {
@@ -2950,7 +2950,13 @@ namespace PixivWPF.Pages
                         else
                         {
                             if (is_jpg && conv_list.Contains(uid)) item.Hide();
-                            else if (is_jpg && jpeg_list.Contains(uid)) item.Hide();
+                            //else if (is_jpg && jpeg_list.Contains(uid)) item.Hide();
+                            else if (item is MenuItem && jpeg_list.Contains(uid))
+                            {
+                                var all = uid.EndsWith("All") ? " All " : " ";
+                                (item as MenuItem).Header = is_jpg ? $"Save{all}Illust And Reduce It" : $"Save{all}Illust As JPEG";
+                                if (single && uid.EndsWith("All")) item.Hide();
+                            }
                             else if (!Contents.IsUgoira() && ugoira_list.Contains(uid)) item.Hide();
                             else if (single && uid.Contains("All")) item.Hide();
                             else (item as UIElement).Show();
@@ -3249,7 +3255,7 @@ namespace PixivWPF.Pages
             {
                 Commands.OpenCachedImage.Execute(string.IsNullOrEmpty(PreviewImagePath) ? Contents.Illust.GetPreviewUrl(large: setting.ShowLargePreview).GetImageCachePath() : PreviewImagePath);
             }
-            else if (sender == PreviewOpenDownloadedProperties || uid.Equals("OpenFileProperties", StringComparison.CurrentCultureIgnoreCase))
+            else if (sender == PreviewOpenDownloadedProperties || uid.Equals("ActionOpenDownloadedProperties", StringComparison.CurrentCultureIgnoreCase))
             {
                 if (Contents.Count <= 1 || SubIllusts.SelectedItems.Count == 0)
                     Commands.OpenFileProperties.Execute(Contents);
@@ -4163,68 +4169,6 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void ActionSaveIllust_Click(object sender, RoutedEventArgs e)
-        {
-            var uid = sender.GetUid();
-            var type = DownloadType.None;
-
-            if (Keyboard.Modifiers == ModifierKeys.Shift) type |= DownloadType.ConvertKeepName;
-            if (uid.Equals("ActionSaveIllustJpeg")) type |= DownloadType.AsJPEG;
-            else if (uid.Equals("ActionSaveIllustPreview")) type |= DownloadType.UseLargePreview;
-
-            if (SubIllusts.SelectedItems != null && SubIllusts.SelectedItems.Count > 0)
-            {
-                var items = new KeyValuePair<ImageListGrid, DownloadType>(SubIllusts, type);
-                if (uid.Equals("ActionConvertIllustJpeg"))
-                    Commands.ConvertToJpeg.Execute(items);
-                else if (uid.Equals("ActionReduceIllustJpeg"))
-                    Commands.ConvertToJpeg.Execute(items);
-                else
-                    Commands.SaveIllust.Execute(items);
-            }
-            else if (SubIllusts.SelectedItem.IsWork())
-            {
-                var item = new KeyValuePair<PixivItem, DownloadType>(SubIllusts.SelectedItem, type);
-                if (uid.Equals("ActionConvertIllustJpeg"))
-                    Commands.ConvertToJpeg.Execute(item);
-                else if (uid.Equals("ActionReduceIllustJpeg"))
-                    Commands.ConvertToJpeg.Execute(item);
-                else
-                    Commands.SaveIllust.Execute(item);
-            }
-            else if (Contents.IsWork())
-            {
-                var item = new KeyValuePair<PixivItem, DownloadType>(Contents, type);
-                if (uid.Equals("ActionConvertIllustJpeg"))
-                    Commands.ConvertToJpeg.Execute(item);
-                else if (uid.Equals("ActionReduceIllustJpeg"))
-                    Commands.ConvertToJpeg.Execute(item);
-                else
-                    Commands.SaveIllust.Execute(item);
-            }
-        }
-
-        private void ActionSaveAllIllust_Click(object sender, RoutedEventArgs e)
-        {
-            var uid = sender.GetUid();
-            var type = DownloadType.None;
-
-            if (Keyboard.Modifiers == ModifierKeys.Shift) type |= DownloadType.ConvertKeepName;
-            if (uid.Equals("ActionSaveIllustJpeg")) type |= DownloadType.AsJPEG;
-            else if (uid.Equals("ActionSaveIllustPreview")) type |= DownloadType.UseLargePreview;
-
-            if (Contents.IsWork() && Contents.Count > 0)
-            {
-                var item = new KeyValuePair<PixivItem, DownloadType>(Contents.Illust.WorkItem(), type);
-                if (uid.Equals("ActionConvertIllustJpegAll"))
-                    Commands.ConvertToJpeg.Execute(item);
-                else if (uid.Equals("ActionReduceIllustJpegAll"))
-                    Commands.ConvertToJpeg.Execute(item);
-                else
-                    Commands.SaveIllustAll.Execute(item);
-            }
-        }
-
         private void SubPageNav_Clicked(object sender, RoutedEventArgs e)
         {
             var count = SubIllusts.Items.Count;
@@ -4262,6 +4206,68 @@ namespace PixivWPF.Pages
                     }
                 }
                 if (SubIllusts.SelectedItem.IsPages()) SubIllusts.SelectedItem.Focus();
+            }
+        }
+
+        private void ActionSaveIllust_Click(object sender, RoutedEventArgs e)
+        {
+            var uid = sender.GetUid();
+            var type = DownloadType.None;
+
+            if (Keyboard.Modifiers == ModifierKeys.Shift) type |= DownloadType.ConvertKeepName;
+            if (uid.Equals("ActionSaveIllustJpeg")) type |= DownloadType.AsJPEG;
+            else if (uid.Equals("ActionSaveIllustPreview")) type |= DownloadType.UseLargePreview;
+
+            if (SubIllusts.SelectedItems != null && SubIllusts.SelectedItems.Count > 0)
+            {
+                var items = new KeyValuePair<ImageListGrid, DownloadType>(SubIllusts, type);
+                if (uid.Equals("ActionConvertIllustJpeg"))
+                    Commands.ConvertToJpeg.Execute(items);
+                else if (uid.Equals("ActionReduceIllustJpeg"))
+                    Commands.ReduceJpeg.Execute(items);
+                else
+                    Commands.SaveIllust.Execute(items);
+            }
+            else if (SubIllusts.SelectedItem.IsWork())
+            {
+                var item = new KeyValuePair<PixivItem, DownloadType>(SubIllusts.SelectedItem, type);
+                if (uid.Equals("ActionConvertIllustJpeg"))
+                    Commands.ConvertToJpeg.Execute(item);
+                else if (uid.Equals("ActionReduceIllustJpeg"))
+                    Commands.ReduceJpeg.Execute(item);
+                else
+                    Commands.SaveIllust.Execute(item);
+            }
+            else if (Contents.IsWork())
+            {
+                var item = new KeyValuePair<PixivItem, DownloadType>(Contents, type);
+                if (uid.Equals("ActionConvertIllustJpeg"))
+                    Commands.ConvertToJpeg.Execute(item);
+                else if (uid.Equals("ActionReduceIllustJpeg"))
+                    Commands.ReduceJpeg.Execute(item);
+                else
+                    Commands.SaveIllust.Execute(item);
+            }
+        }
+
+        private void ActionSaveAllIllust_Click(object sender, RoutedEventArgs e)
+        {
+            var uid = sender.GetUid();
+            var type = DownloadType.None;
+
+            if (Keyboard.Modifiers == ModifierKeys.Shift) type |= DownloadType.ConvertKeepName;
+            if (uid.Equals("ActionSaveIllustJpeg")) type |= DownloadType.AsJPEG;
+            else if (uid.Equals("ActionSaveIllustPreview")) type |= DownloadType.UseLargePreview;
+
+            if (Contents.IsWork() && Contents.Count > 0)
+            {
+                var item = new KeyValuePair<PixivItem, DownloadType>(Contents.Illust.WorkItem(), type);
+                if (uid.Equals("ActionConvertIllustJpegAll"))
+                    Commands.ConvertToJpeg.Execute(item);
+                else if (uid.Equals("ActionReduceIllustJpegAll"))
+                    Commands.ReduceJpeg.Execute(item);
+                else
+                    Commands.SaveIllustAll.Execute(item);
             }
         }
         #endregion
@@ -4949,7 +4955,8 @@ namespace PixivWPF.Pages
                     if (m.Uid.Equals("ActionSaveIllusts", StringComparison.CurrentCultureIgnoreCase) ||
                         m.Uid.Equals("ActionSaveIllustsJpeg", StringComparison.CurrentCultureIgnoreCase) ||
                         m.Uid.Equals("ActionSaveIllustsPreview", StringComparison.CurrentCultureIgnoreCase) ||
-                        m.Uid.Equals("ActionConvertIllustsJpeg", StringComparison.CurrentCultureIgnoreCase))
+                        m.Uid.Equals("ActionConvertIllustsJpeg", StringComparison.CurrentCultureIgnoreCase) ||
+                        m.Uid.Equals("ActionReduceIllustsJpeg", StringComparison.CurrentCultureIgnoreCase))
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
@@ -5005,7 +5012,8 @@ namespace PixivWPF.Pages
                     if (m.Uid.Equals("ActionSaveIllustsAll", StringComparison.CurrentCultureIgnoreCase) ||
                         m.Uid.Equals("ActionSaveIllustsJpegAll", StringComparison.CurrentCultureIgnoreCase) ||
                         m.Uid.Equals("ActionSaveIllustsPreviewAll", StringComparison.CurrentCultureIgnoreCase) ||
-                        m.Uid.Equals("ActionConvertIllustsJpegAll", StringComparison.CurrentCultureIgnoreCase))                    
+                        m.Uid.Equals("ActionConvertIllustsJpegAll", StringComparison.CurrentCultureIgnoreCase) ||
+                        m.Uid.Equals("ActionReduceIllustsJpegAll", StringComparison.CurrentCultureIgnoreCase))                    
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
@@ -5086,7 +5094,7 @@ namespace PixivWPF.Pages
                             Commands.OpenDownloaded.Execute(FavoriteItems);
                         }
                     }
-                    else if (m.Uid.Equals("ActionOpenFileProperties", StringComparison.CurrentCultureIgnoreCase))
+                    else if (m.Uid.Equals("ActionOpenDownloadedProperties", StringComparison.CurrentCultureIgnoreCase))
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {

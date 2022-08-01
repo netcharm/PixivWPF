@@ -1730,13 +1730,13 @@ namespace PixivWPF.Common
             contents.WARN(tag);
         }
 
-        public static void ERROR(this Exception ex, string tag = "")
+        public static void ERROR(this Exception ex, string tag = "", bool no_stack = false)
         {
             if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
             List<string> lines = new List<string>();
             lines.Add($"{ex.Message}");
-            lines.Add($"{ex.StackTrace}");
+            if (!no_stack) lines.Add($"{ex.StackTrace}");
             var contents = string.Join(Environment.NewLine, lines);
             contents.ERROR(tag);
         }

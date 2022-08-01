@@ -1198,7 +1198,7 @@ namespace PixivWPF.Common
         private int download_convert_jpeg_quality = 85;
         public int DownloadConvertJpegQuality
         {
-            get { return (Cache is Setting ? Cache.download_convert_jpeg_quality : download_convert_jpeg_quality); }
+            get { return (Math.Max(25, Math.Min(95, Cache is Setting ? Cache.download_convert_jpeg_quality : download_convert_jpeg_quality))); }
             set
             {
                 download_convert_jpeg_quality = value;
@@ -1209,7 +1209,7 @@ namespace PixivWPF.Common
         private int download_reduce_jpeg_quality = 75;
         public int DownloadRecudeJpegQuality
         {
-            get { return (Cache is Setting ? Cache.download_reduce_jpeg_quality : download_reduce_jpeg_quality); }
+            get { return (Math.Max(25, Math.Min(95, Cache is Setting ? Cache.download_reduce_jpeg_quality : download_reduce_jpeg_quality))); }
             set
             {
                 download_reduce_jpeg_quality = value;
