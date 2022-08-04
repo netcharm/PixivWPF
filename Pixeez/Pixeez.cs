@@ -170,7 +170,8 @@ namespace Pixeez
             HttpClientHandler handler = new HttpClientHandler()
             {
                 AllowAutoRedirect = true,
-                MaxAutomaticRedirections = 15,                
+                MaxAutomaticRedirections = 15,
+                AutomaticDecompression = DecompressionMethods.None | DecompressionMethods.Deflate | DecompressionMethods.GZip,
                 //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
                 Proxy = string.IsNullOrEmpty(proxy) ? null : new WebProxy(proxy, true, proxybypass),
                 UseProxy = string.IsNullOrEmpty(proxy) || !UsingProxy ? false : true
@@ -180,8 +181,17 @@ namespace Pixeez
             httpClient.DefaultRequestHeaders.Add("App-OS-Version", "14.6");
             //httpClient.DefaultRequestHeaders.Add("App-Version", "7.6.2");
             httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/7.13.3 (iOS 14.6; iPhone13,2)");
+
             httpClient.DefaultRequestHeaders.Add("X-Client-Time", time);
             httpClient.DefaultRequestHeaders.Add("X-Client-Hash", $"{time}{HashSecret}".MD5Hash());
+
+            httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("gzip");
+            httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("deflate");
+            httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("br");
+
+            httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("zh_CN");
+            httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("ja_JP");
+            httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("en");
 
             //httpClient.DefaultRequestHeaders.Add("Connection", "close");
             //httpClient.DefaultRequestHeaders.Add("Connection", "keep-alive");
@@ -453,7 +463,8 @@ namespace Pixeez
             AsyncResponse result = null;
             using (var httpClient = PIXIV.Client(Auth.Proxy, Auth.ProxyBypass, Auth.UsingProxy, Auth.TimeOut))
             {
-                httpClient.DefaultRequestHeaders.Add("Referer", "https://spapi.pixiv.net/");
+                //httpClient.DefaultRequestHeaders.Add("Referer", "https://spapi.pixiv.net/");
+                httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
                 httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + this.AccessToken);
                 result = await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient);
             }
@@ -494,9 +505,6 @@ namespace Pixeez
             AsyncResponse result = null;
             using (var httpClient = PIXIV.Client(Auth.Proxy, Auth.ProxyBypass, Auth.UsingProxy, Auth.TimeOut))
             {
-                httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("gzip");
-                httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("zh_CN");
-                httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("ja_JP");
                 if (needauth) httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + this.AccessToken);
                 result = await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient);
             }

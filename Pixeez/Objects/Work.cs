@@ -128,7 +128,7 @@ namespace Pixeez.Objects
         public UgoiraInfo Meta { get; set; }
     }
 
-    public class NormalWork:Work
+    public class NormalWork : Work
     {
         [JsonProperty("tags")]
         public override IList<string> Tags { get; set; }
@@ -165,7 +165,8 @@ namespace Pixeez.Objects
             FavoriteId = value ? -1 : 0;
         }
     }
-    public abstract class Work:IWorkExtended
+
+    public abstract class Work : IWorkExtended
     {
 
         [JsonProperty("id")]
