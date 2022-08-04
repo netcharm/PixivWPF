@@ -120,7 +120,7 @@ namespace PixivWPF.Common
                 if (field != null)
                 {
                     object axIWebBrowser2 = field.GetValue(this);
-                    if(axIWebBrowser2 != null) axIWebBrowser2.GetType().InvokeMember("Silent", BindingFlags.SetProperty, null, axIWebBrowser2, new object[] { true });
+                    if (axIWebBrowser2 != null) axIWebBrowser2.GetType().InvokeMember("Silent", BindingFlags.SetProperty, null, axIWebBrowser2, new object[] { true });
                 }
             }
             catch (Exception ex) { ex.ERROR(); }
@@ -358,6 +358,8 @@ namespace PixivWPF.Common
 
         public int? Rating { get; set; } = null;
         public int? Ranking { get; set; } = null;
+
+        public string Software { get; set; } = null;
 
         public Dictionary<string, string> Attributes { get; set; } = null;
         //public Dictionary<string, IImageProfile> Profiles { get; set; } = null;
@@ -2554,19 +2556,36 @@ namespace PixivWPF.Common
             elapsed = trimzero && msec ? $"{elapsed}{ms_str}".TrimEnd('0').TrimEnd('.') : $"{elapsed}{ms_str}";
             return ((unit ? $"{elapsed} s" : elapsed).PadLeft(padleft));
         }
-        
+
         public static void DragOut(this DependencyObject sender, PixivItem item, bool original = false)
         {
             try
             {
                 if (item.IsWork())
                 {
+                    var downloaded = new List<string>();
+                    string fp = string.Empty;
+                    if (item.HasPages())
+                    {
+                        for (var i = 0; i < item.Count; i++)
+                        {
+                            if (item.Illust.IsDownloaded(out fp, i, is_meta_single_page: false)) downloaded.Add(fp);
+                        }
+                    }
+                    else if (item.Illust.IsDownloaded(out fp, is_meta_single_page: true)) downloaded.Add(fp);
+
                     var file = original ? item.Illust.GetOriginalUrl(item.Index).GetImageCacheFile() : item.Illust.GetPreviewUrl(item.Index).GetImageCacheFile();
                     if (File.Exists(file))
                     {
                         var dp = new DataObject();
                         dp.SetFileDropList(new StringCollection() { file });
                         dp.SetData("Text", file);
+                        if (downloaded.Count > 0)
+                        {
+                            var dc = new StringCollection();
+                            dc.AddRange(downloaded.ToArray());
+                            dp.SetData("Downloaded", dc);
+                        }
                         DragDrop.DoDragDrop(sender, dp, DragDropEffects.Copy);
                     }
                 }
@@ -2588,12 +2607,22 @@ namespace PixivWPF.Common
             try
             {
                 var files = new List<string>();
+                var downloaded = new List<string>();
                 foreach (var item in items)
                 {
                     if (item.IsWork())
                     {
                         var file = original ? item.Illust.GetOriginalUrl(item.Index).GetImageCacheFile() : item.Illust.GetPreviewUrl(item.Index).GetImageCacheFile();
                         if (!string.IsNullOrEmpty(file) && File.Exists(file)) files.Add(file);
+                        string fp = string.Empty;
+                        if (item.HasPages())
+                        {
+                            for (var i = 0; i < item.Count; i++)
+                            {
+                                if (item.Illust.IsDownloaded(out fp, i, is_meta_single_page: false)) downloaded.Add(fp);
+                            }
+                        }
+                        else if (item.Illust.IsDownloaded(out fp, is_meta_single_page: true)) downloaded.Add(fp);
                     }
                 }
                 if (files.Count > 0)
@@ -2603,6 +2632,12 @@ namespace PixivWPF.Common
                     sc.AddRange(files.ToArray());
                     dp.SetFileDropList(sc);
                     dp.SetData("Text", string.Join(Environment.NewLine, files));
+                    if (downloaded.Count > 0)
+                    {
+                        var dc = new StringCollection();
+                        dc.AddRange(downloaded.ToArray());
+                        dp.SetData("Downloaded", dc);
+                    }
                     DragDrop.DoDragDrop(sender, dp, DragDropEffects.Copy);
                 }
             }
@@ -2861,6 +2896,7 @@ namespace PixivWPF.Common
         {
             return (_Touching_ is ConcurrentDictionary<string, long> && _Touching_.ContainsKey(fileinfo.FullName));
         }
+        #endregion
 
         #region XMP XML Formating Helper
         private static List<string> xmp_ns = new List<string> { "rdf", "xmp", "dc", "exif", "tiff", "iptc", "MicrosoftPhoto" };
@@ -3538,12 +3574,22 @@ namespace PixivWPF.Common
         #endregion
 
         #region PngCs Routines for Update PNG Image Metadata
-        private static string DecompressGzipBytesToText(byte[] bytes, Encoding encoding = default(Encoding), int skip = 2)
+        //private static int GZIP_MAGIC = 35615;
+        private static byte[] GZIP_MAGIC_HEADER = new byte[] { 0x1F, 0x8B, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+        private static string GzipBytesToText(byte[] bytes, Encoding encoding = default(Encoding), int skip = 2)
         {
             var result = string.Empty;
             try
             {
                 if (encoding == default(Encoding)) encoding = Encoding.UTF8;
+#if DEBUG
+                ///
+                /// below line is need in VS2015 (C# 6.0) must add a gzip header struct & skip two bytes of zlib header, 
+                /// VX2017 (c# 7.0+) work fina willout this line
+                ///
+                if (bytes[0] != GZIP_MAGIC_HEADER[0] && bytes[1] != GZIP_MAGIC_HEADER[1]) bytes = GZIP_MAGIC_HEADER.Concat(bytes.Skip(2)).ToArray();
+#endif
                 using (var msi = new MemoryStream(bytes))
                 {
                     using (var mso = new MemoryStream())
@@ -3564,11 +3610,11 @@ namespace PixivWPF.Common
                             }
                             result = encoding.GetString(buff.Skip(skip).ToArray());
                         }
-                        catch (Exception ex) { ex.ERROR("DecompressGzipBytesToText"); };
+                        catch (Exception ex) { ex.ERROR("GzipBytesToText_GetString"); };
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR("DecompressGzipBytesToText"); }
+            catch (Exception ex) { ex.ERROR("GzipBytesToText"); }
             return (result);
         }
 
@@ -3619,7 +3665,7 @@ namespace PixivWPF.Common
                                 var value = string.Empty;
                                 if (chunk.Id.Equals("zTXt"))
                                 {
-                                    value = DecompressGzipBytesToText(raw.Data.Skip(key.Length + 2).ToArray());
+                                    value = GzipBytesToText(raw.Data.Skip(key.Length + 2).ToArray());
                                     if ((raw.Data.Length > key.Length + 2) && string.IsNullOrEmpty(value)) value = "(Decodeing Error)";
                                 }
                                 else if (chunk.Id.Equals("iTXt"))
@@ -3632,14 +3678,14 @@ namespace PixivWPF.Common
                                     var text = string.Empty;
 
                                     if (vs[2] == 0 && vs[3] == 0)
-                                        text = compress_flag == 1 ? DecompressGzipBytesToText(vs.Skip(4).ToArray()) : encoding.GetString(vs.Skip(4).ToArray());
+                                        text = compress_flag == 1 ? GzipBytesToText(vs.Skip(4).ToArray()) : encoding.GetString(vs.Skip(4).ToArray());
                                     else if (vs[2] == 0 && vs[3] != 0)
                                     {
                                         var trans = vs.Skip(3).TakeWhile(c => c != 0);
                                         translate_tag = encoding.GetString(trans.ToArray());
 
                                         var txt = vs.Skip(3).Skip(trans.Count()).SkipWhile(c => c==0);
-                                        text = compress_flag == 1 ? DecompressGzipBytesToText(txt.ToArray()) : encoding.GetString(txt.ToArray());
+                                        text = compress_flag == 1 ? GzipBytesToText(txt.ToArray()) : encoding.GetString(txt.ToArray());
                                     }
 
                                     value = full_field ? $"{(int)compress_flag}, {(int)compress_method}, {language_tag}, {translate_tag}, {text.Trim().Trim('\0')}" : text.Trim().Trim('\0');
@@ -3762,6 +3808,14 @@ namespace PixivWPF.Common
                                 chunk_ct.Priority = true;
                                 meta.QueueChunk(chunk_ct);
                             }
+                            else if (kv.Key.Equals(Hjg.Pngcs.Chunks.PngChunkTextVar.KEY_Software))
+                            {
+                                if (!string.IsNullOrEmpty(kv.Value))
+                                {
+                                    var chunk = meta.SetText(kv.Key, kv.Value);
+                                    chunk.Priority = true;
+                                }
+                            }
                             else
                             {
                                 var chunk = meta.SetText(kv.Key, kv.Value);
@@ -3800,6 +3854,8 @@ namespace PixivWPF.Common
                     metainfo[Hjg.Pngcs.Chunks.PngChunkTextVar.KEY_Description] = string.IsNullOrEmpty(meta.Comment) ? "" : meta.Comment;
                     metainfo[Hjg.Pngcs.Chunks.PngChunkTextVar.KEY_Author] = string.IsNullOrEmpty(meta.Authors) ? "" : meta.Authors;
                     metainfo[Hjg.Pngcs.Chunks.PngChunkTextVar.KEY_Copyright] = string.IsNullOrEmpty(meta.Authors) ? "" : meta.Authors;
+                    metainfo[Hjg.Pngcs.Chunks.PngChunkTextVar.KEY_Software] = string.IsNullOrEmpty(meta.Software) ? "" : meta.Software;
+
                     //Hjg.Pngcs.Chunks.PngChunkTextVar.KEY_Software
                     //Hjg.Pngcs.Chunks.PngChunkTextVar.KEY_Disclaimer
                     //Hjg.Pngcs.Chunks.PngChunkTextVar.KEY_Warning
@@ -3833,6 +3889,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
+        #region Attach Metadata Helper
         public static MetaInfo MakeMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "")
         {
             MetaInfo meta = null;
@@ -4107,7 +4164,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch(Exception ex) { ex.ERROR("UpdateExifFromPngMetadata"); }
+            catch (Exception ex) { ex.ERROR("UpdateExifFromPngMetadata"); }
             return (result);
         }
 
@@ -4164,6 +4221,11 @@ namespace PixivWPF.Common
                             var value = meta["XML:com.adobe.xmp"].Split(new char[]{ '\0' }).Last();
                             result.SetTagRawData(ExifTag.XmpMetadata, ExifTagType.Byte, Encoding.UTF8.GetByteCount(value), Encoding.UTF8.GetBytes(value));
                         }
+                        else if (!result.TagExists(ExifTag.XmpMetadata) && meta.ContainsKey("Raw profile type xmp"))
+                        {
+                            var value = string.Join("", meta["Raw profile type xmp"].Split(new char[]{ '\0' }).Last().ToArray().SkipWhile(c => c != '<'));
+                            result.SetTagRawData(ExifTag.XmpMetadata, ExifTagType.Byte, Encoding.UTF8.GetByteCount(value), Encoding.UTF8.GetBytes(value));
+                        }
                     }
                 }
             }
@@ -4181,8 +4243,6 @@ namespace PixivWPF.Common
                     exif.SetDateTaken(meta.DateTaken ?? dt);
                     exif.SetDateDigitized(meta.DateAcquired ?? dt);
                     exif.SetDateChanged(meta.DateModified ?? dt);
-                    //exif.SetTagValue(ExifTag.SubsecTimeOriginal, meta.DateTaken ?? dt, ExifDateFormat.DateAndTime);
-                    //exif.SetTagValue(ExifTag.SubsecTimeDigitized, meta.DateAcquired ?? dt, ExifDateFormat.DateAndTime);
 
                     if (string.IsNullOrEmpty(meta.Title))
                     {
@@ -4244,6 +4304,11 @@ namespace PixivWPF.Common
                         exif.SetTagValue(ExifTag.UserComment, meta.Comment, StrCoding.IdCode_Utf16);
                     }
 
+                    if (!string.IsNullOrEmpty(meta.Software))
+                    {
+                        exif.SetTagValue(ExifTag.Software, meta.Software, StrCoding.Utf8);
+                    }
+
                     exif.SetTagValue(ExifTag.Rating, meta.Ranking ?? 0, TagType: ExifTagType.UShort);
                     exif.SetTagValue(ExifTag.RatingPercent, meta.Rating ?? 0, TagType: ExifTagType.UShort);
 
@@ -4259,9 +4324,10 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool AttachMetaInfoInternal(this Stream src, Stream dst, FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", bool force = false)
+        public static bool AttachMetaInfoInternal(this Stream src, Stream dst, FileInfo fileinfo, out bool is_jpg, DateTime dt = default(DateTime), string id = "", bool force = false)
         {
             var result = false;
+            is_jpg = false;
             if (src is Stream && src.CanRead && dst is Stream && dst.CanWrite)
             {
                 var setting = Application.Current.LoadSetting();
@@ -4270,6 +4336,7 @@ namespace PixivWPF.Common
                 var exif = new ExifData(src);
                 if (exif is ExifData)
                 {
+                    is_jpg = exif.ImageType == ImageType.Jpeg;
                     var meta = MakeMetaInfo(fileinfo, dt, id);
                     if (meta is MetaInfo)
                     {
@@ -4280,7 +4347,13 @@ namespace PixivWPF.Common
                                 if (UpdatePngMetaInfo(src, msp, dt, meta))
                                 {
                                     msp.Seek(0, SeekOrigin.Begin);
+                                    var png_meta = GetPngMetaInfo(src);
+                                    msp.Seek(0, SeekOrigin.Begin);
                                     exif = new ExifData(msp);
+                                    var soft = string.Empty;
+                                    if (exif.TagExists(ExifTag.Software)) exif.GetTagValue(ExifTag.Software, out soft, StrCoding.Utf8);
+                                    if (png_meta.ContainsKey("Software") && !string.IsNullOrEmpty(png_meta["Software"]) && string.IsNullOrEmpty(soft))
+                                        exif.SetTagValue(ExifTag.Software, png_meta["Software"], StrCoding.Utf8);
                                 }
                             }
                         }
@@ -4298,9 +4371,10 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool AttachMetaInfoInternal(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", bool force = false)
+        public static bool AttachMetaInfoInternal(this FileInfo fileinfo, out bool is_jpg, DateTime dt = default(DateTime), string id = "", bool force = false)
         {
             var result = false;
+            is_jpg = false;
             try
             {
                 if (fileinfo.Exists && fileinfo.Length > 0)
@@ -4315,7 +4389,7 @@ namespace PixivWPF.Common
                             using (var msi = new MemoryStream(File.ReadAllBytes(fileinfo.FullName)))
                             {
                                 var meta = MakeMetaInfo(fileinfo, dt, id);
-                                if (AttachMetaInfoInternal(msi, mso, fileinfo, dt, id, force))
+                                if (AttachMetaInfoInternal(msi, mso, fileinfo, out is_jpg, dt, id, force))
                                 {
                                     File.WriteAllBytes(fileinfo.FullName, mso.ToArray());
                                     result = true;
@@ -4330,6 +4404,7 @@ namespace PixivWPF.Common
                         var exif = new ExifData(fileinfo.FullName);
                         if (exif is ExifData)
                         {
+                            is_jpg = exif.ImageType == ImageType.Jpeg;
                             var meta = MakeMetaInfo(fileinfo, dt, id);
                             if (meta is MetaInfo)
                             {
@@ -4357,7 +4432,8 @@ namespace PixivWPF.Common
 
         public static async Task<bool> AttachMetaInfoInternalAsync(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", bool force = false)
         {
-            return (await Task.Run<bool>(() => { return (AttachMetaInfoInternal(fileinfo, dt, id)); }));
+            var is_jpg = false;
+            return (await Task.Run<bool>(() => { return (AttachMetaInfoInternal(fileinfo, out is_jpg, dt, id)); }));
         }
 
         private static ConcurrentDictionary<string, long> LastAttachMetaInfo = new ConcurrentDictionary<string, long>();
@@ -4391,6 +4467,10 @@ namespace PixivWPF.Common
                         var illust = id.FindIllust();
                         if (illust is Pixeez.Objects.Work && (dt != null || dt.Ticks > 0) && fileinfo.Length > 0)
                         {
+                            if (!illust.HasUser())
+                            {
+                                throw new Exception("Illust No User Info");
+                            }
                             var uid = $"{illust.User.Id}";
 
                             bool is_png = fileinfo.IsPng();
@@ -4406,8 +4486,8 @@ namespace PixivWPF.Common
                             {
                                 if (is_img)
                                 {
-                                    if (sh.Properties.System.Photo.DateTaken.Value == null || sh.Properties.System.Photo.DateTaken.Value.Value.Ticks != dt.Ticks)
-                                        sh.Properties.System.Photo.DateTaken.Value = dt;
+                                    //if (sh.Properties.System.Photo.DateTaken.Value == null || sh.Properties.System.Photo.DateTaken.Value.Value.Ticks != dt.Ticks)
+                                    sh.Properties.System.Photo.DateTaken.Value = dt;
 
                                     if (using_shell && !is_png)
                                     {
@@ -4465,7 +4545,13 @@ namespace PixivWPF.Common
                                     }
                                     else if (!using_shell || is_png)
                                     {
-                                        result = AttachMetaInfoInternal(fileinfo, dt, id);
+                                        bool is_jpg = false;
+                                        result = AttachMetaInfoInternal(fileinfo, out is_jpg, dt, id);
+                                        if (is_jpg)
+                                        {
+                                            sh.Properties.System.Photo.DateTaken.Value = dt;
+                                            sh.Properties.System.DateAcquired.Value = dt;
+                                        }
                                     }
                                 }
                                 else if (is_mov && !is_zip)
@@ -4721,7 +4807,9 @@ namespace PixivWPF.Common
                 }
             }
         }
+        #endregion
 
+        #region Touch Helper
         public static void Touch(this DirectoryInfo folderinfo, bool recursion = false, CancellationTokenSource cancelSource = null, Action<BatchProgressInfo> reportAction = null, bool test = false, bool force = false)
         {
             if (Directory.Exists(folderinfo.FullName))
@@ -5314,29 +5402,10 @@ namespace PixivWPF.Common
                 return (false);
         }
 
-        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, bool is_meta_single_page = false, int index = -1, bool touch = false)
-        {
-            if (illust is Pixeez.Objects.Work)
-                return (illust.GetOriginalUrl(index).IsDownloaded(is_meta_single_page, touch));
-            else
-                return (false);
-        }
-
         internal static bool IsDownloadedAsync(this Pixeez.Objects.Work illust, out string filepath, bool is_meta_single_page = false, int index = -1, bool touch = false)
         {
             if (illust is Pixeez.Objects.Work)
                 return (illust.GetOriginalUrl(index).IsDownloadedAsync(out filepath, is_meta_single_page, touch));
-            else
-            {
-                filepath = string.Empty;
-                return (false);
-            }
-        }
-
-        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, out string filepath, bool is_meta_single_page = false, int index = -1, bool touch = false)
-        {
-            if (illust is Pixeez.Objects.Work)
-                return (illust.GetOriginalUrl(index).IsDownloaded(out filepath, is_meta_single_page, touch));
             else
             {
                 filepath = string.Empty;
@@ -5352,29 +5421,10 @@ namespace PixivWPF.Common
                 return (false);
         }
 
-        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, int index = -1, bool touch = false)
-        {
-            if (illust is Pixeez.Objects.Work)
-                return (illust.GetOriginalUrl(index).IsDownloaded(is_meta_single_page: index == -1 || illust.PageCount <= 1, touch: touch));
-            else
-                return (false);
-        }
-
         internal static bool IsDownloadedAsync(this Pixeez.Objects.Work illust, out string filepath, int index = -1, bool is_meta_single_page = false, bool touch = false)
         {
             if (illust is Pixeez.Objects.Work)
                 return (illust.GetOriginalUrl(index).IsDownloadedAsync(out filepath, is_meta_single_page, touch));
-            else
-            {
-                filepath = string.Empty;
-                return (false);
-            }
-        }
-
-        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, out string filepath, int index = -1, bool is_meta_single_page = false, bool touch = false)
-        {
-            if (illust is Pixeez.Objects.Work)
-                return (illust.GetOriginalUrl(index).IsDownloaded(out filepath, is_meta_single_page, touch));
             else
             {
                 filepath = string.Empty;
@@ -5403,6 +5453,33 @@ namespace PixivWPF.Common
             var result = IsDownloadedFileFunc(url, filepath, is_meta_single_page, touch);
             filepath = result.Path;
             return (result.Exists); ;
+        }
+
+        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, bool is_meta_single_page = false, int index = -1, bool touch = false)
+        {
+            if (illust is Pixeez.Objects.Work)
+                return (illust.GetOriginalUrl(index).IsDownloaded(is_meta_single_page, touch));
+            else
+                return (false);
+        }
+
+        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, int index = -1, bool touch = false)
+        {
+            if (illust is Pixeez.Objects.Work)
+                return (illust.GetOriginalUrl(index).IsDownloaded(is_meta_single_page: index == -1 || illust.PageCount <= 1, touch: touch));
+            else
+                return (false);
+        }
+
+        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, out string filepath, int index = -1, bool is_meta_single_page = false, bool touch = false)
+        {
+            if (illust is Pixeez.Objects.Work)
+                return (illust.GetOriginalUrl(index).IsDownloaded(out filepath, is_meta_single_page, touch));
+            else
+            {
+                filepath = string.Empty;
+                return (false);
+            }
         }
 
         internal static bool IsDownloaded(this string url, bool is_meta_single_page = false, bool touch = false)
@@ -6383,7 +6460,7 @@ namespace PixivWPF.Common
                                     if (exif_out.ImageType == exif_in.ImageType && mso.Length >= fi.Length)
                                     {
                                         $"{feature} {file} To {fmt.ToUpper()} Failed!".INFO(InfoTitle);
-                                        throw new Exception($"{feature}ed File Size : {mso.Length} >= Original File Size : {fi.Length}!", new WarningException());
+                                        throw new WarningException($"{feature}ed File Size : {mso.Length} >= Original File Size : {fi.Length}!");
                                     }
                                 }
                             }
@@ -6401,7 +6478,7 @@ namespace PixivWPF.Common
                             bytes.Length >= fi.Length)
                         {
                             $"{feature} {file} To {fmt.ToUpper()} Failed!".INFO(InfoTitle);
-                            throw new Exception($"{feature}ed File Size : {bytes.Length} >= Original File Size : {fi.Length}!", new WarningException());
+                            throw new WarningException($"{feature}ed File Size : {bytes.Length} >= Original File Size : {fi.Length}!");
                         }
                         File.WriteAllBytes(fout, bytes);
 
@@ -6995,7 +7072,7 @@ namespace PixivWPF.Common
                             request.Dispose();
                         }
                     }
-                    catch (Exception ex) { ex.ERROR($"DownloadImage_{Path.GetFileName(file)}"); }
+                    catch (Exception ex) { ex.ERROR($"DownloadImage_{Path.GetFileName(file)}", no_stack: ex is TaskCanceledException || ex is HttpRequestException); }
                     finally
                     {
                         bool f = false;

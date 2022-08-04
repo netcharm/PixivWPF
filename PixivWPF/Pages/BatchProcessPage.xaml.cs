@@ -105,7 +105,7 @@ namespace PixivWPF.Pages
                                     {
                                         if (!test)
                                         {
-                                            if (Mode.Equals("touch", StringComparison.CurrentCultureIgnoreCase)) f.Touch(url);
+                                            if (Mode.Equals("touch", StringComparison.CurrentCultureIgnoreCase)) f.Touch(url, meta: true);
                                             else if (Mode.Equals("attach", StringComparison.CurrentCultureIgnoreCase))
                                             {
                                                 var meta = await f.AttachMetaInfo();

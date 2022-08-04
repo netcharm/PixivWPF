@@ -340,6 +340,22 @@ namespace PixivWPF.Common
             }
             catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_ScrollIntoView"); }
         }
+
+        private void UpdateGalleryTooltip()
+        {
+            var CR = Environment.NewLine;
+            var count_displayed = $"{this.ItemsCount}".PadLeft(5);
+            var count_selected = $"{this.SelectedItems.Count}".PadLeft(5);
+            var count_total = $"{this.Items.Count}".PadLeft(5);
+            var text = $"{"Displayed".PadRight(10)} : {count_displayed}{CR}{"Selected".PadRight(10)} : {count_selected}{CR}{"Total".PadRight(10)} : {count_total}";
+            var expander = this.TryFindParent<Expander>();
+            if (expander is Expander) expander.ToolTip = string.IsNullOrEmpty(text) ? null : text;
+        }
+
+        private void PART_ToolTipOpening(object sender, ToolTipEventArgs e)
+        {
+            UpdateGalleryTooltip();
+        }
         #endregion
 
         #region Events Handler
@@ -1180,35 +1196,11 @@ namespace PixivWPF.Common
                 UpdateTileTask.DoWork += UpdateTileTask_DoWork;
             }
 
-            PreviewMouseMove += ImageListGrid_MouseMove;
-            PreviewMouseDown += ImageListGrid_MouseDown;
+            PreviewMouseMove += PART_ImageListGrid_MouseMove;
+            PreviewMouseDown += PART_ImageListGrid_MouseDown;
 
             ItemList.Clear();
             PART_ImageTiles.ItemsSource = ItemList;
-        }
-
-        private Point last_mouse_pos;
-        private void ImageListGrid_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if (Keyboard.Modifiers == ModifierKeys.Shift && e.ChangedButton == MouseButton.Left && e.LeftButton == MouseButtonState.Pressed)
-            {
-                last_mouse_pos = e.GetPosition(this);
-                //e.Handled = true;
-            }
-        }
-
-        private void ImageListGrid_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (Keyboard.Modifiers == ModifierKeys.Shift && e.LeftButton == MouseButtonState.Pressed)
-            {
-                var pos = e.GetPosition(this);
-                if (last_mouse_pos.X == 0 && last_mouse_pos.Y == 0) last_mouse_pos = pos;
-                if (Point.Subtract(pos, last_mouse_pos).LengthSquared >= 100 || pos.Distance(last_mouse_pos) >= 10)
-                {
-                    this.DragOut(this);
-                    e.Handled = true;
-                }
-            }
         }
 
         ~ImageListGrid()
@@ -1238,7 +1230,7 @@ namespace PixivWPF.Common
             disposed = true;
         }
 
-        private void TileBadge_TargetUpdated(object sender, DataTransferEventArgs e)
+        private void PART_TileBadge_TargetUpdated(object sender, DataTransferEventArgs e)
         {
             if (sender is Badged && e.Property != null)
             {
@@ -1253,7 +1245,7 @@ namespace PixivWPF.Common
             }
         }
 
-        private void TileImage_TargetUpdated(object sender, DataTransferEventArgs e)
+        private void PART_TileImage_TargetUpdated(object sender, DataTransferEventArgs e)
         {
             if (e.Property == null) return;
             if (sender is ProgressRingCloud && e.Property.Name.Equals("State", StringComparison.CurrentCultureIgnoreCase))
@@ -1329,6 +1321,86 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR("THUMBUNLOAD"); }
+        }
+
+        private Point last_mouse_pos;
+        private void PART_ImageListGrid_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Shift && e.ChangedButton == MouseButton.Left && e.LeftButton == MouseButtonState.Pressed)
+            {
+                last_mouse_pos = e.GetPosition(this);
+                //e.Handled = true;
+            }
+        }
+
+        private void PART_ImageListGrid_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Shift && e.LeftButton == MouseButtonState.Pressed)
+            {
+                var pos = e.GetPosition(this);
+                if (last_mouse_pos.X == 0 && last_mouse_pos.Y == 0) last_mouse_pos = pos;
+                if (Point.Subtract(pos, last_mouse_pos).LengthSquared >= 100 || pos.Distance(last_mouse_pos) >= 10)
+                {
+                    this.DragOut(this);
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private void PART_GallaryActionMenu_Opened(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void PART_GalleryAction_Click(object sender, RoutedEventArgs e)
+        {
+            var uid = sender.GetUid();
+            if (!string.IsNullOrEmpty(uid) && sender is MenuItem)
+            {
+                if      (uid.Equals("", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionCopyIllustID", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionIllustWebLink", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionAuthorWebLink", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionCopyIllustJson", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionOpenIllust", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionReadIllustTitle", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionSendSeparator", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionSendIllustToInstance", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionSendAuthorToInstance", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionCompare", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionRefreshSeparator", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionRefresh", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionRefreshThumb", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionNavPageSeparator", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionPrevPage", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionNextPage", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionNextAppend", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionLikeIllustSeparator", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionLikeUserSeparator", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionSaveSeparator", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionSaveIllusts", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionSaveIllustsAll", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionSaveIllustsJpeg", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionSaveIllustsJpegAll", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionSaveIllustsPreview", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionSaveIllustsPreviewAll", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionConvertSeparator", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionConvertIllustsJpeg", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionConvertIllustsJpegAll", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionReduceIllustsJpeg", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionReduceIllustsJpegAll", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionDownloadedSepraor", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionShowDownloadedMeta", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionTouchDownloadedMeta", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionOpenDownloaded", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionOpenDownloadedProperties", StringComparison.CurrentCultureIgnoreCase)) { }
+            }
         }
     }
 }

@@ -3087,8 +3087,13 @@ namespace PixivWPF.Common
                 HttpClientHandler handler = new HttpClientHandler()
                 {
                     AllowAutoRedirect = true,
-                    AutomaticDecompression = DecompressionMethods.Deflate,
+                    ///
+                    /// if added DecompressionMethods.GZip, the response contents will null
+                    ///
+                    //AutomaticDecompression = DecompressionMethods.None | DecompressionMethods.Deflate | DecompressionMethods.GZip,
+                    AutomaticDecompression = DecompressionMethods.None | DecompressionMethods.Deflate,
                     UseCookies = true,
+                    CookieContainer = new CookieContainer(),
                     MaxAutomaticRedirections = 15,
                     //MaxConnectionsPerServer = 30,
                     MaxRequestContentBufferSize = buffersize,
@@ -3116,8 +3121,12 @@ namespace PixivWPF.Common
                 //httpClient.DefaultRequestHeaders.ConnectionClose = true;
 
                 httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("gzip");
+                httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("deflate");
+                httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("br");
+
                 httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("zh_CN");
                 httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("ja_JP");
+                httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("en");
 
                 if (continuation && range_start >= 0 && range_count > 0)
                 {
@@ -3284,7 +3293,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR("GetRemoteJson"); }
+            catch (Exception ex) { ex.ERROR($"GetRemoteJson_{url}"); }
             return (result);
         }
         #endregion

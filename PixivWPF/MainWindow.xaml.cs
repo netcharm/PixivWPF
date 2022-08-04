@@ -612,7 +612,10 @@ namespace PixivWPF
 
         private void CommandTouch_Click(object sender, RoutedEventArgs e)
         {
-            Commands.OpenTouchFolder.Execute(null);
+            if (Keyboard.Modifiers == ModifierKeys.Shift)
+                Commands.OpenAttachMetaInfo.Execute(null);
+            else
+                Commands.OpenTouchFolder.Execute(null);
         }
 
         private void CommandAttachMeta_Click(object sender, RoutedEventArgs e)

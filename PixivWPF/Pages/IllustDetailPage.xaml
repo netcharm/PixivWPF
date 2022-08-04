@@ -1263,7 +1263,6 @@
                           Visibility="Collapsed" Header="Illust Sets Gallery"
                           ContextMenu="{StaticResource MenuGallaryAction}"
                           ContextMenuOpening="IllustActions_ContextMenuOpening"
-                          ToolTipOpening="GalleryPanel_ToolTipOpening"
                           Expanded="SubIllustsExpander_Expanded" Collapsed="SubIllustsExpander_Collapsed">
                     <Common:ImageListGrid x:Name="SubIllusts" x:Uid="SubIllusts" 
                                           Columns="5" TileWidth="128" TileHeight="128" Visibility="Visible"
@@ -1342,7 +1341,6 @@
                           ContextMenu="{StaticResource MenuGallaryAction}"
                           ContextMenuOpening="IllustActions_ContextMenuOpening"
                           MouseDown="RelatedItemsExpander_MouseDown"
-                          ToolTipOpening="GalleryPanel_ToolTipOpening"
                           Expanded="RelatedItemsExpander_Expanded" Collapsed="RelatedItemsExpander_Collapsed">
                     <Common:ImageListGrid x:Name="RelatedItems" x:Uid="RalatedItems"
                                           Columns="5" TileWidth="128" TileHeight="128"
@@ -1430,7 +1428,6 @@
                           ContextMenu="{StaticResource MenuGallaryAction}"
                           ContextMenuOpening="IllustActions_ContextMenuOpening"
                           MouseDown="FavoriteItemsExpander_MouseDown"
-                          ToolTipOpening="GalleryPanel_ToolTipOpening"
                           Collapsed="FavoriteItemsExpander_Collapsed" Expanded="FavoriteItemsExpander_Expanded">
                     <Common:ImageListGrid x:Name="FavoriteItems" x:Uid="FavoriteItems"
                                           Columns="5" TileWidth="128" TileHeight="128"

@@ -688,6 +688,7 @@ namespace PixivWPF.Common
                     if (!work.Error)
                     {
                         var illust = work.Illust;
+                        var user_orig = new Pixeez.Objects.NewUser() { Account = illust.UserAccount, Id = long.Parse(illust.UserId), Name = illust.UserName };
 
                         #region Get/Set user
                         var userbase = await illust.UserId.GetUser();// ?? await illust.UserId.GetAjaxUser();
@@ -710,14 +711,14 @@ namespace PixivWPF.Common
                             }
                             if (user == null)
                             {
-                                user = new Pixeez.Objects.User()
+                                user_orig = new Pixeez.Objects.NewUser()
                                 {
                                     Id = userbase.Id,
                                     Account = userbase.Account,
                                     Name = userbase.Name,
                                     Email = userbase.Email,
                                     is_followed = userbase.is_followed,
-                                    ProfileImageUrls = new Pixeez.Objects.ProfileImageUrls() { medium = avatar },
+                                    profile_image_urls = new Pixeez.Objects.ImageUrls() { Small = avatar, Medium = avatar },
                                 };
                             }
                         }
@@ -752,7 +753,8 @@ namespace PixivWPF.Common
                         {
                             Type = "illust",
                             Id = id,
-                            user = userbase == null ? null : new_user,
+                            //user = userbase == null ? null : new_user,
+                            user = userbase == null ? (new_user == null ? user_orig : new_user) : user_orig,
                             Title = illust.Title,
                             Caption = illust.Caption,
                             Width = illust.Width,
