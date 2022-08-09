@@ -41,7 +41,7 @@ namespace Pixeez.Objects
         public abstract string GetAvatarUrl();
     }
 
-    public class NewUser:UserBase
+    public class NewUser : UserBase
     {
 
         public ImageUrls profile_image_urls { get; set; }
@@ -49,7 +49,13 @@ namespace Pixeez.Objects
 
         public override string GetAvatarUrl()
         {
-            return profile_image_urls.Small ?? profile_image_urls.Medium ?? profile_image_urls.Px128x128 ?? profile_image_urls.Px480mw ?? profile_image_urls.Original ?? profile_image_urls.SquareMedium;
+            try
+            {
+                if (profile_image_urls is ImageUrls)
+                    return profile_image_urls.Small ?? profile_image_urls.Medium ?? profile_image_urls.Px128x128 ?? profile_image_urls.Px480mw ?? profile_image_urls.Original ?? profile_image_urls.SquareMedium;
+                else return (string.Empty);
+            }
+            catch { return (string.Empty); }
         }
     }
 
