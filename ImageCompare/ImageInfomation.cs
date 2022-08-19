@@ -57,6 +57,7 @@ namespace ImageCompare
         public FrameworkElement Tagetment { get; set; } = null;
         public string TagetmentTooltip { get; set; } = null;
 
+        private string LastFileName { get; set; } = string.Empty;
         public string FileName { get; set; } = string.Empty;
 
         public bool AutoScale { get; set; } = true;
@@ -231,6 +232,7 @@ namespace ImageCompare
                     {
                         using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
                         {
+                            LastFileName = file;
                             FileName = file;
 
                             if (Path.GetExtension(file).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
@@ -593,6 +595,8 @@ namespace ImageCompare
                 {
                     if (ValidCurrent) { Current.Dispose(); Current = null; }
                     ResetTransform();
+                    if (!string.IsNullOrEmpty(LastFileName))
+                        LoadImageFromFile(LastFileName, update: false);
                     Current = new MagickImage(Original);
                     Modified = true;
                     _last_colorspace_ = Current.ColorSpace;
@@ -612,6 +616,8 @@ namespace ImageCompare
                 {
                     if (ValidCurrent) { Current.Dispose(); Current = null; }
                     ResetTransform();
+                    if (!string.IsNullOrEmpty(LastFileName))
+                        LoadImageFromFile(LastFileName, update: false);
                     Current = new MagickImage(Original);
                     Current.Resize(geo);
                     Current.RePage();

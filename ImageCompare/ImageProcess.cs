@@ -220,11 +220,11 @@ namespace ImageCompare
             try
             {
                 var action = false;
-
+                var size = UseSmallerImage.IsChecked ?? true ? MaxCompareSize : -1;
                 if (source)
-                    action = ImageSource.GetInformation().Reload();
+                    action = ImageSource.GetInformation().Reload(size);
                 else
-                    action = ImageTarget.GetInformation().Reload();
+                    action = ImageTarget.GetInformation().Reload(size);
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
