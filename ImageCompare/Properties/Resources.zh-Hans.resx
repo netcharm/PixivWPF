@@ -486,4 +486,7 @@
   <data name="SetAlphaToColor.Header" xml:space="preserve">
     <value>透明通道设为指定颜色</value>
   </data>
+  <data name="ResetImage.Header" xml:space="preserve">
+    <value>重置图像</value>
+  </data>
 </root>

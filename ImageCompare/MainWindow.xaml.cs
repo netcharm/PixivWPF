@@ -1008,7 +1008,7 @@ namespace ImageCompare
                     Tag = source,
                     Icon = new TextBlock() { Text = "\uE14A", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, LayoutTransform = new ScaleTransform(-1, 1) }
                 };
-                var item_reset = new MenuItem()
+                var item_reset_transform = new MenuItem()
                 {
                     Header = "Reset Transforms",
                     Uid = "ResetTransforms",
@@ -1113,6 +1113,13 @@ namespace ImageCompare
                     Icon = new TextBlock() { Text = "\uE1A5", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
                 };
 
+                var item_reset_image = new MenuItem()
+                {
+                    Header = "Reset Image",
+                    Uid = "ResetImage",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE117", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                };
                 var item_reload = new MenuItem()
                 {
                     Header = "Reload Image",
@@ -1148,7 +1155,7 @@ namespace ImageCompare
                 item_r090.Click += (obj, evt) => { RenderRun(() => { RotateImage((bool)(obj as MenuItem).Tag, 90); }); };
                 item_r180.Click += (obj, evt) => { RenderRun(() => { RotateImage((bool)(obj as MenuItem).Tag, 180); }); };
                 item_r270.Click += (obj, evt) => { RenderRun(() => { RotateImage((bool)(obj as MenuItem).Tag, 270); }); };
-                item_reset.Click += (obj, evt) => { RenderRun(() => { ResetImage((bool)(obj as MenuItem).Tag); }); };
+                item_reset_transform.Click += (obj, evt) => { RenderRun(() => { ResetImageTransform((bool)(obj as MenuItem).Tag); }); };
 
                 item_gray.Click += (obj, evt) => { RenderRun(() => { GrayscaleImage((bool)(obj as MenuItem).Tag); }); };
                 item_blur.Click += (obj, evt) => { RenderRun(() => { BlurImage((bool)(obj as MenuItem).Tag); }); };
@@ -1177,6 +1184,7 @@ namespace ImageCompare
                 item_load_prev.Click += (obj, evt) => { RenderRun(() => { LoadImageFromPrevFile((bool)(obj as MenuItem).Tag); }); };
                 item_load_next.Click += (obj, evt) => { RenderRun(() => { LoadImageFromNextFile((bool)(obj as MenuItem).Tag); }); };
 
+                item_reset_image.Click += (obj, evt) => { RenderRun(() => { ResetImage((bool)(obj as MenuItem).Tag); }); };
                 item_reload.Click += (obj, evt) => { RenderRun(() => { ReloadImage((bool)(obj as MenuItem).Tag); }); };
 
                 item_copyinfo.Click += (obj, evt) => { RenderRun(() => { CopyImageInfo((bool)(obj as MenuItem).Tag); }); };
@@ -1191,7 +1199,7 @@ namespace ImageCompare
                 items.Add(item_r270);
                 items.Add(item_r180);
                 items.Add(new Separator());
-                items.Add(item_reset);
+                items.Add(item_reset_transform);
                 items.Add(new Separator());
                 items.Add(item_gray);
                 items.Add(item_blur);
@@ -1210,6 +1218,7 @@ namespace ImageCompare
                 items.Add(item_load_prev);
                 items.Add(item_load_next);
                 items.Add(new Separator());
+                items.Add(item_reset_image);
                 items.Add(item_reload);
                 items.Add(new Separator());
                 items.Add(item_copyinfo);

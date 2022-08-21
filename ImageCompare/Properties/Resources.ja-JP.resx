@@ -486,4 +486,7 @@
   <data name="SetAlphaToColor.Header" xml:space="preserve">
     <value>透明チャンネルを指定色に設定</value>
   </data>
+  <data name="ResetImage.Header" xml:space="preserve">
+    <value>画像のリセット</value>
+  </data>
 </root>

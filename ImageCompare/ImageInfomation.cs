@@ -30,7 +30,7 @@ namespace ImageCompare
                 if (_original_ is MagickImage && !_original_.IsDisposed) { _original_.Dispose(); _original_ = null; }
                 _original_ = value;
                 if (ValidOriginal) _original_.FilterType = FilterType.CubicSpline;
-                Reload();
+                if (Modified) Reload();
             }
         }
         public Size OriginalSize { get { return (ValidOriginal ? new Size(Original.Width, Original.Height) : new Size(0, 0)); } }
@@ -64,7 +64,7 @@ namespace ImageCompare
         public int AutoScaleSize { get; set; } = 1024;
 
         public bool Loaded { get; set; } = false;
-        public bool Modified { get; set; } = false;
+        public bool Modified { get; set; } = true;
 
         public PointD DefaultOrigin { get; } = new PointD(0, 0);
         private PointD? _LastClickPos_ = null;
@@ -586,7 +586,7 @@ namespace ImageCompare
             return (Modified);
         }
 
-        public bool Reload()
+        public bool Reload(bool reload = false)
         {
             var result = false;
             try
@@ -595,8 +595,7 @@ namespace ImageCompare
                 {
                     if (ValidCurrent) { Current.Dispose(); Current = null; }
                     ResetTransform();
-                    if (!string.IsNullOrEmpty(LastFileName))
-                        LoadImageFromFile(LastFileName, update: false);
+                    if (reload && !string.IsNullOrEmpty(LastFileName)) LoadImageFromFile(LastFileName, update: false);
                     Current = new MagickImage(Original);
                     Modified = true;
                     _last_colorspace_ = Current.ColorSpace;
@@ -607,7 +606,7 @@ namespace ImageCompare
             return (result);
         }
 
-        public bool Reload(MagickGeometry geo)
+        public bool Reload(MagickGeometry geo, bool reload = false)
         {
             var result = false;
             try
@@ -616,8 +615,7 @@ namespace ImageCompare
                 {
                     if (ValidCurrent) { Current.Dispose(); Current = null; }
                     ResetTransform();
-                    if (!string.IsNullOrEmpty(LastFileName))
-                        LoadImageFromFile(LastFileName, update: false);
+                    if (reload && !string.IsNullOrEmpty(LastFileName)) LoadImageFromFile(LastFileName, update: false);
                     Current = new MagickImage(Original);
                     Current.Resize(geo);
                     Current.RePage();
@@ -630,10 +628,10 @@ namespace ImageCompare
             return (result);
         }
 
-        public bool Reload(int size)
+        public bool Reload(int size, bool reload = false)
         {
-            if (size <= 0) return (Reload());
-            else return (Reload(new MagickGeometry($"{size}x{size}>")));
+            if (size <= 0) return (Reload(reload));
+            else return (Reload(new MagickGeometry($"{size}x{size}>"), reload));
         }
 
         public void Dispose()

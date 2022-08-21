@@ -127,7 +127,7 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
-        private void ResetImage(bool source)
+        private void ResetImageTransform(bool source)
         {
             try
             {
@@ -136,6 +136,46 @@ namespace ImageCompare
                     action = ImageSource.GetInformation().ResetTransform();
                 else
                     action = ImageTarget.GetInformation().ResetTransform();
+
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        private void ResetImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var size = UseSmallerImage.IsChecked ?? true ? MaxCompareSize : -1;
+                if (source)
+                    action = ImageSource.GetInformation().Reload(size, reload: false);
+                else
+                    action = ImageTarget.GetInformation().Reload(size, reload: false);
+
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        private void ReloadImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var size = UseSmallerImage.IsChecked ?? true ? MaxCompareSize : -1;
+                if (source)
+                    action = ImageSource.GetInformation().Reload(size, reload: true);
+                else
+                    action = ImageTarget.GetInformation().Reload(size, reload: true);
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
@@ -205,26 +245,6 @@ namespace ImageCompare
                     image.FlipX = !image.FlipX;
                     action = true;
                 }
-
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="source"></param>
-        private void ReloadImage(bool source)
-        {
-            try
-            {
-                var action = false;
-                var size = UseSmallerImage.IsChecked ?? true ? MaxCompareSize : -1;
-                if (source)
-                    action = ImageSource.GetInformation().Reload(size);
-                else
-                    action = ImageTarget.GetInformation().Reload(size);
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
