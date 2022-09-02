@@ -424,7 +424,7 @@ namespace PixivWPF.Common
                 needUpdate.AddRange(args.ReverseOrder ? avatars.Reverse<string>() : avatars);
                 needUpdate.AddRange(args.ReverseOrder ? page_thumbs.Reverse<string>() : page_thumbs);
                 needUpdate.AddRange(args.ReverseOrder ? page_previews.Reverse<string>() : page_previews);
-                foreach (var url in needUpdate.Where(url => !PrefetchedList.ContainsKey(url) && File.Exists(url.GetImageCacheFile())))
+                foreach (var url in needUpdate.Where(url => !string.IsNullOrEmpty(url) && !PrefetchedList.ContainsKey(url) && File.Exists(url.GetImageCacheFile())))
                 {
                     PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
                     //if (!PrefetchedList.TryAdd(url, true)) PrefetchedList.TryUpdate(url, true, false);

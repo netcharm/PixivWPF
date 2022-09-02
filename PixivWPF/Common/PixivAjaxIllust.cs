@@ -688,7 +688,13 @@ namespace PixivWPF.Common
                     if (!work.Error)
                     {
                         var illust = work.Illust;
-                        var user_orig = new Pixeez.Objects.NewUser() { Account = illust.UserAccount, Id = long.Parse(illust.UserId), Name = illust.UserName };
+                        var user_orig = new Pixeez.Objects.NewUser()
+                        {
+                            Account = illust.UserAccount,
+                            Id = long.Parse(illust.UserId),
+                            Name = illust.UserName,
+                            profile_image_urls = new Pixeez.Objects.ImageUrls(),
+                        };
 
                         #region Get/Set user
                         var userbase = await illust.UserId.GetUser();// ?? await illust.UserId.GetAjaxUser();

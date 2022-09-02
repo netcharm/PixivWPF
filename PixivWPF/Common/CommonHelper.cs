@@ -2502,7 +2502,7 @@ namespace PixivWPF.Common
                 var delta = di.EndTime - di.StartTime;
                 var rate = delta.TotalSeconds <= 0 ? 0 : di.Received / delta.TotalSeconds;
                 var size = di.State == Common.DownloadState.Finished && File.Exists(di.FileName) ? (new FileInfo(di.FileName)).Length.SmartFileSize() : "????";
-                var fmt = di.SaveAsJPEG ? $"JPG_Q={di.JPEGQuality}" : $"{Path.GetExtension(di.FileName).Trim('.').ToUpper()}";
+                var fmt = di.SaveAsJPEG ? $"JPG_Q<={di.JPEGQuality}" : $"{Path.GetExtension(di.FileName).Trim('.').ToUpper()}";
                 result.Add($"URL    : {di.Url}");
                 result.Add($"File   : {di.FileName}, {di.FileTime.ToString("yyyy-MM-dd HH:mm:sszzz")}");
                 result.Add($"State  : {di.State}{fail} Disk Usage : {size}, {fmt}");
@@ -3364,6 +3364,43 @@ namespace PixivWPF.Common
                                 desc.SetAttribute("xmlns:MicrosoftPhoto", xmp_ns_lookup["MicrosoftPhoto"]);
                                 desc.AppendChild(xml_doc.CreateElement("MicrosoftPhoto:DateTaken", "MicrosoftPhoto"));
                                 root_node.AppendChild(desc);
+                            }
+                        }
+                        #endregion
+
+                        #region Remove duplicate node
+                        var all_elements = new List<string>()
+                        {
+                            "dc:title",
+                            "dc:description",
+                            "dc:creator", "xmp:creator",
+                            "dc:subject", "MicrosoftPhoto:LastKeywordXMP", "MicrosoftPhoto:LastKeywordIPTC", "MicrosoftPhoto:LastKeywordIPTC_TIFF_IRB",
+                            "dc:rights",
+                            "xmp:CreateDate", "xmp:ModifyDate", "xmp:DateTimeOriginal", "xmp:DateTimeDigitized", "xmp:MetadataDate",
+                            "xmp:Rating", "MicrosoftPhoto:Rating",
+                            "exif:DateTimeDigitized", "exif:DateTimeOriginal",
+                            "tiff:DateTime",
+                            "MicrosoftPhoto:DateAcquired", "MicrosoftPhoto:DateTaken",
+                            "xmp:CreatorTool",
+                        };
+                        //all_elements.AddRange(tag_author);
+                        //all_elements.AddRange(tag_comments);
+                        //all_elements.AddRange(tag_copyright);
+                        //all_elements.AddRange(tag_date);
+                        //all_elements.AddRange(tag_keywords);
+                        //all_elements.AddRange(tag_rating);
+                        //all_elements.AddRange(tag_subject);
+                        //all_elements.AddRange(tag_title);
+                        //all_elements.Add(tag_software);
+                        foreach (var element in all_elements)
+                        {
+                            var nodes = xml_doc.GetElementsByTagName(element);
+                            if (nodes.Count > 1)
+                            {
+                                for (var i = 1; i < nodes.Count; i++)
+                                {
+                                    nodes[i].ParentNode.RemoveChild(nodes[i]);
+                                }
                             }
                         }
                         #endregion
@@ -6427,7 +6464,7 @@ namespace PixivWPF.Common
         {
             string result = string.Empty;
             var feature = reduce ? "Reduce" : "Convert";
-            var InfoTitle = $"{feature}ImageTo_{fmt.ToUpper()}_Q={quality}";
+            var InfoTitle = $"{feature}Image_{Path.GetFileName(file)}_To_{fmt.ToUpper()}_Q={quality}";
             try
             {
                 if (!string.IsNullOrEmpty(file) && File.Exists(file))
@@ -6504,6 +6541,7 @@ namespace PixivWPF.Common
                         $"{feature} {file} To {fmt.ToUpper()} Succeed!".INFO(InfoTitle);
                 }
             }
+            catch (WarningException ex) { ex.WARN(InfoTitle); }
             catch (Exception ex) { ex.ERROR(InfoTitle, no_stack: ex is WarningException); }
             return (result);
         }
@@ -7364,9 +7402,43 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static JArray IllustToJObject(this IEnumerable<Pixeez.Objects.Work> works)
+        {
+            var result = new JArray();
+            try
+            {
+                foreach (var work in works)
+                {
+                    if (work.IsWork() && work.HasUser())
+                    {
+                        var json = new JObject();
+                        json.Add("id", JToken.FromObject(work.Id));
+                        json.Add("date", JToken.FromObject(work.GetDateTime()));
+                        json.Add("title", JToken.FromObject(work.Title.KatakanaHalfToFull().FilterInvalidChar()));
+                        json.Add("description", JToken.FromObject(work.Caption.HtmlToText()));
+                        json.Add("tags", JToken.FromObject(string.Join(" ", work.Tags.Select(t => $"#{t}"))));
+                        json.Add("favorited", JToken.FromObject(work.IsBookMarked()));
+                        json.Add("downloaded", JToken.FromObject(work.IsDownloaded(0, touch: false)));
+                        json.Add("weblink", JToken.FromObject($"{work.Id}".ArtworkLink()));
+                        json.Add("user", JToken.FromObject(work.User.Name));
+                        json.Add("userid", JToken.FromObject(work.User.Id));
+                        json.Add("userlink", JToken.FromObject($"{work.User.Id}".ArtistLink()));
+                        result.Add(json);
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("IllustToJObject"); }
+            return (result);
+        }
+
         public static string IllustToJSON(this Pixeez.Objects.Work work)
         {
             return (JsonConvert.SerializeObject(IllustToJObject(work), Newtonsoft.Json.Formatting.Indented));
+        }
+
+        public static string IllustToJSON(this IEnumerable<Pixeez.Objects.Work> works)
+        {
+            return (JsonConvert.SerializeObject(IllustToJObject(works), Newtonsoft.Json.Formatting.Indented));
         }
 
         public static XmlDocument IllustToXmlDocument(this Pixeez.Objects.Work work)
@@ -7376,8 +7448,11 @@ namespace PixivWPF.Common
             {
                 var json = IllustToJSON(work);
                 var lines = json.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                lines.Insert(0, "{");
                 lines.Insert(1, "'?xml': { '@version': '1.0', '@standalone': 'no' },");
                 lines.Insert(2, "'root': {");
+                lines.Insert(3, "'illust': ");
+                lines.Add("}");
                 lines.Add("}");
                 var xml_json = string.Join(Environment.NewLine, lines);
                 result = JsonConvert.DeserializeXmlNode(xml_json);
@@ -7422,6 +7497,26 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static XmlDocument IllustToXmlDocument(this IEnumerable<Pixeez.Objects.Work> works)
+        {
+            XmlDocument result = null;
+            try
+            {
+                var json = IllustToJSON(works);
+                var lines = json.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                lines.Insert(0, "{");
+                lines.Insert(1, "'?xml': { '@version': '1.0', '@standalone': 'no' },");
+                lines.Insert(2, "'root': {");
+                lines.Insert(3, "'illust': ");
+                lines.Add("}");
+                lines.Add("}");
+                var xml_json = string.Join(Environment.NewLine, lines);
+                result = JsonConvert.DeserializeXmlNode(xml_json);
+            }
+            catch (Exception ex) { ex.ERROR("IllustToXmlDocument"); }
+            return (result);
+        }
+
         public static string IllustToXml(this Pixeez.Objects.Work work)
         {
             var xml = IllustToXmlDocument(work);
@@ -7429,6 +7524,12 @@ namespace PixivWPF.Common
             return (xml is XmlDocument ? xml_out : string.Empty);
         }
 
+        public static string IllustToXml(this IEnumerable<Pixeez.Objects.Work> works)
+        {
+            var xml = IllustToXmlDocument(works);
+            var xml_out = FormatXML(xml);
+            return (xml is XmlDocument ? xml_out : string.Empty);
+        }
         #region SameIllust
         public static bool IsSameIllust(this string id, int hash)
         {

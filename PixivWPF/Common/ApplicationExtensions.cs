@@ -1667,6 +1667,7 @@ namespace PixivWPF.Common
             new Action(() =>
             {
                 logger.Info($"{prefix}{contents}");
+                logger.Warn($"{prefix}{contents}");
                 logger.Debug($"{prefix}{contents}");
                 logger.Error($"{prefix}{contents}");
             }).Invoke(async: false);
@@ -1679,13 +1680,12 @@ namespace PixivWPF.Common
             else if (title.ToUpper().Contains("ERROR")) contents.ERROR(tag);
             else if (title.ToUpper().Contains("WARN")) contents.WARN(tag);
             else if (title.ToUpper().Contains("FATAL")) contents.FATAL(tag);
-            else contents.INFO();
+            else contents.DEBUG();
         }
 
         public static void TRACE(this Exception ex, string tag = "")
         {
             if (logger == null) StartLog(null);
-            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
             List<string> lines = new List<string>();
             lines.Add($"{ex.Message}");
             lines.Add($"{ex.StackTrace}");
@@ -1699,25 +1699,27 @@ namespace PixivWPF.Common
             contents.TRACE(tag);
         }
 
-        public static void DEBUG(this Exception ex, string tag = "")
+        public static void DEBUG(this Exception ex, string tag = "", bool no_stack = false)
         {
             if (logger == null) StartLog(null);
-            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
-            List<string> lines = new List<string>();
-            lines.Add($"{ex.Message}");
-            lines.Add($"{ex.StackTrace}");
-            lines.Add($"  Inner => {ex.InnerException}");
-            lines.Add($"  Base  => {ex.GetBaseException()}");
-            lines.Add($"  Root  => {ex.GetRootException()}");
-            lines.Add($"  Data  => {ex.Data}");
-            var contents = string.Join(Environment.NewLine, lines);
-            contents.DEBUG(tag);
+            if (!no_stack)
+            {
+                List<string> lines = new List<string>();
+                lines.Add($"{ex.Message}");
+                lines.Add($"{ex.StackTrace}");
+                lines.Add($"  Inner => {ex.InnerException}");
+                lines.Add($"  Base  => {ex.GetBaseException()}");
+                lines.Add($"  Root  => {ex.GetRootException()}");
+                lines.Add($"  Data  => {ex.Data}");
+                var contents = string.Join(Environment.NewLine, lines);
+                contents.DEBUG(tag);
+            }
+            else ex.Message.DEBUG(tag);
         }
 
         public static void INFO(this Exception ex, string tag = "")
         {
             if (logger == null) StartLog(null);
-            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
             var contents = $"{ex.Message}";
             contents.INFO(tag);
         }
@@ -1725,7 +1727,6 @@ namespace PixivWPF.Common
         public static void WARN(this Exception ex, string tag = "")
         {
             if (logger == null) StartLog(null);
-            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
             var contents = $"{ex.Message}";
             contents.WARN(tag);
         }
@@ -1733,7 +1734,6 @@ namespace PixivWPF.Common
         public static void ERROR(this Exception ex, string tag = "", bool no_stack = false)
         {
             if (logger == null) StartLog(null);
-            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
             List<string> lines = new List<string>();
             lines.Add($"{ex.Message}");
             if (!no_stack) lines.Add($"{ex.StackTrace}");
@@ -1744,7 +1744,6 @@ namespace PixivWPF.Common
         public static void FATAL(this Exception ex, string tag = "")
         {
             if (logger == null) StartLog(null);
-            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
             List<string> lines = new List<string>();
             lines.Add($"{ex.Message}");
             lines.Add($"{ex.StackTrace}");

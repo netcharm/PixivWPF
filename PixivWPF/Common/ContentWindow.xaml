@@ -222,23 +222,28 @@
                 </mah:SplitButton.Icon>
                 <mah:SplitButton.ContextMenu>
                     <ContextMenu>
-                        <MenuItem x:Name="CommandLog_Info" Header="Info Log" Click="CommandLog_Click" >
+                        <MenuItem x:Name="CommandLog_Info" x:Uid="CommandLog_Info" Header="Info Log" Click="CommandLog_Click" >
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             </MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem x:Name="CommandLog_Debug" Header="Debug Log" Click="CommandLog_Click" >
+                        <MenuItem x:Name="CommandLog_Warn" x:Uid="CommandLog_Warn" Header="Warn Log" Click="CommandLog_Click" >
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             </MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem x:Name="CommandLog_Error" Header="Error Log" Click="CommandLog_Click" >
+                        <MenuItem x:Name="CommandLog_Debug" x:Uid="CommandLog_Debug" Header="Debug Log" Click="CommandLog_Click" >
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="CommandLog_Error" x:Uid="CommandLog_Error" Header="Error Log" Click="CommandLog_Click" >
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <Separator/>
-                        <MenuItem x:Name="CommandLog_Folder" Header="Open Log Folder" Click="CommandLog_Click" >
+                        <MenuItem x:Name="CommandLog_Folder" x:Uid="CommandLog_Folder" Header="Open Log Folder" Click="CommandLog_Click" >
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xED25;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             </MenuItem.Icon>

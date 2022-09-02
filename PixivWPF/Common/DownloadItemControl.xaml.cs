@@ -1046,7 +1046,7 @@ namespace PixivWPF.Common
                 FileName.Touch(Url, meta: true, force: true);
 
                 var state = "Succeed";
-                var as_jpeg = SaveAsJPEG ? $" As JPEG_Q={setting.DownloadConvertJpegQuality} " : " ";
+                var as_jpeg = SaveAsJPEG ? $" As JPEG_Q<={setting.DownloadConvertJpegQuality} " : " ";
                 $"{FileName}{as_jpeg}{state}.".INFO("Download");
                 if (setting.DownloadCompletedToast)
                     $"{Path.GetFileName(FileName)} is saved!".ShowDownloadToast(state, ThumbnailUrl, FileName, state);

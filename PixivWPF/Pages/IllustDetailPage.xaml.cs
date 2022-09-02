@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -2155,7 +2156,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                UpdateGalleryTooltip(SubIllusts);
+                //UpdateGalleryTooltip(SubIllusts);
                 SubIllusts.Ready();
                 this.DoEvents();
             }
@@ -2228,7 +2229,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                UpdateGalleryTooltip(RelatedItems);
+                //UpdateGalleryTooltip(RelatedItems);
                 RelatedItems.Ready();
                 if (RelatedItems.Items.Count > 0) { RelatedRefresh.Show(); RelatedCompare.Show(); }
                 else { RelatedRefresh.Hide(); RelatedCompare.Hide(); }
@@ -2258,6 +2259,7 @@ namespace PixivWPF.Pages
                 var tokens = await CommonHelper.ShowLogin();
                 if (tokens == null) return;
 
+                if (user == null || user.Id == null) throw new WarningException("User Infomation is NULL!");
                 var lastUrl = next_url;
                 var related = string.IsNullOrEmpty(next_url) ? await tokens.GetUserWorksAsync(user.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
                 next_url = related.next_url ?? string.Empty;
@@ -2303,7 +2305,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                UpdateGalleryTooltip(RelatedItems);
+                //UpdateGalleryTooltip(RelatedItems);
                 RelatedItems.Ready();
                 if (RelatedItems.Items.Count > 0) RelatedRefresh.Show();
                 else RelatedRefresh.Hide();
@@ -2380,7 +2382,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                UpdateGalleryTooltip(FavoriteItems);
+                //UpdateGalleryTooltip(FavoriteItems);
                 FavoriteItems.Ready();
                 if (FavoriteItems.Items.Count > 0) { FavoriteRefresh.Show(); FavoriteCompare.Show(); }
                 else { FavoriteItems.Hide(); FavoriteCompare.Hide(); }
@@ -3306,6 +3308,13 @@ namespace PixivWPF.Pages
                         if (c_item.IsSameIllust(Contents)) PreviewWait.Show();
 
                         PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index, large: setting.ShowLargePreview);
+                        if (string.IsNullOrEmpty(AvatarImageUrl))
+                        {
+                            var illusts = await Contents.Illust.Id.Value.SearchIllustById(null);
+                            if (illusts.Count > 0) Contents.Illust.ImageUrls = illusts.First().ImageUrls;
+                            //throw new WarningException("Preview URLs is NULL");
+                            "Preview URLs is NULL".WARN("ActionRefreshPreview");
+                        }
                         if (_urls_ is List<string>) _urls_.Add(PreviewImageUrl);
                         if (Keyboard.Modifiers == ModifierKeys.Control) { PreviewImageUrl.GetImageCacheFile().ClearDownloading(); }
 
@@ -3343,7 +3352,7 @@ namespace PixivWPF.Pages
                             }
                         }
                     }
-                    catch (Exception ex) { ex.ERROR("ActionRefreshPreview"); PreviewWait.Fail(); }
+                    catch (Exception ex) { ex.ERROR("ActionRefreshPreview", no_stack:ex is WarningException); PreviewWait.Fail(); }
                     finally
                     {
                         if (Preview.Source == null) PreviewWait.Fail();
@@ -3369,6 +3378,15 @@ namespace PixivWPF.Pages
 
                         var c_item = Contents;
                         AvatarImageUrl = Contents.User.GetAvatarUrl();
+                        if (string.IsNullOrEmpty(AvatarImageUrl))
+                        {
+                            var users = await Contents.Illust.User.Id.Value.SearchUserById(null);
+                            if (users.Count > 0) Contents.User = users.First();
+                            else if (Contents.IsWork()) Contents.User = Contents.Illust.User.Id.FindUser();
+                            else if (Contents.IsUser()) Contents.User = Contents.UserID.FindUser();
+                            "User Avatar URLs is NULL".WARN("ActionRefreshAvatar");
+                            //throw new WarningException("User Avatar URLs is NULL");
+                        }
                         if (_urls_ is List<string>) _urls_.Add(AvatarImageUrl);
                         using (var img = await AvatarImageUrl.LoadImageFromUrl(overwrite, size: Application.Current.GetDefaultAvatarSize(), cancelToken: cancelDownloading))
                         {
@@ -3384,7 +3402,7 @@ namespace PixivWPF.Pages
                             }
                         }
                     }
-                    catch (Exception ex) { ex.ERROR("ActionRefreshAvatar"); AuthorAvatarWait.Fail(); btnAuthorAvatar.Show(); }
+                    catch (Exception ex) { ex.ERROR("ActionRefreshAvatar", no_stack: ex is WarningException); AuthorAvatarWait.Fail(); btnAuthorAvatar.Show(); }
                     finally
                     {
                         if (IllustAuthorAvatar.Source == null) AuthorAvatarWait.Fail();
@@ -3618,7 +3636,33 @@ namespace PixivWPF.Pages
                         }
                         else if (mi.Uid.Equals("ActionRefresh", StringComparison.CurrentCultureIgnoreCase))
                         {
+                            var item = Contents;
+                            if (item.IsWork())
+                            {
+                                var illust = Contents.ID.FindIllust();
+                                if (illust.IsWork()) item = illust.WorkItem();
+                            }
+                            else if (item.IsUser())
+                            {
+                                var user = Contents.UserID.FindUser();
+                                if (user is Pixeez.Objects.UserBase) item = user.UserItem();
+                            }
                             if (Contents.HasUser()) UpdateDetail(Contents);
+                        }
+                        else if (mi.Uid.Equals("ActionRefreshIllust", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            var item = Contents;
+                            if (item.IsWork())
+                            {
+                                var illust = Contents.ID.FindIllust();
+                                if (illust.IsWork()) item = illust.WorkItem();
+                            }
+                            else if (item.IsUser())
+                            {
+                                var user = Contents.UserID.FindUser();
+                                if (user is Pixeez.Objects.UserBase) item = user.UserItem();
+                            }
+                            UpdateDetail(item);
                         }
                         else if (mi == ActionClearTagsCache)
                         {
@@ -3657,6 +3701,8 @@ namespace PixivWPF.Pages
                 {
                     if (Contents.HasPages() && SubIllusts.Items.Count == 0)
                     {
+                        var illust = Contents.ID.FindIllust();
+                        if (illust.IsWork()) Contents = illust.WorkItem();
                         ShowIllustPagesAsync(Contents, force: true);
                     }
                     else if (Keyboard.Modifiers == ModifierKeys.None)

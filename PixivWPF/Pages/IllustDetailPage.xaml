@@ -932,7 +932,7 @@
                                 Click="SubPageNav_Clicked">
                                 <Button.Content>
                                     <TextBlock Margin="4,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                        Text="&#xE76B;" FontFamily="Segoe MDL2 Assets" 
+                                        Text="&#xE76B;" FontFamily="Segoe MDL2 Assets" Effect="{DynamicResource DropGlow}"
                                         FontSize="{Binding Path=MinWidth, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
                                         Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" />
                                 </Button.Content>
@@ -946,7 +946,7 @@
                                 Click="SubPageNav_Clicked">
                                 <Button.Content>
                                     <TextBlock Margin="4,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                        Text="&#xE76C;" FontFamily="Segoe MDL2 Assets" 
+                                        Text="&#xE76C;" FontFamily="Segoe MDL2 Assets" Effect="{DynamicResource DropGlow}"
                                         FontSize="{Binding Path=MinWidth, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
                                         Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"/>
                                 </Button.Content>

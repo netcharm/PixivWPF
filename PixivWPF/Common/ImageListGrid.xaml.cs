@@ -341,20 +341,42 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_ScrollIntoView"); }
         }
 
-        private void UpdateGalleryTooltip()
+        private bool ParentHandled = false;
+        private void UpdateGalleryTooltip(object sender)
         {
-            var CR = Environment.NewLine;
-            var count_displayed = $"{this.ItemsCount}".PadLeft(5);
-            var count_selected = $"{this.SelectedItems.Count}".PadLeft(5);
-            var count_total = $"{this.Items.Count}".PadLeft(5);
-            var text = $"{"Displayed".PadRight(10)} : {count_displayed}{CR}{"Selected".PadRight(10)} : {count_selected}{CR}{"Total".PadRight(10)} : {count_total}";
-            var expander = this.TryFindParent<Expander>();
-            if (expander is Expander) expander.ToolTip = string.IsNullOrEmpty(text) ? null : text;
-        }
+            try
+            {
+                var CR = Environment.NewLine;
 
-        private void PART_ToolTipOpening(object sender, ToolTipEventArgs e)
-        {
-            UpdateGalleryTooltip();
+                ImageListGrid gallery = null;
+                if (sender is ImageListGrid)
+                    gallery = sender as ImageListGrid;
+                else if (sender is Expander)
+                    gallery = (sender as Expander).FindChild<ImageListGrid>();
+
+                if (gallery is ImageListGrid)
+                {
+                    var count_displayed = $"{gallery.ItemsCount}".PadLeft(5);
+                    var count_selected = $"{gallery.SelectedItems.Count}".PadLeft(5);
+                    var count_total = $"{gallery.Items.Count}".PadLeft(5);
+                    var text = $"{"Displayed".PadRight(10)} : {count_displayed}{CR}{"Selected".PadRight(10)} : {count_selected}{CR}{"Total".PadRight(10)} : {count_total}";
+
+                    gallery.ToolTip = string.IsNullOrEmpty(text) ? null : text;
+
+                    var expander = this.TryFindParent<Expander>();
+                    if (expander is Expander)
+                    {
+                        if (!ParentHandled)
+                        {
+                            expander.ToolTipOpening -= PART_ToolTipOpening;
+                            expander.ToolTipOpening += PART_ToolTipOpening;
+                            ParentHandled = true;
+                        }
+                        expander.ToolTip = string.IsNullOrEmpty(text) ? null : text;
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("UpdateGalleryTooltip"); }
         }
         #endregion
 
@@ -473,9 +495,6 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        private const int CanUpdateItemsMax = 1;
-        private SemaphoreSlim CanUpdateItems = new SemaphoreSlim(CanUpdateItemsMax, CanUpdateItemsMax);
-
         #region Calc GC Memory
         public bool AutoGC { get; set; } = false;
         public bool WaitGC { get; set; } = false;
@@ -483,6 +502,9 @@ namespace PixivWPF.Common
         #endregion
 
         #region Wait State
+        private const int CanUpdateItemsMax = 1;
+        private SemaphoreSlim CanUpdateItems = new SemaphoreSlim(CanUpdateItemsMax, CanUpdateItemsMax);
+
         [Description("Get or Set Wait Ring State")]
         [Category("Common Properties")]
         public bool IsReady
@@ -706,10 +728,14 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        //private Dictionary<PixivItem, bool> LastItems = new Dictionary<PixivItem, bool>();
         private IList<PixivItem> LastItems = new List<PixivItem>();
         private void TouchImage()
         {
-            Commands.TouchMeta.Execute(ItemList.Where(t => t.IsNotPage() && t.IsDownloaded && !LastItems.Contains(t)).ToList());
+            //var need_updates = ItemList.Where(t => t.IsNotPage() && t.IsDownloaded && !LastItems.ContainsKey(t) && LastItems[t] == false);
+            //Commands.TouchMeta.Execute(need_updates.ToList());
+            var need_updates = ItemList.Where(t => t.IsNotPage() && t.IsDownloaded && !LastItems.Contains(t));
+            Commands.TouchMeta.Execute(need_updates.ToList());
         }
 
         public async void Clear(bool batch = true, bool force = false)
@@ -767,6 +793,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR(this.Name ?? string.Empty); }
             finally
             {
+                UpdateGalleryTooltip(this);
                 ReleaseUpdateLock();
                 if (AutoGC && count > 0) Application.Current.GC(this.Name, WaitGC, CalcSystemMemoryUsage);
                 this.DoEvents();
@@ -1098,11 +1125,12 @@ namespace PixivWPF.Common
             {
                 try
                 {
+                    UpdateGalleryTooltip(this);
+                    if (touch) TouchImage();
                     if (!UpdateTileTask.IsBusy && !UpdateTileTask.CancellationPending)
                     {
                         new Action(() =>
                         {
-                            if (touch) TouchImage();
                             UpdateTileTaskCancelSrc = new CancellationTokenSource();
                             UpdateTileTask.RunWorkerAsync(overwrite);
                         }).Invoke(async: false);
@@ -1196,6 +1224,17 @@ namespace PixivWPF.Common
                 UpdateTileTask.DoWork += UpdateTileTask_DoWork;
             }
 
+            ToolTip = new ToolTip();
+            UpdateGalleryTooltip(this);
+
+            var expander = this.TryFindParent<Expander>();
+            if (expander is Expander)
+            {
+                expander.ToolTipOpening += PART_ToolTipOpening;
+                expander.ToolTip = new ToolTip();
+                UpdateGalleryTooltip(expander);
+            }
+
             PreviewMouseMove += PART_ImageListGrid_MouseMove;
             PreviewMouseDown += PART_ImageListGrid_MouseDown;
 
@@ -1208,6 +1247,7 @@ namespace PixivWPF.Common
             Dispose(false);
         }
 
+        #region Dispose Helper
         public void Close()
         {
             Dispose();
@@ -1228,6 +1268,12 @@ namespace PixivWPF.Common
                 Clear(false, true);
             }
             disposed = true;
+        }
+        #endregion
+
+        private void PART_ToolTipOpening(object sender, ToolTipEventArgs e)
+        {
+            UpdateGalleryTooltip(sender);
         }
 
         private void PART_TileBadge_TargetUpdated(object sender, DataTransferEventArgs e)

@@ -364,18 +364,43 @@ namespace PixivWPF.Common
                     dataObject.SetData(DataFormats.UnicodeText, json);
                     Clipboard.SetDataObject(dataObject, true);
                 }
+                else if (obj is IEnumerable<Pixeez.Objects.Work>)
+                {
+                    var illusts = obj as IEnumerable<Pixeez.Objects.Work>;
+                    var json = illusts.IllustToJSON();
+                    var xmldoc = illusts.IllustToXmlDocument();
+                    var xml = illusts.IllustToXml();
+
+                    var dataObject = new DataObject();
+                    if (xmldoc is System.Xml.XmlDocument)
+                    {
+                        //dataObject.SetData("XmlDocument", xmldoc);
+                        dataObject.SetData("Xml", xml);
+                    }
+                    dataObject.SetData("PixivIllustJSON", json);
+                    dataObject.SetData("PixivJSON", json);
+                    dataObject.SetData("JSON", json);
+                    dataObject.SetData(DataFormats.Text, json);
+                    dataObject.SetData(DataFormats.UnicodeText, json);
+                    Clipboard.SetDataObject(dataObject, true);
+                }
                 else if (obj is PixivItem)
                 {
                     var illust = (obj as PixivItem).Illust;
                     CopyJson.Execute(illust);
+                }
+                else if (obj is IEnumerable<PixivItem>)
+                {
+                    var illusts = (obj as IEnumerable<PixivItem>).Select(i => i.Illust).ToList();
+                    CopyJson.Execute(illusts);
                 }
                 else if (obj is ImageListGrid)
                 {
                     var gallery = obj as ImageListGrid;
                     if (IsNormalGallary(gallery))
                     {
-                        var item = gallery.SelectedItem;
-                        if (item.IsWork()) CopyJson.Execute(item);
+                        var items = gallery.SelectedItems;
+                        if (items.Count > 0) CopyJson.Execute(items);
                     }
                     else if (IsPagesGallary(gallery))
                     {
@@ -3443,7 +3468,21 @@ namespace PixivWPF.Common
             else if (obj is IllustDetailPage)
             {
                 var page = obj as IllustDetailPage;
-                if (page.Contents is PixivItem) page.UpdateDetail(page.Contents);
+                if (page.Contents is PixivItem)
+                {
+                    var item = page.Contents;
+                    if (item.IsWork())
+                    {
+                        var illust = page.Contents.ID.FindIllust();
+                        if (illust.IsWork()) item = illust.WorkItem();
+                    }
+                    else if(item.IsUser())
+                    {
+                        var user = page.Contents.UserID.FindUser();
+                        if (user is Pixeez.Objects.UserBase) item = user.UserItem();
+                    }
+                    page.UpdateDetail(item);
+                }
             }
             else if (obj is IllustImageViewerPage)
             {
