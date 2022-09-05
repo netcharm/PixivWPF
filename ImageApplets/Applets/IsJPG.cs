@@ -16,37 +16,34 @@ namespace ImageApplets.Applets
             return (new IsJPG());
         }
 
-        public override bool Execute<T>(string file, out T result, params object[] args)
+        public override bool Execute<T>(Stream source, out T result, params object[] args)
         {
             var ret = false;
             result = default(T);
             try
             {
-                if (File.Exists(file))
+                if (source is Stream && source.CanRead)
                 {
-                    using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    var status = false;
+                    if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
+                    Image image = Image.FromStream(source);
+                    if (image is Image && image.RawFormat.Guid.Equals(ImageFormat.Jpeg.Guid))
                     {
-                        var status = false;
-                        fs.Seek(0, SeekOrigin.Begin);
-                        Image image = Image.FromStream(fs);
-                        if (image is Image && image.RawFormat.Guid.Equals(ImageFormat.Jpeg.Guid))
-                        {
-                            status = true;
-                        }
-                        switch (Status)
-                        {
-                            case STATUS.Yes:
-                                ret = status;
-                                break;
-                            case STATUS.No:
-                                ret = !status;
-                                break;
-                            default:
-                                ret = true;
-                                break;
-                        }
-                        result = (T)(object)status;
+                        status = true;
                     }
+                    switch (Status)
+                    {
+                        case STATUS.Yes:
+                            ret = status;
+                            break;
+                        case STATUS.No:
+                            ret = !status;
+                            break;
+                        default:
+                            ret = true;
+                            break;
+                    }
+                    result = (T)(object)status;
                 }
             }
             catch (Exception ex) { ShowMessage(ex, Name); }
