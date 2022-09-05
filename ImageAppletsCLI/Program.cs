@@ -27,13 +27,17 @@ namespace ImageAppletsCLI
         {
             //Console.WriteLine(args[0]);
             //Console.WriteLine(string.Join(Environment.NewLine, args));
-            if (args.Length <= 0) { Console.WriteLine(Help()); }
+            if (args.Length <= 0)
+            {
+                if (!Console.IsInputRedirected && !Console.IsOutputRedirected)
+                    Console.WriteLine(Help());
+            }
             else if (args.Length >= 1)
             {
                 var applet = ImageApplets.Applet.GetApplet(args[0]);
                 if (applet is ImageApplets.Applet)
                 {
-                    if (args.Length == 1 && !Console.IsInputRedirected)
+                    if (args.Length == 1 && !Console.IsInputRedirected && !Console.IsOutputRedirected)
                     {
                         Console.WriteLine(Help(applet.Name));
                     }
@@ -59,7 +63,11 @@ namespace ImageAppletsCLI
                             }
 #endif
                             //files.AddRange(Directory.GetFiles(Path.IsPathRooted(folder) ? folder : Path.GetFullPath(Path.Combine(WorkPath, folder)), pattern));
-                            files.AddRange(Directory.GetFiles(Path.IsPathRooted(folder) ? folder : Path.Combine(".", folder), pattern));
+                            folder = Path.IsPathRooted(folder) ? folder : Path.Combine(".", folder);
+                            if (Directory.Exists(folder))
+                            {
+                                files.AddRange(Directory.GetFiles(folder, pattern));
+                            }
                         }
 #if DEBUG
                         if (!Console.IsOutputRedirected)
@@ -85,7 +93,7 @@ namespace ImageAppletsCLI
                                     if (Console.IsOutputRedirected)
                                         Console.Out.WriteLine($"{(file.StartsWith(".\\") ? file.Substring(2) : file)}");
                                     else
-                                        Console.WriteLine($"{(file.StartsWith(".\\") ? file.Substring(2) : file)} : {result}");
+                                        Console.WriteLine($"{(file.StartsWith(".\\") ? file.Substring(2) : file)} \t: {result}");
                                 }
                             }
                             if (Console.IsOutputRedirected)
@@ -93,6 +101,13 @@ namespace ImageAppletsCLI
                             else
                                 Console.WriteLine("".PadRight(LINE_COUNT, '-'));
                         }
+                    }
+                }
+                else
+                {
+                    if (!Console.IsOutputRedirected)
+                    {
+                        Console.WriteLine(Help());
                     }
                 }
             }
