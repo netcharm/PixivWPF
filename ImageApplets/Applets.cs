@@ -12,6 +12,8 @@ using CompactExifLib;
 
 namespace ImageApplets
 {
+    public enum CompareMode { EQ, NEQ, GT, LT, GE, LE, VALUE };
+
     public enum STATUS { All, Yes, No, None };
 
     public interface IApplet

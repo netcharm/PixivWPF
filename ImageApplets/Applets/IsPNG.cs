@@ -26,10 +26,12 @@ namespace ImageApplets.Applets
                 {
                     var status = false;
                     if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
-                    Image image = Image.FromStream(source);
-                    if (image is Image && image.RawFormat.Guid.Equals(ImageFormat.Png.Guid))
+                    using (Image image = Image.FromStream(source))
                     {
-                        status = true;
+                        if (image is Image && image.RawFormat.Guid.Equals(ImageFormat.Png.Guid))
+                        {
+                            status = true;
+                        }
                     }
                     switch (Status)
                     {

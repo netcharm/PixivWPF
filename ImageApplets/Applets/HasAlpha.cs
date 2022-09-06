@@ -66,30 +66,32 @@ namespace ImageApplets.Applets
                 {
                     var status = false;
                     if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
-                    Image image = Image.FromStream(source);
-                    if (image is Image && image.RawFormat.Guid.Equals(ImageFormat.Png.Guid))
+                    using (Image image = Image.FromStream(source))
                     {
-                        if (image.PixelFormat == PixelFormat.Format32bppArgb) { status = true; }
-                        else if (image.PixelFormat == PixelFormat.Format32bppPArgb) { status = true; }
-                        else if (image.PixelFormat == PixelFormat.Format16bppArgb1555) { status = true; }
-                        else if (image.PixelFormat == PixelFormat.Format64bppArgb) { status = true; }
-                        else if (image.PixelFormat == PixelFormat.Format64bppPArgb) { status = true; }
-                        else if (image.PixelFormat == PixelFormat.PAlpha) { status = true; }
-                        else if (image.PixelFormat == PixelFormat.Alpha) { status = true; }
-                        else if (Image.IsAlphaPixelFormat(image.PixelFormat)) { status = true; }
-
-                        if (status)
+                        if (image is Image && image.RawFormat.Guid.Equals(ImageFormat.Png.Guid))
                         {
-                            var bmp = new Bitmap(image);
-                            var w = bmp.Width;
-                            var h = bmp.Height;
-                            var m = _WindowSize_;
-                            var mt = Math.Ceiling(m * m / 2.0);
-                            var lt = GetMatrix(bmp, 0, 0, m, m).Count(c => c.A < 255);
-                            var rt = GetMatrix(bmp, w - m, 0, m, m).Count(c => c.A < 255);
-                            var lb = GetMatrix(bmp, 0, h - m, m, m).Count(c => c.A < 255);
-                            var rb = GetMatrix(bmp, w - m, h - m, m, m).Count(c => c.A < 255);
-                            status = (lt > mt || rt > mt || lb > mt || rb > mt) ? true : false;
+                            if (image.PixelFormat == PixelFormat.Format32bppArgb) { status = true; }
+                            else if (image.PixelFormat == PixelFormat.Format32bppPArgb) { status = true; }
+                            else if (image.PixelFormat == PixelFormat.Format16bppArgb1555) { status = true; }
+                            else if (image.PixelFormat == PixelFormat.Format64bppArgb) { status = true; }
+                            else if (image.PixelFormat == PixelFormat.Format64bppPArgb) { status = true; }
+                            else if (image.PixelFormat == PixelFormat.PAlpha) { status = true; }
+                            else if (image.PixelFormat == PixelFormat.Alpha) { status = true; }
+                            else if (Image.IsAlphaPixelFormat(image.PixelFormat)) { status = true; }
+
+                            if (status)
+                            {
+                                var bmp = new Bitmap(image);
+                                var w = bmp.Width;
+                                var h = bmp.Height;
+                                var m = _WindowSize_;
+                                var mt = Math.Ceiling(m * m / 2.0);
+                                var lt = GetMatrix(bmp, 0, 0, m, m).Count(c => c.A < 255);
+                                var rt = GetMatrix(bmp, w - m, 0, m, m).Count(c => c.A < 255);
+                                var lb = GetMatrix(bmp, 0, h - m, m, m).Count(c => c.A < 255);
+                                var rb = GetMatrix(bmp, w - m, h - m, m, m).Count(c => c.A < 255);
+                                status = (lt > mt || rt > mt || lb > mt || rb > mt) ? true : false;
+                            }
                         }
                     }
                     switch (Status)

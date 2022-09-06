@@ -52,6 +52,7 @@
     <Compile Include="Applets\HasExif.cs" />
     <Compile Include="Applets\IsJPG.cs" />
     <Compile Include="Applets\IsPNG.cs" />
+    <Compile Include="Applets\JpegQuality.cs" />
     <Compile Include="Applets\Move.cs" />
     <Compile Include="ExifData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
