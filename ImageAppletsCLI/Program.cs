@@ -87,14 +87,14 @@ namespace ImageAppletsCLI
                             }
                             foreach (var file in files)
                             {
-                                bool? result = null;
+                                dynamic result = null;
                                 var ret = applet.Execute(file, out result, extras.Skip(1));
                                 if (ret)
                                 {
                                     if (Console.IsOutputRedirected)
                                         Console.Out.WriteLine($"{(file.StartsWith(".\\") ? file.Substring(2) : file)}");
                                     else
-                                        Console.WriteLine($"{(file.StartsWith(".\\") ? file.Substring(2) : file).PadRight(max_len + 1)} \t: {result}");
+                                        Console.WriteLine($"{(file.StartsWith(".\\") ? file.Substring(2) : file).PadRight(max_len + 1)} \t: {($"{result}").PadLeft(5)}");
                                 }
                             }
                             if (Console.IsOutputRedirected)
