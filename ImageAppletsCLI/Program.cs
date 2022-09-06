@@ -79,10 +79,11 @@ namespace ImageAppletsCLI
 #endif
                         if (files.Count > 0)
                         {
+                            var max_len = files.Max(f => f.Length);
                             if (!Console.IsOutputRedirected)
                             {
                                 Console.WriteLine("Results");
-                                Console.WriteLine("".PadRight(LINE_COUNT, '-'));
+                                Console.WriteLine("".PadRight(Math.Max(LINE_COUNT, max_len + 10), '-'));
                             }
                             foreach (var file in files)
                             {
@@ -93,13 +94,13 @@ namespace ImageAppletsCLI
                                     if (Console.IsOutputRedirected)
                                         Console.Out.WriteLine($"{(file.StartsWith(".\\") ? file.Substring(2) : file)}");
                                     else
-                                        Console.WriteLine($"{(file.StartsWith(".\\") ? file.Substring(2) : file)} \t: {result}");
+                                        Console.WriteLine($"{(file.StartsWith(".\\") ? file.Substring(2) : file).PadRight(max_len + 1)} \t: {result}");
                                 }
                             }
                             if (Console.IsOutputRedirected)
                                 Console.Out.Close();
                             else
-                                Console.WriteLine("".PadRight(LINE_COUNT, '-'));
+                                Console.WriteLine("".PadRight(Math.Max(LINE_COUNT, max_len + 10), '-'));
                         }
                     }
                 }
