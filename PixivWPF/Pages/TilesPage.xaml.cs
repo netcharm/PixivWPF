@@ -42,6 +42,7 @@ namespace PixivWPF.Pages
 
         internal string lastSelectedId = string.Empty;
         internal List<long> ids = new List<long>();
+        private List<long> ids_last = new List<long>();
 
         private Setting setting = Application.Current.LoadSetting();
         public PixivPage TargetPage = PixivPage.None;
@@ -186,7 +187,19 @@ namespace PixivWPF.Pages
             {
                 if (ImageTiles.Items.Count > 0)
                 {
-                    if (!string.IsNullOrEmpty(id))
+                    foreach(var id_l in ids_last.Take(10))
+                    {
+                        var items = ImageTiles.Items.Where(i => i.ID == $"{id_l}");
+                        if (items.Count() > 0)
+                        {
+                            ImageTiles.SelectedItem = items.First();
+                            ImageTiles.ScrollIntoView(ImageTiles.SelectedItem);
+                            this.DoEvents();
+                            break;
+                        }
+                    }
+
+                    if (ImageTiles.SelectedItem == null && !string.IsNullOrEmpty(id))
                     {
                         foreach (var item in ImageTiles.Items)
                         {
@@ -918,6 +931,12 @@ namespace PixivWPF.Pages
 
             InitPrefetchingTask();
             if (PrefetchingImagesTask is PrefetchingTask) PrefetchingImagesTask.Stop();
+
+            if (ids.Count > 0)
+            {
+                ids_last.Clear();
+                ids_last.AddRange(ids);
+            }
 
             if (TargetPage != target)
             {

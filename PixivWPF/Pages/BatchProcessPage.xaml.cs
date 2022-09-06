@@ -30,8 +30,12 @@ namespace PixivWPF.Pages
         public Window ParentWindow { get; private set; } = null;
         public string Contents { get; set; } = string.Empty;
         public string Mode { get; set; } = "touch";
-        public bool Recursion { get; set; } = false;
+        private TaskStatus State = TaskStatus.WaitingToRun;
+        private bool Recursion { get; set; } = false;
+        private bool ReduceSize { get; set; } = false;
         public Action<BatchProgressInfo> ProcessingAction = null;
+
+        private List<BatchProgressInfo> InfoList = new List<BatchProgressInfo>();
 
         private StringBuilder progressLog = new StringBuilder();
         public string ProgressLog { get { return (progressLog.ToString()); } }
@@ -58,6 +62,8 @@ namespace PixivWPF.Pages
         {
             if (Directory.Exists(Contents))
             {
+                State = TaskStatus.Running;
+                InfoList.Clear();
                 List<string> ext_imgs = new List<string>() { ".png", ".jpg", ".tif", ".tiff", ".jpeg" };
                 var test = e.Argument is bool ? (bool)e.Argument : false;
                 var setting = Application.Current.LoadSetting();
@@ -92,9 +98,10 @@ namespace PixivWPF.Pages
                                     DisplayText = f.Name,
                                     Current = i + 1,
                                     Total = flist.Count(),
-                                    State = TaskStatus.Running
+                                    State = TaskStatus.Running,
                                 };
-
+                                InfoList.Add(current_info);
+                                
                                 int idx = -1;
                                 var illust = await f.FullName.GetIllustId(out idx).GetIllust();
                                 if (illust is Pixeez.Objects.Work)
@@ -105,31 +112,42 @@ namespace PixivWPF.Pages
                                     {
                                         if (!test)
                                         {
-                                            if (Mode.Equals("touch", StringComparison.CurrentCultureIgnoreCase)) f.Touch(url, meta: true);
+                                            if (Mode.Equals("touch", StringComparison.CurrentCultureIgnoreCase))
+                                            {
+                                                if (ReduceSize)
+                                                    await f.FullName.ReduceImageFileSize("jpg", keep_name: true, quality: setting.DownloadRecudeJpegQuality);
+                                                else
+                                                    f.Touch(url, meta: true);
+                                            }
                                             else if (Mode.Equals("attach", StringComparison.CurrentCultureIgnoreCase))
                                             {
-                                                var meta = await f.AttachMetaInfo();
-                                                if (meta) f.Touch(url, meta: false);
+                                                if (ReduceSize)
+                                                    await f.FullName.ReduceImageFileSize("jpg", keep_name: true, quality: setting.DownloadRecudeJpegQuality);
+                                                else
+                                                    await f.AttachMetaInfo();
                                             }
                                             else if (ProcessingAction is Action<BatchProgressInfo>) ProcessingAction.Invoke(current_info);
                                             await Task.Delay(rnd.Next(10, 200));
                                         }
-                                        current_info.Result = $"{f.Name} processing successed";
+                                        current_info.State = TaskStatus.RanToCompletion;
+                                        current_info.Result = $"{f.Name} Processing Successed";
                                     }
                                     else
                                     {
-                                        current_info.Result = $"{f.Name} paesing date failed";
+                                        current_info.State = TaskStatus.Faulted;
+                                        current_info.Result = $"{f.Name} Parsing Date Failed";
                                         $"{f.Name} => {url}".DEBUG("ParseDateTime");
                                     }
                                 }
                                 else
                                 {
-                                    current_info.Result = $"{f.Name} get work failed";
+                                    current_info.State = TaskStatus.Faulted;
+                                    current_info.Result = $"{f.Name} Get Work Failed";
                                     f.Name.DEBUG("GetIllust");
                                 }
                                 current_info.LastestTime = current_info.CurrentTime;
                                 current_info.CurrentTime = DateTime.Now;
-                                if (i == flist.Count - 1) current_info.State = TaskStatus.RanToCompletion;
+                                //if (i == flist.Count - 1) current_info.State = TaskStatus.RanToCompletion;
                                 if (reportAction is Action<BatchProgressInfo>) reportAction.Invoke(current_info);
                                 this.DoEvents();
                             }
@@ -138,6 +156,7 @@ namespace PixivWPF.Pages
                         }).Invoke(async: false);
                     }
                 }
+                State = TaskStatus.RanToCompletion;
             }
         }
 
@@ -187,6 +206,21 @@ namespace PixivWPF.Pages
             InitializeComponent();
         }
 
+        private void InitBatchJob(string folder)
+        {
+            Dispatcher.Invoke(() => 
+            {
+                Contents = folder;
+                PART_FolderName.Text = Contents;
+                //Title = $"Touching {System.IO.Path.GetFileName(Contents)} ..";
+                Title = $"Touching {Contents}";
+                ParentWindow.Title = Title;
+                Application.Current.UpdateContentWindows(ParentWindow as ContentWindow, title: Title);
+                PART_TouchStart.IsEnabled = true;
+                PART_TouchCancel.IsEnabled = false;
+            });
+        }
+
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             ParentWindow = Window.GetWindow(this);
@@ -211,10 +245,15 @@ namespace PixivWPF.Pages
                     PART_FileName.Text = info.FileName;
 
                     #region Update ProgressBar & Progress Info Text
-                    var percent = total > 0 ? (double)index / total : 0;
-                    var state = info.State == TaskStatus.Running && percent < 1 ? "Processed" : info.State == TaskStatus.RanToCompletion || percent == 1 ? "Finished" : "Idle";
+                    //var percent = total > 0 ? (double)index / total : 0;
+                    //var percent = total > 0 ? (double)InfoList.Count() / total : 0;
+                    //var processed = InfoList.Count(i => i.State == TaskStatus.RanToCompletion);
+                    var processed = InfoList.Count();
+                    var percent = total > 0 ? (double)processed / total : 0;
+                    //var state = info.State == TaskStatus.Running && percent < 1 ? "Processed" : info.State == TaskStatus.RanToCompletion || percent == 1 ? "Finished" : "Idle";
+                    var state = State == TaskStatus.WaitingToRun ? "Idle" : "Processed";
                     PART_Progress.Value = percent >= 1 ? 100 : percent * 100;
-                    PART_ProgressPercent.Text = $"{state} [ {index} / {total} ]: {PART_Progress.Value:0.0}%";
+                    PART_ProgressPercent.Text = $"{state} [ {processed} / {total} ]: {PART_Progress.Value:0.0}%";
                     #endregion
 
                     #region Update Progress Info Text Color Gradient
@@ -232,10 +271,12 @@ namespace PixivWPF.Pages
                     PART_ProcessLog.ScrollToEnd();
                     #endregion
 
-                    if (info.State == TaskStatus.RanToCompletion || percent == 1)
+                    //if (info.State == TaskStatus.RanToCompletion || percent == 1)
+                    if (InfoList.Count == info.Total || percent == 1 || State == TaskStatus.RanToCompletion)
                     {
                         PART_TouchStart.IsEnabled = true;
                         PART_TouchCancel.IsEnabled = false;
+                        PART_ProgressPercent.Text = $"Finished [ {processed} / {total} ]: {PART_Progress.Value:0.0}%";
                     }
                 }
                 catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_ReportProgress"); }
@@ -251,6 +292,22 @@ namespace PixivWPF.Pages
         {
             reportAction = null;
             Dispose();
+        }
+
+        private void Page_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.XButton1 == MouseButtonState.Pressed || e.RightButton == MouseButtonState.Pressed)
+            {
+                try
+                {
+                    if (Clipboard.ContainsText())
+                    {
+                        var folder = Clipboard.GetText();
+                        if (Directory.Exists(folder)) { InitBatchJob(folder); }
+                    }
+                }
+                catch (Exception ex) { ex.ERROR("BatchProcessPage_MouseDown"); }
+            }
         }
 
         private void PART_SelectFolder_Click(object sender, RoutedEventArgs e)
@@ -275,14 +332,7 @@ namespace PixivWPF.Pages
 
             if (dlg.ShowDialog(ParentWindow) == CommonFileDialogResult.Ok)
             {
-                Contents = dlg.FileName;
-                PART_FolderName.Text = Contents;
-                //Title = $"Touching {System.IO.Path.GetFileName(Contents)} ..";
-                Title = $"Touching {Contents}";
-                ParentWindow.Title = Title;
-                Application.Current.UpdateContentWindows(ParentWindow as ContentWindow, title: Title);
-                PART_TouchStart.IsEnabled = true;
-                PART_TouchCancel.IsEnabled = false;
+                InitBatchJob(dlg.FileName);
             }
         }
 
@@ -290,9 +340,12 @@ namespace PixivWPF.Pages
         {
             if (Directory.Exists(Contents))
             {
+                State = TaskStatus.WaitingToRun;
+                PART_Progress.Value = 0;
                 PART_TouchStart.IsEnabled = false;
                 PART_TouchCancel.IsEnabled = true;
-                Recursion = PART_Recursion.IsChecked.Value;
+                Recursion = PART_Recursion.IsChecked ?? false;
+                ReduceSize = PART_ReduceSize.IsChecked ?? false;
                 BatchProcessTask.RunWorkerAsync(Keyboard.Modifiers == ModifierKeys.Shift ? true : false);
             }
         }
@@ -318,6 +371,34 @@ namespace PixivWPF.Pages
             {
                 PART_ProcessLog.Clear();
                 progressLog.Clear();
+            }
+        }
+
+        private void PART_ProcessLog_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.XButton1 == MouseButtonState.Pressed || e.MiddleButton == MouseButtonState.Pressed)
+            {
+                try
+                {
+                    e.Handled = true;
+                    var lines = PART_ProcessLog.Text.Split(Application.Current.GetLineBreak(), StringSplitOptions.RemoveEmptyEntries);
+                    if (lines.Length > 0)
+                    {
+                        var max_len = lines.Max(l => l.Length);
+                        var count = $"{InfoList.Count}".Length;
+                        var logs = new List<string>();
+                        var log_s = InfoList.Where(i => i.State == TaskStatus.RanToCompletion).OrderBy(i => i.Current).Select(i => $"[{($"{i.Current}".PadLeft(count))} / {($"{i.Total}".PadLeft(count))}] {i.Result}");
+                        var log_f = InfoList.Where(i => i.State != TaskStatus.RanToCompletion).OrderBy(i => i.Current).Select(i => $"[{($"{i.Current}".PadLeft(count))} / {($"{i.Total}".PadLeft(count))}] {i.Result}");
+                        logs.Add("".PadRight(max_len, '='));
+                        logs.AddRange(log_s);
+                        if (log_s.Count() > 0 && log_f.Count() > 0) logs.Add("".PadRight(max_len, '-'));
+                        logs.AddRange(log_f);
+                        logs.Add("".PadRight(max_len, '='));
+                        var log = string.Join(Environment.NewLine, logs);
+                        Clipboard.SetText(log);
+                    }
+                }
+                catch (Exception ex) { ex.ERROR("BatchProcessPage_LOG_MouseDown"); }
             }
         }
     }

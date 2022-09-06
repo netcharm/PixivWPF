@@ -64,6 +64,12 @@ namespace PixivWPF.Common
         public static string LoginTitle(this Application app) { return (strLoginTitle); }
         public static string strPediaTitle { get; } = "PixivPedia";
         public static string PediaTitle(this Application app) { return (strPediaTitle); }
+
+        public static string[] LineBreak { get; private set; } = new string[] { Environment.NewLine, "\r\n", "\n\r", "\n", "\r" };
+        public static string[] GetLineBreak(this Application app)
+        {
+            return (LineBreak);
+        }
         #endregion
 
         #region Application Setting Helper
