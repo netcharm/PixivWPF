@@ -61,6 +61,7 @@ namespace ImageApplets.Applets
             result = default(T);
             try
             {
+                var _WindowSize_ = (args.Length > 0 && args[0] is int) ? (int)args[0] : WindowSize;
                 if (source is Stream && source.CanRead)
                 {
                     var status = false;
@@ -82,7 +83,7 @@ namespace ImageApplets.Applets
                             var bmp = new Bitmap(image);
                             var w = bmp.Width;
                             var h = bmp.Height;
-                            var m = WindowSize;
+                            var m = _WindowSize_;
                             var mt = Math.Ceiling(m * m / 2.0);
                             var lt = GetMatrix(bmp, 0, 0, m, m).Count(c => c.A < 255);
                             var rt = GetMatrix(bmp, w - m, 0, m, m).Count(c => c.A < 255);

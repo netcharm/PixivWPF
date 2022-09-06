@@ -122,7 +122,7 @@ namespace ImageApplets
         {
             var extras = Options.Parse(args);
         }
-
+    
         public virtual bool Execute<T>(string file, out T result, params object[] args)
         {
             bool ret = false;
@@ -168,6 +168,32 @@ namespace ImageApplets
             }
             catch(Exception ex) { MessageBox.Show(ex.Message); }
             return (ret);
+        }
+
+        public virtual IEnumerable<FileInfo> Execute(IEnumerable<FileInfo> files, STATUS status = STATUS.Yes, params object[] args)
+        {
+            Status = status;
+            var infolist = new List<FileInfo>();
+            foreach (var file in files)
+            {
+                bool result = false;
+                var ret = Execute(file.FullName, out result, args);
+                if (ret) infolist.Add(file);
+            }
+            return (infolist);
+        }
+
+        public virtual IEnumerable<string> Execute(IEnumerable<string> files, STATUS status = STATUS.Yes, params object[] args)
+        {
+            Status = status;
+            var infolist = new List<string>();
+            foreach (var file in files)
+            {
+                bool result = false;
+                var ret = Execute(file, out result, args);
+                if (ret) infolist.Add(file);
+            }
+            return (infolist);
         }
     }
 }
