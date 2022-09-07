@@ -25,8 +25,11 @@ namespace ImageAppletsCLI
 
         public static void Main(string[] args)
         {
-            //Console.WriteLine(args[0]);
-            //Console.WriteLine(string.Join(Environment.NewLine, args));
+            MyMain(args);
+        }
+
+        private static async void MyMain(string[] args)
+        {
             if (args.Length <= 0)
             {
                 if (!Console.IsInputRedirected && !Console.IsOutputRedirected)
@@ -37,79 +40,118 @@ namespace ImageAppletsCLI
                 var applet = ImageApplets.Applet.GetApplet(args[0]);
                 if (applet is ImageApplets.Applet)
                 {
-                    if (args.Length == 1 && !Console.IsInputRedirected && !Console.IsOutputRedirected)
+                    var extras = applet.Options.Parse(args.Skip(1));
+                    if (extras.Count == 0 && !Console.IsInputRedirected && !Console.IsOutputRedirected)
                     {
-                        Console.WriteLine(Help(applet.Name));
+                        #region Out applet help information
+                        Console.Out.WriteLine(Help(applet.Name));
+                        #endregion
                     }
                     else
                     {
-                        var extras = applet.Options.Parse(args.Skip(1));
+                        #region Enum files will be processed from command line
                         var files = new List<string>();
-                        if (Console.IsInputRedirected)
-                        {
-                            var lines = Console.In.ReadToEnd().Split(ImageApplets.Applet.LINE_BREAK, StringSplitOptions.RemoveEmptyEntries);
-                            files.AddRange(lines);
-                        }
-
                         foreach (var extra in extras)
                         {
                             var folder = Path.GetDirectoryName(extra);
                             var pattern = Path.GetFileName(extra);
-#if DEBUG
-                            if (!Console.IsOutputRedirected)
-                            {
-                                Console.WriteLine(Path.IsPathRooted(folder) ? folder : Path.GetFullPath(Path.Combine(WorkPath, folder)));
-                                Console.WriteLine(pattern);
-                            }
-#endif
-                            //files.AddRange(Directory.GetFiles(Path.IsPathRooted(folder) ? folder : Path.GetFullPath(Path.Combine(WorkPath, folder)), pattern));
                             folder = Path.IsPathRooted(folder) ? folder : Path.Combine(".", folder);
                             if (Directory.Exists(folder))
                             {
                                 files.AddRange(Directory.GetFiles(folder, pattern));
                             }
                         }
-#if DEBUG
+                        #endregion
+
+                        #region Out result header
+                        var max_len = 72;
                         if (!Console.IsOutputRedirected)
                         {
-                            Console.WriteLine("".PadRight(LINE_COUNT, '~'));
-                            Console.WriteLine(string.Join(Environment.NewLine, files));
-                            Console.WriteLine("".PadRight(LINE_COUNT, '~'));
+                            Console.Out.WriteLine("Results");
+                            Console.Out.WriteLine("".PadRight(Math.Min(LINE_COUNT, max_len + 8), '-'));
                         }
-#endif
-                        if (files.Count > 0)
+                        #endregion
+
+                        #region Fetch files from stdin when input redirected
+                        if (Console.IsInputRedirected)
                         {
-                            var max_len = files.Max(f => f.Length);
-                            if (!Console.IsOutputRedirected)
+                            if (applet.ReadInputMode == ImageApplets.ReadMode.ALL)
                             {
-                                Console.WriteLine("Results");
-                                Console.WriteLine("".PadRight(Math.Max(LINE_COUNT, max_len + 10), '-'));
+                                var lines = (await Console.In.ReadToEndAsync()).Split(ImageApplets.Applet.LINE_BREAK, StringSplitOptions.RemoveEmptyEntries);
+                                files.AddRange(lines);
+                                //max_len = files.Count > 0 ? files.Max(f => f.Length) : 64;
                             }
-                            foreach (var file in files)
+                            else if (applet.ReadInputMode == ImageApplets.ReadMode.LINE)
                             {
-                                dynamic result = null;
-                                var ret = applet.Execute(file, out result, extras.Skip(1));
-                                if (ret)
+                                while (Console.IsInputRedirected)
                                 {
-                                    if (Console.IsOutputRedirected)
-                                        Console.Out.WriteLine($"{(file.StartsWith(".\\") ? file.Substring(2) : file)}");
-                                    else
-                                        Console.WriteLine($"{(file.StartsWith(".\\") ? file.Substring(2) : file).PadRight(max_len + 1)} \t: {($"{result}").PadLeft(5)}");
+                                    var line = await Console.In.ReadLineAsync();
+                                    //var line = Console.In.ReadLine();
+                                    if (string.IsNullOrEmpty(line)) break;
+                                    RunApplet(line, applet, max_len, extras.ToArray());
+                                    System.Threading.Thread.Sleep(25);
                                 }
                             }
-                            if (Console.IsOutputRedirected)
-                                Console.Out.Close();
-                            else
-                                Console.WriteLine("".PadRight(Math.Max(LINE_COUNT, max_len + 10), '-'));
+                            Console.In.Close();
                         }
+                        #endregion
+
+                        #region Runing applet
+                        if (files.Count > 0)
+                        {
+                            RunApplet(files, applet, max_len, extras.ToArray());
+                        }
+                        #endregion
+
+                        #region Out result footer
+                        if (Console.IsOutputRedirected)
+                            Console.Out.Close();
+                        else
+                            Console.Out.WriteLine("".PadRight(Math.Min(LINE_COUNT, max_len + 8), '-'));
+                        #endregion
                     }
                 }
                 else
                 {
+                    #region Out full help information
                     if (!Console.IsOutputRedirected)
                     {
-                        Console.WriteLine(Help());
+                        Console.Out.WriteLine(Help());
                     }
+                    #endregion
+                }
+            }
+        }
+
+        private static void RunApplet(string file, ImageApplets.Applet applet, int padding, params string[] extras)
+        {
+            try
+            {
+                dynamic result = null;
+                if (applet is ImageApplets.Applet)
+                {
+                    applet.ValuePaddingLeft = Math.Max(padding + 3, 4);
+                    var ret = applet.Execute(file, out result, extras.Skip(1));
+                    if (ret)
+                    {
+                        var folder = Path.GetDirectoryName(file);
+                        if (Console.IsOutputRedirected)
+                            Console.Out.WriteLine($"{(folder.Equals(".") ? file.Substring(2) : file)}");
+                        else
+                            Console.Out.WriteLine($"{(folder.Equals(".") ? file.Substring(2) : file).PadRight(Math.Max(padding, 1))} : {($"{result}").PadLeft(5)}");
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private static void RunApplet(IEnumerable<string> files, ImageApplets.Applet applet, int padding, params string[] extras)
+        {
+            if (files is IEnumerable<string>)
+            {
+                foreach (var file in files)
+                {
+                    RunApplet(file, applet, padding, extras);
                 }
             }
         }
@@ -124,27 +166,26 @@ namespace ImageAppletsCLI
                     Console.WriteLine($"Usage: {AppName} <Applet> [OPTIONS]+ <ImageFile(s)>");
                     Console.WriteLine("Options:");
                     Options.WriteOptionDescriptions(sw);
-                    var applets = ImageApplets.Applet.GetApplets();
-                    if (applets.Count() > 0)
+                    var applet_names = ImageApplets.Applet.GetApplets();
+                    if (applet_names.Count() > 0)
                     {
                         sw.WriteLine($"".PadRight(LINE_COUNT, '='));
-                        if (string.IsNullOrEmpty(applet_name) || applets.Count(a => a.Equals(applet_name, StringComparison.CurrentCultureIgnoreCase)) <= 0)
+                        if (string.IsNullOrEmpty(applet_name) || applet_names.Count(a => a.Equals(applet_name, StringComparison.CurrentCultureIgnoreCase)) <= 0)
                         {
                             sw.WriteLine($"Applets:");
                             sw.WriteLine($"".PadRight(LINE_COUNT, '-'));
+                            var applets = applet_names.Select(a => ImageApplets.Applet.GetApplet(a)).OrderBy(a => a.Category);
                             foreach (var applet in applets)
                             {
-                                //sw.WriteLine($"{indent}{applet}");
-                                var instance = ImageApplets.Applet.GetApplet(applet);
-                                if (instance is ImageApplets.Applet)
-                                    sw.WriteLine(instance.Help());
-                                if (applet != applets.Last())
+                                if (applet is ImageApplets.Applet)
+                                    sw.WriteLine(applet.Help());
+                                if (!applet.Name.Equals(applets.Last().Name))
                                     sw.WriteLine($"".PadRight(LINE_COUNT, '-'));
                             }
                         }
                         else
                         {
-                            applet_name = applets.Where(a => a.Equals(applet_name, StringComparison.CurrentCultureIgnoreCase)).First();
+                            applet_name = applet_names.Where(a => a.Equals(applet_name, StringComparison.CurrentCultureIgnoreCase)).First();
                             var instance = ImageApplets.Applet.GetApplet(applet_name);
                             if (instance is ImageApplets.Applet)
                                 sw.WriteLine(instance.Help());
