@@ -827,7 +827,7 @@ namespace PixivWPF.Common
 
         public static string ParseID(this string searchContent)
         {
-            var patten =  @"((UserID)|(IllustID)|(User)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)|(Downloading)):\s*(.*?)$";
+            var patten =  @"((UserID|PID)|(IllustID)|(User)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)|(Downloading))[：:]\s*(.*?)$";
             string result = searchContent;
             if (!string.IsNullOrEmpty(result))
             {
@@ -844,7 +844,7 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    if (Regex.IsMatch(result, @"((UserID)|(IllustID)):( )*(\d+)", RegexOptions.IgnoreCase))
+                    if (Regex.IsMatch(result, @"(UserID|PID)|(IllustID)[：:]( )*(\d+)", RegexOptions.IgnoreCase))
                         result = result.Trim();
 
                     else if (Regex.IsMatch(result, @"(.*?/artworks?/)(\d+)(.*)", RegexOptions.IgnoreCase))
@@ -880,7 +880,7 @@ namespace PixivWPF.Common
                     else if (Regex.IsMatch(Path.GetFileNameWithoutExtension(result), @"^((\d+)(_((p)|(ugoira))*\d+(x\d+)?)*)"))
                         result = Regex.Replace(Path.GetFileNameWithoutExtension(result), @"(.*?(\d+)(_((p)|(ugoira))*\d+(x\d+)?)*.*)", "$2", RegexOptions.IgnoreCase);
 
-                    else if (!Regex.IsMatch(result, @"((UserID)|(User)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", RegexOptions.IgnoreCase))
+                    else if (!Regex.IsMatch(result, @"((UserID|PID)|(User)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", RegexOptions.IgnoreCase))
                         result = $"Fuzzy: {result}";
                 }
                 catch (Exception ex) { ex.ERROR("ParseLink"); link.ERROR("ParseLink"); }
@@ -975,20 +975,20 @@ namespace PixivWPF.Common
                 mr.Add(Regex.Matches(content, @"^((illust|illusts|artworks)/(\d+))", opt));
                 mr.Add(Regex.Matches(content, @"^((users?)/(\d+))", opt));
 
-                mr.Add(Regex.Matches(content, @"^((u?id):[ ]*(\d+)+)", opt));
+                mr.Add(Regex.Matches(content, @"^(([pu]?id)[：:][ ]*(\d+)+)", opt));
                 mr.Add(Regex.Matches(content, @"^((user|fuzzy|tag|title):[ ]*(.+)+)", opt));
 
                 mr.Add(Regex.Matches(content, @"(Searching\s)(.*?)$", opt));
 
                 mr.Add(Regex.Matches(content, @"(Preview\sID:\s)(\d+),(.*?)$", opt));
 
-                mr.Add(Regex.Matches(content, @"(ID:\s)(\d+),(.*?)$", opt));
+                mr.Add(Regex.Matches(content, @"(ID[：:]\s)(\d+),(.*?)$", opt));
 
                 mr.Add(Regex.Matches(content, @"(User:\s)(.*?)\s/\s(\d+)\s/\s(.*?)$", opt));
 
                 mr.Add(Regex.Matches(content, @"((down(all)?|Downloading):\s?.*?)$", opt));
 
-                if (!Regex.IsMatch(content, @"^((https?)|(<a)|(href=)|(src=)|(id:)|(uid:)|(tag:)|(user:)|(title:)|(fuzzy:)|(down(all|load(ing)?)?:)|(illust/)|(illusts/)|(artworks/)|(user/)|(users/)).*?", opt))
+                if (!Regex.IsMatch(content, @"^((https?)|(<a)|(href=)|(src=)|(id:)|([pu]id[：:])|(tag:)|(user:)|(title:)|(fuzzy:)|(down(all|load(ing)?)?:)|(illust/)|(illusts/)|(artworks/)|(user/)|(users/)).*?", opt))
                 {
                     try
                     {
@@ -1100,7 +1100,7 @@ namespace PixivWPF.Common
                         var a_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={id}";
                         if (!string.IsNullOrEmpty(a_link) && !links.Contains(a_link) && !links.Contains(a_link_o)) links.Add(a_link);
                     }
-                    else if (link.StartsWith("uid:", StringComparison.CurrentCultureIgnoreCase))
+                    else if (Regex.IsMatch(link, @"^[pu]id[：:] *?\d+", RegexOptions.IgnoreCase))
                     {
                         var id = link.Substring(4).Trim();
                         var u_link = id.ArtistLink();
@@ -4212,7 +4212,7 @@ namespace PixivWPF.Common
             {
                 if (src is Stream && src.CanRead && src.Length > 0)
                 {
-                    src.Seek(0, SeekOrigin.Begin);
+                    if (src.CanSeek) src.Seek(0, SeekOrigin.Begin);
                     result = new ExifData(src);
                     if (result is ExifData && result.ImageType == ImageType.Png)
                     {
@@ -6445,8 +6445,10 @@ namespace PixivWPF.Common
 
                     using (var mi = new MemoryStream(buffer))
                     {
-                        var exif_in = GetExifData(mi);
-                        if (exif_in is ExifData && (exif_in.ImageType != ImageType.Jpeg || exif_in.JpegQuality > quality))
+                        ExifData exif_in = null;
+                        using (var exif_ms = new MemoryStream(buffer)) { exif_in = GetExifData(exif_ms); }
+                        if (mi.CanSeek) mi.Seek(0, SeekOrigin.Begin);
+                        if (exif_in == null || (exif_in is ExifData && (exif_in.ImageType != ImageType.Jpeg || exif_in.JpegQuality > quality)))
                         {
                             using (var mo = new MemoryStream())
                             {
@@ -6496,8 +6498,10 @@ namespace PixivWPF.Common
                         {
                             using (var msi = new MemoryStream(File.ReadAllBytes(file)))
                             {
-                                var exif_in = GetExifData(msi, dm);
-                                if (exif_in is ExifData && (exif_in.ImageType != ImageType.Jpeg || exif_in.JpegQuality > quality))
+                                ExifData exif_in = null;
+                                using (var exif_ms = new MemoryStream()) { await msi.CopyToAsync(exif_ms); exif_in = GetExifData(exif_ms); }
+                                if (msi.CanSeek) msi.Seek(0, SeekOrigin.Begin);
+                                if (exif_in == null || (exif_in is ExifData && (exif_in.ImageType != ImageType.Jpeg || exif_in.JpegQuality > quality)))
                                 {
                                     using (var msp = new MemoryStream(msi.ToArray().ConvertImageTo(fmt, quality: quality)))
                                     {
