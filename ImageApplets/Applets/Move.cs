@@ -20,20 +20,15 @@ namespace ImageApplets.Applets
         private bool OverWrite = false;
         public Move()
         {
+            Category = AppletCategory.FileOP;
+
             var opts = new OptionSet()
             {
-                { "d|folder=", "Target Folder", v => { TargetFolder = v != null ? v : "."; } },
+                { "d|folder=", "Target {Folder}", v => { TargetFolder = v != null ? v : "."; } },
                 { "o|overwrite", "Overwrite Exists File", v => { OverWrite = v != null ? true : false; } },
+                { "" },
             };
-
-            foreach (var opt in opts.Reverse())
-            {
-                try
-                {
-                    Options.Insert(1, opt);
-                }
-                catch(Exception ex) { ShowMessage(ex); }
-            }
+            AppendOptions(opts);
         }
 
         public override bool Execute<T>(string file, out T result, params object[] args)
@@ -62,18 +57,8 @@ namespace ImageApplets.Applets
                         status = true;
                     }
                 }
-                switch (Status)
-                {
-                    case STATUS.Yes:
-                        ret = status;
-                        break;
-                    case STATUS.No:
-                        ret = !status;
-                        break;
-                    default:
-                        ret = true;
-                        break;
-                }
+
+                ret = GetReturnValueByStatus(status);
                 result = (T)(object)status;
             }
             catch (Exception ex) { ShowMessage(ex, Name); }

@@ -17,6 +17,11 @@ namespace ImageApplets.Applets
             return (new HasExif());
         }
 
+        public HasExif()
+        {
+            Category = AppletCategory.ImageContent;
+        }
+
         public override bool Execute<T>(ExifData exif, out T result, params object[] args)
         {
             var ret = false;
@@ -28,18 +33,8 @@ namespace ImageApplets.Applets
                     var status = false;
                     if (exif.ImageFileBlockExists(ImageFileBlock.Exif)) status = true;
                     else if (exif.ImageFileBlockExists(ImageFileBlock.Xmp)) status = true;
-                    switch (Status)
-                    {
-                        case STATUS.Yes:
-                            ret = status;
-                            break;
-                        case STATUS.No:
-                            ret = !status;
-                            break;
-                        default:
-                            ret = true;
-                            break;
-                    }
+
+                    ret = GetReturnValueByStatus(status);
                     result = (T)(object)status;
                 }
             }

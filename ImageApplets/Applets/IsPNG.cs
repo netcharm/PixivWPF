@@ -16,6 +16,11 @@ namespace ImageApplets.Applets
             return (new IsPNG());
         }
 
+        public IsPNG()
+        {
+            Category = AppletCategory.ImageType;
+        }
+
         public override bool Execute<T>(Stream source, out T result, params object[] args)
         {
             var ret = false;
@@ -33,18 +38,8 @@ namespace ImageApplets.Applets
                             status = true;
                         }
                     }
-                    switch (Status)
-                    {
-                        case STATUS.Yes:
-                            ret = status;
-                            break;
-                        case STATUS.No:
-                            ret = !status;
-                            break;
-                        default:
-                            ret = true;
-                            break;
-                    }
+
+                    ret = GetReturnValueByStatus(status);
                     result = (T)(object)status;
                 }
             }

@@ -23,19 +23,14 @@ namespace ImageApplets.Applets
         private int WindowSize = 3;
         public HasAlpha()
         {
+            Category = AppletCategory.ImageContent;
+
             var opts = new OptionSet()
             {
-                { "m|w|matrix|window=", "Matrix Window {SIZE}", v => { if (v != null) int.TryParse(v, out WindowSize); } },
+                { "m|w|matrix|window=", "Matrix Window {Size}", v => { if (v != null) int.TryParse(v, out WindowSize); } },
+                { "" },
             };
-
-            foreach (var opt in opts.Reverse())
-            {
-                try
-                {
-                    Options.Insert(1, opt);
-                }
-                catch (Exception ex) { ShowMessage(ex); }
-            }
+            AppendOptions(opts);
         }
 
         private Color[] GetMatrix(Bitmap bmp, int x, int y, int w, int h)
@@ -94,18 +89,8 @@ namespace ImageApplets.Applets
                             }
                         }
                     }
-                    switch (Status)
-                    {
-                        case STATUS.Yes:
-                            ret = status;
-                            break;
-                        case STATUS.No:
-                            ret = !status;
-                            break;
-                        default:
-                            ret = true;
-                            break;
-                    }
+
+                    ret = GetReturnValueByStatus(status);
                     result = (T)(object)status;
                 }
             }

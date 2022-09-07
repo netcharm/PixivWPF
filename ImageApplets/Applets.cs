@@ -12,9 +12,13 @@ using CompactExifLib;
 
 namespace ImageApplets
 {
-    public enum CompareMode { EQ, NEQ, GT, LT, GE, LE, VALUE };
+    public enum CompareMode { EQ, NEQ, GT, LT, GE, LE, HAS, NONE, AND, OR, NOT, XOR, BEFORE, PREV, TODAY, NEXT, AFTER, VALUE };
+    public enum DateCompareMode { BEFORE, PREV, TODAY, NEXT, AFTER };
+    public enum DateUnit { DAY, WEEK, MONTH, SEASON, YEAR };
 
+    public enum AppletCategory { FileOP, ImageType, ImageContent, ImageAttribure, Other, Unknown, None }
     public enum STATUS { All, Yes, No, None };
+    public enum ReadMode { ALL, LINE };
 
     public interface IApplet
     {
@@ -23,19 +27,43 @@ namespace ImageApplets
 
     public abstract class Applet: IApplet
     {
+
         private static bool show_help = false;
         static protected STATUS Status { get; set; } = STATUS.All;
+
+        public virtual AppletCategory Category { get; internal protected set; } = AppletCategory.Unknown;
+
+        static private ReadMode _ReadInputMode_ = ReadMode.LINE;
+        public ReadMode ReadInputMode { get { return (_ReadInputMode_); } }
 
         static public string[] LINE_BREAK { get; set; } = new string[] { Environment.NewLine, "\n\r", "\r\n", "\n", "\r" };
 
         public string Name { get { return (this.GetType().Name); } }
+
+        public int ValuePaddingLeft { get; set; } = 0;
+        public int ValuePaddingRight { get; set; } = 0;
 
         public virtual OptionSet Options { get; set; } = new OptionSet()
         {
             { "t|y|true|yes", "Keep True Result", v => { Status = STATUS.Yes; } },
             { "f|n|false|no", "Keep False Result", v => { Status = STATUS.No; } },
             { "a|all", "Keep All", v => { Status = STATUS.All; } },
+            { " " },
+            { "filelist=", "Get Files From {FILE}", v => { if (v != null) Enum.TryParse(v.ToUpper(), out _ReadInputMode_); } },
+            { "read=", "Read Mode {<All|Line>} When Input Redirected", v => { if (v != null) Enum.TryParse(v.ToUpper(), out _ReadInputMode_); } },
         };
+
+        internal protected virtual void AppendOptions(OptionSet opts, int index = 1)
+        {
+            foreach (var opt in opts.Reverse())
+            {
+                try
+                {
+                    Options.Insert(index, opt);
+                }
+                catch (Exception ex) { ShowMessage(ex); }
+            }
+        }
 
         public Applet()
         {
@@ -44,14 +72,7 @@ namespace ImageApplets
                 { $"{Name}" },
             };
 
-            foreach (var opt in opts.Reverse())
-            {
-                try
-                {
-                    Options.Insert(0, opt);
-                }
-                catch (Exception ex) { ShowMessage(ex); }
-            }
+            AppendOptions(opts, 0);
         }
 
         static public IEnumerable<string> GetApplets()
@@ -114,7 +135,7 @@ namespace ImageApplets
                 {
                     if(base.GetType().BaseType == typeof(Applet))
                         Options.WriteOptionDescriptions(sw);
-                    result = string.Join(Environment.NewLine, sw.ToString().Split(LINE_BREAK, StringSplitOptions.None).Select(l => $"{indent}{l}"));
+                    result = string.Join(Environment.NewLine, sw.ToString().Trim().Split(LINE_BREAK, StringSplitOptions.None).Select(l => $"{indent}{l}"));
                 }
             }
             return (result);
@@ -124,7 +145,28 @@ namespace ImageApplets
         {
             var extras = Options.Parse(args);
         }
-    
+
+        public virtual bool GetReturnValueByStatus(dynamic status)
+        {
+            var ret = true;
+            if (status is bool)
+            {
+                switch (Status)
+                {
+                    case STATUS.Yes:
+                        ret = status;
+                        break;
+                    case STATUS.No:
+                        ret = !status;
+                        break;
+                    default:
+                        ret = true;
+                        break;
+                }
+            }
+            return (ret);
+        }
+
         public virtual bool Execute<T>(string file, out T result, params object[] args)
         {
             bool ret = false;
@@ -133,6 +175,7 @@ namespace ImageApplets
             {
                 try
                 {
+                    var fi = new FileInfo(file);
                     using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
                         ret = Execute<T>(fs, out result);

@@ -388,6 +388,11 @@ namespace CompactExifLib
 
         public int JpegQuality { get; private set; } = 0;
 
+        public FileInfo ImageFileInfo { get; set; }
+        public DateTime CreateTime { get; set; }
+        public DateTime LastWriteTime { get; set; }
+        public DateTime LastAccessTime { get; set; }
+
         // Load EXIF data from a JPEG or TIFF file.
         // An exception occurs in the following situations:
         //  •The file does not exist.
@@ -1838,6 +1843,17 @@ namespace CompactExifLib
                 var image = new Magick();
                 JpegQuality = image.GetJPEGImageQuality(ImageStream);
                 if (ImageStream.CanSeek) ImageStream.Seek(0, SeekOrigin.Begin);
+
+                if (ImageStream is FileStream)
+                {
+                    ImageFileInfo = new FileInfo((ImageStream as FileStream).Name);
+                    if (ImageFileInfo is FileInfo)
+                    {
+                        CreateTime = ImageFileInfo.CreationTime;
+                        LastWriteTime = ImageFileInfo.LastWriteTime;
+                        LastAccessTime = ImageFileInfo.LastAccessTime;
+                    }
+                }
             }
             catch { }
             SourceExifStream = ImageStream;

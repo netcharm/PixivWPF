@@ -23,20 +23,15 @@ namespace ImageApplets.Applets
         private CompareMode Mode = CompareMode.VALUE;
         public JpegQuality()
         {
+            Category = AppletCategory.ImageAttribure;
+
             var opts = new OptionSet()
             {
-                { "m|mode=", "Quality Less Then (<=) {Value}", v => { if (v != null) Enum.TryParse(v.ToUpper(), out Mode); } },
-                { "q|quality=", "Quality Equal (=) {Value}", v => { if (v != null) int.TryParse(v, out QualityValue); } },
+                { "m|mode=", "Quality Comparing Mode {<EQ|NEQ|LT|LE|GT|GE|VALUE>}", v => { if (v != null) Enum.TryParse(v.ToUpper(), out Mode); } },
+                { "q|quality=", "Quality Comparing {Value}", v => { if (v != null) int.TryParse(v, out QualityValue); } },
+                { "" },
             };
-
-            foreach (var opt in opts.Reverse())
-            {
-                try
-                {
-                    Options.Insert(1, opt);
-                }
-                catch (Exception ex) { ShowMessage(ex); }
-            }
+            AppendOptions(opts);
         }
 
         public override bool Execute<T>(ExifData exif, out T result, params object[] args)
@@ -49,7 +44,7 @@ namespace ImageApplets.Applets
                 if (exif is ExifData)
                 {
                     dynamic status = 0;
-                    if (exif.ImageType == ImageType.Jpeg)
+                    if (exif.ImageType == CompactExifLib.ImageType.Jpeg)
                     {
                         var quality = exif.JpegQuality;
                         switch (Mode)
@@ -65,18 +60,8 @@ namespace ImageApplets.Applets
                         }
                     }
                     else if (Mode != CompareMode.VALUE) status = false;
-                    switch (Status)
-                    {
-                        case STATUS.Yes:
-                            ret = status;
-                            break;
-                        case STATUS.No:
-                            ret = !status;
-                            break;
-                        default:
-                            ret = true;
-                            break;
-                    }
+
+                    ret = GetReturnValueByStatus(status);
                     result = (T)(object)status;
                 }
             }
