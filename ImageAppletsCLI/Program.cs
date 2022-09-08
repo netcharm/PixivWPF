@@ -40,7 +40,7 @@ namespace ImageAppletsCLI
                 var applet = ImageApplets.Applet.GetApplet(args[0]);
                 if (applet is ImageApplets.Applet)
                 {
-                    var extras = applet.Options.Parse(args.Skip(1));
+                    var extras = applet.ParseOptions(args.Skip(1));
                     if (extras.Count == 0 && !Console.IsInputRedirected && !Console.IsOutputRedirected)
                     {
                         #region Out applet help information
