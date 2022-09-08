@@ -51,45 +51,50 @@ namespace ImageApplets.Applets
                     #endregion
 
                     #region Parsing Date
-                    if (Regex.IsMatch(_text_, @"^(\d{2,4})(/-,\. 年)(\d{1,2})(/-,\. 月)(\d{1,2})日?", RegexOptions.IgnoreCase))
+                    if (Regex.IsMatch(_text_, @"^(\d{2,4})[/\-,\. 年](\d{1,2})[/\-,\. 月](\d{1,2})日?", RegexOptions.IgnoreCase))
                     {
-                        var match = Regex.Match(_text_, @"^(\d{2,4})(/-,\. 年)?(\d{1,2})(/-,\. 月)?(\d{1,2})日?", RegexOptions.IgnoreCase);
+                        var match = Regex.Match(_text_, @"^(\d{2,4})[/-,\. 年](\d{1,2})[/-,\. 月](\d{1,2})日?", RegexOptions.IgnoreCase);
                         if (match.Groups[1].Success) y = Convert.ToInt32(match.Groups[1].Value.Trim());
                         if (match.Groups[2].Success) m = Convert.ToInt32(match.Groups[2].Value.Trim());
                         if (match.Groups[3].Success) d = Convert.ToInt32(match.Groups[3].Value.Trim());
                     }
-                    else if (Regex.IsMatch(_text_, @"^(\d{2,4})(/-,\. 年)(\d{1,2})(/-,\. 月)?", RegexOptions.IgnoreCase))
+                    else if (Regex.IsMatch(_text_, @"^(\d{2,4})[/\-,\. 年](\d{1,2})[/\-,\. 月]?", RegexOptions.IgnoreCase))
                     {
-                        var match = Regex.Match(_text_, @"^(\d{2,4})(/-,\. 年)?(\d{1,2})(/-,\. 月)?", RegexOptions.IgnoreCase);
+                        var match = Regex.Match(_text_, @"^(\d{2,4})[/\-,\. 年](\d{1,2})[/\-,\. 月]?", RegexOptions.IgnoreCase);
                         if (match.Groups[1].Success) y = Convert.ToInt32(match.Groups[1].Value.Trim());
                         if (match.Groups[2].Success) m = Convert.ToInt32(match.Groups[2].Value.Trim());
                     }
-                    else if (Regex.IsMatch(_text_, @"^(\d{1,2})(/-,\. 月)(\d{1,2})日?", RegexOptions.IgnoreCase))
+                    else if (Regex.IsMatch(_text_, @"^(\d{1,2})[/\-,\. 月](\d{1,2})日?", RegexOptions.IgnoreCase))
                     {
-                        var match = Regex.Match(_text_, @"^(\d{1,2})(/-,\. 月)(\d{1,2})日?", RegexOptions.IgnoreCase);
+                        var match = Regex.Match(_text_, @"^(\d{1,2})[/\-,\. 月](\d{1,2})日?", RegexOptions.IgnoreCase);
                         if (match.Groups[1].Success) m = Convert.ToInt32(match.Groups[1].Value.Trim());
                         if (match.Groups[2].Success) d = Convert.ToInt32(match.Groups[2].Value.Trim());
                     }
                     else
                     {
-                        if (Regex.IsMatch(_text_, @"(\d{2,4})(y(ear)?|年)", RegexOptions.IgnoreCase))
+                        if (Regex.IsMatch(_text_, @"(\d{2,4})(y(ear)?|nian|年)", RegexOptions.IgnoreCase))
                         {
-                            var match = Regex.Match(_text_, @"(\d{2,4})(y(ear)?|年)", RegexOptions.IgnoreCase);
+                            var match = Regex.Match(_text_, @"(\d{2,4})(y(ear)?|nian|年)", RegexOptions.IgnoreCase);
                             if (match.Groups[1].Success) y = Convert.ToInt32(match.Groups[1].Value.Trim());
                         }
-                        if (Regex.IsMatch(_text_, @"(\d{1,2})(m(onth)?|月)", RegexOptions.IgnoreCase))
+                        else if (Regex.IsMatch(_text_, @"(\d{4})(y(ear)?|nian|年)?", RegexOptions.IgnoreCase))
                         {
-                            var match = Regex.Match(_text_, @"(\d{1,2})(m(onth)?|月)", RegexOptions.IgnoreCase);
+                            var match = Regex.Match(_text_, @"(\d{4})(y(ear)?|nian|年)?", RegexOptions.IgnoreCase);
+                            if (match.Groups[1].Success) y = Convert.ToInt32(match.Groups[1].Value.Trim());
+                        }
+                        if (Regex.IsMatch(_text_, @"(\d{1,2})(mo(nth)?|yue|月)", RegexOptions.IgnoreCase))
+                        {
+                            var match = Regex.Match(_text_, @"(\d{1,2})(mo(nth)?|yue|月)", RegexOptions.IgnoreCase);
                             if (match.Groups[1].Success) m = Convert.ToInt32(match.Groups[1].Value.Trim());
                         }
-                        if (Regex.IsMatch(_text_, @"(\d{1,2})(d(ay)?|日|号)", RegexOptions.IgnoreCase))
+                        if (Regex.IsMatch(_text_, @"(\d{1,2})(d(ay)?|ri|日|号)", RegexOptions.IgnoreCase))
                         {
-                            var match = Regex.Match(_text_, @"(\d{1,2})(d(ay)?|日|号)", RegexOptions.IgnoreCase);
+                            var match = Regex.Match(_text_, @"(\d{1,2})(d(ay)?|ri|日|号)", RegexOptions.IgnoreCase);
                             if (match.Groups[1].Success) d = Convert.ToInt32(match.Groups[1].Value.Trim());
                         }
-                        if (Regex.IsMatch(_text_, @"(星期|周)?(\d)(w(eek(day)?)?)?", RegexOptions.IgnoreCase))
+                        if (Regex.IsMatch(_text_, @"(星期|周|zhou|xq)?(\d)(w(eek(day)?)?)?", RegexOptions.IgnoreCase))
                         {
-                            var match = Regex.Match(_text_, @"(星期|周)?(\d)(w(eek(day)?)?)?", RegexOptions.IgnoreCase);
+                            var match = Regex.Match(_text_, @"(星期|周|zhou|xq)?(\d)(w(eek(day)?)?)?", RegexOptions.IgnoreCase);
                             if ((match.Groups[1].Success || match.Groups[3].Success) && match.Groups[2].Success) w = Convert.ToInt32(match.Groups[2].Value.Trim());
                         }
                     }
@@ -126,9 +131,9 @@ namespace ImageApplets.Applets
                             var match = Regex.Match(_text_, @"(\d{1,2})(h(our)?|点|小?时)", RegexOptions.IgnoreCase);
                             if (match.Groups[1].Success) h = Convert.ToInt32(match.Groups[1].Value.Trim());
                         }
-                        if (Regex.IsMatch(_text_, @"(\d{1,2})(min(ute)?|分钟?)", RegexOptions.IgnoreCase))
+                        if (Regex.IsMatch(_text_, @"(\d{1,2})(n|min(ute)?|分钟?)", RegexOptions.IgnoreCase))
                         {
-                            var match = Regex.Match(_text_, @"(\d{1,2})(min(ute)?|分钟?)", RegexOptions.IgnoreCase);
+                            var match = Regex.Match(_text_, @"(\d{1,2})(n|min(ute)?|分钟?)", RegexOptions.IgnoreCase);
                             if (match.Groups[1].Success) n = Convert.ToInt32(match.Groups[1].Value.Trim());
                         }
                         if (Regex.IsMatch(_text_, @"(\d{1,2})(s(ec(ond)?)?|秒)", RegexOptions.IgnoreCase))
@@ -542,23 +547,16 @@ namespace ImageApplets.Applets
                         var word = SearchTerm;
                         if(_date_ == null) _date_ = new DateValue(ConvertChineseNumberString(word));
 
-                        if (Mode == CompareMode.VALUE) Mode = CompareMode.HAS;
+                        if (Mode == CompareMode.VALUE) Mode = CompareMode.EQ;
 
                         #region Comparing attribute
                         if (cats.Contains("all"))
                         {
-                            status = status || Compare(title, word);
-                            status = status || Compare(subject, word);
-                            status = status || Compare(keywords, word);
-                            status = status || Compare(comments, word);
-                            status = status || Compare(artist, word);
-                            status = status || Compare(copyright, word);
-                            status = status || Compare(software, word);
-                            status = status || Compare(rate, word);
-                            status = status || Compare(rank, word);
-                            status = status || Compare(date, word);
+                            cats.AddRange(new string[] { "Artist", "Author", "Title", "Suject", "Comment", "Keyword", "Tag", "Copyright", "Software", "Rate", "Date" });
+                            cats = cats.Select(c => c.Trim().ToLower()).Distinct().ToList();
                         }
-                        else if (Mode == CompareMode.AND)
+
+                        if (Mode == CompareMode.AND)
                         {
                             if (cats.Contains("title")) status = status && Compare(title, word);
                             if (cats.Contains("subject")) status = status && Compare(subject, word);
