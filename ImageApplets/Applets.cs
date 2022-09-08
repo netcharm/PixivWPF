@@ -141,7 +141,7 @@ namespace ImageApplets
             return (result);
         }
 
-        public virtual List<string> PharseOptions(IEnumerable<string> args)
+        public virtual List<string> ParseOptions(IEnumerable<string> args)
         {
             return(Options.Parse(args));
         }

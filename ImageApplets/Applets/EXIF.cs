@@ -170,9 +170,9 @@ namespace ImageApplets.Applets
             AppendOptions(opts);
         }
 
-        public override List<string> PharseOptions(IEnumerable<string> args)
+        public override List<string> ParseOptions(IEnumerable<string> args)
         {
-            var extras = base.PharseOptions(args);
+            var extras = base.ParseOptions(args);
 
             _date_ = new DateValue(ConvertChineseNumberString(SearchTerm));
 
