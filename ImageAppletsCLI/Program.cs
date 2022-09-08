@@ -18,6 +18,8 @@ namespace ImageAppletsCLI
         static private int LINE_COUNT = 80;
         static private bool show_help = false;
 
+        static private List<string> _log_ = new List<string>();
+
         public static OptionSet Options { get; set; } = new OptionSet()
         {
             { "h|?|help", "Help", v => { show_help = v != null; } },
@@ -65,11 +67,13 @@ namespace ImageAppletsCLI
 
                         #region Out result header
                         var max_len = 72;
-                        if (!Console.IsOutputRedirected)
+                        if (!Console.IsOutputRedirected || applet.Verbose)
                         {
                             Console.Out.WriteLine("Results");
                             Console.Out.WriteLine("".PadRight(Math.Min(LINE_COUNT, max_len + 8), '-'));
                         }
+                        _log_.Add("Results");
+                        _log_.Add("".PadRight(Math.Min(LINE_COUNT, max_len + 8), '-'));
                         #endregion
 
                         #region Fetch files from stdin when input redirected
@@ -106,9 +110,43 @@ namespace ImageAppletsCLI
                         #region Out result footer
                         if (Console.IsOutputRedirected)
                             Console.Out.Close();
-                        else
+
+                        if (!Console.IsOutputRedirected || applet.Verbose )
                             Console.Out.WriteLine("".PadRight(Math.Min(LINE_COUNT, max_len + 8), '-'));
+
+                        _log_.Add("".PadRight(Math.Min(LINE_COUNT, max_len + 8), '-'));
                         #endregion
+
+                        if (!string.IsNullOrEmpty(applet.OutputFile))
+                        {
+                            var folder = Path.GetDirectoryName(applet.OutputFile);
+                            if (Directory.Exists(string.IsNullOrEmpty(folder) ? "." : folder))
+                            {
+                                using (var fs = new FileStream(applet.OutputFile, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+                                {
+                                    if (fs.CanSeek) fs.Seek(0, SeekOrigin.Begin);
+                                    if (fs.CanWrite)
+                                    {
+                                        var _kvs_ = _log_.Take(_log_.Count - 1).Skip(2).Select(l => 
+                                        {
+                                            var vs = l.Split(':').Select(v => v.Trim());
+                                            var key = vs.First();
+                                            var value = vs.Count() > 1 ? l.Replace(key, "").Trim(new char[] { ' ', ':' }) : string.Empty;
+                                            return (new KeyValuePair<string, string>(key, value));
+                                        });
+                                        var _max_key_lens_ = _kvs_.Max(kv => kv.Key.Length);
+                                        var _max_value_lens_ = _kvs_.Max(kv => kv.Value.Length);
+                                        var _output_lines_ = new List<string> ();
+                                        _output_lines_.Add("Result");
+                                        _output_lines_.Add("".PadRight(_max_value_lens_ <=5 ? _max_key_lens_ + 8 : 80, '='));
+                                        _output_lines_.AddRange(_kvs_.Select(kv => $"{kv.Key.PadRight(_max_key_lens_)} : {kv.Value.Trim().PadLeft(_max_value_lens_ <= 5 ? 5 : 0)}"));
+                                        _output_lines_.Add("".PadRight(_max_value_lens_ <= 5 ? _max_key_lens_ + 8 : 80, '='));
+                                        var bytes = Encoding.UTF8.GetBytes(string.Join(Environment.NewLine, _output_lines_).Trim());
+                                        fs.Write(bytes, 0, bytes.Length);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 else
@@ -135,10 +173,23 @@ namespace ImageAppletsCLI
                     if (ret)
                     {
                         var folder = Path.GetDirectoryName(file);
-                        if (Console.IsOutputRedirected)
-                            Console.Out.WriteLine($"{(folder.Equals(".") ? file.Substring(2) : file)}");
+                        var fname = folder.Equals(".") || folder.StartsWith(".\\") ? file.Substring(2) : file;
+                        var is_contents = result is string && (result as string).StartsWith("\u20D0");
+                        if (is_contents) result = (result as string).Substring(1).Trim();
+                        if (!Console.IsOutputRedirected || applet.Verbose)
+                        {
+                            if (is_contents)
+                                Console.Out.WriteLine($"{fname.PadRight(Math.Max(padding, 1))} : {$"{result}"}");
+                            else
+                                Console.Out.WriteLine($"{fname.PadRight(Math.Max(padding, 1))} : {($"{result}").PadLeft(5)}");
+                        }
                         else
-                            Console.Out.WriteLine($"{(folder.Equals(".") ? file.Substring(2) : file).PadRight(Math.Max(padding, 1))} : {($"{result}").PadLeft(5)}");
+                            Console.Out.WriteLine($"{fname}");
+
+                        if (is_contents)
+                            _log_.Add($"{fname.PadRight(Math.Max(padding, 1))} : {$"{result}"}");
+                        else
+                            _log_.Add($"{fname.PadRight(Math.Max(padding, 1))} : {($"{result}").PadLeft(5)}");
                     }
                 }
             }
