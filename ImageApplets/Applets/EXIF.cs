@@ -12,6 +12,139 @@ namespace ImageApplets.Applets
 {
     class EXIF : Applet
     {
+        internal protected class DateValue
+        {
+            internal protected double y { get; set; } = double.NaN;
+            internal protected double m { get; set; } = double.NaN;
+            internal protected double d { get; set; } = double.NaN;
+            internal protected double w { get; set; } = double.NaN;
+            internal protected double h { get; set; } = double.NaN;
+            internal protected double n { get; set; } = double.NaN;
+            internal protected double s { get; set; } = double.NaN;
+
+            private string _text_ { get; set; } = string.Empty;
+
+            internal protected DateValue(string text)
+            {
+                Parsing(text);
+            }
+
+            internal protected void Parsing(string text)
+            {
+                if (!string.IsNullOrEmpty(text))
+                {
+                    var word = text.Trim();
+                    if (Regex.IsMatch(word, @"/(.+?)/i?", RegexOptions.IgnoreCase))
+                    {
+                        word = word.Trim(new char[] { 'i', '/' });
+                    }
+                    _text_ = word;
+
+                    #region Date Attribures
+                    y = double.NaN;
+                    m = double.NaN;
+                    d = double.NaN;
+                    w = double.NaN;
+                    h = double.NaN;
+                    n = double.NaN;
+                    s = double.NaN;
+                    #endregion
+
+                    #region Parsing Date
+                    if (Regex.IsMatch(_text_, @"^(\d{2,4})(/-,\. 年)(\d{1,2})(/-,\. 月)(\d{1,2})日?", RegexOptions.IgnoreCase))
+                    {
+                        var match = Regex.Match(_text_, @"^(\d{2,4})(/-,\. 年)?(\d{1,2})(/-,\. 月)?(\d{1,2})日?", RegexOptions.IgnoreCase);
+                        if (match.Groups[1].Success) y = Convert.ToInt32(match.Groups[1].Value.Trim());
+                        if (match.Groups[2].Success) m = Convert.ToInt32(match.Groups[2].Value.Trim());
+                        if (match.Groups[3].Success) d = Convert.ToInt32(match.Groups[3].Value.Trim());
+                    }
+                    else if (Regex.IsMatch(_text_, @"^(\d{2,4})(/-,\. 年)(\d{1,2})(/-,\. 月)?", RegexOptions.IgnoreCase))
+                    {
+                        var match = Regex.Match(_text_, @"^(\d{2,4})(/-,\. 年)?(\d{1,2})(/-,\. 月)?", RegexOptions.IgnoreCase);
+                        if (match.Groups[1].Success) y = Convert.ToInt32(match.Groups[1].Value.Trim());
+                        if (match.Groups[2].Success) m = Convert.ToInt32(match.Groups[2].Value.Trim());
+                    }
+                    else if (Regex.IsMatch(_text_, @"^(\d{1,2})(/-,\. 月)(\d{1,2})日?", RegexOptions.IgnoreCase))
+                    {
+                        var match = Regex.Match(_text_, @"^(\d{1,2})(/-,\. 月)(\d{1,2})日?", RegexOptions.IgnoreCase);
+                        if (match.Groups[1].Success) m = Convert.ToInt32(match.Groups[1].Value.Trim());
+                        if (match.Groups[2].Success) d = Convert.ToInt32(match.Groups[2].Value.Trim());
+                    }
+                    else
+                    {
+                        if (Regex.IsMatch(_text_, @"(\d{2,4})(y(ear)?|年)", RegexOptions.IgnoreCase))
+                        {
+                            var match = Regex.Match(_text_, @"(\d{2,4})(y(ear)?|年)", RegexOptions.IgnoreCase);
+                            if (match.Groups[1].Success) y = Convert.ToInt32(match.Groups[1].Value.Trim());
+                        }
+                        if (Regex.IsMatch(_text_, @"(\d{1,2})(m(onth)?|月)", RegexOptions.IgnoreCase))
+                        {
+                            var match = Regex.Match(_text_, @"(\d{1,2})(m(onth)?|月)", RegexOptions.IgnoreCase);
+                            if (match.Groups[1].Success) m = Convert.ToInt32(match.Groups[1].Value.Trim());
+                        }
+                        if (Regex.IsMatch(_text_, @"(\d{1,2})(d(ay)?|日|号)", RegexOptions.IgnoreCase))
+                        {
+                            var match = Regex.Match(_text_, @"(\d{1,2})(d(ay)?|日|号)", RegexOptions.IgnoreCase);
+                            if (match.Groups[1].Success) d = Convert.ToInt32(match.Groups[1].Value.Trim());
+                        }
+                        if (Regex.IsMatch(_text_, @"(星期|周)?(\d)(w(eek(day)?)?)?", RegexOptions.IgnoreCase))
+                        {
+                            var match = Regex.Match(_text_, @"(星期|周)?(\d)(w(eek(day)?)?)?", RegexOptions.IgnoreCase);
+                            if ((match.Groups[1].Success || match.Groups[3].Success) && match.Groups[2].Success) w = Convert.ToInt32(match.Groups[2].Value.Trim());
+                        }
+                    }
+                    if (!double.IsNaN(y) && y <= 0) y = double.NaN;
+                    if (!double.IsNaN(m) && (m <= 0 || m > 12)) m = double.NaN;
+                    if (!double.IsNaN(y) && (d <= 0 || d > 31)) d = double.NaN;
+                    if (!double.IsNaN(m) && (w <= 0 || w > 7)) w = double.NaN;
+                    #endregion
+
+                    #region Parsing Time
+                    if (Regex.IsMatch(_text_, @"(\d{1,2})[点时:](\d{{1,2})[分:](\d{1,2})秒?$", RegexOptions.IgnoreCase))
+                    {
+                        var match = Regex.Match(_text_, @"(\d{1,2})[点时:](\d{{1,2})[分:](\d{1,2})秒?$", RegexOptions.IgnoreCase);
+                        if (match.Groups[1].Success) h = Convert.ToInt32(match.Groups[1].Value.Trim());
+                        if (match.Groups[2].Success) n = Convert.ToInt32(match.Groups[2].Value.Trim());
+                        if (match.Groups[3].Success) s = Convert.ToInt32(match.Groups[3].Value.Trim());
+                    }
+                    else if (Regex.IsMatch(_text_, @"(\d{1,2})[点时:](\d{{1,2})[分:]?$", RegexOptions.IgnoreCase))
+                    {
+                        var match = Regex.Match(_text_, @"(\d{1,2})[点时:](\d{{1,2})[分:]?$", RegexOptions.IgnoreCase);
+                        if (match.Groups[1].Success) h = Convert.ToInt32(match.Groups[1].Value.Trim());
+                        if (match.Groups[2].Success) n = Convert.ToInt32(match.Groups[2].Value.Trim());
+                    }
+                    else if (Regex.IsMatch(_text_, @"(\d{{1,2})[分:](\d{1,2})秒?$", RegexOptions.IgnoreCase))
+                    {
+                        var match = Regex.Match(_text_, @"(\d{{1,2})[分:](\d{1,2})秒?$", RegexOptions.IgnoreCase);
+                        if (match.Groups[1].Success) n = Convert.ToInt32(match.Groups[1].Value.Trim());
+                        if (match.Groups[2].Success) s = Convert.ToInt32(match.Groups[2].Value.Trim());
+                    }
+                    else
+                    {
+                        if (Regex.IsMatch(_text_, @"(\d{1,2})(h(our)?|点|小?时)", RegexOptions.IgnoreCase))
+                        {
+                            var match = Regex.Match(_text_, @"(\d{1,2})(h(our)?|点|小?时)", RegexOptions.IgnoreCase);
+                            if (match.Groups[1].Success) h = Convert.ToInt32(match.Groups[1].Value.Trim());
+                        }
+                        if (Regex.IsMatch(_text_, @"(\d{1,2})(min(ute)?|分钟?)", RegexOptions.IgnoreCase))
+                        {
+                            var match = Regex.Match(_text_, @"(\d{1,2})(min(ute)?|分钟?)", RegexOptions.IgnoreCase);
+                            if (match.Groups[1].Success) n = Convert.ToInt32(match.Groups[1].Value.Trim());
+                        }
+                        if (Regex.IsMatch(_text_, @"(\d{1,2})(s(ec(ond)?)?|秒)", RegexOptions.IgnoreCase))
+                        {
+                            var match = Regex.Match(_text_, @"(\d{1,2})(s(ec(ond)?)?|秒)", RegexOptions.IgnoreCase);
+                            if (match.Groups[1].Success) s = Convert.ToInt32(match.Groups[1].Value.Trim());
+                        }
+                    }
+                    if (!double.IsNaN(y) && (h < 0 || h > 23)) h = double.NaN;
+                    if (!double.IsNaN(m) && (n < 0 || m > 59)) n = double.NaN;
+                    if (!double.IsNaN(y) && (s < 0 || d > 59)) s = double.NaN;
+                    #endregion
+                }
+            }
+        }
+
         public override Applet GetApplet()
         {
             return (new HasExif());
@@ -21,6 +154,7 @@ namespace ImageApplets.Applets
         private string SearchScope = "All";
         private string SearchTerm = string.Empty;
         private CompareMode Mode = CompareMode.VALUE;
+        private DateValue _date_ = null;
 
         public EXIF()
         {
@@ -34,6 +168,15 @@ namespace ImageApplets.Applets
                 { "" },
             };
             AppendOptions(opts);
+        }
+
+        public override List<string> PharseOptions(IEnumerable<string> args)
+        {
+            var extras = base.PharseOptions(args);
+
+            _date_ = new DateValue(ConvertChineseNumberString(SearchTerm));
+
+            return (extras);
         }
 
         private string GetUnicodeString(ExifData exif, ExifTag tag, bool raw = false, bool id = false, bool ignore_endian = true)
@@ -143,6 +286,82 @@ namespace ImageApplets.Applets
             return (result);
         }
 
+        static private Dictionary<string, string> num_chs = new Dictionary<string, string>()
+        {
+            { "一", "1" }, { "二", "2" }, { "三", "3" }, { "四", "4" }, { "五", "5" }, { "六", "6" }, { "七", "7" }, { "八", "8" }, { "九", "9" }, { "零", "0" },
+            { "壹", "1" }, { "贰", "2" }, { "叁", "3" }, { "肆", "4" }, { "伍", "5" }, { "陆", "6" }, { "柒", "7" }, { "捌", "8" }, { "玖", "9" },
+        };
+
+        private string ConvertChineseNumberString(string text)
+        {
+            var result = text;
+
+            foreach (var kv in num_chs)
+            {
+                result = result.Replace(kv.Key, kv.Value); ;
+            }
+            if (result.StartsWith("十")) result = $"1{result}";
+            var matches_w = Regex.Matches(result, @"((\d+)(万|千|百|十)?)+", RegexOptions.IgnoreCase);
+            foreach(Match mw in matches_w)
+            {
+                if (mw.Success)
+                {
+                    var nums = new List<double>();
+                    var last_unit = string.Empty;
+                    var matches_s = Regex.Matches(mw.Value, @"(\d+)(万|千|百|十)?", RegexOptions.IgnoreCase);
+                    foreach (Match ms in matches_s)
+                    {
+                        var factor = 1;
+                        if (ms.Groups[2].Success)
+                        {
+                            if (ms.Groups[2].Value.Equals("万")) factor = 10000;
+                            else if (ms.Groups[2].Value.Equals("千")) factor = 1000;
+                            else if (ms.Groups[2].Value.Equals("百")) factor = 100;
+                            else if (ms.Groups[2].Value.Equals("十")) factor = 10;
+                            last_unit = ms.Groups[2].Value;
+                        }
+                        else
+                        {
+                            if (last_unit.Equals("万")) factor = 1000;
+                            else if (last_unit.Equals("千")) factor = 100;
+                            else if (last_unit.Equals("百")) factor = 10;
+                            else if (last_unit.Equals("十")) factor = 1;
+                        }
+
+                        var num = ms.Groups[1].Success ? Convert.ToInt32(ms.Groups[1].Value) : 1;
+                        nums.Add(num);
+                        nums.Add(factor);
+                    }
+                    var value = .0;
+                    for (var i = 0; i < nums.Count; i += 2)
+                    {
+                        value += nums[i] * nums[i + 1];
+                    }
+                    result = result.Replace(mw.Value, $"{value}");
+                }
+            }
+
+            return (result);
+        } 
+
+        private DateTime? ConvertFromDateValue(DateTime src, DateValue dst)
+        {
+            DateTime? result = null;
+            try
+            {
+                var y = (int)(double.IsNaN(dst.y) ? src.Year : dst.y);
+                var m = (int)(double.IsNaN(dst.m) ? src.Month : dst.m);
+                var d = (int)(double.IsNaN(dst.d) ? src.Day : dst.d);
+                var h = (int)(double.IsNaN(dst.h) ? src.Hour : dst.h);
+                var n = (int)(double.IsNaN(dst.n) ? src.Minute : dst.n);
+                var s = (int)(double.IsNaN(dst.s) ? src.Second : dst.s);
+                var dt = new DateTime(y, m, d, h, n, s);
+                result = dt;
+            }
+            catch { }
+            return (result);
+        }
+
         private dynamic Compare(string text, string word, bool? ignorecase = null)
         {
             if (Mode == CompareMode.VALUE)
@@ -219,162 +438,60 @@ namespace ImageApplets.Applets
 
         private dynamic Compare(DateTime src, string dst)
         {
+            return (Compare(src, new DateValue(ConvertChineseNumberString(dst))));
+        }
+
+        private dynamic Compare(DateTime src, DateValue dst)
+        {
             if (Mode == CompareMode.VALUE)
                 return (src.ToString(DateTimeFormat));
             else
             {
                 var status = false;
-                DateTime dt;
-                var y = double.NaN;
-                var m = double.NaN;
-                var d = double.NaN;
-                var w = double.NaN;
-                var h = double.NaN;
-                var n = double.NaN;
-                var s = double.NaN;
-                var ms = double.NaN;
 
-                if (DateTime.TryParse(dst, out dt))
+                if (dst is DateValue)
                 {
-                    // YYYY-MM-DDTHH:MM:SS
-                    if (Regex.IsMatch(dst, @"^\d{4}(/-, 年)?\d{2}(/-, 月)?\d{2}日?[ T]?\d{2}[点时/,:_- ]\d{2}[分/,:_- ]\d{2}秒?$", RegexOptions.IgnoreCase))
-                    {
-                        y = dt.Year;
-                        m = dt.Month;
-                        d = dt.Day;
-                        h = dt.Hour;
-                        n = dt.Minute;
-                        s = dt.Second;
-                    }
-                    // YYYY-MM-DDTHH:MM
-                    else if (Regex.IsMatch(dst, @"^\d{4}(/-, 年)?\d{2}(/-, 月)?\d{2}日?[ T]?\d{2}[点时/,:_- ]\d{2}分?$", RegexOptions.IgnoreCase))
-                    {
-                        y = dt.Year;
-                        m = dt.Month;
-                        d = dt.Day;
-                        h = dt.Hour;
-                        n = dt.Minute;
-                    }
-                    // YYYY-MM-DDTMM:SSs
-                    else if (Regex.IsMatch(dst, @"^\d{4}(/-, 年)?\d{2}(/-, 月)?\d{2}日?[ T]?\d{2}[分/,:_- ]\d{2}[s秒]$", RegexOptions.IgnoreCase))
-                    {
-                        y = dt.Year;
-                        m = dt.Month;
-                        d = dt.Day;
-                        n = dt.Minute;
-                        s = dt.Second;
-                    }
-                    // YYYY-MM-DDTHHh
-                    else if (Regex.IsMatch(dst, @"^\d{4}(/-, 年)?\d{2}(/-, 月)?\d{2}日?[ T]?\d{2}[h点时]$", RegexOptions.IgnoreCase))
-                    {
-                        y = dt.Year;
-                        m = dt.Month;
-                        d = dt.Day;
-                        h = dt.Hour;
-                    }
-                    // YYYY-MM-DDTMMm
-                    else if (Regex.IsMatch(dst, @"^\d{4}(/-, 年)?\d{2}(/-, 月)?\d{2}日?[ T]?\d{2}[m分]$", RegexOptions.IgnoreCase))
-                    {
-                        y = dt.Year;
-                        m = dt.Month;
-                        d = dt.Day;
-                        n = dt.Minute;
-                    }
-                    // YYYY-MM-DDTSSs
-                    else if (Regex.IsMatch(dst, @"^\d{4}(/-, 年)?\d{2}(/-, 月)?\d{2}日?[ T]?\d{2}[s秒]$", RegexOptions.IgnoreCase))
-                    {
-                        y = dt.Year;
-                        m = dt.Month;
-                        d = dt.Day;
-                        s = dt.Second;
-                    }
+                    var dt = ConvertFromDateValue(src, dst);
+                    var wd = double.IsNaN(dst.w) ? src.DayOfWeek : (DayOfWeek)Enum.Parse(typeof(DayOfWeek), $"{dst.w - 1}");
 
-                    // YYYY-MMTHH:MM:SS
-                    else if (Regex.IsMatch(dst, @"^\d{4}(/-, 年)?\d{2}(/-, 月)?[ T]?\d{2}[点时/,:_- ]\d{2}[分/,:_- ]\d{2}秒?$", RegexOptions.IgnoreCase))
+                    switch (Mode)
                     {
-                        y = dt.Year;
-                        m = dt.Month;
-                        h = dt.Hour;
-                        n = dt.Minute;
-                        s = dt.Second;
+                        case CompareMode.HAS:
+                            if (!double.IsNaN(dst.y)) status = status || dst.y == src.Year;
+                            if (!double.IsNaN(dst.m)) status = status || dst.m == src.Month;
+                            if (!double.IsNaN(dst.d)) status = status || dst.d == src.Day;
+                            if (!double.IsNaN(dst.h)) status = status || dst.h == src.Hour;
+                            if (!double.IsNaN(dst.n)) status = status || dst.n == src.Second;
+                            if (!double.IsNaN(dst.s)) status = status || dst.s == src.Second;
+                            break;
+                        case CompareMode.NEQ:
+                            if (!double.IsNaN(dst.w)) status = src.DayOfWeek != wd;
+                            else status = dt.HasValue && src != dt;
+                            break;
+                        case CompareMode.EQ:
+                            if (!double.IsNaN(dst.w)) status = src.DayOfWeek == wd;
+                            else status = dt.HasValue && src == dt;
+                            break;
+                        case CompareMode.LT:
+                            if (!double.IsNaN(dst.w)) status = src.DayOfWeek < wd;
+                            else status = dt.HasValue && src < dt;
+                            break;
+                        case CompareMode.LE:
+                            if (!double.IsNaN(dst.w)) status = src.DayOfWeek <= wd;
+                            else status = dt.HasValue && src <= dt;
+                            break;
+                        case CompareMode.GT:
+                            if (!double.IsNaN(dst.w)) status = src.DayOfWeek > wd;
+                            else status = dt.HasValue && src > dt;
+                            break;
+                        case CompareMode.GE:
+                            if (!double.IsNaN(dst.w)) status = src.DayOfWeek >= wd;
+                            else status = dt.HasValue && src >= dt;
+                            break;
+                        default:
+                            break;
                     }
-                    // YYYY-MMTHH:MM
-                    else if (Regex.IsMatch(dst, @"^\d{4}(/-, 年)?\d{2}(/-, 月)?[ T]?\d{2}[点时/,:_- ]\d{2}[分/,:_- ]?$", RegexOptions.IgnoreCase))
-                    {
-                        y = dt.Year;
-                        m = dt.Month;
-                        h = dt.Hour;
-                        n = dt.Minute;
-                    }
-                    // YYYY-MMTMM:SSs
-                    else if (Regex.IsMatch(dst, @"^\d{4}(/-, 年)?\d{2}(/-, 月)?[ T]?\d{2}[分/,:_- ]\d{2}[s秒]$", RegexOptions.IgnoreCase))
-                    {
-                        y = dt.Year;
-                        m = dt.Month;
-                        n = dt.Minute;
-                        s = dt.Second;
-                    }
-
-                    // YYYY-DDdTHH:MM:SS
-                    else if (Regex.IsMatch(dst, @"^\d{4}(/-, 年)?\d{2}[d日][ T]?\d{2}[点时/,:_- ]\d{2}[分/,:_- ]\d{2}秒?$", RegexOptions.IgnoreCase))
-                    {
-                        y = dt.Year;
-                        d = dt.Day;
-                        h = dt.Hour;
-                        n = dt.Minute;
-                        s = dt.Second;
-                    }
-                    // YYYY-DDdTHH:MM:SS
-                    else if (Regex.IsMatch(dst, @"^\d{4}(/-, 年)?\d{2}[d日][ T]?\d{2}[点时/,:_- ]\d{2}[分/,:_- ]?$", RegexOptions.IgnoreCase))
-                    {
-                        y = dt.Year;
-                        d = dt.Day;
-                        h = dt.Hour;
-                        n = dt.Minute;
-                    }
-                    else if (Regex.IsMatch(dst, @"^\d{4}(/-, 年)?\d{2}[d日][ T]?\d{2}[分/,:_- ]\d{2}秒?$", RegexOptions.IgnoreCase))
-                    {
-                        y = dt.Year;
-                        d = dt.Day;
-                        n = dt.Minute;
-                        s = dt.Second;
-                    }
-
-                    else if (Regex.IsMatch(dst, @"^\d{4}(/-, 年)?\d{2}(/-, 月)?\d{2}日?[ T]?\d{2}[点时/,:_- ]\d{2}[分/,:_- ]\d{2}秒?$", RegexOptions.IgnoreCase))
-                    {
-                        y = dt.Year;
-                        m = dt.Month;
-                        d = dt.Day;
-                        h = dt.Hour;
-                        n = dt.Minute;
-                        s = dt.Second;
-                    }
-
-                    else if (Regex.IsMatch(dst, @"^\d{4}(/-, 年)?\d{2}[d日][ T]?\d{2}[点时/,:_- ]\d{2}[分/,:_- ]\d{2}秒?$", RegexOptions.IgnoreCase))
-                    {
-                        y = dt.Year;
-                        d = dt.Day;
-                        h = dt.Hour;
-                        n = dt.Minute;
-                        s = dt.Second;
-                    }
-                    else if (Regex.IsMatch(dst, @"^\d{2}(/-, 月)?\d{2}日?[ T]?\d{2}[点时/,:_- ]\d{2}[分/,:_- ]\d{2}秒?$", RegexOptions.IgnoreCase))
-                    {
-                        m = dt.Month;
-                        d = dt.Day;
-                        h = dt.Hour;
-                        n = dt.Minute;
-                        s = dt.Second;
-                    }
-
-                    //else status = Compare(src, dt);
                 }
-                else
-                {
-                    //if (Regex.IsMatch(word.)
-                }
-
-
                 return (status);
             }
         }
@@ -423,6 +540,7 @@ namespace ImageApplets.Applets
                     if (!string.IsNullOrEmpty(SearchTerm))
                     {
                         var word = SearchTerm;
+                        if(_date_ == null) _date_ = new DateValue(ConvertChineseNumberString(word));
 
                         if (Mode == CompareMode.VALUE) Mode = CompareMode.HAS;
 
@@ -498,22 +616,28 @@ namespace ImageApplets.Applets
                             if (cats.Contains("software")) status = status || Compare(software, word);
                             if (cats.Contains("rate")) status = status || Compare(rate, word);
                             if (cats.Contains("rank")) status = status || Compare(rank, word);
-                            if (cats.Contains("date")) status = status || Compare(date, word);
+                            if (cats.Contains("date"))
+                            {
+                                DateTime date_value = default(DateTime);
+                                if (!string.IsNullOrEmpty(date)) DateTime.TryParse(date, out date_value);
+                                status = status || Compare(date_value, _date_);
+                            }
                         }
-                        else if (Mode == CompareMode.LT)
+                        else if (Mode == CompareMode.LT || Mode == CompareMode.LE || Mode == CompareMode.GT || Mode == CompareMode.GE)
                         {
-                            var rate_value = string.IsNullOrEmpty(rate) ? rate : rate.PadLeft(16, '0');
-                            var rank_value = string.IsNullOrEmpty(rank) ? rank : rank.PadLeft(16, '0');
-                            DateTime date_value = default(DateTime);
-                            if (!string.IsNullOrEmpty(date)) DateTime.TryParse(date, out date_value);
                             int word_int;
                             var word_value = int.TryParse(word, out word_int) ? word.PadLeft(16, '0') : word;
 
+                            var rate_value = string.IsNullOrEmpty(rate) ? rate : rate.PadLeft(16, '0');
+                            var rank_value = string.IsNullOrEmpty(rank) ? rank : rank.PadLeft(16, '0');
+ 
                             if (cats.Contains("rate")) status = status || Compare(rate_value, word_value);
                             if (cats.Contains("rank")) status = status || Compare(rank_value, word_value);
                             if (cats.Contains("date"))
                             {
-
+                                DateTime date_value = default(DateTime);
+                                if (!string.IsNullOrEmpty(date)) DateTime.TryParse(date, out date_value);
+                                status = status || Compare(date_value, _date_);
                             }
                         }
                     }
@@ -535,6 +659,10 @@ namespace ImageApplets.Applets
                         status = sb.ToString().Trim();
                     }
                     #endregion
+
+                    //var t = ConvertChineseNumberString("4千30百3");
+                    //var t = ConvertChineseNumberString("四千三百二");
+                    //t = ConvertChineseNumberString("十二月");
 
                     ret = GetReturnValueByStatus(status);
                     result = (T)(object)status;

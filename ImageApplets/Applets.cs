@@ -141,9 +141,9 @@ namespace ImageApplets
             return (result);
         }
 
-        public virtual void PharseOptions(IEnumerable<string> args)
+        public virtual List<string> PharseOptions(IEnumerable<string> args)
         {
-            var extras = Options.Parse(args);
+            return(Options.Parse(args));
         }
 
         public virtual bool GetReturnValueByStatus(dynamic status)
