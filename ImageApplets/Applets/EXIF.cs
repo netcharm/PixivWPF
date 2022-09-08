@@ -644,6 +644,7 @@ namespace ImageApplets.Applets
                     else
                     {
                         StringBuilder sb = new StringBuilder();
+                        sb.Append("\u20D0");
                         if (cats.Contains("title") && !string.IsNullOrEmpty(title)) sb.AppendLine($"{"".PadLeft(ValuePaddingLeft)}{title}");
                         if (cats.Contains("subject") && !string.IsNullOrEmpty(subject)) sb.AppendLine($"{"".PadLeft(ValuePaddingLeft)}{subject}");
                         if (cats.Contains("keywords") && !string.IsNullOrEmpty(keywords)) sb.AppendLine($"{"".PadLeft(ValuePaddingLeft)}{keywords}");
