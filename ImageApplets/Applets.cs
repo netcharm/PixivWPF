@@ -43,12 +43,16 @@ namespace ImageApplets
         public int ValuePaddingLeft { get; set; } = 0;
         public int ValuePaddingRight { get; set; } = 0;
 
+        static private bool _verbose_ = false;
+        public bool Verbose { get { return (_verbose_); } }
+
         public virtual OptionSet Options { get; set; } = new OptionSet()
         {
             { "t|y|true|yes", "Keep True Result", v => { Status = STATUS.Yes; } },
             { "f|n|false|no", "Keep False Result", v => { Status = STATUS.No; } },
             { "a|all", "Keep All", v => { Status = STATUS.All; } },
             { " " },
+            { "v|verbose", "Output All", v => { _verbose_ = v != null ? true : false; } },
             { "filelist=", "Get Files From {FILE}", v => { if (v != null) Enum.TryParse(v.ToUpper(), out _ReadInputMode_); } },
             { "read=", "Read Mode {<All|Line>} When Input Redirected", v => { if (v != null) Enum.TryParse(v.ToUpper(), out _ReadInputMode_); } },
         };
