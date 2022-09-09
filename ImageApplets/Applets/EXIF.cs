@@ -807,12 +807,16 @@ namespace ImageApplets.Applets
                         sb.Append("\u20D0");
                         if (cats.Contains("title") && !string.IsNullOrEmpty(title)) sb.AppendLine($"{padding}{title}");
                         if (cats.Contains("subject") && !string.IsNullOrEmpty(subject)) sb.AppendLine($"{padding}{subject}");
-                        if (cats.Contains("keywords") && !string.IsNullOrEmpty(keywords)) sb.AppendLine($"{padding}{keywords}");
+                        if (cats.Contains("keyword") && !string.IsNullOrEmpty(keywords)) sb.AppendLine($"{padding}{keywords}");
+                        else if (cats.Contains("keywords") && !string.IsNullOrEmpty(keywords)) sb.AppendLine($"{padding}{keywords}");
+                        else if (cats.Contains("tag") && !string.IsNullOrEmpty(keywords)) sb.AppendLine($"{padding}{keywords}");
                         else if (cats.Contains("tags") && !string.IsNullOrEmpty(keywords)) sb.AppendLine($"{padding}{keywords}");
                         if (cats.Contains("comments") && !string.IsNullOrEmpty(comments)) sb.AppendLine($"{padding}{comments}");
                         if (cats.Contains("artist") && !string.IsNullOrEmpty(artist)) sb.AppendLine($"{padding}{artist}");
                         else if (cats.Contains("author") && !string.IsNullOrEmpty(artist)) sb.AppendLine($"{padding}{artist}");
+                        else if (cats.Contains("authors") && !string.IsNullOrEmpty(artist)) sb.AppendLine($"{padding}{artist}");
                         if (cats.Contains("copyright") && !string.IsNullOrEmpty(copyright)) sb.AppendLine($"{padding}{copyright}");
+                        if (cats.Contains("copyrights") && !string.IsNullOrEmpty(copyright)) sb.AppendLine($"{padding}{copyright}");
                         if (cats.Contains("software") && !string.IsNullOrEmpty(software)) sb.AppendLine($"{padding}{software}");
                         if (cats.Contains("rate") && !string.IsNullOrEmpty(rate)) sb.AppendLine($"{padding}{rate}");
                         if (cats.Contains("rank") && !string.IsNullOrEmpty(rank)) sb.AppendLine($"{padding}{rank}");
