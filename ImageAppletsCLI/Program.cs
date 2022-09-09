@@ -35,7 +35,7 @@ namespace ImageAppletsCLI
             if (args.Length <= 0)
             {
                 if (!Console.IsInputRedirected && !Console.IsOutputRedirected)
-                    Console.WriteLine(Help());
+                    Console.WriteLine(ShowHelp());
             }
             else if (args.Length >= 1)
             {
@@ -45,8 +45,8 @@ namespace ImageAppletsCLI
                     var extras = applet.ParseOptions(args.Skip(1));
                     if (extras.Count == 0 && !Console.IsInputRedirected && !Console.IsOutputRedirected)
                     {
-                        #region Out applet help information
-                        Console.Out.WriteLine(Help(applet.Name));
+                        #region Output applet help information
+                        Console.Out.WriteLine(ShowHelp(applet.Name));
                         #endregion
                     }
                     else
@@ -65,7 +65,7 @@ namespace ImageAppletsCLI
                         }
                         #endregion
 
-                        #region Out result header
+                        #region Output result header
                         var max_len = 72;
                         if (!Console.IsOutputRedirected || applet.Verbose)
                         {
@@ -117,45 +117,18 @@ namespace ImageAppletsCLI
                         _log_.Add("".PadRight(Math.Min(LINE_COUNT, max_len + 8), '-'));
                         #endregion
 
+                        #region Save run log to file When applet set output option with filename
                         if (!string.IsNullOrEmpty(applet.OutputFile))
                         {
-                            var folder = Path.GetDirectoryName(applet.OutputFile);
-                            if (Directory.Exists(string.IsNullOrEmpty(folder) ? "." : folder))
-                            {
-                                using (var fs = new FileStream(applet.OutputFile, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
-                                {
-                                    if (fs.CanSeek) fs.Seek(0, SeekOrigin.Begin);
-                                    if (fs.CanWrite)
-                                    {
-                                        var _kvs_ = _log_.Take(_log_.Count - 1).Skip(2).Select(l => 
-                                        {
-                                            var vs = l.Split(':').Select(v => v.Trim());
-                                            var key = vs.First();
-                                            var value = vs.Count() > 1 ? l.Replace(key, "").Trim(new char[] { ' ', ':' }) : string.Empty;
-                                            return (new KeyValuePair<string, string>(key, value));
-                                        });
-                                        var _max_key_lens_ = _kvs_.Max(kv => kv.Key.Length);
-                                        var _max_value_lens_ = _kvs_.Max(kv => kv.Value.Length);
-                                        var _output_lines_ = new List<string> ();
-                                        _output_lines_.Add("Result");
-                                        _output_lines_.Add("".PadRight(_max_value_lens_ <=5 ? _max_key_lens_ + 8 : 80, '='));
-                                        _output_lines_.AddRange(_kvs_.Select(kv => $"{kv.Key.PadRight(_max_key_lens_)} : {kv.Value.Trim().PadLeft(_max_value_lens_ <= 5 ? 5 : 0)}"));
-                                        _output_lines_.Add("".PadRight(_max_value_lens_ <= 5 ? _max_key_lens_ + 8 : 80, '='));
-                                        var bytes = Encoding.UTF8.GetBytes(string.Join(Environment.NewLine, _output_lines_).Trim());
-                                        fs.Write(bytes, 0, bytes.Length);
-                                    }
-                                }
-                            }
+                            SaveLogToFile(applet.OutputFile);
                         }
+                        #endregion
                     }
                 }
                 else
                 {
-                    #region Out full help information
-                    if (!Console.IsOutputRedirected)
-                    {
-                        Console.Out.WriteLine(Help());
-                    }
+                    #region Output full help information
+                    if (!Console.IsOutputRedirected) Console.Out.WriteLine(ShowHelp());
                     #endregion
                 }
             }
@@ -207,7 +180,41 @@ namespace ImageAppletsCLI
             }
         }
 
-        public static string Help(string applet_name = null, string indent = null)
+        private static void SaveLogToFile(string file)
+        {
+            if (!string.IsNullOrEmpty(file))
+            {
+                var folder = Path.GetDirectoryName(file);
+                if (Directory.Exists(string.IsNullOrEmpty(folder) ? "." : folder))
+                {
+                    using (var fs = new FileStream(file, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+                    {
+                        if (fs.CanSeek) fs.Seek(0, SeekOrigin.Begin);
+                        if (fs.CanWrite)
+                        {
+                            var _kvs_ = _log_.Take(_log_.Count - 1).Skip(2).Select(l =>
+                            {
+                                var vs = l.Split(':').Select(v => v.Trim());
+                                var key = vs.First();
+                                var value = vs.Count() > 1 ? l.Replace(key, "").Trim(new char[] { ' ', ':' }) : string.Empty;
+                                return (new KeyValuePair<string, string>(key, value));
+                            });
+                            var _max_key_lens_ = _kvs_.Max(kv => kv.Key.Length);
+                            var _max_value_lens_ = _kvs_.Max(kv => kv.Value.Length);
+                            var _output_lines_ = new List<string> ();
+                            _output_lines_.Add("Result");
+                            _output_lines_.Add("".PadRight(_max_value_lens_ <= 5 ? _max_key_lens_ + 8 : 80, '='));
+                            _output_lines_.AddRange(_kvs_.Select(kv => $"{kv.Key.PadRight(_max_key_lens_)} : {kv.Value.Trim().PadLeft(_max_value_lens_ <= 5 ? 5 : 0)}"));
+                            _output_lines_.Add("".PadRight(_max_value_lens_ <= 5 ? _max_key_lens_ + 8 : 80, '='));
+                            var bytes = Encoding.UTF8.GetBytes(string.Join(Environment.NewLine, _output_lines_).Trim());
+                            fs.Write(bytes, 0, bytes.Length);
+                        }
+                    }
+                }
+            }
+        }
+
+        public static string ShowHelp(string applet_name = null, string indent = null)
         {
             var result = string.Empty;
             if (Options is OptionSet)
