@@ -229,6 +229,8 @@ namespace ImageApplets.Applets
         };
 
         private string[] Categories  = new string[] { "Artist", "Author", "Title", "Suject", "Comment", "Keyword", "Keywords", "Tag", "Tags", "Copyright", "Software", "Rate", "Date", "All" };
+        private string[] ExifAttrs = new string[] { };
+
         private string DateTimeFormat = $"yyyy-MM-dd HH:mm:ss.fffzzz";
         private string DateTimeFormatLocal = $"{CultureInfo.CurrentCulture.DateTimeFormat.LongDatePattern}, ddd";
         private char[] SplitChar = new char[] { '#', ';' };
@@ -253,6 +255,8 @@ namespace ImageApplets.Applets
                 { "" },
             };
             AppendOptions(opts);
+
+            ExifAttrs = Enum.GetNames(typeof(ExifTag));
         }
 
         public override List<string> ParseOptions(IEnumerable<string> args)
@@ -315,7 +319,7 @@ namespace ImageApplets.Applets
             return (result);
         }
 
-        private string GetValueString(ExifData exif, ExifTag tag, bool raw = false)
+        private string GetIntString(ExifData exif, ExifTag tag, bool raw = false)
         {
             var result = string.Empty;
             if (exif is ExifData && exif.TagExists(tag))
@@ -340,6 +344,125 @@ namespace ImageApplets.Applets
                 }
                 catch { }
             }
+            return (result);
+        }
+
+        private string GetTagValue(ExifData exif, string attr)
+        {
+            var result = string.Empty;
+            try
+            {
+                attr = ExifAttrs.Where(a => a.Equals(attr, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
+                if (!string.IsNullOrEmpty(attr))
+                {
+                    var TagSpec = (ExifTag)Enum.Parse(typeof(ExifTag), attr);
+                    if (exif is ExifData && exif.TagExists(TagSpec))
+                    {
+                        result = GetTagValue(exif, TagSpec);
+                    }
+                }
+            }
+            catch { }
+            return (result);
+        }
+
+        private string GetTagValue(ExifData exif, ExifTag TagSpec)
+        {
+            var result = string.Empty;
+            try
+            {
+                if (exif is ExifData && exif.TagExists(TagSpec))
+                {
+                    ExifTagType TagType;
+                    //ExifTagId TagId;
+                    int ValueCount, TagDataIndex;//, TagDataByteCount;
+                    byte[] TagData;
+                    string s = string.Empty;
+
+                    if (exif.GetTagRawData(TagSpec, out TagType, out ValueCount, out TagData, out TagDataIndex))
+                    {
+                        int TagValueCount;
+                        int TagIntValue;
+                        uint TagUIntValue;
+                        ExifRational TagRationalValue;
+
+                        exif.GetTagValueCount(TagSpec, out TagValueCount);
+
+                        if (TagType == ExifTagType.Ascii)
+                        {
+                            exif.GetTagValue(TagSpec, out s, StrCoding.Utf8);
+                        }
+                        else if (TagType == ExifTagType.Byte && TagSpec == ExifTag.XmpMetadata)
+                        {
+                            s = Encoding.UTF8.GetString(TagData);
+                        }
+                        else if ((TagType == ExifTagType.Byte) && ((TagSpec == ExifTag.XpTitle) || (TagSpec == ExifTag.XpComment) || (TagSpec == ExifTag.XpAuthor) ||
+                                 (TagSpec == ExifTag.XpKeywords) || (TagSpec == ExifTag.XpSubject)))
+                        {
+                            exif.GetTagValue(TagSpec, out s, StrCoding.Utf16Le_Byte);
+                        }
+                        else if ((TagType == ExifTagType.Undefined) && (TagSpec == ExifTag.UserComment))
+                        {
+                            exif.GetTagValue(TagSpec, out s, StrCoding.IdCode_Utf16);
+                            s.Trim('\0').TrimEnd();
+                        }
+                        else if ((TagType == ExifTagType.Undefined) && ((TagSpec == ExifTag.ExifVersion) || (TagSpec == ExifTag.FlashPixVersion) ||
+                                 (TagSpec == ExifTag.InteroperabilityVersion)))
+                        {
+                            exif.GetTagValue(TagSpec, out s, StrCoding.UsAscii_Undef);
+                        }
+                        else if ((TagType == ExifTagType.Undefined) && ((TagSpec == ExifTag.SceneType) || (TagSpec == ExifTag.FileSource)))
+                        {
+                            if (TagData.Length > 0) s += TagData[0].ToString();
+                        }
+                        else if ((TagType == ExifTagType.Undefined) && ((TagSpec == ExifTag.MakerNote) || (TagSpec == ExifTag.CameraOwnerName) || (TagSpec == ExifTag.GpsProcessingMethod)))
+                        {
+                            if (TagData.Length > 0) s = Encoding.UTF8.GetString(TagData);
+                            var r = s.Split(new string[]{ "\0" }, StringSplitOptions.RemoveEmptyEntries).Distinct();
+                            s = string.Join(Environment.NewLine, r);
+                        }
+                        else if ((TagType == ExifTagType.Undefined) && ((TagSpec == ExifTag.ComponentsConfiguration)))
+                        {
+                            if (TagData.Length > 0) s = string.Join(", ", TagData.Select(b => $"{b.ToString()}"));
+                            var r = s.Split(new string[]{ "\0" }, StringSplitOptions.RemoveEmptyEntries).Distinct();
+                            s = string.Join(Environment.NewLine, r);
+                        }
+
+                        else if ((TagType == ExifTagType.Undefined) && ((TagSpec == ExifTag.LensMake) || (TagSpec == ExifTag.LensModel)))
+                        {
+                            if (TagData.Length > 0) s = Encoding.UTF8.GetString(TagData);
+                        }
+                        else if ((TagType == ExifTagType.Byte) || (TagType == ExifTagType.UShort) || (TagType == ExifTagType.ULong))
+                        {
+                            for (int i = 0; i < TagValueCount; i++)
+                            {
+                                exif.GetTagValue(TagSpec, out TagIntValue, i);
+                                if (i > 0) s += $", {TagIntValue.ToString()}";
+                                else s = TagIntValue.ToString();
+                            }
+                        }
+                        else if (TagType == ExifTagType.SLong)
+                        {
+                            for (int i = 0; i < TagValueCount; i++)
+                            {
+                                exif.GetTagValue(TagSpec, out TagUIntValue, i);
+                                if (i > 0) s += $", {TagUIntValue.ToString()}";
+                                else s = TagUIntValue.ToString();
+                            }
+                        }
+                        else if ((TagType == ExifTagType.SRational) || (TagType == ExifTagType.URational))
+                        {
+                            for (int i = 0; i < TagValueCount; i++)
+                            {
+                                exif.GetTagValue(TagSpec, out TagRationalValue, i);
+                                if (i > 0) s += $", {TagRationalValue.Numer / TagRationalValue.Denom:F2} [{TagRationalValue.ToString()}]";
+                            }
+                        }
+                        result = s;
+                    }
+                }
+            }
+            catch { }
             return (result);
         }
 
@@ -693,8 +816,8 @@ namespace ImageApplets.Applets
 
                     var software = GetUTF8String(exif, ExifTag.Software);
 
-                    var rate = GetValueString(exif, ExifTag.RatingPercent);
-                    var rank = GetValueString(exif, ExifTag.Rating);
+                    var rate = GetIntString(exif, ExifTag.RatingPercent);
+                    var rank = GetIntString(exif, ExifTag.Rating);
 
                     DateTime? date = GetDateTime(exif, ExifTag.GpsDateStamp);
                     if (date == null) date = GetDateTime(exif, ExifTag.DateTimeOriginal);
@@ -707,6 +830,8 @@ namespace ImageApplets.Applets
                     #endregion
 
                     var cats = SearchScope.Split(',').Select(c => c.Trim().ToLower()).ToList();
+                    var cats_exif = ExifAttrs.Select(a => a.ToLower()).Where(a => cats.Contains(a));
+
                     if (!string.IsNullOrEmpty(SearchTerm))
                     {
                         var word = SearchTerm;
@@ -743,6 +868,16 @@ namespace ImageApplets.Applets
                             if (cats.Contains("rate")) status = (status || cats.Contains("rate")) && Compare(rate, word);
                             if (cats.Contains("rank")) status = (status || cats.Contains("rank")) && Compare(rank, word);
                             if (cats.Contains("date")) status = (status || cats.Contains("date")) && Compare(date_string, word);
+
+                            foreach(var attr in cats_exif)
+                            {
+                                try
+                                {
+                                    var value = GetTagValue(exif, attr);
+                                    if (cats.Contains(attr) && !string.IsNullOrEmpty(value)) status = (status || cats.Contains(attr)) && Compare(value, word);
+                                }
+                                catch { }
+                            }
                         }
                         else if (Mode == CompareMode.OR || Mode == CompareMode.NOT)
                         {
@@ -764,6 +899,17 @@ namespace ImageApplets.Applets
                             if (cats.Contains("rate")) status = status || Compare(rate, word);
                             if (cats.Contains("rank")) status = status || Compare(rank, word);
                             if (cats.Contains("date")) status = status || Compare(date_string, word);
+
+                            foreach (var attr in cats_exif)
+                            {
+                                try
+                                {
+                                    var value = GetTagValue(exif, attr);
+                                    if (cats.Contains(attr) && !string.IsNullOrEmpty(value)) status = status || Compare(value, word);
+                                }
+                                catch { }
+                            }
+
                             if (Mode == CompareMode.NOT) status = !status;
                         }
                         else if (Mode == CompareMode.LT || Mode == CompareMode.LE ||
@@ -798,6 +944,16 @@ namespace ImageApplets.Applets
                             if (cats.Contains("rate")) status = status || Compare(rate_value, word_value);
                             if (cats.Contains("rank")) status = status || Compare(rank_value, word_value);
                             if (cats.Contains("date") && date.HasValue) status = status || Compare(date.Value, _date_);
+
+                            foreach (var attr in cats_exif)
+                            {
+                                try
+                                {
+                                    var value = GetTagValue(exif, attr);
+                                    if (cats.Contains(attr) && !string.IsNullOrEmpty(value)) status = status || Compare(value, word);
+                                }
+                                catch { }
+                            }
                         }
                     }
                     else
@@ -821,6 +977,12 @@ namespace ImageApplets.Applets
                         if (cats.Contains("rate") && !string.IsNullOrEmpty(rate)) sb.AppendLine($"{padding}{rate}");
                         if (cats.Contains("rank") && !string.IsNullOrEmpty(rank)) sb.AppendLine($"{padding}{rank}");
                         if (cats.Contains("date") && !string.IsNullOrEmpty(date_string)) sb.AppendLine($"{padding}{date_string}");
+
+                        foreach (var attr in cats_exif)
+                        {
+                            var value = GetTagValue(exif, attr);
+                            if (!string.IsNullOrEmpty(value)) sb.AppendLine($"{padding}{value}");
+                        }
                         status = sb.ToString().Trim();
                     }
                     #endregion
