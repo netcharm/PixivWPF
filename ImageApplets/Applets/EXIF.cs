@@ -228,7 +228,7 @@ namespace ImageApplets.Applets
             { "壹", "1" }, { "贰", "2" }, { "叁", "3" }, { "肆", "4" }, { "伍", "5" }, { "陆", "6" }, { "柒", "7" }, { "捌", "8" }, { "玖", "9" },
         };
 
-        private string[] Categories  = new string[] { "Artist", "Author", "Title", "Suject", "Comment", "Keyword", "Keywords", "Tag", "Tags", "Copyright", "Software", "Rate", "Date", "All" };
+        private string[] Categories  = new string[] { "Artist", "Author", "Title", "Suject", "Comment", "Comments", "Keyword", "Keywords", "Tag", "Tags", "Copyright", "Software", "Rate", "Date", "All" };
         private string[] ExifAttrs = new string[] { };
 
         private string DateTimeFormat = $"yyyy-MM-dd HH:mm:ss.fffzzz";
@@ -858,6 +858,7 @@ namespace ImageApplets.Applets
                             if (cats.Contains("tag")) status = (status || cats.Contains("tag")) && Compare(keywords, words);
                             if (cats.Contains("tags")) status = (status || cats.Contains("tags")) && Compare(keywords, words);
 
+                            if (cats.Contains("comment")) status = (status || cats.Contains("comment")) && Compare(comments, word);
                             if (cats.Contains("comments")) status = (status || cats.Contains("comments")) && Compare(comments, word);
 
                             if (cats.Contains("artist")) status = (status || cats.Contains("artist")) && Compare(artist, words);
@@ -889,6 +890,7 @@ namespace ImageApplets.Applets
                             if (cats.Contains("tag")) status = status || Compare(keywords, words);
                             if (cats.Contains("tags")) status = status || Compare(keywords, words);
 
+                            if (cats.Contains("comment")) status = status || Compare(comments, word);
                             if (cats.Contains("comments")) status = status || Compare(comments, word);
 
                             if (cats.Contains("artist")) status = status || Compare(artist, words);
@@ -925,6 +927,7 @@ namespace ImageApplets.Applets
                             if (cats.Contains("tag")) status = status || Compare(keywords, words);
                             if (cats.Contains("tags")) status = status || Compare(keywords, words);
 
+                            if (cats.Contains("comment")) status = status || Compare(comments, word);
                             if (cats.Contains("comments")) status = status || Compare(comments, word);
 
                             if (cats.Contains("artist")) status = status || Compare(artist, words);
@@ -967,7 +970,8 @@ namespace ImageApplets.Applets
                         else if (cats.Contains("keywords") && !string.IsNullOrEmpty(keywords)) sb.AppendLine($"{padding}{keywords}");
                         else if (cats.Contains("tag") && !string.IsNullOrEmpty(keywords)) sb.AppendLine($"{padding}{keywords}");
                         else if (cats.Contains("tags") && !string.IsNullOrEmpty(keywords)) sb.AppendLine($"{padding}{keywords}");
-                        if (cats.Contains("comments") && !string.IsNullOrEmpty(comments)) sb.AppendLine($"{padding}{comments}");
+                        if (cats.Contains("comment") && !string.IsNullOrEmpty(comments)) sb.AppendLine($"{padding}{comments}");
+                        else if (cats.Contains("comments") && !string.IsNullOrEmpty(comments)) sb.AppendLine($"{padding}{comments}");
                         if (cats.Contains("artist") && !string.IsNullOrEmpty(artist)) sb.AppendLine($"{padding}{artist}");
                         else if (cats.Contains("author") && !string.IsNullOrEmpty(artist)) sb.AppendLine($"{padding}{artist}");
                         else if (cats.Contains("authors") && !string.IsNullOrEmpty(artist)) sb.AppendLine($"{padding}{artist}");
