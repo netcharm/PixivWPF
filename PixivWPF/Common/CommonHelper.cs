@@ -7021,7 +7021,7 @@ namespace PixivWPF.Common
                 try
                 {
                     setting = Application.Current.LoadSetting();
-                    HttpClient client = Application.Current.GetHttpClient(is_download: false);
+                    HttpClient client = Application.Current.GetHttpClient(is_download: setting.QueryImageSizeAsDownload);
                     using (var request = Application.Current.GetHttpRequest(url))
                     {
                         using (response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancelToken.Token))

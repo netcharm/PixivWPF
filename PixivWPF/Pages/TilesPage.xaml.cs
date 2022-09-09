@@ -187,17 +187,17 @@ namespace PixivWPF.Pages
             {
                 if (ImageTiles.Items.Count > 0)
                 {
-                    foreach(var id_l in ids_last.Take(10))
-                    {
-                        var items = ImageTiles.Items.Where(i => i.ID == $"{id_l}");
-                        if (items.Count() > 0)
-                        {
-                            ImageTiles.SelectedItem = items.First();
-                            ImageTiles.ScrollIntoView(ImageTiles.SelectedItem);
-                            this.DoEvents();
-                            break;
-                        }
-                    }
+                    //foreach(var id_l in ids_last.Take(10))
+                    //{
+                    //    var items = ImageTiles.Items.Where(i => i.ID == $"{id_l}");
+                    //    if (items.Count() > 0)
+                    //    {
+                    //        ImageTiles.SelectedItem = items.First();
+                    //        ImageTiles.ScrollIntoView(ImageTiles.SelectedItem);
+                    //        this.DoEvents();
+                    //        break;
+                    //    }
+                    //}
 
                     if (ImageTiles.SelectedItem == null && !string.IsNullOrEmpty(id))
                     {
@@ -932,11 +932,11 @@ namespace PixivWPF.Pages
             InitPrefetchingTask();
             if (PrefetchingImagesTask is PrefetchingTask) PrefetchingImagesTask.Stop();
 
-            if (ids.Count > 0)
-            {
-                ids_last.Clear();
-                ids_last.AddRange(ids);
-            }
+            //if (ids.Count > 0)
+            //{
+            //    ids_last.Clear();
+            //    ids_last.AddRange(ids);
+            //}
 
             if (TargetPage != target)
             {

@@ -1565,14 +1565,14 @@ namespace PixivWPF.Common
             }
         }
 
-        private int ranking_date_offset = 1;
-        public int RankingDateOffset
+        private bool query_image_size_as_download = true;
+        public bool QueryImageSizeAsDownload
         {
-            get { return (Cache is Setting ? Cache.ranking_date_offset : ranking_date_offset); }
+            get { return (Cache is Setting ? Cache.query_image_size_as_download : query_image_size_as_download); }
             set
             {
-                ranking_date_offset = value;
-                if (Cache is Setting) Cache.ranking_date_offset = ranking_date_offset;
+                query_image_size_as_download = value;
+                if (Cache is Setting) Cache.query_image_size_as_download = query_image_size_as_download;
             }
         }
 
@@ -1595,6 +1595,17 @@ namespace PixivWPF.Common
             {
                 query_image_size_file = value;
                 if (Cache is Setting) Cache.query_image_size_file = query_image_size_file;
+            }
+        }
+
+        private int ranking_date_offset = 1;
+        public int RankingDateOffset
+        {
+            get { return (Cache is Setting ? Cache.ranking_date_offset : ranking_date_offset); }
+            set
+            {
+                ranking_date_offset = value;
+                if (Cache is Setting) Cache.ranking_date_offset = ranking_date_offset;
             }
         }
 
