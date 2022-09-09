@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -14,6 +15,8 @@ namespace ImageApplets.Applets
     {
         internal protected class DateValue
         {
+            private string _text_ { get; set; } = string.Empty;
+
             internal protected double y { get; set; } = double.NaN;
             internal protected double m { get; set; } = double.NaN;
             internal protected double d { get; set; } = double.NaN;
@@ -22,7 +25,71 @@ namespace ImageApplets.Applets
             internal protected double n { get; set; } = double.NaN;
             internal protected double s { get; set; } = double.NaN;
 
-            private string _text_ { get; set; } = string.Empty;
+            internal protected int? Year
+            {
+                get { return ((double.IsNaN(y) ? null : (int?)Math.Max(01, y) % 9999)); }
+            }
+            internal protected int? Month
+            {
+                get { return ((double.IsNaN(m) ? null : (int?)Math.Max(01, m) % 0012)); }
+            }
+            internal protected int? Day
+            {
+                get { return ((double.IsNaN(d) ? null : (int?)Math.Max(01, d) % 0031)); }
+            }
+            internal protected int? Hour
+            {
+                get { return ((double.IsNaN(h) ? null : (int?)Math.Max(00, h) % 0024)); }
+            }
+            internal protected int? Minute
+            {
+                get { return ((double.IsNaN(n) ? null : (int?)Math.Max(00, n) % 0060)); }
+            }
+            internal protected int? Sewcond
+            {
+                get { return ((double.IsNaN(s) ? null : (int?)Math.Max(00, s) % 0060)); }
+            }
+            internal protected DayOfWeek? WeekDay
+            {
+                get { return ((double.IsNaN(w) ? null : (DayOfWeek?)(Math.Max(1, w) % 7))); }
+            }
+
+            private DateTime? _date_ref_ = null;
+            internal protected DateTime Refrence
+            {
+                get { return (_date_ref_ ?? DateTime.Now); }
+            }
+            internal protected DateTime? Date
+            {
+                get { return (GetDateTime(Refrence)); }
+            }
+            internal protected DayOfWeek? DayOfWeek
+            {
+                get { return (GetWeekDay(Refrence)); }
+            }
+
+            internal protected DateTime? GetDateTime(DateTime src)
+            {
+                DateTime? result = null;
+                try
+                {
+                    var dy = (int)(!double.IsNaN(y) ? y : src.Year);
+                    var dm = (int)(!double.IsNaN(m) ? m : src.Month);
+                    var dd = (int)(!double.IsNaN(d) ? d : src.Day);
+                    var dh = (int)(!double.IsNaN(h) ? h : src.Hour);
+                    var dn = (int)(!double.IsNaN(n) ? n : src.Minute);
+                    var ds = (int)(!double.IsNaN(s) ? s : src.Second);
+                    var dt = new DateTime(dy, dm, dd, dh, dn, ds);
+                    result = dt;
+                }
+                catch { }
+                return (result);
+            }
+
+            internal protected DayOfWeek? GetWeekDay(DateTime src)
+            {
+                return ((double.IsNaN(w) ? src.DayOfWeek : (DayOfWeek)Enum.Parse(typeof(DayOfWeek), $"{w - 1}")));
+            }
 
             internal protected DateValue(string text)
             {
@@ -100,8 +167,8 @@ namespace ImageApplets.Applets
                     }
                     if (!double.IsNaN(y) && y <= 0) y = double.NaN;
                     if (!double.IsNaN(m) && (m <= 0 || m > 12)) m = double.NaN;
-                    if (!double.IsNaN(y) && (d <= 0 || d > 31)) d = double.NaN;
-                    if (!double.IsNaN(m) && (w <= 0 || w > 7)) w = double.NaN;
+                    if (!double.IsNaN(d) && (d <= 0 || d > 31)) d = double.NaN;
+                    if (!double.IsNaN(w) && (w <= 0 || w > 07)) w = double.NaN;
                     #endregion
 
                     #region Parsing Time
@@ -126,25 +193,25 @@ namespace ImageApplets.Applets
                     }
                     else
                     {
-                        if (Regex.IsMatch(_text_, @"(\d{1,2})(h(our)?|点|小?时)", RegexOptions.IgnoreCase))
+                        if (Regex.IsMatch(_text_, @"(\d{1,2})(h(our)?|shi|点|小?时)", RegexOptions.IgnoreCase))
                         {
-                            var match = Regex.Match(_text_, @"(\d{1,2})(h(our)?|点|小?时)", RegexOptions.IgnoreCase);
+                            var match = Regex.Match(_text_, @"(\d{1,2})(h(our)?|shi|点|小?时)", RegexOptions.IgnoreCase);
                             if (match.Groups[1].Success) h = Convert.ToInt32(match.Groups[1].Value.Trim());
                         }
-                        if (Regex.IsMatch(_text_, @"(\d{1,2})(n|min(ute)?|分钟?)", RegexOptions.IgnoreCase))
+                        if (Regex.IsMatch(_text_, @"(\d{1,2})(n|min(ute)?|fen|分钟?)", RegexOptions.IgnoreCase))
                         {
-                            var match = Regex.Match(_text_, @"(\d{1,2})(n|min(ute)?|分钟?)", RegexOptions.IgnoreCase);
+                            var match = Regex.Match(_text_, @"(\d{1,2})(n|min(ute)?|fen|分钟?)", RegexOptions.IgnoreCase);
                             if (match.Groups[1].Success) n = Convert.ToInt32(match.Groups[1].Value.Trim());
                         }
-                        if (Regex.IsMatch(_text_, @"(\d{1,2})(s(ec(ond)?)?|秒)", RegexOptions.IgnoreCase))
+                        if (Regex.IsMatch(_text_, @"(\d{1,2})(s(ec(ond)?)?|miao|秒)", RegexOptions.IgnoreCase))
                         {
-                            var match = Regex.Match(_text_, @"(\d{1,2})(s(ec(ond)?)?|秒)", RegexOptions.IgnoreCase);
+                            var match = Regex.Match(_text_, @"(\d{1,2})(s(ec(ond)?)?|miao|秒)", RegexOptions.IgnoreCase);
                             if (match.Groups[1].Success) s = Convert.ToInt32(match.Groups[1].Value.Trim());
                         }
                     }
-                    if (!double.IsNaN(y) && (h < 0 || h > 23)) h = double.NaN;
-                    if (!double.IsNaN(m) && (n < 0 || m > 59)) n = double.NaN;
-                    if (!double.IsNaN(y) && (s < 0 || d > 59)) s = double.NaN;
+                    if (!double.IsNaN(h) && (h < 0 || h > 23)) h = double.NaN;
+                    if (!double.IsNaN(n) && (n < 0 || n > 59)) n = double.NaN;
+                    if (!double.IsNaN(s) && (s < 0 || s > 59)) s = double.NaN;
                     #endregion
                 }
             }
@@ -155,11 +222,21 @@ namespace ImageApplets.Applets
             return (new HasExif());
         }
 
-        private string DateTimeFormat = "yyyy-MM-dd HH:mm:ss.fffzzz";
+        static private Dictionary<string, string> num_chs = new Dictionary<string, string>()
+        {
+            { "一", "1" }, { "二", "2" }, { "三", "3" }, { "四", "4" }, { "五", "5" }, { "六", "6" }, { "七", "7" }, { "八", "8" }, { "九", "9" }, { "零", "0" },
+            { "壹", "1" }, { "贰", "2" }, { "叁", "3" }, { "肆", "4" }, { "伍", "5" }, { "陆", "6" }, { "柒", "7" }, { "捌", "8" }, { "玖", "9" },
+        };
+
+        private string[] Categories  = new string[] { "Artist", "Author", "Title", "Suject", "Comment", "Keyword", "Tag", "Copyright", "Software", "Rate", "Date", "All" };
+        private string DateTimeFormat = $"yyyy-MM-dd HH:mm:ss.fffzzz";
+        private string DateTimeFormatLocal = $"{CultureInfo.CurrentCulture.DateTimeFormat.LongDatePattern}, ddd";
+
+        private DateValue _date_ = null;
+
         private string SearchScope = "All";
         private string SearchTerm = string.Empty;
         private CompareMode Mode = CompareMode.VALUE;
-        private DateValue _date_ = null;
 
         public EXIF()
         {
@@ -168,7 +245,7 @@ namespace ImageApplets.Applets
             var opts = new OptionSet()
             {
                 { "m|mode=", "EXIF Search Mode {<EQ|NEQ|LT|LE|GT|GE|AND|OR|NOT|VALUE>}", v => { if (v != null) Enum.TryParse(v.ToUpper(), out Mode); } },
-                { "c|category=", "EXIF Search Fron {Artist|Author|Title|Suject|Comment|Keyword|Tag|Copyright|Software|Rate|Date|All}", v => { if (v != null) SearchScope = v.Trim().Trim('"'); } },
+                { "c|category=", $"EXIF Search Fron {{<{string.Join("|", Categories)}>}}", v => { if (v != null) SearchScope = v.Trim().Trim('"'); } },
                 { "s|search=", "EXIF Search {Term}", v => { if (v != null) SearchTerm = v.Trim().Trim('"'); } },
                 { "" },
             };
@@ -263,6 +340,22 @@ namespace ImageApplets.Applets
             return (result);
         }
 
+        private DateTime? GetDateTime(ExifData exif, ExifTag tag)
+        {
+            DateTime? result = null;
+            if (exif is ExifData && exif.TagExists(tag))
+            {
+                try
+                {
+                    DateTime value;
+                    exif.GetTagValue(tag, out value);
+                    result = value;
+                }
+                catch { }
+            }
+            return (result);
+        }
+
         private string GetDateString(ExifData exif, ExifTag tag, bool raw = false)
         {
             var result = string.Empty;
@@ -281,9 +374,8 @@ namespace ImageApplets.Applets
                     }
                     else
                     {
-                        DateTime value;
-                        exif.GetTagValue(tag, out value);
-                        result = value.ToString(DateTimeFormat);
+                        DateTime? value = GetDateTime(exif, tag);
+                        result = GetDateLong(value);
                     }
                 }
                 catch { }
@@ -291,11 +383,15 @@ namespace ImageApplets.Applets
             return (result);
         }
 
-        static private Dictionary<string, string> num_chs = new Dictionary<string, string>()
+        private string GetDateLong(DateTime date)
         {
-            { "一", "1" }, { "二", "2" }, { "三", "3" }, { "四", "4" }, { "五", "5" }, { "六", "6" }, { "七", "7" }, { "八", "8" }, { "九", "9" }, { "零", "0" },
-            { "壹", "1" }, { "贰", "2" }, { "叁", "3" }, { "肆", "4" }, { "伍", "5" }, { "陆", "6" }, { "柒", "7" }, { "捌", "8" }, { "玖", "9" },
-        };
+            return (date.ToString($"{DateTimeFormat}, {DateTimeFormatLocal}"));
+        }
+
+        private string GetDateLong(DateTime? date)
+        {
+            return (date.HasValue ? date.Value.ToString($"{DateTimeFormat}, {DateTimeFormatLocal}") : string.Empty);
+        }
 
         private string ConvertChineseNumberString(string text)
         {
@@ -384,6 +480,15 @@ namespace ImageApplets.Applets
                 }
                 switch (Mode)
                 {
+                    case CompareMode.AND:
+                        status = Regex.IsMatch(text, word, regex_ignore);
+                        break;
+                    case CompareMode.OR:
+                        status = Regex.IsMatch(text, word, regex_ignore);
+                        break;
+                    case CompareMode.NOT:
+                        status = !Regex.IsMatch(text, word, regex_ignore);
+                        break;
                     case CompareMode.EQ:
                         status = regex_ignore == RegexOptions.IgnoreCase ? text.Equals(word, StringComparison.CurrentCultureIgnoreCase) : text.Equals(word);
                         break;
@@ -456,8 +561,9 @@ namespace ImageApplets.Applets
 
                 if (dst is DateValue)
                 {
-                    var dt = ConvertFromDateValue(src, dst);
-                    var wd = double.IsNaN(dst.w) ? src.DayOfWeek : (DayOfWeek)Enum.Parse(typeof(DayOfWeek), $"{dst.w - 1}");
+                    var dt = dst.GetDateTime(src);
+                    if (dt == null) dt = ConvertFromDateValue(src, dst);
+                    var wd = dst.WeekDay ?? (double.IsNaN(dst.w) ? src.DayOfWeek : (DayOfWeek)Enum.Parse(typeof(DayOfWeek), $"{dst.w - 1}"));
 
                     switch (Mode)
                     {
@@ -466,8 +572,19 @@ namespace ImageApplets.Applets
                             if (!double.IsNaN(dst.m)) status = status || dst.m == src.Month;
                             if (!double.IsNaN(dst.d)) status = status || dst.d == src.Day;
                             if (!double.IsNaN(dst.h)) status = status || dst.h == src.Hour;
-                            if (!double.IsNaN(dst.n)) status = status || dst.n == src.Second;
+                            if (!double.IsNaN(dst.n)) status = status || dst.n == src.Minute;
                             if (!double.IsNaN(dst.s)) status = status || dst.s == src.Second;
+                            if (!double.IsNaN(dst.w)) status = status || dst.WeekDay == src.DayOfWeek;
+                            break;
+                        case CompareMode.NONE:
+                            if (!double.IsNaN(dst.y)) status = status || dst.y == src.Year;
+                            if (!double.IsNaN(dst.m)) status = status || dst.m == src.Month;
+                            if (!double.IsNaN(dst.d)) status = status || dst.d == src.Day;
+                            if (!double.IsNaN(dst.h)) status = status || dst.h == src.Hour;
+                            if (!double.IsNaN(dst.n)) status = status || dst.n == src.Minute;
+                            if (!double.IsNaN(dst.s)) status = status || dst.s == src.Second;
+                            if (!double.IsNaN(dst.w)) status = status || dst.WeekDay == src.DayOfWeek;
+                            status = !status;
                             break;
                         case CompareMode.NEQ:
                             if (!double.IsNaN(dst.w)) status = src.DayOfWeek != wd;
@@ -532,13 +649,14 @@ namespace ImageApplets.Applets
                     var rate = GetValueString(exif, ExifTag.RatingPercent);
                     var rank = GetValueString(exif, ExifTag.Rating);
 
-                    var date = GetDateString(exif, ExifTag.GpsDateStamp);
-                    if (string.IsNullOrEmpty(date)) date = GetDateString(exif, ExifTag.DateTimeOriginal);
-                    if (string.IsNullOrEmpty(date)) date = GetDateString(exif, ExifTag.DateTimeDigitized);
-                    if (string.IsNullOrEmpty(date)) date = GetDateString(exif, ExifTag.DateTime);
-                    if (string.IsNullOrEmpty(date)) date = exif.LastWriteTime.ToString(DateTimeFormat);
-                    if (string.IsNullOrEmpty(date)) date = exif.CreateTime.ToString(DateTimeFormat);
-                    if (string.IsNullOrEmpty(date)) date = exif.LastAccessTime.ToString(DateTimeFormat);
+                    DateTime? date = GetDateTime(exif, ExifTag.GpsDateStamp);
+                    if (date == null) date = GetDateTime(exif, ExifTag.DateTimeOriginal);
+                    if (date == null) date = GetDateTime(exif, ExifTag.DateTimeDigitized);
+                    if (date == null) date = GetDateTime(exif, ExifTag.DateTime);
+                    if (date == null) date = exif.LastWriteTime;
+                    if (date == null) date = exif.CreateTime;
+                    if (date == null) date = exif.LastAccessTime;
+                    var date_string = GetDateLong(date);
                     #endregion
 
                     var cats = SearchScope.Split(',').Select(c => c.Trim().ToLower()).ToList();
@@ -552,26 +670,26 @@ namespace ImageApplets.Applets
                         #region Comparing attribute
                         if (cats.Contains("all"))
                         {
-                            cats.AddRange(new string[] { "Artist", "Author", "Title", "Suject", "Comment", "Keyword", "Tag", "Copyright", "Software", "Rate", "Date" });
+                            cats.AddRange(Categories);
                             cats = cats.Select(c => c.Trim().ToLower()).Distinct().ToList();
                         }
 
                         if (Mode == CompareMode.AND)
                         {
-                            if (cats.Contains("title")) status = status && Compare(title, word);
-                            if (cats.Contains("subject")) status = status && Compare(subject, word);
-                            if (cats.Contains("keywords")) status = status && Compare(keywords, word);
-                            if (cats.Contains("tag")) status = status && Compare(keywords, word);
-                            if (cats.Contains("comments")) status = status && Compare(comments, word);
-                            if (cats.Contains("artist")) status = status && Compare(artist, word);
-                            if (cats.Contains("author")) status = status && Compare(artist, word);
-                            if (cats.Contains("copyright")) status = status && Compare(copyright, word);
-                            if (cats.Contains("software")) status = status && Compare(software, word);
-                            if (cats.Contains("rate")) status = status && Compare(rate, word);
-                            if (cats.Contains("rank")) status = status && Compare(rank, word);
-                            if (cats.Contains("date")) status = status && Compare(date, word);
+                            if (cats.Contains("title")) status = (status || cats.Contains("title")) && Compare(title, word);
+                            if (cats.Contains("subject")) status = (status || cats.Contains("subject")) && Compare(subject, word);
+                            if (cats.Contains("keywords")) status = (status || cats.Contains("keywords")) && Compare(keywords, word);
+                            if (cats.Contains("tag")) status = (status || cats.Contains("tag")) && Compare(keywords, word);
+                            if (cats.Contains("comments")) status = (status || cats.Contains("comments")) && Compare(comments, word);
+                            if (cats.Contains("artist")) status = (status || cats.Contains("artist")) && Compare(artist, word);
+                            if (cats.Contains("author")) status = (status || cats.Contains("author")) && Compare(artist, word);
+                            if (cats.Contains("copyright")) status = (status || cats.Contains("copyright")) && Compare(copyright, word);
+                            if (cats.Contains("software")) status = (status || cats.Contains("software")) && Compare(software, word);
+                            if (cats.Contains("rate")) status = (status || cats.Contains("rate")) && Compare(rate, word);
+                            if (cats.Contains("rank")) status = (status || cats.Contains("rank")) && Compare(rank, word);
+                            if (cats.Contains("date")) status = (status || cats.Contains("date")) && Compare(date_string, word);
                         }
-                        else if (Mode == CompareMode.OR)
+                        else if (Mode == CompareMode.OR || Mode == CompareMode.NOT)
                         {
                             if (cats.Contains("title")) status = status || Compare(title, word);
                             if (cats.Contains("subject")) status = status || Compare(subject, word);
@@ -584,24 +702,13 @@ namespace ImageApplets.Applets
                             if (cats.Contains("software")) status = status || Compare(software, word);
                             if (cats.Contains("rate")) status = status || Compare(rate, word);
                             if (cats.Contains("rank")) status = status || Compare(rank, word);
-                            if (cats.Contains("date")) status = status || Compare(date, word);
+                            if (cats.Contains("date")) status = status || Compare(date_string, word);
+                            if (Mode == CompareMode.NOT) status = !status;
                         }
-                        else if (Mode == CompareMode.NOT)
-                        {
-                            status = status || (Compare(title, word) ? !cats.Contains("title") : true);
-                            status = status || (Compare(subject, word) ? !cats.Contains("subject") : true);
-                            status = status || (Compare(keywords, word) ? !cats.Contains("keywords") : true);
-                            status = status || (Compare(keywords, word) ? !cats.Contains("tag") : true);
-                            status = status || (Compare(comments, word) ? !cats.Contains("comments") : true);
-                            status = status || (Compare(artist, word) ? !cats.Contains("artist") : true);
-                            status = status || (Compare(artist, word) ? !cats.Contains("author") : true);
-                            status = status || (Compare(copyright, word) ? !cats.Contains("copyright") : true);
-                            status = status || (Compare(software, word) ? !cats.Contains("software") : true);
-                            status = status || (Compare(rate, word) ? !cats.Contains("rate") : true);
-                            status = status || (Compare(rank, word) ? !cats.Contains("rank") : true);
-                            status = status || (Compare(date, word) ? !cats.Contains("date") : true);
-                        }
-                        else if (Mode == CompareMode.HAS || Mode == CompareMode.NONE || Mode == CompareMode.EQ || Mode == CompareMode.NEQ)
+                        else if (Mode == CompareMode.LT || Mode == CompareMode.LE ||
+                                 Mode == CompareMode.GT || Mode == CompareMode.GE ||
+                                 Mode == CompareMode.EQ || Mode == CompareMode.NEQ ||
+                                 Mode == CompareMode.HAS || Mode == CompareMode.NONE)
                         {
                             if (cats.Contains("title")) status = status || Compare(title, word);
                             if (cats.Contains("subject")) status = status || Compare(subject, word);
@@ -614,29 +721,16 @@ namespace ImageApplets.Applets
                             if (cats.Contains("software")) status = status || Compare(software, word);
                             if (cats.Contains("rate")) status = status || Compare(rate, word);
                             if (cats.Contains("rank")) status = status || Compare(rank, word);
-                            if (cats.Contains("date"))
-                            {
-                                DateTime date_value = default(DateTime);
-                                if (!string.IsNullOrEmpty(date)) DateTime.TryParse(date, out date_value);
-                                status = status || Compare(date_value, _date_);
-                            }
-                        }
-                        else if (Mode == CompareMode.LT || Mode == CompareMode.LE || Mode == CompareMode.GT || Mode == CompareMode.GE)
-                        {
+
                             int word_int;
                             var word_value = int.TryParse(word, out word_int) ? word.PadLeft(16, '0') : word;
 
                             var rate_value = string.IsNullOrEmpty(rate) ? rate : rate.PadLeft(16, '0');
                             var rank_value = string.IsNullOrEmpty(rank) ? rank : rank.PadLeft(16, '0');
- 
+
                             if (cats.Contains("rate")) status = status || Compare(rate_value, word_value);
                             if (cats.Contains("rank")) status = status || Compare(rank_value, word_value);
-                            if (cats.Contains("date"))
-                            {
-                                DateTime date_value = default(DateTime);
-                                if (!string.IsNullOrEmpty(date)) DateTime.TryParse(date, out date_value);
-                                status = status || Compare(date_value, _date_);
-                            }
+                            if (cats.Contains("date") && date.HasValue) status = status || Compare(date.Value, _date_);
                         }
                     }
                     else
@@ -654,7 +748,7 @@ namespace ImageApplets.Applets
                         if (cats.Contains("software") && !string.IsNullOrEmpty(software)) sb.AppendLine($"{"".PadLeft(ValuePaddingLeft)}{software}");
                         if (cats.Contains("rate") && !string.IsNullOrEmpty(rate)) sb.AppendLine($"{"".PadLeft(ValuePaddingLeft)}{rate}");
                         if (cats.Contains("rank") && !string.IsNullOrEmpty(rank)) sb.AppendLine($"{"".PadLeft(ValuePaddingLeft)}{rank}");
-                        if (cats.Contains("date") && !string.IsNullOrEmpty(date)) sb.AppendLine($"{"".PadLeft(ValuePaddingLeft)}{date}");
+                        if (cats.Contains("date") && !string.IsNullOrEmpty(date_string)) sb.AppendLine($"{"".PadLeft(ValuePaddingLeft)}{date_string}");
                         status = sb.ToString().Trim();
                     }
                     #endregion
