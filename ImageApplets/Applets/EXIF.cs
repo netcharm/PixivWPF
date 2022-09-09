@@ -228,9 +228,12 @@ namespace ImageApplets.Applets
             { "壹", "1" }, { "贰", "2" }, { "叁", "3" }, { "肆", "4" }, { "伍", "5" }, { "陆", "6" }, { "柒", "7" }, { "捌", "8" }, { "玖", "9" },
         };
 
-        private string[] Categories  = new string[] { "Artist", "Author", "Title", "Suject", "Comment", "Keyword", "Tag", "Copyright", "Software", "Rate", "Date", "All" };
+        private string[] Categories  = new string[] { "Artist", "Author", "Title", "Suject", "Comment", "Keyword", "Keywords", "Tag", "Tags", "Copyright", "Software", "Rate", "Date", "All" };
         private string DateTimeFormat = $"yyyy-MM-dd HH:mm:ss.fffzzz";
         private string DateTimeFormatLocal = $"{CultureInfo.CurrentCulture.DateTimeFormat.LongDatePattern}, ddd";
+        private char[] SplitChar = new char[] { '#', ';' };
+        private char[] RegexTrimChar = new char[] { 'i', '/' };
+        private string IsRegexPattern = @"/(.+?)/i?";
 
         private DateValue _date_ = null;
 
@@ -473,10 +476,10 @@ namespace ImageApplets.Applets
                 var regex_ignore = ignorecase ?? false ? RegexOptions.IgnoreCase : RegexOptions.None;
 
                 word = word.Trim();
-                if (Regex.IsMatch(word, @"/(.+?)/i?", RegexOptions.IgnoreCase))
+                if (Regex.IsMatch(word, IsRegexPattern, RegexOptions.IgnoreCase))
                 {
                     regex_ignore = ignorecase == null || word.EndsWith("/i", StringComparison.CurrentCultureIgnoreCase) ? RegexOptions.IgnoreCase : RegexOptions.None;
-                    word = word.Trim(new char[] { 'i', '/' });
+                    word = word.Trim(RegexTrimChar);
                 }
                 switch (Mode)
                 {
@@ -503,6 +506,50 @@ namespace ImageApplets.Applets
                         break;
                     default:
                         break;
+                }
+                return (status);
+            }
+        }
+
+        private dynamic Compare(string text, string[] words, bool? ignorecase = null)
+        {
+            if (Mode == CompareMode.VALUE)
+                return (text);
+            else
+            {
+                var status = false;
+                foreach (var word in words.Select(w => w.Trim()))
+                {
+                    switch (Mode)
+                    {
+                        case CompareMode.AND:
+                            status = status || !Compare(text, word, ignorecase);
+                            status = !status;
+                            break;
+                        case CompareMode.OR:
+                            status = status || Compare(text, word, ignorecase);
+                            break;
+                        case CompareMode.NOT:
+                            status = status || Compare(text, word, ignorecase);
+                            status = !status;
+                            break;
+                        case CompareMode.EQ:
+                            status = status || Compare(text, word, ignorecase);
+                            break;
+                        case CompareMode.NEQ:
+                            status = status || Compare(text, word, ignorecase);
+                            status = !status;
+                            break;
+                        case CompareMode.HAS:
+                            status = status || Compare(text, word, ignorecase);
+                            break;
+                        case CompareMode.NONE:
+                            status = status || Compare(text, word, ignorecase);
+                            status = !status;
+                            break;
+                        default:
+                            break;
+                    }
                 }
                 return (status);
             }
@@ -663,9 +710,11 @@ namespace ImageApplets.Applets
                     if (!string.IsNullOrEmpty(SearchTerm))
                     {
                         var word = SearchTerm;
+                        var words = Regex.IsMatch(word, IsRegexPattern, RegexOptions.IgnoreCase) ?  word.Trim(RegexTrimChar).Split(SplitChar) : word.Split(SplitChar);
+
                         if(_date_ == null) _date_ = new DateValue(ConvertChineseNumberString(word));
 
-                        if (Mode == CompareMode.VALUE) Mode = CompareMode.EQ;
+                        if (Mode == CompareMode.VALUE) Mode = CompareMode.HAS;
 
                         #region Comparing attribute
                         if (cats.Contains("all"))
@@ -678,12 +727,18 @@ namespace ImageApplets.Applets
                         {
                             if (cats.Contains("title")) status = (status || cats.Contains("title")) && Compare(title, word);
                             if (cats.Contains("subject")) status = (status || cats.Contains("subject")) && Compare(subject, word);
-                            if (cats.Contains("keywords")) status = (status || cats.Contains("keywords")) && Compare(keywords, word);
-                            if (cats.Contains("tag")) status = (status || cats.Contains("tag")) && Compare(keywords, word);
+
+                            if (cats.Contains("keyword")) status = (status || cats.Contains("keyword")) && Compare(keywords, words);
+                            if (cats.Contains("keywords")) status = (status || cats.Contains("keywords")) && Compare(keywords, words);
+                            if (cats.Contains("tag")) status = (status || cats.Contains("tag")) && Compare(keywords, words);
+                            if (cats.Contains("tags")) status = (status || cats.Contains("tags")) && Compare(keywords, words);
+
                             if (cats.Contains("comments")) status = (status || cats.Contains("comments")) && Compare(comments, word);
-                            if (cats.Contains("artist")) status = (status || cats.Contains("artist")) && Compare(artist, word);
-                            if (cats.Contains("author")) status = (status || cats.Contains("author")) && Compare(artist, word);
-                            if (cats.Contains("copyright")) status = (status || cats.Contains("copyright")) && Compare(copyright, word);
+
+                            if (cats.Contains("artist")) status = (status || cats.Contains("artist")) && Compare(artist, words);
+                            if (cats.Contains("author")) status = (status || cats.Contains("author")) && Compare(artist, words);
+                            if (cats.Contains("copyright")) status = (status || cats.Contains("copyright")) && Compare(copyright, words);
+
                             if (cats.Contains("software")) status = (status || cats.Contains("software")) && Compare(software, word);
                             if (cats.Contains("rate")) status = (status || cats.Contains("rate")) && Compare(rate, word);
                             if (cats.Contains("rank")) status = (status || cats.Contains("rank")) && Compare(rank, word);
@@ -693,12 +748,18 @@ namespace ImageApplets.Applets
                         {
                             if (cats.Contains("title")) status = status || Compare(title, word);
                             if (cats.Contains("subject")) status = status || Compare(subject, word);
-                            if (cats.Contains("keywords")) status = status || Compare(keywords, word);
-                            if (cats.Contains("tag")) status = status || Compare(keywords, word);
+
+                            if (cats.Contains("keyword")) status = status || Compare(keywords, words);
+                            if (cats.Contains("keywords")) status = status || Compare(keywords, words);
+                            if (cats.Contains("tag")) status = status || Compare(keywords, words);
+                            if (cats.Contains("tags")) status = status || Compare(keywords, words);
+
                             if (cats.Contains("comments")) status = status || Compare(comments, word);
-                            if (cats.Contains("artist")) status = status || Compare(artist, word);
-                            if (cats.Contains("author")) status = status || Compare(artist, word);
-                            if (cats.Contains("copyright")) status = status || Compare(copyright, word);
+
+                            if (cats.Contains("artist")) status = status || Compare(artist, words);
+                            if (cats.Contains("author")) status = status || Compare(artist, words);
+                            if (cats.Contains("copyright")) status = status || Compare(copyright, words);
+
                             if (cats.Contains("software")) status = status || Compare(software, word);
                             if (cats.Contains("rate")) status = status || Compare(rate, word);
                             if (cats.Contains("rank")) status = status || Compare(rank, word);
@@ -712,12 +773,18 @@ namespace ImageApplets.Applets
                         {
                             if (cats.Contains("title")) status = status || Compare(title, word);
                             if (cats.Contains("subject")) status = status || Compare(subject, word);
-                            if (cats.Contains("keywords")) status = status || Compare(keywords, word);
-                            if (cats.Contains("tag")) status = status || Compare(keywords, word);
+
+                            if (cats.Contains("keyword")) status = status || Compare(keywords, words);
+                            if (cats.Contains("keywords")) status = status || Compare(keywords, words);
+                            if (cats.Contains("tag")) status = status || Compare(keywords, words);
+                            if (cats.Contains("tags")) status = status || Compare(keywords, words);
+
                             if (cats.Contains("comments")) status = status || Compare(comments, word);
-                            if (cats.Contains("artist")) status = status || Compare(artist, word);
-                            if (cats.Contains("author")) status = status || Compare(artist, word);
-                            if (cats.Contains("copyright")) status = status || Compare(copyright, word);
+
+                            if (cats.Contains("artist")) status = status || Compare(artist, words);
+                            if (cats.Contains("author")) status = status || Compare(artist, words);
+                            if (cats.Contains("copyright")) status = status || Compare(copyright, words);
+
                             if (cats.Contains("software")) status = status || Compare(software, word);
                             if (cats.Contains("rate")) status = status || Compare(rate, word);
                             if (cats.Contains("rank")) status = status || Compare(rank, word);
@@ -735,20 +802,21 @@ namespace ImageApplets.Applets
                     }
                     else
                     {
+                        var padding = "".PadLeft(ValuePaddingLeft);
                         StringBuilder sb = new StringBuilder();
                         sb.Append("\u20D0");
-                        if (cats.Contains("title") && !string.IsNullOrEmpty(title)) sb.AppendLine($"{"".PadLeft(ValuePaddingLeft)}{title}");
-                        if (cats.Contains("subject") && !string.IsNullOrEmpty(subject)) sb.AppendLine($"{"".PadLeft(ValuePaddingLeft)}{subject}");
-                        if (cats.Contains("keywords") && !string.IsNullOrEmpty(keywords)) sb.AppendLine($"{"".PadLeft(ValuePaddingLeft)}{keywords}");
-                        else if (cats.Contains("tags") && !string.IsNullOrEmpty(keywords)) sb.AppendLine($"{"".PadLeft(ValuePaddingLeft)}{keywords}");
-                        if (cats.Contains("comments") && !string.IsNullOrEmpty(comments)) sb.AppendLine($"{"".PadLeft(ValuePaddingLeft)}{comments}");
-                        if (cats.Contains("artist") && !string.IsNullOrEmpty(artist)) sb.AppendLine($"{"".PadLeft(ValuePaddingLeft)}{artist}");
-                        else if (cats.Contains("author") && !string.IsNullOrEmpty(artist)) sb.AppendLine($"{"".PadLeft(ValuePaddingLeft)}{artist}");
-                        if (cats.Contains("copyright") && !string.IsNullOrEmpty(copyright)) sb.AppendLine($"{"".PadLeft(ValuePaddingLeft)}{copyright}");
-                        if (cats.Contains("software") && !string.IsNullOrEmpty(software)) sb.AppendLine($"{"".PadLeft(ValuePaddingLeft)}{software}");
-                        if (cats.Contains("rate") && !string.IsNullOrEmpty(rate)) sb.AppendLine($"{"".PadLeft(ValuePaddingLeft)}{rate}");
-                        if (cats.Contains("rank") && !string.IsNullOrEmpty(rank)) sb.AppendLine($"{"".PadLeft(ValuePaddingLeft)}{rank}");
-                        if (cats.Contains("date") && !string.IsNullOrEmpty(date_string)) sb.AppendLine($"{"".PadLeft(ValuePaddingLeft)}{date_string}");
+                        if (cats.Contains("title") && !string.IsNullOrEmpty(title)) sb.AppendLine($"{padding}{title}");
+                        if (cats.Contains("subject") && !string.IsNullOrEmpty(subject)) sb.AppendLine($"{padding}{subject}");
+                        if (cats.Contains("keywords") && !string.IsNullOrEmpty(keywords)) sb.AppendLine($"{padding}{keywords}");
+                        else if (cats.Contains("tags") && !string.IsNullOrEmpty(keywords)) sb.AppendLine($"{padding}{keywords}");
+                        if (cats.Contains("comments") && !string.IsNullOrEmpty(comments)) sb.AppendLine($"{padding}{comments}");
+                        if (cats.Contains("artist") && !string.IsNullOrEmpty(artist)) sb.AppendLine($"{padding}{artist}");
+                        else if (cats.Contains("author") && !string.IsNullOrEmpty(artist)) sb.AppendLine($"{padding}{artist}");
+                        if (cats.Contains("copyright") && !string.IsNullOrEmpty(copyright)) sb.AppendLine($"{padding}{copyright}");
+                        if (cats.Contains("software") && !string.IsNullOrEmpty(software)) sb.AppendLine($"{padding}{software}");
+                        if (cats.Contains("rate") && !string.IsNullOrEmpty(rate)) sb.AppendLine($"{padding}{rate}");
+                        if (cats.Contains("rank") && !string.IsNullOrEmpty(rank)) sb.AppendLine($"{padding}{rank}");
+                        if (cats.Contains("date") && !string.IsNullOrEmpty(date_string)) sb.AppendLine($"{padding}{date_string}");
                         status = sb.ToString().Trim();
                     }
                     #endregion
