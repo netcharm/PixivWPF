@@ -228,7 +228,7 @@ namespace ImageApplets.Applets
             { "壹", "1" }, { "贰", "2" }, { "叁", "3" }, { "肆", "4" }, { "伍", "5" }, { "陆", "6" }, { "柒", "7" }, { "捌", "8" }, { "玖", "9" },
         };
 
-        private string[] Categories  = new string[] { "Artist", "Author", "Title", "Suject", "Comment", "Comments", "Keyword", "Keywords", "Tag", "Tags", "Copyright", "Software", "Rate", "Date", "All" };
+        private List<string> Categories  = new List<string>() { "Artist", "Author", "Title", "Suject", "Comment", "Comments", "Keyword", "Keywords", "Tag", "Tags", "Copyright", "Software", "Rate", "Date", "All" };
         private string[] ExifAttrs = new string[] { };
 
         private string DateTimeFormat = $"yyyy-MM-dd HH:mm:ss.fffzzz";
@@ -388,7 +388,20 @@ namespace ImageApplets.Applets
 
                         exif.GetTagValueCount(TagSpec, out TagValueCount);
 
-                        if (TagType == ExifTagType.Ascii)
+                        if (TagSpec == ExifTag.DateTime || TagSpec == ExifTag.DateTimeDigitized || TagSpec == ExifTag.DateTimeOriginal)
+                        {
+                            DateTime dt;
+                            exif.GetTagValue(TagSpec, out dt);
+                            s = GetDateLong(dt);
+                        }
+                        else if(TagSpec == ExifTag.GpsDateStamp || TagSpec == ExifTag.GpsTimeStamp)
+                        {
+                            DateTime dt;
+                            exif.GetGpsDateTimeStamp(out dt);
+                            dt = dt.ToLocalTime();
+                            s = GetDateLong(dt);
+                        }
+                        else if (TagType == ExifTagType.Ascii)
                         {
                             exif.GetTagValue(TagSpec, out s, StrCoding.Utf8);
                         }
@@ -830,7 +843,18 @@ namespace ImageApplets.Applets
                     #endregion
 
                     var cats = SearchScope.Split(',').Select(c => c.Trim().ToLower()).ToList();
-                    var cats_exif = ExifAttrs.Select(a => a.ToLower()).Where(a => cats.Contains(a));
+                    IEnumerable<string> cats_exif = new List<string>();
+                    foreach (var attr in cats.Except(Categories.Select(c => c.ToLower())))
+                    {
+                        var attr_n = $"^{attr.Replace("*", ".*")}$";
+                        //cats_exif = cats_exif.Concat(ExifAttrs.Where(a => a.Equals(attr.Trim()_n, StringComparison.CurrentCultureIgnoreCase)));
+                        cats_exif = cats_exif.Concat(ExifAttrs.Where(a => Regex.IsMatch(a, attr_n, RegexOptions.IgnoreCase)));
+                        //if (attr.EndsWith("*"))
+                        //    cats_exif = cats_exif.Concat(ExifAttrs.Where(a => a.StartsWith(attr_n, StringComparison.CurrentCultureIgnoreCase)));
+                        //if (attr.StartsWith("*"))
+                        //    cats_exif = cats_exif.Concat(ExifAttrs.Where(a => a.EndsWith(attr_n, StringComparison.CurrentCultureIgnoreCase)));
+                    }
+                    cats_exif = cats_exif.Distinct();
 
                     if (!string.IsNullOrEmpty(SearchTerm))
                     {
@@ -985,7 +1009,7 @@ namespace ImageApplets.Applets
                         foreach (var attr in cats_exif)
                         {
                             var value = GetTagValue(exif, attr);
-                            if (!string.IsNullOrEmpty(value)) sb.AppendLine($"{padding}{value}");
+                            if (!string.IsNullOrEmpty(value)) sb.AppendLine($"{padding}{attr} = {value}");
                         }
                         status = sb.ToString().Trim();
                     }

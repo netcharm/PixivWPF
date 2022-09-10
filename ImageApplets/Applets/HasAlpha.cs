@@ -38,6 +38,7 @@ namespace ImageApplets.Applets
             var ret = new List<Color>();
             if (bmp is Bitmap)
             {
+                //var data = bmp.LockBits(new Rectangle(x, y, w, h), ImageLockMode.ReadOnly, bmp.PixelFormat);
                 for (var i = x; i < x + w; i++)
                 {
                     for (var j = y; j < y + h; j++)
@@ -46,6 +47,7 @@ namespace ImageApplets.Applets
                             ret.Add(bmp.GetPixel(i, j));
                     }
                 }
+                //bmp.UnlockBits(data);
             }
             return (ret.ToArray());
         }
@@ -85,7 +87,8 @@ namespace ImageApplets.Applets
                                 var rt = GetMatrix(bmp, w - m, 0, m, m).Count(c => c.A < 255);
                                 var lb = GetMatrix(bmp, 0, h - m, m, m).Count(c => c.A < 255);
                                 var rb = GetMatrix(bmp, w - m, h - m, m, m).Count(c => c.A < 255);
-                                status = (lt > mt || rt > mt || lb > mt || rb > mt) ? true : false;
+                                var ct = GetMatrix(bmp, (int)(w / 2.0 - m / 2.0) , (int)(h / 2.0 - m / 2.0), m, m).Count(c => c.A < 255);
+                                status = (lt > mt || rt > mt || lb > mt || rb > mt || ct > mt) ? true : false;
                             }
                         }
                     }
