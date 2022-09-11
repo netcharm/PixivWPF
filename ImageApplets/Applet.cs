@@ -20,6 +20,14 @@ namespace ImageApplets
     public enum STATUS { All, Yes, No, None };
     public enum ReadMode { ALL, LINE };
 
+    public class ExecuteResult
+    {
+        public FileInfo FileInfo { get; set; } = null;
+        public string File { get; set; } = string.Empty;
+        public bool State { get; set; } = false;
+        public dynamic Result { get; set; } = null;
+    }
+
     public interface IApplet
     {
         Applet GetApplet();
@@ -226,28 +234,28 @@ namespace ImageApplets
             return (ret);
         }
 
-        public virtual IEnumerable<FileInfo> Execute(IEnumerable<FileInfo> files, STATUS status = STATUS.Yes, params object[] args)
+        public virtual IEnumerable<ExecuteResult> Execute(IEnumerable<FileInfo> files, STATUS status = STATUS.Yes, params object[] args)
         {
             Status = status;
-            var infolist = new List<FileInfo>();
+            var infolist = new List<ExecuteResult>();
             foreach (var file in files)
             {
                 bool result = false;
                 var ret = Execute(file.FullName, out result, args);
-                if (ret) infolist.Add(file);
+                if (ret) infolist.Add(new ExecuteResult() { File = file.FullName, FileInfo = file, State = ret, Result = result });
             }
             return (infolist);
         }
 
-        public virtual IEnumerable<string> Execute(IEnumerable<string> files, STATUS status = STATUS.Yes, params object[] args)
+        public virtual IEnumerable<ExecuteResult> Execute(IEnumerable<string> files, STATUS status = STATUS.Yes, params object[] args)
         {
             Status = status;
-            var infolist = new List<string>();
+            var infolist = new List<ExecuteResult>();
             foreach (var file in files)
             {
                 bool result = false;
                 var ret = Execute(file, out result, args);
-                if (ret) infolist.Add(file);
+                if (ret) infolist.Add(new ExecuteResult() { File = file, FileInfo = new FileInfo(file), State = ret, Result = result });
             }
             return (infolist);
         }
