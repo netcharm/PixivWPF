@@ -1195,6 +1195,28 @@ namespace PixivWPF.Common
             }
         }
 
+        private bool download_convert_check_alpha = true;
+        public bool DownloadConvertCheckAlpha
+        {
+            get { return (Cache is Setting ? Cache.download_convert_check_alpha : download_convert_check_alpha); }
+            set
+            {
+                download_convert_check_alpha = value;
+                if (Cache is Setting) Cache.download_convert_check_alpha = download_convert_check_alpha;
+            }
+        }
+
+        private bool download_auto_reduce_to_jpeg = false;
+        public bool DownloadAutoReduceToJpeg
+        {
+            get { return (Cache is Setting ? Cache.download_auto_reduce_to_jpeg : download_auto_reduce_to_jpeg); }
+            set
+            {
+                download_auto_reduce_to_jpeg = value;
+                if (Cache is Setting) Cache.download_auto_reduce_to_jpeg = download_auto_reduce_to_jpeg;
+            }
+        }
+
         private int download_convert_jpeg_quality = 85;
         public int DownloadConvertJpegQuality
         {

@@ -1181,7 +1181,9 @@ namespace PixivWPF.Common
                     {
                         setting = Application.Current.LoadSetting();
                         JPEGQuality = setting.DownloadConvertJpegQuality;
-                        var ret = bytes.ConvertImageTo("jpg");
+                        var reason = string.Empty;
+                        var ret = bytes.ConvertImageTo("jpg", out reason);
+                        FailReason += $" {reason}".Trim();
                         if (ret is byte[] && ret.Length > 16)
                         {
                             if (ret.Length >= bytes.Length)
@@ -1240,7 +1242,9 @@ namespace PixivWPF.Common
                                 setting = Application.Current.LoadSetting();
                                 JPEGQuality = setting.DownloadConvertJpegQuality;
                                 var bytes = File.ReadAllBytes(source);
-                                var ret = bytes.ConvertImageTo("jpg");
+                                var reason = string.Empty;
+                                var ret = bytes.ConvertImageTo("jpg", out reason);
+                                FailReason += $" {reason}".Trim();
                                 if (ret.Length >= bytes.Length)
                                     File.WriteAllBytes(FileName, bytes);
                                 else

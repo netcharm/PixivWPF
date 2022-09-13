@@ -6429,9 +6429,104 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static byte[] ConvertImageTo(this byte[] buffer, string fmt, int quality = 85)
+        private static System.Drawing.Color[] GetMatrix(System.Drawing.Bitmap bmp, int x, int y, int w, int h)
+        {
+            var ret = new List<System.Drawing.Color>();
+            if (bmp is System.Drawing.Bitmap)
+            {
+                //var data = bmp.LockBits(new Rectangle(x, y, w, h), ImageLockMode.ReadOnly, bmp.PixelFormat);
+                for (var i = x; i < x + w; i++)
+                {
+                    for (var j = y; j < y + h; j++)
+                    {
+                        if (i < bmp.Width && j < bmp.Height)
+                            ret.Add(bmp.GetPixel(i, j));
+                    }
+                }
+                //bmp.UnlockBits(data);
+            }
+            return (ret.ToArray());
+        }
+
+        private static bool GuessAlpha(this byte[] buffer, int window = 3)
+        {
+            var result = false;
+            if (buffer is byte[] && buffer.Length > 0)
+            {
+                using (var ms = new MemoryStream(buffer))
+                {
+                    result = GuessAlpha(ms, window);
+                }
+            }
+            return (result);
+        }
+
+        private static bool GuessAlpha(this Stream source, int window = 3)
+        {
+            var result = false;
+
+            try
+            {
+                if (source is Stream && source.CanRead)
+                {
+                    var status = false;
+                    if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
+                    using (System.Drawing.Image image = System.Drawing.Image.FromStream(source))
+                    {
+                        if (image is System.Drawing.Image && 
+                            image.RawFormat.Guid.Equals(System.Drawing.Imaging.ImageFormat.Png.Guid) ||
+                            image.RawFormat.Guid.Equals(System.Drawing.Imaging.ImageFormat.Bmp.Guid) ||
+                            image.RawFormat.Guid.Equals(System.Drawing.Imaging.ImageFormat.Tiff.Guid))
+                        {
+                            if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb) { status = true; }
+                            else if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppPArgb) { status = true; }
+                            else if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format16bppArgb1555) { status = true; }
+                            else if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format64bppArgb) { status = true; }
+                            else if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format64bppPArgb) { status = true; }
+                            else if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.PAlpha) { status = true; }
+                            else if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.Alpha) { status = true; }
+                            else if (System.Drawing.Image.IsAlphaPixelFormat(image.PixelFormat)) { status = true; }
+
+                            if (status)
+                            {
+                                var bmp = new System.Drawing.Bitmap(image);
+                                var w = bmp.Width;
+                                var h = bmp.Height;
+                                var m = window;
+                                var mt = Math.Ceiling(m * m / 2.0);
+                                var lt = GetMatrix(bmp, 0, 0, m, m).Count(c => c.A < 255);
+                                var rt = GetMatrix(bmp, w - m, 0, m, m).Count(c => c.A < 255);
+                                var lb = GetMatrix(bmp, 0, h - m, m, m).Count(c => c.A < 255);
+                                var rb = GetMatrix(bmp, w - m, h - m, m, m).Count(c => c.A < 255);
+                                var ct = GetMatrix(bmp, (int)(w / 2.0 - m / 2.0) , (int)(h / 2.0 - m / 2.0), m, m).Count(c => c.A < 255);
+                                status = (lt > mt || rt > mt || lb > mt || rb > mt || ct > mt) ? true : false;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("GuessAlpha"); }
+            return (result);
+        }
+
+        private static bool GuessAlpha(this string file, int window = 3)
+        {
+            var result = false;
+
+            if (File.Exists(file))
+            {
+                using (var ms = new MemoryStream(File.ReadAllBytes(file)))
+                {
+                    result = GuessAlpha(ms, window);
+                }
+            }
+            return (result);
+        }
+
+        public static byte[] ConvertImageTo(this byte[] buffer, string fmt, out string failreason, int quality = 85)
         {
             byte[] result = null;
+            failreason = string.Empty;
             try
             {
                 if (buffer is byte[] && buffer.Length > 0)
@@ -6443,30 +6538,41 @@ namespace PixivWPF.Common
                     else if (fmt.Equals("jpg")) pFmt = System.Drawing.Imaging.ImageFormat.Jpeg;
                     else return (buffer);
 
-                    using (var mi = new MemoryStream(buffer))
+                    var hasAlpha = setting.DownloadConvertCheckAlpha ? buffer.GuessAlpha() : false;
+                    if (!hasAlpha)
                     {
-                        ExifData exif_in = null;
-                        using (var exif_ms = new MemoryStream(buffer)) { exif_in = GetExifData(exif_ms); }
-                        if (mi.CanSeek) mi.Seek(0, SeekOrigin.Begin);
-                        if (exif_in == null || (exif_in is ExifData && (exif_in.ImageType != ImageType.Jpeg || exif_in.JpegQuality > quality)))
+                        using (var mi = new MemoryStream(buffer))
                         {
-                            using (var mo = new MemoryStream())
+                            ExifData exif_in = null;
+                            using (var exif_ms = new MemoryStream(buffer)) { exif_in = GetExifData(exif_ms); }
+                            if (mi.CanSeek) mi.Seek(0, SeekOrigin.Begin);
+                            var jq = exif_in.JpegQuality == 0 ? 75 : exif_in.JpegQuality;
+                            if (exif_in == null || (exif_in is ExifData && (exif_in.ImageType != ImageType.Jpeg || jq > quality)))
                             {
-                                var bmp = new System.Drawing.Bitmap(mi);
+                                using (var mo = new MemoryStream())
+                                {
+                                    var bmp = new System.Drawing.Bitmap(mi);
 
-                                var codec_info = GetEncoderInfo("image/jpeg");
-                                var qualityParam = new System.Drawing.Imaging.EncoderParameter(System.Drawing.Imaging.Encoder.Quality, quality);
-                                var encoderParams = new System.Drawing.Imaging.EncoderParameters(1);
-                                encoderParams.Param[0] = qualityParam;
+                                    var codec_info = GetEncoderInfo("image/jpeg");
+                                    var qualityParam = new System.Drawing.Imaging.EncoderParameter(System.Drawing.Imaging.Encoder.Quality, quality);
+                                    var encoderParams = new System.Drawing.Imaging.EncoderParameters(1);
+                                    encoderParams.Param[0] = qualityParam;
 
-                                if (pFmt == System.Drawing.Imaging.ImageFormat.Jpeg)
-                                    bmp.Save(mo, codec_info, encoderParams);
-                                else
-                                    bmp.Save(mo, pFmt);
-                                result = mo.ToArray();
+                                    if (pFmt == System.Drawing.Imaging.ImageFormat.Jpeg)
+                                        bmp.Save(mo, codec_info, encoderParams);
+                                    else
+                                        bmp.Save(mo, pFmt);
+                                    result = mo.ToArray();
+                                }
                             }
+                            else result = mi.ToArray();
                         }
-                        else result = mi.ToArray();
+                    }
+                    else
+                    {
+                        failreason = $"Image Has Alpha!";
+                        result = buffer;
+                        throw new WarningException(failreason);
                     }
                 }
             }
@@ -6501,9 +6607,11 @@ namespace PixivWPF.Common
                                 ExifData exif_in = null;
                                 using (var exif_ms = new MemoryStream()) { await msi.CopyToAsync(exif_ms); exif_in = GetExifData(exif_ms); }
                                 if (msi.CanSeek) msi.Seek(0, SeekOrigin.Begin);
-                                if (exif_in == null || (exif_in is ExifData && (exif_in.ImageType != ImageType.Jpeg || exif_in.JpegQuality > quality)))
+                                var jq = exif_in.JpegQuality == 0 ? 75 : exif_in.JpegQuality;
+                                if (exif_in == null || (exif_in is ExifData && (exif_in.ImageType != ImageType.Jpeg || jq > quality)))
                                 {
-                                    using (var msp = new MemoryStream(msi.ToArray().ConvertImageTo(fmt, quality: quality)))
+                                    var reason = string.Empty;
+                                    using (var msp = new MemoryStream(msi.ToArray().ConvertImageTo(fmt, out reason, quality: quality)))
                                     {
                                         msp.Seek(0, SeekOrigin.Begin);
                                         var exif_out = new ExifData(msp);
@@ -6514,7 +6622,7 @@ namespace PixivWPF.Common
                                         exif_out.Save(msp, mso);
                                         if (exif_out.ImageType == exif_in.ImageType && mso.Length >= fi.Length)
                                         {
-                                            $"{feature} {file} To {fmt.ToUpper()} Failed!".INFO(InfoTitle);
+                                            $"{feature} {file} To {fmt.ToUpper()} Failed! {reason}".Trim().INFO(InfoTitle);
                                             throw new WarningException($"{feature}ed File Size : {mso.Length} >= Original File Size : {fi.Length}!");
                                         }
                                         File.WriteAllBytes(fout, mso.ToArray());
@@ -6529,13 +6637,14 @@ namespace PixivWPF.Common
                         var exif_in = fi.GetExifData();
                         if (exif_in is ExifData && (exif_in.ImageType != ImageType.Jpeg || exif_in.JpegQuality > quality))
                         {
-                            var bytes = File.ReadAllBytes(file).ConvertImageTo(fmt, quality: quality);
+                            var reason = string.Empty;
+                            var bytes = File.ReadAllBytes(file).ConvertImageTo(fmt, out reason, quality: quality);
                             if (((fmt.Equals("jpg", StringComparison.CurrentCultureIgnoreCase) && exif_in.ImageType == ImageType.Jpeg) ||
                                  (fmt.Equals("jpeg", StringComparison.CurrentCultureIgnoreCase) && exif_in.ImageType == ImageType.Jpeg) ||
                                  (fmt.Equals("png", StringComparison.CurrentCultureIgnoreCase) && exif_in.ImageType == ImageType.Png)) &&
                                 bytes.Length >= fi.Length)
                             {
-                                $"{feature} {file} To {fmt.ToUpper()} Failed!".INFO(InfoTitle);
+                                $"{feature} {file} To {fmt.ToUpper()} Failed! {reason}".Trim().INFO(InfoTitle);
                                 throw new WarningException($"{feature}ed File Size : {bytes.Length} >= Original File Size : {fi.Length}!");
                             }
                             File.WriteAllBytes(fout, bytes);
