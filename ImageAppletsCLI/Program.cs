@@ -166,7 +166,17 @@ namespace ImageAppletsCLI
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                if (ex is CompactExifLib.ExifException)
+                {
+                    switch ((ex as CompactExifLib.ExifException).ErrorCode)
+                    {
+                        case CompactExifLib.ExifErrCode.ImageTypeIsNotSupported: break;
+                        default: break;
+                    }
+                }
+            }
         }
 
         private static void RunApplet(IEnumerable<string> files, ImageApplets.Applet applet, int padding, params string[] extras)
@@ -236,7 +246,7 @@ namespace ImageAppletsCLI
                             foreach (var applet in applets)
                             {
                                 if (applet is ImageApplets.Applet)
-                                    sw.WriteLine(applet.Help());
+                                    sw.WriteLine(applet.Help);
                                 if (!applet.Name.Equals(applets.Last().Name))
                                     sw.WriteLine($"".PadRight(LINE_COUNT, '-'));
                             }
@@ -246,7 +256,7 @@ namespace ImageAppletsCLI
                             applet_name = applet_names.Where(a => a.Equals(applet_name, StringComparison.CurrentCultureIgnoreCase)).First();
                             var instance = ImageApplets.Applet.GetApplet(applet_name);
                             if (instance is ImageApplets.Applet)
-                                sw.WriteLine(instance.Help());
+                                sw.WriteLine(instance.Help);
                         }
                         sw.WriteLine($"".PadRight(LINE_COUNT, '='));
                     }
