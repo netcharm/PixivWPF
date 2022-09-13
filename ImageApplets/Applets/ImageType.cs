@@ -60,11 +60,12 @@ namespace ImageApplets.Applets
         {
             var ret = false;
             result = default(T);
-            try
+            var ext = source is FileStream ? Path.GetExtension((source as FileStream).Name) : "Unknown";
+            dynamic status = ext;
+            if (source is Stream && source.CanRead)
             {
-                if (source is Stream && source.CanRead)
+                try
                 {
-                    dynamic status = "Unknown";
                     if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
                     using (Image image = Image.FromStream(source))
                     {
@@ -84,14 +85,12 @@ namespace ImageApplets.Applets
                             default: break;
                         }
                     }
-
-                    ret = GetReturnValueByStatus(status);
-                    result = (T)(object)status;
                 }
+                catch (Exception ex) { if (!(ex.Source.Equals("System.Drawing"))) ShowMessage(ex, Name); }
             }
-            catch (Exception ex) { ShowMessage(ex, Name); }
+            ret = GetReturnValueByStatus(status);
+            result = (T)(object)status;
             return (ret);
         }
-
     }
 }
