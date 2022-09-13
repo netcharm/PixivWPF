@@ -249,8 +249,8 @@ namespace ImageApplets.Applets
 
             var opts = new OptionSet()
             {
-                { "m|mode=", "EXIF Search Mode {<EQ|NEQ|LT|LE|GT|GE|AND|OR|NOT|VALUE>}", v => { if (v != null) Enum.TryParse(v.ToUpper(), out Mode); } },
-                { "c|category=", $"EXIF Search Fron {{<{string.Join("|", Categories)}>}}", v => { if (v != null) SearchScope = v.Trim().Trim('"'); } },
+                { "m|mode=", "EXIF Search Mode {VALUE} : <EQ|NEQ|LT|LE|GT|GE|AND|OR|NOT|VALUE>", v => { if (v != null) Enum.TryParse(v.ToUpper(), out Mode); } },
+                { "c|category=", $"EXIF Search From {{VALUE}} : <{string.Join("|", Categories)}> And more EXIF Tag. Note: Support '*'.", v => { if (v != null) SearchScope = v.Trim().Trim('"'); } },
                 { "s|search=", "EXIF Search {Term}", v => { if (v != null) SearchTerm = v.Trim().Trim('"'); } },
                 { "" },
             };
