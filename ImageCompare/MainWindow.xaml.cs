@@ -599,6 +599,30 @@ namespace ImageCompare
         #endregion
 
         #region Image Load/Save Routines
+        private void CopyImageFromResult(bool source = true)
+        {
+            RenderRun(new Action(() =>
+            {
+                try
+                {
+                    var action = false;
+                    var image_s = ImageSource.GetInformation();
+                    var image_t = ImageTarget.GetInformation();
+                    var image_r = ImageResult.GetInformation();
+                    if (image_r.ValidCurrent)
+                    {
+                        if (source)
+                            image_s.Current = new MagickImage(image_r.Current);
+                        else
+                            image_t.Current = new MagickImage(image_r.Current);
+                        action = true;
+                    }
+                    if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
+            }));
+        }
+
         private void CopyImageToOpposite(bool source = true)
         {
             RenderRun(new Action(() =>
@@ -1083,6 +1107,13 @@ namespace ImageCompare
                     Icon = new TextBlock() { Text = "\uE746", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
                 };
 
+                var item_copyfrom_result = new MenuItem()
+                {
+                    Header = "Copy Image From Result",
+                    Uid = "CopyFromResult",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE16F", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                };
                 var item_copyto_source = new MenuItem()
                 {
                     Header = "Copy Image To Source",
@@ -1178,6 +1209,7 @@ namespace ImageCompare
                     RenderRun(() => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: true, sendto: sendto, first: first); });
                 };
 
+                item_copyfrom_result.Click += (obj, evt) => { RenderRun(() => { CopyImageFromResult(source); }); };
                 item_copyto_source.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(source); }); };
                 item_copyto_target.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(source); }); };
 
@@ -1213,6 +1245,7 @@ namespace ImageCompare
                 items.Add(item_slice_h);
                 items.Add(item_slice_v);
                 items.Add(new Separator());
+                items.Add(item_copyfrom_result);
                 items.Add(item_copyto_source);
                 items.Add(item_copyto_target);
                 items.Add(item_load_prev);
@@ -1519,6 +1552,16 @@ namespace ImageCompare
             ImageSource.ToolTip = ImageSource.Source == null ? null : ImageSource.GetInformation().GetImageInfo();
             ImageTarget.ToolTip = ImageTarget.Source == null ? null : ImageTarget.GetInformation().GetImageInfo();
             ImageResult.ToolTip = ImageResult.Source == null ? null : ImageResult.GetInformation().GetImageInfo();
+        }
+
+        private void ChangeLayout(Orientation orientation)
+        {
+            switch(orientation)
+            {
+                case Orientation.Horizontal: break;
+                case Orientation.Vertical: break;
+                default: break;
+            }
         }
 
         #region IDisposable Support

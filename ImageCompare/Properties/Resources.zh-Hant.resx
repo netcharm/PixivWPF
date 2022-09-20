@@ -489,4 +489,7 @@
   <data name="ResetImage.Header" xml:space="preserve">
     <value>重置影像</value>
   </data>
+  <data name="CopyFromResult.Header" xml:space="preserve">
+    <value>從結果複製影像</value>
+  </data>
 </root>

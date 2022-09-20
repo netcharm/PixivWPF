@@ -489,4 +489,7 @@
   <data name="ResetImage.Header" xml:space="preserve">
     <value>Reset Image</value>
   </data>
+  <data name="CopyFromResult.Header" xml:space="preserve">
+    <value>Copy Image From Result</value>
+  </data>
 </root>

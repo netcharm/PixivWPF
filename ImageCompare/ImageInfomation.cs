@@ -54,6 +54,11 @@ namespace ImageCompare
         public bool ValidCurrent { get { return (Current is MagickImage && !Current.IsDisposed); } }
         public bool ValidOriginal { get { return (Original is MagickImage && !Original.IsDisposed); } }
 
+        private bool ValidImage(MagickImage image)
+        {
+            return (image is MagickImage && !image.IsDisposed);
+        }
+
         public FrameworkElement Tagetment { get; set; } = null;
         public string TagetmentTooltip { get; set; } = null;
 
@@ -89,18 +94,19 @@ namespace ImageCompare
         public bool FlipY { get; set; } = false;
         public double Rotated { get; set; } = .0;
 
-        public void FixDPI()
+        public void FixDPI(MagickImage image = null)
         {
-            if (ValidCurrent)
+            if (image == null) image = Current;
+            if (ValidImage(image))
             {
                 var dpi = Application.Current.GetSystemDPI();
-                if (Current.Density is Density && Current.Density.X > 0 && Current.Density.Y > 0)
+                if (image.Density is Density && image.Density.X > 0 && image.Density.Y > 0)
                 {
-                    var unit = Current.Density.ChangeUnits(DensityUnit.PixelsPerInch);
+                    var unit = image.Density.ChangeUnits(DensityUnit.PixelsPerInch);
                     if (unit.X <= 0 || unit.Y <= 0)
-                        Current.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
+                        image.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
                     else
-                        Current.Density = new Density(Math.Round(unit.X), Math.Round(unit.Y), DensityUnit.PixelsPerInch);
+                        image.Density = new Density(Math.Round(unit.X), Math.Round(unit.Y), DensityUnit.PixelsPerInch);
                 }
                 else Current.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
             }
@@ -297,6 +303,35 @@ namespace ImageCompare
             }
         }
 
+        public void SaveTopazMask(string file)
+        {
+            if (ValidCurrent)
+            {
+                try
+                {
+                    var format = MagickFormat.Tiff;
+                    var fd = Path.GetDirectoryName(file);
+                    var fn = Path.GetFileNameWithoutExtension(file);
+                    var fe = Path.GetExtension(file);
+                    var fm = "-mask";
+                    file = fn.ToLower().Contains(fm) ? Path.Combine(fd, $"{fn}.tiff") : Path.Combine(fd, $"{fn}{fm}.tiff");
+
+                    using (var image = new MagickImage(Current))
+                    {
+                        FixDPI(image);
+                        image.Format = format;
+                        image.SetCompression(CompressionMethod.JPEG);
+                        image.ColorType = ColorType.Palette;
+                        image.ColorSpace = ColorSpace.Gray;
+                        image.Depth = 8;
+
+                        image.Write(file, format);
+                    }
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
+            }
+        }
+
         public void Save()
         {
             if (ValidCurrent)
@@ -305,7 +340,7 @@ namespace ImageCompare
                 {
                     var file_str = "File".T();
                     var dlgSave = new Microsoft.Win32.SaveFileDialog() {  CheckPathExists = true, ValidateNames = true, DefaultExt = ".png" };
-                    dlgSave.Filter = $"PNG {file_str}| *.png|PNG8 {file_str}| *.png|JPEG {file_str}|*.jpg;*.jpeg|TIFF {file_str}|*.tif;*.tiff|BITMAP {file_str}|*.bmp";
+                    dlgSave.Filter = $"PNG {file_str}| *.png|PNG8 {file_str}| *.png|JPEG {file_str}|*.jpg;*.jpeg|TIFF {file_str}|*.tif;*.tiff|BITMAP {file_str}|*.bmp|Topaz Mask {file_str}|*.tiff";
                     dlgSave.FilterIndex = 1;
                     if (dlgSave.ShowDialog() ?? false)
                     {
@@ -319,7 +354,15 @@ namespace ImageCompare
                             file = $"{file}{ext}";
                         }
                         var fmt = filter.StartsWith("png8", StringComparison.CurrentCultureIgnoreCase) ? MagickFormat.Png8 : MagickFormat.Unknown;
-                        Save(file, format: fmt);
+                        var topaz = filter.StartsWith("Topaz", StringComparison.CurrentCultureIgnoreCase) ? true : false;
+                        if (topaz)
+                        {
+                            SaveTopazMask(file);
+                        }
+                        else
+                        {
+                            Save(file, format: fmt);
+                        }
                     }
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
