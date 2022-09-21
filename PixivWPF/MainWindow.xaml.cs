@@ -680,7 +680,7 @@ namespace PixivWPF
             }
         }
 
-        internal void CommandNext_Click(object sender, RoutedEventArgs e)
+        private void CommandNext_Click(object sender, RoutedEventArgs e)
         {
             AppendTiles();
         }

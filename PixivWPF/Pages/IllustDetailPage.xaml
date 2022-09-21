@@ -200,41 +200,47 @@
                 </MenuItem.Icon>
             </MenuItem>
             <Separator />
-            <MenuItem x:Uid="ActionSaveIllust" Header="Save Selected Illust Page" Click="ActionSaveIllust_Click">
-                <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </MenuItem.Icon>
-            </MenuItem>
-            <MenuItem x:Uid="ActionSaveAllIllust" Header="Save All Illust Pages" Click="ActionSaveAllIllust_Click">
+            <MenuItem x:Uid="ActionsSave" Header="Save Actions ...">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
-            </MenuItem>
-            <MenuItem x:Uid="ActionSaveIllustJpeg" Header="Save Illust Page As JPEG" Click="ActionSaveIllust_Click">
-                <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                <MenuItem x:Uid="ActionSaveIllust" Header="Save Selected Illust Page" Click="ActionSaveIllust_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Uid="ActionSaveAllIllust" Header="Save All Illust Pages" Click="ActionSaveAllIllust_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Uid="ActionSaveIllustJpeg" Header="Save Illust Page As JPEG" Click="ActionSaveIllust_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </MenuItem.Icon>
-            </MenuItem>
-            <MenuItem x:Uid="ActionSaveIllustJpegAll" Header="Save All Illust Pages As JPEG" Click="ActionSaveAllIllust_Click">
-                <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Uid="ActionSaveIllustJpegAll" Header="Save All Illust Pages As JPEG" Click="ActionSaveAllIllust_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                          Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </MenuItem.Icon>
-            </MenuItem>
-            <MenuItem x:Uid="ActionSaveIllustPreview" Header="Save Illust Page Large Preview" Click="ActionSaveIllust_Click">
-                <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Uid="ActionSaveIllustPreview" Header="Save Illust Page Large Preview" Click="ActionSaveIllust_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </MenuItem.Icon>
-            </MenuItem>
-            <MenuItem x:Uid="ActionSaveIllustPreviewAll" Header="Save All Illust Pages Large Preview" Click="ActionSaveAllIllust_Click">
-                <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Uid="ActionSaveIllustPreviewAll" Header="Save All Illust Pages Large Preview" Click="ActionSaveAllIllust_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                          Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </MenuItem.Icon>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             <Separator x:Uid="ActionConvertIllustJpegSep"/>
             <MenuItem x:Uid="ActionConvertIllustJpeg" Header="Convert Downloaded To JPEG" Click="ActionSaveIllust_Click">
@@ -430,79 +436,97 @@
                 </MenuItem.Icon>
             </MenuItem>
             <Separator x:Name="ActionLikeIllustSeparator" x:Uid="ActionLikeIllustSeparator" />
-            <MenuItem x:Uid="ActionLikeIllust" Header="Bookmark Selected" Click="ActionBookmarkIllust_Click">
+            <MenuItem x:Uid="ActionsLikeIllust" Header="Bookmark Actions ...">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xEB52;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
-            </MenuItem>
-            <MenuItem x:Uid="ActionLikeIllustPrivate" Header="Bookmark Selected Private" Click="ActionBookmarkIllust_Click">
-                <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xEB52;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                <MenuItem x:Uid="ActionLikeIllust" Header="Bookmark Selected" Click="ActionBookmarkIllust_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xEB52;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </MenuItem.Icon>
-            </MenuItem>
-            <MenuItem x:Uid="ActionUnLikeIllust" Header="Un-Bookmark Selected" Click="ActionBookmarkIllust_Click">
-                <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xEA92;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Uid="ActionLikeIllustPrivate" Header="Bookmark Selected Private" Click="ActionBookmarkIllust_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xEB52;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </MenuItem.Icon>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Uid="ActionUnLikeIllust" Header="Un-Bookmark Selected" Click="ActionBookmarkIllust_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xEA92;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             <Separator x:Name="ActionLikeUserSeparator" x:Uid="ActionLikeUserSeparator" />
-            <MenuItem x:Name="ActionLikeUser" x:Uid="ActionLikeUser" Header="Follow Selected" Click="ActionFollowAuthor_Click">
+            <MenuItem x:Uid="ActionsLikeUser" Header="Follow Actions ...">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xE113;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
-            </MenuItem>
-            <MenuItem x:Uid="ActionLikeUserPrivate" Header="Follow Selected Private" Click="ActionFollowAuthor_Click">
-                <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE113;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                <MenuItem x:Name="ActionLikeUser" x:Uid="ActionLikeUser" Header="Follow Selected" Click="ActionFollowAuthor_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE113;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Uid="ActionLikeUserPrivate" Header="Follow Selected Private" Click="ActionFollowAuthor_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE113;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Uid="ActionUnLikeUser" Header="Un-Follow Selected" Click="ActionFollowAuthor_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE734;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </MenuItem.Icon>
-            </MenuItem>
-            <MenuItem x:Uid="ActionUnLikeUser" Header="Un-Follow Selected" Click="ActionFollowAuthor_Click">
-                <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE734;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </MenuItem.Icon>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             <Separator x:Name="ActionSaveSeparator" x:Uid="ActionSaveSeparator"/>
-            <MenuItem x:Uid="ActionSaveIllusts" Header="Save Selected Illusts (Default Page)" Click="ActionSaveIllusts_Click">
-                <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </MenuItem.Icon>
-            </MenuItem>
-            <MenuItem x:Uid="ActionSaveIllustsAll" Header="Save Selected Illusts (All Pages)" Click="ActionSaveIllustsAll_Click">
+            <MenuItem x:Uid="ActionsSave" Header="Save Actions ...">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
-            </MenuItem>
-            <MenuItem x:Uid="ActionSaveIllustsJpeg" Header="Save Illust Page As JPEG" Click="ActionSaveIllusts_Click">
-                <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                <MenuItem x:Uid="ActionSaveIllusts" Header="Save Selected Illusts (Default Page)" Click="ActionSaveIllusts_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </MenuItem.Icon>
-            </MenuItem>
-            <MenuItem x:Uid="ActionSaveIllustsJpegAll" Header="Save All Illust Pages As JPEG" Click="ActionSaveIllustsAll_Click">
-                <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                         Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </MenuItem.Icon>
-            </MenuItem>
-            <MenuItem x:Uid="ActionSaveIllustsPreview" Header="Save Illust Page Large Preview" Click="ActionSaveIllusts_Click">
-                <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </MenuItem.Icon>
-            </MenuItem>
-            <MenuItem x:Uid="ActionSaveIllustsPreviewAll" Header="Save All Illust Pages Large Preview" Click="ActionSaveIllustsAll_Click">
-                <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                         Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </MenuItem.Icon>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Uid="ActionSaveIllustsAll" Header="Save Selected Illusts (All Pages)" Click="ActionSaveIllustsAll_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Uid="ActionSaveIllustsJpeg" Header="Save Illust Page As JPEG" Click="ActionSaveIllusts_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Uid="ActionSaveIllustsJpegAll" Header="Save All Illust Pages As JPEG" Click="ActionSaveIllustsAll_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Uid="ActionSaveIllustsPreview" Header="Save Illust Page Large Preview" Click="ActionSaveIllusts_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Uid="ActionSaveIllustsPreviewAll" Header="Save All Illust Pages Large Preview" Click="ActionSaveIllustsAll_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             <Separator x:Name="ActionMetaSeparator" x:Uid="ActionMetaSeparator"/>
             <MenuItem x:Uid="ActionConvertIllustsJpeg" Header="Convert Downloaded To JPEG" Click="ActionSaveIllusts_Click">
@@ -525,7 +549,7 @@
             </MenuItem>
             <MenuItem x:Uid="ActionReduceIllustsJpegAll" Header="Reduce All Downloaded JPEG Size" Click="ActionSaveIllustsAll_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                    <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>

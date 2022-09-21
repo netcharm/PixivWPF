@@ -190,12 +190,12 @@ namespace netcharm
                 System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
                 //ShowTaskDialog($"{AppPath}", "Ready?");
                 //return;
-                if (args.Length < 1) return;
+
                 //args = Environment.GetCommandLineArgs();
                 //Console.WriteLine(string.Join(", ", Environment.GetCommandLineArgs()));
                 //var args_alt = Environment.CommandLine.Split();
                 var args_alt = Environment.GetCommandLineArgs();
-                if (args[0].Equals("upgrade", StringComparison.CurrentCultureIgnoreCase))
+                if (args.Length < 1 || args[0].Equals("upgrade", StringComparison.CurrentCultureIgnoreCase))
                 {
                     var files = args.Skip(1).ToArray();
                     if (files == null || files.Length <= 0)

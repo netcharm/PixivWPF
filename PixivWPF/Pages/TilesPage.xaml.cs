@@ -774,6 +774,7 @@ namespace PixivWPF.Pages
             #region Ranking Day
             else if (item == miPixivRankingDay)
             {
+                if (Keyboard.Modifiers == ModifierKeys.Control) SelectedDate = DateTime.Now;
                 ShowImages(PixivPage.RankingDay, false);
             }
             else if (item == miPixivRankingDayR18)

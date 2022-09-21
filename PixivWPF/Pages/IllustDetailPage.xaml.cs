@@ -2939,29 +2939,33 @@ namespace PixivWPF.Pages
                 var is_down = Contents.Illust.IsDownloaded(Contents.Index);
                 var single = Contents.Count <= 1;
                 var menus = sender as ContextMenu;
-                foreach (var item in menus.Items)
+                var items = menus.FindChildren<UIElement>();
+                foreach (UIElement item in items)
+                //foreach (var item in menus.Items)
                 {
                     if (item is MenuItem || item is Separator)
                     {
                         var uid = item.GetUid();
-
-                        if (!is_down && down_list.Contains(uid))
+                        if (!string.IsNullOrEmpty(uid))
                         {
-                            item.Hide();
-                        }
-                        else
-                        {
-                            if (is_jpg && conv_list.Contains(uid)) item.Hide();
-                            //else if (is_jpg && jpeg_list.Contains(uid)) item.Hide();
-                            else if (item is MenuItem && jpeg_list.Contains(uid))
+                            if (!is_down && down_list.Contains(uid))
                             {
-                                var all = uid.EndsWith("All") ? " All " : " ";
-                                (item as MenuItem).Header = is_jpg ? $"Save{all}Illust And Reduce It" : $"Save{all}Illust As JPEG";
-                                if (single && uid.EndsWith("All")) item.Hide();
+                                item.Hide();
                             }
-                            else if (!Contents.IsUgoira() && ugoira_list.Contains(uid)) item.Hide();
-                            else if (single && uid.Contains("All")) item.Hide();
-                            else (item as UIElement).Show();
+                            else
+                            {
+                                if (is_jpg && conv_list.Contains(uid)) item.Hide();
+                                //else if (is_jpg && jpeg_list.Contains(uid)) item.Hide();
+                                else if (item is MenuItem && jpeg_list.Contains(uid))
+                                {
+                                    var all = uid.EndsWith("All") ? " All " : " ";
+                                    (item as MenuItem).Header = is_jpg ? $"Save{all}Illust And Reduce It" : $"Save{all}Illust As JPEG";
+                                    if (single && uid.EndsWith("All")) item.Hide();
+                                }
+                                else if (!Contents.IsUgoira() && ugoira_list.Contains(uid)) item.Hide();
+                                else if (single && uid.Contains("All")) item.Hide();
+                                else (item as UIElement).Show();
+                            }
                         }
                     }
                 }
@@ -4571,7 +4575,9 @@ namespace PixivWPF.Pages
                 {
                     var start = page_number * PAGE_ITEMS;
                     var count = Contents .Count;
-                    foreach (dynamic item in (sender as ContextMenu).Items)
+                    var items = (sender as ContextMenu).FindChildren<UIElement>();
+                    foreach (dynamic item in items)
+                    //foreach (dynamic item in (sender as ContextMenu).Items)
                     {
                         try
                         {
@@ -4610,7 +4616,9 @@ namespace PixivWPF.Pages
                 else if (host == RelatedItemsExpander || host == RelatedItems || host == FavoriteItemsExpander || host == FavoriteItems)
                 {
                     var target = host == RelatedItemsExpander || host == RelatedItems ? RelatedItemsExpander : FavoriteItemsExpander;
-                    foreach (dynamic item in (sender as ContextMenu).Items)
+                    var items = (sender as ContextMenu).FindChildren<UIElement>();
+                    foreach (dynamic item in items)
+                    //foreach (dynamic item in (sender as ContextMenu).Items)
                     {
                         try
                         {

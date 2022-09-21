@@ -6464,7 +6464,6 @@ namespace PixivWPF.Common
         private static bool GuessAlpha(this Stream source, int window = 3)
         {
             var result = false;
-
             try
             {
                 if (source is Stream && source.CanRead)
@@ -6473,10 +6472,10 @@ namespace PixivWPF.Common
                     if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
                     using (System.Drawing.Image image = System.Drawing.Image.FromStream(source))
                     {
-                        if (image is System.Drawing.Image && 
+                        if (image is System.Drawing.Image && (
                             image.RawFormat.Guid.Equals(System.Drawing.Imaging.ImageFormat.Png.Guid) ||
                             image.RawFormat.Guid.Equals(System.Drawing.Imaging.ImageFormat.Bmp.Guid) ||
-                            image.RawFormat.Guid.Equals(System.Drawing.Imaging.ImageFormat.Tiff.Guid))
+                            image.RawFormat.Guid.Equals(System.Drawing.Imaging.ImageFormat.Tiff.Guid)))
                         {
                             if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb) { status = true; }
                             else if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppPArgb) { status = true; }
@@ -6546,24 +6545,28 @@ namespace PixivWPF.Common
                             ExifData exif_in = null;
                             using (var exif_ms = new MemoryStream(buffer)) { exif_in = GetExifData(exif_ms); }
                             if (mi.CanSeek) mi.Seek(0, SeekOrigin.Begin);
-                            var jq = exif_in.JpegQuality == 0 ? 75 : exif_in.JpegQuality;
-                            if (exif_in == null || (exif_in is ExifData && (exif_in.ImageType != ImageType.Jpeg || jq > quality)))
+                            if (exif_in is ExifData)
                             {
-                                using (var mo = new MemoryStream())
+                                var jq = exif_in.JpegQuality == 0 ? 75 : exif_in.JpegQuality;
+                                if (exif_in.ImageType != ImageType.Jpeg || jq > quality)
                                 {
-                                    var bmp = new System.Drawing.Bitmap(mi);
+                                    using (var mo = new MemoryStream())
+                                    {
+                                        var bmp = new System.Drawing.Bitmap(mi);
 
-                                    var codec_info = GetEncoderInfo("image/jpeg");
-                                    var qualityParam = new System.Drawing.Imaging.EncoderParameter(System.Drawing.Imaging.Encoder.Quality, quality);
-                                    var encoderParams = new System.Drawing.Imaging.EncoderParameters(1);
-                                    encoderParams.Param[0] = qualityParam;
+                                        var codec_info = GetEncoderInfo("image/jpeg");
+                                        var qualityParam = new System.Drawing.Imaging.EncoderParameter(System.Drawing.Imaging.Encoder.Quality, quality);
+                                        var encoderParams = new System.Drawing.Imaging.EncoderParameters(1);
+                                        encoderParams.Param[0] = qualityParam;
 
-                                    if (pFmt == System.Drawing.Imaging.ImageFormat.Jpeg)
-                                        bmp.Save(mo, codec_info, encoderParams);
-                                    else
-                                        bmp.Save(mo, pFmt);
-                                    result = mo.ToArray();
+                                        if (pFmt == System.Drawing.Imaging.ImageFormat.Jpeg)
+                                            bmp.Save(mo, codec_info, encoderParams);
+                                        else
+                                            bmp.Save(mo, pFmt);
+                                        result = mo.ToArray();
+                                    }
                                 }
+                                else result = mi.ToArray();
                             }
                             else result = mi.ToArray();
                         }
@@ -6607,28 +6610,32 @@ namespace PixivWPF.Common
                                 ExifData exif_in = null;
                                 using (var exif_ms = new MemoryStream()) { await msi.CopyToAsync(exif_ms); exif_in = GetExifData(exif_ms); }
                                 if (msi.CanSeek) msi.Seek(0, SeekOrigin.Begin);
-                                var jq = exif_in.JpegQuality == 0 ? 75 : exif_in.JpegQuality;
-                                if (exif_in == null || (exif_in is ExifData && (exif_in.ImageType != ImageType.Jpeg || jq > quality)))
+                                if (exif_in is ExifData)
                                 {
-                                    var reason = string.Empty;
-                                    using (var msp = new MemoryStream(msi.ToArray().ConvertImageTo(fmt, out reason, quality: quality)))
+                                    var jq = exif_in.JpegQuality == 0 ? 75 : exif_in.JpegQuality;
+                                    if (exif_in.ImageType != ImageType.Jpeg || jq > quality)
                                     {
-                                        msp.Seek(0, SeekOrigin.Begin);
-                                        var exif_out = new ExifData(msp);
-                                        exif_out.ReplaceAllTagsBy(exif_in);
-
-                                        msp.Seek(0, SeekOrigin.Begin);
-                                        mso.Seek(0, SeekOrigin.Begin);
-                                        exif_out.Save(msp, mso);
-                                        if (exif_out.ImageType == exif_in.ImageType && mso.Length >= fi.Length)
+                                        var reason = string.Empty;
+                                        using (var msp = new MemoryStream(msi.ToArray().ConvertImageTo(fmt, out reason, quality: quality)))
                                         {
-                                            $"{feature} {file} To {fmt.ToUpper()} Failed! {reason}".Trim().INFO(InfoTitle);
-                                            throw new WarningException($"{feature}ed File Size : {mso.Length} >= Original File Size : {fi.Length}!");
+                                            msp.Seek(0, SeekOrigin.Begin);
+                                            var exif_out = new ExifData(msp);
+                                            exif_out.ReplaceAllTagsBy(exif_in);
+
+                                            msp.Seek(0, SeekOrigin.Begin);
+                                            mso.Seek(0, SeekOrigin.Begin);
+                                            exif_out.Save(msp, mso);
+                                            if (exif_out.ImageType == exif_in.ImageType && mso.Length >= fi.Length)
+                                            {
+                                                $"{feature} {file} To {fmt.ToUpper()} Failed! {reason}".Trim().INFO(InfoTitle);
+                                                throw new WarningException($"{feature}ed File Size : {mso.Length} >= Original File Size : {fi.Length}!");
+                                            }
+                                            File.WriteAllBytes(fout, mso.ToArray());
                                         }
-                                        File.WriteAllBytes(fout, mso.ToArray());
                                     }
+                                    else throw new WarningException($"{feature}ed File Size : Original Image JPEG Quality <= {quality}!");
                                 }
-                                else throw new WarningException($"{feature}ed File Size : Original Image is Error or JPEG Quality <= {quality}!");
+                                else throw new WarningException($"{feature}ed File Size : Original Image is Error!");
                             }
                         }
                     }
