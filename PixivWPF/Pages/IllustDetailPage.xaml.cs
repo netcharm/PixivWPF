@@ -2299,10 +2299,8 @@ namespace PixivWPF.Pages
                     else UpdateThumb();
                 }
             }
-            catch (Exception ex)
-            {
-                ex.ERROR(this.Name ?? "UserWorks");
-            }
+            catch (WarningException ex) { ex.WARN(this.Name ?? "UserWorks"); }
+            catch (Exception ex) { ex.ERROR(this.Name ?? "UserWorks", no_stack: ex is WarningException); }
             finally
             {
                 //UpdateGalleryTooltip(RelatedItems);

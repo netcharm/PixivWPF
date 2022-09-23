@@ -407,6 +407,7 @@ namespace PixivWPF.Common
         {
             get { if (_TagsWildecardT2S == null) _TagsWildecardT2S = new OrderedDictionary(); return (_TagsWildecardT2S); }
         }
+        private static List<string> _BadTags_ = new List<string>();
 
         private class TagsWildecardCacheItem
         {
@@ -1436,6 +1437,8 @@ namespace PixivWPF.Common
             {
                 if (_TagsWildecardT2SCache.ContainsKey(key))
                 {
+                    _BadTags_.RemoveAll(s => _TagsWildecardT2SCache[key].Keys.Contains(s));
+
                     _TagsWildecardT2SCache[key].Keys.Clear();
                     _TagsWildecardT2SCache[key].Translated = string.Empty;
                     TagsWildecardCacheItem v = null;
@@ -1447,7 +1450,7 @@ namespace PixivWPF.Common
 
         public static void TagWildcardCacheClear(Application app)
         {
-            try { _TagsWildecardT2SCache.Clear(); }
+            try { _BadTags_.Clear(); _TagsWildecardT2SCache.Clear(); }
             catch (Exception ex) { ex.ERROR("TagWildcardCacheClear"); }
         }
 
@@ -1457,6 +1460,8 @@ namespace PixivWPF.Common
             {
                 if (!(_TagsWildecardT2SCache is ConcurrentDictionary<string, TagsWildecardCacheItem>))
                     _TagsWildecardT2SCache = new ConcurrentDictionary<string, TagsWildecardCacheItem>(StringComparer.CurrentCultureIgnoreCase);
+
+                _BadTags_.RemoveAll(s => _TagsWildecardT2SCache[key].Keys.Contains(s));
 
                 var k = key.Trim('/').Replace(" ", @"\s");
                 var v = value.Trim();
@@ -1575,13 +1580,16 @@ namespace PixivWPF.Common
                     var keys = new List<string>();
                     foreach (DictionaryEntry entry in TagsWildecardT2S)
                     {
-                        var k = (entry.Key as string).Trim('/').Replace(" ", @"\s");
-                        var v = (entry.Value as string).Replace("\n", "\\n");
-                        var vt = text;
-                        text = Regex.Replace(text, k, m =>
+                        try
                         {
-                            if (string.IsNullOrEmpty(v)) return (v);
-                            var vs = Regex.Replace(v, @"\$(\d+)(%.*?%)", idx =>
+                            var k = (entry.Key as string).Trim('/');//.Replace(" ", @"\s");
+                            if (_BadTags_.Contains(k)) continue;
+                            var v = (entry.Value as string).Replace("\n", "\\n");
+                            var vt = text;
+                            text = Regex.Replace(text, k, m =>
+                            {
+                                if (string.IsNullOrEmpty(v)) return (v);
+                                var vs = Regex.Replace(v, @"\$(\d+)(%.*?%)", idx =>
                             {
                                 var i = int.Parse(idx.Groups[1].Value);
                                 var t = idx.Groups[2].Value.Trim('%');
@@ -1590,14 +1598,16 @@ namespace PixivWPF.Common
                                 else
                                     return (m.Groups[i].Success ? $"{t}" : string.Empty);
                             });
-                            for (int i = 0; i < m.Groups.Count; i++)
-                            {
-                                vs = vs.Replace($"${i}", m.Groups[i].Value);
-                            }
-                            if (!keys.Contains(k) && !string.IsNullOrEmpty(m.Value)) { keys.Add(k); vt = vt.Replace(m.Value, vs); }
-                            else { if (vt.Contains(vs) && vs.Length > 2) vs = string.Empty; }
-                            return (vs);
-                        }, RegexOptions.IgnoreCase);
+                                for (int i = 0; i < m.Groups.Count; i++)
+                                {
+                                    vs = vs.Replace($"${i}", m.Groups[i].Value);
+                                }
+                                if (!keys.Contains(k) && !string.IsNullOrEmpty(m.Value)) { keys.Add(k); vt = vt.Replace(m.Value, vs); }
+                                else { if (vt.Contains(vs) && vs.Length > 2) vs = string.Empty; }
+                                return (vs);
+                            }, RegexOptions.IgnoreCase);
+                        }
+                        catch (Exception exw) { _BadTags_.Add((entry.Key as string).Trim('/')); exw.ERROR("TRANSLATE"); }
                     }
 
                     if (keys.Count > 0 && !text.Equals(src) && (!TagsMatched || LevenshteinDistance(text, src) > 1))
@@ -2503,6 +2513,7 @@ namespace PixivWPF.Common
                 var rate = delta.TotalSeconds <= 0 ? 0 : di.Received / delta.TotalSeconds;
                 var size = di.State == Common.DownloadState.Finished && File.Exists(di.FileName) ? (new FileInfo(di.FileName)).Length.SmartFileSize() : "????";
                 var fmt = di.SaveAsJPEG ? $"JPG_Q<={di.JPEGQuality}" : $"{Path.GetExtension(di.FileName).Trim('.').ToUpper()}";
+                fmt = string.IsNullOrEmpty(di.ConvertReason) ? fmt : di.ConvertReason.Trim();
                 result.Add($"URL    : {di.Url}");
                 result.Add($"File   : {di.FileName}, {di.FileTime.ToString("yyyy-MM-dd HH:mm:sszzz")}");
                 result.Add($"State  : {di.State}{fail} Disk Usage : {size}, {fmt}");
@@ -6502,6 +6513,7 @@ namespace PixivWPF.Common
                             }
                         }
                     }
+                    result = status;
                 }
             }
             catch (Exception ex) { ex.ERROR("GuessAlpha"); }
@@ -6579,7 +6591,8 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR("ConvertImageTo"); }
+            catch (WarningException ex) { ex.WARN("ConvertImageTo"); }
+            catch (Exception ex) { ex.ERROR("ConvertImageTo", no_stack: ex is WarningException); }
             return (result);
         }
 

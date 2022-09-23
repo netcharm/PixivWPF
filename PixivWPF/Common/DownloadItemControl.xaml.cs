@@ -235,6 +235,7 @@ namespace PixivWPF.Common
         public DownloadItem Instance { get; set; } = null;
 
         public string FailReason { get; set; } = string.Empty;
+        public string ConvertReason { get; set; } = string.Empty;
 
         public DateTime StartTime { get; internal set; } = DateTime.Now;
         public DateTime EndTime { get; internal set; } = DateTime.Now;
@@ -389,6 +390,12 @@ namespace PixivWPF.Common
         {
             get { return (Info is DownloadInfo ? Info.FailReason : string.Empty); }
             set { if (Info is DownloadInfo) Info.FailReason = value; }
+        }
+
+        public string ConvertReason
+        {
+            get { return (Info is DownloadInfo ? Info.ConvertReason : string.Empty); }
+            set { if (Info is DownloadInfo) Info.ConvertReason = value; }
         }
 
         public string Url
@@ -1183,7 +1190,7 @@ namespace PixivWPF.Common
                         JPEGQuality = setting.DownloadConvertJpegQuality;
                         var reason = string.Empty;
                         var ret = bytes.ConvertImageTo("jpg", out reason);
-                        FailReason += $" {reason}".Trim();
+                        ConvertReason += $" {reason}".Trim();
                         if (ret is byte[] && ret.Length > 16)
                         {
                             if (ret.Length >= bytes.Length)
@@ -1244,7 +1251,7 @@ namespace PixivWPF.Common
                                 var bytes = File.ReadAllBytes(source);
                                 var reason = string.Empty;
                                 var ret = bytes.ConvertImageTo("jpg", out reason);
-                                FailReason += $" {reason}".Trim();
+                                ConvertReason += $" {reason}".Trim();
                                 if (ret.Length >= bytes.Length)
                                     File.WriteAllBytes(FileName, bytes);
                                 else
