@@ -436,9 +436,9 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
+                if (sender is MenuItem)
                 {
-                    var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                    var host = (sender as MenuItem).GetContextMenuHost();
                     if (host == HistoryItems)
                     {
                         Commands.OpenItem.Execute(HistoryItems);
@@ -481,19 +481,25 @@ namespace PixivWPF.Pages
                 var overwrite = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
 
                 var m = sender as MenuItem;
-                var host = (m.Parent as ContextMenu).PlacementTarget;
-                if (m.Uid.Equals("ActionRefresh", StringComparison.CurrentCultureIgnoreCase))
+                if (sender is UIElement)
                 {
-                    if (host == HistoryItems)
+                    var host = (sender as UIElement).GetContextMenuHost();
+                    if (host is UIElement)
                     {
-                        ShowHistory(overwrite);
-                    }
-                }
-                else if (m.Uid.Equals("ActionRefreshThumb", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    if (host == HistoryItems)
-                    {
-                        HistoryItems.UpdateTilesImage(overwrite);
+                        if (m.Uid.Equals("ActionRefresh", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            if (host == HistoryItems)
+                            {
+                                ShowHistory(overwrite);
+                            }
+                        }
+                        else if (m.Uid.Equals("ActionRefreshThumb", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            if (host == HistoryItems)
+                            {
+                                HistoryItems.UpdateTilesImage(overwrite);
+                            }
+                        }
                     }
                 }
             }
@@ -541,15 +547,12 @@ namespace PixivWPF.Pages
             if (sender is MenuItem)
             {
                 var mi = sender as MenuItem;
-                if (mi.Parent is ContextMenu)
+                var host = mi.GetContextMenuHost();
+                if (host == HistoryItems)
                 {
-                    var host = (mi.Parent as ContextMenu).PlacementTarget;
-                    if (host == HistoryItems)
+                    foreach (PixivItem item in HistoryItems.SelectedItems)
                     {
-                        foreach (PixivItem item in HistoryItems.SelectedItems)
-                        {
-                            text += $"{item.Subject},\r\n";
-                        }
+                        text += $"{item.Subject},\r\n";
                     }
                 }
             }
@@ -566,22 +569,26 @@ namespace PixivWPF.Pages
                     uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase) ||
                     uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    IList<PixivItem> items = new List<PixivItem>();
-                    var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
-                    if (host == HistoryItems) items = HistoryItems.GetSelectedIllusts();
                     try
                     {
-                        if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase))
+                        if (sender is MenuItem)
                         {
-                            items.LikeIllust();
-                        }
-                        else if (uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            items.LikeIllust(false);
-                        }
-                        else if (uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            items.UnLikeIllust();
+                            var host = (sender as MenuItem).GetContextMenuHost();
+                            IList<PixivItem> items = new List<PixivItem>();
+                            if (host == HistoryItems) items = HistoryItems.GetSelectedIllusts();
+
+                            if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                items.LikeIllust();
+                            }
+                            else if (uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                items.LikeIllust(false);
+                            }
+                            else if (uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                items.UnLikeIllust();
+                            }
                         }
                     }
                     catch (Exception ex) { ex.ERROR(); }
@@ -599,22 +606,25 @@ namespace PixivWPF.Pages
                     uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase) ||
                     uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    IList<PixivItem> items = new List<PixivItem>();
-                    var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
-                    if (host == HistoryItems) items = HistoryItems.GetSelected();
                     try
                     {
-                        if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase))
+                        if (sender is MenuItem)
                         {
-                            items.LikeUser();
-                        }
-                        else if (uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            items.LikeUser(false);
-                        }
-                        else if (uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            items.UnLikeUser();
+                            var host = (sender as MenuItem).GetContextMenuHost();
+                            IList<PixivItem> items = new List<PixivItem>();
+                            if (host == HistoryItems) items = HistoryItems.GetSelected();
+                            if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                items.LikeUser();
+                            }
+                            else if (uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                items.LikeUser(false);
+                            }
+                            else if (uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                items.UnLikeUser();
+                            }
                         }
                     }
                     catch (Exception ex) { ex.ERROR(); }

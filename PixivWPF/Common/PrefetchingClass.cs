@@ -429,7 +429,7 @@ namespace PixivWPF.Common
                     PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
                     //if (!PrefetchedList.TryAdd(url, true)) PrefetchedList.TryUpdate(url, true, false);
                 }
-                needUpdate = needUpdate.Where(url => !PrefetchedList.ContainsKey(url) || !PrefetchedList[url]).ToList();
+                needUpdate = needUpdate.Where(url => !string.IsNullOrEmpty(url) && (!PrefetchedList.ContainsKey(url) || !PrefetchedList[url])).ToList();
                 count = needUpdate.Count;
                 Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
                 if (count == 0)

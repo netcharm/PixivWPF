@@ -1495,7 +1495,7 @@ namespace PixivWPF.Pages
                     var size = querysize ? $" [{(await Contents.Illust.GetOriginalUrl(Contents.Index).QueryImageFileSize() ?? -1).SmartFileSize()}]" : string.Empty;
                     var original = $"Original  : {Contents.Illust.GetOriginalUrl(Contents.Index).GetImageName(Contents.Count <= 1)}{size}";
                     var diskusage = IllustDownloaded.IsShown() && (IllustDownloaded.ToolTip is string) ? $"FileSize  : {new System.IO.FileInfo(IllustDownloaded.ToolTip as string).Length.SmartFileSize()}" : string.Empty;
-                    var tips = (IllustStatInfo.ToolTip as string).Split(new string[] { Environment.NewLine, "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    var tips = (IllustStatInfo.ToolTip as string).Split(Application.Current.GetLineBreak(), StringSplitOptions.RemoveEmptyEntries).ToList();
 
                     var found_orig = false;
                     var found_size = false;
@@ -3310,7 +3310,7 @@ namespace PixivWPF.Pages
                         if (c_item.IsSameIllust(Contents)) PreviewWait.Show();
 
                         PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index, large: setting.ShowLargePreview);
-                        if (string.IsNullOrEmpty(AvatarImageUrl))
+                        if (string.IsNullOrEmpty(AvatarImageUrl) && Contents.Illust.Id.HasValue)
                         {
                             var illusts = await Contents.Illust.Id.Value.SearchIllustById(null);
                             if (illusts.Count > 0) Contents.Illust.ImageUrls = illusts.First().ImageUrls;
@@ -3454,33 +3454,30 @@ namespace PixivWPF.Pages
                     else if (mi.Uid.Equals("SpeechEnglish", StringComparison.CurrentCultureIgnoreCase))
                         culture = CultureInfo.GetCultureInfoByIetfLanguageTag("en-US");
 
-                    if (mi.Parent is ContextMenu)
+                    var host = mi.GetContextMenuHost();
+                    if (host == IllustTagSpeech) { is_tag = true; text = IllustTagsHtml.GetText(); }
+                    else if (host == IllustDescSpeech) text = IllustDescHtml.GetText();
+                    else if (host == IllustAuthor) text = IllustAuthor.Text;
+                    else if (host == IllustTitle) text = IllustTitle.Text;
+                    else if (host == IllustDateInfo || host == IllustDate) text = IllustDate.Text;
+                    else if (host == SubIllustsExpander || host == SubIllusts) text = IllustTitle.Text;
+                    else if (host == RelatedItemsExpander || host == RelatedItems)
                     {
-                        var host = (mi.Parent as ContextMenu).PlacementTarget;
-                        if (host == IllustTagSpeech) { is_tag = true; text = IllustTagsHtml.GetText(); }
-                        else if (host == IllustDescSpeech) text = IllustDescHtml.GetText();
-                        else if (host == IllustAuthor) text = IllustAuthor.Text;
-                        else if (host == IllustTitle) text = IllustTitle.Text;
-                        else if (host == IllustDateInfo || host == IllustDate) text = IllustDate.Text;
-                        else if (host == SubIllustsExpander || host == SubIllusts) text = IllustTitle.Text;
-                        else if (host == RelatedItemsExpander || host == RelatedItems)
+                        List<string> lines = new List<string>();
+                        foreach (PixivItem item in RelatedItems.GetSelected())
                         {
-                            List<string> lines = new List<string>();
-                            foreach (PixivItem item in RelatedItems.GetSelected())
-                            {
-                                lines.Add(item.Illust.Title);
-                            }
-                            text = string.Join($",{Environment.NewLine}", lines);
+                            lines.Add(item.Illust.Title);
                         }
-                        else if (host == FavoriteItemsExpander || host == FavoriteItems)
+                        text = string.Join($",{Environment.NewLine}", lines);
+                    }
+                    else if (host == FavoriteItemsExpander || host == FavoriteItems)
+                    {
+                        List<string> lines = new List<string>();
+                        foreach (PixivItem item in FavoriteItems.GetSelected())
                         {
-                            List<string> lines = new List<string>();
-                            foreach (PixivItem item in FavoriteItems.GetSelected())
-                            {
-                                lines.Add(item.Illust.Title);
-                            }
-                            text = string.Join($",{Environment.NewLine}", lines);
+                            lines.Add(item.Illust.Title);
                         }
+                        text = string.Join($",{Environment.NewLine}", lines);
                     }
                 }
             }
@@ -3520,33 +3517,30 @@ namespace PixivWPF.Pages
                 {
                     var mi = sender as MenuItem;
 
-                    if (mi.Parent is ContextMenu)
+                    var host = mi.GetContextMenuHost();
+                    if (host == IllustTagSpeech) { is_tag = true; text = IllustTagsHtml.GetText(); }
+                    else if (host == IllustDescSpeech) text = IllustDescHtml.GetText();
+                    else if (host == IllustAuthor) text = IllustAuthor.Text;
+                    else if (host == IllustTitle) text = IllustTitle.Text;
+                    else if (host == IllustDateInfo || host == IllustDate) text = IllustDate.Text;
+                    else if (host == SubIllustsExpander || host == SubIllusts) text = IllustTitle.Text;
+                    else if (host == RelatedItemsExpander || host == RelatedItems)
                     {
-                        var host = (mi.Parent as ContextMenu).PlacementTarget;
-                        if (host == IllustTagSpeech) { is_tag = true; text = IllustTagsHtml.GetText(); }
-                        else if (host == IllustDescSpeech) text = IllustDescHtml.GetText();
-                        else if (host == IllustAuthor) text = IllustAuthor.Text;
-                        else if (host == IllustTitle) text = IllustTitle.Text;
-                        else if (host == IllustDateInfo || host == IllustDate) text = IllustDate.Text;
-                        else if (host == SubIllustsExpander || host == SubIllusts) text = IllustTitle.Text;
-                        else if (host == RelatedItemsExpander || host == RelatedItems)
+                        List<string> lines = new List<string>();
+                        foreach (PixivItem item in RelatedItems.GetSelected())
                         {
-                            List<string> lines = new List<string>();
-                            foreach (PixivItem item in RelatedItems.GetSelected())
-                            {
-                                lines.Add(item.Illust.Title);
-                            }
-                            text = string.Join($",{Environment.NewLine}", lines);
+                            lines.Add(item.Illust.Title);
                         }
-                        else if (host == FavoriteItemsExpander || host == FavoriteItems)
+                        text = string.Join($",{Environment.NewLine}", lines);
+                    }
+                    else if (host == FavoriteItemsExpander || host == FavoriteItems)
+                    {
+                        List<string> lines = new List<string>();
+                        foreach (PixivItem item in FavoriteItems.GetSelected())
                         {
-                            List<string> lines = new List<string>();
-                            foreach (PixivItem item in FavoriteItems.GetSelected())
-                            {
-                                lines.Add(item.Illust.Title);
-                            }
-                            text = string.Join($",{Environment.NewLine}", lines);
+                            lines.Add(item.Illust.Title);
                         }
+                        text = string.Join($",{Environment.NewLine}", lines);
                     }
                 }
             }
@@ -3571,18 +3565,15 @@ namespace PixivWPF.Pages
                 if (sender is MenuItem)
                 {
                     var mi = sender as MenuItem;
-                    if (mi.Parent is ContextMenu)
-                    {
-                        var host = (mi.Parent as ContextMenu).PlacementTarget;
-                        if (host == IllustTagSpeech)
-                            text = $"\"tag:{string.Join($"\"{Environment.NewLine}\"tag:", IllustTagsHtml.GetText().Trim().Trim('#').Split('#'))}\"";
-                        else if (host == IllustDescSpeech)
-                            text = $"\"{string.Join("\" \"", IllustDescHtml.GetText().ParseLinks().ToArray())}\"";
-                        else if (host == IllustAuthor)
-                            text = $"\"user:{IllustAuthor.Text}\"";
-                        else if (host == IllustTitle)
-                            text = $"\"title:{IllustTitle.Text}\"";
-                    }
+                    var host = mi.GetContextMenuHost();
+                    if (host == IllustTagSpeech)
+                        text = $"\"tag:{string.Join($"\"{Environment.NewLine}\"tag:", IllustTagsHtml.GetText().Trim().Trim('#').Split('#'))}\"";
+                    else if (host == IllustDescSpeech)
+                        text = $"\"{string.Join("\" \"", IllustDescHtml.GetText().ParseLinks().ToArray())}\"";
+                    else if (host == IllustAuthor)
+                        text = $"\"user:{IllustAuthor.Text}\"";
+                    else if (host == IllustTitle)
+                        text = $"\"title:{IllustTitle.Text}\"";
                 }
             }
 #if DEBUG
@@ -3607,72 +3598,69 @@ namespace PixivWPF.Pages
                 if (sender is MenuItem)
                 {
                     var mi = sender as MenuItem;
-                    if (mi.Parent is ContextMenu)
+                    var host = mi.GetContextMenuHost();
+                    if (host == IllustTagSpeech)
                     {
-                        var host = (mi.Parent as ContextMenu).PlacementTarget;
-                        if (host == IllustTagSpeech)
+                        if (Keyboard.Modifiers == ModifierKeys.None)
+                            RefreshHtmlRender(IllustTagsHtml);
+                        else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                            Application.Current.LoadTags(false, true);
+                        else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+                            Application.Current.LoadSetting().CustomTagsFile.OpenFileWithShell();
+                        else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
+                            Application.Current.LoadSetting().CustomWildcardTagsFile.OpenFileWithShell();
+                    }
+                    else if (host == IllustDescSpeech)
+                    {
+                        if (Keyboard.Modifiers == ModifierKeys.None)
+                            RefreshHtmlRender(IllustDescHtml);
+                        else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+                            Application.Current.LoadSetting().ContentsTemplateFile.OpenFileWithShell();
+                    }
+                    else if (host == IllustTitle)
+                    {
+                        if (Contents.IsWork())
                         {
-                            if (Keyboard.Modifiers == ModifierKeys.None)
-                                RefreshHtmlRender(IllustTagsHtml);
-                            else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                                Application.Current.LoadTags(false, true);
-                            else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
-                                Application.Current.LoadSetting().CustomTagsFile.OpenFileWithShell();
-                            else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
-                                Application.Current.LoadSetting().CustomWildcardTagsFile.OpenFileWithShell();
+                            Contents.Illust.Title.TagWildcardCacheClear();
+                            UpdateIllustTitle();
                         }
-                        else if (host == IllustDescSpeech)
+                    }
+                    else if (mi.Uid.Equals("ActionRefresh", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var item = Contents;
+                        if (item.IsWork())
                         {
-                            if (Keyboard.Modifiers == ModifierKeys.None)
-                                RefreshHtmlRender(IllustDescHtml);
-                            else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
-                                Application.Current.LoadSetting().ContentsTemplateFile.OpenFileWithShell();
+                            var illust = Contents.ID.FindIllust();
+                            if (illust.IsWork()) item = illust.WorkItem();
                         }
-                        else if (host == IllustTitle)
+                        else if (item.IsUser())
                         {
-                            if (Contents.IsWork())
-                            {
-                                Contents.Illust.Title.TagWildcardCacheClear();
-                                UpdateIllustTitle();
-                            }
+                            var user = Contents.UserID.FindUser();
+                            if (user is Pixeez.Objects.UserBase) item = user.UserItem();
                         }
-                        else if (mi.Uid.Equals("ActionRefresh", StringComparison.CurrentCultureIgnoreCase))
+                        if (Contents.HasUser()) UpdateDetail(Contents);
+                    }
+                    else if (mi.Uid.Equals("ActionRefreshIllust", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var item = Contents;
+                        if (item.IsWork())
                         {
-                            var item = Contents;
-                            if (item.IsWork())
-                            {
-                                var illust = Contents.ID.FindIllust();
-                                if (illust.IsWork()) item = illust.WorkItem();
-                            }
-                            else if (item.IsUser())
-                            {
-                                var user = Contents.UserID.FindUser();
-                                if (user is Pixeez.Objects.UserBase) item = user.UserItem();
-                            }
-                            if (Contents.HasUser()) UpdateDetail(Contents);
+                            var illust = Contents.ID.FindIllust();
+                            if (illust.IsWork()) item = illust.WorkItem();
                         }
-                        else if (mi.Uid.Equals("ActionRefreshIllust", StringComparison.CurrentCultureIgnoreCase))
+                        else if (item.IsUser())
                         {
-                            var item = Contents;
-                            if (item.IsWork())
-                            {
-                                var illust = Contents.ID.FindIllust();
-                                if (illust.IsWork()) item = illust.WorkItem();
-                            }
-                            else if (item.IsUser())
-                            {
-                                var user = Contents.UserID.FindUser();
-                                if (user is Pixeez.Objects.UserBase) item = user.UserItem();
-                            }
-                            UpdateDetail(item);
+                            var user = Contents.UserID.FindUser();
+                            if (user is Pixeez.Objects.UserBase) item = user.UserItem();
                         }
-                        else if (mi == ActionClearTagsCache)
+                        UpdateDetail(item);
+                    }
+                    else if (mi == ActionClearTagsCache)
+                    {
+                        if (Contents.IsWork())
                         {
-                            if (Contents.IsWork())
-                            {
-                                Contents.Illust.Title.TagWildcardCacheClear();
-                                Contents.Illust.Tags.TagWildcardCacheClear();
-                            }
+                            Contents.Illust.Title.TagWildcardCacheClear();
+                            Contents.Illust.Tags.TagWildcardCacheClear();
                         }
                     }
                 }
@@ -3982,23 +3970,30 @@ namespace PixivWPF.Pages
                 uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase) ||
                 uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
             {
-                IList<PixivItem> items = new List<PixivItem>();
-                var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
-                if (host == RelatedItems || host == RelatedItemsExpander) items = RelatedItems.GetSelected();
-                else if (host == FavoriteItems || host == FavoriteItemsExpander) items = FavoriteItems.GetSelected();
                 try
                 {
-                    if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase))
+                    if (sender is MenuItem)
                     {
-                        items.LikeIllust();
-                    }
-                    else if (uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        items.LikeIllust(false);
-                    }
-                    else if (uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        items.UnLikeIllust();
+                        var host = (sender as MenuItem).GetContextMenuHost();
+                        if (host is UIElement)
+                        {
+                            IList<PixivItem> items = new List<PixivItem>();
+                            if (host == RelatedItems || host == RelatedItemsExpander) items = RelatedItems.GetSelected();
+                            else if (host == FavoriteItems || host == FavoriteItemsExpander) items = FavoriteItems.GetSelected();
+
+                            if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                items.LikeIllust();
+                            }
+                            else if (uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                items.LikeIllust(false);
+                            }
+                            else if (uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                items.UnLikeIllust();
+                            }
+                        }
                     }
                 }
                 catch (Exception ex) { ex.ERROR("BOOKMARK"); }
@@ -4052,23 +4047,30 @@ namespace PixivWPF.Pages
                 var tokens = await CommonHelper.ShowLogin();
                 if (tokens == null) return;
 
-                IList<PixivItem> items = new List<PixivItem>();
-                var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
-                if (host == RelatedItems || host == RelatedItemsExpander) items = RelatedItems.GetSelected();
-                else if (host == FavoriteItems || host == FavoriteItemsExpander) items = FavoriteItems.GetSelected();
                 try
                 {
-                    if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase))
+                    if (sender is MenuItem)
                     {
-                        items.LikeUser();
-                    }
-                    else if (uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        items.LikeUser(false);
-                    }
-                    else if (uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        items.UnLikeUser();
+                        var host = (sender as MenuItem).GetContextMenuHost();
+                        if (host is UIElement)
+                        {
+                            IList<PixivItem> items = new List<PixivItem>();
+                            if (host == RelatedItems || host == RelatedItemsExpander) items = RelatedItems.GetSelected();
+                            else if (host == FavoriteItems || host == FavoriteItemsExpander) items = FavoriteItems.GetSelected();
+
+                            if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                items.LikeUser();
+                            }
+                            else if (uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                items.LikeUser(false);
+                            }
+                            else if (uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                items.UnLikeUser();
+                            }
+                        }
                     }
                 }
                 catch (Exception ex) { ex.ERROR("FOLLOW"); }
@@ -4663,9 +4665,9 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
+                if (sender is MenuItem)
                 {
-                    var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                    var host = (sender as MenuItem).GetContextMenuHost();
                     if (host == SubIllustsExpander || host == SubIllusts)
                     {
                         if (Contents.IsWork())
@@ -4697,7 +4699,7 @@ namespace PixivWPF.Pages
             if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
             {
                 ImageListGrid target = null;
-                var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                var host = (sender as MenuItem).GetContextMenuHost();
                 if (host == SubIllustsExpander || host == SubIllusts || host == PreviewBox)
                     target = SubIllusts;
                 else if (host == RelatedItemsExpander || host == RelatedItems)
@@ -4728,9 +4730,9 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
+                if (sender is MenuItem)
                 {
-                    var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                    var host = (sender as MenuItem).GetContextMenuHost();
                     if (host == SubIllustsExpander || host == SubIllusts)
                     {
                         if (Contents.IsWork()) Commands.CopyJson.Execute(Contents);
@@ -4756,9 +4758,9 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
+                if (sender is MenuItem)
                 {
-                    var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                    var host = (sender as MenuItem).GetContextMenuHost();
                     if (host == SubIllustsExpander || host == SubIllusts || host == PreviewBox)
                     {
                         Commands.OpenWorkPreview.Execute(SubIllusts);
@@ -4805,9 +4807,9 @@ namespace PixivWPF.Pages
                             Commands.ShellSendToOtherInstance.Execute(id);
                     }
                 }
-                if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
+                if (sender is MenuItem)
                 {
-                    var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                    var host = (sender as MenuItem).GetContextMenuHost();
                     var uid = (sender as MenuItem).Uid;
                     if (host == SubIllustsExpander || host == SubIllusts || host == PreviewBox)
                     {
@@ -4896,9 +4898,9 @@ namespace PixivWPF.Pages
             {
                 if (sender is MenuItem)
                 {
-                    var m = sender as MenuItem;
-                    var host = (m.Parent as ContextMenu).PlacementTarget;
-                    if (m.Uid.Equals("ActionCompare", StringComparison.CurrentCultureIgnoreCase))
+                    var mi = sender as MenuItem;
+                    var host = mi.GetContextMenuHost();
+                    if (mi.Uid.Equals("ActionCompare", StringComparison.CurrentCultureIgnoreCase))
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
@@ -4935,9 +4937,9 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
+                if (sender is MenuItem)
                 {
-                    var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                    var host = (sender as MenuItem).GetContextMenuHost();
                     if (host == SubIllustsExpander || host == SubIllusts)
                     {
                         SubIllustPagesNav_Click(SubIllustPrevPages, e);
@@ -4963,11 +4965,11 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
+                if (sender is MenuItem)
                 {
-                    var menuitem = sender as MenuItem;
-                    var append = sender.GetUid().Equals("ActionNextAppend", StringComparison.CurrentCultureIgnoreCase) ? true : false;
-                    var host = (menuitem.Parent as ContextMenu).PlacementTarget;
+                    var mi = sender as MenuItem;
+                    var append = mi.GetUid().Equals("ActionNextAppend", StringComparison.CurrentCultureIgnoreCase) ? true : false;
+                    var host = mi.GetContextMenuHost();
                     if (host == SubIllustsExpander || host == SubIllusts)
                     {
                         SubIllustPagesNav_Click(SubIllustNextPages, e);
@@ -5002,13 +5004,13 @@ namespace PixivWPF.Pages
                     if (uid.Equals("ActionSaveIllustsJpeg")) type |= DownloadType.AsJPEG;
                     else if (uid.Equals("ActionSaveIllustsPreview")) type |= DownloadType.UseLargePreview;
 
-                    var m = sender as MenuItem;
-                    var host = (m.Parent as ContextMenu).PlacementTarget;
-                    if (m.Uid.Equals("ActionSaveIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                        m.Uid.Equals("ActionSaveIllustsJpeg", StringComparison.CurrentCultureIgnoreCase) ||
-                        m.Uid.Equals("ActionSaveIllustsPreview", StringComparison.CurrentCultureIgnoreCase) ||
-                        m.Uid.Equals("ActionConvertIllustsJpeg", StringComparison.CurrentCultureIgnoreCase) ||
-                        m.Uid.Equals("ActionReduceIllustsJpeg", StringComparison.CurrentCultureIgnoreCase))
+                    var mi = sender as MenuItem;
+                    var host = mi.GetContextMenuHost();
+                    if (mi.Uid.Equals("ActionSaveIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                        mi.Uid.Equals("ActionSaveIllustsJpeg", StringComparison.CurrentCultureIgnoreCase) ||
+                        mi.Uid.Equals("ActionSaveIllustsPreview", StringComparison.CurrentCultureIgnoreCase) ||
+                        mi.Uid.Equals("ActionConvertIllustsJpeg", StringComparison.CurrentCultureIgnoreCase) ||
+                        mi.Uid.Equals("ActionReduceIllustsJpeg", StringComparison.CurrentCultureIgnoreCase))
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
@@ -5059,13 +5061,13 @@ namespace PixivWPF.Pages
                     if (uid.Equals("ActionSaveIllustsJpegAll")) type |= DownloadType.AsJPEG;
                     else if (uid.Equals("ActionSaveIllustsPreviewAll")) type |= DownloadType.UseLargePreview;
 
-                    var m = sender as MenuItem;
-                    var host = (m.Parent as ContextMenu).PlacementTarget;
-                    if (m.Uid.Equals("ActionSaveIllustsAll", StringComparison.CurrentCultureIgnoreCase) ||
-                        m.Uid.Equals("ActionSaveIllustsJpegAll", StringComparison.CurrentCultureIgnoreCase) ||
-                        m.Uid.Equals("ActionSaveIllustsPreviewAll", StringComparison.CurrentCultureIgnoreCase) ||
-                        m.Uid.Equals("ActionConvertIllustsJpegAll", StringComparison.CurrentCultureIgnoreCase) ||
-                        m.Uid.Equals("ActionReduceIllustsJpegAll", StringComparison.CurrentCultureIgnoreCase))                    
+                    var mi = sender as MenuItem;
+                    var host = mi.GetContextMenuHost();
+                    if (mi.Uid.Equals("ActionSaveIllustsAll", StringComparison.CurrentCultureIgnoreCase) ||
+                        mi.Uid.Equals("ActionSaveIllustsJpegAll", StringComparison.CurrentCultureIgnoreCase) ||
+                        mi.Uid.Equals("ActionSaveIllustsPreviewAll", StringComparison.CurrentCultureIgnoreCase) ||
+                        mi.Uid.Equals("ActionConvertIllustsJpegAll", StringComparison.CurrentCultureIgnoreCase) ||
+                        mi.Uid.Equals("ActionReduceIllustsJpegAll", StringComparison.CurrentCultureIgnoreCase))                    
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
@@ -5129,9 +5131,9 @@ namespace PixivWPF.Pages
             {
                 if (sender is MenuItem)
                 {
-                    var m = sender as MenuItem;
-                    var host = (m.Parent as ContextMenu).PlacementTarget;
-                    if (m.Uid.Equals("ActionOpenDownloaded", StringComparison.CurrentCultureIgnoreCase))
+                    var mi = sender as MenuItem;
+                    var host = mi.GetContextMenuHost();
+                    if (mi.Uid.Equals("ActionOpenDownloaded", StringComparison.CurrentCultureIgnoreCase))
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
@@ -5146,7 +5148,7 @@ namespace PixivWPF.Pages
                             Commands.OpenDownloaded.Execute(FavoriteItems);
                         }
                     }
-                    else if (m.Uid.Equals("ActionOpenDownloadedProperties", StringComparison.CurrentCultureIgnoreCase))
+                    else if (mi.Uid.Equals("ActionOpenDownloadedProperties", StringComparison.CurrentCultureIgnoreCase))
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
@@ -5161,7 +5163,7 @@ namespace PixivWPF.Pages
                             Commands.OpenFileProperties.Execute(FavoriteItems);
                         }
                     }
-                    else if (m.Uid.Equals("ActionShowDownloadedMeta", StringComparison.CurrentCultureIgnoreCase))
+                    else if (mi.Uid.Equals("ActionShowDownloadedMeta", StringComparison.CurrentCultureIgnoreCase))
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
@@ -5176,7 +5178,7 @@ namespace PixivWPF.Pages
                             Commands.ShowMeta.Execute(FavoriteItems);
                         }
                     }
-                    else if (m.Uid.Equals("ActionTouchDownloadedMeta", StringComparison.CurrentCultureIgnoreCase))
+                    else if (mi.Uid.Equals("ActionTouchDownloadedMeta", StringComparison.CurrentCultureIgnoreCase))
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
@@ -5202,10 +5204,10 @@ namespace PixivWPF.Pages
             {
                 if (sender is MenuItem)
                 {
-                    var m = sender as MenuItem;
-                    var append = m.Uid.Equals("ActionNextAppend", StringComparison.CurrentCultureIgnoreCase) ? true : false;
-                    var host = (m.Parent as ContextMenu).PlacementTarget;
-                    if (m.Uid.Equals("ActionRefresh", StringComparison.CurrentCultureIgnoreCase))
+                    var mi = sender as MenuItem;
+                    var append = mi.Uid.Equals("ActionNextAppend", StringComparison.CurrentCultureIgnoreCase) ? true : false;
+                    var host = mi.GetContextMenuHost();
+                    if (mi.Uid.Equals("ActionRefresh", StringComparison.CurrentCultureIgnoreCase))
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
@@ -5234,7 +5236,7 @@ namespace PixivWPF.Pages
                             }
                         }
                     }
-                    else if (m.Uid.Equals("ActionRefreshThumb", StringComparison.CurrentCultureIgnoreCase))
+                    else if (mi.Uid.Equals("ActionRefreshThumb", StringComparison.CurrentCultureIgnoreCase))
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {

@@ -66,9 +66,10 @@ namespace PixivWPF.Common
         public static string PediaTitle(this Application app) { return (strPediaTitle); }
 
         public static string[] LineBreak { get; private set; } = new string[] { Environment.NewLine, "\r\n", "\n\r", "\n", "\r" };
-        public static string[] GetLineBreak(this Application app)
+        public static string[] LineBreakExtra { get; private set; } = new string[] { Environment.NewLine, "\r\n", "\n\r", "\n", "\r", "<br/>", "<br />", "<br>", "</br>" };
+        public static string[] GetLineBreak(this Application app, bool extra = false)
         {
-            return (LineBreak);
+            return (extra ? LineBreakExtra : LineBreak);
         }
         #endregion
 

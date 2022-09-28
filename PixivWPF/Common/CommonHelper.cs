@@ -549,14 +549,16 @@ namespace PixivWPF.Common
 
         #region Pixiv Token Helper
         private static SemaphoreSlim CanRefreshToken = new SemaphoreSlim(1, 1);
+        private static CancellationTokenSource CancelRefreshSource = new CancellationTokenSource();
         private static async Task<Pixeez.Tokens> RefreshToken()
         {
             Pixeez.Tokens result = null;
-            if (await CanRefreshToken.WaitAsync(TimeSpan.FromSeconds(30)))
+            setting = Application.Current.LoadSetting();
+            CancelRefreshSource = new CancellationTokenSource();
+            if (await CanRefreshToken.WaitAsync(TimeSpan.FromSeconds(setting.DownloadHttpTimeout), CancelRefreshSource.Token))
             {
                 try
                 {
-                    setting = Application.Current.LoadSetting();
                     Pixeez.Auth.TimeOut = setting.DownloadHttpTimeout;
                     var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.RefreshToken, setting.Proxy, setting.ProxyBypass, setting.UsingProxy);
                     setting.AccessToken = authResult.Authorize.AccessToken;
@@ -574,7 +576,6 @@ namespace PixivWPF.Common
                     {
                         try
                         {
-                            setting = Application.Current.LoadSetting();
                             Pixeez.Auth.TimeOut = setting.DownloadHttpTimeout;
                             var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.ProxyBypass.ToArray(), setting.UsingProxy);
                             setting.AccessToken = authResult.Authorize.AccessToken;
@@ -590,6 +591,7 @@ namespace PixivWPF.Common
                         {
                             var ret = exx.Message;
                             var tokens = await ShowLogin();
+                            if (CancelRefreshSource is CancellationTokenSource) CancelRefreshSource.Cancel();
                         }
                     }
                     var rt = ex.Message;
@@ -597,16 +599,20 @@ namespace PixivWPF.Common
                 finally
                 {
                     if (CanRefreshToken is SemaphoreSlim && CanRefreshToken.CurrentCount <= 0) CanRefreshToken.Release();
+                    if (CancelRefreshSource is CancellationTokenSource) CancelRefreshSource.Cancel();
                 }
             }
             return (result);
         }
 
         private static SemaphoreSlim CanShowLogin = new SemaphoreSlim(1, 1);
+        private static CancellationTokenSource CancelShowLoginSource = new CancellationTokenSource();
         public static async Task<Pixeez.Tokens> ShowLogin(bool force = false)
         {
             Pixeez.Tokens result = null;
-            if (await CanShowLogin.WaitAsync(TimeSpan.FromSeconds(30)))
+            setting = Application.Current.LoadSetting();
+            CancelShowLoginSource = new CancellationTokenSource();
+            if (await CanShowLogin.WaitAsync(TimeSpan.FromSeconds(setting.DownloadHttpTimeout), CancelShowLoginSource.Token))
             {
                 try
                 {
@@ -614,7 +620,6 @@ namespace PixivWPF.Common
                     Application.Current.DoEvents();
                     await Task.Delay(1);
 
-                    setting = Application.Current.LoadSetting();
                     if (!force && setting.ExpTime > DateTime.Now &&
                         !string.IsNullOrEmpty(setting.AccessToken) &&
                         !string.IsNullOrEmpty(setting.RefreshToken))
@@ -645,6 +650,7 @@ namespace PixivWPF.Common
                                     setting.ProxyBypass,
                                     setting.UsingProxy
                                 );
+                                if (CancelShowLoginSource is CancellationTokenSource) CancelShowLoginSource.Cancel();
                             }
                         }
                         else
@@ -664,11 +670,13 @@ namespace PixivWPF.Common
                 catch (Exception ex)
                 {
                     ex.Message.ShowMessageBox("ERROR");
+                    if (CancelShowLoginSource is CancellationTokenSource) CancelShowLoginSource.Cancel();
                 }
                 finally
                 {
                     if (result == null) "Request Token Error!".ShowToast("ERROR", tag: "ShowLogin");
                     if (CanShowLogin is SemaphoreSlim && CanShowLogin.CurrentCount <= 0) CanShowLogin.Release();
+                    if (CancelShowLoginSource is CancellationTokenSource) CancelShowLoginSource.Cancel();
                 }
             }
             return (result);
@@ -9154,6 +9162,20 @@ namespace PixivWPF.Common
             try { if (obj is UIElement) result = (obj as UIElement).Uid; }
             catch (Exception ex) { ex.ERROR("GetUid"); }
 
+            return (result);
+        }
+
+        public static UIElement GetContextMenuHost(this UIElement item)
+        {
+            UIElement result = null;
+            if (item is MenuItem)
+            {
+                var parent = (item as MenuItem).TryFindParent<ContextMenu>();
+                if (parent is ContextMenu)
+                {
+                    result = parent.PlacementTarget;
+                }
+            }
             return (result);
         }
 
