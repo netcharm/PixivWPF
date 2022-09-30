@@ -21,6 +21,7 @@ namespace ImageApplets.Applets
         }
 
         private int WindowSize = 3;
+        private int Threshold = 255;
         public HasAlpha()
         {
             Category = AppletCategory.ImageContent;
@@ -28,6 +29,7 @@ namespace ImageApplets.Applets
             var opts = new OptionSet()
             {
                 { "m|w|matrix|window=", "Matrix Window {Size}", v => { if (v != null) int.TryParse(v, out WindowSize); } },
+                { "v|threshold=", "Threshold {VALUE}", v => { if (v != null) int.TryParse(v, out Threshold); } },
                 { "" },
             };
             AppendOptions(opts);
@@ -83,11 +85,11 @@ namespace ImageApplets.Applets
                                 var h = bmp.Height;
                                 var m = _WindowSize_;
                                 var mt = Math.Ceiling(m * m / 2.0);
-                                var lt = GetMatrix(bmp, 0, 0, m, m).Count(c => c.A < 255);
-                                var rt = GetMatrix(bmp, w - m, 0, m, m).Count(c => c.A < 255);
-                                var lb = GetMatrix(bmp, 0, h - m, m, m).Count(c => c.A < 255);
-                                var rb = GetMatrix(bmp, w - m, h - m, m, m).Count(c => c.A < 255);
-                                var ct = GetMatrix(bmp, (int)(w / 2.0 - m / 2.0) , (int)(h / 2.0 - m / 2.0), m, m).Count(c => c.A < 255);
+                                var lt = GetMatrix(bmp, 0, 0, m, m).Count(c => c.A < Threshold);
+                                var rt = GetMatrix(bmp, w - m, 0, m, m).Count(c => c.A < Threshold);
+                                var lb = GetMatrix(bmp, 0, h - m, m, m).Count(c => c.A < Threshold);
+                                var rb = GetMatrix(bmp, w - m, h - m, m, m).Count(c => c.A < Threshold);
+                                var ct = GetMatrix(bmp, (int)(w / 2.0 - m / 2.0) , (int)(h / 2.0 - m / 2.0), m, m).Count(c => c.A < Threshold);
                                 status = (lt > mt || rt > mt || lb > mt || rb > mt || ct > mt) ? true : false;
                             }
                         }
