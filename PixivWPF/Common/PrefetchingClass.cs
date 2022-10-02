@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -312,54 +313,60 @@ namespace PixivWPF.Common
                 var count = originals.Count;
                 bool paralllel = args.ParallelPrefetching;
                 var parallels = args.PrefetchingDownloadParallel;
-                if (paralllel)
+                try
                 {
-                    var opt = new ParallelOptions();
-                    opt.MaxDegreeOfParallelism = parallels;
-                    Parallel.ForEach(originals, opt, (url, loopstate, urlIndex) =>
+                    if (paralllel)
                     {
-                        try
+                        var opt = new ParallelOptions();
+                        opt.MaxDegreeOfParallelism = parallels;
+                        if (PrefetchingTaskCancelTokenSource is CancellationTokenSource) opt.CancellationToken = PrefetchingTaskCancelTokenSource.Token;
+                        Parallel.ForEach(originals, opt, (url, loopstate, urlIndex) =>
                         {
-                            var size = url.QueryImageFileSize(cancelToken: PrefetchingTaskCancelTokenSource).GetAwaiter().GetResult();
-                            if (size > 0)
+                            try
                             {
-                                Comments = comments.Replace("]", $"] [ Q: {--count} / {originals.Count} ]");
-                                if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
-                                else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke((double)Percentage, Comments, State);
-                                this.DoEvents();
-                            }
-                        }
-                        catch (Exception ex) { ex.ERROR("PREFETCHING"); }
-                        finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
-                    });
-                }
-                else
-                {
-                    SemaphoreSlim tasks = new SemaphoreSlim(parallels, parallels);
-                    foreach (var url in originals)
-                    {
-                        if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; break; }
-                        if (tasks.Wait(-1, PrefetchingTaskCancelTokenSource.Token))
-                        {
-                            new Action(async () =>
-                            {
-                                try
+                                var size = url.QueryImageFileSize(cancelToken: PrefetchingTaskCancelTokenSource).GetAwaiter().GetResult();
+                                if (size > 0)
                                 {
-                                    var size = await url.QueryImageFileSize(cancelToken: PrefetchingTaskCancelTokenSource);
-                                    if (size > 0)
-                                    {
-                                        Comments = comments.Replace("]", $"] [ Q: {--count} / {originals.Count} ]");
-                                        if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
-                                        else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke((double)Percentage, Comments, State);
-                                        this.DoEvents();
-                                    }
+                                    Comments = comments.Replace("]", $"] [ Q: {--count} / {originals.Count} ]");
+                                    if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
+                                    else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke((double)Percentage, Comments, State);
+                                    this.DoEvents();
                                 }
-                                catch (Exception ex) { ex.ERROR("PREFETCHING"); }
-                                finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallels) tasks.Release(); this.DoEvents(); await Task.Delay(1); }
-                            }).Invoke(async: false);
+                            }
+                            catch (Exception ex) { ex.ERROR("PREFETCHING"); }
+                            finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
+                        });
+                    }
+                    else
+                    {
+                        SemaphoreSlim tasks = new SemaphoreSlim(parallels, parallels);
+                        foreach (var url in originals)
+                        {
+                            if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; break; }
+                            if (PrefetchingTaskCancelTokenSource.IsCancellationRequested) { e.Cancel = true; break; }
+                            if (tasks.Wait(-1, PrefetchingTaskCancelTokenSource.Token))
+                            {
+                                new Action(async () =>
+                                {
+                                    try
+                                    {
+                                        var size = await url.QueryImageFileSize(cancelToken: PrefetchingTaskCancelTokenSource);
+                                        if (size > 0)
+                                        {
+                                            Comments = comments.Replace("]", $"] [ Q: {--count} / {originals.Count} ]");
+                                            if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
+                                            else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke((double)Percentage, Comments, State);
+                                            this.DoEvents();
+                                        }
+                                    }
+                                    catch (Exception ex) { ex.ERROR("PREFETCHING"); }
+                                    finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallels) tasks.Release(); this.DoEvents(); await Task.Delay(1); }
+                                }).Invoke(async: false);
+                            }
                         }
                     }
                 }
+                catch (Exception ex) { ex.ERROR("GetOriginalImageSize", no_stack: ex is TaskCanceledException || ex is HttpRequestException); }
                 $"Query Original Imagee File Size : {Environment.NewLine}  Done [ {originals.Count} ]".ShowToast("INFO", tag: args.Name ?? Name ?? GetType().Name);
                 State = count <= 0 ? TaskStatus.RanToCompletion : TaskStatus.Faulted;
                 if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
@@ -450,8 +457,10 @@ namespace PixivWPF.Common
                 var parallels = args.PrefetchingDownloadParallel;
                 if (args.ParallelPrefetching)
                 {
+                    #region using Paralle.Foreach
                     var opt = new ParallelOptions();
                     opt.MaxDegreeOfParallelism = parallels;
+                    if (PrefetchingTaskCancelTokenSource is CancellationTokenSource) opt.CancellationToken = PrefetchingTaskCancelTokenSource.Token;
                     Parallel.ForEach(needUpdate, opt, (url, loopstate, urlIndex) =>
                     {
                         try
@@ -489,13 +498,16 @@ namespace PixivWPF.Common
                         catch (Exception ex) { ex.ERROR("PREFETCHING"); }
                         finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
                     });
+                    #endregion
                 }
                 else
                 {
+                    #region using task & action 
                     SemaphoreSlim tasks = new SemaphoreSlim(parallels, parallels);
                     foreach (var url in needUpdate)
                     {
                         if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; break; }
+                        if (PrefetchingTaskCancelTokenSource.IsCancellationRequested) { e.Cancel = true; break; }
                         if (tasks.Wait(-1, PrefetchingTaskCancelTokenSource.Token))
                         {
                             new Action(async () =>
@@ -539,6 +551,7 @@ namespace PixivWPF.Common
                         }
                     }
                     this.DoEvents();
+                    #endregion
                 }
 
                 if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; State = TaskStatus.Canceled; return; }
@@ -555,7 +568,7 @@ namespace PixivWPF.Common
             }
             catch (Exception ex)
             {
-                ex.ERROR("PREFETCHING");
+                ex.ERROR("PREFETCHING", no_stack: ex is TaskCanceledException || ex is HttpRequestException);
                 Comments = $"Failed {Comments}";
                 State = TaskStatus.Faulted;
                 if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
@@ -576,7 +589,7 @@ namespace PixivWPF.Common
                     originals.Clear();
                     needUpdate.Clear();
                 }
-                catch (Exception ex) { ex.ERROR("PREFETCHED"); }
+                catch (Exception ex) { ex.ERROR("PREFETCHED", no_stack: ex is TaskCanceledException || ex is HttpRequestException); }
                 if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
                 LastStartTime = DateTime.Now;
             }

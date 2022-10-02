@@ -1014,7 +1014,7 @@ namespace PixivWPF.Common
         {
             if (Received != Length)
             {
-                throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File size ({Received} Bytes) not matched with server's size ({Length} Bytes).");
+                throw new WarningException($"Download {Path.GetFileName(FileName)} Failed! File size ({Received} Bytes) not matched with server's size ({Length} Bytes).");
             }
             else if (State == DownloadState.Finished)
             {
@@ -1022,12 +1022,12 @@ namespace PixivWPF.Common
                 if (!fi.Exists) State = DownloadState.NonExists;
                 else if (fi.Length != Length)
                 {
-                    throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File size ({fi.Length} Bytes) not matched with server's size ({Length} Bytes).");
+                    throw new WarningException($"Download {Path.GetFileName(FileName)} Failed! File size ({fi.Length} Bytes) not matched with server's size ({Length} Bytes).");
                 }
             }
             else if (State != DownloadState.Downloading)
             {
-                throw new Exception($"Download {Path.GetFileName(FileName)} finished, but state[{State}] error!");
+                throw new WarningException($"Download {Path.GetFileName(FileName)} finished, but state[{State}] error!");
             }
         }
 
@@ -1101,10 +1101,15 @@ namespace PixivWPF.Common
                         await DownloadStreamAsync(response, continuation);
                     }
                 }
+                catch (WarningException ex)
+                {
+                    FailReason = ex.Message;
+                    ex.ERROR($"DownloadDirectAsync_{Info.Name ?? Path.GetFileNameWithoutExtension(FileName)}", no_stack: true);
+                }
                 catch (Exception ex)
                 {
                     FailReason = ex.Message;
-                    ex.ERROR($"{Name ?? GetType().Name ?? Info.Name ?? Path.GetFileNameWithoutExtension(FileName)}_DownloadDirectAsync");
+                    ex.ERROR($"DownloadDirectAsync_{Info.Name ?? Path.GetFileNameWithoutExtension(FileName)}", no_stack: ex is TaskCanceledException || ex is HttpRequestException);
                 }
                 finally
                 {
@@ -1139,9 +1144,15 @@ namespace PixivWPF.Common
                         }
                     }
                 }
+                catch (WarningException ex)
+                {
+                    FailReason = ex.Message;
+                    ex.ERROR($"DownloadDirectAsync_{Info.Name ?? Path.GetFileNameWithoutExtension(FileName)}", no_stack: true);
+                }                
                 catch (Exception ex)
                 {
                     FailReason = ex.Message;
+                    ex.ERROR($"DownloadDirectAsync_{Info.Name ?? Path.GetFileNameWithoutExtension(FileName)}", no_stack: ex is TaskCanceledException || ex is HttpRequestException);
                 }
                 finally
                 {
@@ -1165,7 +1176,7 @@ namespace PixivWPF.Common
                 State = DownloadState.Downloading;
                 result = await SaveFile(FileName, file);
             }
-            catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_DownloadFromFile"); }
+            catch (Exception ex) { ex.ERROR($"DownloadFromFile_{Info.Name ?? Path.GetFileNameWithoutExtension(FileName)}"); }
             finally
             {
                 DownloadFinally(out result);

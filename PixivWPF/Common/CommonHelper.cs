@@ -6467,20 +6467,7 @@ namespace PixivWPF.Common
             return (ret.ToArray());
         }
 
-        private static bool GuessAlpha(this byte[] buffer, int window = 3)
-        {
-            var result = false;
-            if (buffer is byte[] && buffer.Length > 0)
-            {
-                using (var ms = new MemoryStream(buffer))
-                {
-                    result = GuessAlpha(ms, window);
-                }
-            }
-            return (result);
-        }
-
-        private static bool GuessAlpha(this Stream source, int window = 3)
+        private static bool GuessAlpha(this Stream source, int window = 3, int threshold = 255)
         {
             var result = false;
             try
@@ -6512,11 +6499,11 @@ namespace PixivWPF.Common
                                 var h = bmp.Height;
                                 var m = window;
                                 var mt = Math.Ceiling(m * m / 2.0);
-                                var lt = GetMatrix(bmp, 0, 0, m, m).Count(c => c.A < 255);
-                                var rt = GetMatrix(bmp, w - m, 0, m, m).Count(c => c.A < 255);
-                                var lb = GetMatrix(bmp, 0, h - m, m, m).Count(c => c.A < 255);
-                                var rb = GetMatrix(bmp, w - m, h - m, m, m).Count(c => c.A < 255);
-                                var ct = GetMatrix(bmp, (int)(w / 2.0 - m / 2.0) , (int)(h / 2.0 - m / 2.0), m, m).Count(c => c.A < 255);
+                                var lt = GetMatrix(bmp, 0, 0, m, m).Count(c => c.A < threshold);
+                                var rt = GetMatrix(bmp, w - m, 0, m, m).Count(c => c.A < threshold);
+                                var lb = GetMatrix(bmp, 0, h - m, m, m).Count(c => c.A < threshold);
+                                var rb = GetMatrix(bmp, w - m, h - m, m, m).Count(c => c.A < threshold);
+                                var ct = GetMatrix(bmp, (int)(w / 2.0 - m / 2.0) , (int)(h / 2.0 - m / 2.0), m, m).Count(c => c.A < threshold);
                                 status = (lt > mt || rt > mt || lb > mt || rb > mt || ct > mt) ? true : false;
                             }
                         }
@@ -6528,7 +6515,20 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static bool GuessAlpha(this string file, int window = 3)
+        private static bool GuessAlpha(this byte[] buffer, int window = 3, int threshold = 255)
+        {
+            var result = false;
+            if (buffer is byte[] && buffer.Length > 0)
+            {
+                using (var ms = new MemoryStream(buffer))
+                {
+                    result = GuessAlpha(ms, window, threshold);
+                }
+            }
+            return (result);
+        }
+
+        private static bool GuessAlpha(this string file, int window = 3, int threshold = 255)
         {
             var result = false;
 
@@ -6536,7 +6536,7 @@ namespace PixivWPF.Common
             {
                 using (var ms = new MemoryStream(File.ReadAllBytes(file)))
                 {
-                    result = GuessAlpha(ms, window);
+                    result = GuessAlpha(ms, window, threshold);
                 }
             }
             return (result);
@@ -6557,7 +6557,8 @@ namespace PixivWPF.Common
                     else if (fmt.Equals("jpg")) pFmt = System.Drawing.Imaging.ImageFormat.Jpeg;
                     else return (buffer);
 
-                    var hasAlpha = setting.DownloadConvertCheckAlpha ? buffer.GuessAlpha() : false;
+                    setting = Application.Current.LoadSetting();
+                    var hasAlpha = setting.DownloadConvertCheckAlpha ? buffer.GuessAlpha(threshold: setting.DownloadConvertCheckAlphaThreshold) : false;
                     if (!hasAlpha)
                     {
                         using (var mi = new MemoryStream(buffer))
