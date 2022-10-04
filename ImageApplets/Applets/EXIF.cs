@@ -614,9 +614,10 @@ namespace ImageApplets.Applets
                 word = word.Trim();
                 if (Regex.IsMatch(word, IsRegexPattern, RegexOptions.IgnoreCase))
                 {
-                    regex_ignore = ignorecase == null || word.EndsWith("/i", StringComparison.CurrentCultureIgnoreCase) ? RegexOptions.IgnoreCase : RegexOptions.None;
+                    regex_ignore |= word.EndsWith("/i", StringComparison.CurrentCultureIgnoreCase) ? RegexOptions.IgnoreCase : RegexOptions.None;
                     word = word.Trim(RegexTrimChar);
                 }
+
                 switch (Mode)
                 {
                     case CompareMode.AND:
@@ -989,7 +990,8 @@ namespace ImageApplets.Applets
                                 try
                                 {
                                     var value = GetTagValue(exif, attr);
-                                    if (cats.Contains(attr) && !string.IsNullOrEmpty(value)) status = status || Compare(value, word);
+                                    if (cats.Count(c => c.Equals(attr, StringComparison.CurrentCultureIgnoreCase)) >= 0 && !string.IsNullOrEmpty(value))
+                                        status = status || Compare(value, word);
                                 }
                                 catch { }
                             }
