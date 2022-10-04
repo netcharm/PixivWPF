@@ -397,18 +397,18 @@ namespace CompactExifLib
         public int ColorDepth { get; set; } = 0;
         public double ResolutionX { get; set; } = 0;
         public double ResolutionY { get; set; } = 0;
-        public System.Drawing.Imaging.PixelFormat PixelFormat {get;set;} = System.Drawing.Imaging.PixelFormat.Undefined;
+        public System.Drawing.Imaging.PixelFormat PixelFormat { get; set; } = System.Drawing.Imaging.PixelFormat.Undefined;
         public System.Drawing.SizeF PhysicalDimension { get; set; } = default(System.Drawing.SizeF);
 
 
-    // Load EXIF data from a JPEG or TIFF file.
-    // An exception occurs in the following situations:
-    //  •The file does not exist.
-    //  •The access to the file is denied.
-    //  •The file is not a valid JPEG or TIFF file.
-    //
-    // If the file is a valid JPEG file but without an EXIF block, an empty EXIF block is created.
-    public ExifData(string FileNameWithPath, ExifLoadOptions Options = 0) : this()
+        // Load EXIF data from a JPEG or TIFF file.
+        // An exception occurs in the following situations:
+        //  •The file does not exist.
+        //  •The access to the file is denied.
+        //  •The file is not a valid JPEG or TIFF file.
+        //
+        // If the file is a valid JPEG file but without an EXIF block, an empty EXIF block is created.
+        public ExifData(string FileNameWithPath, ExifLoadOptions Options = 0) : this()
         {
             _FileNameWithPath = Path.GetFullPath(FileNameWithPath);
             using (FileStream ImageFile = File.OpenRead(_FileNameWithPath))

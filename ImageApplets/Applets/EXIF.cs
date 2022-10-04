@@ -640,6 +640,18 @@ namespace ImageApplets.Applets
                     case CompareMode.NONE:
                         status = !Regex.IsMatch(text, word, regex_ignore);
                         break;
+                    case CompareMode.LT:
+                        status = string.Compare(text, word) < 0;
+                        break;
+                    case CompareMode.LE:
+                        status = string.Compare(text, word) <= 0;
+                        break;
+                    case CompareMode.GT:
+                        status = string.Compare(text, word) > 0;
+                        break;
+                    case CompareMode.GE:
+                        status = string.Compare(text, word) >= 0;
+                        break;
                     default:
                         break;
                 }
@@ -959,8 +971,8 @@ namespace ImageApplets.Applets
                             if (cats.Contains("copyright")) status = status || Compare(copyright, words);
 
                             if (cats.Contains("software")) status = status || Compare(software, word);
-                            if (cats.Contains("rate")) status = status || Compare(rate, word);
-                            if (cats.Contains("rank")) status = status || Compare(rank, word);
+                            //if (cats.Contains("rate")) status = status || Compare(rate, word);
+                            //if (cats.Contains("rank")) status = status || Compare(rank, word);
 
                             int word_int;
                             var word_value = int.TryParse(word, out word_int) ? word.PadLeft(16, '0') : word;
