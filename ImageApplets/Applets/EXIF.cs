@@ -912,7 +912,8 @@ namespace ImageApplets.Applets
                                 try
                                 {
                                     var value = GetTagValue(exif, attr);
-                                    if (cats.Contains(attr) && !string.IsNullOrEmpty(value)) status = (status || cats.Contains(attr)) && Compare(value, word);
+                                    if (cats.Count(c => c.Equals(attr, StringComparison.CurrentCultureIgnoreCase)) > 0 && !string.IsNullOrEmpty(value))
+                                        status = (status || cats.Contains(attr)) && Compare(value, word);
                                 }
                                 catch { }
                             }
@@ -944,7 +945,8 @@ namespace ImageApplets.Applets
                                 try
                                 {
                                     var value = GetTagValue(exif, attr);
-                                    if (cats.Contains(attr) && !string.IsNullOrEmpty(value)) status = status || Compare(value, word);
+                                    if (cats.Count(c => c.Equals(attr, StringComparison.CurrentCultureIgnoreCase)) > 0 && !string.IsNullOrEmpty(value))
+                                        status = status || Compare(value, word);
                                 }
                                 catch { }
                             }
@@ -990,7 +992,7 @@ namespace ImageApplets.Applets
                                 try
                                 {
                                     var value = GetTagValue(exif, attr);
-                                    if (cats.Count(c => c.Equals(attr, StringComparison.CurrentCultureIgnoreCase)) >= 0 && !string.IsNullOrEmpty(value))
+                                    if (cats.Count(c => c.Equals(attr, StringComparison.CurrentCultureIgnoreCase)) > 0 && !string.IsNullOrEmpty(value))
                                         status = status || Compare(value, word);
                                 }
                                 catch { }
