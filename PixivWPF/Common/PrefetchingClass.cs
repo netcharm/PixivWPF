@@ -366,7 +366,7 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                catch (Exception ex) { ex.ERROR("GetOriginalImageSize", no_stack: ex is TaskCanceledException || ex is HttpRequestException); }
+                catch (Exception ex) { ex.ERROR("GetOriginalImageSize", no_stack: ex.IsCanceled()); }
                 $"Query Original Imagee File Size : {Environment.NewLine}  Done [ {originals.Count} ]".ShowToast("INFO", tag: args.Name ?? Name ?? GetType().Name);
                 State = count <= 0 ? TaskStatus.RanToCompletion : TaskStatus.Faulted;
                 if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
@@ -568,7 +568,7 @@ namespace PixivWPF.Common
             }
             catch (Exception ex)
             {
-                ex.ERROR("PREFETCHING", no_stack: ex is TaskCanceledException || ex is HttpRequestException);
+                ex.ERROR("PREFETCHING", no_stack: ex.IsCanceled());
                 Comments = $"Failed {Comments}";
                 State = TaskStatus.Faulted;
                 if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
@@ -589,7 +589,7 @@ namespace PixivWPF.Common
                     originals.Clear();
                     needUpdate.Clear();
                 }
-                catch (Exception ex) { ex.ERROR("PREFETCHED", no_stack: ex is TaskCanceledException || ex is HttpRequestException); }
+                catch (Exception ex) { ex.ERROR("PREFETCHED", no_stack: ex.IsCanceled()); }
                 if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
                 LastStartTime = DateTime.Now;
             }
