@@ -239,6 +239,7 @@ namespace ImageApplets.Applets
 
         private DateValue _date_ = null;
 
+        private int MaxLength = 64;
         private string SearchScope = "All";
         private string SearchTerm = string.Empty;
         private CompareMode Mode = CompareMode.VALUE;
@@ -251,6 +252,7 @@ namespace ImageApplets.Applets
             {
                 { "m|mode=", "EXIF Search Mode {VALUE} : <EQ|NEQ|LT|LE|GT|GE|AND|OR|NOT|VALUE>", v => { if (v != null) Enum.TryParse(v.ToUpper(), out Mode); } },
                 { "c|category=", $"EXIF Search From {{VALUE}} : <{string.Join("|", Categories)}> And more EXIF Tag. Note: Support '*'.", v => { if (v != null) SearchScope = v.Trim().Trim('"'); } },
+                { "l|limit|length=", $"EXIF Value Max Length Limit {{VALUE}}", v => { if (v != null) int.TryParse(v, out MaxLength); } },
                 { "s|search=", "EXIF Search {Term}", v => { if (v != null) SearchTerm = v.Trim().Trim('"'); } },
                 { "" },
             };
@@ -375,11 +377,11 @@ namespace ImageApplets.Applets
                 {
                     ExifTagType TagType;
                     //ExifTagId TagId;
-                    int ValueCount, TagDataIndex;//, TagDataByteCount;
+                    int ValueCount;//, TagDataByteCount;
                     byte[] TagData;
                     string s = string.Empty;
 
-                    if (exif.GetTagRawData(TagSpec, out TagType, out ValueCount, out TagData, out TagDataIndex))
+                    if (exif.GetTagRawData(TagSpec, out TagType, out ValueCount, out TagData))
                     {
                         int TagValueCount;
                         int TagIntValue;
@@ -1025,7 +1027,7 @@ namespace ImageApplets.Applets
                         foreach (var attr in cats_exif)
                         {
                             var value = GetTagValue(exif, attr);
-                            if (!string.IsNullOrEmpty(value)) sb.AppendLine($"{padding}{attr} = {value}");
+                            if (!string.IsNullOrEmpty(value)) sb.AppendLine($"{padding}{attr} = {(MaxLength > 0 ? value.Substring(0, MaxLength) : value)}");
                         }
                         status = sb.ToString().Trim();
                     }
