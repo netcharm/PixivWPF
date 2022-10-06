@@ -1743,7 +1743,7 @@ namespace PixivWPF.Common
             if (logger == null) StartLog(null);
             List<string> lines = new List<string>();
             lines.Add($"{ex.Message}");
-            if (!no_stack) lines.Add($"{ex.StackTrace}");
+            if (!(no_stack || ex.IsCanceled())) lines.Add($"{ex.StackTrace}");
             var contents = string.Join(Environment.NewLine, lines);
             contents.ERROR(tag);
         }

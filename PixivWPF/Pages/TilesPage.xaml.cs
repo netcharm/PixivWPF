@@ -1121,11 +1121,11 @@ namespace PixivWPF.Pages
                 if (ex is NullReferenceException)
                 {
                     //var n = nameof(ShowRecommanded);
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    "No Result".ShowToast("INFO", tag: "ShowRecommanded");
                 }
                 else
                 {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    ex.Message.ShowToast("ERROR", tag: "ShowRecommanded");
                 }
             }
             finally
@@ -1173,11 +1173,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    "No Result".ShowToast("INFO", tag: "ShowLatest");
                 }
                 else
                 {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    ex.Message.ShowToast("ERROR", tag: "ShowLatest");
                 }
             }
             finally
@@ -1225,11 +1225,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    "No Result".ShowToast("INFO", tag: "ShowTrendingTags");
                 }
                 else
                 {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    ex.Message.ShowToast("ERROR", tag: "ShowTrendingTags");
                 }
             }
             finally
@@ -1277,11 +1277,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    "No Result".ShowToast("INFO", tag: "ShowFeeds");
                 }
                 else
                 {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    ex.Message.ShowToast("ERROR", tag: "ShowFeeds");
                 }
             }
             finally
@@ -1332,11 +1332,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    "No Result".ShowToast("INFO", tag: "ShowFeeds");
                 }
                 else
                 {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    ex.Message.ShowToast("ERROR", tag: "ShowFeeds");
                 }
             }
             finally
@@ -1389,11 +1389,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    "No Result".ShowToast("INFO", tag: "ShowFavorite");
                 }
                 else
                 {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    ex.Message.ShowToast("ERROR", tag: "ShowFavorite");
                 }
             }
             finally
@@ -1441,11 +1441,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    "No Result".ShowToast("INFO", tag: "ShowFollowing");
                 }
                 else
                 {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    ex.Message.ShowToast("ERROR", tag: "ShowFollowing");
                 }
             }
             finally
@@ -1505,11 +1505,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    "No Result".ShowToast("INFO", tag: "ShowRankingAll");
                 }
                 else
                 {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    ex.Message.ShowToast("ERROR", tag: "ShowRankingAll");
                 }
             }
             finally
@@ -1566,11 +1566,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    "No Result".ShowToast("INFO", tag: "ShowRanking");
                 }
                 else
                 {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    ex.Message.ShowToast("ERROR", tag: "ShowRanking");
                 }
             }
             finally
@@ -1646,11 +1646,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    "No Result".ShowToast("INFO", tag: "ShowMyFollower");
                 }
                 else
                 {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    ex.Message.ShowToast("ERROR", tag: "ShowMyFollower");
                 }
             }
             finally
@@ -1702,11 +1702,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    "No Result".ShowToast("INFO", tag: "ShowMyFollowing");
                 }
                 else
                 {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    ex.Message.ShowToast("ERROR", tag: "ShowMyFollowing");
                 }
             }
             finally
@@ -1757,11 +1757,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    "No Result".ShowToast("INFO", tag: "ShowMyPixiv");
                 }
                 else
                 {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    ex.Message.ShowToast("ERROR", tag: "ShowMyPixiv");
                 }
             }
             finally
@@ -1812,11 +1812,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    "No Result".ShowToast("INFO", tag: "ShowMyBlacklist");
                 }
                 else
                 {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    ex.Message.ShowToast("ERROR", tag: "ShowMyBlacklist");
                 }
             }
             finally

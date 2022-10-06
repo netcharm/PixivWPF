@@ -1109,7 +1109,7 @@ namespace PixivWPF.Common
                 catch (Exception ex)
                 {
                     FailReason = ex.Message;
-                    ex.ERROR($"DownloadDirectAsync_{Info.Name ?? Path.GetFileNameWithoutExtension(FileName)}", no_stack: ex.IsCanceled());
+                    ex.ERROR($"DownloadDirectAsync_{Info.Name ?? Path.GetFileNameWithoutExtension(FileName)}");
                 }
                 finally
                 {
@@ -1152,7 +1152,7 @@ namespace PixivWPF.Common
                 catch (Exception ex)
                 {
                     FailReason = ex.Message;
-                    ex.ERROR($"DownloadDirectAsync_{Info.Name ?? Path.GetFileNameWithoutExtension(FileName)}", no_stack: ex.IsCanceled());
+                    ex.ERROR($"DownloadDirectAsync_{Info.Name ?? Path.GetFileNameWithoutExtension(FileName)}");
                 }
                 finally
                 {
