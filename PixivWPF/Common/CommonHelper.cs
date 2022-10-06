@@ -3955,6 +3955,19 @@ namespace PixivWPF.Common
         #endregion
 
         #region Attach Metadata Helper
+        public static bool HasShellProperty(this Microsoft.WindowsAPICodePack.Shell.ShellObject obj, Microsoft.WindowsAPICodePack.Shell.PropertySystem.PropertyKey property, bool writeable = true)
+        {
+            var result = false;
+            if (obj is Microsoft.WindowsAPICodePack.Shell.ShellObject)
+            {
+                var props = obj.Properties.DefaultPropertyCollection;
+                var plist = props.Select(p => p.CanonicalName).ToList();
+                result = props.Contains(property) && obj.Properties.GetProperty(property) is Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty;
+                //if(writeable) result &= obj.Properties.GetProperty(property).
+            }
+            return (result);
+        }
+
         public static MetaInfo MakeMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "")
         {
             MetaInfo meta = null;
@@ -4556,7 +4569,10 @@ namespace PixivWPF.Common
                                 if (is_img)
                                 {
                                     //if (sh.Properties.System.Photo.DateTaken.Value == null || sh.Properties.System.Photo.DateTaken.Value.Value.Ticks != dt.Ticks)
-                                    sh.Properties.System.Photo.DateTaken.Value = dt;
+                                    if (sh.HasShellProperty(sh.Properties.System.Photo.DateTaken.PropertyKey) &&
+                                       (sh.Properties.System.Photo.DateTaken.Value == null ||
+                                        sh.Properties.System.Photo.DateTaken.Value.Value.Ticks != dt.Ticks))
+                                        sh.Properties.System.Photo.DateTaken.Value = dt;
 
                                     if (using_shell && !is_png)
                                     {
@@ -4618,19 +4634,35 @@ namespace PixivWPF.Common
                                         result = AttachMetaInfoInternal(fileinfo, out is_jpg, dt, id);
                                         if (is_jpg)
                                         {
-                                            sh.Properties.System.Photo.DateTaken.Value = dt;
-#if DEBUG
+                                            var sdt = string.Empty;
+                                            var fmt = Microsoft.WindowsAPICodePack.Shell.PropertySystem.PropertyDescriptionFormatOptions.SmartDateTime;
                                             try
                                             {
-                                                var sdt = string.Empty;
-                                                var fmt = Microsoft.WindowsAPICodePack.Shell.PropertySystem.PropertyDescriptionFormatOptions.SmartDateTime;
-                                                if (sh.Properties.System.DateAcquired.TryFormatForDisplay(fmt, out sdt))
+                                                if (sh.HasShellProperty(sh.Properties.System.Photo.DateTaken.PropertyKey) &&
+                                                    sh.Properties.System.Photo.DateTaken.TryFormatForDisplay(fmt, out sdt) &&
+                                                   (sh.Properties.System.Photo.DateTaken.Value == null ||
+                                                    sh.Properties.System.Photo.DateTaken.Value.Value.Ticks != dt.Ticks))
+                                                    sh.Properties.System.Photo.DateTaken.Value = dt;
+                                            }
+                                            catch (Exception exx) { exx.ERROR("ShellPropertiesSet_DateTaken"); }
+                                            try
+                                            {
+                                                if (sh.HasShellProperty(sh.Properties.System.DateAcquired.PropertyKey) && 
+                                                    sh.Properties.System.DateAcquired.TryFormatForDisplay(fmt, out sdt) &&
+                                                   (sh.Properties.System.DateAcquired.Value == null ||
+                                                    sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks))
                                                     sh.Properties.System.DateAcquired.Value = dt;
-                                                if (sh.Properties.System.DateImported.TryFormatForDisplay(fmt, out sdt))
+                                            }
+                                            catch (Exception exx) { exx.ERROR("ShellPropertiesSet_DateAcquired"); }
+                                            try
+                                            {
+                                                if (sh.HasShellProperty(sh.Properties.System.DateImported.PropertyKey) && 
+                                                    sh.Properties.System.DateImported.TryFormatForDisplay(fmt, out sdt) &&
+                                                   (sh.Properties.System.DateImported.Value == null ||
+                                                    sh.Properties.System.DateImported.Value.Value.Ticks != dt.Ticks))
                                                     sh.Properties.System.DateImported.Value = dt;
                                             }
-                                            catch(Exception exx) { exx.ERROR("ShellPropertiesSet"); }
-#endif
+                                            catch (Exception exx) { exx.ERROR("ShellPropertiesSet_DateImported"); }
                                         }
                                     }
                                 }
@@ -6986,7 +7018,11 @@ namespace PixivWPF.Common
                             {
                                 if (source.CanRead)
                                 {
-                                    bytesread = await source.ReadAsync(bytes, 0, bufferSize, cancelToken.Token).ConfigureAwait(false);
+                                    try
+                                    {
+                                        bytesread = await source.ReadAsync(bytes, 0, bufferSize, cancelToken.Token).ConfigureAwait(false);
+                                    }
+                                    catch (Exception exx) { exx.ERROR("WriteToFile_StreamClosed", no_stack: exx is ObjectDisposedException); }
                                 }
                                 else throw new WarningException("WriteToFile_StreamClosed");
                             }
