@@ -14,9 +14,9 @@ using System.Threading;
 
 namespace ImageApplets
 {
-    public enum CompareMode { EQ, NEQ, GT, LT, GE, LE, HAS, NONE, AND, OR, NOT, XOR, BEFORE, PREV, TODAY, NEXT, AFTER, VALUE };
-    public enum DateCompareMode { BEFORE, PREV, TODAY, NEXT, AFTER };
-    public enum DateUnit { DAY, WEEK, MONTH, SEASON, YEAR };
+    public enum CompareMode { NONE, IS, EQ, NEQ, GT, LT, GE, LE, HAS, IN, OUT, AND, OR, NOT, XOR, BEFORE, PREV, TODAY, NEXT, AFTER, VALUE };
+    public enum DateCompareMode { IS, IN, OUT, BEFORE, PREV, TODAY, NEXT, AFTER };
+    public enum DateUnit { DAY, WEEK, MONTH, SEASON, QUATER, YEAR };
 
     public enum AppletCategory { FileOP, ImageType, ImageContent, ImageAttribure, Other, Unknown, None }
     public enum STATUS { All, Yes, No, None };
@@ -50,7 +50,14 @@ namespace ImageApplets
         #endregion
 
         private static bool show_help = false;
-        static protected STATUS Status { get; set; } = STATUS.All;
+        protected static STATUS Status { get; set; } = STATUS.All;
+
+        private static List<dynamic> _range_value_ = new List<dynamic>();
+        public static List<dynamic> RangeValue
+        {
+            get { return (_range_value_); }
+            set { _range_value_ = value; }
+        }
 
         public string Help { get { return (GetHelp()); } }
 
@@ -60,6 +67,7 @@ namespace ImageApplets
         public ReadMode ReadInputMode { get { return (_ReadInputMode_); } }
 
         static public string[] LINE_BREAK { get; set; } = new string[] { Environment.NewLine, "\n\r", "\r\n", "\n", "\r" };
+        static public char ValueHeader = '\u20D0';
 
         public string Name { get { return (this.GetType().Name); } }
 
@@ -80,6 +88,7 @@ namespace ImageApplets
             { "t|y|true|yes", "Keep True Result", v => { Status = STATUS.Yes; } },
             { "f|n|false|no", "Keep False Result", v => { Status = STATUS.No; } },
             { "a|all", "Keep All", v => { Status = STATUS.All; } },
+            { "r|range=", "Range Of {VALUE1},{VALUE2}", v => { if (v != null) RangeValue = v.Split(',').Select(va => va.Trim()).Take(2).ToList<dynamic>(); } },
             { " " },
             { "verbose", "Output All When Redirected STDOUT", v => { _verbose_ = v != null ? true : false; } },
             { "input|filelist=", "Get Files From {FILE}", v => { if (v != null) _input_file_ = v; } },
@@ -230,6 +239,11 @@ namespace ImageApplets
                         ret = true;
                         break;
                 }
+            }
+            else if (status is string && !string.IsNullOrEmpty(status as string))
+            {
+                bool value = false;
+                if(bool.TryParse((status as string).Trim().Trim(ValueHeader).Trim(), out value)) ret = GetReturnValueByStatus(value);
             }
             return (ret);
         }

@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Applet.cs" />
+    <Compile Include="Applets\FileInfos.cs" />
     <Compile Include="Applets\Copy.cs" />
     <Compile Include="Applets\EXIF.cs" />
     <Compile Include="Applets\HasAlpha.cs" />

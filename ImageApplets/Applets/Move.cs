@@ -13,7 +13,7 @@ namespace ImageApplets.Applets
     {
         public override Applet GetApplet()
         {
-            return (new Copy());
+            return (new Move());
         }
 
         private string TargetFolder = string.Empty;
