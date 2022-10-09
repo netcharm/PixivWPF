@@ -41,11 +41,26 @@
     <mah:MetroWindow.LeftWindowCommands>
         <mah:WindowCommands ShowLastSeparator="True">
             <Button x:Name="CommandRefresh" x:Uid="CommandRefresh" 
-                Click="CommandRefresh_Click"
+                Click="CommandRefresh_Click" MouseRightButtonDown="CommandRefresh_MouseRightButtonDown"
                 ToolTip="Refresh">
-                <TextBlock 
+                <TextBlock x:Name="RefreshIcon" x:Uid="RefreshIcon"
                     Text="&#xE117;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                    <TextBlock.Resources>
+                        <Storyboard x:Key="RefreshRing" x:Name="RefreshRing">
+                            <DoubleAnimation
+                                    Storyboard.TargetName="RefreshRingRotation"
+                                    Storyboard.TargetProperty="Angle"
+                                    From="0" To="360" Duration="0:0:6" DesiredFrameRate="20"
+                                    AutoReverse="False" RepeatBehavior="Forever" />
+                        </Storyboard>
+                    </TextBlock.Resources>
+                    <TextBlock.RenderTransform>
+                        <TransformGroup>
+                            <RotateTransform x:Name="RefreshRingRotation" Angle="0"/>
+                        </TransformGroup>
+                    </TextBlock.RenderTransform>
+                </TextBlock>
             </Button>
             <Button x:Name="CommandNavNext" x:Uid="CommandNavNext" 
                 Click="CommandNext_Click"

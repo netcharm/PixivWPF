@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -103,6 +104,26 @@ namespace PixivWPF
                     PreftchingProgressState.Hide();
                 }
             }).Invoke(async: false);
+        }
+
+        private Storyboard RefreshRing = null;
+        private CancellationTokenSource RefreshRingCancelSource = null;
+        public void SetRefreshRing(bool rotate, CancellationTokenSource canceltoken = null)
+        {
+            this.Dispatcher.Invoke(() =>
+            {
+                try
+                {
+                    if (RefreshRing == null) RefreshRing = (Storyboard)RefreshIcon.FindResource("RefreshRing");
+                    if (RefreshRing is Storyboard)
+                    {
+                        RefreshRingCancelSource = canceltoken;
+                        if (rotate) RefreshRing.Begin();
+                        else RefreshRing.Stop();
+                    }
+                }
+                catch (Exception ex) { ex.ERROR("SetRefreshRing"); }
+            });
         }
 
         public void SetMemoryUsage()
@@ -640,6 +661,14 @@ namespace PixivWPF
                 }
             }
             catch (Exception ex) { ex.ERROR("CommandRefresh"); }
+        }
+
+        private void CommandRefresh_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (RefreshRingCancelSource is CancellationTokenSource)
+            {
+                RefreshRingCancelSource.Cancel();
+            }
         }
 
         private void CommandRecents_Click(object sender, RoutedEventArgs e)

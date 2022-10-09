@@ -1742,8 +1742,8 @@ namespace PixivWPF.Common
         {
             if (logger == null) StartLog(null);
             List<string> lines = new List<string>();
-            lines.Add($"{ex.Message}");
-            if (!(no_stack || ex.IsCanceled())) lines.Add($"{ex.StackTrace}");
+            if (!(no_stack || ex.IsCanceled())) { lines.Add($"{ex.Message}"); lines.Add($"{ex.StackTrace}"); }
+            else { lines.Add($"{string.Join(" ", ex.Message.Split(LineBreak, StringSplitOptions.RemoveEmptyEntries))}"); }
             var contents = string.Join(Environment.NewLine, lines);
             contents.ERROR(tag);
         }
