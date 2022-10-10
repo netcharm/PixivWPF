@@ -47,7 +47,7 @@ namespace ImageApplets.Applets
 
                     if (Directory.Exists(folder))
                     {
-                        var fi = new FileInfo(file);
+                        var fi = new System.IO.FileInfo(file);
                         var target = Path.Combine(folder, Path.GetFileName(file));
                         if (File.Exists(target)) File.Delete(target);
                         File.Move(file, target);

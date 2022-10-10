@@ -72,15 +72,16 @@ namespace ImageApplets
         }
 
         private DateTime? _date_ref_ = null;
-        internal protected DateTime Refrence
+        public DateTime Refrence
         {
             get { return (_date_ref_ ?? DateTime.Now); }
+            set { _date_ref_ = value; }
         }
-        internal protected DateTime? Date
+        public DateTime? Date
         {
             get { return (GetDateTime(Refrence)); }
         }
-        internal protected DayOfWeek? DayOfWeek
+        public DayOfWeek? DayOfWeek
         {
             get { return (GetWeekDay(Refrence)); }
         }
@@ -111,6 +112,16 @@ namespace ImageApplets
         internal protected DateValue(string text)
         {
             Parsing(text);
+        }
+
+        internal protected void ToDayEnd()
+        {
+
+        }
+
+        internal protected void ToDayStart()
+        {
+
         }
 
         internal string ConvertChineseNumberString(string text)

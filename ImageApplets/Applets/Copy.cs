@@ -47,7 +47,7 @@ namespace ImageApplets.Applets
 
                     if (Directory.Exists(folder))
                     {
-                        var fi = new FileInfo(file);
+                        var fi = new System.IO.FileInfo(file);
                         var target = Path.Combine(folder, Path.GetFileName(file));
                         if (OverWrite || !File.Exists(target))
                         {

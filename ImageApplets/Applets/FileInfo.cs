@@ -11,7 +11,7 @@ using System.Globalization;
 
 namespace ImageApplets.Applets
 {
-    class FileInfos : Applet
+    class FileInfo : Applet
     {
         private CompareMode Mode = CompareMode.VALUE;
         private string TargetValue = null;
@@ -59,19 +59,19 @@ namespace ImageApplets.Applets
 
         public override Applet GetApplet()
         {
-            return (new FileInfos());
+            return (new FileInfo());
         }
 
-        public FileInfos()
+        public FileInfo()
         {
             Category = AppletCategory.FileOP;
 
             var opts = new OptionSet()
             {
-                { "m|mode=", "File Infos Mode {VALUE} : <IS|EQ|NEQ|LT|LE|GT|GE|IN|OUT|AND|OR|NOT>", v => { if (v != null) Enum.TryParse(v.ToUpper(), out Mode); } },
+                { "m|mode=", "File Infos Mode {VALUE} : <IS|EQ|NEQ|LT|LE|GT|GE|IN|OUT|AND|OR|NOT|HAS|NONE>", v => { if (v != null) Enum.TryParse(v.ToUpper(), out Mode); } },
                 { "c|category=", $"File Search From {{VALUE}} : <{string.Join("|", Categories)}> And more File Attributes. Multiple serach category seprated by ','", v => { if (v != null) SearchScope = v.Trim().Trim('"'); } },
                 { "s|search=", "EXIF Search {Term}. Multiple serach keywords seprated by ';' or '#'", v => { if (v != null) SearchTerm = v.Trim().Trim('"'); } },
-                { "set|change=", "Will Chanege To {VALUE}", v => { if (v != null) TargetValue = v.Trim().Trim('"'); } },
+                { "set|change=", "Will Chanege To {VALUE}, not implemented now.", v => { if (v != null) TargetValue = v.Trim().Trim('"'); } },
                 { "" },
             };
             AppendOptions(opts);
@@ -95,7 +95,7 @@ namespace ImageApplets.Applets
                 dynamic status = false;
                 if (File.Exists(file))
                 {
-                    var fi = new FileInfo(file);
+                    var fi = new System.IO.FileInfo(file);
                     var fi_dict = new Dictionary<string, dynamic>(StringComparer.CurrentCultureIgnoreCase)
                     {
                         { "FullName", fi.FullName }, { "Name", fi.Name }, { "Ext", fi.Extension },
@@ -265,18 +265,19 @@ namespace ImageApplets.Applets
                                         status |= value_low <= value && value <= value_high;
                                     }
                                 }
+                            }
 
-                                var date_low = new DateValue(words.First());
-                                var date_high = new DateValue(words.Last());
-                                foreach (var c in CategoriesDate)
+                            var date_low = new DateValue(words.First());
+                            var date_high = new DateValue(words.Last());
+                            foreach (var c in CategoriesDate)
+                            {
+                                if (cats.Contains(c.ToLower()) && fi_dict.ContainsKey(c))
                                 {
-                                    if (cats.Contains(c.ToLower()) && fi_dict.ContainsKey(c))
-                                    {
-                                        var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                        status |= date_low.Date <= fi_dict[c] && fi_dict[c] <= date_high.Date;
-                                    }
+                                    var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
+                                    status |= date_low.Compare(fi_dict[c], CompareMode.GE) && date_high.Compare(fi_dict[c], CompareMode.LE);
                                 }
                             }
+
                         }
                         else if (Mode == CompareMode.OUT && words.Length >= 2)
                         {
@@ -292,19 +293,19 @@ namespace ImageApplets.Applets
                                     {
                                         var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
                                         value = (double)fi_dict[c];
-                                        status |= value < value_low && value_high < value;
+                                        status |= value_low > value || value > value_high;
                                     }
                                 }
+                            }
 
-                                var date_low = new DateValue(words.First());
-                                var date_high = new DateValue(words.Last());
-                                foreach (var c in CategoriesDate)
+                            var date_low = new DateValue(words.First());
+                            var date_high = new DateValue(words.Last());
+                            foreach (var c in CategoriesDate)
+                            {
+                                if (cats.Contains(c.ToLower()) && fi_dict.ContainsKey(c))
                                 {
-                                    if (cats.Contains(c.ToLower()) && fi_dict.ContainsKey(c))
-                                    {
-                                        var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                        status |= fi_dict[c] < date_low.Date && date_high.Date < fi_dict[c];
-                                    }
+                                    var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
+                                    status |= date_low.Compare(fi_dict[c], CompareMode.LT) || date_high.Compare(fi_dict[c], CompareMode.GT);
                                 }
                             }
                         }
