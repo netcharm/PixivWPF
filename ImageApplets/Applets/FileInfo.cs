@@ -49,7 +49,7 @@ namespace ImageApplets.Applets
             "DateModified", "DM", "DateModifiedUtc", "DMU",
             "DateAccess", "DA", "DateAccessUtc", "DAU",
             "Attribute", "Attr",
-            "ReadOnly", "R", "Hidden", "H", "System", "S", "Directory", "D", "Archive", "A", "Compressed", "C", "Encrypted", "E", 
+            "ReadOnly", "R", "Hidden", "H", "System", "S", "Directory", "D", "Archive", "A", "Compressed", "C", "Encrypted", "E",
             "Device", "DEV", "Normal", "N", "Temporary", "T", "SparseFile", "SF",
             "ReparsePoint", "RP", "Offline", "O", "NotContentIndexed", "NCI", "IntegrityStream", "IS", "NoScrubData", "NSD",
             "All"
@@ -81,7 +81,7 @@ namespace ImageApplets.Applets
         {
             var extras = base.ParseOptions(args);
 
-            _date_ = new DateValue(SearchTerm);
+            _date_ = new DateValue(SearchTerm.Split(SplitChar).First());
 
             return (extras);
         }
@@ -274,7 +274,7 @@ namespace ImageApplets.Applets
                                 if (cats.Contains(c.ToLower()) && fi_dict.ContainsKey(c))
                                 {
                                     var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                    status |= date_low.Compare(fi_dict[c], CompareMode.GE) && date_high.Compare(fi_dict[c], CompareMode.LE);
+                                    status |= date_low <= fi_dict[c] && fi_dict[c] <= date_high;
                                 }
                             }
 
@@ -305,7 +305,7 @@ namespace ImageApplets.Applets
                                 if (cats.Contains(c.ToLower()) && fi_dict.ContainsKey(c))
                                 {
                                     var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                    status |= date_low.Compare(fi_dict[c], CompareMode.LT) || date_high.Compare(fi_dict[c], CompareMode.GT);
+                                    status |= date_low > fi_dict[c] || fi_dict[c] > date_high;
                                 }
                             }
                         }
@@ -315,7 +315,7 @@ namespace ImageApplets.Applets
                         var padding = "".PadLeft(ValuePaddingLeft);
                         StringBuilder sb = new StringBuilder();
                         sb.Append("\u20D0");
-                        foreach(var c in cats)
+                        foreach (var c in cats)
                         {
                             if (fi_dict.ContainsKey(c))
                             {
@@ -323,92 +323,6 @@ namespace ImageApplets.Applets
                                 sb.AppendLine($"{padding}{key} = {fi_dict[c]}");
                             }
                         }
-                        //if (cats.Contains("fullname")) sb.AppendLine($"{padding}{fi.FullName}");
-
-                        //if (cats.Contains("directory")) sb.AppendLine($"{padding}{fi.DirectoryName}");
-                        //else if (cats.Contains("folder")) sb.AppendLine($"{padding}{fi.DirectoryName}");
-                        //else if (cats.Contains("dir")) sb.AppendLine($"{padding}{fi.DirectoryName}");
-
-                        //if (cats.Contains("name")) sb.AppendLine($"{padding}{fi.Name}");
-                        //if (cats.Contains("ext")) sb.AppendLine($"{padding}{fi.Extension}");
-
-                        //if (cats.Contains("size")) sb.AppendLine($"{padding}{fi.Length}");
-                        //else if (cats.Contains("length")) sb.AppendLine($"{padding}{fi.Length}");
-
-                        //if (cats.Contains("datecreate")) sb.AppendLine($"{padding}{GetDateLong(fi.CreationTime)}");
-                        //else if (cats.Contains("dc")) sb.AppendLine($"{padding}{GetDateLong(fi.CreationTime)}");
-                        //if (cats.Contains("datecreateutc")) sb.AppendLine($"{padding}{GetDateLong(fi.CreationTimeUtc, true)}");
-                        //else if (cats.Contains("dcu")) sb.AppendLine($"{padding}{GetDateLong(fi.CreationTimeUtc, true)}");
-
-                        //if (cats.Contains("date")) sb.AppendLine($"{padding}{GetDateLong(fi.LastWriteTime)}");
-                        //else if (cats.Contains("datemodified")) sb.AppendLine($"{padding}{GetDateLong(fi.LastWriteTime)}");
-                        //else if (cats.Contains("dm")) sb.AppendLine($"{padding}{GetDateLong(fi.LastWriteTime)}");
-                        //if (cats.Contains("dateutc")) sb.AppendLine($"{padding}{GetDateLong(fi.LastWriteTimeUtc, true)}");
-                        //else if (cats.Contains("datemodifiedutc")) sb.AppendLine($"{padding}{GetDateLong(fi.LastWriteTimeUtc, true)}");
-                        //else if (cats.Contains("dmu")) sb.AppendLine($"{padding}{GetDateLong(fi.LastWriteTimeUtc, true)}");
-
-                        //if (cats.Contains("dateaccess")) sb.AppendLine($"{padding}{GetDateLong(fi.LastAccessTime)}");
-                        //else if (cats.Contains("da")) sb.AppendLine($"{padding}{GetDateLong(fi.LastAccessTime)}");
-                        //if (cats.Contains("dateaccessutc")) sb.AppendLine($"{padding}{GetDateLong(fi.LastAccessTimeUtc, true)}");
-                        //else if (cats.Contains("dau")) sb.AppendLine($"{padding}{GetDateLong(fi.LastAccessTimeUtc, true)}");
-
-                        //if (cats.Contains("attributes")) sb.AppendLine($"{padding}{fi.Attributes.ToString()}");
-                        //else if (cats.Contains("attribute")) sb.AppendLine($"{padding}{fi.Attributes.ToString()}");
-                        //else if (cats.Contains("attr")) sb.AppendLine($"{padding}{fi.Attributes.ToString()}");
-
-                        //if (cats.Contains("attributes")) sb.AppendLine($"{padding}{fi.Attributes.ToString()}");
-                        //else if (cats.Contains("attribute")) sb.AppendLine($"{padding}{fi.Attributes.ToString()}");
-                        //else if (cats.Contains("attr")) sb.AppendLine($"{padding}{fi.Attributes.ToString()}");
-
-                        //if (cats.Contains("readonly")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.ReadOnly)}");
-                        //else if (cats.Contains("r")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.ReadOnly)}");
-
-                        //if (cats.Contains("hidden")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.Hidden)}");
-                        //else if (cats.Contains("h")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.Hidden)}");
-
-                        //if (cats.Contains("system")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.System)}");
-                        //else if (cats.Contains("s")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.System)}");
-
-                        //if (cats.Contains("directory")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.Directory)}");
-                        //else if (cats.Contains("d")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.Directory)}");
-
-                        //if (cats.Contains("archive")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.Archive)}");
-                        //else if (cats.Contains("a")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.Archive)}");
-
-                        //if (cats.Contains("device")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.Device)}");
-                        //else if (cats.Contains("dev")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.Device)}");
-
-                        //if (cats.Contains("normal")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.Normal)}");
-                        //else if (cats.Contains("n")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.Normal)}");
-
-                        //if (cats.Contains("temporary")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.Temporary)}");
-                        //else if (cats.Contains("t")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.Temporary)}");
-
-                        //if (cats.Contains("sparsefile")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.SparseFile)}");
-                        //else if (cats.Contains("sf")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.SparseFile)}");
-
-                        //if (cats.Contains("reparsepoint")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.ReparsePoint)}");
-                        //else if (cats.Contains("rp")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.ReparsePoint)}");
-
-                        //if (cats.Contains("compressed")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.Compressed)}");
-                        //else if (cats.Contains("c")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.Compressed)}");
-
-                        //if (cats.Contains("offline")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.Offline)}");
-                        //else if (cats.Contains("o")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.Offline)}");
-
-                        //if (cats.Contains("notcontentindexed")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.NotContentIndexed)}");
-                        //else if (cats.Contains("nci")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.NotContentIndexed)}");
-
-                        //if (cats.Contains("encrypted")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.Encrypted)}");
-                        //else if (cats.Contains("e")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.Encrypted)}");
-
-                        //if (cats.Contains("integritystream")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.IntegrityStream)}");
-                        //else if (cats.Contains("is")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.IntegrityStream)}");
-
-                        //if (cats.Contains("noscrubdata")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.NoScrubData)}");
-                        //else if (cats.Contains("ncd")) sb.AppendLine($"{padding}{fi.Attributes.HasFlag(FileAttributes.NoScrubData)}");
-
-
                         status = sb.ToString().Trim();
                     }
                     //status = true;
