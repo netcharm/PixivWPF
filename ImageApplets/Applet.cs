@@ -591,7 +591,7 @@ namespace ImageApplets
         public static string DateTimeFormatLocal = $"{CultureInfo.CurrentCulture.DateTimeFormat.LongDatePattern}, ddd";
         public static string DateTimeFormatUtc = $"yyyy-MM-dd HH:mm:ss.fff+00:00";
         public static string DateTimeFormatLocalUtc = $"{CultureInfo.CurrentCulture.DateTimeFormat.LongDatePattern}, ddd";
-        public static char[] SplitChar = new char[] { '#', ';' };
+        public static char[] SplitChar = new char[] { '#', ';', ',' };
         public static char[] RegexTrimChar = new char[] { 'i', '/' };
         public static string IsRegexPattern = @"^/(.+?)/i?$";
 

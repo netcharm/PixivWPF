@@ -30,9 +30,9 @@ namespace ImageApplets.Applets
         private List<string> CategoriesDate  = new List<string>()
         {
             "Date", "DateUtc",
-            "DateCreate", "DC", "DateCreateUtc", "DCU",
-            "DateModified", "DM", "DateModifiedUtc", "DMU",
-            "DateAccess", "DA", "DateAccessUtc", "DAU",
+            "DateCreate", "DC", "DCL", "DateCreateUtc", "DCU",
+            "DateModified", "DM", "DML", "DateModifiedUtc", "DMU",
+            "DateAccess", "DA", "DAL", "DateAccessUtc", "DAU",
         };
         private List<string> CategoriesBool  = new List<string>()
         {
@@ -44,10 +44,12 @@ namespace ImageApplets.Applets
         {
             "FullName", "DirectoryName", "Folder", "Dir", "Name", "Ext",
             "Length", "Size",
+
             "Date", "DateUtc",
-            "DateCreate", "DC", "DateCreateUtc", "DCU",
-            "DateModified", "DM", "DateModifiedUtc", "DMU",
-            "DateAccess", "DA", "DateAccessUtc", "DAU",
+            "DateCreate", "DC", "DCL", "DateCreateUtc", "DCU",
+            "DateModified", "DM", "DML", "DateModifiedUtc", "DMU",
+            "DateAccess", "DA", "DAL", "DateAccessUtc", "DAU",
+
             "Attribute", "Attr",
             "ReadOnly", "R", "Hidden", "H", "System", "S", "Directory", "D", "Archive", "A", "Compressed", "C", "Encrypted", "E",
             "Device", "DEV", "Normal", "N", "Temporary", "T", "SparseFile", "SF",
@@ -95,6 +97,7 @@ namespace ImageApplets.Applets
                 dynamic status = false;
                 if (File.Exists(file))
                 {
+                    #region init file informations dictionary
                     var fi = new System.IO.FileInfo(file);
                     var fi_dict = new Dictionary<string, dynamic>(StringComparer.CurrentCultureIgnoreCase)
                     {
@@ -102,14 +105,17 @@ namespace ImageApplets.Applets
 
                         { "DirectoryName", fi.DirectoryName }, { "Folder", fi.DirectoryName }, { "Dir", fi.DirectoryName },
 
-                        { "Attributes", fi.Attributes }, { "Attr", fi.Attributes },
+                        { "Attributes", fi.Attributes.ToString() }, { "Attr", fi.Attributes.ToString() },
 
                         { "Size", fi.Length }, { "Length", fi.Length },
 
                         { "Date", fi.LastWriteTime }, { "DateUtc", fi.LastWriteTimeUtc },
-                        { "DateCreate", fi.CreationTime }, { "DC", fi.CreationTime }, { "DateCreateUtc", fi.CreationTimeUtc }, { "DCU", fi.CreationTimeUtc },
-                        { "DateModified", fi.LastWriteTime }, { "DM", fi.LastWriteTime }, { "DateModifiedUtc", fi.LastWriteTimeUtc }, { "DMU", fi.LastWriteTimeUtc },
-                        { "DateAccedd", fi.LastAccessTime }, { "DA", fi.LastAccessTime }, { "DateAccessUtc", fi.LastAccessTimeUtc }, { "DAU", fi.LastAccessTimeUtc },
+                        { "DateCreate", fi.CreationTime }, { "DC", fi.CreationTime }, { "DCL", fi.CreationTime },
+                        { "DateCreateUtc", fi.CreationTimeUtc }, { "DCU", fi.CreationTimeUtc },
+                        { "DateModified", fi.LastWriteTime }, { "DM", fi.LastWriteTime }, { "DML", fi.LastWriteTime },
+                        { "DateModifiedUtc", fi.LastWriteTimeUtc }, { "DMU", fi.LastWriteTimeUtc },
+                        { "DateAccedd", fi.LastAccessTime }, { "DA", fi.LastAccessTime }, { "DAL", fi.LastAccessTime },
+                        { "DateAccessUtc", fi.LastAccessTimeUtc }, { "DAU", fi.LastAccessTimeUtc },
 
                         { "ReadOnly", fi.Attributes.HasFlag(FileAttributes.ReadOnly) }, { "R", fi.Attributes.HasFlag(FileAttributes.ReadOnly) },
                         { "Hidden", fi.Attributes.HasFlag(FileAttributes.Hidden) }, { "H", fi.Attributes.HasFlag(FileAttributes.Hidden) },
@@ -129,8 +135,10 @@ namespace ImageApplets.Applets
                         { "NoScrubData", fi.Attributes.HasFlag(FileAttributes.NoScrubData) }, { "NSD", fi.Attributes.HasFlag(FileAttributes.NoScrubData) },
                     };
                     var keys = fi_dict.Keys.ToList();
+                    #endregion
 
-                    var cats = SearchScope.Split(',').Select(c => c.Trim().ToLower()).Distinct().ToList();
+                    //var cats = SearchScope.Split(SplitChar.Concat(new char[] { ',' }).ToArray()).Select(c => c.Trim().ToLower()).Distinct().ToList();
+                    var cats = SearchScope.Split(SplitChar).Select(c => c.Trim().ToLower()).Distinct().ToList();
                     if (cats.Contains("all"))
                     {
                         cats.AddRange(Categories);
@@ -148,81 +156,54 @@ namespace ImageApplets.Applets
 
                         if (Mode == CompareMode.AND || Mode == CompareMode.NOT)
                         {
-                            foreach (var c in CategoriesText)
+                            foreach (var c in CategoriesText.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
                             {
-                                if (cats.Contains(c.ToLower()) && fi_dict.ContainsKey(c))
-                                {
-                                    var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                    status &= Compare(fi_dict[c] as string, words, Mode);
-                                }
+                                var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
+                                status &= Compare((string)fi_dict[c], words, Mode);
                             }
 
-                            foreach (var c in CategoriesDate)
+                            foreach (var c in CategoriesDate.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
                             {
-                                if (cats.Contains(c.ToLower()) && fi_dict.ContainsKey(c))
-                                {
-                                    var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                    status &= Compare(GetDateLong(fi_dict[c]), words, Mode);
-                                }
+                                var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
+                                status &= Compare(GetDateLong((DateTime)fi_dict[c]), words, Mode);
                             }
 
-                            foreach (var c in CategoriesNumber)
+                            foreach (var c in CategoriesNumber.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
                             {
-                                if (cats.Contains(c.ToLower()) && fi_dict.ContainsKey(c))
-                                {
-                                    var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                    double value = double.NaN;
-                                    if (double.TryParse(fi_dict[c], out value)) status &= Compare(value, words, Mode);
-                                }
+                                var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
+                                status &= Compare((double)fi_dict[c], words, Mode);
                             }
 
-                            foreach (var c in CategoriesBool)
+                            foreach (var c in CategoriesBool.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
                             {
-                                if (cats.Contains(c.ToLower()) && fi_dict.ContainsKey(c))
-                                {
-                                    var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                    bool value = false;
-                                    if (bool.TryParse(fi_dict[c], out value)) status &= Compare(value, words, Mode);
-                                }
+                                var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
+                                status &= Compare((bool)fi_dict[c], words, Mode);
                             }
                         }
                         else if (Mode == CompareMode.OR)
                         {
-                            foreach (var c in CategoriesText)
+                            foreach (var c in CategoriesText.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
                             {
-                                if (cats.Contains(c.ToLower()) && fi_dict.ContainsKey(c))
-                                {
-                                    var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                    status |= Compare(fi_dict[c] as string, words, Mode);
-                                }
+                                var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
+                                status |= Compare((string)fi_dict[c], words, Mode);
                             }
 
-                            foreach (var c in CategoriesDate)
+                            foreach (var c in CategoriesDate.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
                             {
-                                if (cats.Contains(c.ToLower()) && fi_dict.ContainsKey(c))
-                                {
-                                    var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                    status |= Compare(GetDateLong(fi_dict[c]), words, Mode);
-                                }
+                                var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
+                                status |= Compare(GetDateLong((DateTime)fi_dict[c]), words, Mode);
                             }
 
-                            foreach (var c in CategoriesNumber)
+                            foreach (var c in CategoriesNumber.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
                             {
-                                if (cats.Contains(c.ToLower()) && fi_dict.ContainsKey(c))
-                                {
-                                    var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                    status |= Compare((double)fi_dict[c], words, Mode);
-                                }
+                                var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
+                                status |= Compare((double)fi_dict[c], words, Mode);
                             }
 
-                            foreach (var c in CategoriesBool)
+                            foreach (var c in CategoriesBool.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
                             {
-                                if (cats.Contains(c.ToLower()) && fi_dict.ContainsKey(c))
-                                {
-                                    var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                    bool value = false;
-                                    if (bool.TryParse(fi_dict[c], out value)) status |= Compare(value, words, Mode);
-                                }
+                                var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
+                                status |= Compare((bool)fi_dict[c], words, Mode);
                             }
                         }
                         else if (Mode == CompareMode.LT || Mode == CompareMode.LE ||
@@ -230,22 +211,28 @@ namespace ImageApplets.Applets
                                  Mode == CompareMode.EQ || Mode == CompareMode.NEQ ||
                                  Mode == CompareMode.HAS || Mode == CompareMode.NONE)
                         {
-                            foreach (var c in CategoriesNumber)
+                            foreach (var c in CategoriesText.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
                             {
-                                if (cats.Contains(c.ToLower()) && fi_dict.ContainsKey(c))
-                                {
-                                    var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                    status |= Compare((double)fi_dict[c], words, Mode);
-                                }
+                                var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
+                                status |= Compare((string)fi_dict[c], words, Mode);
                             }
 
-                            foreach (var c in CategoriesDate)
+                            foreach (var c in CategoriesDate.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
                             {
-                                if (cats.Contains(c.ToLower()) && fi_dict.ContainsKey(c))
-                                {
-                                    var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                    status |= _date_.Compare((DateTime)fi_dict[c], Mode);
-                                }
+                                var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
+                                status |= Compare((DateTime)fi_dict[c], _date_, Mode);
+                            }
+
+                            foreach (var c in CategoriesNumber.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
+                            {
+                                var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
+                                status |= Compare((double)fi_dict[c], words, Mode);
+                            }
+
+                            foreach (var c in CategoriesBool.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
+                            {
+                                var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
+                                status &= Compare((bool)fi_dict[c], words, Mode);
                             }
                         }
                         else if (Mode == CompareMode.IN && words.Length >= 2)
@@ -256,26 +243,20 @@ namespace ImageApplets.Applets
                                 double value = double.NaN;
                                 double value_low = values.First();
                                 double value_high = values.Last();
-                                foreach (var c in CategoriesNumber)
+                                foreach (var c in CategoriesNumber.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
                                 {
-                                    if (cats.Contains(c.ToLower()) && fi_dict.ContainsKey(c))
-                                    {
-                                        var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                        value = (double)fi_dict[c];
-                                        status |= value_low <= value && value <= value_high;
-                                    }
+                                    var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
+                                    value = (double)fi_dict[c];
+                                    status |= value_low <= value && value <= value_high;
                                 }
                             }
 
                             var date_low = new DateValue(words.First());
                             var date_high = new DateValue(words.Last());
-                            foreach (var c in CategoriesDate)
+                            foreach (var c in CategoriesDate.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
                             {
-                                if (cats.Contains(c.ToLower()) && fi_dict.ContainsKey(c))
-                                {
-                                    var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                    status |= date_low <= fi_dict[c] && fi_dict[c] <= date_high;
-                                }
+                                var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
+                                status |= date_low <= fi_dict[c] && fi_dict[c] <= date_high;
                             }
 
                         }
@@ -287,26 +268,20 @@ namespace ImageApplets.Applets
                                 double value = double.NaN;
                                 double value_low = values.First();
                                 double value_high = values.Last();
-                                foreach (var c in CategoriesNumber)
+                                foreach (var c in CategoriesNumber.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
                                 {
-                                    if (cats.Contains(c.ToLower()) && fi_dict.ContainsKey(c))
-                                    {
-                                        var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                        value = (double)fi_dict[c];
-                                        status |= value_low > value || value > value_high;
-                                    }
+                                    var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
+                                    value = (double)fi_dict[c];
+                                    status |= value_low > value || value > value_high;
                                 }
                             }
 
                             var date_low = new DateValue(words.First());
                             var date_high = new DateValue(words.Last());
-                            foreach (var c in CategoriesDate)
+                            foreach (var c in CategoriesDate.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
                             {
-                                if (cats.Contains(c.ToLower()) && fi_dict.ContainsKey(c))
-                                {
-                                    var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                    status |= date_low > fi_dict[c] || fi_dict[c] > date_high;
-                                }
+                                var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
+                                status |= date_low > fi_dict[c] || fi_dict[c] > date_high;
                             }
                         }
                     }
@@ -315,13 +290,10 @@ namespace ImageApplets.Applets
                         var padding = "".PadLeft(ValuePaddingLeft);
                         StringBuilder sb = new StringBuilder();
                         sb.Append("\u20D0");
-                        foreach (var c in cats)
+                        foreach (var c in cats.Where(cat => fi_dict.ContainsKey(cat)))
                         {
-                            if (fi_dict.ContainsKey(c))
-                            {
-                                var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                sb.AppendLine($"{padding}{key} = {fi_dict[c]}");
-                            }
+                            var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
+                            sb.AppendLine($"{padding}{key} = {fi_dict[c]}");
                         }
                         status = sb.ToString().Trim();
                     }
