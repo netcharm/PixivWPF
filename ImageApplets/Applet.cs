@@ -130,52 +130,53 @@ namespace ImageApplets
         internal string ConvertChineseNumberString(string text)
         {
             var result = text;
-
-            foreach (var kv in num_chs)
+            if (!string.IsNullOrEmpty(text))
             {
-                result = result.Replace(kv.Key, kv.Value); ;
-            }
-            if (result.StartsWith("十")) result = $"1{result}";
-            var matches_w = Regex.Matches(result, @"((\d+)(万|千|百|十)?)+", RegexOptions.IgnoreCase);
-            foreach (Match mw in matches_w)
-            {
-                if (mw.Success)
+                foreach (var kv in num_chs)
                 {
-                    var nums = new List<double>();
-                    var last_unit = string.Empty;
-                    var matches_s = Regex.Matches(mw.Value, @"(\d+)(万|千|百|十)?", RegexOptions.IgnoreCase);
-                    foreach (Match ms in matches_s)
+                    result = result.Replace(kv.Key, kv.Value); ;
+                }
+                if (result.StartsWith("十")) result = $"1{result}";
+                var matches_w = Regex.Matches(result, @"((\d+)(万|千|百|十)?)+", RegexOptions.IgnoreCase);
+                foreach (Match mw in matches_w)
+                {
+                    if (mw.Success)
                     {
-                        var factor = 1;
-                        if (ms.Groups[2].Success)
+                        var nums = new List<double>();
+                        var last_unit = string.Empty;
+                        var matches_s = Regex.Matches(mw.Value, @"(\d+)(万|千|百|十)?", RegexOptions.IgnoreCase);
+                        foreach (Match ms in matches_s)
                         {
-                            if (ms.Groups[2].Value.Equals("万")) factor = 10000;
-                            else if (ms.Groups[2].Value.Equals("千")) factor = 1000;
-                            else if (ms.Groups[2].Value.Equals("百")) factor = 100;
-                            else if (ms.Groups[2].Value.Equals("十")) factor = 10;
-                            last_unit = ms.Groups[2].Value;
-                        }
-                        else
-                        {
-                            if (last_unit.Equals("万")) factor = 1000;
-                            else if (last_unit.Equals("千")) factor = 100;
-                            else if (last_unit.Equals("百")) factor = 10;
-                            else if (last_unit.Equals("十")) factor = 1;
-                        }
+                            var factor = 1;
+                            if (ms.Groups[2].Success)
+                            {
+                                if (ms.Groups[2].Value.Equals("万")) factor = 10000;
+                                else if (ms.Groups[2].Value.Equals("千")) factor = 1000;
+                                else if (ms.Groups[2].Value.Equals("百")) factor = 100;
+                                else if (ms.Groups[2].Value.Equals("十")) factor = 10;
+                                last_unit = ms.Groups[2].Value;
+                            }
+                            else
+                            {
+                                if (last_unit.Equals("万")) factor = 1000;
+                                else if (last_unit.Equals("千")) factor = 100;
+                                else if (last_unit.Equals("百")) factor = 10;
+                                else if (last_unit.Equals("十")) factor = 1;
+                            }
 
-                        var num = ms.Groups[1].Success ? Convert.ToInt32(ms.Groups[1].Value) : 1;
-                        nums.Add(num);
-                        nums.Add(factor);
+                            var num = ms.Groups[1].Success ? Convert.ToInt32(ms.Groups[1].Value) : 1;
+                            nums.Add(num);
+                            nums.Add(factor);
+                        }
+                        var value = .0;
+                        for (var i = 0; i < nums.Count; i += 2)
+                        {
+                            value += nums[i] * nums[i + 1];
+                        }
+                        result = result.Replace(mw.Value.TrimStart('0'), $"{value}");
                     }
-                    var value = .0;
-                    for (var i = 0; i < nums.Count; i += 2)
-                    {
-                        value += nums[i] * nums[i + 1];
-                    }
-                    result = result.Replace(mw.Value.TrimStart('0'), $"{value}");
                 }
             }
-
             return (result);
         }
 
@@ -405,7 +406,7 @@ namespace ImageApplets
         public dynamic Compare(DateValue src, CompareMode mode)
         {
             dynamic status = false;
-            if (src.Date.HasValue)
+            if (src is DateValue && src.Date.HasValue)
             {
                 var sdt = new DateTime(src.Date.Value.Year, src.Date.Value.Month, src.Date.Value.Day, src.Date.Value.Hour, src.Date.Value.Minute, src.Date.Value.Second);
                 if (mode == CompareMode.VALUE)
@@ -486,77 +487,113 @@ namespace ImageApplets
 
         public static bool operator ==(DateValue left, DateValue right)
         {
-            return (right.Compare(left, CompareMode.EQ));
+            if (left is DateValue && right is DateValue)
+                return (right.Compare(left, CompareMode.EQ));
+            else return (false);
         }
         public static bool operator !=(DateValue left, DateValue right)
         {
-            return (right.Compare(left, CompareMode.NEQ));
+            if (left is DateValue && right is DateValue)
+                return (right.Compare(left, CompareMode.NEQ));
+            else return (false);
         }
         public static bool operator <=(DateValue left, DateValue right)
         {
-            return (right.Compare(left, CompareMode.LE));
+            if (left is DateValue && right is DateValue)
+                return (right.Compare(left, CompareMode.LE));
+            else return (false);
         }
         public static bool operator >=(DateValue left, DateValue right)
         {
-            return (right.Compare(left, CompareMode.GE));
+            if (left is DateValue && right is DateValue)
+                return (right.Compare(left, CompareMode.GE));
+            else return (false);
         }
         public static bool operator <(DateValue left, DateValue right)
         {
-            return (right.Compare(left, CompareMode.LT));
+            if (left is DateValue && right is DateValue)
+                return (right.Compare(left, CompareMode.LT));
+            else return (false);
         }
         public static bool operator >(DateValue left, DateValue right)
         {
-            return (right.Compare(left, CompareMode.GT));
+            if (left is DateValue && right is DateValue)
+                return (right.Compare(left, CompareMode.GT));
+            else return (false);
         }
 
         public static bool operator ==(DateTime left, DateValue right)
         {
-            return (right.Compare(left, CompareMode.EQ));
+            if (right is DateValue)
+                return (right.Compare(left, CompareMode.EQ));
+            else return (false);
         }
         public static bool operator !=(DateTime left, DateValue right)
         {
-            return (right.Compare(left, CompareMode.NEQ));
+            if (right is DateValue)
+                return (right.Compare(left, CompareMode.NEQ));
+            else return (false);
         }
         public static bool operator <=(DateTime left, DateValue right)
         {
-            return (right.Compare(left, CompareMode.LE));
+            if (right is DateValue)
+                return (right.Compare(left, CompareMode.LE));
+            else return (false);
         }
         public static bool operator >=(DateTime left, DateValue right)
         {
-            return (right.Compare(left, CompareMode.GE));
+            if (right is DateValue)
+                return (right.Compare(left, CompareMode.GE));
+            else return (false);
         }
         public static bool operator <(DateTime left, DateValue right)
         {
-            return (right.Compare(left, CompareMode.LT));
+            if (right is DateValue)
+                return (right.Compare(left, CompareMode.LT));
+            else return (false);
         }
         public static bool operator >(DateTime left, DateValue right)
         {
-            return (right.Compare(left, CompareMode.GT));
+            if (right is DateValue)
+                return (right.Compare(left, CompareMode.GT));
+            else return (false);
         }
 
         public static bool operator ==(DateValue left, DateTime right)
         {
-            return (left.Compare(right, CompareMode.EQ));
+            if (left is DateValue)
+                return (left.Compare(right, CompareMode.EQ));
+            else return (false);
         }
         public static bool operator !=(DateValue left, DateTime right)
         {
-            return (left.Compare(right, CompareMode.NEQ));
+            if (left is DateValue)
+                return (left.Compare(right, CompareMode.NEQ));
+            else return (false);
         }
         public static bool operator <=(DateValue left, DateTime right)
         {
-            return (left.Compare(right, CompareMode.GE));
+            if (left is DateValue)
+                return (left.Compare(right, CompareMode.GE));
+            else return (false);
         }
         public static bool operator >=(DateValue left, DateTime right)
         {
-            return (left.Compare(right, CompareMode.LE));
+            if (left is DateValue)
+                return (left.Compare(right, CompareMode.LE));
+            else return (false);
         }
         public static bool operator <(DateValue left, DateTime right)
         {
-            return (left.Compare(right, CompareMode.GT));
+            if (left is DateValue)
+                return (left.Compare(right, CompareMode.GT));
+            else return (false);
         }
         public static bool operator >(DateValue left, DateTime right)
         {
-            return (left.Compare(right, CompareMode.LT));
+            if (left is DateValue)
+                return (left.Compare(right, CompareMode.LT));
+            else return (false);
         }
     }
 
