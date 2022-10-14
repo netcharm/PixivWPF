@@ -624,7 +624,7 @@ namespace PixivWPF.Common
                             var mw = win as MainWindow;
                             mw.SetRefreshRing(rotate: true, canceltoken: CancelShowLoginSource);
                         }
-                        
+
                         if (GetWindow<PixivLoginDialog>() is MetroWindow) return (result);
                         Application.Current.DoEvents();
                         await Task.Delay(1);
@@ -4659,7 +4659,7 @@ namespace PixivWPF.Common
                                                 //    sh.Properties.System.Photo.DateTaken.TryFormatForDisplay(fmt, out sdt) &&
                                                 //   (sh.Properties.System.Photo.DateTaken.Value == null ||
                                                 //    sh.Properties.System.Photo.DateTaken.Value.Value.Ticks != dt.Ticks))
-                                                if (sh.Properties.System.Photo.DateTaken.Value == null || 
+                                                if (sh.Properties.System.Photo.DateTaken.Value == null ||
                                                     sh.Properties.System.Photo.DateTaken.Value.Value.Ticks != dt.Ticks)
                                                     sh.Properties.System.Photo.DateTaken.Value = dt;
                                             }
@@ -4691,7 +4691,7 @@ namespace PixivWPF.Common
                                 }
                                 else if (is_mov && !is_zip)
                                 {
-#region mov
+                                    #region mov
                                     if (sh.Properties.System.DateAcquired.Value == null || sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks)
                                         sh.Properties.System.DateAcquired.Value = dt;
 
@@ -4804,7 +4804,7 @@ namespace PixivWPF.Common
                                     if (sh.Properties.System.Music.Period.Value == null)
                                         sh.Properties.System.Music.Period.Value = dt.ToString("yyyy");
 
-#endregion
+                                    #endregion
                                     result = true;
                                 }
                                 //sh.Update(null);
@@ -4944,9 +4944,9 @@ namespace PixivWPF.Common
                 }
             }
         }
-#endregion
+        #endregion
 
-#region Touch Helper
+        #region Touch Helper
         public static void Touch(this DirectoryInfo folderinfo, bool recursion = false, CancellationTokenSource cancelSource = null, Action<BatchProgressInfo> reportAction = null, bool test = false, bool force = false)
         {
             if (Directory.Exists(folderinfo.FullName))
@@ -5146,9 +5146,9 @@ namespace PixivWPF.Common
                 await new Action(() => { Touch(item, local, meta, force); }).InvokeAsync();
             }
         }
-#endregion
+        #endregion
 
-#region Downloaded Cache routines
+        #region Downloaded Cache routines
         private static ConcurrentDictionary<string, bool> _cachedDownloadedList = new ConcurrentDictionary<string, bool>();
         internal static void UpdateDownloadedListCache(this string folder, bool cached = true)
         {
@@ -5521,10 +5521,10 @@ namespace PixivWPF.Common
             }
             catch (Exception ex) { ex.ERROR("UpdateDownloadState"); }
         }
-#endregion
+        #endregion
 
-#region Check Download State routines
-#region IsDownloaded
+        #region Check Download State routines
+        #region IsDownloaded
         private class DownloadState
         {
             public string Path { get; set; } = string.Empty;
@@ -5665,9 +5665,9 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("IsDownloaded"); }
             return (result);
         }
-#endregion
+        #endregion
 
-#region IsPartDownloaded
+        #region IsPartDownloaded
         internal static bool IsPartDownloadedAsync(this PixivItem item, bool touch = false)
         {
             if (item.Illust is Pixeez.Objects.Work)
@@ -5816,9 +5816,9 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("IsPartDownloaded"); }
             return (result);
         }
-#endregion
+        #endregion
 
-#region Ugoira file download checking
+        #region Ugoira file download checking
         internal static bool IsUgoiraDownloaded(this string url, out string filepath, bool touch = true)
         {
             bool result = false;
@@ -5849,7 +5849,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("IsUgoiraDownloaded"); }
             return (result);
         }
-#endregion
+        #endregion
 
         public static IEnumerable<string> GetDownloadedFiles(this PixivItem item)
         {
@@ -5895,9 +5895,9 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("GetDownloaded"); }
             return (result.Distinct().ToList());
         }
-#endregion
+        #endregion
 
-#region Download/Convert/Resize Image routines
+        #region Download/Convert/Resize Image routines
         private static Dictionary<string, string[]> exts = new Dictionary<string, string[]>()
         {
             { ".png", new string[] { ".png", "image/png", "PNG" } },
@@ -6921,10 +6921,10 @@ namespace PixivWPF.Common
                     DataObject dataPackage = new DataObject();
                     MemoryStream ms = null;
 
-#region Copy Standard Bitmap date to Clipboard
+                    #region Copy Standard Bitmap date to Clipboard
                     dataPackage.SetImage(bs);
-#endregion
-#region Copy other MIME format data to Clipboard
+                    #endregion
+                    #region Copy other MIME format data to Clipboard
                     string[] fmts = new string[] { "PNG", "image/png", "image/bmp", "image/jpg", "image/jpeg" };
                     //string[] fmts = new string[] { };
                     foreach (var fmt in fmts)
@@ -6945,7 +6945,7 @@ namespace PixivWPF.Common
                             await ms.FlushAsync();
                         }
                     }
-#endregion
+                    #endregion
                     Clipboard.SetDataObject(dataPackage, true);
                 }
                 catch (Exception ex) { ex.ERROR("CopyImage"); }
@@ -6967,10 +6967,10 @@ namespace PixivWPF.Common
                         DataObject dataPackage = new DataObject();
                         MemoryStream ms = null;
 
-#region Copy Standard Bitmap date to Clipboard
+                        #region Copy Standard Bitmap date to Clipboard
                         dataPackage.SetImage(bs);
-#endregion
-#region Copy other MIME format data to Clipboard
+                        #endregion
+                        #region Copy other MIME format data to Clipboard
                         string[] fmts = new string[] { "PNG", "image/png", "image/bmp", "image/jpg", "image/jpeg" };
                         //string[] fmts = new string[] { };
                         foreach (var fmt in fmts)
@@ -7000,7 +7000,7 @@ namespace PixivWPF.Common
                                 }
                             }
                         }
-#endregion
+                        #endregion
                         Clipboard.SetDataObject(dataPackage, true);
                     }
                 }
@@ -7118,9 +7118,9 @@ namespace PixivWPF.Common
             }
             return (result);
         }
-#endregion
+        #endregion
 
-#region Load/Save Image routines
+        #region Load/Save Image routines
         private static ConcurrentDictionary<string, bool> _Downloading_ = new ConcurrentDictionary<string, bool>();
 
         public static async Task<CustomImageSource> LoadImageFromFile(this string file, Size size = default(Size))
@@ -7618,9 +7618,9 @@ namespace PixivWPF.Common
                 }
             }
         }
-#endregion
+        #endregion
 
-#region Illust routines
+        #region Illust routines
         public static bool IsWork(this Pixeez.Objects.Work work)
         {
             return (work is Pixeez.Objects.Work);
@@ -7804,7 +7804,7 @@ namespace PixivWPF.Common
             var xml_out = FormatXML(xml);
             return (xml is XmlDocument ? xml_out : string.Empty);
         }
-#region SameIllust
+        #region SameIllust
         public static bool IsSameIllust(this string id, int hash)
         {
             return (cache.IsSameIllust(hash, id));
@@ -7926,9 +7926,9 @@ namespace PixivWPF.Common
             var selected = GetSelected(gallery, setting.OpenWithSelectionOrder, setting.AllForSelectionNone);
             return (selected.Where(i => i.IsUser()).ToList());
         }
-#endregion
+        #endregion
 
-#region History routines
+        #region History routines
         public static bool InHistory(this PixivItem item)
         {
             return (Application.Current.InHistory(item));
@@ -7993,9 +7993,9 @@ namespace PixivWPF.Common
         {
             Commands.OpenHistory.Execute(null);
         }
-#endregion
+        #endregion
 
-#region Refresh Illust/User Info
+        #region Refresh Illust/User Info
         public static async Task<Pixeez.Objects.Work> RefreshIllust(this Pixeez.Objects.Work Illust, Pixeez.Tokens tokens = null, bool restrict = true)
         {
             var result = Illust.Id != null ? await RefreshIllust(Illust.Id.Value, tokens, restrict: restrict) : Illust;
@@ -8242,9 +8242,9 @@ namespace PixivWPF.Common
         {
             return (await RefreshUserInfo(User.Id));
         }
-#endregion
+        #endregion
 
-#region Like helper routines
+        #region Like helper routines
         public static bool IsLiked(this Pixeez.Objects.Work illust)
         {
             bool result = false;
@@ -8319,9 +8319,9 @@ namespace PixivWPF.Common
             }
             else return false;
         }
-#endregion
+        #endregion
 
-#region Like/Unlike Illust helper routines
+        #region Like/Unlike Illust helper routines
         public class BookmarkState
         {
             public bool State { get; set; } = false;
@@ -8642,9 +8642,9 @@ namespace PixivWPF.Common
         {
             ToggleLikeIllust(new ObservableCollection<PixivItem>(collection), pub);
         }
-#endregion
+        #endregion
 
-#region Like/Unlike User helper routines
+        #region Like/Unlike User helper routines
         /// <summary>
         /// Like user
         /// </summary>
@@ -8932,9 +8932,9 @@ namespace PixivWPF.Common
         {
             ToggleLikeUser(new ObservableCollection<PixivItem>(collection), pub);
         }
-#endregion
+        #endregion
 
-#region Update/Find Illust/User info cache
+        #region Update/Find Illust/User info cache
         public static void Cache(this Pixeez.Objects.UserBase user)
         {
             if (user is Pixeez.Objects.UserBase)
@@ -9072,9 +9072,9 @@ namespace PixivWPF.Common
         {
             return (FindUserInfo(user.Id));
         }
-#endregion
+        #endregion
 
-#region Get Illust/User/UserInfo
+        #region Get Illust/User/UserInfo
         public static async Task<Pixeez.Objects.Work> GetIllust(this long id, Pixeez.Tokens tokens = null)
         {
             var illust = id.FindIllust();
@@ -9158,9 +9158,9 @@ namespace PixivWPF.Common
         {
             return (await GetUserInfo(user.Id, tokens));
         }
-#endregion
+        #endregion
 
-#region Sync Illust/User Like State
+        #region Sync Illust/User Like State
         public static void UpdateLikeStateAsync(string illustid = default(string), bool is_user = false)
         {
             int id = -1;
@@ -9265,10 +9265,10 @@ namespace PixivWPF.Common
                 catch (Exception ex) { ex.ERROR("UpdateLikeState"); }
             }
         }
-#endregion
-#endregion
+        #endregion
+        #endregion
 
-#region UI Element Related
+        #region UI Element Related
         public static string GetUid(this object obj)
         {
             string result = string.Empty;
@@ -9541,9 +9541,9 @@ namespace PixivWPF.Common
                 element.Visibility = Visibility.Visible;
             }
         }
-#endregion
+        #endregion
 
-#region Button MouseOver Action
+        #region Button MouseOver Action
         public static void MouseOverAction(this ButtonBase button)
         {
             if (button is ButtonBase)
@@ -9620,9 +9620,9 @@ namespace PixivWPF.Common
         {
             if (sender is ButtonBase) MouseLeave(sender as ButtonBase);
         }
-#endregion
+        #endregion
 
-#region SearchBox common routines
+        #region SearchBox common routines
         private static ObservableCollection<string> auto_suggest_list = new ObservableCollection<string>() {};
         public static ObservableCollection<string> AutoSuggestList
         {
@@ -9736,9 +9736,9 @@ namespace PixivWPF.Common
                 }
             }
         }
-#endregion
+        #endregion
 
-#region Window routines
+        #region Window routines
         public static MetroWindow GetMainWindow()
         {
             return (Application.Current.MainWindow as MetroWindow);
@@ -10026,9 +10026,9 @@ namespace PixivWPF.Common
 
             return (result);
         }
-#endregion
+        #endregion
 
-#region Dialog/MessageBox routines
+        #region Dialog/MessageBox routines
         public static string ChangeSaveTarget(this string file)
         {
             return (ChangeSaveFolder(file));
@@ -10253,9 +10253,9 @@ namespace PixivWPF.Common
                 await window.ShowMessageAsync("Cupcakes!", "Your cupcakes are finished! Enjoy!");
             }
         }
-#endregion
+        #endregion
 
-#region Toast routines
+        #region Toast routines
         private static string lastToastTitle = string.Empty;
         private static string lastToastContent = string.Empty;
         public async static void ShowDownloadToast(this string content, string title = "Pixiv", string imgsrc = "", string file = "", string state = "", string state_description = "", object tag = null)
@@ -10394,10 +10394,10 @@ namespace PixivWPF.Common
             ex.ERROR(tag);
             ex.Message.ShowToast($"ERROR[{tag}]", messagebox, tag);
         }
-#endregion
+        #endregion
     }
 
-#region Custom Toast 
+    #region Custom Toast 
     public class CustomToast : Notification
     {
         [Description("Get or Set Toast Type")]
@@ -10421,7 +10421,7 @@ namespace PixivWPF.Common
         //public string Title { get; set; }
         public object Tag { get; set; }
     }
-#endregion
+    #endregion
 
     public static class TaskExtensions
     {
@@ -10453,13 +10453,13 @@ namespace PixivWPF.Common
 
         public static bool IsCanceled(this Exception ex)
         {
-            return (ex is OperationCanceledException || ex is TaskCanceledException || ex is HttpRequestException);
+            return (ex is OperationCanceledException || ex is TaskCanceledException || ex is HttpRequestException || ex is WebException);
         }
     }
 
     public static class ExtensionMethods
     {
-#region Time Calc Helper
+        #region Time Calc Helper
         public static long MillisecondToTicks(this int millisecond)
         {
             long result = 0;
@@ -10625,9 +10625,9 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
-#endregion
+        #endregion
 
-#region Media Play
+        #region Media Play
         public static async void Sound(this object obj, string mode = "")
         {
             try
@@ -10678,9 +10678,9 @@ namespace PixivWPF.Common
             }
             catch (Exception ex) { ex.ERROR(); }
         }
-#endregion
+        #endregion
 
-#region Misc Helper
+        #region Misc Helper
         private static string NormalizationFileName(string file, int padding = 16)
         {
             var f = Path.GetFileName(file);
@@ -10917,9 +10917,9 @@ namespace PixivWPF.Common
                 return (range_l);
         }
 
-#endregion
+        #endregion
 
-#region WPF UI Helper
+        #region WPF UI Helper
         public static T FindByName<T>(this FrameworkElement element, string name) where T : FrameworkElement
         {
             T result = default(T);
@@ -11090,9 +11090,9 @@ namespace PixivWPF.Common
             current_deeper = 0;
             return (result);
         }
-#endregion
+        #endregion
 
-#region Graphic Helper
+        #region Graphic Helper
         public static Tuple<double, double> AspectRatio(this ImageSource image)
         {
             double bestDelta = double.MaxValue;
@@ -11131,7 +11131,7 @@ namespace PixivWPF.Common
         {
             return (Math.Sqrt(Math.Pow(src.X - dst.X, 2) + Math.Pow(src.Y - dst.Y, 2)));
         }
-#endregion
+        #endregion
     }
 
 }

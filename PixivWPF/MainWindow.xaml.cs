@@ -110,7 +110,7 @@ namespace PixivWPF
         private CancellationTokenSource RefreshRingCancelSource = null;
         public void SetRefreshRing(bool rotate, CancellationTokenSource canceltoken = null)
         {
-            this.Dispatcher.Invoke(() =>
+            Dispatcher.Invoke(() =>
             {
                 try
                 {

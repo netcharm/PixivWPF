@@ -1,11 +1,10 @@
-﻿using MahApps.Metro.Controls;
-using PixivWPF.Pages;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,6 +15,9 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+
+using MahApps.Metro.Controls;
+using PixivWPF.Pages;
 
 namespace PixivWPF.Common
 {
@@ -103,6 +105,26 @@ namespace PixivWPF.Common
                 }
                 if (progress < 0) PreftchingProgressInfo.Hide();
             }).Invoke(async: false);
+        }
+
+        private Storyboard RefreshRing = null;
+        private CancellationTokenSource RefreshRingCancelSource = null;
+        public void SetRefreshRing(bool rotate, CancellationTokenSource canceltoken = null)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                try
+                {
+                    if (RefreshRing == null) RefreshRing = (Storyboard)RefreshIcon.FindResource("RefreshRing");
+                    if (RefreshRing is Storyboard)
+                    {
+                        RefreshRingCancelSource = canceltoken;
+                        if (rotate) RefreshRing.Begin();
+                        else RefreshRing.Stop();
+                    }
+                }
+                catch (Exception ex) { ex.ERROR("SetRefreshRing"); }
+            });
         }
 
         public void SetToolTip(string element, string tooltip, bool append = false, string append_seprate = default(string))
@@ -359,6 +381,14 @@ namespace PixivWPF.Common
                 Commands.RefreshPage.Execute(Content);
             else if (sender == CommandRefreshThumb)
                 Commands.RefreshPageThumb.Execute(Content);
+        }
+
+        private void CommandRefresh_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (RefreshRingCancelSource is CancellationTokenSource)
+            {
+                RefreshRingCancelSource.Cancel();
+            }
         }
 
         private void CommandRecents_Click(object sender, RoutedEventArgs e)
@@ -762,5 +792,6 @@ namespace PixivWPF.Common
             else if (Content is HistoryPage)
                 (Content as HistoryPage).StopPrefetching();
         }
+
     }
 }
