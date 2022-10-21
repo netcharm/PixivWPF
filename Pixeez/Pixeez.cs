@@ -16,20 +16,21 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using System.Linq;
-using System.IO;
 using System.Security.Cryptography.X509Certificates;
-
-using Newtonsoft.Json.Linq;
-using Pixeez.Objects;
 using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
+
+using Newtonsoft.Json.Linq;
+using Pixeez.Objects;
 
 namespace Pixeez
 {
@@ -219,7 +220,7 @@ namespace Pixeez
         /// <para>- <c>string</c> password (required)</para>
         /// </summary>
         /// <returns>Tokens.</returns>
-        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string refreshtoken, string devicetoken, string proxy, string[] proxybypass, bool useproxy = false)
+        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string refreshtoken, string devicetoken, string proxy, string[] proxybypass, bool useproxy = false, CancellationTokenSource cancelToken = null)
         {
             //return await (AuthorizeAsync(username, password, refreshtoken, proxy, useproxy));
 
@@ -250,7 +251,8 @@ namespace Pixeez
                 });
             }
 
-            var response = await httpClient.PostAsync("https://oauth.secure.pixiv.net/auth/token", param);
+            if (cancelToken == null) cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(TimeOut));
+            var response = await httpClient.PostAsync("https://oauth.secure.pixiv.net/auth/token", param, cancelToken.Token);
             response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadAsStringAsync();
@@ -268,9 +270,9 @@ namespace Pixeez
             return result;
         }
 
-        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string refreshtoken, string devicetoken, string proxy, IList<string> proxybypass, bool useproxy = false)
+        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string refreshtoken, string devicetoken, string proxy, IList<string> proxybypass, bool useproxy = false, CancellationTokenSource cancelToken = null)
         {
-            return (await AuthorizeAsync(username, password, refreshtoken, devicetoken, proxy, proxybypass.ToArray(), useproxy));
+            return (await AuthorizeAsync(username, password, refreshtoken, devicetoken, proxy, proxybypass.ToArray(), useproxy, cancelToken));
         }
 
         /// <summary>
@@ -282,7 +284,7 @@ namespace Pixeez
         /// <param name="proxy"></param>
         /// <param name="useproxy"></param>
         /// <returns></returns>
-        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string refreshtoken, string proxy, string[] proxybypass, bool useproxy = false)
+        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string refreshtoken, string proxy, string[] proxybypass, bool useproxy = false, CancellationTokenSource cancelToken = null)
         {
             var httpClient = PIXIV.Client(proxy, proxybypass, useproxy, TimeOut);
 
@@ -311,7 +313,8 @@ namespace Pixeez
                 });
             }
 
-            var response = await httpClient.PostAsync("https://oauth.secure.pixiv.net/auth/token", param);
+            if (cancelToken == null) cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(TimeOut));
+            var response = await httpClient.PostAsync("https://oauth.secure.pixiv.net/auth/token", param, cancelToken.Token);
             if (!response.IsSuccessStatusCode)
                 throw new InvalidOperationException();
 
@@ -332,9 +335,9 @@ namespace Pixeez
             return result;
         }
 
-        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string refreshtoken, string proxy, IList<string> proxybypass, bool useproxy = false)
+        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string refreshtoken, string proxy, IList<string> proxybypass, bool useproxy = false, CancellationTokenSource cancelToken = null)
         {
-            return (await (AuthorizeAsync(username, password, refreshtoken, proxy, proxybypass.ToArray(), useproxy)));
+            return (await (AuthorizeAsync(username, password, refreshtoken, proxy, proxybypass.ToArray(), useproxy, cancelToken)));
         }
 
         /// <summary>
@@ -345,7 +348,7 @@ namespace Pixeez
         /// <param name="proxy"></param>
         /// <param name="useproxy"></param>
         /// <returns></returns>
-        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string proxy, string[] proxybypass, bool useproxy = false)
+        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string proxy, string[] proxybypass, bool useproxy = false, CancellationTokenSource cancelToken = null)
         {
             var httpClient = PIXIV.Client(proxy, proxybypass, useproxy, TimeOut);
 
@@ -360,7 +363,8 @@ namespace Pixeez
                 { "password", password },
             });
 
-            var response = await httpClient.PostAsync("https://oauth.secure.pixiv.net/auth/token", param);
+            if (cancelToken == null) cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(TimeOut));
+            var response = await httpClient.PostAsync("https://oauth.secure.pixiv.net/auth/token", param, cancelToken.Token);
             if (!response.IsSuccessStatusCode)
                 throw new InvalidOperationException();
 
@@ -381,9 +385,9 @@ namespace Pixeez
             return result;
         }
 
-        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string proxy, IList<string> proxybypass, bool useproxy = false)
+        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string proxy, IList<string> proxybypass, bool useproxy = false, CancellationTokenSource cancelToken = null)
         {
-            return (await AuthorizeAsync(username, password, proxy, proxybypass.ToArray(), useproxy));
+            return (await AuthorizeAsync(username, password, proxy, proxybypass.ToArray(), useproxy, cancelToken));
         }
 
         /// <summary>
@@ -428,6 +432,8 @@ namespace Pixeez
         private string Proxy = string.Empty;
         private bool UsingProxy = false;
 
+        static public CancellationTokenSource RequestCancelSource { get; set; } = null;
+
         [Newtonsoft.Json.JsonProperty]
         public string RefreshToken { get; set; }
         [Newtonsoft.Json.JsonProperty, Newtonsoft.Json.JsonRequired]
@@ -466,7 +472,7 @@ namespace Pixeez
                 //httpClient.DefaultRequestHeaders.Add("Referer", "https://spapi.pixiv.net/");
                 httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
                 httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + this.AccessToken);
-                result = await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient);
+                result = await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient, cancelToken: RequestCancelSource);
             }
             return (result);
         }
@@ -520,7 +526,7 @@ namespace Pixeez
         /// <param name="headers"></param>
         /// <param name="httpClient"></param>
         /// <returns></returns>
-        private static async Task<AsyncResponse> SendRequestWithoutHeaderAsync(MethodType type, string url, IDictionary<string, string> param, IDictionary<string, string> headers, HttpClient httpClient)
+        private static async Task<AsyncResponse> SendRequestWithoutHeaderAsync(MethodType type, string url, IDictionary<string, string> param, IDictionary<string, string> headers, HttpClient httpClient, CancellationTokenSource cancelToken = null)
         {
             if (headers != null)
             {
@@ -597,7 +603,9 @@ namespace Pixeez
 
                 try
                 {
-                    var response = await httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead);
+                    if (!(RequestCancelSource is CancellationTokenSource)) RequestCancelSource = new CancellationTokenSource();
+                    if (!(cancelToken is CancellationTokenSource)) cancelToken = RequestCancelSource; 
+                    var response = await httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cancelToken.Token);
                     response.EnsureSuccessStatusCode();
                     string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
                     if (vl != null && vl == "gzip")
