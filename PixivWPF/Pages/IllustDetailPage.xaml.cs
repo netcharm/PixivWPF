@@ -3590,7 +3590,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void ActionRefresh_Click(object sender, RoutedEventArgs e)
+        private async void ActionRefresh_Click(object sender, RoutedEventArgs e)
         {
             var text = string.Empty;
             try
@@ -3692,8 +3692,12 @@ namespace PixivWPF.Pages
                     if (Contents.HasPages() && SubIllusts.Items.Count == 0)
                     {
                         var illust = Contents.ID.FindIllust();
-                        if (illust.IsWork()) Contents = illust.WorkItem();
-                        ShowIllustPagesAsync(Contents, force: true);
+                        if (illust.IsWork())
+                        {
+                            if (!illust.HasMetadata()) illust.Metadata = await illust.GetMetaData(null);
+                            Contents = illust.WorkItem();
+                            ShowIllustPagesAsync(Contents, force: true);
+                        }
                     }
                     else if (Keyboard.Modifiers == ModifierKeys.None)
                         SubIllusts.UpdateTilesImage(overwrite: false, touch: false);

@@ -3302,6 +3302,18 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR($"GetRemoteJson_{url}"); }
             return (result);
         }
+        
+        public static void CancelHttpRequests(this Application app)
+        {
+            foreach (var client in HttpClientList)
+            {
+                try
+                {
+                    if (client.Value is HttpClient) client.Value.CancelPendingRequests();
+                }
+                catch (Exception ex) { ex.ERROR("CancelAllHttpRequest"); }
+            }
+        }
         #endregion
 
         #region Default Preview/Avatar

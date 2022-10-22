@@ -655,6 +655,7 @@ namespace PixivWPF.Common
 
         public static async Task<Pixeez.Objects.Metadata> GetMetaData(this string url, Pixeez.Tokens tokens = null)
         {
+            $"GetMetaData_{url}".DEBUG();
             var pages = await GetMetaPages(url, tokens);
             if (pages is List<Pixeez.Objects.Page> && pages.Count > 0)
                 return (new Pixeez.Objects.Metadata() { Pages = pages });

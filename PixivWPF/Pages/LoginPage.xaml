@@ -43,13 +43,13 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Column="0" Grid.Row="0" x:Name="headerProxy" x:Uid="headerProxy"
+                <TextBlock Grid.Column="0" Grid.Row="0" x:Name="headerProxy" x:Uid="HeaderProxy"
                        Text="Proxy Server" HorizontalAlignment="Left" VerticalAlignment="Center"
                        Foreground="{DynamicResource MahApps.Brushes.Accent}" />
-                <CheckBox Grid.Column="1" Grid.Row="0" x:Name="chkUseProxy" x:Uid="chkUseProxy" Margin="0,4"
+                <CheckBox Grid.Column="1" Grid.Row="0" x:Name="chkUseProxy" x:Uid="UseProxy" Margin="0,4"
                           Content="Using Proxy" IsChecked="True" FlowDirection="RightToLeft" 
                           Foreground="{DynamicResource MahApps.Brushes.Accent}" Click="chkUseProxy_Clicked" />
-                <CheckBox Grid.Column="1" Grid.Row="1" x:Name="chkUseProxyDown" x:Uid="chkUseProxyDown" Margin="0,4"
+                <CheckBox Grid.Column="1" Grid.Row="1" x:Name="chkUseProxyDown" x:Uid="UseProxyDown" Margin="0,4"
                           Content="Download via Proxy" IsChecked="False" FlowDirection="RightToLeft" 
                           Foreground="{DynamicResource MahApps.Brushes.Accent}" Click="chkUseProxy_Clicked" />
             </Grid>

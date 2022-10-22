@@ -41,7 +41,7 @@
     <mah:MetroWindow.LeftWindowCommands>
         <mah:WindowCommands ShowLastSeparator="True">
             <Button x:Name="CommandRefresh" x:Uid="CommandRefresh" 
-                Click="CommandRefresh_Click" MouseRightButtonDown="CommandRefresh_MouseRightButtonDown"
+                Click="CommandRefresh_Click" PreviewMouseRightButtonDown="CommandRefresh_MouseRightButtonDown"
                 ToolTip="Refresh">
                 <TextBlock x:Name="RefreshIcon" x:Uid="RefreshIcon"
                     Text="&#xE117;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -249,6 +249,12 @@
                 <TextBlock 
                     Text="&#xE77B;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Button.ContextMenu>
+                    <ContextMenu x:Name="cmiProxyAction" Opened="cmiProxyAction_Opened" Closed="cmiProxyAction_Closed">
+                        <MenuItem x:Name="cmiUseProxy" x:Uid="UseProxy" Header="Using Proxy" IsCheckable="True" IsChecked="False"/>
+                        <MenuItem x:Name="cmiUseProxyDown" x:Uid="UseProxyDown" Header="Download Via Proxy" IsCheckable="True" IsChecked="False"/>
+                    </ContextMenu>
+                </Button.ContextMenu>
             </Button>
             <mah:SplitButton x:Name="CommandLog" x:Uid="CommandLog" ToolTip="Open Logs" 
                              Click="CommandLog_Click" DropDownOpened="CommandLog_DropDownOpened" BorderBrush="Transparent">

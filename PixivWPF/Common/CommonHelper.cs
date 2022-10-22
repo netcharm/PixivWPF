@@ -550,17 +550,17 @@ namespace PixivWPF.Common
         #region Pixiv Token Helper
         private static SemaphoreSlim CanRefreshToken = new SemaphoreSlim(1, 1);
         private static CancellationTokenSource CancelRefreshSource = new CancellationTokenSource();
-        private static async Task<Pixeez.Tokens> RefreshToken()
+        private static async Task<Pixeez.Tokens> RefreshToken(CancellationTokenSource cancelToken = null)
         {
             Pixeez.Tokens result = null;
             setting = Application.Current.LoadSetting();
-            CancelRefreshSource = new CancellationTokenSource();
+            CancelRefreshSource = cancelToken == null ? new CancellationTokenSource() : cancelToken;
             if (await CanRefreshToken.WaitAsync(TimeSpan.FromSeconds(setting.DownloadHttpTimeout), CancelRefreshSource.Token))
             {
                 try
                 {
                     Pixeez.Auth.TimeOut = setting.DownloadHttpTimeout;
-                    var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.RefreshToken, setting.Proxy, setting.ProxyBypass, setting.UsingProxy);
+                    var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.RefreshToken, setting.Proxy, setting.ProxyBypass, setting.UsingProxy, CancelRefreshSource);
                     setting.AccessToken = authResult.Authorize.AccessToken;
                     setting.RefreshToken = authResult.Authorize.RefreshToken;
                     setting.ExpTime = authResult.Key.KeyExpTime.ToLocalTime();
@@ -577,7 +577,7 @@ namespace PixivWPF.Common
                         try
                         {
                             Pixeez.Auth.TimeOut = setting.DownloadHttpTimeout;
-                            var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.ProxyBypass.ToArray(), setting.UsingProxy);
+                            var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.ProxyBypass.ToArray(), setting.UsingProxy, CancelRefreshSource);
                             setting.AccessToken = authResult.Authorize.AccessToken;
                             setting.RefreshToken = authResult.Authorize.RefreshToken;
                             setting.ExpTime = authResult.Key.KeyExpTime.ToLocalTime();
@@ -610,10 +610,10 @@ namespace PixivWPF.Common
         public static async Task<Pixeez.Tokens> ShowLogin(bool force = false, CancellationTokenSource canceltoken = null)
         {
             Pixeez.Tokens result = null;
+            CancelShowLoginSource = canceltoken is CancellationTokenSource ? canceltoken : new CancellationTokenSource();
             try
             {
                 setting = Application.Current.LoadSetting();
-                CancelShowLoginSource = canceltoken is CancellationTokenSource ? canceltoken : new CancellationTokenSource();
                 if (await CanShowLogin.WaitAsync(TimeSpan.FromSeconds(setting.DownloadHttpTimeout), CancelShowLoginSource.Token))
                 {
                     try
@@ -647,7 +647,7 @@ namespace PixivWPF.Common
                             {
                                 try
                                 {
-                                    result = await RefreshToken();
+                                    result = await RefreshToken(CancelShowLoginSource);
                                 }
                                 catch (Exception ex)
                                 {
@@ -695,7 +695,7 @@ namespace PixivWPF.Common
                 if (win is MainWindow)
                 {
                     var mw = win as MainWindow;
-                    mw.SetRefreshRing(rotate: false);
+                    mw.SetRefreshRing(rotate: false, canceltoken: CancelShowLoginSource);
                 }
             }
             return (result);
@@ -7130,7 +7130,7 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    if (await file.WaitFileUnlockAsync(250, 20))
+                    if (await file.WaitFileUnlockAsync(275, 20))
                     {
                         using (Stream stream = new MemoryStream(File.ReadAllBytes(file)))
                         {
@@ -7143,7 +7143,7 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                catch (Exception ex) { ex.ERROR("LoadImageFromFile"); }
+                catch (Exception ex) { ex.ERROR("LoadImageFromFile", no_stack:ex is IOException); }
             }
             return (result);
         }
@@ -7639,6 +7639,20 @@ namespace PixivWPF.Common
         public static bool IsIllustWork(this Pixeez.Objects.Work work)
         {
             return (work is Pixeez.Objects.IllustWork);
+        }
+
+        public static bool HasMetadata(this Pixeez.Objects.Work work)
+        {
+            var result = false;
+            if (work is Pixeez.Objects.Work)
+            {
+                result = work.PageCount > 1 &&
+                         work.Metadata is Pixeez.Objects.Metadata &&
+                         work.Metadata.Pages is IList<Pixeez.Objects.Page> &&
+                         work.Metadata.Pages.Count == work.PageCount &&
+                         work.Metadata.Pages.Count(p => string.IsNullOrEmpty(p.GetThumbnailUrl())) > 0;
+            }
+            return (result);
         }
 
         public static bool HasUser(this Pixeez.Objects.Work work)

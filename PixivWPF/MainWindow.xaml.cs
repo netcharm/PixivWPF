@@ -1044,5 +1044,26 @@ namespace PixivWPF
                 (Content as Pages.TilesPage).StopPrefetching();
         }
 
+        private void cmiProxyAction_Opened(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                setting = Application.Current.LoadSetting();
+                cmiUseProxy.IsChecked = setting.UsingProxy;
+                cmiUseProxyDown.IsChecked = setting.DownloadUsingProxy;
+            }
+            catch (Exception ex) { ex.ERROR("cmiProxyAction_Opened"); }
+        }
+
+        private void cmiProxyAction_Closed(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                setting = Application.Current.LoadSetting();
+                setting.UsingProxy = cmiUseProxy.IsChecked;
+                setting.DownloadUsingProxy = cmiUseProxyDown.IsChecked;
+            }
+            catch (Exception ex) { ex.ERROR("cmiProxyAction_Opened"); }
+        }
     }
 }
