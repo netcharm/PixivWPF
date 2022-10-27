@@ -977,6 +977,21 @@ namespace PixivWPF.Common
         #endregion
 
         #region network Related
+        private Version http_version = new Version(1, 1);
+        public Version HttpVersion
+        {
+            get { return (Cache is Setting ? Cache.http_version : http_version); }
+            set
+            {
+                http_version = value;
+                if (http_version.Major > 2) http_version = new Version(2, 0);
+                else if (http_version.Major < 1) http_version = new Version(1, 0);
+                else if (http_version.Major == 1 && http_version.Minor < 0) http_version = new Version(1, 0);
+                else if (http_version.Major == 1 && http_version.Minor > 1) http_version = new Version(1, 1);
+                if (Cache is Setting) Cache.http_version = http_version;
+            }
+        }
+
         private bool using_ajax_api = false;
         public bool UsingAjaxAPI
         {

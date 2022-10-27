@@ -100,6 +100,7 @@ namespace PixivWPF.Common
                 if (file.IsDownloading() && await file.WaitDownloading(timeout: TimeSpan.FromSeconds(30))) result = await file.LoadImageFromFile(size);
                 if (result.Source == null || string.IsNullOrEmpty(result.SourcePath))
                 {
+                    //var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(canceltoken: cancelToken), file, overwrite) : await url.SaveImage(file, overwrite, progressAction, cancelToken: cancelToken);
                     var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(), file, overwrite) : await url.SaveImage(file, overwrite, progressAction, cancelToken: cancelToken);
                     if (success) result = await file.LoadImageFromFile(size);
                     file.ClearDownloading();
@@ -130,6 +131,7 @@ namespace PixivWPF.Common
                 if (file.IsDownloading() && await file.WaitDownloading(timeout: TimeSpan.FromSeconds(30))) result = file;
                 if (string.IsNullOrEmpty(result))
                 {
+                    //var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(canceltoken: cancelToken), file, overwrite) : await url.SaveImage(file, overwrite, progressAction, cancelToken);
                     var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(), file, overwrite) : await url.SaveImage(file, overwrite, progressAction, cancelToken);
                     if (success) result = file;
                     file.ClearDownloading();

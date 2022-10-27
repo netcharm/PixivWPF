@@ -231,6 +231,13 @@
                     <ContextMenu x:Name="cmiProxyAction" Opened="cmiProxyAction_Opened" Closed="cmiProxyAction_Closed">
                         <MenuItem x:Name="cmiUseProxy" x:Uid="UseProxy" Header="Using Proxy" IsCheckable="True" IsChecked="False"/>
                         <MenuItem x:Name="cmiUseProxyDown" x:Uid="UseProxyDown" Header="Download Via Proxy" IsCheckable="True" IsChecked="False"/>
+                        <Separator/>
+                        <!--<MenuItem x:Name="cmiUseHttp10" x:Uid="UseHttp10" Header="Using HTTP Version 1.0" IsCheckable="False" IsChecked="False" />
+                        <MenuItem x:Name="cmiUseHttp11" x:Uid="UseHttp11" Header="Using HTTP Version 1.1" IsCheckable="False" IsChecked="False" />
+                        <MenuItem x:Name="cmiUseHttp20" x:Uid="UseHttp20" Header="Using HTTP Version 2.0" IsCheckable="False" IsChecked="False" />-->
+                        <RadioButton x:Name="cmiUseHttp10" x:Uid="UseHttp10" Content="Using HTTP Version 1.0" GroupName="HttpVersion" IsChecked="False" ClickMode="Press" />
+                        <RadioButton x:Name="cmiUseHttp11" x:Uid="UseHttp11" Content="Using HTTP Version 1.1" GroupName="HttpVersion" IsChecked="False" ClickMode="Press" />
+                        <RadioButton x:Name="cmiUseHttp20" x:Uid="UseHttp20" Content="Using HTTP Version 2.0" GroupName="HttpVersion" IsChecked="False" ClickMode="Press" />                        
                     </ContextMenu>
                 </Button.ContextMenu>
             </Button>

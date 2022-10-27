@@ -2248,59 +2248,63 @@ namespace PixivWPF.Pages
         {
             try
             {
-                RelatedItems.Wait();
-                if (!(related_illusts is List<long?>)) related_illusts = new List<long?>();
-                if (!append)
+                if (user is Pixeez.Objects.UserBase && user.Id.HasValue)
                 {
-                    RelatedItems.Clear(setting.BatchClearThumbnails);
-                    related_illusts.Clear();
-                }
-
-                var tokens = await CommonHelper.ShowLogin();
-                if (tokens == null) return;
-
-                if (user == null || user.Id == null) throw new WarningException("User Infomation is NULL!");
-                var lastUrl = next_url;
-                var related = string.IsNullOrEmpty(next_url) ? await tokens.GetUserWorksAsync(user.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
-                next_url = related.next_url ?? string.Empty;
-
-                if (related.illusts is Array)
-                {
-                    RelatedNextPage.Show(!next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase));
-
+                    RelatedItems.Wait();
+                    if (!(related_illusts is List<long?>)) related_illusts = new List<long?>();
                     if (!append)
                     {
-                        RelatedItemsExpander.Tag = lastUrl;
-                        CurrentRelatedURL = lastUrl;
+                        RelatedItems.Clear(setting.BatchClearThumbnails);
+                        related_illusts.Clear();
                     }
-                    RelatedNextURL = next_url;
-                    RelatedNextPage.Tag = next_url;
-                    RelatedNextPage.ToolTip = CurrentRelatedURL.CalcUrlPageHint(IllustSize.Text);
-                    RelatedPrevPage.ToolTip = RelatedNextPage.ToolTip;
-                    if (!append)
-                    {
-                        RelatedPrevPage.Tag = string.IsNullOrEmpty(CurrentRelatedURL) ? Contents.MakeUserWorkNextUrl().CalcPrevUrl(totals: IllustSize.Text) : CurrentRelatedURL.CalcPrevUrl(totals: IllustSize.Text);
-                    }
-                    RelatedPrevPage.Show(show: IllustSize.Text.CalcTotalPages() > 1);
-                    RelatedNextPage.Show(show: IllustSize.Text.CalcTotalPages() > 1);
-                    RelatedNextAppend.Show(show: IllustSize.Text.CalcTotalPages() > 1);
 
-                    foreach (var illust in related.illusts)
+                    var tokens = await CommonHelper.ShowLogin();
+                    if (tokens == null) return;
+
+                    if (user == null || user.Id == null) throw new WarningException("User Infomation is NULL!");
+                    var lastUrl = next_url;
+                    var related = string.IsNullOrEmpty(next_url) ? await tokens.GetUserWorksAsync(user.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
+                    next_url = related.next_url ?? string.Empty;
+
+                    if (related.illusts is Array)
                     {
-                        if (related_illusts.Contains(illust.Id)) continue;
-                        related_illusts.Add(illust.Id);
-                        illust.Cache();
-                        illust.AddTo(RelatedItems.Items, related.next_url);
+                        RelatedNextPage.Show(!next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase));
+
+                        if (!append)
+                        {
+                            RelatedItemsExpander.Tag = lastUrl;
+                            CurrentRelatedURL = lastUrl;
+                        }
+                        RelatedNextURL = next_url;
+                        RelatedNextPage.Tag = next_url;
+                        RelatedNextPage.ToolTip = CurrentRelatedURL.CalcUrlPageHint(IllustSize.Text);
+                        RelatedPrevPage.ToolTip = RelatedNextPage.ToolTip;
+                        if (!append)
+                        {
+                            RelatedPrevPage.Tag = string.IsNullOrEmpty(CurrentRelatedURL) ? Contents.MakeUserWorkNextUrl().CalcPrevUrl(totals: IllustSize.Text) : CurrentRelatedURL.CalcPrevUrl(totals: IllustSize.Text);
+                        }
+                        RelatedPrevPage.Show(show: IllustSize.Text.CalcTotalPages() > 1);
+                        RelatedNextPage.Show(show: IllustSize.Text.CalcTotalPages() > 1);
+                        RelatedNextAppend.Show(show: IllustSize.Text.CalcTotalPages() > 1);
+
+                        foreach (var illust in related.illusts)
+                        {
+                            if (related_illusts.Contains(illust.Id)) continue;
+                            related_illusts.Add(illust.Id);
+                            illust.Cache();
+                            illust.AddTo(RelatedItems.Items, related.next_url);
+                            this.DoEvents();
+                        }
                         this.DoEvents();
+                        //RelatedItems.UpdateTilesImage();
+                        if (related.illusts.Count() <= 0) "No Result".ShowToast("INFO", tag: "ShowUserWorks");
+                        else UpdateThumb();
                     }
-                    this.DoEvents();
-                    //RelatedItems.UpdateTilesImage();
-                    if (related.illusts.Count() <= 0) "No Result".ShowToast("INFO", tag: "ShowUserWorks");
-                    else UpdateThumb();
                 }
+                else throw new WarningException($"ShowUserWorksInline_NullOfUserId");
             }
-            catch (WarningException ex) { ex.WARN(this.Name ?? "UserWorks"); }
-            catch (Exception ex) { ex.ERROR(this.Name ?? "UserWorks", no_stack: ex is WarningException); }
+            catch (WarningException ex) { ex.WARN(Name ?? "UserWorks"); }
+            catch (Exception ex) { ex.ERROR(Name ?? "UserWorks", no_stack: ex is WarningException); }
             finally
             {
                 //UpdateGalleryTooltip(RelatedItems);
@@ -3382,12 +3386,18 @@ namespace PixivWPF.Pages
                         AvatarImageUrl = Contents.User.GetAvatarUrl();
                         if (string.IsNullOrEmpty(AvatarImageUrl))
                         {
-                            var users = await Contents.Illust.User.Id.Value.SearchUserById(null);
-                            if (users.Count > 0) Contents.User = users.First();
-                            else if (Contents.IsWork()) Contents.User = Contents.Illust.User.Id.FindUser();
-                            else if (Contents.IsUser()) Contents.User = Contents.UserID.FindUser();
-                            "User Avatar URLs is NULL".WARN("ActionRefreshAvatar");
-                            //throw new WarningException("User Avatar URLs is NULL");
+                            long uid = -1;
+                            if (!Contents.Illust.User.Id.HasValue && long.TryParse(Contents.UserID, out uid)) Contents.Illust.User.Id = uid;
+                            if (uid >= 0)
+                            {
+                                var users = await Contents.Illust.User.Id.Value.SearchUserById(null);
+                                if (users.Count > 0) Contents.User = users.First();
+                                else if (Contents.IsWork()) Contents.User = Contents.Illust.User.Id.FindUser();
+                                else if (Contents.IsUser()) Contents.User = Contents.UserID.FindUser();
+                                "User Avatar URLs is NULL".WARN("ActionRefreshAvatar");
+                                //throw new WarningException("User Avatar URLs is NULL");
+                            }
+                            else "User ID is NULL".WARN("ActionRefreshAvatar");
                         }
                         if (_urls_ is List<string>) _urls_.Add(AvatarImageUrl);
                         using (var img = await AvatarImageUrl.LoadImageFromUrl(overwrite, size: Application.Current.GetDefaultAvatarSize(), cancelToken: cancelDownloading))

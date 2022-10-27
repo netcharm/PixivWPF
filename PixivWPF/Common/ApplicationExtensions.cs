@@ -10,6 +10,7 @@ using System.Management;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Security.Permissions;
 using System.Runtime.CompilerServices;
@@ -3092,6 +3093,7 @@ namespace PixivWPF.Common
             {
                 HttpClientHandler handler = new HttpClientHandler()
                 {
+                    //SslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls | SslProtocols.Ssl3 | SslProtocols.Ssl2,
                     AllowAutoRedirect = true,
                     ///
                     /// if added DecompressionMethods.GZip, the response contents will null
@@ -3115,6 +3117,7 @@ namespace PixivWPF.Common
                     Timeout = TimeSpan.FromSeconds(setting.DownloadHttpTimeout),
                     MaxResponseContentBufferSize = buffersize
                 };
+                
                 //httpClient.DefaultRequestHeaders.Add("Content-Type", "application/octet-stream");
                 httpClient.DefaultRequestHeaders.Add("App-OS", "ios");
                 httpClient.DefaultRequestHeaders.Add("App-OS-Version", "14.6");
@@ -3178,7 +3181,7 @@ namespace PixivWPF.Common
             if(no_proxy) "No Proxy Setting!".DEBUG($"GetHttpClient_{setting.Proxy}");
             if (!no_proxy && ((setting.UsingProxy && !is_download) || (setting.DownloadUsingProxy && is_download)))
             {
-                if (!HttpClientList.TryGetValue(setting.Proxy, out httpClient))
+                if (!HttpClientList.TryGetValue(setting.Proxy, out httpClient) || httpClient == null)
                 {
                     httpClient = CreateHttpClient(app, continuation, 0, 0, useproxy: true);
                     HttpClientList.AddOrUpdate(setting.Proxy, httpClient, (k, v) => httpClient);
@@ -3187,7 +3190,7 @@ namespace PixivWPF.Common
             }
             else
             {
-                if (!HttpClientList.TryGetValue("noproxy", out httpClient))
+                if (!HttpClientList.TryGetValue("noproxy", out httpClient) || httpClient == null)
                 {
                     httpClient = CreateHttpClient(app, continuation, 0, 0, useproxy: false);
                     HttpClientList.AddOrUpdate("noproxy", httpClient, (k, v) => httpClient);
@@ -3211,6 +3214,8 @@ namespace PixivWPF.Common
                     if (xclient) request.Headers.Add("X-Client-Time", clientHash.Time);
                     if (xclient) request.Headers.Add("X-Client-Hash", clientHash.Hash);
                     request.Properties["RequestTimeout"] = TimeSpan.FromSeconds(setting.DownloadHttpTimeout);
+                    //request.Properties["ProtocolVersion"] = HttpVersion.Version10;
+                    request.Version = setting.HttpVersion;
 
                     var start = (range_start ?? 0) <= 0 ? "0" : $"{range_start}";
                     var end = (range_count ?? 0) > 0 ? $"{range_count}" : string.Empty;
@@ -3227,7 +3232,6 @@ namespace PixivWPF.Common
 
             var webRequest = WebRequest.Create(string.Empty);
             webRequest.Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, setting.ProxyBypass.ToArray());
-
             //webRequest.ContentType = "application/octet-stream";
             //webRequest.Headers.Add("Content-Type", "application/octet-stream");
             webRequest.Headers.Add("App-OS", "ios");

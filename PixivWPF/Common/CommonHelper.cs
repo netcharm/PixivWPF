@@ -590,6 +590,7 @@ namespace PixivWPF.Common
                         catch (Exception exx)
                         {
                             var ret = exx.Message;
+                            //var tokens = await ShowLogin(canceltoken: CancelRefreshSource);
                             var tokens = await ShowLogin();
                             if (CancelRefreshSource is CancellationTokenSource) CancelRefreshSource.Cancel();
                         }
@@ -7055,9 +7056,9 @@ namespace PixivWPF.Common
                                 {
                                     try
                                     {
-                                        bytesread = await source.ReadAsync(bytes, 0, bufferSize, cancelToken.Token).ConfigureAwait(false);
+                                        bytesread = await source.ReadAsync(bytes, 0, bufferSize, cancelToken.Token);//.ConfigureAwait(false);
                                     }
-                                    catch (Exception exx) { exx.ERROR($"WriteToFile_StreamClosed{fn}", no_stack: exx is ObjectDisposedException); }
+                                    catch (Exception exx) { exx.ERROR($"WriteToFile_StreamClosed{fn}", no_stack: exx.IsNetworkError()); }
                                 }
                                 else throw new WarningException($"WriteToFile_StreamClosed{fn}");
                             }
@@ -10468,6 +10469,11 @@ namespace PixivWPF.Common
         public static bool IsCanceled(this Exception ex)
         {
             return (ex is OperationCanceledException || ex is TaskCanceledException || ex is HttpRequestException || ex is WebException);
+        }
+
+        public static bool IsNetworkError(this Exception ex)
+        {
+            return (ex is ArgumentNullException || ex is ArgumentOutOfRangeException || ex is NotSupportedException || ex is ObjectDisposedException || ex is IOException);
         }
     }
 
