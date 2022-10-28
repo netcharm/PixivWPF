@@ -7023,90 +7023,94 @@ namespace PixivWPF.Common
             var result = false;
             using (var ms = new MemoryStream())
             {
-                var fn = string.IsNullOrEmpty(file) ? $"_{Path.GetFileName(file)}" : string.Empty;
+                var fn = string.IsNullOrEmpty(file) ? string.Empty : $"_{Path.GetFileName(file)}";
                 try
                 {
-                    if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
-                    var length = range is ContentRangeHeaderValue && range.HasLength ? range.Length ?? 0 : 0;
-                    int received = 0;
-                    if (length <= 0)
+                    if (source.CanRead)
                     {
-                        await source.CopyToAsync(ms, bufferSize);
-                        length = received = (int)ms.Length;
-                        if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
-                    }
-                    else
-                    {
-                        setting = Application.Current.LoadSetting();
-                        if (lastdownloaded is byte[] && (range.From ?? 0) <= lastdownloaded.Length)
+                        if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
+                        var length = range is ContentRangeHeaderValue && range.HasLength ? range.Length ?? 0 : 0;
+                        int received = 0;
+                        if (length <= 0)
                         {
-                            await ms.WriteAsync(lastdownloaded, 0, Math.Min((int)(range.From ?? 0), lastdownloaded.Length));
-                            received = (int)ms.Position;
+                            await source.CopyToAsync(ms, bufferSize);
+                            length = received = (int)ms.Length;
+                            if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
                         }
-
-                        bufferSize = setting.DownloadHttpStreamBlockSize;
-                        byte[] bytes = new byte[bufferSize];
-                        int bytesread = 0;
-                        if (!(cancelToken is CancellationTokenSource)) cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
-                        do
+                        else
                         {
-                            using (cancelToken.Token.Register(() => source.Close()))
+                            setting = Application.Current.LoadSetting();
+                            if (lastdownloaded is byte[] && (range.From ?? 0) <= lastdownloaded.Length)
                             {
-                                if (source.CanRead)
+                                await ms.WriteAsync(lastdownloaded, 0, Math.Min((int)(range.From ?? 0), lastdownloaded.Length));
+                                received = (int)ms.Position;
+                            }
+
+                            bufferSize = setting.DownloadHttpStreamBlockSize;
+                            byte[] bytes = new byte[bufferSize];
+                            int bytesread = 0;
+                            if (!(cancelToken is CancellationTokenSource)) cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
+                            do
+                            {
+                                using (cancelToken.Token.Register(() => source.Close()))
                                 {
-                                    try
+                                    if (source.CanRead)
                                     {
-                                        bytesread = await source.ReadAsync(bytes, 0, bufferSize, cancelToken.Token);//.ConfigureAwait(false);
+                                        try
+                                        {
+                                            bytesread = await source.ReadAsync(bytes, 0, bufferSize, cancelToken.Token);//.ConfigureAwait(false);
+                                        }
+                                        catch { }
+                                        //catch (Exception exx) { exx.ERROR($"WriteToFile_StreamClosed{fn}", no_stack: exx.IsNetworkError()); }
                                     }
-                                    catch (Exception exx) { exx.ERROR($"WriteToFile_StreamClosed{fn}", no_stack: exx.IsNetworkError()); }
+                                    else throw new WarningException($"WriteToFile_StreamClosed{fn}");
                                 }
-                                else throw new WarningException($"WriteToFile_StreamClosed{fn}");
-                            }
 
-                            if (bytesread > 0 && bytesread <= bufferSize && received < length)
-                            {
-                                received += bytesread;
-                                if (ms is MemoryStream && ms.CanWrite)
+                                if (bytesread > 0 && bytesread <= bufferSize && received < length)
                                 {
-                                    await ms.WriteAsync(bytes, 0, bytesread);
-                                    if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
+                                    received += bytesread;
+                                    if (ms is MemoryStream && ms.CanWrite)
+                                    {
+                                        await ms.WriteAsync(bytes, 0, bytesread);
+                                        if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
+                                    }
+                                    else throw new WarningException($"WriteToFile_BytesToStream{fn}");
                                 }
-                                else throw new WarningException($"WriteToFile_BytesToStream{fn}");
-                            }
-                            if (cancelToken.IsCancellationRequested) break;
-                        } while (bytesread > 0 && received < length);
-                    }
-
-                    if (!cancelToken.IsCancellationRequested && received == length && ms.Length > 0)
-                    {
-                        var folder = Path.GetDirectoryName(file);
-                        if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-
-                        if (!File.Exists(file) || await file.WaitFileUnlockAsync(1000, 10))
-                        {
-                            using (var fs = new FileStream(file, mode, access, share, bufferSize, true))
-                            {
-                                await fs.WriteAsync(ms.ToArray(), 0, (int)ms.Length);
-                                await fs.FlushAsync();
-                                fs.Close();
-                                fs.Dispose();
-
-                                DownloadTaskCache.TryRemove(file, out lastdownloaded);
-                                if (lastdownloaded is byte[] && lastdownloaded.Length >= 0) lastdownloaded.Dispose();
-                            }
+                                if (cancelToken.IsCancellationRequested) break;
+                            } while (bytesread > 0 && received < length);
                         }
-                        if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
+
+                        if (!cancelToken.IsCancellationRequested && received == length && ms.Length > 0)
+                        {
+                            var folder = Path.GetDirectoryName(file);
+                            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+
+                            if (!File.Exists(file) || await file.WaitFileUnlockAsync(1000, 10))
+                            {
+                                using (var fs = new FileStream(file, mode, access, share, bufferSize, true))
+                                {
+                                    await fs.WriteAsync(ms.ToArray(), 0, (int)ms.Length);
+                                    await fs.FlushAsync();
+                                    fs.Close();
+                                    fs.Dispose();
+
+                                    DownloadTaskCache.TryRemove(file, out lastdownloaded);
+                                    if (lastdownloaded is byte[] && lastdownloaded.Length >= 0) lastdownloaded.Dispose();
+                                }
+                            }
+                            if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
+                        }
+
+                        ms.Close();
+                        ms.Dispose();
+
+                        result = File.Exists(file);
+                        var illust = file.GetIllustId().FindIllust();
                     }
-
-                    ms.Close();
-                    ms.Dispose();
-
-                    result = File.Exists(file);
-                    var illust = file.GetIllustId().FindIllust();
                 }
                 catch (Exception ex)
                 {
-                    ex.ERROR($"WriteToFile{fn}", no_stack: ex is WarningException);
+                    ex.ERROR($"WriteToFile{fn}", no_stack: ex is WarningException || !source.CanRead);
                     if (ms is MemoryStream && ms.Length < (range.Length ?? 0))
                     {
                         if (lastdownloaded is byte[]) lastdownloaded.Dispose();
