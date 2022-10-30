@@ -6008,7 +6008,7 @@ namespace PixivWPF.Common
             {
                 wait_count--;
                 var t = Task.Delay(interval);
-                await t.ConfigureAwait(true);
+                await t.ConfigureAwait(false);
                 t.Dispose();
             }
             return (true);
@@ -6632,7 +6632,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static byte[] ConvertImageTo(this byte[] buffer, string fmt, out string failreason, int quality = 85)
+        public static byte[] ConvertImageTo(this byte[] buffer, string fmt, out string failreason, int quality = 85, bool force = false)
         {
             byte[] result = null;
             failreason = string.Empty;
@@ -6648,7 +6648,7 @@ namespace PixivWPF.Common
                     else return (buffer);
 
                     setting = Application.Current.LoadSetting();
-                    var hasAlpha = setting.DownloadConvertCheckAlpha ? buffer.GuessAlpha(threshold: setting.DownloadConvertCheckAlphaThreshold) : false;
+                    var hasAlpha = !force && setting.DownloadConvertCheckAlpha ? buffer.GuessAlpha(threshold: setting.DownloadConvertCheckAlphaThreshold) : false;
                     if (!hasAlpha)
                     {
                         using (var mi = new MemoryStream(buffer))
@@ -6695,7 +6695,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> ConvertImageTo(this string file, string fmt, bool keep_name = false, int quality = 85, bool reduce = false)
+        public static async Task<string> ConvertImageTo(this string file, string fmt, bool keep_name = false, int quality = 85, bool reduce = false, bool force = false)
         {
             string result = string.Empty;
             var feature = reduce ? "Reduce" : "Convert";
@@ -6728,7 +6728,7 @@ namespace PixivWPF.Common
                                     if (exif_in.ImageType != ImageType.Jpeg || jq > quality)
                                     {
                                         var reason = string.Empty;
-                                        using (var msp = new MemoryStream(msi.ToArray().ConvertImageTo(fmt, out reason, quality: quality)))
+                                        using (var msp = new MemoryStream(msi.ToArray().ConvertImageTo(fmt, out reason, quality: quality, force: force)))
                                         {
                                             if (!string.IsNullOrEmpty(reason))
                                             {
@@ -6763,7 +6763,7 @@ namespace PixivWPF.Common
                         if (exif_in is ExifData && (exif_in.ImageType != ImageType.Jpeg || exif_in.JpegQuality > quality))
                         {
                             var reason = string.Empty;
-                            var bytes = File.ReadAllBytes(file).ConvertImageTo(fmt, out reason, quality: quality);
+                            var bytes = File.ReadAllBytes(file).ConvertImageTo(fmt, out reason, quality: quality, force: force);
                             if (!string.IsNullOrEmpty(reason))
                             {
                                 //$"{feature}ed File {fi.Name} Failed: {reason}".WARN("ConvertImageTo");
@@ -6808,9 +6808,9 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> ReduceImageFileSize(this string file, string fmt, bool keep_name = false, int quality = 85)
+        public static async Task<string> ReduceImageFileSize(this string file, string fmt, bool keep_name = false, int quality = 85, bool force = false)
         {
-            return (await ConvertImageTo(file, fmt, keep_name: true, quality: quality, reduce: true));
+            return (await ConvertImageTo(file, fmt, keep_name: true, quality: quality, reduce: true, force: force));
         }
 
         public static BitmapSource ConvertBitmapDPI(this BitmapSource source, double dpiX = 96, double dpiY = 96)
@@ -7058,7 +7058,7 @@ namespace PixivWPF.Common
                                     {
                                         try
                                         {
-                                            bytesread = await source.ReadAsync(bytes, 0, bufferSize, cancelToken.Token);//.ConfigureAwait(false);
+                                            bytesread = await source.ReadAsync(bytes, 0, bufferSize, cancelToken.Token).ConfigureAwait(false);
                                         }
                                         catch { }
                                         //catch (Exception exx) { exx.ERROR($"WriteToFile_StreamClosed{fn}", no_stack: exx.IsNetworkError()); }
@@ -7336,7 +7336,7 @@ namespace PixivWPF.Common
                 {
                     wait_count--;
                     var t = Task.Delay(interval);
-                    await t.ConfigureAwait(true);
+                    await t;
                     t.Dispose();
                 }
                 exists = File.Exists(file);

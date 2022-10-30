@@ -1391,8 +1391,8 @@ namespace PixivWPF.Common
                         {
                             if (illust.meta_pages == null)
                             {
-                                //Func<List<Pixeez.Objects.MetaPages>> GetPages = () => { return(illust.GetMetaPages().ConfigureAwait(true).GetAwaiter().GetResult()); };
-                                //var pages = illust.GetMetaPages().ConfigureAwait(true).GetAwaiter().GetResult();
+                                //Func<List<Pixeez.Objects.MetaPages>> GetPages = () => { return(illust.GetMetaPages().GetAwaiter().GetResult()); };
+                                //var pages = illust.GetMetaPages().GetAwaiter().GetResult();
                                 var pages = illust.GetMetaPages().AwaitByPushFrame();
                                 if (pages is List<Pixeez.Objects.MetaPages>) illust.meta_pages = pages.ToArray();
                             }

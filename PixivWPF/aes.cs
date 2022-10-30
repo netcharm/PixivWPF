@@ -48,7 +48,7 @@ namespace netcharm
 
         //public static async void ShowMessageDialog(this string content, string title, MessageBoxImage image= MessageBoxImage.Information)
         //{
-        //    await Task.Delay(1);
+        //    await Task.Delay(1).ConfigureAwait(false);
         //    MessageBox.Show(content, title, MessageBoxButton.OK, image);
         //}	
 

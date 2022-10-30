@@ -27,7 +27,7 @@ namespace PixivWPF.Pages
     }
 
     [Flags]
-    public enum DownloadType { None = 0, AsJPEG = 1, UseLargePreview = 2, ConvertKeepName = 32768, All = 0xFFFF };
+    public enum DownloadType { None = 0, AsJPEG = 1, UseLargePreview = 2, ConvertKeepName = 8192, Foece = 16384, Original = 32768, All = 0xFFFF };
 
     /// <summary>
     /// DownloadManagerPage.xaml 的交互逻辑

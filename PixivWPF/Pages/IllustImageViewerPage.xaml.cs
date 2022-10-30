@@ -547,8 +547,10 @@ namespace PixivWPF.Pages
                         var uid = sender.GetUid();
                         var type = DownloadType.None;
 
-                        if (uid.Equals("ActionSaveIllustJpeg")) type = DownloadType.AsJPEG;
+                        if (uid.Equals("ActionSaveIllust")) type |= DownloadType.Original;
+                        else if (uid.Equals("ActionSaveIllustJpeg")) type = DownloadType.AsJPEG;
                         else if (uid.Equals("ActionSaveIllustPreview")) type = DownloadType.UseLargePreview;
+
                         var item = new KeyValuePair<PixivItem, DownloadType>(Contents, type);
                         if (uid.Equals("ActionConvertIllustJpeg"))
                             Commands.ConvertToJpeg.Execute(item);

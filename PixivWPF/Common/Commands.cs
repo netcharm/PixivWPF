@@ -2203,6 +2203,7 @@ namespace PixivWPF.Common
             try
             {
                 var keep_name = Keyboard.Modifiers == ModifierKeys.Shift ? true : false;
+                var force = Keyboard.Modifiers == ModifierKeys.Control ? true : false;
                 var setting = Application.Current.LoadSetting();
                 if (obj is int || obj is int? || obj is long || obj is long?)
                 {
@@ -2219,7 +2220,7 @@ namespace PixivWPF.Common
                             var id = str.GetIllustId();
                             var idx = str.GetIllustPageIndex();
                             var illust = id.FindIllust();
-                            await str.ConvertImageTo("jpg", keep_name: keep_name, quality: setting.DownloadConvertJpegQuality);
+                            await str.ConvertImageTo("jpg", keep_name: keep_name, quality: setting.DownloadConvertJpegQuality, force: force);
                         }
                         else
                         {
@@ -2263,7 +2264,7 @@ namespace PixivWPF.Common
                             {
                                 if (illust.IsDownloadedAsync(out fp, i, touch: false))
                                 {
-                                    await fp.ConvertImageTo("jpg", keep_name: keep_name, quality: setting.DownloadConvertJpegQuality);
+                                    await fp.ConvertImageTo("jpg", keep_name: keep_name, quality: setting.DownloadConvertJpegQuality, force: force);
                                 }
                             }
                         }
@@ -2274,7 +2275,7 @@ namespace PixivWPF.Common
                             else
                                 illust.IsPartDownloadedAsync(out fp, touch: false);
 
-                            await fp.ConvertImageTo("jpg", keep_name: keep_name, quality: setting.DownloadConvertJpegQuality);
+                            await fp.ConvertImageTo("jpg", keep_name: keep_name, quality: setting.DownloadConvertJpegQuality, force: force);
                         }
                     }
                 }
@@ -2333,6 +2334,7 @@ namespace PixivWPF.Common
             try
             {
                 var keep_name = Keyboard.Modifiers == ModifierKeys.Shift ? true : false;
+                var force = Keyboard.Modifiers == ModifierKeys.Control ? true : false;
                 var setting = Application.Current.LoadSetting();
                 if (obj is int || obj is int? || obj is long || obj is long?)
                 {
@@ -2349,7 +2351,7 @@ namespace PixivWPF.Common
                             var id = str.GetIllustId();
                             var idx = str.GetIllustPageIndex();
                             var illust = id.FindIllust();
-                            await str.ReduceImageFileSize("jpg", keep_name: keep_name, quality: setting.DownloadRecudeJpegQuality);
+                            await str.ReduceImageFileSize("jpg", keep_name: keep_name, quality: setting.DownloadRecudeJpegQuality, force: force);
                         }
                         else
                         {
@@ -2393,7 +2395,7 @@ namespace PixivWPF.Common
                             {
                                 if (illust.IsDownloadedAsync(out fp, i, touch: false))
                                 {
-                                    await fp.ReduceImageFileSize("jpg", keep_name: keep_name, quality: setting.DownloadRecudeJpegQuality);
+                                    await fp.ReduceImageFileSize("jpg", keep_name: keep_name, quality: setting.DownloadRecudeJpegQuality, force: force);
                                 }
                             }
                         }
@@ -2404,7 +2406,7 @@ namespace PixivWPF.Common
                             else
                                 illust.IsPartDownloadedAsync(out fp, touch: false);
 
-                            await fp.ReduceImageFileSize("jpg", keep_name: keep_name, quality: setting.DownloadRecudeJpegQuality);
+                            await fp.ReduceImageFileSize("jpg", keep_name: keep_name, quality: setting.DownloadRecudeJpegQuality, force: force);
                         }
                     }
                 }
@@ -2470,6 +2472,10 @@ namespace PixivWPF.Common
                 {
                     await new Action(() =>
                     {
+                        setting = Application.Current.LoadSetting();
+                        if (setting.DownloadWithBookmarked && !item.IsFavorited) LikeIllust.Execute(item);
+                        if (setting.DownloadWithAutoReduce && !type.HasFlag(DownloadType.Original)) type |= DownloadType.AsJPEG;
+
                         var dt = item.Illust.GetDateTime();
                         var is_meta_single_page = (item.Illust.PageCount ?? 0) <= 1 ? true : false;
                         if (item.IsPage() || item.IsPages())
@@ -2507,7 +2513,7 @@ namespace PixivWPF.Common
                 var item = kv.Key;
                 var jpeg = kv.Value;
 
-                SaveIllust.Execute(new KeyValuePair<PixivItem, DownloadType>(obj as PixivItem, DownloadType.AsJPEG));
+                SaveIllust.Execute(new KeyValuePair<PixivItem, DownloadType>(item, jpeg ? DownloadType.AsJPEG : DownloadType.None));
             }
             else if (obj is PixivItem)
             {
@@ -2603,6 +2609,10 @@ namespace PixivWPF.Common
 
                 if (item.IsWork())
                 {
+                    setting = Application.Current.LoadSetting();
+                    if (setting.DownloadWithBookmarked && !item.IsFavorited) LikeIllust.Execute(item);
+                    if (setting.DownloadWithAutoReduce && !type.HasFlag(DownloadType.Original)) type |= DownloadType.AsJPEG;
+
                     var illust = item.Illust;
                     var dt = illust.GetDateTime();
 
@@ -2638,7 +2648,7 @@ namespace PixivWPF.Common
                 var item = kv.Key;
                 var jpeg = kv.Value;
 
-                SaveIllustAll.Execute(new KeyValuePair<PixivItem, DownloadType>(obj as PixivItem, DownloadType.AsJPEG));
+                SaveIllustAll.Execute(new KeyValuePair<PixivItem, DownloadType>(item, jpeg ? DownloadType.AsJPEG : DownloadType.None));
             }
             else if (obj is PixivItem)
             {
@@ -2729,6 +2739,9 @@ namespace PixivWPF.Common
                     var item = obj as PixivItem;
                     if (item.IsUgoira())
                     {
+                        setting = Application.Current.LoadSetting();
+                        if (setting.DownloadWithBookmarked && !item.IsFavorited) LikeIllust.Execute(item);
+
                         var dt = item.Illust.GetDateTime();
                         var is_meta_single_page = (item.Illust.PageCount ?? 0) <= 1 ? true : false;
                         var info = item.Ugoira != null ? item.Ugoira : await item.Illust.GetUgoiraMeta(ajax: true);
@@ -2811,6 +2824,9 @@ namespace PixivWPF.Common
                     var item = obj as PixivItem;
                     if (item.IsUgoira())
                     {
+                        setting = Application.Current.LoadSetting();
+                        if (setting.DownloadWithBookmarked && !item.IsFavorited) LikeIllust.Execute(item);
+
                         var dt = item.Illust.GetDateTime();
                         var is_meta_single_page = (item.Illust.PageCount ?? 0) <= 1 ? true : false;
                         var info = item.Ugoira != null ? item.Ugoira : await item.Illust.GetUgoiraMeta(ajax: true);

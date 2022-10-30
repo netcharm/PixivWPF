@@ -1038,6 +1038,28 @@ namespace PixivWPF.Common
         #endregion
 
         #region Download Related
+        private bool download_with_bookmarked = true;
+        public bool DownloadWithBookmarked
+        {
+            get { return (Cache is Setting ? Cache.download_with_bookmarked : download_with_bookmarked); }
+            set
+            {
+                download_with_bookmarked = value;
+                if (Cache is Setting) Cache.download_with_bookmarked = download_with_bookmarked;
+            }
+        }
+
+        private bool download_with_auto_reduce = true;
+        public bool DownloadWithAutoReduce
+        {
+            get { return (Cache is Setting ? Cache.download_with_auto_reduce : download_with_auto_reduce); }
+            set
+            {
+                download_with_auto_reduce = value;
+                if (Cache is Setting) Cache.download_with_auto_reduce = download_with_auto_reduce;
+            }
+        }
+
         private bool download_by_api = true;
         public bool DownloadByAPI
         {

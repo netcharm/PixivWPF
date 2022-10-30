@@ -4279,7 +4279,9 @@ namespace PixivWPF.Pages
             var type = DownloadType.None;
 
             if (Keyboard.Modifiers == ModifierKeys.Shift) type |= DownloadType.ConvertKeepName;
-            if (uid.Equals("ActionSaveIllustJpeg")) type |= DownloadType.AsJPEG;
+            if (sender == PreviewSave) type |= DownloadType.None;
+            else if (uid.Equals("ActionSaveIllust")) type |= DownloadType.Original;
+            else if (uid.Equals("ActionSaveIllustJpeg")) type |= DownloadType.AsJPEG;
             else if (uid.Equals("ActionSaveIllustPreview")) type |= DownloadType.UseLargePreview;
 
             if (SubIllusts.SelectedItems != null && SubIllusts.SelectedItems.Count > 0)
@@ -4320,8 +4322,9 @@ namespace PixivWPF.Pages
             var type = DownloadType.None;
 
             if (Keyboard.Modifiers == ModifierKeys.Shift) type |= DownloadType.ConvertKeepName;
-            if (uid.Equals("ActionSaveIllustJpeg")) type |= DownloadType.AsJPEG;
-            else if (uid.Equals("ActionSaveIllustPreview")) type |= DownloadType.UseLargePreview;
+            if (uid.Equals("ActionSaveIllustAll")) type |= DownloadType.Original;
+            else if (uid.Equals("ActionSaveIllustJpegAll")) type |= DownloadType.AsJPEG;
+            else if (uid.Equals("ActionSaveIllustPreviewAll")) type |= DownloadType.UseLargePreview;
 
             if (Contents.IsWork() && Contents.Count > 0)
             {
@@ -5015,7 +5018,8 @@ namespace PixivWPF.Pages
                     var type = DownloadType.None;
 
                     if (Keyboard.Modifiers == ModifierKeys.Shift) type |= DownloadType.ConvertKeepName;
-                    if (uid.Equals("ActionSaveIllustsJpeg")) type |= DownloadType.AsJPEG;
+                    if (uid.Equals("ActionSaveIllust")) type |= DownloadType.Original;
+                    else if (uid.Equals("ActionSaveIllustsJpeg")) type |= DownloadType.AsJPEG;
                     else if (uid.Equals("ActionSaveIllustsPreview")) type |= DownloadType.UseLargePreview;
 
                     var mi = sender as MenuItem;
@@ -5072,7 +5076,8 @@ namespace PixivWPF.Pages
                     var type = DownloadType.None;
 
                     if (Keyboard.Modifiers == ModifierKeys.Shift) type |= DownloadType.ConvertKeepName;
-                    if (uid.Equals("ActionSaveIllustsJpegAll")) type |= DownloadType.AsJPEG;
+                    if (uid.Equals("ActionSaveIllustAll")) type |= DownloadType.Original;
+                    else if (uid.Equals("ActionSaveIllustsJpegAll")) type |= DownloadType.AsJPEG;
                     else if (uid.Equals("ActionSaveIllustsPreviewAll")) type |= DownloadType.UseLargePreview;
 
                     var mi = sender as MenuItem;
