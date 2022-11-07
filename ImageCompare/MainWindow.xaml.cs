@@ -396,6 +396,42 @@ namespace ImageCompare
         {
             try
             {
+                #region Re-Calc Scroll Viewer Size
+                ViewerPanel.MaxWidth = ImageCanvas.ActualWidth;
+                ViewerPanel.MaxHeight = ImageCanvas.ActualHeight - ImageToolBar.ActualHeight;
+                ViewerPanel.MinWidth = ImageCanvas.ActualWidth;
+                ViewerPanel.MinHeight = ImageCanvas.ActualHeight - ImageToolBar.ActualHeight;
+                ViewerPanel.RenderSize = new Size(ViewerPanel.MaxWidth, ViewerPanel.MaxHeight);
+
+                var w = ViewerPanel.ActualWidth;
+                var h = ViewerPanel.ActualHeight;
+                if (ViewerPanel.Orientation == Orientation.Horizontal)
+                {
+                    w = ViewerPanel.ActualWidth / 3.0;
+                }
+                else if(ViewerPanel.Orientation == Orientation.Vertical)
+                {
+                    h = ViewerPanel.ActualHeight / 3.0;
+                }
+                ImageSourceScroll.RenderSize = new Size(w, h);
+                ImageTargetScroll.RenderSize = new Size(w, h);
+                ImageResultScroll.RenderSize = new Size(w, h);
+
+                ImageSourceScroll.MinWidth = w;
+                ImageSourceScroll.MinHeight = h;
+                ImageTargetScroll.MinWidth = w;
+                ImageTargetScroll.MinHeight = h;
+                ImageResultScroll.MinWidth = w;
+                ImageResultScroll.MinHeight = h;
+
+                ImageSourceScroll.MaxWidth = w;
+                ImageSourceScroll.MaxHeight = h;
+                ImageTargetScroll.MaxWidth = w;
+                ImageTargetScroll.MaxHeight = h;
+                ImageResultScroll.MaxWidth = w;
+                ImageResultScroll.MaxHeight = h;
+                #endregion
+
                 if (ZoomFitAll.IsChecked ?? false)
                 {
                     ImageSourceBox.Width = ImageSourceScroll.ActualWidth;
@@ -2287,6 +2323,14 @@ namespace ImageCompare
             {
                 ImageResult.GetInformation().Save();
                 //SaveResultToFile();
+            }
+            else if (sender == ImageLayout)
+            {
+                if (ImageLayout.IsChecked ?? false)
+                    ViewerPanel.Orientation = Orientation.Vertical;
+                else
+                    ViewerPanel.Orientation = Orientation.Horizontal;
+                CalcDisplay();
             }
             else if (sender == ZoomFitNone)
             {

@@ -492,4 +492,7 @@
   <data name="CopyFromResult.Header" xml:space="preserve">
     <value>从结果复制图像</value>
   </data>
+  <data name="ImageLayout.ToolTip" xml:space="preserve">
+    <value>切换 水平/垂直 查看布局</value>
+  </data>
 </root>

@@ -492,4 +492,7 @@
   <data name="CopyFromResult.Header" xml:space="preserve">
     <value>Copy Image From Result</value>
   </data>
+  <data name="ImageLayout.ToolTip" xml:space="preserve">
+    <value>Horizontal/Vertical Image Layout</value>
+  </data>
 </root>

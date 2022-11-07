@@ -492,4 +492,7 @@
   <data name="CopyFromResult.Header" xml:space="preserve">
     <value>結果からイメージをコピー</value>
   </data>
+  <data name="ImageLayout.ToolTip" xml:space="preserve">
+    <value>レイアウトの水平/垂直の切り替え</value>
+  </data>
 </root>
