@@ -181,6 +181,18 @@ namespace ImageCompare
         #endregion
 
         #region Image Display Routines
+        private Orientation CurrentImageLayout
+        {
+            get { return (ViewerPanel.Orientation); }
+            set
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    ViewerPanel.Orientation = value;
+                    ImageLayout.IsChecked = value == Orientation.Vertical;
+                });
+            }
+        }
         private ZoomFitMode CurrentZoomFitMode
         {
             get
@@ -862,6 +874,11 @@ namespace ImageCompare
                     var value = CurrentZoomFitMode;
                     if (Enum.TryParse(appSection.Settings["ZoomFitMode"].Value, out value)) CurrentZoomFitMode = value;
                 }
+                if (appSection.Settings.AllKeys.Contains("ImageLayout"))
+                {
+                    var value = CurrentImageLayout;
+                    if (Enum.TryParse(appSection.Settings["ImageLayout"].Value, out value)) CurrentImageLayout = value;
+                }
 
                 if (appSection.Settings.AllKeys.Contains("UseSmallerImage"))
                 {
@@ -980,6 +997,17 @@ namespace ImageCompare
                     appSection.Settings["ZoomFitMode"].Value = CurrentZoomFitMode.ToString();
                 else
                     appSection.Settings.Add("ZoomFitMode", CurrentZoomFitMode.ToString());
+
+                if (appSection.Settings.AllKeys.Contains("ImageLayout"))
+                    appSection.Settings["ImageLayout"].Value = CurrentImageLayout.ToString();
+                else
+                    appSection.Settings.Add("ImageLayout", CurrentImageLayout.ToString());
+
+                if (appSection.Settings.AllKeys.Contains("ImageLayout"))
+                {
+                    var value = Orientation.Horizontal;
+                    if (Enum.TryParse(appSection.Settings["ImageLayout"].Value, out value)) ImageLayout.IsChecked = value == Orientation.Vertical;
+                }
 
                 if (appSection.Settings.AllKeys.Contains("UseSmallerImage"))
                     appSection.Settings["UseSmallerImage"].Value = UseSmallerImage.IsChecked.ToString();
