@@ -953,7 +953,7 @@ namespace PixivWPF.Common
                 catch (Exception ex)
                 {
                     var stack = string.IsNullOrEmpty(ex.StackTrace) ? string.Empty : $"{Environment.NewLine}{ex.StackTrace}";
-                    FailReason = $"{ex.Message}{stack}";
+                    FailReason = ex.IsNetworkError() ? $"{ex.Message}" : $"{ex.Message}{stack}";
                 }
                 finally
                 {
@@ -1092,29 +1092,60 @@ namespace PixivWPF.Common
 
             if (await Downloading.WaitAsync(setting.DownloadWaitingTime))
             {
-                try
+                var retry = Math.Max(1, setting.DownloadFailAutoRetryCount) + 1;
+                while (retry > 0)
                 {
-                    DownloadPreProcess(restart);
-                    using (var response = await GetAsyncResponse(Url, continuation))
+                    if (State == DownloadState.Finished) { retry = 0; break; }
+                    try
                     {
-                        EndTick = DateTime.Now;
-                        await DownloadStreamAsync(response, continuation);
+                        retry--;
+                        DownloadPreProcess(restart);
+                        using (var response = await GetAsyncResponse(Url, continuation))
+                        {
+                            EndTick = DateTime.Now;
+                            await DownloadStreamAsync(response, continuation);
+                        }
                     }
-                }
-                catch (WarningException ex)
-                {
-                    FailReason = ex.Message;
-                    ex.ERROR($"DownloadDirectAsync_{Info.Name ?? Path.GetFileNameWithoutExtension(FileName)}", no_stack: true);
-                }
-                catch (Exception ex)
-                {
-                    FailReason = ex.Message;
-                    ex.ERROR($"DownloadDirectAsync_{Info.Name ?? Path.GetFileNameWithoutExtension(FileName)}");
-                }
-                finally
-                {
-                    DownloadFinally(out result);
-                    UpdateProgress();
+                    catch (IOException ex)
+                    {
+                        if (retry > 0)
+                        {
+                            await Task.Delay(new Random().Next(250, 2500));
+                            FailReason = $"{ex.Message} Retry = {retry}";
+                            ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)} ({ex.GetType().ToString()})", no_stack: true);
+                        }
+                        else
+                        {
+                            FailReason = $"{ex.Message} Retry Out!";
+                            ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)} ({ex.GetType().ToString()})", no_stack: true);
+                        }
+                    }
+                    catch (WarningException ex)
+                    {
+                        retry = 0;
+                        FailReason = ex.Message;
+                        ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)} ({ex.GetType().ToString()})", no_stack: true);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex.IsNetworkError() && retry > 0)
+                        {
+                            await Task.Delay(new Random().Next(250, 2500));
+                            FailReason = $"{ex.Message} Retry = {retry}";
+                            ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)} ({ex.GetType().ToString()})", no_stack: true);
+                        }
+                        else
+                        {
+                            retry = 0;
+                            FailReason = ex.Message;
+                            ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)} ({ex.GetType().ToString()})");
+                        }
+                    }
+                    finally
+                    {
+                        DownloadFinally(out result);
+                        UpdateProgress();
+                    }
                 }
             }
             return (result);
@@ -1324,7 +1355,7 @@ namespace PixivWPF.Common
                 restart = true;
             }
 
-            if (IsDownloading) await Cancel();
+            if (File.Exists(FileName) && IsDownloading) await Cancel();
             CheckProperties();
 
             var target_file = string.Empty;

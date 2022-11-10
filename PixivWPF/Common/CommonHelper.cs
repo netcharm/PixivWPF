@@ -263,6 +263,45 @@ namespace PixivWPF.Common
     #endregion
 
     #region Custom storage type
+    [Flags]
+    public enum StorageSearchScope
+    {
+        None = 0,
+        Title = 1, Subject = 2, Author = 4, Description = 8, Tag = 16, Keyword = 16, Copyright = 32,
+        Bookmarked = 64, Followed = 128, Downloaded = 256,
+        Width = 512, Height = 1024,
+        Date = 2048,
+        Comments = 4096,
+        All = 65536
+    };
+
+    [Flags]
+    public enum StorageSearchMode
+    {
+        None = 0,
+        Not = 1,
+        And = 2,
+        Or = 4,
+        Xor = 8,
+        All = 65536
+    };
+
+    public class SearchObject
+    {
+        public string Query { get; set; } = string.Empty;
+        public string Folder { get; set; } = string.Empty;
+        public StorageSearchMode Mode { get; set; } = StorageSearchMode.And;
+        public StorageSearchScope Scope { get; set; } = StorageSearchScope.None;
+
+        public SearchObject(string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And)
+        {
+            Query = query;
+            Folder = folder;
+            Mode = mode;
+            Scope = scope;
+        }
+    }
+
     public class StorageType
     {
         [JsonProperty("Folder")]
@@ -271,6 +310,8 @@ namespace PixivWPF.Common
         public bool Cached { get; set; } = true;
         [JsonProperty("IncludeSubFolder")]
         public bool IncludeSubFolder { get; set; } = false;
+        [JsonProperty("Searchable", Required = Required.AllowNull)]
+        public bool? Searchable { get; set; } = false;
 
         [JsonIgnore]
         public int Count { get; set; } = -1;
@@ -285,6 +326,16 @@ namespace PixivWPF.Common
             Folder = path;
             Cached = cached;
             Count = -1;
+        }
+
+        public void Search(string query, StorageSearchScope flags = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And)
+        {
+            if (Searchable ?? false && Directory.Exists(Folder) && !string.IsNullOrEmpty(query))
+            {
+                var cmd = "explorer.exe";
+                var cmd_param = $"/root,\"search-ms:crumb=location:{Folder}&query={query}&\"";
+                Process.Start(cmd, cmd_param);
+            }
         }
     }
     #endregion
@@ -807,7 +858,12 @@ namespace PixivWPF.Common
             var text = fmts.Contains("Text") ? (string)e.Data.GetData("Text") : string.Empty;
             var unicode = fmts.Contains("UnicodeText") ? (string)e.Data.GetData("UnicodeText") : string.Empty;
 
-            if (fmts.Contains("text/html"))
+            if (fmts.Contains("FileDrop"))
+            {
+                var files = (string[])(e.Data.GetData("FileDrop"));
+                links = string.Join(Environment.NewLine, files).ParseLinks(false).ToList();
+            }
+            else if (fmts.Contains("text/html"))
             {
                 using (var ms = (MemoryStream)e.Data.GetData("text/html"))
                 {
@@ -845,11 +901,6 @@ namespace PixivWPF.Common
             {
                 var html = ((string)e.Data.GetData("Text")).Trim().Trim('\0');
                 links = html.ParseLinks(false).ToList();
-            }
-            else if (fmts.Contains("FileDrop"))
-            {
-                var files = (string[])(e.Data.GetData("FileDrop"));
-                links = string.Join(Environment.NewLine, files).ParseLinks(false).ToList();
             }
             return (links);
         }
@@ -2953,6 +3004,62 @@ namespace PixivWPF.Common
             //{"MicrosoftPhoto", "http://ns.microsoft.com/photo/1.2/" },
         };
 
+        #region below tags will be touching
+        private static string[] tag_date = new string[] {
+            "exif:DateTimeDigitized",
+            "exif:DateTimeOriginal",
+            "exif:DateTime",
+            "MicrosoftPhoto:DateAcquired",
+            "MicrosoftPhoto:DateTaken",
+            //"png:tIME",
+            "xmp:CreateDate",
+            "xmp:ModifyDate",
+            "xmp:DateTimeDigitized",
+            "xmp:DateTimeOriginal",
+            "Creation Time",
+            "create-date",
+            "modify-date",
+            "tiff:DateTime",
+            //"date:modify",
+            //"date:create",
+        };
+        private static string[] tag_author = new string[] {
+            "exif:Artist",
+            "exif:WinXP-Author",
+            "tiff:artist",
+        };
+        private static string[] tag_copyright = new string[] {
+            "exif:Copyright",
+            "tiff:copyright",
+            //"iptc:CopyrightNotice",
+        };
+        private static string[] tag_title = new string[] {
+            "exif:ImageDescription",
+            "exif:WinXP-Title",
+        };
+        private static string[] tag_subject = new string[] {
+            "exif:WinXP-Subject",
+        };
+        private static string[] tag_comments = new string[] {
+            "exif:WinXP-Comments",
+            "exif:UserComment"
+        };
+        private static string[] tag_keywords = new string[] {
+            "exif:WinXP-Keywords",
+            //"iptc:Keywords",
+            "dc:Subject",
+        };
+        private static string[] tag_rating = new string[] {
+            "Rating",
+            "RatingPercent",
+            "MicrosoftPhoto:Rating",
+            "xmp:Rating",
+        };
+        private static string[] tag_software = new string[] {
+            "Software"
+        };
+        #endregion
+
         private static string FormatXML(string xml)
         {
             var result = xml;
@@ -3422,16 +3529,16 @@ namespace PixivWPF.Common
                             "MicrosoftPhoto:DateAcquired", "MicrosoftPhoto:DateTaken",
                             "xmp:CreatorTool",
                         };
-                        //all_elements.AddRange(tag_author);
-                        //all_elements.AddRange(tag_comments);
-                        //all_elements.AddRange(tag_copyright);
-                        //all_elements.AddRange(tag_date);
-                        //all_elements.AddRange(tag_keywords);
-                        //all_elements.AddRange(tag_rating);
-                        //all_elements.AddRange(tag_subject);
-                        //all_elements.AddRange(tag_title);
-                        //all_elements.Add(tag_software);
-                        foreach (var element in all_elements)
+                        all_elements.AddRange(tag_author);
+                        all_elements.AddRange(tag_comments);
+                        all_elements.AddRange(tag_copyright);
+                        all_elements.AddRange(tag_date);
+                        all_elements.AddRange(tag_keywords);
+                        all_elements.AddRange(tag_rating);
+                        all_elements.AddRange(tag_subject);
+                        all_elements.AddRange(tag_title);
+                        all_elements.AddRange(tag_software);
+                        foreach (var element in all_elements.Distinct())
                         {
                             var nodes = xml_doc.GetElementsByTagName(element);
                             if (nodes.Count > 1)
@@ -3448,29 +3555,30 @@ namespace PixivWPF.Common
                         var rdf_attr = "xmlns:rdf";
                         var rdf_value = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
                         Action<XmlElement, dynamic> add_rdf_li = new Action<XmlElement, dynamic>((element, text)=>
-                    {
-                        if (text is string && !string.IsNullOrEmpty(text as string))
                         {
-                            var items = (text as string).Split(new string[] { ";", "#" }, StringSplitOptions.RemoveEmptyEntries).Select(k => k.Trim()).Where(k => !string.IsNullOrEmpty(k)).Distinct();
-                            foreach (var item in items)
+                            if (text is string && !string.IsNullOrEmpty(text as string))
                             {
-                                var node_author_li = xml_doc.CreateElement("rdf:li", "rdf");
-                                node_author_li.InnerText = item;
-                                element.AppendChild(node_author_li);
+                                var items = (text as string).Split(new string[] { ";", "#" }, StringSplitOptions.RemoveEmptyEntries).Select(k => k.Trim()).Where(k => !string.IsNullOrEmpty(k)).Distinct();
+                                foreach (var item in items)
+                                {
+                                    var node_author_li = xml_doc.CreateElement("rdf:li", "rdf");
+                                    node_author_li.InnerText = item;
+                                    element.AppendChild(node_author_li);
+                                }
                             }
-                        }
-                        else if(text is IEnumerable<string> && (text as IEnumerable<string>).Count() > 0)
-                        {
-                            foreach (var item in (text as IEnumerable<string>))
+                            else if(text is IEnumerable<string> && (text as IEnumerable<string>).Count() > 0)
                             {
-                                var node_author_li = xml_doc.CreateElement("rdf:li", "rdf");
-                                node_author_li.InnerText = item;
-                                element.AppendChild(node_author_li);
+                                foreach (var item in (text as IEnumerable<string>))
+                                {
+                                    var node_author_li = xml_doc.CreateElement("rdf:li", "rdf");
+                                    node_author_li.InnerText = item;
+                                    element.AppendChild(node_author_li);
+                                }
                             }
-                        }
-                    });
+                        });
                         foreach (XmlNode node in xml_doc.GetElementsByTagName("rdf:Description"))
                         {
+                            var nodes = new List<XmlNode>();
                             foreach (XmlNode child in node.ChildNodes)
                             {
                                 if (child.Name.Equals("dc:title", StringComparison.CurrentCultureIgnoreCase))
@@ -3555,7 +3663,14 @@ namespace PixivWPF.Common
                                     child.InnerText = dm_ms;
                                 else if (child.Name.Equals("tiff:DateTime", StringComparison.CurrentCultureIgnoreCase))
                                     child.InnerText = dm_ms;
+
+                                if (tag_date.Contains(node.Name, StringComparer.CurrentCultureIgnoreCase))
+                                {
+                                    if (nodes.Count(n => n.Name.Equals(child.Name, StringComparison.CurrentCultureIgnoreCase)) > 0) node.RemoveChild(child);
+                                    else nodes.Add(child);
+                                }
                             }
+                            nodes.Clear();
                         }
                         #endregion
                         #region pretty xml
@@ -4401,6 +4516,48 @@ namespace PixivWPF.Common
                     if (!string.IsNullOrEmpty(meta.Software))
                     {
                         exif.SetTagValue(ExifTag.Software, meta.Software, StrCoding.Utf8);
+                    }
+                    else if (exif.TagExists(ExifTag.MakerNote))
+                    {
+                        string note = string.Empty;
+                        ExifTagType type;
+                        int count;
+                        byte[] value;
+                        if (string.IsNullOrEmpty(meta.Software))                            
+                        {
+                            //if (exif.GetTagValue(ExifTag.MakerNote, out note, StrCoding.Utf16Le_Byte))
+                            //{
+
+                            //}
+                            //else if (exif.GetTagValue(ExifTag.MakerNote, out note, StrCoding.Utf8))
+                            //{
+
+                            //}
+                            //else if (exif.GetTagRawData(ExifTag.MakerNote, out type, out count, out value))
+                            if (exif.GetTagRawData(ExifTag.MakerNote, out type, out count, out value) && value is byte[] && value.Length > 0)
+                            {
+                                if (type == ExifTagType.Ascii || type == ExifTagType.Byte || type == ExifTagType.SByte)
+                                    note = Encoding.UTF8.GetString(value);
+                                else if (type == ExifTagType.Undefined)
+                                {
+                                    try
+                                    {
+                                        if (value.Length >= 2 && value[1] == 0x00)
+                                            note = Encoding.Unicode.GetString(value);
+                                        else
+                                            note = Encoding.UTF8.GetString(value);
+                                    }
+                                    catch { note = Encoding.UTF8.GetString(value.Where(c => c != 0x00).ToArray()); }
+                                }
+                                if (!string.IsNullOrEmpty(note)) note = note.Replace("\0", "").Substring(0, Math.Min(note.Length, 128));
+                            }
+
+                            if (!string.IsNullOrEmpty(note))
+                            {
+                                meta.Software = note;
+                                exif.SetTagValue(ExifTag.Software, note, StrCoding.Utf8);
+                            }
+                        }
                     }
 
                     exif.SetTagValue(ExifTag.Rating, meta.Ranking ?? 0, TagType: ExifTagType.UShort);
@@ -6634,7 +6791,7 @@ namespace PixivWPF.Common
 
         public static byte[] ConvertImageTo(this byte[] buffer, string fmt, out string failreason, int quality = 85, bool force = false)
         {
-            byte[] result = null;
+            byte[] result = buffer;
             failreason = string.Empty;
             try
             {
@@ -6656,7 +6813,7 @@ namespace PixivWPF.Common
                             ExifData exif_in = null;
                             using (var exif_ms = new MemoryStream(buffer)) { exif_in = GetExifData(exif_ms); }
                             if (mi.CanSeek) mi.Seek(0, SeekOrigin.Begin);
-                            if (exif_in is ExifData)
+                            if (mi.CanRead && exif_in is ExifData)
                             {
                                 var jq = exif_in.JpegQuality == 0 ? 75 : exif_in.JpegQuality;
                                 if (exif_in.ImageType != ImageType.Jpeg || jq > quality)
@@ -6664,17 +6821,31 @@ namespace PixivWPF.Common
                                     using (var mo = new MemoryStream())
                                     {
                                         var bmp = new System.Drawing.Bitmap(mi);
+                                        if (bmp is System.Drawing.Bitmap)
+                                        {
+                                            var codec_info = GetEncoderInfo("image/jpeg");
+                                            var qualityParam = new System.Drawing.Imaging.EncoderParameter(System.Drawing.Imaging.Encoder.Quality, quality);
+                                            var encoderParams = new System.Drawing.Imaging.EncoderParameters(1);
+                                            encoderParams.Param[0] = qualityParam;
 
-                                        var codec_info = GetEncoderInfo("image/jpeg");
-                                        var qualityParam = new System.Drawing.Imaging.EncoderParameter(System.Drawing.Imaging.Encoder.Quality, quality);
-                                        var encoderParams = new System.Drawing.Imaging.EncoderParameters(1);
-                                        encoderParams.Param[0] = qualityParam;
+                                            if (pFmt == System.Drawing.Imaging.ImageFormat.Jpeg)
+                                            {
+                                                var img = new System.Drawing.Bitmap(bmp.Width, bmp.Height, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+                                                using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(img))
+                                                {
+                                                    var bg = setting.DownloadReduceBackGroundColor;
+                                                    g.Clear(System.Drawing.Color.FromArgb(bg.A, bg.R, bg.G, bg.B));
+                                                    g.DrawImage(bmp, 0, 0, new System.Drawing.Rectangle(new System.Drawing.Point(), bmp.Size), System.Drawing.GraphicsUnit.Pixel);
+                                                }
+                                                img.Save(mo, codec_info, encoderParams);
+                                                img.Dispose();
+                                            }
+                                            else
+                                                bmp.Save(mo, pFmt);
 
-                                        if (pFmt == System.Drawing.Imaging.ImageFormat.Jpeg)
-                                            bmp.Save(mo, codec_info, encoderParams);
-                                        else
-                                            bmp.Save(mo, pFmt);
-                                        result = mo.ToArray();
+                                            result = mo.ToArray();
+                                            bmp.Dispose();
+                                        }
                                     }
                                 }
                                 else result = mi.ToArray();
@@ -7031,11 +7202,15 @@ namespace PixivWPF.Common
                         if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
                         var length = range is ContentRangeHeaderValue && range.HasLength ? range.Length ?? 0 : 0;
                         int received = 0;
-                        if (length <= 0)
+                        if (length <= 0 && source.CanRead)
                         {
-                            await source.CopyToAsync(ms, bufferSize);
-                            length = received = (int)ms.Length;
-                            if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
+                            try
+                            {
+                                await source.CopyToAsync(ms, bufferSize);
+                                length = received = (int)ms.Length;
+                                if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
+                            }
+                            catch { }
                         }
                         else
                         {
@@ -7060,10 +7235,11 @@ namespace PixivWPF.Common
                                         {
                                             bytesread = await source.ReadAsync(bytes, 0, bufferSize, cancelToken.Token).ConfigureAwait(false);
                                         }
-                                        catch { }
+                                        //catch { }
                                         //catch (Exception exx) { exx.ERROR($"WriteToFile_StreamClosed{fn}", no_stack: exx.IsNetworkError()); }
+                                        catch { throw new WarningException($"StreamClosed{fn}"); }
                                     }
-                                    else throw new WarningException($"WriteToFile_StreamClosed{fn}");
+                                    else throw new WarningException($"StreamClosed{fn}");
                                 }
 
                                 if (bytesread > 0 && bytesread <= bufferSize && received < length)
@@ -7074,7 +7250,7 @@ namespace PixivWPF.Common
                                         await ms.WriteAsync(bytes, 0, bytesread);
                                         if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
                                     }
-                                    else throw new WarningException($"WriteToFile_BytesToStream{fn}");
+                                    else throw new WarningException($"Write Bytes To Stream Failed");
                                 }
                                 if (cancelToken.IsCancellationRequested) break;
                             } while (bytesread > 0 && received < length);
@@ -10477,7 +10653,7 @@ namespace PixivWPF.Common
 
         public static bool IsNetworkError(this Exception ex)
         {
-            return (ex is ArgumentNullException || ex is ArgumentOutOfRangeException || ex is NotSupportedException || ex is ObjectDisposedException || ex is IOException);
+            return (ex is ArgumentNullException || ex is ArgumentOutOfRangeException || ex is NotSupportedException || ex is ObjectDisposedException || ex is HttpRequestException || ex is WebException || ex is IOException);
         }
     }
 

@@ -501,8 +501,8 @@ namespace PixivWPF
 
         private void MainWindow_DragOver(object sender, DragEventArgs e)
         {
-            var fmts = e.Data.GetFormats(true);
-            if (new List<string>(fmts).Contains("Text"))
+            var fmts = new List<string>(e.Data.GetFormats(true));
+            if (fmts.Contains("Text") || fmts.Contains("FileDrop"))
             {
                 e.Effects = DragDropEffects.Copy;
             }

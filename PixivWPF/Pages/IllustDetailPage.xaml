@@ -639,6 +639,13 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <MenuItem x:Name="miSearchText" x:Uid="SearchText" Header="Search Selected" ToolTip="Search Selected In Downloaded" Click="ActionSearchSelectedText_Click" >
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE094;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
             <Separator/>
             <MenuItem x:Name="miRefresh" x:Uid="Refresh" Header="Refresh" ToolTip="Refresh It!" Click="ActionRefresh_Click" >
                 <MenuItem.Icon>

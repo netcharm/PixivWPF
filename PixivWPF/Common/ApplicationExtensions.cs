@@ -72,6 +72,79 @@ namespace PixivWPF.Common
         {
             return (extra ? LineBreakExtra : LineBreak);
         }
+
+        private static Dictionary<string, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty> _system_meta_names_ = new Dictionary<string, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty>();
+        public static Dictionary<string, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty> SystemMetaNames
+        {
+            get
+            {
+                if(!(_system_meta_names_ is Dictionary<string, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty>)) _system_meta_names_ = new Dictionary<string, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty>();
+                if (_system_meta_names_.Count <= 0 && Microsoft.WindowsAPICodePack.Shell.ShellSearchConnector.IsPlatformSupported)
+                {
+                    using (var sh = Microsoft.WindowsAPICodePack.Shell.ShellObject.FromParsingName(Application.Current.GetRoot()))
+                    {
+                        var props = sh.Properties.DefaultPropertyCollection;
+                        foreach (var prop in props)
+                        {
+                            _system_meta_names_.Add(prop.Description.CanonicalName, prop);
+
+                            //sh.Properties.System.DateAcquired.
+                            //var k = prop.PropertyKey;
+                            //if (prop == sh.Properties.System.Photo.DateTaken)
+                            //    _system_meta_names_.Add("DateTaken", prop.CanonicalName);
+                            //else if (prop == sh.Properties.System.DateAcquired)
+                            //    _system_meta_names_.Add("DateAcquired", prop.CanonicalName);
+                        }
+                    }
+                }
+                return (_system_meta_names_);
+            }
+        }
+        private static Dictionary<Microsoft.WindowsAPICodePack.Shell.PropertySystem.PropertyKey, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty> _system_meta_list_ = new Dictionary<Microsoft.WindowsAPICodePack.Shell.PropertySystem.PropertyKey, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty>();
+        public static Dictionary<Microsoft.WindowsAPICodePack.Shell.PropertySystem.PropertyKey, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty> SystemMetaList
+        {
+            get
+            {
+                if (!(_system_meta_list_ is Dictionary<Microsoft.WindowsAPICodePack.Shell.PropertySystem.PropertyKey, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty>)) _system_meta_list_ = new Dictionary<Microsoft.WindowsAPICodePack.Shell.PropertySystem.PropertyKey, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty>();
+                if (_system_meta_list_.Count <= 0 && Microsoft.WindowsAPICodePack.Shell.ShellSearchConnector.IsPlatformSupported)
+                {
+                    //using (var sh = Microsoft.WindowsAPICodePack.Shell.ShellObject.FromParsingName(Path.Combine(Application.Current.GetRoot(), "404.jpg")))
+                    using (var sh = Microsoft.WindowsAPICodePack.Shell.ShellObject.FromParsingName(Application.Current.GetRoot()))
+                    {
+                        var props = sh.Properties.DefaultPropertyCollection;
+                        foreach (var prop in props)
+                        {
+                            _system_meta_list_.Add(prop.PropertyKey, prop);
+                        }
+                        var custom_properties = new List<Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty>()
+                        {
+                            sh.Properties.System.DateModified,
+                            sh.Properties.System.DateAccessed,
+                            sh.Properties.System.DateAcquired,
+                            sh.Properties.System.Photo.DateTaken,
+
+                            sh.Properties.System.Title,
+                            sh.Properties.System.Subject,
+                            sh.Properties.System.Author,
+                            sh.Properties.System.Copyright,
+                            sh.Properties.System.Keywords,
+                            sh.Properties.System.Comment,
+
+                            sh.Properties.System.Image.HorizontalSize,
+                            sh.Properties.System.Image.VerticalSize,
+                            sh.Properties.System.Image.BitDepth,
+                            sh.Properties.System.Image.HorizontalResolution,
+                            sh.Properties.System.Image.VerticalResolution,
+                        };
+                        foreach (var c in custom_properties)
+                        {
+                            _system_meta_list_[c.PropertyKey] = c;
+                        }
+                    }
+                }
+                return (_system_meta_list_);
+            }
+        }
         #endregion
 
         #region Application Setting Helper
@@ -2865,6 +2938,67 @@ namespace PixivWPF.Common
         {
             var dm = app.GetDownloadManager();
             return (dm.CurrentIdlesCount);
+        }
+
+        public static void SearchInFolder(this Application app, SearchObject search)
+        {
+            SearchInFolder(app, search.Query, search.Folder, search.Scope, search.Mode);
+        }
+
+        public static void SearchInFolder(this Application app, string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And)
+        {
+            if (!string.IsNullOrEmpty(query))
+            {
+                var names = SystemMetaList.Select(m => $"{m.Value.Description.CanonicalName} => {m.Value.Description.DisplayName}").ToList();
+                var query_list = new Dictionary<string, string[]>();
+                var querys = query.Split(LineBreak, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
+                Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty value;
+                if (scope.HasFlag(StorageSearchScope.Title) &&
+                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Title, out value))
+                    query_list.Add(value.Description.DisplayName, querys);
+                if (scope.HasFlag(StorageSearchScope.Subject) &&
+                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Subject, out value))
+                    query_list.Add(value.Description.DisplayName, querys);
+                if (scope.HasFlag(StorageSearchScope.Author) &&
+                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Author, out value))
+                    query_list.Add(value.Description.DisplayName, querys);
+                if (scope.HasFlag(StorageSearchScope.Description) &&
+                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Comment, out value))
+                    query_list.Add(value.Description.DisplayName, querys);
+                if (scope.HasFlag(StorageSearchScope.Tag) &&
+                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Keywords, out value))
+                    query_list.Add(value.Description.DisplayName, querys);
+                if (scope.HasFlag(StorageSearchScope.Copyright) &&
+                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Copyright, out value))
+                    query_list.Add(value.Description.DisplayName, querys);
+                if (scope.HasFlag(StorageSearchScope.Date) &&
+                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Photo.DateTaken, out value))
+                    query_list.Add(value.Description.DisplayName, querys);
+                else if (scope.HasFlag(StorageSearchScope.Date) &&
+                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.DateAcquired, out value))
+                    query_list.Add(value.Description.DisplayName, querys);
+                else if (scope.HasFlag(StorageSearchScope.Date) &&
+                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.DateModified, out value))
+                    query_list.Add(value.Description.DisplayName, querys);
+
+                var m_sep = mode == StorageSearchMode.And ? " AND " : " OR ";
+                query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{string.Join(m_sep, q.Value.Select(w => w.Replace(":", "%3A").Replace(";", "%3B").Replace(" ", "%20")))}").ToList());
+
+                var setting = LoadSetting(app);
+
+                if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
+                {
+                    foreach (var f in setting.LocalStorage)
+                    {
+                        f.Search(query);
+                    }
+                }
+                else
+                {
+                    var f = new StorageType(folder);
+                    f.Search(query);
+                }
+            }
         }
         #endregion
 

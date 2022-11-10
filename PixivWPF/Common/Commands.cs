@@ -2198,6 +2198,28 @@ namespace PixivWPF.Common
             }
         });
 
+        public static ICommand SearchInStorage { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            try
+            {
+                if (obj is string)
+                {
+                    var text = obj as string;
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        text = text.KatakanaHalfToFull();
+                        Application.Current.SearchInFolder(text);
+                    }
+                }
+                else if (obj is SearchObject)
+                {
+                    var s = obj as SearchObject;
+                    Application.Current.SearchInFolder(s);
+                }
+            }
+            catch (Exception ex) { ex.ERROR("SearchInStorage"); }
+        });
+
         public static ICommand ConvertToJpeg { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try

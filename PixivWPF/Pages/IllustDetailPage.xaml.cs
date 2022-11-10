@@ -495,8 +495,9 @@ namespace PixivWPF.Pages
                             else if (Contents.IsWork())
                                 contents = MakeIllustDescHtml(Contents);
                         }
-                        if (!string.IsNullOrEmpty(contents))
+                        if (!string.IsNullOrEmpty(contents) && browser is System.Windows.Forms.WebBrowser)
                         {
+                            if (browser.IsBusy) browser.Stop();
                             browser.DocumentText = contents;
                             browser.Document.Write(string.Empty);
                             //AdjustBrowserSize(browser);
@@ -3314,10 +3315,12 @@ namespace PixivWPF.Pages
                         if (c_item.IsSameIllust(Contents)) PreviewWait.Show();
 
                         PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index, large: setting.ShowLargePreview);
-                        if (string.IsNullOrEmpty(AvatarImageUrl) && Contents.Illust.Id.HasValue)
+                        long id = 0;
+                        if ((Contents.Illust.Id ?? -1) <= 0 && long.TryParse(Contents.ID, out id)) Contents.Illust.Id = id;
+                        if (string.IsNullOrEmpty(AvatarImageUrl) && (Contents.Illust.Id ?? -1) > 0)
                         {
-                            var illusts = await Contents.Illust.Id.Value.SearchIllustById(null);
-                            if (illusts.Count > 0) Contents.Illust.ImageUrls = illusts.First().ImageUrls;
+                            var illusts = await (Contents.Illust.Id ?? -1).SearchIllustById(null);
+                            if (illusts is List<Pixeez.Objects.Work> && illusts.Count > 0) Contents.Illust.ImageUrls = illusts.First().ImageUrls;
                             //throw new WarningException("Preview URLs is NULL");
                             "Preview URLs is NULL".WARN("ActionRefreshPreview");
                         }
@@ -3387,7 +3390,7 @@ namespace PixivWPF.Pages
                         if (string.IsNullOrEmpty(AvatarImageUrl))
                         {
                             long uid = -1;
-                            if (!Contents.Illust.User.Id.HasValue && long.TryParse(Contents.UserID, out uid)) Contents.Illust.User.Id = uid;
+                            if ((Contents.User.Id ?? -1) <= 0 && long.TryParse(Contents.UserID, out uid)) Contents.User.Id = uid;
                             if (uid >= 0)
                             {
                                 var users = await Contents.Illust.User.Id.Value.SearchUserById(null);
@@ -3565,6 +3568,74 @@ namespace PixivWPF.Pages
                 text = string.Join(Environment.NewLine, text.Trim().Split(Speech.LineBreak, StringSplitOptions.RemoveEmptyEntries));
 
             if (!string.IsNullOrEmpty(text)) Commands.CopyText.Execute(text);
+        }
+
+        private void ActionSearchSelectedText_Click(object sender, RoutedEventArgs e)
+        {
+            var text = string.Empty;
+            var scope = StorageSearchScope.None;
+            var mode = Keyboard.Modifiers == ModifierKeys.Shift ? StorageSearchMode.Or : StorageSearchMode.And;
+            var is_tag = false;
+            try
+            {
+                if (sender == IllustTagSpeech)
+                {
+                    is_tag = true;
+                    text = IllustTagsHtml.GetText();
+                    scope |= StorageSearchScope.Tag;
+                }
+                else if (sender == IllustDescSpeech)
+                { text = IllustDescHtml.GetText(); scope |= StorageSearchScope.Description; }
+                else if (sender == IllustTitle)
+                { text = IllustTitle.Text; scope |= StorageSearchScope.Title; }
+                else if (sender == IllustAuthor)
+                { text = $"{IllustAuthor.Text} OR {Contents.UserID}"; scope |= StorageSearchScope.Author; }
+                else if (sender == IllustDate || sender == IllustDateInfo)
+                { text = IllustDate.Text.Split().First(); scope |= StorageSearchScope.Date; }
+                else if (sender is MenuItem)
+                {
+                    var mi = sender as MenuItem;
+
+                    var host = mi.GetContextMenuHost();
+                    if (host == IllustTagSpeech) { is_tag = true; text = IllustTagsHtml.GetText(); scope |= StorageSearchScope.Tag; }
+                    else if (host == IllustDescSpeech) { text = IllustDescHtml.GetText(); scope |= StorageSearchScope.Description; }
+                    else if (host == IllustAuthor) { text = $"{IllustAuthor.Text} OR {Contents.UserID}"; scope |= StorageSearchScope.Author; }
+                    else if (host == IllustTitle) { text = IllustTitle.Text; scope |= StorageSearchScope.Title; }
+                    else if (host == IllustDateInfo || host == IllustDate) { text = IllustDate.Text.Split().First(); scope |= StorageSearchScope.Date; }
+                    else if (host == SubIllustsExpander || host == SubIllusts) { text = IllustTitle.Text; scope |= StorageSearchScope.Title; }
+                    else if (host == RelatedItemsExpander || host == RelatedItems)
+                    {
+                        List<string> lines = new List<string>();
+                        foreach (PixivItem item in RelatedItems.GetSelected())
+                        {
+                            lines.Add(item.Illust.Title);
+                        }
+                        text = string.Join($",{Environment.NewLine}", lines);
+                        scope |= StorageSearchScope.Title;
+                    }
+                    else if (host == FavoriteItemsExpander || host == FavoriteItems)
+                    {
+                        List<string> lines = new List<string>();
+                        foreach (PixivItem item in FavoriteItems.GetSelected())
+                        {
+                            lines.Add(item.Illust.Title);
+                        }
+                        text = string.Join($",{Environment.NewLine}", lines);
+                        scope |= StorageSearchScope.Title;
+                    }
+                }
+            }
+#if DEBUG
+            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
+#else
+            catch (Exception ex) { ex.ERROR(); }
+#endif
+            if (is_tag)
+                text = string.Join(Environment.NewLine, text.Trim().Split(Speech.TagBreak, StringSplitOptions.RemoveEmptyEntries));
+            else
+                text = string.Join(Environment.NewLine, text.Trim().Split(Speech.LineBreak, StringSplitOptions.RemoveEmptyEntries));
+
+            if (!string.IsNullOrEmpty(text)) Commands.SearchInStorage.Execute(new SearchObject(text, scope: scope, mode: mode));
         }
 
         private void ActionSendToInstance_Click(object sender, RoutedEventArgs e)
@@ -5018,8 +5089,8 @@ namespace PixivWPF.Pages
                     var type = DownloadType.None;
 
                     if (Keyboard.Modifiers == ModifierKeys.Shift) type |= DownloadType.ConvertKeepName;
-                    if (uid.Equals("ActionSaveIllust")) type |= DownloadType.Original;
-                    else if (uid.Equals("ActionSaveIllustsJpeg")) type |= DownloadType.AsJPEG;
+                    if (uid.Equals("ActionSaveIllusts") || uid.Equals("ActionSaveIllustsAll")) type |= DownloadType.Original;
+                    else if (uid.Equals("ActionSaveIllustsJpeg") || uid.Equals("ActionSaveIllustsJpegAll")) type |= DownloadType.AsJPEG;
                     else if (uid.Equals("ActionSaveIllustsPreview")) type |= DownloadType.UseLargePreview;
 
                     var mi = sender as MenuItem;

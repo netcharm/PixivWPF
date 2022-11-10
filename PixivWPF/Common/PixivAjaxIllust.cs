@@ -674,7 +674,7 @@ namespace PixivWPF.Common
 
         public static async Task<List<Pixeez.Objects.Work>> SearchIllustById(this long id, Pixeez.Tokens tokens = null, bool fuzzy = false)
         {
-            List<Pixeez.Objects.Work> result = null;
+            List<Pixeez.Objects.Work> result = new List<Pixeez.Objects.Work>();
 
             if (tokens == null) tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return (result);

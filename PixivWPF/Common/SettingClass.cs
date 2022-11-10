@@ -1060,6 +1060,17 @@ namespace PixivWPF.Common
             }
         }
 
+        private Color download_reduce_bgcolor = Colors.Gray;
+        public Color DownloadReduceBackGroundColor
+        {
+            get { return (Cache is Setting ? Cache.download_reduce_bgcolor : download_reduce_bgcolor); }
+            set
+            {
+                download_reduce_bgcolor = value;
+                if (Cache is Setting) Cache.download_reduce_bgcolor = download_reduce_bgcolor;
+            }
+        }
+
         private bool download_by_api = true;
         public bool DownloadByAPI
         {
@@ -1079,6 +1090,17 @@ namespace PixivWPF.Common
             {
                 dowanload_using_proxy = value;
                 if (Cache is Setting) Cache.dowanload_using_proxy = dowanload_using_proxy;
+            }
+        }
+
+        private int download_fail_auto_retry_count = 10;
+        public int DownloadFailAutoRetryCount
+        {
+            get { return (Cache is Setting ? Cache.download_fail_auto_retry_count : download_fail_auto_retry_count); }
+            set
+            {
+                download_fail_auto_retry_count = Math.Min(50, Math.Max(1, value));
+                if (Cache is Setting) Cache.download_fail_auto_retry_count = download_fail_auto_retry_count;
             }
         }
 
