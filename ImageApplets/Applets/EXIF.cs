@@ -370,8 +370,12 @@ namespace ImageApplets.Applets
 
                     if (!string.IsNullOrEmpty(SearchTerm))
                     {
+                        #region Config comparing 
                         var word = SearchTerm;
-                        var words = Regex.IsMatch(word, IsRegexPattern, RegexOptions.IgnoreCase) ?  word.Trim(RegexTrimChar).Split(SplitChar) : word.Split(SplitChar);
+                        var words_o = Regex.IsMatch(word, IsRegexPattern, RegexOptions.IgnoreCase) ?  word.Trim(RegexTrimChar).Split(SplitChar) : word.Split(SplitChar);
+                        // words = words.Concat(words.ConvertChinese2Japanese()).Concat(words.ConvertJapanese2Chinese()).Distinct().ToArray();
+                        var words_j = words_o.ConvertChinese2Japanese().ToArray();
+                        var words_c = words_o.ConvertJapanese2Chinese().ToArray();
 
                         if (_date_ == null) _date_ = new DateValue(word);
 
@@ -382,232 +386,240 @@ namespace ImageApplets.Applets
                             cats.AddRange(Categories);
                             cats = cats.Select(c => c.Trim().ToLower()).Distinct().ToList();
                         }
+                        #endregion
 
-                        #region Comparing attribute
-                        status = new CompareMode[] { CompareMode.AND, CompareMode.NOT, CompareMode.NONE }.Contains(Mode) ? true : false;
-                        var invert = new CompareMode[]{ CompareMode.NOT, CompareMode.NEQ, CompareMode.NONE }.Contains(Mode) ? false : true;
-                        if (Mode == CompareMode.AND || Mode == CompareMode.NOT)
+                        foreach (var words in new List<string[]>() { words_o, words_j, words_c })
                         {
-                            if (cats.Contains("title")) status &= Compare(title, word);
-                            if (cats.Contains("subject")) status &= Compare(subject, word);
-
-                            if (cats.Contains("keyword")) status &= Compare(keywords, words);
-                            if (cats.Contains("keywords")) status &= Compare(keywords, words);
-                            if (cats.Contains("tag")) status &= Compare(keywords, words);
-                            if (cats.Contains("tags")) status &= Compare(keywords, words);
-
-                            if (cats.Contains("comment")) status &= Compare(comments, word);
-                            if (cats.Contains("comments")) status &= Compare(comments, word);
-
-                            if (cats.Contains("artist")) status &= Compare(artist, words);
-                            else if (cats.Contains("author")) status &= Compare(artist, words);
-
-                            if (cats.Contains("copyright")) status &= Compare(copyright, words);
-
-                            if (cats.Contains("software")) status &= Compare(software, word);
-                            if (cats.Contains("rate")) status &= Compare(rate, word);
-                            if (cats.Contains("rank")) status &= Compare(rank, word);
-                            if (cats.Contains("date")) status &= Compare(date_string, word);
-
-                            if (cats.Contains("width")) status &= Compare($"{exif.Width}", word);
-                            if (cats.Contains("height")) status &= Compare($"{exif.Height}", word);
-                            if (cats.Contains("aspect")) status &= Compare($"{exif.Width / exif.Height}", word);
-
-                            if (cats.Contains("landscape")) status &= exif.Height / exif.Height > 1;
-                            if (cats.Contains("portrait")) status &= exif.Height / exif.Height < 1;
-                            if (cats.Contains("square")) status &= exif.Height / exif.Height == 1;
-
-                            if (cats.Contains("bits")) status &= Compare($"{exif.ColorDepth}", word);
-                            if (cats.Contains("endian")) status &= Compare($"{exif.ByteOrder}", word);
-
-                            if (cats.Contains("littleendian")) status &= invert && exif.ByteOrder == ExifByteOrder.LittleEndian;
-                            else if (cats.Contains("lsb")) status &= invert && exif.ByteOrder == ExifByteOrder.LittleEndian;
-
-                            if (cats.Contains("bigendian")) status &= invert && exif.ByteOrder == ExifByteOrder.BigEndian;
-                            else if (cats.Contains("msb")) status &= invert && exif.ByteOrder == ExifByteOrder.BigEndian;
-
-                            foreach (var attr in cats_exif)
+                            #region Comparing attribute
+                            status = new CompareMode[] { CompareMode.AND, CompareMode.NOT, CompareMode.NONE }.Contains(Mode) ? true : false;
+                            var invert = new CompareMode[]{ CompareMode.NOT, CompareMode.NEQ, CompareMode.NONE }.Contains(Mode) ? false : true;
+                            if (Mode == CompareMode.AND || Mode == CompareMode.NOT)
                             {
-                                try
+                                if (cats.Contains("title")) status &= Compare(title, words);
+                                if (cats.Contains("subject")) status &= Compare(subject, words);
+
+                                if (cats.Contains("keyword")) status &= Compare(keywords, words);
+                                if (cats.Contains("keywords")) status &= Compare(keywords, words);
+                                if (cats.Contains("tag")) status &= Compare(keywords, words);
+                                if (cats.Contains("tags")) status &= Compare(keywords, words);
+
+                                if (cats.Contains("comment")) status &= Compare(comments, words);
+                                if (cats.Contains("comments")) status &= Compare(comments, words);
+
+                                if (cats.Contains("artist")) status &= Compare(artist, words);
+                                else if (cats.Contains("author")) status &= Compare(artist, words);
+
+                                if (cats.Contains("copyright")) status &= Compare(copyright, words);
+
+                                if (cats.Contains("software")) status &= Compare(software, words);
+                                if (cats.Contains("rate")) status &= Compare(rate, words);
+                                if (cats.Contains("rank")) status &= Compare(rank, words);
+                                if (cats.Contains("date")) status &= Compare(date_string, words);
+
+                                if (cats.Contains("width")) status &= Compare($"{exif.Width}", words);
+                                if (cats.Contains("height")) status &= Compare($"{exif.Height}", words);
+                                if (cats.Contains("aspect")) status &= Compare($"{exif.Width / exif.Height}", words);
+
+                                if (cats.Contains("landscape")) status &= exif.Height / exif.Height > 1;
+                                if (cats.Contains("portrait")) status &= exif.Height / exif.Height < 1;
+                                if (cats.Contains("square")) status &= exif.Height / exif.Height == 1;
+
+                                if (cats.Contains("bits")) status &= Compare($"{exif.ColorDepth}", words);
+                                if (cats.Contains("endian")) status &= Compare($"{exif.ByteOrder}", words);
+
+                                if (cats.Contains("littleendian")) status &= invert && exif.ByteOrder == ExifByteOrder.LittleEndian;
+                                else if (cats.Contains("lsb")) status &= invert && exif.ByteOrder == ExifByteOrder.LittleEndian;
+
+                                if (cats.Contains("bigendian")) status &= invert && exif.ByteOrder == ExifByteOrder.BigEndian;
+                                else if (cats.Contains("msb")) status &= invert && exif.ByteOrder == ExifByteOrder.BigEndian;
+
+                                foreach (var attr in cats_exif)
                                 {
-                                    var value = GetTagValue(exif, attr);
-                                    if (cats.Count(c => c.Equals(attr, StringComparison.CurrentCultureIgnoreCase)) > 0 && !string.IsNullOrEmpty(value))
-                                        status = (status || cats.Contains(attr)) && Compare(value, word);
+                                    try
+                                    {
+                                        var value = GetTagValue(exif, attr);
+                                        if (cats.Count(c => c.Equals(attr, StringComparison.CurrentCultureIgnoreCase)) > 0 && !string.IsNullOrEmpty(value))
+                                            status = (status || cats.Contains(attr)) && Compare(value, words);
+                                    }
+                                    catch { }
                                 }
-                                catch { }
                             }
-                        }
-                        else if (Mode == CompareMode.OR)
-                        {
-                            if (cats.Contains("title")) status |= Compare(title, word);
-                            if (cats.Contains("subject")) status |= Compare(subject, word);
-
-                            if (cats.Contains("keyword")) status |= Compare(keywords, words);
-                            if (cats.Contains("keywords")) status |= Compare(keywords, words);
-                            if (cats.Contains("tag")) status |= Compare(keywords, words);
-                            if (cats.Contains("tags")) status |= Compare(keywords, words);
-
-                            if (cats.Contains("comment")) status |= Compare(comments, word);
-                            if (cats.Contains("comments")) status |= Compare(comments, word);
-
-                            if (cats.Contains("artist")) status |= Compare(artist, words);
-                            else if (cats.Contains("author")) status |= Compare(artist, words);
-
-                            if (cats.Contains("copyright")) status |= Compare(copyright, words);
-
-                            if (cats.Contains("software")) status |= Compare(software, word);
-                            if (cats.Contains("rate")) status |= Compare(rate, word);
-                            if (cats.Contains("rank")) status |= Compare(rank, word);
-                            if (cats.Contains("date")) status |= Compare(date_string, word);
-
-                            if (cats.Contains("width")) status |= Compare($"{exif.Width}", word);
-                            if (cats.Contains("height")) status |= Compare($"{exif.Height}", word);
-                            if (cats.Contains("aspect")) status |= Compare($"{(double)exif.Width / exif.Height}", word);
-
-                            if (cats.Contains("landscape")) status |= (double)exif.Width / exif.Height > 1;
-                            if (cats.Contains("portrait")) status |= (double)exif.Width / exif.Height < 1;
-                            if (cats.Contains("square")) status |= (double)exif.Width / exif.Height == 1;
-
-                            if (cats.Contains("bits")) status |= Compare($"{exif.ColorDepth}", word);
-                            if (cats.Contains("endian")) status |= Compare($"{exif.ByteOrder}", word);
-
-                            if (cats.Contains("littleendian")) status |= exif.ByteOrder == ExifByteOrder.LittleEndian;
-                            else if (cats.Contains("lsb")) status |= exif.ByteOrder == ExifByteOrder.LittleEndian;
-
-                            if (cats.Contains("bigendian")) status |= exif.ByteOrder == ExifByteOrder.BigEndian;
-                            else if (cats.Contains("msb")) status |= exif.ByteOrder == ExifByteOrder.BigEndian;
-
-                            foreach (var attr in cats_exif)
+                            else if (Mode == CompareMode.OR)
                             {
-                                try
+                                if (cats.Contains("title")) status |= Compare(title, words);
+                                if (cats.Contains("subject")) status |= Compare(subject, words);
+
+                                if (cats.Contains("keyword")) status |= Compare(keywords, words);
+                                if (cats.Contains("keywords")) status |= Compare(keywords, words);
+                                if (cats.Contains("tag")) status |= Compare(keywords, words);
+                                if (cats.Contains("tags")) status |= Compare(keywords, words);
+
+                                if (cats.Contains("comment")) status |= Compare(comments, words);
+                                if (cats.Contains("comments")) status |= Compare(comments, words);
+
+                                if (cats.Contains("artist")) status |= Compare(artist, words);
+                                else if (cats.Contains("author")) status |= Compare(artist, words);
+
+                                if (cats.Contains("copyright")) status |= Compare(copyright, words);
+
+                                if (cats.Contains("software")) status |= Compare(software, words);
+                                if (cats.Contains("rate")) status |= Compare(rate, words);
+                                if (cats.Contains("rank")) status |= Compare(rank, words);
+                                if (cats.Contains("date")) status |= Compare(date_string, words);
+
+                                if (cats.Contains("width")) status |= Compare($"{exif.Width}", words);
+                                if (cats.Contains("height")) status |= Compare($"{exif.Height}", words);
+                                if (cats.Contains("aspect")) status |= Compare($"{(double)exif.Width / exif.Height}", words);
+
+                                if (cats.Contains("landscape")) status |= (double)exif.Width / exif.Height > 1;
+                                if (cats.Contains("portrait")) status |= (double)exif.Width / exif.Height < 1;
+                                if (cats.Contains("square")) status |= (double)exif.Width / exif.Height == 1;
+
+                                if (cats.Contains("bits")) status |= Compare($"{exif.ColorDepth}", words);
+                                if (cats.Contains("endian")) status |= Compare($"{exif.ByteOrder}", words);
+
+                                if (cats.Contains("littleendian")) status |= exif.ByteOrder == ExifByteOrder.LittleEndian;
+                                else if (cats.Contains("lsb")) status |= exif.ByteOrder == ExifByteOrder.LittleEndian;
+
+                                if (cats.Contains("bigendian")) status |= exif.ByteOrder == ExifByteOrder.BigEndian;
+                                else if (cats.Contains("msb")) status |= exif.ByteOrder == ExifByteOrder.BigEndian;
+
+                                foreach (var attr in cats_exif)
                                 {
-                                    var value = GetTagValue(exif, attr);
-                                    if (cats.Count(c => c.Equals(attr, StringComparison.CurrentCultureIgnoreCase)) > 0 && !string.IsNullOrEmpty(value))
-                                        status |= Compare(value, word);
+                                    try
+                                    {
+                                        var value = GetTagValue(exif, attr);
+                                        if (cats.Count(c => c.Equals(attr, StringComparison.CurrentCultureIgnoreCase)) > 0 && !string.IsNullOrEmpty(value))
+                                            status |= Compare(value, words);
+                                    }
+                                    catch { }
                                 }
-                                catch { }
                             }
-                        }
-                        else if (Mode == CompareMode.LT || Mode == CompareMode.LE ||
-                                 Mode == CompareMode.GT || Mode == CompareMode.GE ||
-                                 Mode == CompareMode.EQ || Mode == CompareMode.NEQ ||
-                                 Mode == CompareMode.HAS || Mode == CompareMode.NONE)
-                        {
-                            if (cats.Contains("title")) status |= Compare(title, word);
-                            if (cats.Contains("subject")) status |= Compare(subject, word);
-
-                            if (cats.Contains("keyword")) status |= Compare(keywords, words);
-                            if (cats.Contains("keywords")) status |= Compare(keywords, words);
-                            if (cats.Contains("tag")) status |= Compare(keywords, words);
-                            if (cats.Contains("tags")) status |= Compare(keywords, words);
-
-                            if (cats.Contains("comment")) status |= Compare(comments, word);
-                            if (cats.Contains("comments")) status |= Compare(comments, word);
-
-                            if (cats.Contains("artist")) status |= Compare(artist, words);
-                            if (cats.Contains("author")) status |= Compare(artist, words);
-                            if (cats.Contains("copyright")) status |= Compare(copyright, words);
-
-                            if (cats.Contains("software")) status |= Compare(software, word);
-
-                            int word_int;
-                            var word_value = int.TryParse(word, out word_int) ? word.PadLeft(16, '0') : word;
-
-                            var rate_value = string.IsNullOrEmpty(rate) ? rate : rate.PadLeft(16, '0');
-                            var rank_value = string.IsNullOrEmpty(rank) ? rank : rank.PadLeft(16, '0');
-
-                            if (cats.Contains("rate")) status |= Compare(rate_value, word_value);
-                            if (cats.Contains("rank")) status |= Compare(rank_value, word_value);
-                            if (cats.Contains("date") && date.HasValue) status |= _date_.Compare(date.Value, Mode);
-
-                            if (cats.Contains("width")) status |= Compare($"{exif.Width}", word);
-                            if (cats.Contains("height")) status |= Compare($"{exif.Height}", word);
-                            if (cats.Contains("aspect")) status |= Compare($"{(double)exif.Width / exif.Height}", word);
-
-                            if (cats.Contains("landscape")) status |= (double)exif.Width / exif.Height > 1;
-                            if (cats.Contains("portrait")) status |= (double)exif.Width / exif.Height < 1;
-                            if (cats.Contains("square")) status |= (double)exif.Width / exif.Height == 1;
-
-                            if (cats.Contains("bits")) status |= Compare($"{exif.ColorDepth}", word);
-                            if (cats.Contains("endian")) status |= Compare($"{exif.ByteOrder}", word);
-
-                            if (cats.Contains("littleendian")) status |= invert && exif.ByteOrder == ExifByteOrder.LittleEndian;
-                            else if (cats.Contains("lsb")) status |= invert && exif.ByteOrder == ExifByteOrder.LittleEndian;
-
-                            if (cats.Contains("bigendian")) status |= invert && exif.ByteOrder == ExifByteOrder.BigEndian;
-                            else if (cats.Contains("msb")) status |= invert && exif.ByteOrder == ExifByteOrder.BigEndian;
-
-                            foreach (var attr in cats_exif)
+                            else if (Mode == CompareMode.LT || Mode == CompareMode.LE ||
+                                     Mode == CompareMode.GT || Mode == CompareMode.GE ||
+                                     Mode == CompareMode.EQ || Mode == CompareMode.NEQ ||
+                                     Mode == CompareMode.HAS || Mode == CompareMode.NONE)
                             {
-                                try
+                                if (cats.Contains("title")) status |= Compare(title, words);
+                                if (cats.Contains("subject")) status |= Compare(subject, words);
+
+                                if (cats.Contains("keyword")) status |= Compare(keywords, words);
+                                if (cats.Contains("keywords")) status |= Compare(keywords, words);
+                                if (cats.Contains("tag")) status |= Compare(keywords, words);
+                                if (cats.Contains("tags")) status |= Compare(keywords, words);
+
+                                if (cats.Contains("comment")) status |= Compare(comments, words);
+                                if (cats.Contains("comments")) status |= Compare(comments, words);
+
+                                if (cats.Contains("artist")) status |= Compare(artist, words);
+                                if (cats.Contains("author")) status |= Compare(artist, words);
+                                if (cats.Contains("copyright")) status |= Compare(copyright, words);
+
+                                if (cats.Contains("software")) status |= Compare(software, words);
+
+                                int word_int;
+                                var word_value = int.TryParse(word, out word_int) ? word.PadLeft(16, '0') : word;
+
+                                var rate_value = string.IsNullOrEmpty(rate) ? rate : rate.PadLeft(16, '0');
+                                var rank_value = string.IsNullOrEmpty(rank) ? rank : rank.PadLeft(16, '0');
+
+                                if (cats.Contains("rate")) status |= Compare(rate_value, word_value);
+                                if (cats.Contains("rank")) status |= Compare(rank_value, word_value);
+                                if (cats.Contains("date") && date.HasValue) status |= _date_.Compare(date.Value, Mode);
+
+                                if (cats.Contains("width")) status |= Compare($"{exif.Width}", words);
+                                if (cats.Contains("height")) status |= Compare($"{exif.Height}", words);
+                                if (cats.Contains("aspect")) status |= Compare($"{(double)exif.Width / exif.Height}", words);
+
+                                if (cats.Contains("landscape")) status |= (double)exif.Width / exif.Height > 1;
+                                if (cats.Contains("portrait")) status |= (double)exif.Width / exif.Height < 1;
+                                if (cats.Contains("square")) status |= (double)exif.Width / exif.Height == 1;
+
+                                if (cats.Contains("bits")) status |= Compare($"{exif.ColorDepth}", words);
+                                if (cats.Contains("endian")) status |= Compare($"{exif.ByteOrder}", words);
+
+                                if (cats.Contains("littleendian")) status |= invert && exif.ByteOrder == ExifByteOrder.LittleEndian;
+                                else if (cats.Contains("lsb")) status |= invert && exif.ByteOrder == ExifByteOrder.LittleEndian;
+
+                                if (cats.Contains("bigendian")) status |= invert && exif.ByteOrder == ExifByteOrder.BigEndian;
+                                else if (cats.Contains("msb")) status |= invert && exif.ByteOrder == ExifByteOrder.BigEndian;
+
+                                foreach (var attr in cats_exif)
                                 {
-                                    var value = GetTagValue(exif, attr);
-                                    if (cats.Count(c => c.Equals(attr, StringComparison.CurrentCultureIgnoreCase)) > 0 && !string.IsNullOrEmpty(value))
-                                        status |= Compare(value, word);
+                                    try
+                                    {
+                                        var value = GetTagValue(exif, attr);
+                                        if (cats.Count(c => c.Equals(attr, StringComparison.CurrentCultureIgnoreCase)) > 0 && !string.IsNullOrEmpty(value))
+                                            status |= Compare(value, words);
+                                    }
+                                    catch { }
                                 }
-                                catch { }
                             }
-                        }
-                        else if (Mode == CompareMode.IN && words.Length >= 2)
-                        {                  
-                            var values = words.Select(w => { double v = double.NaN; return(double.TryParse(w, out v) ? v : double.NaN); }).Where(d => !double.IsNaN(d)).OrderBy(d => d);
-                            if (values.Count() >= 2)
+                            else if (Mode == CompareMode.IN && words.Length >= 2)
                             {
-                                double value = double.NaN;
-                                double value_low = values.First();
-                                double value_high = values.Last();
+                                var values = words.Select(w => { double v = double.NaN; return(double.TryParse(w, out v) ? v : double.NaN); }).Where(d => !double.IsNaN(d)).OrderBy(d => d);
+                                if (values.Count() >= 2)
+                                {
+                                    double value = double.NaN;
+                                    double value_low = values.First();
+                                    double value_high = values.Last();
 
-                                if (cats.Contains("rate") && double.TryParse(rate, out value)) status |= value_low <= value && value <= value_high;
-                                if (cats.Contains("rank") && double.TryParse(rank, out value)) status |= value_low <= value && value <= value_high;
+                                    if (cats.Contains("rate") && double.TryParse(rate, out value)) status |= value_low <= value && value <= value_high;
+                                    if (cats.Contains("rank") && double.TryParse(rank, out value)) status |= value_low <= value && value <= value_high;
 
-                                if (cats.Contains("width")) status |= value_low <= exif.Width && exif.Width <= value_high;
-                                if (cats.Contains("height")) status |= value_low <= exif.Height && exif.Height <= value_high;
+                                    if (cats.Contains("width")) status |= value_low <= exif.Width && exif.Width <= value_high;
+                                    if (cats.Contains("height")) status |= value_low <= exif.Height && exif.Height <= value_high;
 
-                                value = (double)exif.Width / exif.Height;
-                                if (cats.Contains("aspect")) status |= value_low <= value && value <= value_high;
+                                    value = (double)exif.Width / exif.Height;
+                                    if (cats.Contains("aspect")) status |= value_low <= value && value <= value_high;
 
-                                if (cats.Contains("bits")) status |= value_low <= exif.ColorDepth && exif.ColorDepth <= value_high;
+                                    if (cats.Contains("bits")) status |= value_low <= exif.ColorDepth && exif.ColorDepth <= value_high;
+                                }
+
+                                if (cats.Contains("date") && date.HasValue)
+                                {
+                                    var date_low = new DateValue(words.First());
+                                    var date_high = new DateValue(words.Last());
+                                    status |= date_low.Date <= date && date <= date_high.Date;
+                                }
                             }
-
-                            if (cats.Contains("date") && date.HasValue)
+                            else if (Mode == CompareMode.OUT && words.Length >= 2)
                             {
-                                var date_low = new DateValue(words.First());
-                                var date_high = new DateValue(words.Last());
-                                status |= date_low.Date <= date && date <= date_high.Date;
+                                var values = words.Select(w => { double v = double.NaN; return(double.TryParse(w, out v) ? v : double.NaN); }).Where(d => !double.IsNaN(d)).OrderBy(d => d);
+                                if (values.Count() >= 2)
+                                {
+                                    double value = double.NaN;
+                                    double value_low = values.First();
+                                    double value_high = values.Last();
+
+                                    if (cats.Contains("rate") && double.TryParse(rate, out value)) status |= value < value_low || value_high < value;
+                                    if (cats.Contains("rank") && double.TryParse(rank, out value)) status |= value < value_low || value_high < value;
+
+                                    if (cats.Contains("width")) status |= exif.Width < value_low || value_high < exif.Width;
+                                    if (cats.Contains("height")) status |= exif.Height < value_low || value_high < exif.Height;
+
+                                    value = (double)exif.Width / exif.Height;
+                                    if (cats.Contains("aspect")) status |= value < value_low || value_high < value;
+
+                                    if (cats.Contains("bits")) status |= exif.ColorDepth < value_low || value_high < exif.ColorDepth;
+
+                                }
+
+                                if (cats.Contains("date") && date.HasValue)
+                                {
+                                    var date_low = new DateValue(words.First());
+                                    var date_high = new DateValue(words.Last());
+                                    status |= date < date_low.Date || date_high.Date < date;
+                                }
                             }
-                        }
-                        else if (Mode == CompareMode.OUT && words.Length >= 2)
-                        {
-                            var values = words.Select(w => { double v = double.NaN; return(double.TryParse(w, out v) ? v : double.NaN); }).Where(d => !double.IsNaN(d)).OrderBy(d => d);
-                            if (values.Count() >= 2)
-                            {
-                                double value = double.NaN;
-                                double value_low = values.First();
-                                double value_high = values.Last();
-
-                                if (cats.Contains("rate") && double.TryParse(rate, out value)) status |= value < value_low || value_high < value;
-                                if (cats.Contains("rank") && double.TryParse(rank, out value)) status |= value < value_low || value_high < value;
-
-                                if (cats.Contains("width")) status |= exif.Width < value_low || value_high < exif.Width;
-                                if (cats.Contains("height")) status |= exif.Height < value_low || value_high < exif.Height;
-
-                                value = (double)exif.Width / exif.Height;
-                                if (cats.Contains("aspect")) status |= value < value_low || value_high < value;
-
-                                if (cats.Contains("bits")) status |= exif.ColorDepth < value_low || value_high < exif.ColorDepth;
-
-                            }
-
-                            if (cats.Contains("date") && date.HasValue)
-                            {
-                                var date_low = new DateValue(words.First());
-                                var date_high = new DateValue(words.Last());
-                                status |= date < date_low.Date || date_high.Date < date;
-                            }
+                            #endregion
+                            status |= status;
+                            if (status) break;
                         }
                     }
                     else
                     {
+                        #region Output attributes
                         var padding = "".PadLeft(ValuePaddingLeft);
                         StringBuilder sb = new StringBuilder();
                         sb.Append(ValueHeader);
@@ -652,8 +664,8 @@ namespace ImageApplets.Applets
                             if (!string.IsNullOrEmpty(value)) sb.AppendLine($"{padding}{attr} = {(MaxLength > 0 ? value.Substring(0, MaxLength) : value)}");
                         }
                         status = sb.ToString().Trim();
+                        #endregion
                     }
-                    #endregion
 
                     //var t = ConvertChineseNumberString("4千30百3");
                     //var t = ConvertChineseNumberString("四千三百二");
