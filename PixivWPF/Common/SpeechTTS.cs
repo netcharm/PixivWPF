@@ -373,6 +373,27 @@ namespace PixivWPF.Common
         private int last_speak_text_len = 0;        
         public bool IsSlicing { get; private set; } = false;
 
+        public Action<string, List<string>> SetVoice { get; } = new Action<string, List<string>>((locale, names) => {
+            if (names is List<string> && names.Count > 0)
+            {
+                try
+                {
+                    var culture = CultureInfo.GetCultureInfo(locale);
+                    if (culture is CultureInfo) nametable[culture] = names;
+                }
+                catch { }
+            }
+        });
+
+        public Func<Dictionary<string, List<string>>> GetVoices { get; } = new Func<Dictionary<string, List<string>>>(() => {
+            var result = new Dictionary<string, List<string>>();
+            if (nametable is Dictionary<CultureInfo, List<string>>)
+            {
+                foreach (var kv in nametable) result[kv.Key.IetfLanguageTag] = kv.Value;
+            }
+            return (result);
+        });
+
         public static Dictionary<string, string> GetNames()
         {
             var result = nametable.Select(n => new KeyValuePair<string, string>(n.Key.IetfLanguageTag, string.Join(", ", n.Value)));
@@ -911,6 +932,9 @@ namespace PixivWPF.Common
 
     public static class Speech
     {
+        public static char[] TagBreak { get; } = new char[] { '#', '@' };
+        public static string[] LineBreak { get; } = new string[] { Environment.NewLine, "\n\r", "\r\n", "\r", "\n", "<br/>", "<br />", "<br>", "</br>" };
+
         #region Speech Synthesizer events actions
         public static Action<SpeakStartedEventArgs> SpeakStarted
         {
@@ -956,6 +980,8 @@ namespace PixivWPF.Common
 
         #region Speech Synthesizer properties
         public static Dictionary<string, string> CustomNames { set { SpeechTTS.SetCustomNames(value); } }
+        public static Action<string, List<string>> SetVoice { get { return (t2s is SpeechTTS ? t2s.SetVoice : null); } }
+        public static Func<Dictionary<string, List<string>>> GetVoices { get { return (t2s is SpeechTTS ? t2s.GetVoices : null); } }
         public static bool AutoChangeSpeechSpeed
         {
             get { return (t2s is SpeechTTS ? t2s.AutoChangeSpeechSpeed : true); }
@@ -1020,8 +1046,21 @@ namespace PixivWPF.Common
             return (SpeechTTS.DetectCulture(text));
         }
 
-        public static char[] TagBreak = new char[] { '#', '@' };
-        public static string[] LineBreak = new string[] { Environment.NewLine, "\n\r", "\r\n", "\r", "\n", "<br/>", "<br />", "<br>", "</br>" };
+        public static bool IsReady()
+        {
+            return (State == SynthesizerState.Ready);
+        }
+
+        public static bool IsBusy()
+        {
+            return (State == SynthesizerState.Speaking || State == SynthesizerState.Paused);
+        }
+
+        public static bool IsPaused()
+        {
+            return (State == SynthesizerState.Paused);
+        }
+
         public static async void Play(this string text, CultureInfo culture, bool async = true)
         {
             try

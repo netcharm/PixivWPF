@@ -1974,6 +1974,13 @@ namespace PixivWPF.Pages
 
                 if (nuser != null && nprof != null && nworks != null)
                 {
+                    if (string.IsNullOrEmpty(item.UserID)) item.UserID = $"{nuser.Id ?? -1}";
+                    if (item.HasUser())
+                    {
+                        if (!item.User.Id.HasValue) item.User.Id = nuser.Id ?? -1;
+                        if (string.IsNullOrEmpty(item.User.GetAvatarUrl())) nuser.GetAvatarUrl();
+                    }
+
                     RefreshHtmlRender(IllustTagsHtml);
                     IllustTagExpander.Header = "User Infomation";
                     if (setting.AutoExpand == AutoExpandMode.ON)
@@ -2249,7 +2256,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (user is Pixeez.Objects.UserBase && user.Id.HasValue)
+                if (user is Pixeez.Objects.UserBase && user.Id != null && user.Id.HasValue)
                 {
                     RelatedItems.Wait();
                     if (!(related_illusts is List<long?>)) related_illusts = new List<long?>();
@@ -2262,7 +2269,6 @@ namespace PixivWPF.Pages
                     var tokens = await CommonHelper.ShowLogin();
                     if (tokens == null) return;
 
-                    if (user == null || user.Id == null) throw new WarningException("User Infomation is NULL!");
                     var lastUrl = next_url;
                     var related = string.IsNullOrEmpty(next_url) ? await tokens.GetUserWorksAsync(user.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
                     next_url = related.next_url ?? string.Empty;
@@ -2920,7 +2926,7 @@ namespace PixivWPF.Pages
                 {
                     "ActionConvertIllustJpegSep",
                     "ActionConvertIllustJpeg", "ActionConvertIllustJpegAll",
-                    "ActionReduceIllustJpeg", "ActionReduceIllustJpegAll",
+                    "ActionReduceIllustJpeg", "ActionReduceIllustJpegAll", "ActionReduceJpegSizeTo",//"ReduceJpegSizeToPanel",
                     "ActionDownloadedSep",
                     "ActionShowDownloadedMeta", "ActionTouchDownloadedMeta",
                     "ActionOpenDownloaded", "ActionOpenDownloadedProperties"
@@ -2929,7 +2935,7 @@ namespace PixivWPF.Pages
                 {
                     //"ActionConvertIllustJpegSep",
                     "ActionConvertIllustJpeg", "ActionConvertIllustJpegAll",
-                    //"ActionReduceIllustJpeg", "ActionReduceIllustJpegAll",
+                    //"ActionReduceIllustJpeg", "ActionReduceIllustJpegAll", "ReduceJpegSizeToPanel",
                 };
                 var jpeg_list = new string[]
                 {
@@ -2946,7 +2952,7 @@ namespace PixivWPF.Pages
                 foreach (UIElement item in items)
                 //foreach (var item in menus.Items)
                 {
-                    if (item is MenuItem || item is Separator)
+                    if (item is MenuItem || item is Separator )//|| item is StackPanel || item is Grid)
                     {
                         var uid = item.GetUid();
                         if (!string.IsNullOrEmpty(uid))
@@ -2968,6 +2974,12 @@ namespace PixivWPF.Pages
                                 else if (!Contents.IsUgoira() && ugoira_list.Contains(uid)) item.Hide();
                                 else if (single && uid.Contains("All")) item.Hide();
                                 else (item as UIElement).Show();
+                            }
+
+                            if (uid.Equals("ActionReduceJpegSizeTo"))
+                            {
+                                if (item is MenuItem && (item as MenuItem).Tag == null)
+                                    (item as MenuItem).Tag = new App.MenuItemSliderData() { ToolTip = @"Reduce Quality: {0:F0}", Value = setting.DownloadRecudeJpegQuality };
                             }
                         }
                     }
@@ -3387,6 +3399,7 @@ namespace PixivWPF.Pages
 
                         var c_item = Contents;
                         AvatarImageUrl = Contents.User.GetAvatarUrl();
+                        if (string.IsNullOrEmpty(AvatarImageUrl)) AvatarImageUrl = Contents.UserAvatarUrl;
                         if (string.IsNullOrEmpty(AvatarImageUrl))
                         {
                             long uid = -1;
@@ -4346,13 +4359,17 @@ namespace PixivWPF.Pages
 
         private void ActionSaveIllust_Click(object sender, RoutedEventArgs e)
         {
+            setting = Application.Current.LoadSetting();
             var uid = sender.GetUid();
             var type = DownloadType.None;
+            //var cq = (int)(ReduceToQuality is Slider ? ReduceToQuality.Value : setting.DownloadRecudeJpegQuality);
+            var cq = sender is MenuItem && (sender as MenuItem).Tag is App.MenuItemSliderData ? ((sender as MenuItem).Tag as App.MenuItemSliderData).Value : setting.DownloadRecudeJpegQuality;
 
             if (Keyboard.Modifiers == ModifierKeys.Shift) type |= DownloadType.ConvertKeepName;
             if (sender == PreviewSave) type |= DownloadType.None;
             else if (uid.Equals("ActionSaveIllust")) type |= DownloadType.Original;
             else if (uid.Equals("ActionSaveIllustJpeg")) type |= DownloadType.AsJPEG;
+            else if (uid.Equals("ActionReduceJpegSizeTo")) type |= DownloadType.AsJPEG;
             else if (uid.Equals("ActionSaveIllustPreview")) type |= DownloadType.UseLargePreview;
 
             if (SubIllusts.SelectedItems != null && SubIllusts.SelectedItems.Count > 0)
@@ -4362,6 +4379,8 @@ namespace PixivWPF.Pages
                     Commands.ConvertToJpeg.Execute(items);
                 else if (uid.Equals("ActionReduceIllustJpeg"))
                     Commands.ReduceJpeg.Execute(items);
+                else if (uid.Equals("ActionReduceJpegSizeTo"))
+                    Commands.ReduceJpeg.Execute(new Tuple<ImageListGrid, DownloadType, int>(SubIllusts, type, cq));
                 else
                     Commands.SaveIllust.Execute(items);
             }
@@ -4372,6 +4391,8 @@ namespace PixivWPF.Pages
                     Commands.ConvertToJpeg.Execute(item);
                 else if (uid.Equals("ActionReduceIllustJpeg"))
                     Commands.ReduceJpeg.Execute(item);
+                else if (uid.Equals("ActionReduceJpegSizeTo"))
+                    Commands.ReduceJpeg.Execute(new Tuple<PixivItem, DownloadType, int>(SubIllusts.SelectedItem, type, cq));
                 else
                     Commands.SaveIllust.Execute(item);
             }
@@ -4382,6 +4403,8 @@ namespace PixivWPF.Pages
                     Commands.ConvertToJpeg.Execute(item);
                 else if (uid.Equals("ActionReduceIllustJpeg"))
                     Commands.ReduceJpeg.Execute(item);
+                else if (uid.Equals("ActionReduceJpegSizeTo"))
+                    Commands.ReduceJpeg.Execute(new Tuple<PixivItem, DownloadType, int>(Contents, type, cq));
                 else
                     Commands.SaveIllust.Execute(item);
             }

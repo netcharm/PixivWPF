@@ -59,5 +59,15 @@ namespace PixivWPF.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   查找 System.Byte[] 类型的本地化资源。
+        /// </summary>
+        internal static byte[] GB2JIS {
+            get {
+                object obj = ResourceManager.GetObject("GB2JIS", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

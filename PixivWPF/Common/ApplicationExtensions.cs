@@ -1709,7 +1709,7 @@ namespace PixivWPF.Common
             Debug.WriteLine($"{prefix}{contents}");
 #endif
             var main = Application.Current.GetMainWindow();
-            if (main is MainWindow && main.IsShown())
+            if (main is MainWindow && main.IsVisible())
             {
                 new Action(() =>
                 {
@@ -1935,6 +1935,25 @@ namespace PixivWPF.Common
         #region Application Timed Tasks Helper
         private static System.Timers.Timer autoTaskTimer = null;
         private static ConcurrentDictionary<Window, long> toast_list = new ConcurrentDictionary<Window, long>();
+
+        private static Random _random_ { get; } = new Random(Environment.TickCount);
+        public static int Random(this Application app, int min, int max)
+        {
+            var result = 1000;
+            try { result = _random_.Next(min, max); }
+            catch { result = new Random(Environment.TickCount).Next(min, max); }
+            return (result);
+        }
+
+        public static int DownloadRetryDelay(this Application app, int? min = null, int? max = null)
+        {
+            return (Random(app, min ?? CurrentSetting.DownloadFailAutoRetryDelayMin, max ?? CurrentSetting.DownloadFailAutoRetryDelayMax));
+        }
+
+        public static int DownloadRetryCount(this Application app)
+        {
+            return (CurrentSetting.DownloadFailAutoRetryCount);
+        }
 
         public static void AddToast(this Application app, Window win)
         {

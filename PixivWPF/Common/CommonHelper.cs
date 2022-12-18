@@ -605,7 +605,7 @@ namespace PixivWPF.Common
         {
             Pixeez.Tokens result = null;
             setting = Application.Current.LoadSetting();
-            CancelRefreshSource = cancelToken == null ? new CancellationTokenSource() : cancelToken;
+            CancelRefreshSource = cancelToken == null ? new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout)) : cancelToken;
             if (await CanRefreshToken.WaitAsync(TimeSpan.FromSeconds(setting.DownloadHttpTimeout), CancelRefreshSource.Token))
             {
                 try
@@ -623,7 +623,12 @@ namespace PixivWPF.Common
                 }
                 catch (Exception ex)
                 {
-                    if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass))
+                    ex.ERROR("RefreshToken", no_stack: true);
+                    if (ex.IsNetworkError())
+                    {
+                        if (CancelRefreshSource is CancellationTokenSource) CancelRefreshSource.Cancel();
+                    }
+                    else if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass))
                     {
                         try
                         {
@@ -640,10 +645,11 @@ namespace PixivWPF.Common
                         }
                         catch (Exception exx)
                         {
+                            exx.ERROR("RequestToken", no_stack: true);
                             var ret = exx.Message;
+                            if (CancelRefreshSource is CancellationTokenSource) CancelRefreshSource.Cancel();
                             //var tokens = await ShowLogin(canceltoken: CancelRefreshSource);
                             var tokens = await ShowLogin();
-                            if (CancelRefreshSource is CancellationTokenSource) CancelRefreshSource.Cancel();
                         }
                     }
                     var rt = ex.Message;
@@ -1404,6 +1410,103 @@ namespace PixivWPF.Common
             //{"t", "ｔ"}, {"u", "ｕ"}, {"v", "ｖ"}, {"w", "ｗ"}, {"x", "ｘ"},
             //{"y", "ｙ"}, {"z", "ｚ"}, {",", "、"},
         };
+        #endregion
+
+        #region Convert Chinese to Japanese Kanji
+        static private Encoding GB2312 = Encoding.GetEncoding("GB2312");
+        static private Encoding JIS = Encoding.GetEncoding("SHIFT_JIS");
+        static private List<char> GB2312_List { get; set; } = new List<char>();
+        static private List<char> JIS_List { get; set; } = new List<char>();
+        static private void InitGBJISTable()
+        {
+            if (JIS_List.Count == 0 || GB2312_List.Count == 0)
+            {
+                JIS_List.Clear();
+                GB2312_List.Clear();
+
+                var jis_data =  Properties.Resources.GB2JIS;
+                var jis_count = jis_data.Length / 2;
+                JIS_List = JIS.GetString(jis_data).ToList();
+                GB2312_List = GB2312.GetString(jis_data).ToList();
+
+                var jis = new byte[2];
+                var gb2312 = new byte[2];
+                for (var i = 0; i < 94; i++)
+                {
+                    gb2312[0] = (byte)(i + 0xA1);
+                    for (var j = 0; j < 94; j++)
+                    {
+                        gb2312[1] = (byte)(j + 0xA1);
+                        var offset = i * 94 + j;
+                        GB2312_List[offset] = GB2312.GetString(gb2312).First();
+
+                        jis[0] = jis_data[2 * offset];
+                        jis[1] = jis_data[2 * offset + 1];
+                        JIS_List[i * 94 + j] = JIS.GetString(jis).First();
+                    }
+                }
+            }
+        }
+
+        static public char ConvertChinese2Japanese(this char character)
+        {
+            var result = character;
+
+            InitGBJISTable();
+            var idx = GB2312_List.IndexOf(result);
+            if (idx >= 0) result = JIS_List[idx];
+
+            return (result);
+        }
+
+        static public string ConvertChinese2Japanese(this string line)
+        {
+            var result = line;
+
+            result = string.Join("", line.ToCharArray().Select(c => ConvertChinese2Japanese(c)));
+            //result = new string(line.ToCharArray().Select(c => ConvertChinese2Japanese(c)).ToArray());
+
+            return (result);
+        }
+
+        static public IList<string> ConvertChinese2Japanese(this IEnumerable<string> lines)
+        {
+            var result = new List<string>();
+
+            result.AddRange(lines.Select(l => ConvertChinese2Japanese(l)).ToList());
+
+            return (result);
+        }
+
+        static public char ConvertJapanese2Chinese(this char character)
+        {
+            var result = character;
+
+            InitGBJISTable();
+            var idx = JIS_List.IndexOf(result);
+            if (idx >= 0) result = GB2312_List[idx];
+
+            return (result);
+        }
+
+        static public string ConvertJapanese2Chinese(this string line)
+        {
+            var result = line;
+
+            result = string.Join("", line.ToCharArray().Select(c => ConvertJapanese2Chinese(c)));
+            //result = new string(line.ToCharArray().Select(c => ConvertJapanese2Chinese(c)).ToArray());
+
+            return (result);
+        }
+
+        static public IList<string> ConvertJapanese2Chinese(this IEnumerable<string> lines)
+        {
+            var result = new List<string>();
+
+            result.AddRange(lines.Select(l => ConvertJapanese2Chinese(l)).ToList());
+
+            return (result);
+        }
         #endregion
 
         public static string KatakanaHalfToFull(this string text, bool lookup = true)
@@ -2610,11 +2713,11 @@ namespace PixivWPF.Common
         {
             string v_str = string.Empty;
             string u_str = string.Empty;
-            if (double.IsNaN(v) || double.IsInfinity(v) || double.IsNegativeInfinity(v) || double.IsPositiveInfinity(v)) { v_str = "0.00"; u_str = "B/s"; }
+            if (double.IsNaN(v) || double.IsInfinity(v) || double.IsNegativeInfinity(v) || double.IsPositiveInfinity(v)) { v = 0; v_str = "0.00"; u_str = "B/s"; }
             else if (v >= VALUE_MB) { v_str = $"{v / factor / VALUE_MB:F2}"; u_str = "MB/s"; }
             else if (v >= VALUE_KB) { v_str = $"{v / factor / VALUE_KB:F2}"; u_str = "KB/s"; }
             else { v_str = $"{v / factor:F2}"; u_str = "B/s"; }
-            var vs = trimzero ? v_str.Trim('0').TrimEnd('.') : v_str;
+            var vs = trimzero && v != 0 && !u_str.Equals("B/s") ? v_str.TrimEnd('0').TrimEnd('.') : v_str;
             return ((unit ? $"{vs} {u_str}" : vs).PadLeft(padleft));
         }
 
@@ -2626,12 +2729,12 @@ namespace PixivWPF.Common
         {
             string v_str = string.Empty;
             string u_str = string.Empty;
-            if (double.IsNaN(v) || double.IsInfinity(v) || double.IsNegativeInfinity(v) || double.IsPositiveInfinity(v)) { v_str = "0"; u_str = "B"; }
+            if (double.IsNaN(v) || double.IsInfinity(v) || double.IsNegativeInfinity(v) || double.IsPositiveInfinity(v)) { v = 0; v_str = "0"; u_str = "B"; }
             else if (v >= VALUE_GB) { v_str = $"{v / factor / VALUE_GB:F2}"; u_str = "GB"; }
             else if (v >= VALUE_MB) { v_str = $"{v / factor / VALUE_MB:F2}"; u_str = "MB"; }
             else if (v >= VALUE_KB) { v_str = $"{v / factor / VALUE_KB:F2}"; u_str = "KB"; }
             else { v_str = $"{v / factor:F0}"; u_str = "B"; }
-            var vs = trimzero && !u_str.Equals("B") ? v_str.Trim('0').TrimEnd('.') : v_str;
+            var vs = trimzero && v != 0 && !u_str.Equals("B") ? v_str.TrimEnd('0').TrimEnd('.') : v_str;
             return ((unit ? $"{vs} {u_str}" : vs).PadLeft(padleft));
         }
 
@@ -6831,11 +6934,13 @@ namespace PixivWPF.Common
                                             if (pFmt == System.Drawing.Imaging.ImageFormat.Jpeg)
                                             {
                                                 var img = new System.Drawing.Bitmap(bmp.Width, bmp.Height, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+                                                img.SetResolution(bmp.HorizontalResolution, bmp.VerticalResolution);
                                                 using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(img))
                                                 {
                                                     var bg = setting.DownloadReduceBackGroundColor;
+                                                    var r = new System.Drawing.Rectangle(new System.Drawing.Point(0, 0), bmp.Size);
                                                     g.Clear(System.Drawing.Color.FromArgb(bg.A, bg.R, bg.G, bg.B));
-                                                    g.DrawImage(bmp, 0, 0, new System.Drawing.Rectangle(new System.Drawing.Point(), bmp.Size), System.Drawing.GraphicsUnit.Pixel);
+                                                    g.DrawImage(bmp, 0, 0, r, System.Drawing.GraphicsUnit.Pixel);
                                                 }
                                                 img.Save(mo, codec_info, encoderParams);
                                                 img.Dispose();
@@ -7231,13 +7336,13 @@ namespace PixivWPF.Common
                                 {
                                     if (source.CanRead)
                                     {
-                                        try
-                                        {
+                                        //try
+                                        //{
                                             bytesread = await source.ReadAsync(bytes, 0, bufferSize, cancelToken.Token).ConfigureAwait(false);
-                                        }
+                                        //}
                                         //catch { }
                                         //catch (Exception exx) { exx.ERROR($"WriteToFile_StreamClosed{fn}", no_stack: exx.IsNetworkError()); }
-                                        catch { throw new WarningException($"StreamClosed{fn}"); }
+                                        //catch { throw new WarningException($"StreamClosed{fn}"); }
                                     }
                                     else throw new WarningException($"StreamClosed{fn}");
                                 }
@@ -7252,11 +7357,10 @@ namespace PixivWPF.Common
                                     }
                                     else throw new WarningException($"Write Bytes To Stream Failed");
                                 }
-                                if (cancelToken.IsCancellationRequested) break;
-                            } while (bytesread > 0 && received < length);
+                            } while (!cancelToken.IsCancellationRequested && bytesread > 0 && received < length);
                         }
 
-                        if (!cancelToken.IsCancellationRequested && received == length && ms.Length > 0)
+                        if (!cancelToken.IsCancellationRequested && received == length && ms.Length == length)
                         {
                             var folder = Path.GetDirectoryName(file);
                             if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
@@ -7273,20 +7377,21 @@ namespace PixivWPF.Common
                                     DownloadTaskCache.TryRemove(file, out lastdownloaded);
                                     if (lastdownloaded is byte[] && lastdownloaded.Length >= 0) lastdownloaded.Dispose();
                                 }
-                            }
-                            if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
+                            }                            
                         }
 
                         ms.Close();
                         ms.Dispose();
 
+                        if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
+
                         result = File.Exists(file);
-                        var illust = file.GetIllustId().FindIllust();
+                        //var illust = file.GetIllustId().FindIllust();
                     }
                 }
                 catch (Exception ex)
                 {
-                    ex.ERROR($"WriteToFile{fn}", no_stack: ex is WarningException || !source.CanRead);
+                    ex.ERROR($"WriteToFile{fn}", no_stack: ex is WarningException || ex.IsNetworkError() || ex.IsCanceled() || !source.CanRead);
                     if (ms is MemoryStream && ms.Length < (range.Length ?? 0))
                     {
                         if (lastdownloaded is byte[]) lastdownloaded.Dispose();
@@ -7294,6 +7399,8 @@ namespace PixivWPF.Common
                         if (DownloadTaskCache.ContainsKey(file)) DownloadTaskCache.TryUpdate(file, lastdownloaded, DownloadTaskCache[file]);
                         else DownloadTaskCache.TryAdd(file, lastdownloaded);
                         //DownloadTaskCache.AddOrUpdate(file, lastdownloaded, (k, v) => lastdownloaded);
+
+                        if (progressAction is Action<double, double>) progressAction.Invoke(ms.Length, range.Length ?? 0);
                     }
                 }
             }
@@ -7532,38 +7639,44 @@ namespace PixivWPF.Common
                     HttpResponseMessage response = null;
                     try
                     {
-                        setting = Application.Current.LoadSetting();
-                        byte[] lastdownloaded = null;
-                        int start = 0;
-                        if (DownloadTaskCache.TryGetValue(file, out lastdownloaded)) start = lastdownloaded.Length;
-                        HttpClient client = Application.Current.GetHttpClient(is_download: true);
-                        using (var request = Application.Current.GetHttpRequest(url, range_start: start))
+                        int count = setting.DownloadFailAutoRetryCount;
+                        do
                         {
-                            using (response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancelToken.Token))
+                            byte[] lastdownloaded = null;
+                            int start = 0;
+                            if (DownloadTaskCache.TryGetValue(file, out lastdownloaded)) start = lastdownloaded.Length;
+                            HttpClient client = Application.Current.GetHttpClient(is_download: true);
+                            using (var request = Application.Current.GetHttpRequest(url, range_start: start))
                             {
-                                //response.EnsureSuccessStatusCode();
-                                if (response != null && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
+                                using (response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancelToken.Token))
                                 {
-                                    var length = response.Content.Headers.ContentLength ?? 0;
-                                    var range = response.Content.Headers.ContentRange ?? new ContentRangeHeaderValue(0, 0, length);
-                                    var pos = range.From ?? 0;
-                                    var Length = range.Length ?? 0;
-                                    if (progressAction is Action<double, double>) progressAction.Invoke(pos, Length);
-                                    if (length > 0) _ImageFileSizeCache_.AddOrUpdate(url, Length, (k, v) => Length);
-
-                                    string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
-                                    using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                                    //response.EnsureSuccessStatusCode();
+                                    if (response != null && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
                                     {
-                                        var ret = await sr.WriteToFile(file, range, progressAction, cancelToken, lastdownloaded: lastdownloaded);
-                                        if (ret) result = file;
-                                        sr.Close();
-                                        sr.Dispose();
+                                        var length = response.Content.Headers.ContentLength ?? 0;
+                                        var range = response.Content.Headers.ContentRange ?? new ContentRangeHeaderValue(0, 0, length);
+                                        var pos = range.From ?? 0;
+                                        var Length = range.Length ?? 0;
+                                        if (progressAction is Action<double, double>) progressAction.Invoke(pos, Length);
+                                        if (length > 0) _ImageFileSizeCache_.AddOrUpdate(url, Length, (k, v) => Length);
+
+                                        string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
+                                        using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                                        {
+                                            var ret = await sr.WriteToFile(file, range, progressAction, cancelToken, lastdownloaded: lastdownloaded);
+                                            if (ret) result = file;
+                                            sr.Close();
+                                            sr.Dispose();
+                                        }
                                     }
+                                    response.Dispose();
                                 }
-                                response.Dispose();
+                                request.Dispose();
                             }
-                            request.Dispose();
+                            count--;
+                            if (string.IsNullOrEmpty(result) && count > 0) await Task.Delay(Application.Current.DownloadRetryDelay());
                         }
+                        while (string.IsNullOrEmpty(result) && count > 0);
                     }
                     catch (Exception ex) { ex.ERROR($"DownloadImage_{Path.GetFileName(file)}"); }
                     finally
@@ -7587,20 +7700,27 @@ namespace PixivWPF.Common
                 {
                     try
                     {
-                        using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
+                        int count = setting.DownloadFailAutoRetryCount;
+                        do
                         {
-                            //response.Source.EnsureSuccessStatusCode();
-                            if (response != null && response.Source.StatusCode == HttpStatusCode.OK)
+                            using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
                             {
-                                using (var sr = await response.GetResponseStreamAsync())
+                                //response.Source.EnsureSuccessStatusCode();
+                                if (response != null && response.Source.StatusCode == HttpStatusCode.OK)
                                 {
-                                    if (await sr.WriteToFile(file)) result = file;
-                                    sr.Close();
-                                    sr.Dispose();
+                                    using (var sr = await response.GetResponseStreamAsync())
+                                    {
+                                        if (await sr.WriteToFile(file)) result = file;
+                                        sr.Close();
+                                        sr.Dispose();
+                                    }
                                 }
+                                response.Dispose();
                             }
-                            response.Dispose();
+                            count--;
+                            if (string.IsNullOrEmpty(result) && count > 0) await Task.Delay(Application.Current.DownloadRetryDelay());
                         }
+                        while (string.IsNullOrEmpty(result) && count > 0);
                     }
                     catch (Exception ex) { ex.ERROR($"DownloadImage_{Path.GetFileName(file)}"); }
                     finally
@@ -9594,6 +9714,19 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("UpdateTheme"); }
         }
 
+        public static bool IsVisible(this Window win)
+        {
+            var result = false;
+            if (win is MetroWindow)
+            {
+                result = win.Dispatcher.Invoke(() =>
+                {
+                    return (win.IsActive || (win.IsShown() && win.WindowState != WindowState.Minimized));
+                });
+            }
+            return (result);
+        }
+
         private static void Arrange(UIElement element, int width, int height)
         {
             element.Measure(new Size(width, height));
@@ -10507,7 +10640,7 @@ namespace PixivWPF.Common
 
                 setting = Application.Current.LoadSetting();
                 var main = Application.Current.GetMainWindow();
-                if (main is MainWindow && main.IsShown())
+                if (main is MainWindow && main.IsVisible())
                 {
                     await new Action(async () =>
                     {
@@ -10552,7 +10685,7 @@ namespace PixivWPF.Common
                 Regex.Replace(content, @"(\r\n|\n\r|\r|\n|\s)+", " ", RegexOptions.IgnoreCase).LOG(title, tag);
 
                 var main = Application.Current.GetMainWindow();
-                if (main is MainWindow && main.IsShown())
+                if (main is MainWindow && main.IsVisible())
                 {
                     setting = Application.Current.LoadSetting();
 
@@ -10646,9 +10779,9 @@ namespace PixivWPF.Common
             }
         }
 
-        public static bool IsCanceled(this Exception ex)
+        public static bool IsCanceled(this Exception ex, bool manual = false)
         {
-            return (ex is OperationCanceledException || ex is TaskCanceledException || ex is HttpRequestException || ex is WebException);
+            return ((!manual && ex is TaskCanceledException) || ex is OperationCanceledException || ex is HttpRequestException || ex is WebException);
         }
 
         public static bool IsNetworkError(this Exception ex)

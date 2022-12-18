@@ -97,6 +97,7 @@ namespace PixivWPF.Common
         public int Count { get; set; }
         public int Index { get; set; }
         public string UserID { get; set; }
+        public string UserAvatarUrl { get; set; }
         public Pixeez.Objects.UserBase User { get; set; }
         public string ID { get; set; }
         public Pixeez.Objects.Work Illust { get; set; }
@@ -837,6 +838,7 @@ namespace PixivWPF.Common
                             ID = illust.Id.ToString(),
                             User = illust.User,
                             UserID = illust.User == null ? string.Empty : illust.User.Id.ToString(),
+                            UserAvatarUrl = illust.User.GetAvatarUrl(),
                             Subject = title,
                             DisplayTitle = true,
                             Caption = illust.Caption,
@@ -900,6 +902,7 @@ namespace PixivWPF.Common
                         ID = nu == null ? string.Empty : nu.Id.ToString(),
                         User = nu,
                         UserID = nu == null ? string.Empty : nu.Id.ToString(),
+                        UserAvatarUrl = nu.GetAvatarUrl(),
                         Subject = contact == null ? $"{nu.Name}" : $"{nu.Name} - {contact.Twitter}",
                         DisplayTitle = true,
                         ToolTip = tooltip,
@@ -947,6 +950,7 @@ namespace PixivWPF.Common
                         ID = nu.Id.ToString(),
                         User = nu,
                         UserID = nu.Id.ToString(),
+                        UserAvatarUrl = nu.GetAvatarUrl(),
                         Subject = contact == null ? $"{nu.Name}" : $"{nu.Name} - {contact.Twitter}",
                         DisplayTitle = true,
                         ToolTip = tooltip,

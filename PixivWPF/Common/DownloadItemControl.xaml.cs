@@ -720,6 +720,16 @@ namespace PixivWPF.Common
             {
                 try
                 {
+                    setting = Application.Current.LoadSetting();
+                    if (miReduceJpegSizeTo.Tag == null)
+                    {
+                        miReduceJpegSizeTo.Tag = new App.MenuItemSliderData()
+                        {
+                            Value = setting.DownloadRecudeJpegQuality,
+                            ToolTip = @"Reduce Quality: {0:F0}"
+                        };
+                    }
+
                     Info = Tag as DownloadInfo;
                     Info.Instance = this;
 
@@ -1005,6 +1015,7 @@ namespace PixivWPF.Common
                 Length = Received = 0;
             }
             lastRates.Clear();
+            lastRate = 0;
             LastTotalElapsed = TotalElapsed;
             StartTick = DateTime.Now;
             UpdateProgress(force: true);
@@ -1040,6 +1051,8 @@ namespace PixivWPF.Common
 
             setting = Application.Current.LoadSetting();
 
+            lastRates.Clear();
+            lastRate = 0;
             LastElapsed = TimeSpan.FromSeconds(0);
             lastReceived = 0;
 
@@ -1090,6 +1103,7 @@ namespace PixivWPF.Common
         {
             string result = string.Empty;
 
+            setting = Application.Current.LoadSetting();
             if (await Downloading.WaitAsync(setting.DownloadWaitingTime))
             {
                 var retry = Math.Max(1, setting.DownloadFailAutoRetryCount) + 1;
@@ -1110,35 +1124,35 @@ namespace PixivWPF.Common
                     {
                         if (retry > 0)
                         {
-                            await Task.Delay(new Random().Next(250, 2500));
-                            FailReason = $"{ex.Message} Retry = {retry}";
-                            ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)} ({ex.GetType().ToString()})", no_stack: true);
+                            await Task.Delay(Application.Current.DownloadRetryDelay());
+                            FailReason = $"{ex.Message}({ex.GetType().ToString()}) Retry = {retry}";
+                            ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)}", no_stack: true);
                         }
                         else
                         {
-                            FailReason = $"{ex.Message} Retry Out!";
-                            ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)} ({ex.GetType().ToString()})", no_stack: true);
+                            FailReason = $"{ex.Message}({ex.GetType().ToString()}) Retry Out!";
+                            ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)}", no_stack: true);
                         }
                     }
                     catch (WarningException ex)
                     {
                         retry = 0;
-                        FailReason = ex.Message;
-                        ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)} ({ex.GetType().ToString()})", no_stack: true);
+                        FailReason = $"{ex.Message}({ex.GetType().ToString()})";
+                        ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)}", no_stack: true);
                     }
                     catch (Exception ex)
                     {
-                        if (ex.IsNetworkError() && retry > 0)
+                        if ((ex.IsNetworkError() || ex.IsCanceled(Canceling)) && retry > 0)
                         {
-                            await Task.Delay(new Random().Next(250, 2500));
-                            FailReason = $"{ex.Message} Retry = {retry}";
-                            ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)} ({ex.GetType().ToString()})", no_stack: true);
+                            await Task.Delay(Application.Current.DownloadRetryDelay());
+                            FailReason = $"{ex.Message}({ex.GetType().ToString()}) Retry = {retry}";
+                            ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)}", no_stack: true);
                         }
                         else
                         {
                             retry = 0;
-                            FailReason = ex.Message;
-                            ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)} ({ex.GetType().ToString()})");
+                            FailReason = $"{ex.Message}({ex.GetType().ToString()})"; ;
+                            ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)}");
                         }
                     }
                     finally
@@ -1344,7 +1358,7 @@ namespace PixivWPF.Common
             var basename = Path.GetFileName(FileName);
             var msg_title = $"Warnning ({basename})";
             var msg_content = "Overwrite exists?";
-            if (msg_title.IsMessagePopup(msg_content)) { State = DownloadState.Finished; return; }
+            if (msg_title.IsMessagePopup(msg_content)) { State = DownloadState.Finished; Received = Length; return; }
 
             bool delta = true;
             if (File.Exists(FileName) && (_DownloadBuffer == null || _DownloadBuffer.Length <= 0))
@@ -1431,7 +1445,7 @@ namespace PixivWPF.Common
             InitializeComponent();
             setting = Application.Current.LoadSetting();
 
-            Info = new DownloadInfo() { Instance = this };
+            Info = new DownloadInfo() { Instance = this, SaveAsJPEG = setting.DownloadAutoReduceToJpeg, Received = 0, Length = 0 };
 
             PART_SaveAsJPEG.IsOn = Info.SaveAsJPEG;
 
@@ -1445,7 +1459,7 @@ namespace PixivWPF.Common
             InitializeComponent();
             setting = Application.Current.LoadSetting();
 
-            Info = new DownloadInfo() { Instance = this, SaveAsJPEG = jpeg };
+            Info = new DownloadInfo() { Instance = this, SaveAsJPEG = jpeg, Received = 0, Length = 0 };
 
             PART_SaveAsJPEG.IsOn = Info.SaveAsJPEG;
 
@@ -1465,7 +1479,7 @@ namespace PixivWPF.Common
             if (info is DownloadInfo)
                 Info = info;
             else
-                Info = new DownloadInfo() { Instance = this };
+                Info = new DownloadInfo() { Instance = this, SaveAsJPEG = setting.DownloadAutoReduceToJpeg, Received = 0, Length = 0 };
 
             Info.Instance = this;
 
@@ -1646,6 +1660,11 @@ namespace PixivWPF.Common
             {
                 Commands.ReduceJpeg.Execute(FileName);
             }
+            else if (sender == miReduceJpegSizeTo)
+            {
+                var cq = miReduceJpegSizeTo.Tag is App.MenuItemSliderData ? (int)(miReduceJpegSizeTo.Tag as App.MenuItemSliderData).Value : setting.DownloadRecudeJpegQuality;
+                Commands.ReduceJpeg.Execute(new Tuple<string, int>(FileName, cq));
+            }
             else if (sender == PART_SaveAsJPEG)
             {
                 if (State == DownloadState.Finished)
@@ -1654,5 +1673,55 @@ namespace PixivWPF.Common
                     SaveAsJPEG = PART_SaveAsJPEG.IsOn;
             }
         }
+
+//        private void ReduceToQuality_MouseWheel(object sender, MouseWheelEventArgs e)
+//        {
+//            try
+//            {
+//                Dispatcher.InvokeAsync(() =>
+//                {
+//                    if (IsLoaded)
+//                    {
+//                        var value = ReduceToQuality.Value;
+//                        var m = value % ReduceToQuality.LargeChange;
+//                        var offset = 0.0;
+//                        if (e.Delta < 0)
+//                        {
+//                            m = m == 0 ? ReduceToQuality.LargeChange : ReduceToQuality.LargeChange - m;
+//                            offset = value + m;
+//                        }
+//                        else if (e.Delta > 0)
+//                        {
+//                            m = m == 0 ? ReduceToQuality.LargeChange : m;
+//                            offset = value - m;
+//                        }
+//                        ReduceToQuality.Value = offset;
+//#if DEBUG
+//                        System.Diagnostics.Debug.WriteLine($"{e.Delta}, {m}, {offset}");
+//#endif
+//                    }
+//                });
+//            }
+//            catch (Exception ex) { ex.ERROR("ReduceToQuality"); }
+//        }
+
+//        private void ReduceToQuality_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+//        {
+//            try
+//            {
+//                Dispatcher.InvokeAsync(() =>
+//                {
+//                    if (IsLoaded)
+//                    {
+//                        var quality = Convert.ToInt32(ReduceToQuality.Value);
+//                        ReduceToQuality.ToolTip = $"Reduce Quality: { quality }";
+//                        ReduceToQualityValue.Text = $"{ quality }";
+//                        ReduceToQualityValue.ToolTip = ReduceToQuality.ToolTip;
+//                        ReduceJpegSizeToPanel.ToolTip = ReduceToQuality.ToolTip;
+//                    }
+//                });
+//            }
+//            catch (Exception ex) { ex.ERROR("ReduceToQuality"); }
+//        }
     }
 }

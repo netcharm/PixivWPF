@@ -73,6 +73,60 @@
                     </Style>
                 </Style.Resources>
             </Style>
+
+            <ControlTemplate x:Key="MenuItemWithSlider" TargetType="{x:Type MenuItem}">
+                <Border x:Name="PART_SliderBorder"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}">
+                    <Grid x:Name="PART_SliderPanel" x:Uid="PART_SliderPanel" HorizontalAlignment="Stretch" VerticalAlignment="Center" >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIconColumnGroup"/>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="MenuTextColumnGroup"/>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIGTColumnGroup"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <ContentPresenter Grid.Column="0" x:Name="PART_SliderIcon" x:Uid="PART_SliderIcon" Margin="4,0,6,0" MinWidth="17" VerticalAlignment="Center" ContentSource="Icon" />
+                        <ContentPresenter  Grid.Column="1" x:Name="PART_SliderLabel" x:Uid="PART_SliderLabel" Margin="4,0,6,0" VerticalAlignment="Center" ContentSource="Header" />
+                        <ContentPresenter Grid.Column="2" x:Name="PART_SliderIGTHost" x:Uid="PART_SliderIGTHost" Margin="8,1,8,1" VerticalAlignment="Center" ContentSource="InputGestureText" />
+                        <Slider Grid.Column="3" x:Name="PART_Slider" x:Uid="PART_Slider" MinWidth="96" MaxWidth="128" Margin="4,0"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                            TickFrequency="1" TickPlacement="None" SmallChange="1" LargeChange="5" IsSnapToTickEnabled="True"
+                            Minimum="50" Maximum="100" Value="75" Tag="{Binding Tag, Mode=OneWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
+                            SourceUpdated="MenuItemSlider_TargetUpdated" TargetUpdated="MenuItemSlider_TargetUpdated"
+                            ValueChanged="MenuItemSlider_ValueChanged" MouseWheel="MenuItemSlider_MouseWheel" >
+                            <!--<Slider.ToolTip>
+                                <ToolTip Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}" ContentStringFormat="Value: {0:F0}" />
+                            </Slider.ToolTip>-->
+                        </Slider>
+                        <TextBlock Grid.Column="4" x:Name="PART_SliderValue" x:Uid="PART_SliderValue" Width="36" Margin="8,0,0,0"
+                            HorizontalAlignment="Right" VerticalAlignment="Center" Text="85"/>
+                    </Grid>
+                </Border>
+            </ControlTemplate>
+
+            <DataTemplate x:Key="MenuItemWithSliderHeader">
+                <Grid x:Name="PART_SliderPanel" x:Uid="PART_HeaderPanel" HorizontalAlignment="Stretch" VerticalAlignment="Center" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="MenuTextColumnGroup"/>
+                        <ColumnDefinition Width="*"  SharedSizeGroup="MenuTextColumnGroup"/>
+                        <ColumnDefinition Width="Auto"  SharedSizeGroup="MenuTextColumnGroup"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" x:Name="PART_SliderLabel" x:Uid="PART_SliderLabel" VerticalAlignment="Center" Text="{Binding Header, RelativeSource={RelativeSource TemplatedParent} }" />
+                    <Slider Grid.Column="1" x:Name="PART_Slider" x:Uid="PART_Slider" MinWidth="96" MaxWidth="128" Margin="4,0"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                        TickFrequency="1" TickPlacement="None" SmallChange="1" LargeChange="5" IsSnapToTickEnabled="True"
+                        Minimum="50" Maximum="100" Value="85" ValueChanged="MenuItemSlider_ValueChanged" MouseWheel="MenuItemSlider_MouseWheel" >
+                        <!--<Slider.ToolTip>
+                            <ToolTip Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}" ContentStringFormat="Reduce Quality: {0:F0}" />
+                        </Slider.ToolTip>-->
+                    </Slider>
+                    <TextBlock Grid.Column="2" x:Name="PART_SliderValue" x:Uid="PART_SliderValue" Width="36" Margin="8,0,0,0"
+                        HorizontalAlignment="Right" VerticalAlignment="Center" Text="85"/>
+                </Grid>
+            </DataTemplate>
+            
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -2382,11 +2382,48 @@ namespace PixivWPF.Common
                         }
                     }
                 }
+                else if (obj is Tuple<string, int>)
+                {
+                    var target = obj as Tuple<string, int>;
+                    var str = target.Item1;
+                    var q = Math.Max(50, Math.Min(100, target.Item2));
+                    if (!string.IsNullOrEmpty(str))
+                    {
+                        if (File.Exists(str))
+                        {
+                            var id = str.GetIllustId();
+                            var idx = str.GetIllustPageIndex();
+                            var illust = id.FindIllust();
+                            await str.ReduceImageFileSize("jpg", keep_name: keep_name, quality: q, force: force);
+                        }
+                        else
+                        {
+                            var illust = $"{str}".FindIllust();
+                            if (illust.IsWork()) ReduceJpeg.Execute(new Tuple<Pixeez.Objects.Work, int>(illust, q));
+                        }
+                    }
+                }
                 else if (obj is Pixeez.Objects.Work)
                 {
                     var illust = obj as Pixeez.Objects.Work;
                     var item = illust.WorkItem();
                     ReduceJpeg.Execute(item);
+                }
+                else if (obj is Tuple<Pixeez.Objects.Work, int>)
+                {
+                    var target = obj as Tuple<Pixeez.Objects.Work, int>;
+                    var illust = target.Item1;
+                    var q = target.Item2;
+                    var item = illust.WorkItem();
+                    ReduceJpeg.Execute(new Tuple<PixivItem, int>(item, q));
+                }
+                else if (obj is KeyValuePair<Pixeez.Objects.Work, int>)
+                {
+                    var target = (KeyValuePair<Pixeez.Objects.Work, int>)obj;
+                    var illust = target.Key;
+                    var q = target.Value;
+                    var item = illust.WorkItem();
+                    ReduceJpeg.Execute(new Tuple<PixivItem, int>(item, q));
                 }
                 else if (obj is IEnumerable<Pixeez.Objects.Work>)
                 {
@@ -2397,6 +2434,13 @@ namespace PixivWPF.Common
                 {
                     var type = setting.ConvertKeepName || keep_name ? DownloadType.ConvertKeepName : DownloadType.None;
                     var item = new KeyValuePair<PixivItem, DownloadType>(obj, type);
+                    ReduceJpeg.Execute(item);
+                }
+                else if (obj is Tuple<PixivItem, int>)
+                {
+                    var type = setting.ConvertKeepName || keep_name ? DownloadType.ConvertKeepName : DownloadType.None;
+                    var target = obj as Tuple<PixivItem, int>;
+                    var item = new Tuple<PixivItem, DownloadType, int>(target.Item1, type, target.Item2);
                     ReduceJpeg.Execute(item);
                 }
                 else if (obj is KeyValuePair<PixivItem, DownloadType>)
@@ -2432,6 +2476,114 @@ namespace PixivWPF.Common
                         }
                     }
                 }
+                else if (obj is Tuple<PixivItem, DownloadType, int>)
+                {
+                    var kv = obj as Tuple<PixivItem, DownloadType, int>;
+                    var item = kv.Item1;
+                    var type = kv.Item2;
+                    var q = Math.Max(50, Math.Min(100, kv.Item3));
+                    keep_name = setting.ConvertKeepName || type.HasFlag(DownloadType.ConvertKeepName) ? true : false;
+                    if (item.IsWork())
+                    {
+                        var illust = item.Illust;
+
+                        string fp = string.Empty;
+
+                        if (item.HasPages() && item.IsNotPage())
+                        {
+                            for (var i = 0; i < item.Count; i++)
+                            {
+                                if (illust.IsDownloadedAsync(out fp, i, touch: false))
+                                {
+                                    await fp.ReduceImageFileSize("jpg", keep_name: keep_name, quality: q, force: force);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (item.IsPage() || item.IsPages())
+                                illust.IsDownloadedAsync(out fp, item.Index, touch: false);
+                            else
+                                illust.IsPartDownloadedAsync(out fp, touch: false);
+
+                            await fp.ReduceImageFileSize("jpg", keep_name: keep_name, quality: q, force: force);
+                        }
+                    }
+                }
+                else if (obj is Tuple<KeyValuePair<PixivItem, DownloadType>, int>)
+                {
+                    var kv = obj as Tuple<KeyValuePair<PixivItem, DownloadType>, int>;
+                    var item = kv.Item1.Key;
+                    var type = kv.Item1.Value;
+                    var q = kv.Item2;
+
+                    await new Action(() =>
+                    {
+                        ReduceJpeg.Execute(new Tuple<PixivItem, DownloadType, int>(item, type, q));
+                    }).InvokeAsync();
+                }
+                else if (obj is Tuple<ImageListGrid, DownloadType>)
+                {
+                    var kv = obj as Tuple<ImageListGrid, DownloadType>;
+                    var gallery = kv.Item1;
+                    var type = kv.Item2;
+
+                    if (gallery.Count > 0)
+                    {
+                        await new Action(async () =>
+                        {
+                            foreach (var item in gallery.GetSelected())
+                            {
+                                await new Action(() =>
+                                {
+                                    ReduceJpeg.Execute(new KeyValuePair<PixivItem, DownloadType>(item, type));
+                                }).InvokeAsync();
+                            }
+                        }).InvokeAsync();
+                    }
+                }
+                else if (obj is Tuple<ImageListGrid, DownloadType, int>)
+                {
+                    var kv = obj as Tuple<ImageListGrid, DownloadType, int>;
+                    var gallery = kv.Item1;
+                    var type = kv.Item2;
+                    var q = kv.Item3;
+
+                    if (gallery.Count > 0)
+                    {
+                        await new Action(async () =>
+                        {
+                            foreach (var item in gallery.GetSelected())
+                            {
+                                await new Action(() =>
+                                {
+                                    ReduceJpeg.Execute(new Tuple<PixivItem, DownloadType, int>(item, type, q));
+                                }).InvokeAsync();
+                            }
+                        }).InvokeAsync();
+                    }
+                }
+                else if (obj is Tuple<KeyValuePair<ImageListGrid, DownloadType>, int>)
+                {
+                    var kv = obj as Tuple<KeyValuePair<ImageListGrid, DownloadType>, int>;
+                    var gallery = kv.Item1.Key;
+                    var type = kv.Item1.Value;
+                    var q = kv.Item2;
+
+                    if (gallery.Count > 0)
+                    {
+                        await new Action(async () =>
+                        {
+                            foreach (var item in gallery.GetSelected())
+                            {
+                                await new Action(() =>
+                                {
+                                    ReduceJpeg.Execute(new Tuple<PixivItem, DownloadType, int>(item, type, q));
+                                }).InvokeAsync();
+                            }
+                        }).InvokeAsync();
+                    }
+                }
                 else if (obj is KeyValuePair<ImageListGrid, DownloadType>)
                 {
                     var kv = (KeyValuePair<ImageListGrid, DownloadType>)obj;
@@ -2459,6 +2611,91 @@ namespace PixivWPF.Common
                     {
                         var type = setting.ConvertKeepName || Keyboard.Modifiers == ModifierKeys.Shift ? DownloadType.ConvertKeepName : DownloadType.None;
                         ReduceJpeg.Execute(new KeyValuePair<ImageListGrid, DownloadType>(gallery, type));
+                    }
+                }
+                else if (obj is IList<KeyValuePair<PixivItem, DownloadType>>)
+                {
+                    var gallery = obj as IList<KeyValuePair<PixivItem, DownloadType>>;
+                    if (gallery.Count > 0)
+                    {
+                        await new Action(async () =>
+                        {
+                            foreach (var item in gallery)
+                            {
+                                await new Action(() =>
+                                {
+                                    ReduceJpeg.Execute(item);
+                                }).InvokeAsync();
+                            }
+                        }).InvokeAsync();
+                    }
+                }
+                else if (obj is KeyValuePair<IList<PixivItem>, DownloadType>)
+                {
+                    var gallery = (KeyValuePair<IList<PixivItem>, DownloadType>)obj;
+                    if (gallery.Key is IList<PixivItem> && gallery.Key.Count > 0)
+                    {
+                        await new Action(async () =>
+                        {
+                            foreach (var item in gallery.Key)
+                            {
+                                await new Action(() =>
+                                {
+                                    ReduceJpeg.Execute(new KeyValuePair<PixivItem, DownloadType>(item, gallery.Value));
+                                }).InvokeAsync();
+                            }
+                        }).InvokeAsync();
+                    }
+                }
+                else if (obj is Tuple<IList<PixivItem>, DownloadType>)
+                {
+                    var gallery = obj as Tuple<IList<PixivItem>, DownloadType>;
+                    if (gallery.Item1 is IList<PixivItem> && gallery.Item1.Count > 0)
+                    {
+                        await new Action(async () =>
+                        {
+                            foreach (var item in gallery.Item1)
+                            {
+                                await new Action(() =>
+                                {
+                                    ReduceJpeg.Execute(new KeyValuePair<PixivItem, DownloadType>(item, gallery.Item2));
+                                }).InvokeAsync();
+                            }
+                        }).InvokeAsync();
+                    }
+                }
+                else if (obj is Tuple<IList<PixivItem>, DownloadType, int>)
+                {
+                    var gallery = obj as Tuple<IList<PixivItem>, DownloadType, int>;
+                    if (gallery.Item1 is IList<PixivItem> && gallery.Item1.Count > 0)
+                    {
+                        await new Action(async () =>
+                        {
+                            foreach (var item in gallery.Item1)
+                            {
+                                await new Action(() =>
+                                {
+                                    ReduceJpeg.Execute(new Tuple<PixivItem, DownloadType, int>(item, gallery.Item2, gallery.Item3));
+                                }).InvokeAsync();
+                            }
+                        }).InvokeAsync();
+                    }
+                }
+                else if (obj is IList<Tuple<PixivItem, DownloadType, int>>)
+                {
+                    var gallery = obj as IList<Tuple<PixivItem, DownloadType, int>>;
+                    if (gallery.Count > 0)
+                    {
+                        await new Action(async () =>
+                        {
+                            foreach (var item in gallery)
+                            {
+                                await new Action(() =>
+                                {
+                                    ReduceJpeg.Execute(item);
+                                }).InvokeAsync();
+                            }
+                        }).InvokeAsync();
                     }
                 }
                 else if (obj is IList<PixivItem>)

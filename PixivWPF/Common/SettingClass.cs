@@ -1104,6 +1104,28 @@ namespace PixivWPF.Common
             }
         }
 
+        private int download_fail_auto_retry_delay_min = 2500;
+        public int DownloadFailAutoRetryDelayMin
+        {
+            get { return (Cache is Setting ? Cache.download_fail_auto_retry_delay_min : download_fail_auto_retry_delay_min); }
+            set
+            {
+                download_fail_auto_retry_delay_min = Math.Max(100, value);
+                if (Cache is Setting) Cache.download_fail_auto_retry_delay_min = download_fail_auto_retry_delay_min;
+            }
+        }
+
+        private int download_fail_auto_retry_delay_max = 7500;
+        public int DownloadFailAutoRetryDelayMax
+        {
+            get { return (Cache is Setting ? Cache.download_fail_auto_retry_delay_max : download_fail_auto_retry_delay_max); }
+            set
+            {
+                download_fail_auto_retry_delay_max = Math.Max(100, value);
+                if (Cache is Setting) Cache.download_fail_auto_retry_delay_max = download_fail_auto_retry_delay_max;
+            }
+        }
+
         private int download_tasks_max_simultaneous = 20;
         public int DownloadMaxSimultaneous
         {

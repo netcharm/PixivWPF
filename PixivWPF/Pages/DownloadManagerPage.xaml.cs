@@ -89,6 +89,7 @@ namespace PixivWPF.Pages
             {
                 await new Action(() =>
                 {
+                    //if (IsLoaded && ParentWindow.IsVisible())
                     if (IsLoaded)
                     {
                         setting = Application.Current.LoadSetting();
@@ -104,7 +105,7 @@ namespace PixivWPF.Pages
                                 jobs_count++;
                             }
                         }
-                        UpdateStateInfo();
+                        if (ParentWindow.IsVisible()) UpdateStateInfo();
                     }
                 }).InvokeAsync();
             }
@@ -118,7 +119,8 @@ namespace PixivWPF.Pages
                 if (autoTaskTimer == null)
                 {
                     var setting = Application.Current.LoadSetting();
-                    autoTaskTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromSeconds(setting.ToastTimeout), IsEnabled = false };
+                    autoTaskTimer = new DispatcherTimer(DispatcherPriority.Normal) { Interval = TimeSpan.FromSeconds(setting.ToastTimeout), IsEnabled = false };
+                    autoTaskTimer.Interval = TimeSpan.FromSeconds(1);
                     autoTaskTimer.Tick += Timer_Tick;
                     autoTaskTimer.Start();
                 }
@@ -201,15 +203,17 @@ namespace PixivWPF.Pages
                                 items.Remove(remove[i]);
                             }
 
-                            var idle = items.Where(o => o.State == DownloadState.Idle );
+                            var idle = items.Where(o => o.State == DownloadState.Idle);
                             var downloading = items.Where(o => o.State == DownloadState.Downloading);
-                            var failed = items.Where(o => o.State == DownloadState.Failed );
-                            var finished = items.Where(o => o.State == DownloadState.Finished );
-                            var nonexists = items.Where(o => o.State == DownloadState.NonExists );
+                            var failed = items.Where(o => o.State == DownloadState.Failed);
+                            var finished = items.Where(o => o.State == DownloadState.Finished);
+                            var nonexists = items.Where(o => o.State == DownloadState.NonExists);
 
-                            PART_DownloadState.Text = $"Total: {items.Count()}, Idle: {idle.Count()}, Downloading: {downloading.Count()}, Finished: {finished.Count()}, Failed: {failed.Count()}, Non-Exists: {nonexists.Count()}";
+                            var rates = downloading.Sum(o => o.DownRateCurrent);
+
+                            PART_DownloadState.Text = $"Total: {items.Count()}, Idle: {idle.Count()}, Downloading: {downloading.Count()}, Finished: {finished.Count()}, Failed: {failed.Count()}, Non-Exists: {nonexists.Count()}, Rate: {rates.SmartSpeedRate()}";
                         }
-                        catch (Exception ex) { ex.ERROR(); }
+                        catch (Exception ex) { ex.ERROR("UpdateDownloadManagerStateInfo"); }
                         finally
                         {
                             if (CanUpdateState is SemaphoreSlim && CanUpdateState.CurrentCount <= 0) CanUpdateState.Release();

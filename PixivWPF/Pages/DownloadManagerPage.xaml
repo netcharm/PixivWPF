@@ -138,7 +138,7 @@
             ItemTemplate="{DynamicResource DownloadItemTemplate}"
             SelectionMode="Extended"
             Style="{DynamicResource MahApps.Styles.ListView.Virtualized}"
-            VirtualizingPanel.CacheLength ="150"
+            VirtualizingPanel.CacheLength ="240"
             VirtualizingPanel.CacheLengthUnit="Item"
             VirtualizingPanel.IsVirtualizing="True"
             VirtualizingPanel.IsContainerVirtualizable="True"
