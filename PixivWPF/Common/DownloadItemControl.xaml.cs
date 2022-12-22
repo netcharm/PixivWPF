@@ -247,6 +247,15 @@ namespace PixivWPF.Common
         public double DownRateCurrent { get; set; } = 0;
         public double DownRateAverage { get; set; } = 0;
 
+        private object _tag_ = null;
+        public object Tag
+        {
+            get { return (_tag_); }
+            set { _tag_ = value; NotifyPropertyChanged("Tag"); }
+        }
+
+        public App.MenuItemSliderData CustomReduceQuality { get; set; } = Application.Current.GetDefaultReduceData();
+
         public DownloadInfo()
         {
             setting = Application.Current.LoadSetting();
@@ -415,7 +424,7 @@ namespace PixivWPF.Common
             get { return (Info is DownloadInfo ? Info.JPEGQuality : setting.DownloadConvertJpegQuality); }
             set { if (Info is DownloadInfo) Info.JPEGQuality = value; }
         }
-        
+
         public ImageSource Thumbnail
         {
             get { return (Info is DownloadInfo ? Info.Thumbnail : null); }
@@ -720,16 +729,6 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    setting = Application.Current.LoadSetting();
-                    if (miReduceJpegSizeTo.Tag == null)
-                    {
-                        miReduceJpegSizeTo.Tag = new App.MenuItemSliderData()
-                        {
-                            Value = setting.DownloadRecudeJpegQuality,
-                            ToolTip = @"Reduce Quality: {0:F0}"
-                        };
-                    }
-
                     Info = Tag as DownloadInfo;
                     Info.Instance = this;
 
@@ -1013,11 +1012,11 @@ namespace PixivWPF.Common
                 Received = 0;
                 lastReceived = 0;
                 Length = Received = 0;
+                StartTick = DateTime.Now;
             }
             lastRates.Clear();
             lastRate = 0;
-            LastTotalElapsed = TotalElapsed;
-            StartTick = DateTime.Now;
+            LastTotalElapsed = TotalElapsed;            
             UpdateProgress(force: true);
         }
 
@@ -1193,7 +1192,7 @@ namespace PixivWPF.Common
                 {
                     FailReason = ex.Message;
                     ex.ERROR($"DownloadDirectAsync_{Info.Name ?? Path.GetFileNameWithoutExtension(FileName)}", no_stack: true);
-                }                
+                }
                 catch (Exception ex)
                 {
                     FailReason = ex.Message;
@@ -1292,7 +1291,7 @@ namespace PixivWPF.Common
                 {
                     await new Action(() =>
                     {
-                        StartTick = DateTime.Now;
+                        //StartTick = DateTime.Now;
                         State = DownloadState.Writing;
                         var fi = new FileInfo(source);
                         Length = Received = fi.Length;
@@ -1443,6 +1442,7 @@ namespace PixivWPF.Common
         public DownloadItem()
         {
             InitializeComponent();
+
             setting = Application.Current.LoadSetting();
 
             Info = new DownloadInfo() { Instance = this, SaveAsJPEG = setting.DownloadAutoReduceToJpeg, Received = 0, Length = 0 };
@@ -1457,6 +1457,7 @@ namespace PixivWPF.Common
         public DownloadItem(string url, bool autostart = true, bool jpeg = false)
         {
             InitializeComponent();
+
             setting = Application.Current.LoadSetting();
 
             Info = new DownloadInfo() { Instance = this, SaveAsJPEG = jpeg, Received = 0, Length = 0 };
@@ -1474,6 +1475,7 @@ namespace PixivWPF.Common
         public DownloadItem(DownloadInfo info)
         {
             InitializeComponent();
+
             setting = Application.Current.LoadSetting();
 
             if (info is DownloadInfo)
@@ -1485,7 +1487,7 @@ namespace PixivWPF.Common
 
             PART_SaveAsJPEG.IsOn = Info.SaveAsJPEG;
 
-            InitProgress();
+            InitProgress();           
 
             CheckProperties();
         }
@@ -1575,6 +1577,15 @@ namespace PixivWPF.Common
                 Info.ToolTip = string.Join(Environment.NewLine, Info.GetDownloadInfo());
                 ToolTip = Info.ToolTip;
             }
+        }
+        
+        private void Download_ContextMenu_Opened(object sender, RoutedEventArgs e)
+        {
+            if (miReduceJpegSizeTo.Tag == null)
+            {
+                miReduceJpegSizeTo.Tag = Info.CustomReduceQuality is App.MenuItemSliderData ? Info.CustomReduceQuality : Application.Current.GetDefaultReduceData();
+            }
+            Info.CustomReduceQuality = miReduceJpegSizeTo.Tag as App.MenuItemSliderData;
         }
 
         private void PART_Download_TargetUpdated(object sender, DataTransferEventArgs e)
@@ -1673,55 +1684,5 @@ namespace PixivWPF.Common
                     SaveAsJPEG = PART_SaveAsJPEG.IsOn;
             }
         }
-
-//        private void ReduceToQuality_MouseWheel(object sender, MouseWheelEventArgs e)
-//        {
-//            try
-//            {
-//                Dispatcher.InvokeAsync(() =>
-//                {
-//                    if (IsLoaded)
-//                    {
-//                        var value = ReduceToQuality.Value;
-//                        var m = value % ReduceToQuality.LargeChange;
-//                        var offset = 0.0;
-//                        if (e.Delta < 0)
-//                        {
-//                            m = m == 0 ? ReduceToQuality.LargeChange : ReduceToQuality.LargeChange - m;
-//                            offset = value + m;
-//                        }
-//                        else if (e.Delta > 0)
-//                        {
-//                            m = m == 0 ? ReduceToQuality.LargeChange : m;
-//                            offset = value - m;
-//                        }
-//                        ReduceToQuality.Value = offset;
-//#if DEBUG
-//                        System.Diagnostics.Debug.WriteLine($"{e.Delta}, {m}, {offset}");
-//#endif
-//                    }
-//                });
-//            }
-//            catch (Exception ex) { ex.ERROR("ReduceToQuality"); }
-//        }
-
-//        private void ReduceToQuality_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-//        {
-//            try
-//            {
-//                Dispatcher.InvokeAsync(() =>
-//                {
-//                    if (IsLoaded)
-//                    {
-//                        var quality = Convert.ToInt32(ReduceToQuality.Value);
-//                        ReduceToQuality.ToolTip = $"Reduce Quality: { quality }";
-//                        ReduceToQualityValue.Text = $"{ quality }";
-//                        ReduceToQualityValue.ToolTip = ReduceToQuality.ToolTip;
-//                        ReduceJpegSizeToPanel.ToolTip = ReduceToQuality.ToolTip;
-//                    }
-//                });
-//            }
-//            catch (Exception ex) { ex.ERROR("ReduceToQuality"); }
-//        }
     }
 }

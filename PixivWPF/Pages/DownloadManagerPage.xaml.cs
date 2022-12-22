@@ -196,22 +196,24 @@ namespace PixivWPF.Pages
                     {
                         try
                         {
-                            var remove = items.Where(o => o.State == DownloadState.Remove).ToList();
-                            for (int i = remove.Count - 1; i >= 0; i--)
+                            var none = new List<DownloadInfo>();
+                            var cats = items.GroupBy(i => i.State).ToDictionary(i => i.Key, i => i.ToList());
+                            var idle = cats.ContainsKey(DownloadState.Idle) ? cats[DownloadState.Idle] : none;
+                            var remove = cats.ContainsKey(DownloadState.Remove) ? cats[DownloadState.Remove] : none;
+                            var failed = cats.ContainsKey(DownloadState.Failed) ? cats[DownloadState.Failed] : none;
+                            var finished = cats.ContainsKey(DownloadState.Finished) ? cats[DownloadState.Finished] : none;
+                            var nonexists = cats.ContainsKey(DownloadState.NonExists) ? cats[DownloadState.NonExists] : none;
+                            var downloading = cats.ContainsKey(DownloadState.Downloading) ? cats[DownloadState.Downloading] : none;
+
+                            var rates = downloading.Sum(o => o.DownRateCurrent);
+
+                            PART_DownloadState.Text = $"Total: {items.Count() - remove.Count()}, Idle: {idle.Count()}, Downloading: {downloading.Count()}, Finished: {finished.Count()}, Failed: {failed.Count()}, Non-Exists: {nonexists.Count()}, Rate: {rates.SmartSpeedRate()}";
+
+                            for (int i = remove.Count() - 1; i >= 0; i--)
                             {
                                 remove[i].Dispose();
                                 items.Remove(remove[i]);
                             }
-
-                            var idle = items.Where(o => o.State == DownloadState.Idle);
-                            var downloading = items.Where(o => o.State == DownloadState.Downloading);
-                            var failed = items.Where(o => o.State == DownloadState.Failed);
-                            var finished = items.Where(o => o.State == DownloadState.Finished);
-                            var nonexists = items.Where(o => o.State == DownloadState.NonExists);
-
-                            var rates = downloading.Sum(o => o.DownRateCurrent);
-
-                            PART_DownloadState.Text = $"Total: {items.Count()}, Idle: {idle.Count()}, Downloading: {downloading.Count()}, Finished: {finished.Count()}, Failed: {failed.Count()}, Non-Exists: {nonexists.Count()}, Rate: {rates.SmartSpeedRate()}";
                         }
                         catch (Exception ex) { ex.ERROR("UpdateDownloadManagerStateInfo"); }
                         finally
@@ -408,6 +410,14 @@ namespace PixivWPF.Pages
             }
         }
 
+        private void DownloadItems_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DownloadItems.SelectedItem is DownloadInfo)
+            {
+                (DownloadItems.SelectedItem as DownloadInfo).UpdateInfo();
+            }
+        }
+
         private void PART_ChangeFolder_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.SaveTarget(string.Empty);
@@ -569,13 +579,5 @@ namespace PixivWPF.Pages
                 Commands.CopyDownloadInfo.Execute(GetDownloadInfo());
             }).InvokeAsync(true);
         }
-
-        private void DownloadItems_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (DownloadItems.SelectedItem is DownloadInfo)
-            {
-                (DownloadItems.SelectedItem as DownloadInfo).UpdateInfo();
-            }
-        }
-    }
+     }
 }

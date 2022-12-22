@@ -99,30 +99,30 @@ namespace PixivWPF
         {
             try
             {
-                Dispatcher.InvokeAsync(() =>
+                if (sender is Slider)
                 {
-                    if (sender is Slider)
-                    {
-                        var ReduceToQuality = sender as Slider;
-                        var value = ReduceToQuality.Value;
-                        var m = value % ReduceToQuality.LargeChange;
+                    var slider = sender as Slider;
+                    slider.Dispatcher.InvokeAsync(() =>
+                    {                        
+                        var value = slider.Value;
+                        var m = value % slider.LargeChange;
                         var offset = 0.0;
                         if (e.Delta < 0)
                         {
-                            m = m == 0 ? ReduceToQuality.LargeChange : ReduceToQuality.LargeChange - m;
+                            m = m == 0 ? slider.LargeChange : slider.LargeChange - m;
                             offset = value + m;
                         }
                         else if (e.Delta > 0)
                         {
-                            m = m == 0 ? ReduceToQuality.LargeChange : m;
+                            m = m == 0 ? slider.LargeChange : m;
                             offset = value - m;
                         }
-                        ReduceToQuality.Value = offset;
+                        slider.Value = offset;
 #if DEBUG
                         System.Diagnostics.Debug.WriteLine($"{e.Delta}, {m}, {offset}");
 #endif
-                    }
-                });
+                    });
+                }
             }
             catch (Exception ex) { ex.ERROR("MenuItemSlider"); }
         }
@@ -131,30 +131,31 @@ namespace PixivWPF
         {
             try
             {
-                Grid MenuSliderPanel = null;
+                Grid MenuPanel = null;
                 Slider MenuSlider = null;
-                TextBlock MenuSliderValue = null;
+                TextBlock MenuValue = null;
 
-                FrameworkElement item = sender is FrameworkElement ? sender as FrameworkElement : null;
-                MenuItem menuitem = item is FrameworkElement ? item.TemplatedParent as MenuItem : null;
-                if (item is FrameworkElement && menuitem is MenuItem)
+                Slider slider = sender is Slider ? sender as Slider : null;
+                MenuItem menuitem = slider is Slider ? slider.TemplatedParent as MenuItem : null;
+                if (slider is Slider && menuitem is MenuItem)
                 {
-                    item.Dispatcher.InvokeAsync(() =>
+                    slider.Dispatcher.InvokeAsync(() =>
                     {
                         var obj = TryFindResource("MenuItemWithSlider");
                         if (obj is ControlTemplate)
                         {
-                            var panel = (obj as ControlTemplate).FindName("PART_SliderPanel", menuitem);
-                            var slider = (obj as ControlTemplate).FindName("PART_Slider", menuitem);
-                            var label =  (obj as ControlTemplate).FindName("PART_SliderLabel", menuitem);
-                            var value =  (obj as ControlTemplate).FindName("PART_SliderValue", menuitem);
+                            var template = obj as ControlTemplate;
+                            var m_panel = template.FindName("PART_SliderPanel", menuitem);
+                            var m_slider = template.FindName("PART_Slider", menuitem);
+                            var m_label =  template.FindName("PART_SliderLabel", menuitem);
+                            var m_value =  template.FindName("PART_SliderValue", menuitem);
 
-                            if (panel is Grid) MenuSliderPanel = panel as Grid;
-                            if (slider is Slider) MenuSlider = slider as Slider;
-                            if (value is TextBlock) MenuSliderValue = value as TextBlock;
+                            if (m_panel is Grid) MenuPanel = m_panel as Grid;
+                            if (m_slider is Slider) MenuSlider = m_slider as Slider;
+                            if (m_value is TextBlock) MenuValue = m_value as TextBlock;
                         }
 
-                        if (MenuSlider is Slider && MenuSliderValue is TextBlock && MenuSliderPanel is Grid)
+                        if (MenuSlider is Slider && MenuValue is TextBlock && MenuPanel is Grid)
                         {
                             var value = Convert.ToInt32(MenuSlider.Value);
 
@@ -168,9 +169,9 @@ namespace PixivWPF
                             }
                             else MenuSlider.ToolTip = $"{ value }";
 
-                            MenuSliderValue.Text = $"{ value }";
+                            MenuValue.Text = $"{ value }";
+                            MenuValue.ToolTip = MenuSlider.ToolTip;
                             menuitem.ToolTip = MenuSlider.ToolTip;
-                            MenuSliderValue.ToolTip = MenuSlider.ToolTip;
                         }
                     });
                 }
@@ -180,15 +181,18 @@ namespace PixivWPF
 
         private void MenuItemSlider_TargetUpdated(object sender, System.Windows.Data.DataTransferEventArgs e)
         {
-            if (sender is Slider && (sender as Slider).Tag == null && e.Property.Name.Equals("Tag"))
+            if (sender is Slider && (sender as Slider).Tag != null && e.Property.Name.Equals("Tag"))
             {
-                FrameworkElement item = sender is FrameworkElement ? sender as FrameworkElement : null;
-                MenuItem menuitem = item is FrameworkElement ? item.TemplatedParent as MenuItem : null;
-
-                if (menuitem is MenuItem && menuitem.Tag is MenuItemSliderData)
+                Slider slider = sender is Slider ? sender as Slider : null;
+                if (slider.Tag is MenuItemSliderData)
                 {
-                    var data = menuitem.Tag as MenuItemSliderData;
-                    (sender as Slider).Value = data.Value;
+                    slider.Dispatcher.Invoke(() => 
+                    {
+                        var data = slider.Tag as MenuItemSliderData;
+                        slider.Value = data.Value;
+                        slider.Minimum = data.Min;
+                        slider.Maximum = data.Max;
+                    });
                 }
             }
         }

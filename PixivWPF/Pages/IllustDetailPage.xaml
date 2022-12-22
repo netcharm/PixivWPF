@@ -320,41 +320,13 @@
                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Name="ActionReduceJpegSizeTo" x:Uid="ActionReduceJpegSizeTo" Click="ActionSaveIllust_Click" 
-                      Header="Quality To" Template="{DynamicResource MenuItemWithSlider}" >
+            <MenuItem x:Uid="ActionReduceJpegSizeTo" Header="Quality To" Click="ActionSaveIllust_Click" 
+                      Template="{DynamicResource MenuItemWithSlider}" >
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <!--<MenuItem x:Name="ActionReduceJpegSizeToAlt" x:Uid="ActionReduceJpegSizeTo0" Click="ActionSaveIllust_Click" 
-                      Header="Reduce Quality To" HeaderTemplate="{DynamicResource MenuItemWithSliderHeader}" >
-                <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </MenuItem.Icon>
-                <MenuItem.ToolTip>
-                    <ToolTip Content="{Binding Tag, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=MenuItem}, Mode=OneWay}" ContentStringFormat="Reduce Quality: {0:F0}" />
-                </MenuItem.ToolTip>
-            </MenuItem>-->
-            <!--<Grid x:Name="ReduceJpegSizeToPanel" x:Uid="ReduceJpegSizeToPanel" HorizontalAlignment="Stretch" VerticalAlignment="Center" >
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <MenuItem Grid.Column="0" x:Name="ActionReduceJpegSizeTo" x:Uid="ActionReduceJpegSizeTo" Header="Quality To" Click="ActionSaveIllust_Click" />
-                <Slider Grid.Column="1" x:Name="ReduceToQuality" x:Uid="ReduceToQuality" MinWidth="96" MaxWidth="128" Margin="4,0"
-                    HorizontalAlignment="Stretch" VerticalAlignment="Center"
-                    TickFrequency="1" TickPlacement="None" SmallChange="1" LargeChange="5" IsSnapToTickEnabled="True"
-                    Minimum="50" Maximum="100" Value="85" ValueChanged="ReduceToQuality_ValueChanged" MouseWheel="ReduceToQuality_MouseWheel" >
-                    <Slider.ToolTip>
-                        <ToolTip Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}" ContentStringFormat="Reduce Quality: {0:F0}" />
-                    </Slider.ToolTip>
-                </Slider>
-                <TextBlock Grid.Column="2" x:Name="ReduceToQualityValue" x:Uid="ReduceToQualityValue" Width="36" Margin="8,0,0,0"
-                    HorizontalAlignment="Right" VerticalAlignment="Center" Text="85"/>
-            </Grid>-->
             <Separator x:Uid="ActionDownloadedSep"/>
             <MenuItem x:Uid="ActionShowDownloadedMeta" Header="Show Downloaded Metadata" Click="ActionOpenIllust_Click">
                 <MenuItem.Icon>
@@ -577,6 +549,13 @@
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionReduceIllustsJpeg" Header="Reduce Downloaded JPEG Size" Click="ActionSaveIllusts_Click">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Uid="ActionReduceIllustsJpegSizeTo" Header="Quality To" Click="ActionSaveIllusts_Click" 
+                      Template="{DynamicResource MenuItemWithSlider}" >
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>

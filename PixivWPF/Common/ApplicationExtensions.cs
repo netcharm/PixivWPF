@@ -1042,26 +1042,30 @@ namespace PixivWPF.Common
                 {
                     foreach (Window win in app.Windows)
                     {
-                        if (win is MainWindow) continue;
-                        else if (win is ContentWindow)
+                        try
                         {
-                            if (win.Title.StartsWith(strDownloadTitle, StringComparison.CurrentCultureIgnoreCase))
+                            if (win is MainWindow) continue;
+                            else if (win is ContentWindow)
                             {
-                                if (win.Content is DownloadManagerPage)
+                                if (win.Title.StartsWith(strDownloadTitle, StringComparison.CurrentCultureIgnoreCase))
                                 {
-                                    var dm = win.Content as DownloadManagerPage;
-                                    titles.AddRange(dm.Unfinished());
+                                    if (win.Content is DownloadManagerPage)
+                                    {
+                                        var dm = win.Content as DownloadManagerPage;
+                                        titles.AddRange(dm.Unfinished());
+                                    }
                                 }
+                                //else if (win.Title.StartsWith("Search", StringComparison.CurrentCultureIgnoreCase)) continue;
+                                //else if (win.Title.StartsWith("Preview", StringComparison.CurrentCultureIgnoreCase)) continue;
+                                else if (win.Title.StartsWith(strLoginTitle, StringComparison.CurrentCultureIgnoreCase)) continue;
+                                else if (win.Title.StartsWith(strDropBoxTitle, StringComparison.CurrentCultureIgnoreCase)) continue;
+                                else if (win.Title.StartsWith(strPediaTitle, StringComparison.CurrentCultureIgnoreCase)) continue;
+                                else if (win.Title.StartsWith(strHistoryTitle, StringComparison.CurrentCultureIgnoreCase)) continue;
+                                else titles.Add(win.Title);
                             }
-                            //else if (win.Title.StartsWith("Search", StringComparison.CurrentCultureIgnoreCase)) continue;
-                            //else if (win.Title.StartsWith("Preview", StringComparison.CurrentCultureIgnoreCase)) continue;
-                            else if (win.Title.StartsWith(strLoginTitle, StringComparison.CurrentCultureIgnoreCase)) continue;
-                            else if (win.Title.StartsWith(strDropBoxTitle, StringComparison.CurrentCultureIgnoreCase)) continue;
-                            else if (win.Title.StartsWith(strPediaTitle, StringComparison.CurrentCultureIgnoreCase)) continue;
-                            else if (win.Title.StartsWith(strHistoryTitle, StringComparison.CurrentCultureIgnoreCase)) continue;
-                            else titles.Add(win.Title);
+                            else continue;
                         }
-                        else continue;
+                        finally { }
                     }
                 });
             }
@@ -2968,6 +2972,13 @@ namespace PixivWPF.Common
         {
             if (!string.IsNullOrEmpty(query))
             {
+                string[] EscapeChar = new string[] { "%", "&", "/",  "$", ":", ";" };
+                Func<string, string> Escape = (s) =>
+                {
+                    foreach(var c in EscapeChar) s = s.Replace(c, Uri.EscapeDataString(c));
+                    return(s);
+                };
+
                 var names = SystemMetaList.Select(m => $"{m.Value.Description.CanonicalName} => {m.Value.Description.DisplayName}").ToList();
                 var query_list = new Dictionary<string, string[]>();
                 var querys = query.Split(LineBreak, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
@@ -2999,17 +3010,28 @@ namespace PixivWPF.Common
                 else if (scope.HasFlag(StorageSearchScope.Date) &&
                     SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.DateModified, out value))
                     query_list.Add(value.Description.DisplayName, querys);
+                else if (scope.HasFlag(StorageSearchScope.Date) &&
+                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.ItemFolderNameDisplay, out value))
+                    query_list.Add(value.Description.DisplayName, querys);
 
                 var m_sep = mode == StorageSearchMode.And ? " AND " : " OR ";
-                query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{string.Join(m_sep, q.Value.Select(w => w.Replace(":", "%3A").Replace(";", "%3B").Replace(" ", "%20")))}").ToList());
+                query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{string.Join(m_sep, q.Value.Select(w => Escape(w)))}").ToList());
 
                 var setting = LoadSetting(app);
 
                 if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
                 {
-                    foreach (var f in setting.LocalStorage)
+                    if (setting.SearchMultiFolder)
                     {
-                        f.Search(query);
+                        var targets = setting.LocalStorage.Where(f => f.Searchable ?? false).Select(s => s.Folder);
+                        StorageType.Search(query, targets);
+                    }
+                    else
+                    {
+                        foreach (var f in setting.LocalStorage)
+                        {
+                            f.Search(query);
+                        }
                     }
                 }
                 else
@@ -3018,6 +3040,30 @@ namespace PixivWPF.Common
                     f.Search(query);
                 }
             }
+        }
+
+        public static App.MenuItemSliderData GetDefaultConvertData(this Application app)
+        {
+            var setting = Application.Current.LoadSetting();
+            return (new App.MenuItemSliderData()
+            {
+                Min = 50,
+                Max = 100,
+                Value = setting.DownloadConvertJpegQuality,
+                ToolTip = @"Convert Quality: {0:F0}"
+            });
+        }
+
+        public static App.MenuItemSliderData GetDefaultReduceData(this Application app)
+        {
+            var setting = Application.Current.LoadSetting();
+            return (new App.MenuItemSliderData()
+            {
+                Min = 50,
+                Max = 100,
+                Value = setting.DownloadRecudeJpegQuality,
+                ToolTip = @"Reduce Quality: {0:F0}"
+            });
         }
         #endregion
 

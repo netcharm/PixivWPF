@@ -1493,31 +1493,46 @@ namespace PixivWPF.Pages
             {
                 if (IllustStatInfo.ToolTip is string)
                 {
-                    var size = querysize ? $" [{(await Contents.Illust.GetOriginalUrl(Contents.Index).QueryImageFileSize() ?? -1).SmartFileSize()}]" : string.Empty;
-                    var original = $"Original  : {Contents.Illust.GetOriginalUrl(Contents.Index).GetImageName(Contents.Count <= 1)}{size}";
-                    var diskusage = IllustDownloaded.IsShown() && (IllustDownloaded.ToolTip is string) ? $"FileSize  : {new System.IO.FileInfo(IllustDownloaded.ToolTip as string).Length.SmartFileSize()}" : string.Empty;
-                    var tips = (IllustStatInfo.ToolTip as string).Split(Application.Current.GetLineBreak(), StringSplitOptions.RemoveEmptyEntries).ToList();
-
-                    var found_orig = false;
-                    var found_size = false;
-                    for (int i = 0; i < tips.Count; i++)
+                    try
                     {
-                        if (tips[i].StartsWith("Original  :"))
-                        {
-                            found_orig = true;
-                            tips[i] = original;
-                        }
-                        else if (tips[i].StartsWith("FileSize  :"))
-                        {
-                            found_size = true;
-                            if (string.IsNullOrEmpty(diskusage)) tips.RemoveAt(i);
-                            else tips[i] = diskusage;
-                        }
-                    }
-                    if (!found_orig) tips.Add(original);
-                    if (!found_size && !string.IsNullOrEmpty(diskusage)) tips.Add(diskusage);
+                        var file = IllustDownloaded.ToolTip as string;
+                        var is_down = !string.IsNullOrEmpty(file) && IllustDownloaded.IsShown();
+                        var size = querysize ? $" [{(await Contents.Illust.GetOriginalUrl(Contents.Index).QueryImageFileSize() ?? -1).SmartFileSize()}]" : string.Empty;
+                        var original = $"Original  : {Contents.Illust.GetOriginalUrl(Contents.Index).GetImageName(Contents.Count <= 1)}{size}";
+                        var quality = is_down   ? $"Quality   : {file.GetImageQualityInfo()}" : string.Empty;
+                        var diskusage = is_down ? $"FileSize  : {new System.IO.FileInfo(file).Length.SmartFileSize()}" : string.Empty;
+                        var tips = (IllustStatInfo.ToolTip as string).Split(Application.Current.GetLineBreak(), StringSplitOptions.RemoveEmptyEntries).ToList();
 
-                    IllustStatInfo.ToolTip = string.Join(Environment.NewLine, tips).Trim();
+                        var found_orig = false;
+                        var found_size = false;
+                        var found_imgq = false;
+                        for (int i = tips.Count - 1; i >= 0; i--)
+                        {
+                            if (tips[i].StartsWith("Original  :"))
+                            {
+                                found_orig = true;
+                                tips[i] = original;
+                            }
+                            else if (tips[i].StartsWith("Quality   :"))
+                            {
+                                found_imgq = true;
+                                if (string.IsNullOrEmpty(quality)) tips.RemoveAt(i);
+                                else tips[i] = quality;
+                            }
+                            else if (tips[i].StartsWith("FileSize  :"))
+                            {
+                                found_size = true;
+                                if (string.IsNullOrEmpty(diskusage)) tips.RemoveAt(i);
+                                else tips[i] = diskusage;
+                            }
+                        }
+                        if (!found_orig) tips.Add(original);
+                        if (!found_imgq && !string.IsNullOrEmpty(quality)) tips.Add(quality);
+                        if (!found_size && !string.IsNullOrEmpty(diskusage)) tips.Add(diskusage);
+
+                        IllustStatInfo.ToolTip = string.Join(Environment.NewLine, tips).Trim();
+                    }
+                    catch(Exception ex) { ex.ERROR("UpdateIllustStateInfo"); }
                 }
             }
         }
@@ -2926,7 +2941,7 @@ namespace PixivWPF.Pages
                 {
                     "ActionConvertIllustJpegSep",
                     "ActionConvertIllustJpeg", "ActionConvertIllustJpegAll",
-                    "ActionReduceIllustJpeg", "ActionReduceIllustJpegAll", "ActionReduceJpegSizeTo",//"ReduceJpegSizeToPanel",
+                    "ActionReduceIllustJpeg", "ActionReduceIllustJpegAll", "ActionReduceJpegSizeTo",
                     "ActionDownloadedSep",
                     "ActionShowDownloadedMeta", "ActionTouchDownloadedMeta",
                     "ActionOpenDownloaded", "ActionOpenDownloadedProperties"
@@ -2935,7 +2950,7 @@ namespace PixivWPF.Pages
                 {
                     //"ActionConvertIllustJpegSep",
                     "ActionConvertIllustJpeg", "ActionConvertIllustJpegAll",
-                    //"ActionReduceIllustJpeg", "ActionReduceIllustJpegAll", "ReduceJpegSizeToPanel",
+                    //"ActionReduceIllustJpeg", "ActionReduceIllustJpegAll", "ActionReduceJpegSizeTo",
                 };
                 var jpeg_list = new string[]
                 {
@@ -2950,9 +2965,8 @@ namespace PixivWPF.Pages
                 var menus = sender as ContextMenu;
                 var items = menus.FindChildren<UIElement>();
                 foreach (UIElement item in items)
-                //foreach (var item in menus.Items)
                 {
-                    if (item is MenuItem || item is Separator )//|| item is StackPanel || item is Grid)
+                    if (item is MenuItem || item is Separator )
                     {
                         var uid = item.GetUid();
                         if (!string.IsNullOrEmpty(uid))
@@ -2979,7 +2993,9 @@ namespace PixivWPF.Pages
                             if (uid.Equals("ActionReduceJpegSizeTo"))
                             {
                                 if (item is MenuItem && (item as MenuItem).Tag == null)
-                                    (item as MenuItem).Tag = new App.MenuItemSliderData() { ToolTip = @"Reduce Quality: {0:F0}", Value = setting.DownloadRecudeJpegQuality };
+                                {
+                                    (item as MenuItem).Tag = Application.Current.GetDefaultReduceData();
+                                }
                             }
                         }
                     }
@@ -3588,6 +3604,7 @@ namespace PixivWPF.Pages
             var text = string.Empty;
             var scope = StorageSearchScope.None;
             var mode = Keyboard.Modifiers == ModifierKeys.Shift ? StorageSearchMode.Or : StorageSearchMode.And;
+            var fuzzy = !Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
             var is_tag = false;
             try
             {
@@ -3602,7 +3619,7 @@ namespace PixivWPF.Pages
                 else if (sender == IllustTitle)
                 { text = IllustTitle.Text; scope |= StorageSearchScope.Title; }
                 else if (sender == IllustAuthor)
-                { text = $"{IllustAuthor.Text} OR {Contents.UserID}"; scope |= StorageSearchScope.Author; }
+                { text = fuzzy ? $"{IllustAuthor.Text} OR {Contents.UserID}" : $"{Contents.UserID}"; scope |= StorageSearchScope.Author; }
                 else if (sender == IllustDate || sender == IllustDateInfo)
                 { text = IllustDate.Text.Split().First(); scope |= StorageSearchScope.Date; }
                 else if (sender is MenuItem)
@@ -3612,7 +3629,7 @@ namespace PixivWPF.Pages
                     var host = mi.GetContextMenuHost();
                     if (host == IllustTagSpeech) { is_tag = true; text = IllustTagsHtml.GetText(); scope |= StorageSearchScope.Tag; }
                     else if (host == IllustDescSpeech) { text = IllustDescHtml.GetText(); scope |= StorageSearchScope.Description; }
-                    else if (host == IllustAuthor) { text = $"{IllustAuthor.Text} OR {Contents.UserID}"; scope |= StorageSearchScope.Author; }
+                    else if (host == IllustAuthor) { text = fuzzy ? $"{IllustAuthor.Text} OR {Contents.UserID}" : $"{Contents.UserID}"; scope |= StorageSearchScope.Author; }
                     else if (host == IllustTitle) { text = IllustTitle.Text; scope |= StorageSearchScope.Title; }
                     else if (host == IllustDateInfo || host == IllustDate) { text = IllustDate.Text.Split().First(); scope |= StorageSearchScope.Date; }
                     else if (host == SubIllustsExpander || host == SubIllusts) { text = IllustTitle.Text; scope |= StorageSearchScope.Title; }
@@ -4408,6 +4425,7 @@ namespace PixivWPF.Pages
                 else
                     Commands.SaveIllust.Execute(item);
             }
+            UpdateIllustStateInfo(querysize: false);
         }
 
         private void ActionSaveAllIllust_Click(object sender, RoutedEventArgs e)
@@ -4430,6 +4448,7 @@ namespace PixivWPF.Pages
                 else
                     Commands.SaveIllustAll.Execute(item);
             }
+            UpdateIllustStateInfo(querysize: false);
         }
         #endregion
 
@@ -4720,6 +4739,14 @@ namespace PixivWPF.Pages
                                 item.Header = "Save Selected Pages Large Preview";
                             else if (item.Uid.Equals("ActionSaveIllustsPreviewAll", StringComparison.CurrentCultureIgnoreCase))
                                 item.Header = "Save All Pages Large Preview";
+
+                            if (item.Uid.Equals("ActionReduceIllustsJpegSizeTo"))
+                            {
+                                if (item is MenuItem && (item as MenuItem).Tag == null)
+                                {
+                                    (item as MenuItem).Tag = Application.Current.GetDefaultReduceData();
+                                }
+                            }
                         }
                         catch (Exception ex) { ex.ERROR(); continue; }
                     }
@@ -4751,6 +4778,14 @@ namespace PixivWPF.Pages
                                 item.Header = "Save Selected Illusts (Default Page)";
                             else if (item.Uid.Equals("ActionSaveIllustsAll", StringComparison.CurrentCultureIgnoreCase))
                                 item.Header = "Save Selected Illusts (All Pages)";
+
+                            if (item.Uid.Equals("ActionReduceIllustsJpegSizeTo"))
+                            {
+                                if (item is MenuItem && (item as MenuItem).Tag == null)
+                                {
+                                    (item as MenuItem).Tag = Application.Current.GetDefaultReduceData();
+                                }
+                            }
                         }
                         catch (Exception ex) { ex.ERROR(); continue; }
                     }
@@ -5110,6 +5145,7 @@ namespace PixivWPF.Pages
                 {
                     var uid = sender.GetUid();
                     var type = DownloadType.None;
+                    var cq = sender is MenuItem && (sender as MenuItem).Tag is App.MenuItemSliderData ? ((sender as MenuItem).Tag as App.MenuItemSliderData).Value : setting.DownloadRecudeJpegQuality;
 
                     if (Keyboard.Modifiers == ModifierKeys.Shift) type |= DownloadType.ConvertKeepName;
                     if (uid.Equals("ActionSaveIllusts") || uid.Equals("ActionSaveIllustsAll")) type |= DownloadType.Original;
@@ -5122,7 +5158,8 @@ namespace PixivWPF.Pages
                         mi.Uid.Equals("ActionSaveIllustsJpeg", StringComparison.CurrentCultureIgnoreCase) ||
                         mi.Uid.Equals("ActionSaveIllustsPreview", StringComparison.CurrentCultureIgnoreCase) ||
                         mi.Uid.Equals("ActionConvertIllustsJpeg", StringComparison.CurrentCultureIgnoreCase) ||
-                        mi.Uid.Equals("ActionReduceIllustsJpeg", StringComparison.CurrentCultureIgnoreCase))
+                        mi.Uid.Equals("ActionReduceIllustsJpeg", StringComparison.CurrentCultureIgnoreCase) ||
+                        mi.Uid.Equals("ActionReduceIllustsJpegSizeTo", StringComparison.CurrentCultureIgnoreCase)) 
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
@@ -5131,6 +5168,8 @@ namespace PixivWPF.Pages
                                 Commands.ConvertToJpeg.Execute(items);
                             else if (uid.Equals("ActionReduceIllustsJpeg"))
                                 Commands.ReduceJpeg.Execute(items);
+                            else if (uid.Equals("ActionReduceIllustsJpegSizeTo"))
+                                Commands.ReduceJpeg.Execute(new Tuple<ImageListGrid, DownloadType, int>(SubIllusts, type, cq));
                             else
                                 Commands.SaveIllust.Execute(items);
                         }
@@ -5141,6 +5180,8 @@ namespace PixivWPF.Pages
                                 Commands.ConvertToJpeg.Execute(items);
                             else if (uid.Equals("ActionReduceIllustsJpeg"))
                                 Commands.ReduceJpeg.Execute(items);
+                            else if (uid.Equals("ActionReduceIllustsJpegSizeTo"))
+                                Commands.ReduceJpeg.Execute(new Tuple<ImageListGrid, DownloadType, int>(RelatedItems, type, cq));
                             else
                                 Commands.SaveIllust.Execute(items);
                         }
@@ -5151,6 +5192,8 @@ namespace PixivWPF.Pages
                                 Commands.ConvertToJpeg.Execute(items);
                             else if (uid.Equals("ActionReduceIllustsJpeg"))
                                 Commands.ReduceJpeg.Execute(items);
+                            else if (uid.Equals("ActionReduceIllustsJpegSizeTo"))
+                                Commands.ReduceJpeg.Execute(new Tuple<ImageListGrid, DownloadType, int>(FavoriteItems, type, cq));
                             else
                                 Commands.SaveIllust.Execute(items);
                         }

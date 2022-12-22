@@ -316,16 +316,16 @@ namespace PixivWPF.Common
         [JsonIgnore]
         public int Count { get; set; } = -1;
 
-        public override string ToString()
-        {
-            return Folder;
-        }
-
         public StorageType(string path, bool cached = false)
         {
             Folder = path;
             Cached = cached;
             Count = -1;
+        }
+
+        public override string ToString()
+        {
+            return Folder;
         }
 
         public void Search(string query, StorageSearchScope flags = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And)
@@ -335,6 +335,27 @@ namespace PixivWPF.Common
                 var cmd = "explorer.exe";
                 var cmd_param = $"/root,\"search-ms:crumb=location:{Folder}&query={query}&\"";
                 Process.Start(cmd, cmd_param);
+            }
+        }
+
+        public static void Search(string query, IEnumerable<string> folders, StorageSearchScope flags = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And)
+        {
+            if (!string.IsNullOrEmpty(query) && folders is IEnumerable<string>)
+            {
+                var targets = folders.Where(d => Directory.Exists(d));
+                var location = string.Join("&", targets.Select(d => $"crumb=location:{d}"));
+                var cmd = "explorer.exe";
+                var cmd_param = $"/root,\"search-ms:{location}&query={query}&\"";
+                Process.Start(cmd, cmd_param);
+            }
+        }
+
+        public static void Search(string query, IEnumerable<StorageType> folders, StorageSearchScope flags = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And)
+        {
+            if (!string.IsNullOrEmpty(query) && folders is IEnumerable<StorageType>)
+            {
+                var targets = folders.Where(d => Directory.Exists(d.Folder)).Select(d => d.Folder);
+                Search(query, targets, flags);
             }
         }
     }
@@ -442,6 +463,42 @@ namespace PixivWPF.Common
         private static ConcurrentDictionary<long?, Pixeez.Objects.UserBase> UserCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserBase>();
         private static ConcurrentDictionary<long?, Pixeez.Objects.UserInfo> UserInfoCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserInfo>();
         private static ConcurrentDictionary<string, byte[]> DownloadTaskCache = new ConcurrentDictionary<string, byte[]>();
+
+        private static ConcurrentDictionary<string, int> DownloadedImageQualityInfoCache = new ConcurrentDictionary<string, int>();
+        public static int GetImageQualityInfo(this string file)
+        {
+            var result = -1;
+            try
+            {
+                if (DownloadedImageQualityInfoCache.ContainsKey(file))
+                {
+                    var ret = DownloadedImageQualityInfoCache.TryGetValue(file, out result);
+                    if (!ret) result = -1;
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+
+        public static bool SetImageQualityInfo(this string file, int quality)
+        {
+            var result = false;
+            try
+            {
+                if (DownloadedImageQualityInfoCache.ContainsKey(file))
+                {
+                    int old;
+                    var ret = DownloadedImageQualityInfoCache.TryGetValue(file, out old);
+                    result = ret && DownloadedImageQualityInfoCache.TryUpdate(file, quality, old);
+                }
+                else
+                {
+                    result = DownloadedImageQualityInfoCache.TryAdd(file, quality);
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
 
         private static ConcurrentDictionary<string, string> _TagsCache = null;
         public static ConcurrentDictionary<string, string> TagsCache
@@ -2694,7 +2751,9 @@ namespace PixivWPF.Common
                 var delta = di.EndTime - di.StartTime;
                 var rate = delta.TotalSeconds <= 0 ? 0 : di.Received / delta.TotalSeconds;
                 var size = di.State == Common.DownloadState.Finished && File.Exists(di.FileName) ? (new FileInfo(di.FileName)).Length.SmartFileSize() : "????";
-                var fmt = di.SaveAsJPEG ? $"JPG_Q<={di.JPEGQuality}" : $"{Path.GetExtension(di.FileName).Trim('.').ToUpper()}";
+                //var fmt = di.SaveAsJPEG ? $"JPG_Q<={di.JPEGQuality}" : $"{Path.GetExtension(di.FileName).Trim('.').ToUpper()}";
+                var quality = di.FileName.GetImageQualityInfo();
+                var fmt = di.SaveAsJPEG && quality != -1 ? $"JPG_Q≈{quality}" : $"{Path.GetExtension(di.FileName).Trim('.').ToUpper()}";
                 fmt = string.IsNullOrEmpty(di.ConvertReason) ? fmt : di.ConvertReason.Trim();
                 result.Add($"URL    : {di.Url}");
                 result.Add($"File   : {di.FileName}, {di.FileTime.ToString("yyyy-MM-dd HH:mm:sszzz")}");
@@ -4678,10 +4737,11 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool AttachMetaInfoInternal(this Stream src, Stream dst, FileInfo fileinfo, out bool is_jpg, DateTime dt = default(DateTime), string id = "", bool force = false)
+        public static bool AttachMetaInfoInternal(this Stream src, Stream dst, FileInfo fileinfo, out bool is_jpg, out int quality, DateTime dt = default(DateTime), string id = "", bool force = false)
         {
             var result = false;
             is_jpg = false;
+            quality = -1;
             if (src is Stream && src.CanRead && dst is Stream && dst.CanWrite)
             {
                 var setting = Application.Current.LoadSetting();
@@ -4691,6 +4751,7 @@ namespace PixivWPF.Common
                 if (exif is ExifData)
                 {
                     is_jpg = exif.ImageType == ImageType.Jpeg;
+                    quality = is_jpg ? exif.JpegQuality : 100;
                     var meta = MakeMetaInfo(fileinfo, dt, id);
                     if (meta is MetaInfo)
                     {
@@ -4739,12 +4800,13 @@ namespace PixivWPF.Common
                         {
                             using (var mso = new MemoryStream())
                             {
-                                var meta = MakeMetaInfo(fileinfo, dt, id);
-                                if (AttachMetaInfoInternal(msi, mso, fileinfo, out is_jpg, dt, id, force))
+                                int quality = -1;                                
+                                if (AttachMetaInfoInternal(msi, mso, fileinfo, out is_jpg, out quality, dt, id, force))
                                 {
                                     var cs = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
                                     WaitForFile(fileinfo.FullName, cs.Token);
                                     File.WriteAllBytes(fileinfo.FullName, mso.ToArray());
+                                    fileinfo.FullName.SetImageQualityInfo(quality);
                                     result = true;
                                 }
                             }
@@ -4770,6 +4832,7 @@ namespace PixivWPF.Common
                                     result = true;
                                 }
                             }
+                            fileinfo.FullName.SetImageQualityInfo(exif.JpegQuality);
                         }
                         #endregion
                     }
@@ -7001,6 +7064,7 @@ namespace PixivWPF.Common
                                 if (exif_in is ExifData)
                                 {
                                     var jq = exif_in.JpegQuality == 0 ? 75 : exif_in.JpegQuality;
+                                    file.SetImageQualityInfo(exif_in.JpegQuality);
                                     if (exif_in.ImageType != ImageType.Jpeg || jq > quality)
                                     {
                                         var reason = string.Empty;
@@ -7025,6 +7089,7 @@ namespace PixivWPF.Common
                                                 throw new WarningException($"{feature}ed File Size : {mso.Length} >= Original File Size : {fi.Length}!");
                                             }
                                             File.WriteAllBytes(fout, mso.ToArray());
+                                            file.SetImageQualityInfo(exif_out.JpegQuality);
                                         }
                                     }
                                     else throw new WarningException($"{feature}ed File Size : Original Image JPEG Quality <= {quality}!");
@@ -7038,6 +7103,7 @@ namespace PixivWPF.Common
                         var exif_in = fi.GetExifData();
                         if (exif_in is ExifData && (exif_in.ImageType != ImageType.Jpeg || exif_in.JpegQuality > quality))
                         {
+                            file.SetImageQualityInfo(exif_in.JpegQuality);
                             var reason = string.Empty;
                             var bytes = File.ReadAllBytes(file).ConvertImageTo(fmt, out reason, quality: quality, force: force);
                             if (!string.IsNullOrEmpty(reason))
@@ -7058,6 +7124,7 @@ namespace PixivWPF.Common
                             var exif_out = new ExifData(fout);
                             exif_out.ReplaceAllTagsBy(exif_in);
                             exif_out.Save(fout);
+                            file.SetImageQualityInfo(exif_out.JpegQuality);
                         }
                         else throw new WarningException($"{feature}ed File Size : Original Image is Error or JPEG Quality <= {quality}!");
                     }
@@ -7076,7 +7143,7 @@ namespace PixivWPF.Common
                     if (string.IsNullOrEmpty(fout))
                         $"{feature} {file} To {fmt.ToUpper()} Failed!".INFO(InfoTitle);
                     else
-                        $"{feature} {file} To {fmt.ToUpper()} Succeed!".INFO(InfoTitle);
+                        $"{feature} {file} To {fmt.ToUpper()} Succeed!".INFO(InfoTitle);                    
                 }
             }
             catch (WarningException ex) { ex.WARN(InfoTitle); }

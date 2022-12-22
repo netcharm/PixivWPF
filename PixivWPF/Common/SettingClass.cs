@@ -2247,6 +2247,17 @@ namespace PixivWPF.Common
             }
         }
 
+        private bool search_multi_folder = false;
+        public bool SearchMultiFolder
+        {
+            get { return (Cache is Setting ? Cache.search_multi_folder : search_multi_folder); }
+            set
+            {
+                search_multi_folder = value;
+                if (Cache is Setting) Cache.search_multi_folder = search_multi_folder;
+            }
+        }
+
         private List<StorageType> local_storage = new List<StorageType>();
         public List<StorageType> LocalStorage
         {
