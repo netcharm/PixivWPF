@@ -648,7 +648,8 @@ namespace PixivWPF.Common
                     try
                     {
                         #region Update ProgressBar & Progress Info Text
-                        TotalElapsed = LastTotalElapsed + (EndTick - StartTick);
+                        EndTick += LastTotalElapsed;
+                        TotalElapsed = EndTick - StartTick;
                         var deltaA = TotalElapsed.TotalSeconds;
                         var rateA = deltaA > 0 ? received / deltaA : 0;
                         if (lastReceived > 0)
@@ -1000,11 +1001,13 @@ namespace PixivWPF.Common
             if (restart && _DownloadBuffer is byte[]) CleanBuffer();
 
             LastElapsed = TimeSpan.FromSeconds(0);
+            var force = false;
             if (_DownloadBuffer is byte[])
             {
                 TotalElapsed = EndTick - StartTick;
                 Received = _DownloadBuffer.Length;
                 lastReceived = 0;
+                force = true;
             }
             else
             {
@@ -1016,8 +1019,8 @@ namespace PixivWPF.Common
             }
             lastRates.Clear();
             lastRate = 0;
-            LastTotalElapsed = TotalElapsed;            
-            UpdateProgress(force: true);
+            LastTotalElapsed = TotalElapsed;
+            UpdateProgress(force: force);
         }
 
         private void DownloadExceptionProcess()
@@ -1053,11 +1056,12 @@ namespace PixivWPF.Common
             lastRates.Clear();
             lastRate = 0;
             LastElapsed = TimeSpan.FromSeconds(0);
-            lastReceived = 0;
+            lastReceived = 0;            
 
             if (State == DownloadState.Finished)
             {
                 result = FileName;
+
                 EndTick = DateTime.Now;
 
                 CleanBuffer();
@@ -1077,6 +1081,8 @@ namespace PixivWPF.Common
                 if (string.IsNullOrEmpty(FailReason))
                     FailReason = "Unkonwn failed reason when downloading.";
                 State = DownloadState.Failed;
+
+                EndTick = DateTime.Now;
             }
 
             try
@@ -1666,15 +1672,21 @@ namespace PixivWPF.Common
             else if (sender == miConvertImageToJpeg)
             {
                 Commands.ConvertToJpeg.Execute(FileName);
+                SaveAsJPEG = true;
+                PART_SaveAsJPEG.IsOn = SaveAsJPEG;
             }
             else if (sender == miReduceJpegSize)
             {
                 Commands.ReduceJpeg.Execute(FileName);
+                SaveAsJPEG = true;
+                PART_SaveAsJPEG.IsOn = SaveAsJPEG;
             }
             else if (sender == miReduceJpegSizeTo)
             {
                 var cq = miReduceJpegSizeTo.Tag is App.MenuItemSliderData ? (int)(miReduceJpegSizeTo.Tag as App.MenuItemSliderData).Value : setting.DownloadRecudeJpegQuality;
                 Commands.ReduceJpeg.Execute(new Tuple<string, int>(FileName, cq));
+                SaveAsJPEG = true;
+                PART_SaveAsJPEG.IsOn = SaveAsJPEG;
             }
             else if (sender == PART_SaveAsJPEG)
             {

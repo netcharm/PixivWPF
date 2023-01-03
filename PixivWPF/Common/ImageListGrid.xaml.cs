@@ -55,6 +55,18 @@ namespace PixivWPF.Common
             get { return (PART_ImageTiles.Items); }
         }
 
+        [Description("Get Displayed Tiles Collection")]
+        [Category("Common Properties")]
+        public IList<PixivItem> FiltedList
+        {
+            get
+            {
+                var value = new List<PixivItem>();
+                foreach (var item in PART_ImageTiles.Items) if (item is PixivItem) value.Add(item as PixivItem);
+                return (value);
+            }
+        }
+
         public IEnumerable ItemsSource
         {
             get { return (PART_ImageTiles.ItemsSource); }
@@ -339,44 +351,6 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_ScrollIntoView"); }
-        }
-
-        private bool ParentHandled = false;
-        private void UpdateGalleryTooltip(object sender)
-        {
-            try
-            {
-                var CR = Environment.NewLine;
-
-                ImageListGrid gallery = null;
-                if (sender is ImageListGrid)
-                    gallery = sender as ImageListGrid;
-                else if (sender is Expander)
-                    gallery = (sender as Expander).FindChild<ImageListGrid>();
-
-                if (gallery is ImageListGrid)
-                {
-                    var count_displayed = $"{gallery.ItemsCount}".PadLeft(5);
-                    var count_selected = $"{gallery.SelectedItems.Count}".PadLeft(5);
-                    var count_total = $"{gallery.Items.Count}".PadLeft(5);
-                    var text = $"{"Displayed".PadRight(10)} : {count_displayed}{CR}{"Selected".PadRight(10)} : {count_selected}{CR}{"Total".PadRight(10)} : {count_total}";
-
-                    gallery.ToolTip = string.IsNullOrEmpty(text) ? null : text;
-
-                    var expander = this.TryFindParent<Expander>();
-                    if (expander is Expander)
-                    {
-                        if (!ParentHandled)
-                        {
-                            expander.ToolTipOpening -= PART_ToolTipOpening;
-                            expander.ToolTipOpening += PART_ToolTipOpening;
-                            ParentHandled = true;
-                        }
-                        expander.ToolTip = string.IsNullOrEmpty(text) ? null : text;
-                    }
-                }
-            }
-            catch (Exception ex) { ex.ERROR("UpdateGalleryTooltip"); }
         }
         #endregion
 
@@ -822,11 +796,13 @@ namespace PixivWPF.Common
                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
 
                 var overwrite = e.Argument is bool ? (bool)e.Argument : false;
-                var cached = ItemList.Where(item => item.Source == null && item.Thumb.IsCached() && !overwrite);
+                var cached = ItemList.Where(item => item.Source == null && item.Thumb.IsCached() && !overwrite).ToList();
                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
-                var needUpdate = ItemList.Where(item => (item.Source == null && !item.Thumb.IsCached()) || overwrite);
+                var displayed = FiltedList.Where(item => (item.Source == null && !item.Thumb.IsCached()) || overwrite).ToList();
                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
-                var downloaded = ItemList.Where(item => item.IsDownloaded);
+                var needUpdate = ItemList.Where(item => (item.Source == null && !item.Thumb.IsCached()) || overwrite).Except(displayed).ToList();
+                if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                var downloaded = ItemList.Where(item => item.IsDownloaded).ToList();
                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
                 var total = needUpdate.Count() + cached.Count() + downloaded.Count();
                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
@@ -895,6 +871,35 @@ namespace PixivWPF.Common
                                             $"Canceled".DEBUG($"{Name ?? string.Empty}_UpdateTileTask".Trim('_'));
                                         });
                                         e.Cancel = true; loopstate.Stop();
+                                    }
+                                }
+                            }
+                            catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
+                            finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
+                        });
+                        if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                        #endregion
+
+                        #region Loading filted items downloading thumbnails
+                        UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+                        opt.CancellationToken = UpdateTileTaskCancelSrc.Token;
+                        Parallel.ForEach(displayed, opt, (item, loopstate, itemIndex) =>
+                        {
+                            if (UpdateTileTask.CancellationPending || UpdateTileTaskCancelSrc.IsCancellationRequested) { e.Cancel = true; loopstate.Stop(); }
+                            try
+                            {
+                                if (!cached.Contains(item))
+                                {
+                                    item.State = TaskStatus.Running;
+                                    using (var img = item.Thumb.LoadImageFromUrl(overwrite, size: thumb_size).GetAwaiter().GetResult())
+                                    {
+                                        if (UpdateTileTask.CancellationPending) { e.Cancel = true; loopstate.Stop(); }
+                                        if (img.Source != null)
+                                        {
+                                            if (item.Source == null) item.Source = img.Source;
+                                            if (item.Source is ImageSource) item.State = TaskStatus.RanToCompletion;
+                                        }
+                                        else item.State = TaskStatus.Faulted;
                                     }
                                 }
                             }
@@ -1003,6 +1008,44 @@ namespace PixivWPF.Common
 #if DEBUG
                         System.Diagnostics.Debug.WriteLine($"==> Load Cached Thumbnail Stop : {DateTime.Now.ToString()}");
 #endif
+                        #region Loading filted items downloading thumbnails
+                        UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+                        foreach (var item in displayed)
+                        {
+                            if (UpdateTileTask.CancellationPending || UpdateTileTaskCancelSrc.IsCancellationRequested) { tasks.Release(tasks.CurrentCount); e.Cancel = true; break; }
+                            if (tasks.Wait(-1, UpdateTileTaskCancelSrc.Token))
+                            {
+                                if (UpdateTileTask.CancellationPending) { e.Cancel = true; break; }
+                                new Action(async () =>
+                                {
+                                    try
+                                    {
+                                        item.State = TaskStatus.Running;
+                                        using (var img = await item.Thumb.LoadImageFromUrl(overwrite, size: thumb_size))
+                                        {
+                                            if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                                            this.DoEvents();
+                                            if (img.Source != null)
+                                            {
+                                                if (item.Source == null) item.Source = img.Source;
+                                                if (item.Source is ImageSource) item.State = TaskStatus.RanToCompletion;
+                                            }
+                                            else item.State = TaskStatus.Faulted;
+                                        }
+                                    }
+                                    catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
+                                    finally
+                                    {
+                                        if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release();
+                                        this.DoEvents(); await Task.Delay(1);
+                                    }
+                                }).Invoke(async: true);
+                                this.DoEvents();
+                            }
+                        }
+                        if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                        #endregion
+
                         #region Loading need downloading thumbnails
                         UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(60));
                         foreach (var item in needUpdate)
@@ -1210,6 +1253,64 @@ namespace PixivWPF.Common
                 }
                 catch (Exception ex) { ex.ERROR("UpdateTilesState"); }
             }
+        }
+
+        private bool ParentHandled = false;
+        private void UpdateGalleryTooltip(object sender)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                try
+                {
+                    var CR = Environment.NewLine;
+
+                    ImageListGrid gallery = null;
+                    if (sender is ImageListGrid)
+                        gallery = sender as ImageListGrid;
+                    else if (sender is Expander)
+                        gallery = (sender as Expander).FindChild<ImageListGrid>();
+
+                    if (gallery is ImageListGrid)
+                    {
+                        var count_displayed = $"{gallery.ItemsCount}".PadLeft(20);
+                        var count_selected = $"{gallery.SelectedItems.Count}".PadLeft(20);
+                        var count_total = $"{gallery.Items.Count}".PadLeft(20);
+
+                        var works = gallery.Items.Where(i => i.IsWork());
+                        var count = works.Count();
+                        var ids = works.Select(w => Convert.ToInt64(w.Illust.Id));
+                        var dates = works.Select(w => w.Illust.GetDateTime());
+                        var id_range_f = count > 0 ? $"{"ID Max".PadRight(10)} : {ids.Max().ToString().PadLeft(20)}" : string.Empty;
+                        var id_range_e = count > 0 ? $"{"ID Min ".PadRight(10)} : {ids.Min().ToString().PadLeft(20)}" : string.Empty;
+                        var date_range_f = count > 0 ? $"{"Date Max".PadRight(10)} : {dates.Max().ToString().PadLeft(20)}" : string.Empty;
+                        var date_range_e = count > 0 ? $"{"Date Min".PadRight(10)} : {dates.Min().ToString().PadLeft(20)}" : string.Empty;
+                        var texts = new List<string>()
+                    {
+                        $"{"Displayed".PadRight(10)} : {count_displayed}",
+                        $"{"Selected".PadRight(10)} : {count_selected}",
+                        $"{"Total".PadRight(10)} : {count_total}",
+                        id_range_f, id_range_e,
+                        date_range_f, date_range_e,
+                    };
+                        var text = string.Join(CR, texts).TrimEnd();
+
+                        gallery.ToolTip = string.IsNullOrEmpty(text) ? null : text;
+
+                        var expander = this.TryFindParent<Expander>();
+                        if (expander is Expander)
+                        {
+                            if (!ParentHandled)
+                            {
+                                expander.ToolTipOpening -= PART_ToolTipOpening;
+                                expander.ToolTipOpening += PART_ToolTipOpening;
+                                ParentHandled = true;
+                            }
+                            expander.ToolTip = string.IsNullOrEmpty(text) ? null : text;
+                        }
+                    }
+                }
+                catch (Exception ex) { ex.ERROR("UpdateGalleryTooltip"); }
+            });
         }
         #endregion
 
@@ -1440,6 +1541,7 @@ namespace PixivWPF.Common
                 else if (uid.Equals("ActionConvertIllustsJpeg", StringComparison.CurrentCultureIgnoreCase)) { }
                 else if (uid.Equals("ActionConvertIllustsJpegAll", StringComparison.CurrentCultureIgnoreCase)) { }
                 else if (uid.Equals("ActionReduceIllustsJpeg", StringComparison.CurrentCultureIgnoreCase)) { }
+                else if (uid.Equals("ActionReduceIllustsJpegSizeTo", StringComparison.CurrentCultureIgnoreCase)) { }
                 else if (uid.Equals("ActionReduceIllustsJpegAll", StringComparison.CurrentCultureIgnoreCase)) { }
                 else if (uid.Equals("ActionDownloadedSepraor", StringComparison.CurrentCultureIgnoreCase)) { }
                 else if (uid.Equals("ActionShowDownloadedMeta", StringComparison.CurrentCultureIgnoreCase)) { }

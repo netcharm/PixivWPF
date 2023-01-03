@@ -648,6 +648,11 @@ namespace PixivWPF.Pages
             if (InSearching) return;
             ChangeIllustPage(1);
         }
+
+        public void StopPrefetching()
+        {
+            if (cancelDownloading is CancellationTokenSource) cancelDownloading.Cancel();
+        }
         #endregion
 
         public bool InSearching
@@ -660,11 +665,6 @@ namespace PixivWPF.Pages
                     return ((ParentWindow as ContentWindow).InSearching);
                 else return (false);
             }
-        }
-
-        public void StopPrefetching()
-        {
-            if (cancelDownloading is CancellationTokenSource) cancelDownloading.Cancel();
         }
 
         public void Dispose()

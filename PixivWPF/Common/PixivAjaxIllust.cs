@@ -778,11 +778,12 @@ namespace PixivWPF.Common
                             meta_pages = meta_pages is IEnumerable<Pixeez.Objects.MetaPages> ?  meta_pages.ToArray() : null,
                             meta_single_page = new Pixeez.Objects.MetaSinglePage() {  OriginalImageUrl = image_urls.Original },
                         };
-                        await i.RefreshIllustBookmarkState();
-                        i.Cache();
+                        //if (i is Pixeez.Objects.IllustWork) i.Id = id;
                         #endregion
 
+                        i.Cache();
                         result = new List<Pixeez.Objects.Work>() { i };
+                        await i.RefreshIllustBookmarkState();
                     }
                     else work.Message.ShowToast("GetIllustById");
                 }

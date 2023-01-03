@@ -1325,6 +1325,23 @@ namespace PixivWPF.Common
             }
             return (result);
         }
+
+        public static bool ClearHiddenWindows(this Application app)
+        {
+            var result = false;
+            foreach (var win in app.Windows)
+            {
+                if (win is ContentWindow)
+                {
+                    var w = win as ContentWindow;
+                    if (w.Content is IllustDetailPage || w.Content is SearchResultPage || w.Content is HistoryPage)
+                    {
+                        if (!w.IsShown()) w.Close();
+                    }
+                }                
+            }
+            return (result);
+        }
         #endregion
 
         #region Application DropBox
@@ -2009,6 +2026,25 @@ namespace PixivWPF.Common
         {
             if (toast_list is ConcurrentDictionary<Window, long> && toast_list.Count > 0) CloseToastAsync();
             Commands.SaveOpenedWindows.Execute(null);
+        }
+
+        private static AutoResetEvent _WaitDelayEvent_ = new AutoResetEvent(false);            //定义事件 
+        public static void WaitDelay(int time)
+        {
+            System.Timers.Timer _WaitDelayTimer_ = new System.Timers.Timer(time);   //设置定时器
+            //调用延迟函数，设置和启动延时定时器，然后等待。
+            //MyDelayTimer.Interval = time;
+            _WaitDelayTimer_.Elapsed += new System.Timers.ElapsedEventHandler(WaitDelayTimer_TimesUp);
+            _WaitDelayTimer_.AutoReset = true; //每到指定时间Elapsed事件是触发一次（false），还是一直触发（true）,要用true会复位时间。
+            _WaitDelayTimer_.Enabled = true; //是否触发Elapsed事件
+            _WaitDelayTimer_.Start();
+            _WaitDelayEvent_.WaitOne();
+            _WaitDelayTimer_.Dispose();
+        }
+
+        private static void WaitDelayTimer_TimesUp(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            _WaitDelayEvent_.Set();
         }
         #endregion
 
@@ -2714,6 +2750,8 @@ namespace PixivWPF.Common
                                  Keys = System.Windows.Forms.Keys.OemSemicolon },
             new HotKeyConfig() { Name = "IllustNextCategory", Command = Commands.NextCategory,
                                  Keys = System.Windows.Forms.Keys.OemQuotes },
+            new HotKeyConfig() { Name = "RefreshCancel", Command = Commands.RefreshCancel,
+                                 Keys = System.Windows.Forms.Keys.Escape },
             #endregion
             #region Scroll Tiles
             new HotKeyConfig() { Name = "TilesScrollPageUp", Command = Commands.ScrollPageUp,
@@ -3011,11 +3049,11 @@ namespace PixivWPF.Common
                     SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.DateModified, out value))
                     query_list.Add(value.Description.DisplayName, querys);
                 else if (scope.HasFlag(StorageSearchScope.Date) &&
-                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.ItemFolderNameDisplay, out value))
+                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.ItemFolderPathDisplay, out value))
                     query_list.Add(value.Description.DisplayName, querys);
 
                 var m_sep = mode == StorageSearchMode.And ? " AND " : " OR ";
-                query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{string.Join(m_sep, q.Value.Select(w => Escape(w)))}").ToList());
+                query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:({string.Join(m_sep, q.Value.Select(w => Escape(w)))})").ToList());
 
                 var setting = LoadSetting(app);
 
@@ -3059,7 +3097,7 @@ namespace PixivWPF.Common
             var setting = Application.Current.LoadSetting();
             return (new App.MenuItemSliderData()
             {
-                Min = 50,
+                Min = 25,
                 Max = 100,
                 Value = setting.DownloadRecudeJpegQuality,
                 ToolTip = @"Reduce Quality: {0:F0}"

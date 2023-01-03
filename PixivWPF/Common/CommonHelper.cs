@@ -264,6 +264,9 @@ namespace PixivWPF.Common
 
     #region Custom storage type
     [Flags]
+    public enum SearchDateScope { Year, Season, Month, Week, Day, Hour, Minute };
+
+    [Flags]
     public enum StorageSearchScope
     {
         None = 0,
@@ -2426,7 +2429,11 @@ namespace PixivWPF.Common
             var shell = Path.IsPathRooted(setting.ShellImageCompareCmd) ? setting.ShellImageCompareCmd : Path.Combine(Application.Current.GetRoot(), setting.ShellImageCompareCmd);
             if (File.Exists(shell))
             {
-                Process.Start(shell, $"\"{file_s}\" \"{file_t}\"");
+                try
+                {
+                    Process.Start(shell, $"\"{file_s}\" \"{file_t}\"");
+                }
+                catch (Exception ex) { ex.ERROR("ShellImageCompare"); }
             }
         }
 
@@ -2436,7 +2443,11 @@ namespace PixivWPF.Common
             var shell = Path.IsPathRooted(setting.ShellImageCompareCmd) ? setting.ShellImageCompareCmd : Path.Combine(Application.Current.GetRoot(), setting.ShellImageCompareCmd);
             if (File.Exists(shell) && files is IEnumerable<string> && files.Count() >= 1)
             {
-                Process.Start(shell, string.Join(" ", files.TakeWhile(f => !string.IsNullOrEmpty(f.Trim())).Select(f => $"\"{f.Trim()}\"")));
+                try
+                {
+                    Process.Start(shell, string.Join(" ", files.TakeWhile(f => !string.IsNullOrEmpty(f.Trim())).Select(f => $"\"{f.Trim()}\"")));
+                }
+                catch (Exception ex) { ex.ERROR("ShellImageCompare"); }
             }
         }
 
@@ -2898,7 +2909,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region ImageListGrid page calculating
-        private static int ImagesPerPage { get; } = 30;
+        internal const int ImagesPerPage = 30;
 
         public static int CalcPageOffset(this string url)
         {
@@ -4535,7 +4546,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR("UpdateExifFromPngMetadata"); }
+            catch (Exception ex) { ex.ERROR($"GetExifData_{fi.Name}"); }
             return (result);
         }
 
@@ -4600,7 +4611,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR("UpdateExifFromPngMetadata"); }
+            catch (Exception ex) { ex.ERROR("GetExifData"); }
             return (result);
         }
 
@@ -4990,13 +5001,16 @@ namespace PixivWPF.Common
                                             catch (Exception exx) { exx.ERROR($"ShellPropertiesSet_DateTaken_{fileinfo.Name}"); }
                                             try
                                             {
-                                                //if (sh.HasShellProperty(sh.Properties.System.DateAcquired.PropertyKey) && 
-                                                //    sh.Properties.System.DateAcquired.TryFormatForDisplay(fmt, out sdt) &&
-                                                //   (sh.Properties.System.DateAcquired.Value == null ||
-                                                //    sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks))
-                                                if (sh.Properties.System.DateAcquired.Value == null ||
-                                                    sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks)
-                                                    sh.Properties.System.DateAcquired.Value = dt;
+                                                //if (!is_png)
+                                                {
+                                                    //if (sh.HasShellProperty(sh.Properties.System.DateAcquired.PropertyKey) && 
+                                                    //    sh.Properties.System.DateAcquired.TryFormatForDisplay(fmt, out sdt) &&
+                                                    //   (sh.Properties.System.DateAcquired.Value == null ||
+                                                    //    sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks))
+                                                    if (sh.Properties.System.DateAcquired.Value == null ||
+                                                        sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks)
+                                                        sh.Properties.System.DateAcquired.Value = dt;
+                                                }
                                             }
                                             catch (Exception exx) { exx.ERROR($"ShellPropertiesSet_DateAcquired_{fileinfo.Name}"); }
 #if DEBUG
@@ -8718,7 +8732,7 @@ namespace PixivWPF.Common
             var tokens = await ShowLogin();
             if (tokens == null) return (result);
 
-            var bookmarkstate = await tokens.GetBookMarkedDetailAsync(illust.Id??-1);
+            var bookmarkstate = await tokens.GetBookMarkedDetailAsync(illust.Id ?? -1);
             if (bookmarkstate is Pixeez.Objects.BookmarkDetailRootobject && bookmarkstate.bookmark_detail is Pixeez.Objects.BookmarkDetail)
             {
                 var is_bookmarked = bookmarkstate.bookmark_detail.is_bookmarked;
@@ -9323,21 +9337,21 @@ namespace PixivWPF.Common
                 UserCache[user.Id] = user;
         }
 
-        public static void Cache(this Pixeez.Objects.User user)
-        {
-            if (user is Pixeez.Objects.UserBase)
-                (user as Pixeez.Objects.UserBase).Cache();
-        }
+        //public static void Cache(this Pixeez.Objects.User user)
+        //{
+        //    if (user is Pixeez.Objects.UserBase)
+        //        (user as Pixeez.Objects.UserBase).Cache();
+        //}
 
-        public static void Cache(this Pixeez.Objects.NewUser user)
-        {
-            if (user is Pixeez.Objects.UserBase)
-                (user as Pixeez.Objects.UserBase).Cache();
-        }
+        //public static void Cache(this Pixeez.Objects.NewUser user)
+        //{
+        //    if (user is Pixeez.Objects.UserBase)
+        //        (user as Pixeez.Objects.UserBase).Cache();
+        //}
 
         public static void Cache(this Pixeez.Objects.Work illust)
         {
-            if (illust is Pixeez.Objects.Work)
+            if (illust is Pixeez.Objects.Work && (illust.Id ?? -1) > 0)
             {
                 if (IllustCache.ContainsKey(illust.Id))
                 {
@@ -9365,17 +9379,17 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void Cache(this Pixeez.Objects.IllustWork illust)
-        {
-            if (illust is Pixeez.Objects.Work)
-                (illust as Pixeez.Objects.Work).Cache();
-        }
+        //public static void Cache(this Pixeez.Objects.IllustWork illust)
+        //{
+        //    if (illust is Pixeez.Objects.Work)
+        //        (illust as Pixeez.Objects.Work).Cache();
+        //}
 
-        public static void Cache(this Pixeez.Objects.NormalWork illust)
-        {
-            if (illust is Pixeez.Objects.Work)
-                (illust as Pixeez.Objects.Work).Cache();
-        }
+        //public static void Cache(this Pixeez.Objects.NormalWork illust)
+        //{
+        //    if (illust is Pixeez.Objects.Work)
+        //        (illust as Pixeez.Objects.Work).Cache();
+        //}
 
         public static void Cache(this Pixeez.Objects.UserInfo userinfo)
         {
@@ -9540,6 +9554,20 @@ namespace PixivWPF.Common
         {
             return (await GetUserInfo(user.Id, tokens));
         }
+
+        public static Func<Pixeez.Objects.UserBase, int> GetTotalIllust = (user) =>
+        {
+            var result = -1;
+            if (user is Pixeez.Objects.UserBase && user.Id != null && user.Id.HasValue)
+            {
+                var prof = user.FindUserInfo();
+                if(prof is Pixeez.Objects.UserInfo)
+                {
+                    result = prof.profile.total_illusts + prof.profile.total_manga;
+                }
+            }
+            return (result);
+        };
         #endregion
 
         #region Sync Illust/User Like State
@@ -11490,6 +11518,15 @@ namespace PixivWPF.Common
             current_deeper = 0;
             return (result);
         }
+        
+        //public static ModifierKeys GetModifiderKeys(this Application app)
+        //{
+        //    var result = Application.Current.Dispatcher.BeginInvoke(new Func<ModifierKeys>(delegate
+        //    {
+        //        return (Keyboard.Modifiers);
+        //    }));
+        //   return (result.Dispatcher.re);
+        //}
         #endregion
 
         #region Graphic Helper

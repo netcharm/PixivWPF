@@ -502,8 +502,16 @@ namespace PixivWPF.Pages
                     }
                     else
                     {
-                        var remove = items.Where(o => o.State != DownloadState.Downloading);
-                        foreach (var i in remove) { i.State = DownloadState.Remove; }
+                        var non_exists = items.Where(o => o.State == DownloadState.NonExists);
+                        if (non_exists.Count() > 0)
+                        {
+                            foreach (var i in non_exists) { i.State = DownloadState.Remove; }
+                        }
+                        else
+                        {
+                            var remove = items.Where(o => o.State != DownloadState.Downloading);
+                            foreach (var i in remove) { i.State = DownloadState.Remove; }
+                        }
                     }
                 }).InvokeAsync();
             }

@@ -61,6 +61,7 @@
                 <Button x:Name="CommandRefreshThumb" x:Uid="CommandRefreshThumb" Click="CommandRefresh_Click" ToolTip="Refresh Thumbnails">
                     <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Button>
+                <Border BorderThickness="0" Background="{DynamicResource Theme.SemiTransparentBrush}">
                 <StackPanel x:Name="PreftchingProgress" Orientation="Horizontal" Width="Auto" HorizontalAlignment="Center" VerticalAlignment="Center" MouseRightButtonDown="PreftchingProgress_MouseRightButtonDown">
                     <TextBlock x:Name="PreftchingProgressInfo" x:Uid="PreftchingProgressInfo" VerticalAlignment="Center" Margin="0,0,2,0" Text="" />
                     <TextBlock x:Name="PreftchingProgressState" x:Uid="PreftchingProgressState" VerticalAlignment="Center"
@@ -81,6 +82,7 @@
                         </TextBlock.RenderTransform>
                     </TextBlock>
                 </StackPanel>
+                </Border>
             </StackPanel>
             <Button x:Name="CommandRecents" x:Uid="CommandRecents" Click="CommandRecents_Click" ToolTip="Recents">
                 <StackPanel>
@@ -140,17 +142,17 @@
                         <MenuItem x:Name="LiveFilterFast_CurrentAuthor" x:Uid="LiveFilterFast_CurrentAuthor" Header="Selected Author" Click="LiveFilterItem_Click" Visibility="Collapsed"/>
                     </MenuItem>
                     <Separator/>
-                    <MenuItem x:Name="LiveFilterUser" x:Uid="LiveFilterUser" Header="User" Click="LiveFilterItem_Click"/>
-                    <MenuItem x:Name="LiveFilterWork" x:Uid="LiveFilterWork" Header="Work" Click="LiveFilterItem_Click"/>
-                    <Separator/>
-                    <MenuItem x:Name="LiveFilterFavorited" x:Uid="LiveFilterFavorited" Header="My Favorited" Click="LiveFilterItem_Click"/>
-                    <MenuItem x:Name="LiveFilterNotFavorited" x:Uid="LiveFilterNotFavorited" Header="Not My Favorited" Click="LiveFilterItem_Click"/>
-                    <Separator/>
-                    <MenuItem x:Name="LiveFilterFollowed" x:Uid="LiveFilterFollowed" Header="My Followed" Click="LiveFilterItem_Click"/>
-                    <MenuItem x:Name="LiveFilterNotFollowed" x:Uid="LiveFilterNotFollowed" Header="Not My Followed" Click="LiveFilterItem_Click"/>
-                    <Separator/>
                     <MenuItem x:Name="LiveFilterDownloaded" x:Uid="LiveFilterDownloaded" Header="Downloaded" Click="LiveFilterItem_Click"/>
                     <MenuItem x:Name="LiveFilterNotDownloaded" x:Uid="LiveFilterNotDownloaded" Header="Not Downloaded" Click="LiveFilterItem_Click"/>
+                    <Separator/>
+                    <MenuItem x:Name="LiveFilterFavorited" x:Uid="LiveFilterFavorited" Header="My Favorited" Click="LiveFilterItem_Click"/>
+                    <MenuItem x:Name="LiveFilterNotFavorited" x:Uid="LiveFilterNotFavorited" Header="Not Favorited" Click="LiveFilterItem_Click"/>
+                    <Separator/>
+                    <MenuItem x:Name="LiveFilterFollowed" x:Uid="LiveFilterFollowed" Header="My Followed" Click="LiveFilterItem_Click"/>
+                    <MenuItem x:Name="LiveFilterNotFollowed" x:Uid="LiveFilterNotFollowed" Header="Not Followed" Click="LiveFilterItem_Click"/>
+                    <Separator/>
+                    <MenuItem x:Name="LiveFilterUser" x:Uid="LiveFilterUser" Header="User" Click="LiveFilterItem_Click"/>
+                    <MenuItem x:Name="LiveFilterWork" x:Uid="LiveFilterWork" Header="Work" Click="LiveFilterItem_Click"/>
                     <Separator/>
                     <MenuItem x:Name="LiveFilterSanity" x:Uid="LiveFilterSanity" Header="Sanity Age">
                         <MenuItem x:Name="LiveFilterSanity_Any" x:Uid="LiveFilterSanity_Any" Header="Any Age" Click="LiveFilterItem_Click"/>
@@ -232,9 +234,6 @@
                         <MenuItem x:Name="cmiUseProxy" x:Uid="UseProxy" Header="Using Proxy" IsCheckable="True" IsChecked="False"/>
                         <MenuItem x:Name="cmiUseProxyDown" x:Uid="UseProxyDown" Header="Download Via Proxy" IsCheckable="True" IsChecked="False"/>
                         <Separator/>
-                        <!--<MenuItem x:Name="cmiUseHttp10" x:Uid="UseHttp10" Header="Using HTTP Version 1.0" IsCheckable="False" IsChecked="False" />
-                        <MenuItem x:Name="cmiUseHttp11" x:Uid="UseHttp11" Header="Using HTTP Version 1.1" IsCheckable="False" IsChecked="False" />
-                        <MenuItem x:Name="cmiUseHttp20" x:Uid="UseHttp20" Header="Using HTTP Version 2.0" IsCheckable="False" IsChecked="False" />-->
                         <RadioButton x:Name="cmiUseHttp10" x:Uid="UseHttp10" Content="Using HTTP Version 1.0" GroupName="HttpVersion" IsChecked="False" ClickMode="Press" />
                         <RadioButton x:Name="cmiUseHttp11" x:Uid="UseHttp11" Content="Using HTTP Version 1.1" GroupName="HttpVersion" IsChecked="False" ClickMode="Press" />
                         <RadioButton x:Name="cmiUseHttp20" x:Uid="UseHttp20" Content="Using HTTP Version 2.0" GroupName="HttpVersion" IsChecked="False" ClickMode="Press" />                        

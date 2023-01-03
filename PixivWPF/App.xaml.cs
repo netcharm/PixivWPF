@@ -189,9 +189,9 @@ namespace PixivWPF
                     slider.Dispatcher.Invoke(() => 
                     {
                         var data = slider.Tag as MenuItemSliderData;
-                        slider.Value = data.Value;
                         slider.Minimum = data.Min;
                         slider.Maximum = data.Max;
+                        slider.Value = data.Value;
                     });
                 }
             }

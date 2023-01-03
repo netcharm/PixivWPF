@@ -170,17 +170,17 @@
                         <MenuItem x:Name="LiveFilterFast_CurrentAuthor" x:Uid="LiveFilterFast_CurrentAuthor" Header="Selected Author" Click="LiveFilterItem_Click" Visibility="Collapsed"/>
                     </MenuItem>
                     <Separator/>
-                    <MenuItem x:Name="LiveFilterUser" x:Uid="LiveFilterUser" Header="User" Click="LiveFilterItem_Click"/>
-                    <MenuItem x:Name="LiveFilterWork" x:Uid="LiveFilterWork" Header="Work" Click="LiveFilterItem_Click"/>
-                    <Separator/>
-                    <MenuItem x:Name="LiveFilterFavorited" x:Uid="LiveFilterFavorited" Header="My Favorited" Click="LiveFilterItem_Click"/>
-                    <MenuItem x:Name="LiveFilterNotFavorited" x:Uid="LiveFilterNotFavorited" Header="Not My Favorited" Click="LiveFilterItem_Click"/>
-                    <Separator/>
-                    <MenuItem x:Name="LiveFilterFollowed" x:Uid="LiveFilterFollowed" Header="My Followed" Click="LiveFilterItem_Click"/>
-                    <MenuItem x:Name="LiveFilterNotFollowed" x:Uid="LiveFilterNotFollowed" Header="Not My Followed" Click="LiveFilterItem_Click"/>
-                    <Separator/>
                     <MenuItem x:Name="LiveFilterDownloaded" x:Uid="LiveFilterDownloaded" Header="Downloaded" Click="LiveFilterItem_Click"/>
                     <MenuItem x:Name="LiveFilterNotDownloaded" x:Uid="LiveFilterNotDownloaded" Header="Not Downloaded" Click="LiveFilterItem_Click"/>
+                    <Separator/>
+                    <MenuItem x:Name="LiveFilterFavorited" x:Uid="LiveFilterFavorited" Header="My Favorited" Click="LiveFilterItem_Click"/>
+                    <MenuItem x:Name="LiveFilterNotFavorited" x:Uid="LiveFilterNotFavorited" Header="Not Favorited" Click="LiveFilterItem_Click"/>
+                    <Separator/>
+                    <MenuItem x:Name="LiveFilterFollowed" x:Uid="LiveFilterFollowed" Header="My Followed" Click="LiveFilterItem_Click"/>
+                    <MenuItem x:Name="LiveFilterNotFollowed" x:Uid="LiveFilterNotFollowed" Header="Not Followed" Click="LiveFilterItem_Click"/>
+                    <Separator/>
+                    <MenuItem x:Name="LiveFilterUser" x:Uid="LiveFilterUser" Header="User" Click="LiveFilterItem_Click"/>
+                    <MenuItem x:Name="LiveFilterWork" x:Uid="LiveFilterWork" Header="Work" Click="LiveFilterItem_Click"/>
                     <Separator/>
                     <MenuItem x:Name="LiveFilterSanity" x:Uid="LiveFilterSanity" Header="Sanity Age">
                         <MenuItem x:Name="LiveFilterSanity_Any" x:Uid="LiveFilterSanity_Any" Header="Any Age" Click="LiveFilterItem_Click"/>
@@ -319,6 +319,13 @@
                                 <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             </MenuItem.Icon>
                         </MenuItem>
+                        <Separator/>
+                        <MenuItem x:Name="CommandSearchFileDateOpt">
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE773;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <Separator/>
                         <MenuItem x:Name="CommandMaintainCustomTag" x:Uid="CommandMaintainCustomTag" Header="Maintain CustomTag File" Click="CommandApplication_Click" >
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE1CB;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
@@ -337,6 +344,11 @@
                         <MenuItem x:Name="CommandMaintainDetailPage" x:Uid="CommandMaintainDetailPage" Header="Maintain Detail Display" Click="CommandApplication_Click" >
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE12A;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="CommandMaintainHiddenWindow" x:Uid="CommandMaintainHiddenWindow" Header="Maintain Hidden Windows" Click="CommandApplication_Click" >
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE737;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <Separator/>

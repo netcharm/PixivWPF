@@ -1040,7 +1040,7 @@
                             ToolTip="Click to Open User Infomation Window"
                             Width="64" Height="64" BorderThickness="0" BorderBrush="Transparent"
                             Background="Transparent" Foreground="Transparent"
-                            Click="ActionAuthourInfo_Click"/>
+                            Click="ActionAuthourInfo_Click" MouseRightButtonUp="AuthorAvatar_MouseRightButtonUp"/>
                     <Common:ProgressRingCloud 
                         Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="AuthorAvatarWait" Size="48" Visibility="Collapsed" 
                         ReloadEnabled="True" ReloadClick="ActionAuthourInfo_Click"
@@ -1406,7 +1406,7 @@
                 <StackPanel Grid.Row="5" Orientation="Horizontal" Margin="0,4,0,0"                            
                             HorizontalAlignment="Right" VerticalAlignment="Top" >
                     <Button 
-                        x:Name="RelatedPrevPage" x:Uid="RalatedPrevPage"
+                        x:Name="RelatedPrevPage" x:Uid="RalatedPrevPage" ToolTip="Prev Page"
                         Visibility="Collapsed" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
@@ -1419,7 +1419,7 @@
                         </Button.Content>
                     </Button>
                     <Button 
-                        x:Name="RelatedNextPage" x:Uid="RalatedNextPage"
+                        x:Name="RelatedNextPage" x:Uid="RalatedNextPage" ToolTip="Next Page"
                         Visibility="Collapsed" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
@@ -1432,12 +1432,12 @@
                         </Button.Content>
                     </Button>
                     <Button 
-                        x:Name="RelatedNextAppend" x:Uid="RelatedNextAppend"
+                        x:Name="RelatedNextAppend" x:Uid="RelatedNextAppend" ToolTip="Append Next Page"
                         Visibility="{Binding Visibility, ElementName=RelatedNextPage, Mode=TwoWay}" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
-                        Click="RelatedNextPage_Click">
+                        Click="RelatedNextPage_Click" ToolTipOpening="RelatedNextAppend_ToolTipOpening">
                         <Button.Content>
                             <TextBlock Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
@@ -1493,7 +1493,7 @@
                 <StackPanel Grid.Row="6" Orientation="Horizontal" Margin="0,4,0,0"                            
                             HorizontalAlignment="Right" VerticalAlignment="Top" >
                     <Button 
-                        x:Name="FavoritePrevPage" x:Uid="FavoritePrevPage"
+                        x:Name="FavoritePrevPage" x:Uid="FavoritePrevPage" ToolTip="Prev Page"
                         Visibility="Collapsed" FontWeight="Normal" 
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
@@ -1506,7 +1506,7 @@
                         </Button.Content>
                     </Button>
                     <Button 
-                        x:Name="FavoriteNextPage" x:Uid="FavoriteNextPage"
+                        x:Name="FavoriteNextPage" x:Uid="FavoriteNextPage" ToolTip="Next Page"
                         Visibility="Collapsed" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
@@ -1519,12 +1519,12 @@
                         </Button.Content>
                     </Button>
                     <Button 
-                        x:Name="FavoriteNextAppend" x:Uid="FavoriteNextAppend"
+                        x:Name="FavoriteNextAppend" x:Uid="FavoriteNextAppend" ToolTip="Append Next Page"
                         Visibility="{Binding Visibility, ElementName=FavoriteNextPage, Mode=TwoWay}" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
-                        Click="FavoriteNextPage_Click">
+                        Click="FavoriteNextPage_Click" ToolTipOpening="FavoriteNextAppend_ToolTipOpening">
                         <Button.Content>
                             <TextBlock Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
@@ -1580,7 +1580,7 @@
                             Orientation="Horizontal" Margin="0,4,0,0"
                             HorizontalAlignment="Right" VerticalAlignment="Top" >
                     <Button 
-                        x:Name="CommentsPrevPage" x:Uid="CommentsPrevPage" 
+                        x:Name="CommentsPrevPage" x:Uid="CommentsPrevPage" ToolTip="Prev Page"
                         Visibility="Collapsed" FontWeight="Normal" 
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
@@ -1593,7 +1593,7 @@
                         </Button.Content>
                     </Button>
                     <Button 
-                        x:Name="CommentsNextPage" x:Uid="CommentsNextPage" 
+                        x:Name="CommentsNextPage" x:Uid="CommentsNextPage" ToolTip="Next Page"
                         Visibility="Collapsed" FontWeight="Normal" 
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"

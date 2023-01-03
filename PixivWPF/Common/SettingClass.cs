@@ -1657,6 +1657,17 @@ namespace PixivWPF.Common
             }
         }
 
+        private int prefetch_download_delay = 1500;
+        public int PrefetchingDownloadDelay
+        {
+            get { return (Cache is Setting ? Cache.prefetch_download_delay : prefetch_download_delay); }
+            set
+            {
+                prefetch_download_delay = value;
+                if (Cache is Setting) Cache.prefetch_download_delay = prefetch_download_delay;
+            }
+        }
+
         private bool parallel_prefetching = true;
         public bool ParallelPrefetching
         {
@@ -2255,6 +2266,19 @@ namespace PixivWPF.Common
             {
                 search_multi_folder = value;
                 if (Cache is Setting) Cache.search_multi_folder = search_multi_folder;
+            }
+        }
+
+        [JsonIgnore]
+        private SearchDateScope search_date_range = SearchDateScope.Year | SearchDateScope.Month | SearchDateScope.Day;
+        [JsonIgnore]
+        public SearchDateScope SearchDateRange
+        {
+            get { return (Cache is Setting ? Cache.search_date_range : search_date_range); }
+            set
+            {
+                search_date_range = value;
+                if (Cache is Setting) Cache.search_date_range = search_date_range;
             }
         }
 

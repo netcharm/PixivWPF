@@ -625,6 +625,8 @@ namespace PixivWPF
                 Commands.MaintainMemoryUsage.Execute(null);
             else if (sender == CommandMaintainDetailPage)
                 Commands.MaintainDetailPage.Execute(null);
+            else if (sender == CommandMaintainHiddenWindow)
+                Commands.MaintainDetailPage.Execute(null);
         }
 
         private void CommandRestart_DropDownOpened(object sender, EventArgs e)

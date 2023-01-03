@@ -377,10 +377,17 @@ namespace PixivWPF.Common
 
         private void CommandRefresh_Click(object sender, RoutedEventArgs e)
         {
+            if (Mouse.RightButton == MouseButtonState.Pressed) return;
             if (sender == CommandRefresh)
+            {
+                e.Handled = true;
                 Commands.RefreshPage.Execute(Content);
+            }
             else if (sender == CommandRefreshThumb)
+            {
+                e.Handled = true;
                 Commands.RefreshPageThumb.Execute(Content);
+            }
         }
 
         private void CommandRefresh_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
@@ -786,14 +793,18 @@ namespace PixivWPF.Common
 
         private void PreftchingProgress_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (Content is IllustDetailPage)
-                (Content as IllustDetailPage).StopPrefetching();
-            else if (Content is IllustImageViewerPage)
-                (Content as IllustImageViewerPage).StopPrefetching();
-            else if (Content is SearchResultPage)
-                (Content as SearchResultPage).StopPrefetching();
-            else if (Content is HistoryPage)
-                (Content as HistoryPage).StopPrefetching();
+            //if (e.ButtonState == Mouse.RightButton)
+            {
+                e.Handled = true;
+                if (Content is IllustDetailPage)
+                    (Content as IllustDetailPage).StopPrefetching();
+                else if (Content is IllustImageViewerPage)
+                    (Content as IllustImageViewerPage).StopPrefetching();
+                else if (Content is SearchResultPage)
+                    (Content as SearchResultPage).StopPrefetching();
+                else if (Content is HistoryPage)
+                    (Content as HistoryPage).StopPrefetching();
+            }
         }
 
         private void cmiProxyAction_Opened(object sender, RoutedEventArgs e)

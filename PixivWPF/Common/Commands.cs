@@ -232,6 +232,14 @@ namespace PixivWPF.Common
             }).InvokeAsync(true);
         });
 
+        public static ICommand MaintainHiddenWindows { get; } = new DelegateCommand<string>(async obj =>
+        {
+            await new Action(() =>
+            {
+                Application.Current.ClearHiddenWindows();
+            }).InvokeAsync(true);
+        });
+
         public static ICommand Login { get; } = new DelegateCommand(() =>
         {
             var setting = Application.Current.LoadSetting();
@@ -3817,6 +3825,35 @@ namespace PixivWPF.Common
             {
                 var win = obj as Window;
                 if (win.Content is Page) RefreshPageThumb.Execute(win.Content);
+            }
+        });
+
+        public static ICommand RefreshCancel { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            if (obj is TilesPage)
+            {
+                (obj as TilesPage).StopPrefetching();
+            }
+            else if (obj is IllustDetailPage)
+            {
+                (obj as IllustDetailPage).StopPrefetching();
+            }
+            else if (obj is IllustImageViewerPage)
+            {
+                (obj as IllustImageViewerPage).StopPrefetching();
+            }
+            else if (obj is SearchResultPage)
+            {
+                (obj as SearchResultPage).StopPrefetching();
+            }
+            else if (obj is HistoryPage)
+            {
+                (obj as HistoryPage).StopPrefetching();
+            }
+            else if (obj is Window)
+            {
+                var win = obj as Window;
+                if (win.Content is Page) RefreshCancel.Execute(win.Content);
             }
         });
 
