@@ -483,7 +483,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool SetImageQualityInfo(this string file, int quality)
+        public static bool SetImageFileQualityInfo(this string file, int quality)
         {
             var result = false;
             try
@@ -4696,7 +4696,7 @@ namespace PixivWPF.Common
                         ExifTagType type;
                         int count;
                         byte[] value;
-                        if (string.IsNullOrEmpty(meta.Software))                            
+                        if (string.IsNullOrEmpty(meta.Software))
                         {
                             //if (exif.GetTagValue(ExifTag.MakerNote, out note, StrCoding.Utf16Le_Byte))
                             //{
@@ -4811,13 +4811,13 @@ namespace PixivWPF.Common
                         {
                             using (var mso = new MemoryStream())
                             {
-                                int quality = -1;                                
+                                int quality = -1;
                                 if (AttachMetaInfoInternal(msi, mso, fileinfo, out is_jpg, out quality, dt, id, force))
                                 {
                                     var cs = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
                                     WaitForFile(fileinfo.FullName, cs.Token);
                                     File.WriteAllBytes(fileinfo.FullName, mso.ToArray());
-                                    fileinfo.FullName.SetImageQualityInfo(quality);
+                                    fileinfo.FullName.SetImageFileQualityInfo(quality);
                                     result = true;
                                 }
                             }
@@ -4843,7 +4843,7 @@ namespace PixivWPF.Common
                                     result = true;
                                 }
                             }
-                            fileinfo.FullName.SetImageQualityInfo(exif.JpegQuality);
+                            fileinfo.FullName.SetImageFileQualityInfo(exif.JpegQuality);
                         }
                         #endregion
                     }
@@ -6985,6 +6985,7 @@ namespace PixivWPF.Common
                     else return (buffer);
 
                     setting = Application.Current.LoadSetting();
+                    quality = Math.Max(setting.JpegQualityMin, Math.Min(setting.JpegQualityMax, quality));
                     var hasAlpha = !force && setting.DownloadConvertCheckAlpha ? buffer.GuessAlpha(threshold: setting.DownloadConvertCheckAlphaThreshold) : false;
                     if (!hasAlpha)
                     {
@@ -7078,7 +7079,7 @@ namespace PixivWPF.Common
                                 if (exif_in is ExifData)
                                 {
                                     var jq = exif_in.JpegQuality == 0 ? 75 : exif_in.JpegQuality;
-                                    file.SetImageQualityInfo(exif_in.JpegQuality);
+                                    file.SetImageFileQualityInfo(exif_in.JpegQuality);
                                     if (exif_in.ImageType != ImageType.Jpeg || jq > quality)
                                     {
                                         var reason = string.Empty;
@@ -7103,7 +7104,7 @@ namespace PixivWPF.Common
                                                 throw new WarningException($"{feature}ed File Size : {mso.Length} >= Original File Size : {fi.Length}!");
                                             }
                                             File.WriteAllBytes(fout, mso.ToArray());
-                                            file.SetImageQualityInfo(exif_out.JpegQuality);
+                                            file.SetImageFileQualityInfo(exif_out.JpegQuality);
                                         }
                                     }
                                     else throw new WarningException($"{feature}ed File Size : Original Image JPEG Quality <= {quality}!");
@@ -7117,7 +7118,7 @@ namespace PixivWPF.Common
                         var exif_in = fi.GetExifData();
                         if (exif_in is ExifData && (exif_in.ImageType != ImageType.Jpeg || exif_in.JpegQuality > quality))
                         {
-                            file.SetImageQualityInfo(exif_in.JpegQuality);
+                            file.SetImageFileQualityInfo(exif_in.JpegQuality);
                             var reason = string.Empty;
                             var bytes = File.ReadAllBytes(file).ConvertImageTo(fmt, out reason, quality: quality, force: force);
                             if (!string.IsNullOrEmpty(reason))
@@ -7138,7 +7139,7 @@ namespace PixivWPF.Common
                             var exif_out = new ExifData(fout);
                             exif_out.ReplaceAllTagsBy(exif_in);
                             exif_out.Save(fout);
-                            file.SetImageQualityInfo(exif_out.JpegQuality);
+                            file.SetImageFileQualityInfo(exif_out.JpegQuality);
                         }
                         else throw new WarningException($"{feature}ed File Size : Original Image is Error or JPEG Quality <= {quality}!");
                     }
@@ -7157,7 +7158,7 @@ namespace PixivWPF.Common
                     if (string.IsNullOrEmpty(fout))
                         $"{feature} {file} To {fmt.ToUpper()} Failed!".INFO(InfoTitle);
                     else
-                        $"{feature} {file} To {fmt.ToUpper()} Succeed!".INFO(InfoTitle);                    
+                        $"{feature} {file} To {fmt.ToUpper()} Succeed!".INFO(InfoTitle);
                 }
             }
             catch (WarningException ex) { ex.WARN(InfoTitle); }
@@ -7419,7 +7420,7 @@ namespace PixivWPF.Common
                                     {
                                         //try
                                         //{
-                                            bytesread = await source.ReadAsync(bytes, 0, bufferSize, cancelToken.Token).ConfigureAwait(false);
+                                        bytesread = await source.ReadAsync(bytes, 0, bufferSize, cancelToken.Token).ConfigureAwait(false);
                                         //}
                                         //catch { }
                                         //catch (Exception exx) { exx.ERROR($"WriteToFile_StreamClosed{fn}", no_stack: exx.IsNetworkError()); }
@@ -7458,7 +7459,7 @@ namespace PixivWPF.Common
                                     DownloadTaskCache.TryRemove(file, out lastdownloaded);
                                     if (lastdownloaded is byte[] && lastdownloaded.Length >= 0) lastdownloaded.Dispose();
                                 }
-                            }                            
+                            }
                         }
 
                         ms.Close();
@@ -7512,7 +7513,7 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                catch (Exception ex) { ex.ERROR("LoadImageFromFile", no_stack:ex is IOException); }
+                catch (Exception ex) { ex.ERROR("LoadImageFromFile", no_stack: ex is IOException); }
             }
             return (result);
         }
@@ -8273,14 +8274,14 @@ namespace PixivWPF.Common
             try
             {
                 if (Keyboard.Modifiers == ModifierKeys.Control) WithSelectionOrder = !WithSelectionOrder;
-                var items = gallery.SelectedItems.Count <= 0 && NonForAll ? gallery.Items : gallery.SelectedItems;
+                var items = gallery.SelectedItems.Count <= 0 && NonForAll ? gallery.FiltedList : gallery.SelectedItems;
                 if (WithSelectionOrder)
                 {
                     result = items.ToList();
                 }
                 else
                 {
-                    foreach (var item in gallery.Items)
+                    foreach (var item in gallery.FiltedList)
                     {
                         if (items.Contains(item)) result.Add(item);
                     }
@@ -9351,32 +9352,36 @@ namespace PixivWPF.Common
 
         public static void Cache(this Pixeez.Objects.Work illust)
         {
-            if (illust is Pixeez.Objects.Work && (illust.Id ?? -1) > 0)
+            try
             {
-                if (IllustCache.ContainsKey(illust.Id))
+                if (illust != null && illust is Pixeez.Objects.Work && (illust.Id ?? -1) > 0)
                 {
-                    var illust_old = IllustCache[illust.Id];
-                    if (illust.ImageUrls != null && illust_old.ImageUrls != null)
+                    if (IllustCache.ContainsKey(illust.Id))
                     {
-                        if (illust.ImageUrls.Px128x128 == null) illust.ImageUrls.Px128x128 = illust_old.ImageUrls.Px128x128;
-                        if (illust.ImageUrls.Small == null) illust.ImageUrls.Small = illust_old.ImageUrls.Small;
-                        if (illust.ImageUrls.Medium == null) illust.ImageUrls.Medium = illust_old.ImageUrls.Medium;
-                        if (illust.ImageUrls.Large == null) illust.ImageUrls.Large = illust_old.ImageUrls.Large;
-                        if (illust.ImageUrls.Px480mw == null) illust.ImageUrls.Px480mw = illust_old.ImageUrls.Px480mw;
-                        if (illust.ImageUrls.SquareMedium == null) illust.ImageUrls.SquareMedium = illust_old.ImageUrls.SquareMedium;
-                        if (illust.ImageUrls.Original == null)
+                        var illust_old = IllustCache[illust.Id];
+                        if (illust.ImageUrls != null && illust_old.ImageUrls != null)
                         {
-                            illust.ImageUrls.Original = string.IsNullOrEmpty(illust.ImageUrls.Large) ? illust_old.ImageUrls.Original : illust.ImageUrls.Large;
-                            if (illust.ImageUrls.Original.Equals(illust.ImageUrls.Large) && !string.IsNullOrEmpty(illust_old.ImageUrls.Large))
-                                illust.ImageUrls.Large = illust_old.ImageUrls.Large;
+                            if (illust.ImageUrls.Px128x128 == null) illust.ImageUrls.Px128x128 = illust_old.ImageUrls.Px128x128;
+                            if (illust.ImageUrls.Small == null) illust.ImageUrls.Small = illust_old.ImageUrls.Small;
+                            if (illust.ImageUrls.Medium == null) illust.ImageUrls.Medium = illust_old.ImageUrls.Medium;
+                            if (illust.ImageUrls.Large == null) illust.ImageUrls.Large = illust_old.ImageUrls.Large;
+                            if (illust.ImageUrls.Px480mw == null) illust.ImageUrls.Px480mw = illust_old.ImageUrls.Px480mw;
+                            if (illust.ImageUrls.SquareMedium == null) illust.ImageUrls.SquareMedium = illust_old.ImageUrls.SquareMedium;
+                            if (illust.ImageUrls.Original == null)
+                            {
+                                illust.ImageUrls.Original = string.IsNullOrEmpty(illust.ImageUrls.Large) ? illust_old.ImageUrls.Original : illust.ImageUrls.Large;
+                                if (illust.ImageUrls.Original.Equals(illust.ImageUrls.Large) && !string.IsNullOrEmpty(illust_old.ImageUrls.Large))
+                                    illust.ImageUrls.Large = illust_old.ImageUrls.Large;
+                            }
                         }
+                        if ((illust_old.Metadata != null && illust_old.Metadata.Pages != null) &&
+                            (illust.Metadata == null || illust.Metadata.Pages == null))
+                            illust.Metadata = illust_old.Metadata;
                     }
-                    if ((illust_old.Metadata != null && illust_old.Metadata.Pages != null) &&
-                        (illust.Metadata == null || illust.Metadata.Pages == null))
-                        illust.Metadata = illust_old.Metadata;
+                    IllustCache[illust.Id] = illust;
                 }
-                IllustCache[illust.Id] = illust;
             }
+            catch (Exception ex) { ex.ERROR("IllustCache"); }
         }
 
         //public static void Cache(this Pixeez.Objects.IllustWork illust)
@@ -11518,7 +11523,7 @@ namespace PixivWPF.Common
             current_deeper = 0;
             return (result);
         }
-        
+
         //public static ModifierKeys GetModifiderKeys(this Application app)
         //{
         //    var result = Application.Current.Dispatcher.BeginInvoke(new Func<ModifierKeys>(delegate

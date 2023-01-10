@@ -2381,7 +2381,12 @@ namespace PixivWPF.Common
                             var id = str.GetIllustId();
                             var idx = str.GetIllustPageIndex();
                             var illust = id.FindIllust();
-                            await str.ReduceImageFileSize("jpg", keep_name: keep_name, quality: setting.DownloadRecudeJpegQuality, force: force);
+                            await Task.Run(async () =>
+                            {
+                                var ret = await str.ReduceImageFileSize("jpg", keep_name: keep_name, quality: setting.DownloadRecudeJpegQuality, force: force);
+                                return (ret);
+                            });
+                            //await str.ReduceImageFileSize("jpg", keep_name: keep_name, quality: setting.DownloadRecudeJpegQuality, force: force);
                         }
                         else
                         {
@@ -2394,7 +2399,7 @@ namespace PixivWPF.Common
                 {
                     var target = obj as Tuple<string, int>;
                     var str = target.Item1;
-                    var q = Math.Max(50, Math.Min(100, target.Item2));
+                    var q = target.Item2;
                     if (!string.IsNullOrEmpty(str))
                     {
                         if (File.Exists(str))
@@ -2402,7 +2407,12 @@ namespace PixivWPF.Common
                             var id = str.GetIllustId();
                             var idx = str.GetIllustPageIndex();
                             var illust = id.FindIllust();
-                            await str.ReduceImageFileSize("jpg", keep_name: keep_name, quality: q, force: force);
+                            await Task.Run(async () =>
+                            {
+                                var ret = await str.ReduceImageFileSize("jpg", keep_name: keep_name, quality: q, force: force);
+                                return (ret);
+                            });
+                            //await str.ReduceImageFileSize("jpg", keep_name: keep_name, quality: q, force: force);
                         }
                         else
                         {
@@ -2469,7 +2479,12 @@ namespace PixivWPF.Common
                             {
                                 if (illust.IsDownloadedAsync(out fp, i, touch: false))
                                 {
-                                    await fp.ReduceImageFileSize("jpg", keep_name: keep_name, quality: setting.DownloadRecudeJpegQuality, force: force);
+                                    await Task.Run(async () =>
+                                    {
+                                        var ret = await fp.ReduceImageFileSize("jpg", keep_name: keep_name, quality: setting.DownloadRecudeJpegQuality, force: force);
+                                        return (ret);
+                                    });
+                                    //await fp.ReduceImageFileSize("jpg", keep_name: keep_name, quality: setting.DownloadRecudeJpegQuality, force: force);
                                 }
                             }
                         }
@@ -2480,7 +2495,12 @@ namespace PixivWPF.Common
                             else
                                 illust.IsPartDownloadedAsync(out fp, touch: false);
 
-                            await fp.ReduceImageFileSize("jpg", keep_name: keep_name, quality: setting.DownloadRecudeJpegQuality, force: force);
+                            await Task.Run(async () =>
+                            {
+                                var ret = await fp.ReduceImageFileSize("jpg", keep_name: keep_name, quality: setting.DownloadRecudeJpegQuality, force: force);
+                                return (ret);
+                            });
+                            //await fp.ReduceImageFileSize("jpg", keep_name: keep_name, quality: setting.DownloadRecudeJpegQuality, force: force);
                         }
                     }
                 }
@@ -2489,7 +2509,7 @@ namespace PixivWPF.Common
                     var kv = obj as Tuple<PixivItem, DownloadType, int>;
                     var item = kv.Item1;
                     var type = kv.Item2;
-                    var q = Math.Max(50, Math.Min(100, kv.Item3));
+                    var q = kv.Item3;
                     keep_name = setting.ConvertKeepName || type.HasFlag(DownloadType.ConvertKeepName) ? true : false;
                     if (item.IsWork())
                     {
@@ -2503,7 +2523,12 @@ namespace PixivWPF.Common
                             {
                                 if (illust.IsDownloadedAsync(out fp, i, touch: false))
                                 {
-                                    await fp.ReduceImageFileSize("jpg", keep_name: keep_name, quality: q, force: force);
+                                    await Task.Run(async () =>
+                                    {
+                                        var ret = await fp.ReduceImageFileSize("jpg", keep_name: keep_name, quality: q, force: force);
+                                        return (ret);
+                                    });
+                                    //await fp.ReduceImageFileSize("jpg", keep_name: keep_name, quality: q, force: force);
                                 }
                             }
                         }
@@ -2514,7 +2539,12 @@ namespace PixivWPF.Common
                             else
                                 illust.IsPartDownloadedAsync(out fp, touch: false);
 
-                            await fp.ReduceImageFileSize("jpg", keep_name: keep_name, quality: q, force: force);
+                            await Task.Run(async () =>
+                            {
+                                var ret = await fp.ReduceImageFileSize("jpg", keep_name: keep_name, quality: q, force: force);
+                                return (ret);
+                            });
+                            //await fp.ReduceImageFileSize("jpg", keep_name: keep_name, quality: q, force: force);
                         }
                     }
                 }

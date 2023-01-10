@@ -1592,30 +1592,7 @@ namespace PixivWPF.Pages
                     if (!(cancelDownloading is CancellationTokenSource) || cancelDownloading.IsCancellationRequested)
                         cancelDownloading = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
 
-                    setting = Application.Current.LoadSetting();
-                    SemaphoreSlim UpdateThumbDelay = new SemaphoreSlim(0, 1);
-                    var IsCanceled = false;
-                    if (await UpdateThumbDelay.WaitAsync(setting.PrefetchingDownloadDelay, cancelDownloading.Token))
-                    {
-                        IsCanceled = false;
-                    }
-                    if (IsCanceled || cancelDownloading.IsCancellationRequested) return;
-
-                    InitPrefetchingTask();
-                    if (prefetching && ParentWindow is ContentWindow && PrefetchingImagesTask is PrefetchingTask)
-                    {
-                        var items = new List<PixivItem>();
-                        if (Contents.Count <= 1 || Contents.IsUser()) items.Add(Contents);
-                        else if (Contents.Count <= 30) items.AddRange(SubIllusts.Items.Where(p => p.Index != Contents.Index));
-                        else items.AddRange((await Contents.Illust.PageItems(touch: true)).Where(p => p.Index != Contents.Index));
-                        items = items.Union(RelatedItems.FiltedList).Union(FavoriteItems.FiltedList).Union(RelatedItems.Items).Union(FavoriteItems.Items).ToList();
-                        if (items.Count > 0)
-                        {
-                            PrefetchingImagesTask.Items = items;
-                            PrefetchingImagesTask.Start(overwrite: overwrite);
-                        }
-                    }
-
+                    #region Update gallery thumbnail
                     if (full)
                     {
                         SubIllusts.UpdateTilesImage(overwrite, touch: false);
@@ -1644,6 +1621,35 @@ namespace PixivWPF.Pages
                             UpdateThumb(true, prefetching: false);
                     }
                     UpdateContentsThumbnail(overwrite: overwrite);
+                    #endregion
+
+                    #region Delay for prefetching preview/thumbnail
+                    setting = Application.Current.LoadSetting();
+                    SemaphoreSlim UpdateThumbDelay = new SemaphoreSlim(0, 1);
+                    var IsCanceled = false;
+                    if (await UpdateThumbDelay.WaitAsync(setting.PrefetchingDownloadDelay, cancelDownloading.Token))
+                    {
+                        IsCanceled = false;
+                    }
+                    if (IsCanceled || cancelDownloading.IsCancellationRequested) return;
+                    #endregion
+
+                    #region Create prefetching task
+                    InitPrefetchingTask();
+                    if (prefetching && ParentWindow is ContentWindow && PrefetchingImagesTask is PrefetchingTask)
+                    {
+                        var items = new List<PixivItem>();
+                        if (Contents.Count <= 1 || Contents.IsUser()) items.Add(Contents);
+                        else if (Contents.Count <= 30) items.AddRange(SubIllusts.Items.Where(p => p.Index != Contents.Index));
+                        else items.AddRange((await Contents.Illust.PageItems(touch: true)).Where(p => p.Index != Contents.Index));
+                        items = items.Union(RelatedItems.FiltedList).Union(FavoriteItems.FiltedList).Union(RelatedItems.Items).Union(FavoriteItems.Items).ToList();
+                        if (items.Count > 0)
+                        {
+                            PrefetchingImagesTask.Items = items;
+                            PrefetchingImagesTask.Start(overwrite: overwrite);
+                        }
+                    }
+                    #endregion
                 }
             }
             catch (Exception ex) { ex.ERROR("UPATETHUMB"); }
@@ -2623,6 +2629,9 @@ namespace PixivWPF.Pages
         {
             if (PrefetchingImagesTask is PrefetchingTask) PrefetchingImagesTask.Stop();
             if (cancelDownloading is CancellationTokenSource) cancelDownloading.Cancel();
+            SubIllusts.Cancel();
+            RelatedItems.Cancel();
+            FavoriteItems.Cancel();
         }
         #endregion
 

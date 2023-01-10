@@ -612,6 +612,7 @@ namespace PixivWPF.Pages
         public void StopPrefetching()
         {
             if (PrefetchingImagesTask is PrefetchingTask) PrefetchingImagesTask.Stop();
+            ImageTiles.Cancel();
         }
         #endregion
 

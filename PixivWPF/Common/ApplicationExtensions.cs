@@ -3085,8 +3085,8 @@ namespace PixivWPF.Common
             var setting = Application.Current.LoadSetting();
             return (new App.MenuItemSliderData()
             {
-                Min = 50,
-                Max = 100,
+                Min = setting.JpegQualityMin,
+                Max = setting.JpegQualityMax,
                 Value = setting.DownloadConvertJpegQuality,
                 ToolTip = @"Convert Quality: {0:F0}"
             });
@@ -3097,8 +3097,8 @@ namespace PixivWPF.Common
             var setting = Application.Current.LoadSetting();
             return (new App.MenuItemSliderData()
             {
-                Min = 25,
-                Max = 100,
+                Min = setting.JpegQualityMin,
+                Max = setting.JpegQualityMax,
                 Value = setting.DownloadRecudeJpegQuality,
                 ToolTip = @"Reduce Quality: {0:F0}"
             });
