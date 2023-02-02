@@ -18,7 +18,7 @@ using System.Windows.Threading;
 
 namespace PixivWPF.Common
 {
-    public enum DownloadState { Idle, Downloading, Paused, Finished, Failed, Writing, Deleted, NonExists, Remove, Unknown }
+    public enum DownloadState { Idle, Downloading, Paused, Finished, Failed, Writing, Deleted, NonExists, Remove, Older, NDays, Unknown }
 
     public class DownloadStateMark : IDisposable
     {
@@ -104,7 +104,7 @@ namespace PixivWPF.Common
                         FileName = illust.GetOriginalUrl(singlefile ? 0 : idx).GetImageName(singlefile);
                     else
                     {
-                        FileName = Regex.Replace(FileName, @"_p(\d+)_marter.*?\.", "$1.");
+                        FileName = Regex.Replace(FileName, @"_p(\d+)_(marter|custom).*?\.", "$1.");
                         if (singlefile) FileName = FileName.Replace("_0.", ".");
                     }
                     FileName = Application.Current.SaveTarget(FileName);
@@ -899,16 +899,16 @@ namespace PixivWPF.Common
                     Length = range.Length ?? 0;
                     if (Length > 0 && length > 0)
                     {
-                        ms.Seek(pos, SeekOrigin.Begin);
-
                         finishedProgress = new Tuple<double, double>(Length, Length);
+
+                        lastReceived = 0;
+                        Received = ms.Length;
+                        UpdateProgress();
+
+                        ms.Seek(pos, SeekOrigin.Begin);
 
                         using (var cs = ce != null && ce == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
                         {
-                            lastReceived = 0;
-                            Received = ms.Length;
-                            UpdateProgress();
-
                             byte[] bytes = new byte[HTTP_STREAM_READ_COUNT];
                             int bytesread = 0;
                             do
@@ -929,6 +929,8 @@ namespace PixivWPF.Common
                                 {
                                     lastReceived += bytesread;
                                     Received += bytesread;
+                                    UpdateProgress();
+
                                     await ms.WriteAsync(bytes, 0, bytesread);
                                     if (EndTick.DeltaSeconds(lastUpdateBuffer) >= setting.DownloadBufferUpdateFrequency)
                                     {
@@ -936,7 +938,6 @@ namespace PixivWPF.Common
                                         lastUpdateBuffer = EndTick;
                                     }
                                     LastElapsed = EndTick - lastTick;
-                                    UpdateProgress();
                                 }
                             } while (bytesread > 0 && Received < Length);
 
@@ -1006,17 +1007,17 @@ namespace PixivWPF.Common
             {
                 TotalElapsed = EndTick - StartTick;
                 Received = _DownloadBuffer.Length;
-                lastReceived = 0;
                 force = true;
             }
             else
             {
                 TotalElapsed = new TimeSpan();
                 Received = 0;
-                lastReceived = 0;
                 Length = Received = 0;
                 StartTick = DateTime.Now;
             }
+
+            lastReceived = 0;
             lastRates.Clear();
             lastRate = 0;
             LastTotalElapsed = TotalElapsed;
@@ -1377,33 +1378,34 @@ namespace PixivWPF.Common
             if (File.Exists(FileName) && IsDownloading) await Cancel();
             CheckProperties();
 
+            if ((CanDownload || State == DownloadState.Finished) && Downloading is SemaphoreSlim && Downloading.CurrentCount <= 0) Downloading.Release();
+            State = DownloadState.Idle;
+
             var target_file = string.Empty;
             string fc = Url.GetImageCachePath();
             if (File.Exists(fc))
             {
-                await new Action(async () =>
+                await Task.Run(async () =>
                 {
                     if (await Downloading.WaitAsync(setting.DownloadWaitingTime))
                     {
                         target_file = await DownloadFromFile(fc);
                     }
-                }).InvokeAsync();
+                });
             }
             else
             {
                 if (CanDownload || restart)
                 {
-                    await new Action(async () =>
+                    await Task.Delay(Application.Current.Random(20, 200)).ContinueWith(async t =>
                     {
-                        Random rnd = new Random();
-                        await Task.Delay(rnd.Next(20, 200));
                         this.DoEvents();
 
                         if (Application.Current.DownloadUsingToken())
                             target_file = await DownloadAsync(continuation, restart);
                         else
                             target_file = await DownloadDirectAsync(continuation, restart);
-                    }).InvokeAsync();
+                    });
                 }
             }
         }

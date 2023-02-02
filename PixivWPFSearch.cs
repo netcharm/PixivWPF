@@ -393,59 +393,60 @@ namespace netcharm
 
         private static void UpgradeFiles(string[] files)
         {
-            if (files.Length <= 0) return;
-
-            InstanceExists(WaitClose: true, WaitTime: TimeSpan.FromSeconds(65));
-            var wait_count = 0;
-            try
-            {
-                do
-                {
-                    if (System.IO.Directory.GetFiles("\\\\.\\pipe\\", "pixivwpf*").Count() <= 0) break;
-                    System.Threading.Thread.Sleep(1000);
-                    wait_count++;
-                } while (wait_count < 60);
-                //system.threading.thread.sleep(2000);
-                System.Threading.Tasks.Task.Delay(5000).GetAwaiter().GetResult();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString(), "ERROR!", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-
             List<string> f_upgraded = new List<string>();
             List<string> f_skiped = new List<string>();
-            f_upgraded.Add($"Upgrade file ...");
-            f_skiped.Add($"Skiped file ...");
-            foreach (var f_remote in files)
+            if (files.Length > 0)
             {
-                var fn = Path.GetFileName(f_remote);
-                var f_local = Path.Combine(AppPath, fn);
-                var fi_local = new FileInfo(f_local);
-                if (!File.Exists(f_remote)) continue;
-                var fi_remote = new FileInfo(f_remote);
-                if (!File.Exists(f_local) || fi_local.LastWriteTime < fi_remote.LastWriteTime)
+                InstanceExists(WaitClose: true, WaitTime: TimeSpan.FromSeconds(65));
+                var wait_count = 0;
+                try
                 {
-                    //f_upgraded.Add($"Upgrade file ...");
-                    //f_upgraded.Add($"  From : {f_remote}");
-                    //f_upgraded.Add($"  To   : {f_local}");
-                    f_upgraded.Add($"  {fn}");
-
-                    wait_count = 0;
-                    while (IsFileLocked(fi_local) && wait_count < 10)
+                    do
                     {
+                        if (System.IO.Directory.GetFiles("\\\\.\\pipe\\", "pixivwpf*").Count() <= 0) break;
                         System.Threading.Thread.Sleep(1000);
-                        System.Threading.Tasks.Task.Delay(1000).GetAwaiter().GetResult();
                         wait_count++;
-                    };
-                    File.Copy(f_remote, f_local, true);
+                    } while (wait_count < 60);
+                    //system.threading.thread.sleep(2000);
+                    System.Threading.Tasks.Task.Delay(5000).GetAwaiter().GetResult();
                 }
-                else
+                catch (Exception ex)
                 {
-                    //f_skiped.Add($"Skiped file ...");
-                    //f_skiped.Add($"  From : {f_remote}");
-                    //f_skiped.Add($"  To   : {f_local}");
-                    f_skiped.Add($"  {fn}");
+                    MessageBox.Show(ex.ToString(), "ERROR!", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+
+                f_upgraded.Add($"Upgrade file ...");
+                f_skiped.Add($"Skiped file ...");
+                foreach (var f_remote in files)
+                {
+                    var fn = Path.GetFileName(f_remote);
+                    var f_local = Path.Combine(AppPath, fn);
+                    var fi_local = new FileInfo(f_local);
+                    if (!File.Exists(f_remote)) continue;
+                    var fi_remote = new FileInfo(f_remote);
+                    if (!File.Exists(f_local) || fi_local.LastWriteTime < fi_remote.LastWriteTime)
+                    {
+                        //f_upgraded.Add($"Upgrade file ...");
+                        //f_upgraded.Add($"  From : {f_remote}");
+                        //f_upgraded.Add($"  To   : {f_local}");
+                        f_upgraded.Add($"  {fn}");
+
+                        wait_count = 0;
+                        while (IsFileLocked(fi_local) && wait_count < 10)
+                        {
+                            System.Threading.Thread.Sleep(1000);
+                            System.Threading.Tasks.Task.Delay(1000).GetAwaiter().GetResult();
+                            wait_count++;
+                        };
+                        File.Copy(f_remote, f_local, true);
+                    }
+                    else
+                    {
+                        //f_skiped.Add($"Skiped file ...");
+                        //f_skiped.Add($"  From : {f_remote}");
+                        //f_skiped.Add($"  To   : {f_local}");
+                        f_skiped.Add($"  {fn}");
+                    }
                 }
             }
             if (f_upgraded.Count > 0)

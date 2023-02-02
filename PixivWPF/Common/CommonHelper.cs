@@ -319,10 +319,12 @@ namespace PixivWPF.Common
         [JsonIgnore]
         public int Count { get; set; } = -1;
 
-        public StorageType(string path, bool cached = false)
+        public StorageType(string path, bool cached = false, bool subfolders = false, bool searchable = false)
         {
             Folder = path;
             Cached = cached;
+            IncludeSubFolder = subfolders;
+            Searchable = searchable;
             Count = -1;
         }
 
@@ -337,7 +339,14 @@ namespace PixivWPF.Common
             {
                 var cmd = "explorer.exe";
                 var cmd_param = $"/root,\"search-ms:crumb=location:{Folder}&query={query}&\"";
-                Process.Start(cmd, cmd_param);
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        Process.Start(cmd, cmd_param);
+                    }
+                    catch (Exception ex) { ex.ERROR("SearchInFiles"); }
+                });
             }
         }
 
@@ -349,7 +358,14 @@ namespace PixivWPF.Common
                 var location = string.Join("&", targets.Select(d => $"crumb=location:{d}"));
                 var cmd = "explorer.exe";
                 var cmd_param = $"/root,\"search-ms:{location}&query={query}&\"";
-                Process.Start(cmd, cmd_param);
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        Process.Start(cmd, cmd_param);
+                    }
+                    catch (Exception ex) { ex.ERROR("SearchInFiles"); }
+                });                
             }
         }
 
@@ -999,6 +1015,11 @@ namespace PixivWPF.Common
                         result = Regex.Replace(result, @"(.*?illust_id=)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase);
                     else if (Regex.IsMatch(result, @"(.*?/pixiv\.navirank\.com/id/)(\d+)(.*)", RegexOptions.IgnoreCase))
                         result = Regex.Replace(result, @"(.*?/id/)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase);
+
+                    else if (Regex.IsMatch(result, @"(.*?//www.pixiv.net/ajax/illust/)(\d+)(/.*)?", RegexOptions.IgnoreCase))
+                        result = Regex.Replace(result, @"(.*?//www.pixiv.net/ajax/illust/)(\d+)(/.*)?", "IllustID: $2", RegexOptions.IgnoreCase);
+                    else if (Regex.IsMatch(result, @"(.*?//www.pixiv.net/ajax/user/)(\d+)(/.*)?", RegexOptions.IgnoreCase))
+                        result = Regex.Replace(result, @"(.*?//www.pixiv.net/ajax/user/)(\d+)(/.*)?", "UserID: $2", RegexOptions.IgnoreCase);
 
                     else if (Regex.IsMatch(result, @"^(.*?\.pixiv.net/users?/)(\d+)(.*)$", RegexOptions.IgnoreCase))
                         result = Regex.Replace(result, @"^(.*?\.pixiv.net/users?/)(\d+)(.*)$", "UserID: $2", RegexOptions.IgnoreCase);
@@ -2332,7 +2353,7 @@ namespace PixivWPF.Common
             string result = string.Empty;
             if (!string.IsNullOrEmpty(url))
             {
-                var m = Regex.Match(Path.GetFileName(url), @"(\d+)(_((p)(ugoira))\d+.*?)", RegexOptions.IgnoreCase);
+                var m = Regex.Match(Path.GetFileName(url), @"(\d+)(_(p|ugoira)\d+.*?)", RegexOptions.IgnoreCase);
                 if (m.Groups.Count > 0)
                 {
                     result = m.Groups[1].Value;
@@ -5974,6 +5995,7 @@ namespace PixivWPF.Common
                 {
                     if (string.IsNullOrEmpty(local.Folder)) continue;
 
+                    var id = url.GetIllustId();
                     var folder = local.Folder.FolderMacroReplace(url.GetIllustId());
                     if (Directory.Exists(folder))
                     {
@@ -5994,6 +6016,17 @@ namespace PixivWPF.Common
                                 filepath = f;
                                 result = true;
                                 break;
+                            }
+                            else
+                            {
+                                var files = Directory.EnumerateFiles(folder, $"{id}.*");
+                                if (files.Count() > 0)
+                                {
+                                    //filepath = Path.Combine(folder, $"{id}{Path.GetExtension(f)}");
+                                    filepath = files.First();
+                                    result = true;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -6122,7 +6155,8 @@ namespace PixivWPF.Common
                 {
                     if (string.IsNullOrEmpty(local.Folder)) continue;
 
-                    var folder = local.Folder.FolderMacroReplace(url.GetIllustId());
+                    var id = url.GetIllustId();
+                    var folder = local.Folder.FolderMacroReplace(id);
                     if (Directory.Exists(folder))
                     {
                         var f_s = Path.Combine(folder, file_s);
@@ -6139,7 +6173,7 @@ namespace PixivWPF.Common
                         if (result) break;
 
                         var fn = Path.GetFileNameWithoutExtension(file_s);
-                        var files = Directory.EnumerateFiles(folder, $"{fn}_*.*").NaturalSort();
+                        var files = Directory.EnumerateFiles(folder, $"{id}_*.*").NaturalSort();
                         if (files.Count() > 0)
                         {
                             if (touch) { files.Skip(1).TouchAsync(url, meta: touch); }
@@ -7505,9 +7539,13 @@ namespace PixivWPF.Common
                         using (Stream stream = new MemoryStream(File.ReadAllBytes(file)))
                         {
                             result.Source = stream.ToImageSource(size);
-                            result.SourcePath = file;
-                            result.Size = stream.Length;
-                            result.ColorDepth = result.Source is BitmapSource ? (result.Source as BitmapSource).Format.BitsPerPixel : 32;
+                            if (result.Source is ImageSource)
+                            {
+                                result.SourcePath = file;
+                                result.Size = stream.Length;
+                                result.ColorDepth = result.Source is BitmapSource ? (result.Source as BitmapSource).Format.BitsPerPixel : 32;
+                            }
+                            else if (File.Exists(file)) File.Delete(file);
                             stream.Close();
                             stream.Dispose();
                         }
@@ -9370,7 +9408,9 @@ namespace PixivWPF.Common
                             if (illust.ImageUrls.Original == null)
                             {
                                 illust.ImageUrls.Original = string.IsNullOrEmpty(illust.ImageUrls.Large) ? illust_old.ImageUrls.Original : illust.ImageUrls.Large;
-                                if (illust.ImageUrls.Original.Equals(illust.ImageUrls.Large) && !string.IsNullOrEmpty(illust_old.ImageUrls.Large))
+                                if (!string.IsNullOrEmpty(illust.ImageUrls.Original) && 
+                                    illust.ImageUrls.Original.Equals(illust.ImageUrls.Large) && 
+                                    !string.IsNullOrEmpty(illust_old.ImageUrls.Large))
                                     illust.ImageUrls.Large = illust_old.ImageUrls.Large;
                             }
                         }

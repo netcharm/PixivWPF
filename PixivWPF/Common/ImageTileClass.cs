@@ -847,6 +847,7 @@ namespace PixivWPF.Common
                             Tag = illust
                         };
                     }
+                    else { "URL is NULL".ERROR("WorkItem"); }
                 }
             }
             catch (Exception ex)

@@ -539,25 +539,70 @@ namespace PixivWPF.Pages
                 {
                     state = DownloadState.Idle;
                 }
+                else if (sender == PART_RemoveAll_Old)
+                {
+                    state = DownloadState.Older;                  
+                }
+                else if (sender == PART_RemoveAll_NDays)
+                {
+                    state = DownloadState.NDays;                  
+                }
                 else if (sender == PART_RemoveAll_All)
                 {
 
                 }
                 await new Action(() =>
                 {
-                    if (DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1)
+                    var targets = new List<DownloadInfo>();
+                    foreach (var item in (DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1 ? DownloadItems.SelectedItems : items))
                     {
-                        var targets = new List<DownloadInfo>();
-                        foreach (var item in DownloadItems.SelectedItems)
-                        {
-                            if (item is DownloadInfo) targets.Add(item as DownloadInfo);
-                        }
-                        var remove = state == DownloadState.Unknown ? targets : targets.Where(o => o.State == state);
-                        foreach (var i in remove) { i.State = DownloadState.Remove; }
+                        if (item is DownloadInfo) targets.Add(item as DownloadInfo);
                     }
-                    else
+
+                    if (state == DownloadState.Older)
                     {
-                        var remove = state == DownloadState.Unknown ? items : items.Where(o => o.State == state);
+                        var older = items.Select(o => new KeyValuePair<DateTime, DownloadInfo>(o.Url.ParseDateTime(), o)).OrderByDescending(o => o.Key);
+                        if (older.Count() > 0)
+                        {
+                            //targets.AddRange(items);
+                            var last = new KeyValuePair<DateTime, DownloadInfo>(DateTime.Now, null);
+                            foreach (var i in older)
+                            {
+                                if ((last.Key - i.Key).TotalDays < 3)
+                                {
+                                    last = i;
+                                    targets.Remove(i.Value);
+                                }
+                                else break;
+                            }
+                        }
+                        state = DownloadState.Finished;
+                        //state = DownloadState.Unknown;
+                    }
+                    else if (state == DownloadState.NDays)
+                    {
+                        setting = Application.Current.LoadSetting();
+                        var ndays = setting.DownloadRemoveNDays;
+                        var today = DateTime.Now;
+                        var older = items.Select(o => new KeyValuePair<DateTime, DownloadInfo>(o.Url.ParseDateTime(), o)).OrderByDescending(o => o.Key);
+                        if (older.Count() > 0)
+                        {
+                            //targets.AddRange(items);
+                            targets = targets.Except(older.Where(o => (o.Key - today).TotalDays <= ndays).Select(o => o.Value)).ToList();
+                        }
+                        state = DownloadState.Finished;
+                    }
+                    //else
+                    //{
+                    //    foreach (var item in (DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1 ? DownloadItems.SelectedItems : items))
+                    //    {
+                    //        if (item is DownloadInfo) targets.Add(item as DownloadInfo);
+                    //    }
+                    //}
+
+                    if (targets.Count > 0)
+                    {
+                        var remove = state == DownloadState.Unknown ? targets : targets.Where(o => o.State == state);
                         foreach (var i in remove) { i.State = DownloadState.Remove; }
                     }
                 }).InvokeAsync();
@@ -587,5 +632,11 @@ namespace PixivWPF.Pages
                 Commands.CopyDownloadInfo.Execute(GetDownloadInfo());
             }).InvokeAsync(true);
         }
-     }
+
+        private void PART_RemoveAll_ContextMenu_Opened(object sender, RoutedEventArgs e)
+        {
+            setting = Application.Current.LoadSetting();
+            PART_RemoveAll_NDays.Header = $"Remove Before {setting.DownloadRemoveNDays} Days";
+        }
+    }
 }

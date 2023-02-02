@@ -2203,10 +2203,11 @@ namespace PixivWPF.Pages
                 var lastUrl = next_url;
                 if (string.IsNullOrEmpty(next_url)) FavoriteNextPage.ToolTip = null;
                 var related = string.IsNullOrEmpty(next_url) ? await tokens.GetRelatedWorks(item.Illust.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
-                next_url = related.next_url ?? string.Empty;
 
-                if (related.illusts is Array)
+                if (related is Pixeez.Objects.Illusts && related.illusts is Array)
                 {
+                    next_url = related.next_url ?? string.Empty;
+
                     RelatedNextPage.Show(!next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase));
 
                     if (!append)
@@ -2296,10 +2297,11 @@ namespace PixivWPF.Pages
 
                     var lastUrl = next_url;
                     var related = string.IsNullOrEmpty(next_url) ? await tokens.GetUserWorksAsync(user.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
-                    next_url = related.next_url ?? string.Empty;
 
-                    if (related.illusts is Array)
+                    if (related is Pixeez.Objects.Illusts && related.illusts is Array)
                     {
+                        next_url = related.next_url ?? string.Empty;
+
                         RelatedNextPage.Show(!next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase));
 
                         if (!append)
@@ -2380,11 +2382,12 @@ namespace PixivWPF.Pages
                 FavoriteItemsExpander.Header = $"Favorite ({CultureInfo.CurrentCulture.TextInfo.ToTitleCase(restrict)})";
 
                 var favorites = string.IsNullOrEmpty(next_url) ? await tokens.GetUserFavoriteWorksAsync(user.Id.Value, restrict) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
-                next_url = favorites.next_url ?? string.Empty;
-                last_restrict = restrict;
 
-                if (favorites.illusts is Array)
+                if (favorites is Pixeez.Objects.Illusts && favorites.illusts is Array)
                 {
+                    next_url = favorites.next_url ?? string.Empty;
+                    last_restrict = restrict;
+
                     FavoriteNextPage.Show(!next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase));
 
                     if (!append)

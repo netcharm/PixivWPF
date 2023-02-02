@@ -802,13 +802,18 @@ namespace PixivWPF.Common
 
                 var cached = items.Where(item => item.Source == null && item.Thumb.IsCached() && !overwrite);//.ToList();
                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
-                var displayed = filted.Where(item => (item.Source == null && !item.Thumb.IsCached()) || overwrite);//.ToList();
+
+                var needUpdate_v = filted.Where(item => (item.Source == null && !item.Thumb.IsCached()) || overwrite);//.ToList();
                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
-                var needUpdate = items.Where(item => (item.Source == null && !item.Thumb.IsCached()) || overwrite).Except(displayed);//.ToList();
+                var needUpdate_a = items.Where(item => (item.Source == null && !item.Thumb.IsCached()) || overwrite).Except(needUpdate_v);//.ToList();
                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
-                var downloaded = items.Where(item => item.IsDownloaded);//.ToList();
+
+                var downloaded_v = filted.Where(item => item.IsDownloaded);//.ToList();
                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
-                var total = displayed.Count() + needUpdate.Count() + cached.Count();// + downloaded.Count();
+                var downloaded_a = items.Where(item => item.IsDownloaded).Except(downloaded_v);//.ToList();
+                if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+
+                var total = needUpdate_v.Count() + needUpdate_a.Count() + cached.Count();// + downloaded.Count();
                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
 
                 if (total >= 0)
@@ -836,7 +841,7 @@ namespace PixivWPF.Common
                     });
                     if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
 
-                    Parallel.ForEach(needUpdate, opt, (item, loopstate, itemIndex) =>
+                    Parallel.ForEach(needUpdate_a, opt, (item, loopstate, itemIndex) =>
                     {
                         try
                         {
@@ -887,7 +892,7 @@ namespace PixivWPF.Common
                         #region Loading filted items downloading thumbnails
                         UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(120));
                         opt.CancellationToken = UpdateTileTaskCancelSrc.Token;
-                        Parallel.ForEach(displayed, opt, (item, loopstate, itemIndex) =>
+                        Parallel.ForEach(needUpdate_v, opt, (item, loopstate, itemIndex) =>
                         {
                             if (UpdateTileTask.CancellationPending || UpdateTileTaskCancelSrc.IsCancellationRequested) { e.Cancel = true; loopstate.Stop(); }
                             try
@@ -913,11 +918,25 @@ namespace PixivWPF.Common
                         if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
                         #endregion
 
+                        #region Touch filted downloaded
+                        new Action(async () => { this.DoEvents(); await Task.Delay(1); }).Invoke(async: true);
+                        UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+                        opt.CancellationToken = UpdateTileTaskCancelSrc.Token;
+                        Parallel.ForEach(downloaded_v, opt, (item, loopstate, itemIndex) =>
+                        {
+                            if (UpdateTileTask.CancellationPending || UpdateTileTaskCancelSrc.IsCancellationRequested) { e.Cancel = true; loopstate.Stop(); }
+                            try { item.Touch(); }
+                            catch (Exception ex) { ex.ERROR("TouchDownloaded"); }
+                            finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
+                        });
+                        if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                        #endregion
+
                         #region Touch downloaded
                         new Action(async () => { this.DoEvents(); await Task.Delay(1); }).Invoke(async: true);
                         UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(120));
                         opt.CancellationToken = UpdateTileTaskCancelSrc.Token;
-                        Parallel.ForEach(downloaded, opt, (item, loopstate, itemIndex) =>
+                        Parallel.ForEach(downloaded_a, opt, (item, loopstate, itemIndex) =>
                         {
                             if (UpdateTileTask.CancellationPending || UpdateTileTaskCancelSrc.IsCancellationRequested) { e.Cancel = true; loopstate.Stop(); }
                             try { item.Touch(); }
@@ -930,7 +949,7 @@ namespace PixivWPF.Common
                         #region Loading need downloading thumbnails
                         UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(120));
                         opt.CancellationToken = UpdateTileTaskCancelSrc.Token;
-                        Parallel.ForEach(needUpdate, opt, (item, loopstate, itemIndex) =>
+                        Parallel.ForEach(needUpdate_a, opt, (item, loopstate, itemIndex) =>
                         {
                             if (UpdateTileTask.CancellationPending || UpdateTileTaskCancelSrc.IsCancellationRequested) { e.Cancel = true; loopstate.Stop(); }
                             try
@@ -1014,7 +1033,7 @@ namespace PixivWPF.Common
 #endif
                         #region Loading filted items downloading thumbnails
                         UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-                        foreach (var item in displayed)
+                        foreach (var item in needUpdate_v)
                         {
                             if (UpdateTileTask.CancellationPending || UpdateTileTaskCancelSrc.IsCancellationRequested) { tasks.Release(tasks.CurrentCount); e.Cancel = true; break; }
                             if (tasks.Wait(-1, UpdateTileTaskCancelSrc.Token))
@@ -1050,10 +1069,34 @@ namespace PixivWPF.Common
                         if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
                         #endregion
 
+                        #region Touch filted downloaded
+                        new Action(async () => { this.DoEvents(); await Task.Delay(1); }).Invoke(async: true);
+                        UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+                        foreach (var item in downloaded_v)
+                        {
+                            if (UpdateTileTask.CancellationPending || UpdateTileTaskCancelSrc.IsCancellationRequested) { tasks.Release(tasks.CurrentCount); e.Cancel = true; break; }
+                            if (tasks.Wait(-1, UpdateTileTaskCancelSrc.Token))
+                            {
+                                if (UpdateTileTask.CancellationPending) { e.Cancel = true; break; }
+                                new Action(async () =>
+                                {
+                                    try { item.Touch(); }
+                                    catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
+                                    finally
+                                    {
+                                        if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release();
+                                        this.DoEvents(); await Task.Delay(1);
+                                    }
+                                }).Invoke(async: true);
+                            }
+                        }
+                        if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                        #endregion
+
                         #region Touch downloaded
                         new Action(async () => { this.DoEvents(); await Task.Delay(1); }).Invoke(async: true);
                         UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-                        foreach (var item in downloaded)
+                        foreach (var item in downloaded_a)
                         {
                             if (UpdateTileTask.CancellationPending || UpdateTileTaskCancelSrc.IsCancellationRequested) { tasks.Release(tasks.CurrentCount); e.Cancel = true; break; }
                             if (tasks.Wait(-1, UpdateTileTaskCancelSrc.Token))
@@ -1076,7 +1119,7 @@ namespace PixivWPF.Common
 
                         #region Loading need downloading thumbnails
                         UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-                        foreach (var item in needUpdate)
+                        foreach (var item in needUpdate_a)
                         {
                             if (UpdateTileTask.CancellationPending || UpdateTileTaskCancelSrc.IsCancellationRequested) { tasks.Release(tasks.CurrentCount); e.Cancel = true; break; }
                             if (tasks.Wait(-1, UpdateTileTaskCancelSrc.Token))

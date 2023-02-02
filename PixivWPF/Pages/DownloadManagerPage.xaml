@@ -101,12 +101,15 @@
                     <TextBlock Text="&#xE107;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                 </StackPanel>
                 <Button.ContextMenu>
-                    <ContextMenu>
+                    <ContextMenu Opened="PART_RemoveAll_ContextMenu_Opened">
                         <MenuItem x:Name="PART_RemoveAll_Finished" Header="Remove Finished" Click="PART_RemoveAll_Context_Click"/>
                         <MenuItem x:Name="PART_RemoveAll_Failed" Header="Remove Failed" Click="PART_RemoveAll_Context_Click"/>
                         <MenuItem x:Name="PART_RemoveAll_NonExists" Header="Remove Non-Exists" Click="PART_RemoveAll_Context_Click"/>
                         <MenuItem x:Name="PART_RemoveAll_Idle" Header="Remove Idle" Click="PART_RemoveAll_Context_Click"/>
                         <MenuItem x:Name="PART_RemoveAll_Downloading" Header="Remove Downloading" Click="PART_RemoveAll_Context_Click" IsEnabled="False" Visibility="Collapsed" />
+                        <Separator/>
+                        <MenuItem x:Name="PART_RemoveAll_Old" Header="Remove Older" Click="PART_RemoveAll_Context_Click"/>
+                        <MenuItem x:Name="PART_RemoveAll_NDays" Header="Remove NDays" Click="PART_RemoveAll_Context_Click"/>
                         <Separator/>
                         <MenuItem x:Name="PART_RemoveAll_All" Header="Remove All" Click="PART_RemoveAll_Context_Click"/>
                     </ContextMenu>

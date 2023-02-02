@@ -165,9 +165,12 @@ namespace PixivWPF.Common
         [JsonProperty("sl")]
         public int SanityLevel { get; set; }
 
+        [JsonProperty("url")]
+        public string Url { get; set; }
+
         [JsonProperty("urls")]
         public AjaxIllustImageUrls ImageUrls { get; set; }
-        
+
         [JsonProperty("tags")]
         protected internal AjaxTags _Tags_ { get; set; }
 
@@ -250,6 +253,11 @@ namespace PixivWPF.Common
     {
         [JsonProperty("tags")]
         protected internal new List<string> Tags { get; set; }
+    }
+
+    public class AjaxIllustNoLoginData
+    {
+       // noLogin
     }
 
     public class AjaxIllustData
@@ -602,6 +610,7 @@ namespace PixivWPF.Common
         {
             List<Pixeez.Objects.Page> result = null;
 
+            url.DEBUG("GetMetaPages");
             var pages_json_text = await Application.Current.GetRemoteJsonAsync(url);
             if (!string.IsNullOrEmpty(pages_json_text))
             {
@@ -679,7 +688,8 @@ namespace PixivWPF.Common
             if (tokens == null) tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return (result);
 
-            var url =GetAjaxIllustUrl(id);
+            var url = GetAjaxIllustUrl(id);
+            url.DEBUG("SearchIllustById");
             var json_text = await Application.Current.GetRemoteJsonAsync(url);
             if (!string.IsNullOrEmpty(json_text))
             {
@@ -732,12 +742,14 @@ namespace PixivWPF.Common
                         #endregion
 
                         #region Set Image Urls
-                        var image_urls = new Pixeez.Objects.ImageUrls();
+                        var image_urls = illust.ImageUrls is AjaxIllustImageUrls ? new Pixeez.Objects.ImageUrls() : null;
+                        var self_illsuts = illust.UserIllusts.Where(s => s.Key.Equals($"{id}"));
+                        var self_illust = self_illsuts.Count()>0 ? self_illsuts.First().Value : null;
                         if (illust.ImageUrls is AjaxIllustImageUrls)
                         {
                             image_urls.Small = illust.ImageUrls.Mini;
-                            image_urls.Px128x128 = illust.ImageUrls.Thumbnail;
-                            image_urls.SquareMedium = illust.ImageUrls.Thumbnail;
+                            image_urls.Px128x128 = illust.ImageUrls.Thumbnail ?? (self_illust != null ? self_illust.Url : string.Empty);
+                            image_urls.SquareMedium = illust.ImageUrls.Thumbnail ?? (self_illust != null ? self_illust.Url : string.Empty);
                             image_urls.Medium = illust.ImageUrls.Medium;
                             image_urls.Px480mw = illust.ImageUrls.Medium;
                             image_urls.Large = illust.ImageUrls.Large;
@@ -781,7 +793,9 @@ namespace PixivWPF.Common
                         //if (i is Pixeez.Objects.IllustWork) i.Id = id;
                         #endregion
 
-                        i.Cache();
+                        //if (i.ImageUrls is Pixeez.Objects.ImageUrls &&
+                        //    (i.PageCount == 1 || (i.PageCount > 1 && pages is List<Pixeez.Objects.Page>)))
+                            i.Cache();
                         result = new List<Pixeez.Objects.Work>() { i };
                         await i.RefreshIllustBookmarkState();
                     }
@@ -831,6 +845,7 @@ namespace PixivWPF.Common
         public static async Task<Pixeez.Objects.UserBase> GetAjaxUser(this string id, Pixeez.Tokens tokens = null)
         {
             long uid = 0;
+            $"{uid}".DEBUG("GetAjaxUser");
             if (!string.IsNullOrEmpty(id) && long.TryParse(id, out uid)) return (await GetAjaxUser(uid, tokens));
             else return (null);
         }

@@ -30,7 +30,7 @@ namespace PixivWPF.Common
             if (ReferenceEquals(x, null) || ReferenceEquals(y, null)) return false;
 
             //Check whether the products' properties are equal.
-            return (x.Folder.Equals(y.Folder) && x.Cached == y.Cached && x.IncludeSubFolder == y.IncludeSubFolder);
+            return (x.Folder.Equals(y.Folder) && x.Cached == y.Cached && x.IncludeSubFolder == y.IncludeSubFolder && x.Searchable == y.Searchable);
         }
 
         // If Equals() returns true for a pair of objects 
@@ -311,6 +311,7 @@ namespace PixivWPF.Common
                         Cache.LocalStorage = Cache.LocalStorage.Distinct(new StorageTypeComparer()).ToList();
                         if(!IsContentsTemplateBusy) UpdateContentsTemplete();
 
+                        File.Copy(configfile, $"{configfile}.lastgood", true);
                         var text = JsonConvert.SerializeObject(Cache, Formatting.Indented);
                         configfile.WaitFileUnlock();
                         File.WriteAllText(configfile, text, new UTF8Encoding(true));
@@ -362,18 +363,13 @@ namespace PixivWPF.Common
                         {
                             var dso = new JsonSerializerSettings(){ Error = (se, ev) => ev.ErrorContext.Handled = true };
                             var text = File.ReadAllText(configfile);
-                            if (Cache is Setting && text.Length > 20)
-                            {
-                                var cache = JsonConvert.DeserializeObject<Setting>(text, dso);
-                                //UpdateCache(cache);
-                            }
-                            else
-                            {
-                                if (text.Length < 20)
-                                    Cache = new Setting();
-                                else
-                                    Cache = JsonConvert.DeserializeObject<Setting>(text, dso);
-                            }
+
+                            var user = Cache is Setting ? Cache.username : string.Empty;
+                            var pass = Cache is Setting ? Cache.password : string.Empty;
+                            Cache = text.Length < 20 ? new Setting() : JsonConvert.DeserializeObject<Setting>(text, dso);                            
+                            Cache.username = string.IsNullOrEmpty(Cache.username) ? user : Cache.username;
+                            Cache.password = string.IsNullOrEmpty(Cache.password) ? pass : Cache.password;
+
                             Cache.LocalStorage = Cache.LocalStorage.Distinct(new StorageTypeComparer()).ToList();
 
                             if (Cache.LocalStorage.Count <= 0 && !string.IsNullOrEmpty(Cache.SaveFolder))
@@ -437,7 +433,7 @@ namespace PixivWPF.Common
 #if DEBUG
                 catch (Exception ex) { ex.Message.ShowToast("ERROR"); }
 #else
-                catch (Exception ex) { ex.ERROR(); }
+                catch (Exception ex) { ex.ERROR("LoadConfig"); }
 #endif
                 finally
                 {
@@ -1090,6 +1086,17 @@ namespace PixivWPF.Common
             {
                 dowanload_using_proxy = value;
                 if (Cache is Setting) Cache.dowanload_using_proxy = dowanload_using_proxy;
+            }
+        }
+
+        private int download_remove_ndays = 3;
+        public int DownloadRemoveNDays
+        {
+            get { return (Cache is Setting ? Cache.download_remove_ndays : download_remove_ndays); }
+            set
+            {
+                download_remove_ndays = Math.Min(50, Math.Max(1, value));
+                if (Cache is Setting) Cache.download_remove_ndays = download_remove_ndays;
             }
         }
 
