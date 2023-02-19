@@ -551,6 +551,11 @@ namespace ImageCompare
                                 var value = Current.GetAttribute(attr);
                                 if (string.IsNullOrEmpty(value)) continue;
                                 if (attr.Contains("WinXP")) value = value.DecodeHexUnicode();
+                                else if (attr.StartsWith("date:", StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    var d = DateTime.Now;
+                                    if (DateTime.TryParse(value, out d)) value = d.ToLocalTime().ToString();
+                                }
                                 else if (attr.Equals("exif:Artist"))
                                     value = exif.GetValue(ExifTag.Artist) != null ? exif.GetValue(ExifTag.Artist).Value : value;
                                 else if (attr.Equals("exif:Copyright"))
