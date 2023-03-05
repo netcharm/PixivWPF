@@ -561,11 +561,10 @@ namespace PixivWPF.Pages
 
                     if (state == DownloadState.Older)
                     {
-                        var older = items.Select(o => new KeyValuePair<DateTime, DownloadInfo>(o.Url.ParseDateTime(), o)).OrderByDescending(o => o.Key);
+                        var older = targets.Select(o => new KeyValuePair<DateTime, DownloadInfo>(o.Url.ParseDateTime().Date, o)).OrderByDescending(o => o.Key);
                         if (older.Count() > 0)
                         {
-                            //targets.AddRange(items);
-                            var last = new KeyValuePair<DateTime, DownloadInfo>(DateTime.Now, null);
+                            var last = new KeyValuePair<DateTime, DownloadInfo>(DateTime.Now.Date, null);
                             foreach (var i in older)
                             {
                                 if ((last.Key - i.Key).TotalDays < 3)
@@ -577,28 +576,19 @@ namespace PixivWPF.Pages
                             }
                         }
                         state = DownloadState.Finished;
-                        //state = DownloadState.Unknown;
                     }
                     else if (state == DownloadState.NDays)
                     {
                         setting = Application.Current.LoadSetting();
                         var ndays = setting.DownloadRemoveNDays;
-                        var today = DateTime.Now;
-                        var older = items.Select(o => new KeyValuePair<DateTime, DownloadInfo>(o.Url.ParseDateTime(), o)).OrderByDescending(o => o.Key);
+                        var today = DateTime.Now.Date;
+                        var older = targets.Select(o => new KeyValuePair<DateTime, DownloadInfo>(o.Url.ParseDateTime().Date, o)).OrderByDescending(o => o.Key);
                         if (older.Count() > 0)
                         {
-                            //targets.AddRange(items);
-                            targets = targets.Except(older.Where(o => (o.Key - today).TotalDays <= ndays).Select(o => o.Value)).ToList();
+                            targets = targets.Except(older.Where(o => (today - o.Key).TotalDays <= ndays).Select(o => o.Value)).ToList();
                         }
                         state = DownloadState.Finished;
                     }
-                    //else
-                    //{
-                    //    foreach (var item in (DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1 ? DownloadItems.SelectedItems : items))
-                    //    {
-                    //        if (item is DownloadInfo) targets.Add(item as DownloadInfo);
-                    //    }
-                    //}
 
                     if (targets.Count > 0)
                     {

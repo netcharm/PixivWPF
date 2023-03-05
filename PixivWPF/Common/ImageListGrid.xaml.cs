@@ -720,6 +720,7 @@ namespace PixivWPF.Common
             {
                 if (force || await CanUpdateItems.WaitAsync(TimeSpan.FromMilliseconds(100)))
                 {
+                    UpdateGalleryTooltip(this, clear: true);
                     if (count > 0)
                     {
                         var items = ItemList is ObservableCollection<PixivItem> ? ItemList.ToList() : new List<PixivItem>();
@@ -764,12 +765,12 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR(this.Name ?? string.Empty); }
+            catch (Exception ex) { ex.ERROR(Name ?? string.Empty); }
             finally
             {
-                UpdateGalleryTooltip(this);
                 ReleaseUpdateLock();
-                if (AutoGC && count > 0) Application.Current.GC(this.Name, WaitGC, CalcSystemMemoryUsage);
+                UpdateGalleryTooltip(this);
+                if (AutoGC && count > 0) Application.Current.GC(Name, WaitGC, CalcSystemMemoryUsage);
                 this.DoEvents();
                 await Task.Delay(1);
             }
@@ -1226,7 +1227,7 @@ namespace PixivWPF.Common
                         }).Invoke(async: false);
                     }
                 }
-                catch (Exception ex) { ex.ERROR(this.Name ?? "UpdateTilesTask"); }
+                catch (Exception ex) { ex.ERROR(Name ?? "UpdateTilesTask"); }
                 finally
                 {
                     if (!UpdateTileTask.IsBusy && !UpdateTileTask.CancellationPending) ReleaseUpdateLock();
@@ -1303,7 +1304,7 @@ namespace PixivWPF.Common
         }
 
         private bool ParentHandled = false;
-        private void UpdateGalleryTooltip(object sender)
+        private void UpdateGalleryTooltip(object sender, bool clear = false)
         {
             Dispatcher.Invoke(() =>
             {
@@ -1311,14 +1312,27 @@ namespace PixivWPF.Common
                 {
                     var CR = Environment.NewLine;
 
+                    Expander expander = null;
                     ImageListGrid gallery = null;
                     if (sender is ImageListGrid)
-                        gallery = sender as ImageListGrid;
-                    else if (sender is Expander)
-                        gallery = (sender as Expander).FindChild<ImageListGrid>();
-
-                    if (gallery is ImageListGrid)
                     {
+                        gallery = sender as ImageListGrid;
+                        expander = gallery.TryFindParent<Expander>();
+                    }
+                    else if (sender is Expander)
+                    {
+                        expander = sender as Expander;
+                        gallery = expander.FindChild<ImageListGrid>();
+                    }
+
+                    if (clear)
+                    {
+                        if (gallery is ImageListGrid) gallery.ToolTip = null;
+                        if (expander is Expander) expander.ToolTip = null;
+                    }
+                    else if (gallery is ImageListGrid)
+                    {
+                        #region make tooltip contents
                         var count_displayed = $"{gallery.ItemsCount}".PadLeft(20);
                         var count_selected = $"{gallery.SelectedItems.Count}".PadLeft(20);
                         var count_total = $"{gallery.Items.Count}".PadLeft(20);
@@ -1332,18 +1346,20 @@ namespace PixivWPF.Common
                         var date_range_f = count > 0 ? $"{"Date Max".PadRight(10)} : {dates.Max().ToString().PadLeft(20)}" : string.Empty;
                         var date_range_e = count > 0 ? $"{"Date Min".PadRight(10)} : {dates.Min().ToString().PadLeft(20)}" : string.Empty;
                         var texts = new List<string>()
-                    {
-                        $"{"Displayed".PadRight(10)} : {count_displayed}",
-                        $"{"Selected".PadRight(10)} : {count_selected}",
-                        $"{"Total".PadRight(10)} : {count_total}",
-                        id_range_f, id_range_e,
-                        date_range_f, date_range_e,
-                    };
+                        {
+                            $"{"Displayed".PadRight(10)} : {count_displayed}",
+                            $"{"Selected".PadRight(10)} : {count_selected}",
+                            $"{"Total".PadRight(10)} : {count_total}",
+                            id_range_f, id_range_e,
+                            date_range_f, date_range_e,
+                        };
                         var text = string.Join(CR, texts).TrimEnd();
+                        #endregion
 
-                        gallery.ToolTip = string.IsNullOrEmpty(text) ? null : text;
+                        object tooltip =  string.IsNullOrEmpty(text) || (gallery.Items.Count <= 0) ? "Empty" : text;
 
-                        var expander = this.TryFindParent<Expander>();
+                        gallery.ToolTip = tooltip;
+
                         if (expander is Expander)
                         {
                             if (!ParentHandled)
@@ -1352,7 +1368,7 @@ namespace PixivWPF.Common
                                 expander.ToolTipOpening += PART_ToolTipOpening;
                                 ParentHandled = true;
                             }
-                            expander.ToolTip = string.IsNullOrEmpty(text) ? null : text;
+                            expander.ToolTip = tooltip;
                         }
                     }
                 }

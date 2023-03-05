@@ -715,15 +715,27 @@ namespace PixivWPF.Pages
                     //browser.Document.MouseDown += new System.Windows.Forms.HtmlElementEventHandler(WebBrowserDocument_MouseDown);
 
                     var document = browser.Document;
-                    foreach (System.Windows.Forms.HtmlElement link in document.Links)
+                    if (document is System.Windows.Forms.HtmlDocument)
                     {
                         try
                         {
-                            link.Click += WebBrowser_LinkClick;
+                            //document.Click -= new System.Windows.Forms.HtmlElementEventHandler(WebBrowser_Document_Click);
+                            //document.Click += new System.Windows.Forms.HtmlElementEventHandler(WebBrowser_Document_Click);
+                            document.MouseDown -= new System.Windows.Forms.HtmlElementEventHandler(WebBrowser_Document_MouseDown);
+                            document.MouseDown += new System.Windows.Forms.HtmlElementEventHandler(WebBrowser_Document_MouseDown);
                         }
-                        catch (Exception ex) { ex.ERROR(); continue; }
+                        catch { }
+
+                        foreach (System.Windows.Forms.HtmlElement link in document.Links)
+                        {
+                            try
+                            {
+                                link.Click += WebBrowser_LinkClick;
+                            }
+                            catch (Exception ex) { ex.ERROR(); continue; }
+                        }
+                        AdjustBrowserSize(browser);
                     }
-                    AdjustBrowserSize(browser);
                 }
             }
             catch (Exception ex) { ex.ERROR("WEBBROWSER"); }
@@ -773,6 +785,49 @@ namespace PixivWPF.Pages
                 }
             }
             catch (Exception ex) { ex.ERROR("BROWSER"); }
+        }
+
+        private void WebBrowser_Document_Click(object sender, System.Windows.Forms.HtmlElementEventArgs e)
+        {
+            //some code
+            if (sender is System.Windows.Forms.HtmlDocument)
+            {
+                var doc = sender as System.Windows.Forms.HtmlDocument;
+                System.Windows.Forms.WebBrowser browser = null;
+                if (doc == IllustTagsHtml.Document) browser = IllustTagsHtml;
+                else if(doc == IllustDescHtml.Document) browser = IllustDescHtml;
+                if (browser is System.Windows.Forms.WebBrowser)
+                {
+                    if (e.MouseButtonsPressed == System.Windows.Forms.MouseButtons.Middle)
+                    {
+                        var text = browser.GetText();
+                        if (sender == IllustTagsHtml) text = text.Replace("#", " ").Trim();
+                        if (!string.IsNullOrEmpty(text)) Commands.CopyText.Execute(text);
+                    }
+                }
+            }
+        }
+
+        private void WebBrowser_Document_MouseDown(object sender, System.Windows.Forms.HtmlElementEventArgs e)
+        {
+            //some code
+            if (sender is System.Windows.Forms.HtmlDocument)
+            {
+                var doc = sender as System.Windows.Forms.HtmlDocument;
+                System.Windows.Forms.WebBrowser browser = null;
+                if (doc == IllustTagsHtml.Document) browser = IllustTagsHtml;
+                else if (doc == IllustDescHtml.Document) browser = IllustDescHtml;
+                if (browser is System.Windows.Forms.WebBrowser)
+                {
+                    if (e.MouseButtonsPressed == System.Windows.Forms.MouseButtons.Middle)
+                    {
+                        var text = browser.GetText();
+                        if (browser == IllustTagsHtml) text = text.Replace("#", " ").Trim();
+                        if (!string.IsNullOrEmpty(text)) Commands.CopyText.Execute(text);
+                    }
+                    e.BubbleEvent = false;
+                }
+            }
         }
         #endregion
 
@@ -1623,21 +1678,21 @@ namespace PixivWPF.Pages
                     UpdateContentsThumbnail(overwrite: overwrite);
                     #endregion
 
-                    #region Delay for prefetching preview/thumbnail
-                    setting = Application.Current.LoadSetting();
-                    SemaphoreSlim UpdateThumbDelay = new SemaphoreSlim(0, 1);
-                    var IsCanceled = false;
-                    if (await UpdateThumbDelay.WaitAsync(setting.PrefetchingDownloadDelay, cancelDownloading.Token))
-                    {
-                        IsCanceled = false;
-                    }
-                    if (IsCanceled || cancelDownloading.IsCancellationRequested) return;
-                    #endregion
-
                     #region Create prefetching task
                     InitPrefetchingTask();
                     if (prefetching && ParentWindow is ContentWindow && PrefetchingImagesTask is PrefetchingTask)
                     {
+                        #region Delay for prefetching preview/thumbnail
+                        setting = Application.Current.LoadSetting();
+                        SemaphoreSlim UpdateThumbDelay = new SemaphoreSlim(0, 1);
+                        var IsCanceled = false;
+                        if (await UpdateThumbDelay.WaitAsync(setting.PrefetchingDownloadDelay, cancelDownloading.Token))
+                        {
+                            IsCanceled = false;
+                        }
+                        if (IsCanceled || cancelDownloading.IsCancellationRequested) return;
+                        #endregion
+
                         var items = new List<PixivItem>();
                         if (Contents.Count <= 1 || Contents.IsUser()) items.Add(Contents);
                         else if (Contents.Count <= 30) items.AddRange(SubIllusts.Items.Where(p => p.Index != Contents.Index));
@@ -2158,12 +2213,12 @@ namespace PixivWPF.Pages
 
                     this.DoEvents();
                     if (ParentWindow is MainWindow) SubIllusts.UpdateTilesImage(touch: false);
-                    else if (ParentWindow is ContentWindow) UpdateThumb();
+                    else if (ParentWindow is ContentWindow) UpdateThumb(prefetching: PrefetchingImagesTask.State == TaskStatus.Created);
                 }
             }
             catch (Exception ex)
             {
-                ex.ERROR(this.Name ?? "SubIllusts");
+                ex.ERROR(Name ?? "SubIllusts");
             }
             finally
             {
@@ -2241,6 +2296,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
+                RelatedNextAppend.ToolTip = RelatedItemsExpander.ToolTip;
                 //UpdateGalleryTooltip(RelatedItems);
                 RelatedItems.Ready();
                 if (RelatedItems.Items.Count > 0) { RelatedRefresh.Show(); RelatedCompare.Show(); }
@@ -2308,19 +2364,20 @@ namespace PixivWPF.Pages
                         {
                             RelatedItemsExpander.Tag = lastUrl;
                             CurrentRelatedURL = lastUrl;
-                        }
-                        RelatedNextURL = next_url;
-                        RelatedNextPage.Tag = next_url;
-                        RelatedNextPage.ToolTip = CurrentRelatedURL.CalcUrlPageHint(IllustSize.Text);
-                        RelatedPrevPage.ToolTip = RelatedNextPage.ToolTip;
-                        RelatedNextAppend.ToolTip = RelatedItemsExpander.ToolTip;
 
-                        if (!append)
-                        {
                             RelatedPrevPage.Tag = string.IsNullOrEmpty(CurrentRelatedURL) ? Contents.MakeUserWorkNextUrl().CalcPrevUrl(totals: IllustSize.Text) : CurrentRelatedURL.CalcPrevUrl(totals: IllustSize.Text);
                         }
+
+                        RelatedNextURL = next_url;
+
+                        RelatedPrevPage.ToolTip = RelatedNextPage.ToolTip;
                         RelatedPrevPage.Show(show: IllustSize.Text.CalcTotalPages() > 1);
+
+                        RelatedNextPage.Tag = next_url;
+                        RelatedNextPage.ToolTip = CurrentRelatedURL.CalcUrlPageHint(IllustSize.Text);
                         RelatedNextPage.Show(show: IllustSize.Text.CalcTotalPages() > 1);
+
+                        RelatedNextAppend.ToolTip = RelatedItemsExpander.ToolTip;
                         RelatedNextAppend.Show(show: IllustSize.Text.CalcTotalPages() > 1);
                         
                         foreach (var illust in related.illusts)
@@ -2343,6 +2400,7 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(Name ?? "UserWorks", no_stack: ex is WarningException); }
             finally
             {
+                RelatedNextAppend.ToolTip = RelatedItemsExpander.ToolTip;
                 //UpdateGalleryTooltip(RelatedItems);
                 RelatedItems.Ready();
                 if (RelatedItems.Items.Count > 0) RelatedRefresh.Show();
@@ -2395,10 +2453,13 @@ namespace PixivWPF.Pages
                         FavoriteItemsExpander.Tag = lastUrl;
                         CurrentFavoriteURL = lastUrl;
                     }
+
                     NextFavoriteURL = next_url;
+
                     FavoriteNextPage.Tag = next_url;
                     FavoriteNextPage.ToolTip = next_url.CalcUrlPageHint(0, FavoriteNextPage.ToolTip is string ? FavoriteNextPage.ToolTip as string : null);
                     FavoriteNextPage.Show(show: !string.IsNullOrEmpty(CurrentFavoriteURL) || !string.IsNullOrEmpty(next_url));
+
                     FavoriteNextAppend.ToolTip = FavoriteItemsExpander.ToolTip;
                     FavoriteNextAppend.Show(show: !string.IsNullOrEmpty(CurrentFavoriteURL) || !string.IsNullOrEmpty(next_url));
 
@@ -2422,6 +2483,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
+                FavoriteNextAppend.ToolTip = FavoriteItemsExpander.ToolTip;
                 //UpdateGalleryTooltip(FavoriteItems);
                 FavoriteItems.Ready();
                 if (FavoriteItems.Items.Count > 0) { FavoriteRefresh.Show(); FavoriteCompare.Show(); }
@@ -3898,6 +3960,8 @@ namespace PixivWPF.Pages
         private int lastMouseDown = Environment.TickCount;
         private void IllustInfo_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            if (sender is UIElement) (sender as UIElement).Focus();
+
             if (e.Timestamp - lastMouseDown > 100)
             {
                 lastMouseDown = e.Timestamp;
@@ -4354,6 +4418,8 @@ namespace PixivWPF.Pages
                 if (Contents.IsWork())
                 {
                     var illust = Contents.Illust;
+                    page_number = Contents.Index / PAGE_ITEMS;
+                    //page_number = Contents.Index % PAGE_ITEMS;
                     if (btn == SubIllustPrevPages)
                     {
                         page_number -= 1;

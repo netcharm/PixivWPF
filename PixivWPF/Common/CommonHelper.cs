@@ -125,6 +125,56 @@ namespace PixivWPF.Common
             }
             catch (Exception ex) { ex.ERROR(); }
         }
+
+        public string GetText(bool html = false, bool all_without_selection = true)
+        {
+            string result = string.Empty;
+            try
+            {
+                if (this is System.Windows.Forms.WebBrowser &&
+                    this.Document is System.Windows.Forms.HtmlDocument &&
+                    this.Document.DomDocument is mshtml.IHTMLDocument2)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    mshtml.IHTMLDocument2 document = this.Document.DomDocument as mshtml.IHTMLDocument2;
+                    mshtml.IHTMLSelectionObject currentSelection = document.selection;
+                    if (currentSelection != null && currentSelection.type.Equals("Text", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        mshtml.IHTMLTxtRange range = currentSelection.createRange() as mshtml.IHTMLTxtRange;
+                        if (range != null)
+                        {
+                            mshtml.IHTMLElement root = range.parentElement();
+                            if (root.tagName.Equals("html", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                var bodies = this.Document.GetElementsByTagName("body");
+                                foreach (System.Windows.Forms.HtmlElement body in bodies)
+                                {
+                                    sb.AppendLine(html ? body.InnerHtml : body.InnerText);
+                                }
+                            }
+                            else
+                                sb.AppendLine(html ? range.htmlText : range.text);
+                        }
+                    }
+                    else if (all_without_selection)
+                    {
+                        var bodies = this.Document.GetElementsByTagName("body");
+                        foreach (System.Windows.Forms.HtmlElement body in bodies)
+                        {
+                            sb.AppendLine(html ? body.InnerHtml : body.InnerText);
+                        }
+                    }
+                    result = sb.Length > 0 ? sb.ToString().Trim().KatakanaHalfToFull() : string.Empty;
+                }
+            }
+            catch (Exception ex) { ex.ERROR("GetBrowserText"); }
+            return (result);
+        }
+
+        public static implicit operator WebBrowser(WebBrowserEx v)
+        {
+            return (v);
+        }
     }
 
     public class HtmlTextData
@@ -355,17 +405,24 @@ namespace PixivWPF.Common
             if (!string.IsNullOrEmpty(query) && folders is IEnumerable<string>)
             {
                 var targets = folders.Where(d => Directory.Exists(d));
-                var location = string.Join("&", targets.Select(d => $"crumb=location:{d}"));
-                var cmd = "explorer.exe";
-                var cmd_param = $"/root,\"search-ms:{location}&query={query}&\"";
-                Task.Run(() =>
+                if (targets.Count() > 0)
                 {
-                    try
+                    var location = string.Join("&", targets.Select(d => $"crumb=location:{d}"));
+                    var cmd = "explorer.exe";
+                    var cmd_param = $"/root,\"search-ms:{location}&query={query}&\"";
+                    Task.Run(() =>
                     {
-                        Process.Start(cmd, cmd_param);
-                    }
-                    catch (Exception ex) { ex.ERROR("SearchInFiles"); }
-                });                
+                        try
+                        {
+                            Process.Start(cmd, cmd_param);
+                        }
+                        catch (Exception ex) { ex.ERROR("SearchInFiles"); }
+                    });
+                }
+                else
+                {
+                    "No Searchable Folder".NOTICE("SearchInFiles");
+                }
             }
         }
 
@@ -2387,6 +2444,16 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static string SanityAge(this Pixeez.Objects.Work work)
+        {
+            var age = "all";
+            if (work is Pixeez.Objects.IllustWork)
+                age = (work as Pixeez.Objects.IllustWork).SanityLevel.SanityAge();
+            else if(work is Pixeez.Objects.NormalWork)
+                age = (work as Pixeez.Objects.NormalWork).AgeLimit.SanityAge();
+            return (age);
+        }
+
         public static string SanityAge(this string sanity)
         {
             string age = "all";
@@ -2423,6 +2490,20 @@ namespace PixivWPF.Common
                 else age = "all";
             }
             return (age);
+        }
+
+        public static string SanityAgeTag(this string sanity)
+        {
+            var age = SanityAge(sanity);
+            string tag = age.Equals("all", StringComparison.CurrentCultureIgnoreCase) ? string.Empty : $"R-{age}".TrimEnd('+');
+            return (tag);
+        }
+
+        public static string SanityAgeTag(this Pixeez.Objects.Work work)
+        {
+            var age = work.SanityAge();
+            string tag = age.SanityAgeTag();
+            return (tag);
         }
 
         public static string FolderMacroReplace(this string text)
@@ -4304,6 +4385,7 @@ namespace PixivWPF.Common
                 if (illust is Pixeez.Objects.Work && (dt != null || dt.Ticks > 0))
                 {
                     var uid = $"{illust.User.Id}";
+                    var sanity = illust.SanityAgeTag();
                     meta = new MetaInfo()
                     {
                         DateCreated = dt,
@@ -4316,7 +4398,7 @@ namespace PixivWPF.Common
                         Subject = id.ArtworkLink(),
                         Authors = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}",
                         Copyrights = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}",
-                        Keywords = string.Join("; ", illust.Tags.Select(t => t.Replace(";", "；⸵")).Distinct(StringComparer.CurrentCultureIgnoreCase)),
+                        Keywords = string.Join("; ", illust.Tags.Select(t => t.Replace(";", "；⸵")).Append(sanity).Where(t => !string.IsNullOrEmpty(t)).Distinct(StringComparer.CurrentCultureIgnoreCase)),
                         Comment = illust.Caption.HtmlToText(),
 
                         Rating = illust.IsLiked() ? 75 : 0,
@@ -4632,7 +4714,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR("GetExifData"); }
+            catch (Exception ex) { ex.ERROR("GetExifData", no_stack: !ex.Message.StartsWith("Internal ", StringComparison.CurrentCultureIgnoreCase)); }
             return (result);
         }
 
@@ -4925,6 +5007,7 @@ namespace PixivWPF.Common
                                 throw new Exception("Illust No User Info");
                             }
                             var uid = $"{illust.User.Id}";
+                            var sanity = illust.SanityAgeTag();
 
                             bool is_png = fileinfo.IsPng();
                             bool is_img = fileinfo.IsImage();
@@ -4968,7 +5051,7 @@ namespace PixivWPF.Common
                                         if (sh.Properties.System.Copyright.Value == null || !sh.Properties.System.Author.Value.Contains(authors[0]) || !sh.Properties.System.Author.Value.Contains(authors[1]))
                                             sh.Properties.System.Copyright.Value = string.Join("; ", authors);
 
-                                        var tags = illust.Tags.Select(t => t.Replace(";", "；⸵")).Distinct(StringComparer.CurrentCultureIgnoreCase).ToArray();
+                                        var tags = illust.Tags.Select(t => t.Replace(";", "；⸵")).Append(sanity).Where(t => !string.IsNullOrEmpty(t)).Distinct(StringComparer.CurrentCultureIgnoreCase).ToArray();
                                         sh.Properties.System.Keywords.AllowSetTruncatedValue = true;
                                         if (sh.Properties.System.Keywords.Value == null || sh.Properties.System.Keywords.Value.Length != tags.Length)
                                             sh.Properties.System.Keywords.Value = tags;
@@ -5990,7 +6073,7 @@ namespace PixivWPF.Common
             filepath = string.Empty;
             try
             {
-                var file = url.GetImageName(is_meta_single_page);
+                var file = url.GetImageName(is_meta_single_page);                
                 foreach (var local in setting.LocalStorage)
                 {
                     if (string.IsNullOrEmpty(local.Folder)) continue;
@@ -6494,7 +6577,7 @@ namespace PixivWPF.Common
             string result = string.Empty;
             if (!string.IsNullOrEmpty(url))
             {
-                result = Path.GetFileName(url).Replace("_p", "_");
+                result = Regex.Replace(Path.GetFileName(url).Replace("_p", "_"), @"_(master|square|custom)(\d+)?\.", ".", RegexOptions.IgnoreCase);
                 if (is_meta_single_page) result = result.Replace("_0.", ".");
             }
             return (result);

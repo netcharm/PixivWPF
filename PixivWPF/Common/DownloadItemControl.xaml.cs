@@ -101,13 +101,10 @@ namespace PixivWPF.Common
                     var idx = url.GetIllustPageIndex();
                     var illust = id.FindIllust();
                     if (illust.IsWork())
-                        FileName = illust.GetOriginalUrl(singlefile ? 0 : idx).GetImageName(singlefile);
-                    else
                     {
-                        FileName = Regex.Replace(FileName, @"_p(\d+)_(marter|custom).*?\.", "$1.");
-                        if (singlefile) FileName = FileName.Replace("_0.", ".");
+                        FileName = illust.GetOriginalUrl(singlefile ? 0 : idx).GetImageName(singlefile);
+                        FileName = Application.Current.SaveTarget(FileName);
                     }
-                    FileName = Application.Current.SaveTarget(FileName);
                 }
                 if (!string.IsNullOrEmpty(FileName)) Name = Path.GetFileNameWithoutExtension(FileName);
                 NotifyPropertyChanged("UrlChanged");
@@ -987,8 +984,8 @@ namespace PixivWPF.Common
 
         private void DownloadPreProcess(bool restart = false)
         {
-            if (string.IsNullOrEmpty(Url)) throw new Exception($"Download URL is unknown!");
-            if (!CanDownload && !restart) throw new Exception($"Download task can't start now!");
+            if (string.IsNullOrEmpty(Url)) throw new WarningException($"Download URL is unknown!");
+            if (!CanDownload && !restart) throw new WarningException($"Download task can't start now!");
 
             IsStart = false;
             Canceling = false;
@@ -1378,8 +1375,7 @@ namespace PixivWPF.Common
             if (File.Exists(FileName) && IsDownloading) await Cancel();
             CheckProperties();
 
-            if ((CanDownload || State == DownloadState.Finished) && Downloading is SemaphoreSlim && Downloading.CurrentCount <= 0) Downloading.Release();
-            State = DownloadState.Idle;
+            if ((CanDownload || State == DownloadState.Finished) && Downloading is SemaphoreSlim && Downloading.CurrentCount <= 0) Downloading.Release();           
 
             var target_file = string.Empty;
             string fc = Url.GetImageCachePath();
@@ -1397,6 +1393,7 @@ namespace PixivWPF.Common
             {
                 if (CanDownload || restart)
                 {
+                    if (restart) State = DownloadState.Idle;
                     await Task.Delay(Application.Current.Random(20, 200)).ContinueWith(async t =>
                     {
                         this.DoEvents();
