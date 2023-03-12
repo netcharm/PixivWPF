@@ -419,6 +419,75 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
+        /// <param name="vertical"></param>
+        /// <param name="sendto"></param>
+        /// <param name="first"></param>
+        private void MergeImage(bool source, bool vertical, bool sendto = true, bool first = true)
+        {
+            try
+            {
+                var action = false;
+
+                var image_s = ImageSource.GetInformation();
+                var image_t = ImageTarget.GetInformation();
+
+                if (image_s.ValidCurrent && image_t.ValidCurrent)
+                {                   
+                    var s_image = source ? image_s : image_t;
+                    var t_image = source ? image_t : image_s;
+                    var image = s_image.Current.Clone();
+                    var target = t_image.Current.Clone();
+
+                    var offset_x = image.Width == target.Width ? 0 : (image.Width - target.Width) / 2;
+                    var offset_y = image.Height == target.Height ? 0 : (image.Height - target.Height) / 2;
+
+                    var geo = new MagickGeometry(image.Width, image.Height);
+                    geo.FillArea = false;
+                    geo.Greater = true;
+                    geo.Less = false;
+                    geo.IgnoreAspectRatio = false;
+                    //geo_.AspectRatio = true;
+
+                    if (vertical)
+                    {
+                        geo.Width = image.Width;
+                        geo.Height = target.Height;
+                        if (offset_x > 0)
+                            target.Extent(geo, Gravity.Center, image.HasAlpha || target.HasAlpha ? MagickColors.Transparent : target.BackgroundColor);
+                        else if (offset_x < 0)
+                            target.Resize(geo);
+                    }
+                    else
+                    {
+                        geo.Width = target.Width;
+                        geo.Height = image.Height;
+                        if (offset_y > 0)
+                            target.Extent(geo, Gravity.Center, image.HasAlpha || target.HasAlpha ? MagickColors.Transparent : target.BackgroundColor);
+                        else if (offset_y < 0)
+                            target.Resize(geo);
+                    }
+
+                    var collection = new MagickImageCollection();
+                    collection.Add(image);
+                    collection.Add(target);
+                    var result = vertical ? collection.AppendVertically() : collection.AppendHorizontally();
+
+                    if (sendto)
+                        t_image.Current = new MagickImage(result);
+                    else
+                        s_image.Current = new MagickImage(result);
+                    action = true;
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
         private void ScaleImage(MagickGeometry geomatry = null, bool? source = null)
         {
             try
@@ -503,6 +572,32 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
+        private void PencilImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var radius = WeakEffects ? 3 : 7;
+                var sigma = WeakEffects ? 0.33 : 0.66;
+                var angle = WeakEffects ? 15 : 30;
+
+                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                if (image.ValidCurrent)
+                {
+                    //image.Current.Sketch();
+                    image.Current.Sketch(radius, sigma, angle);
+                    action = true;
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
         private void OilImage(bool source)
         {
             try
@@ -515,6 +610,50 @@ namespace ImageCompare
                 if (image.ValidCurrent)
                 {
                     image.Current.OilPaint(radius, sigma);
+                    action = true;
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        private void CharcoalImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var radius = WeakEffects ? 3 : 7;
+                var sigma = WeakEffects ? 0.25 : 0.5;
+
+                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                if (image.ValidCurrent)
+                {
+                    image.Current.Charcoal(radius, sigma);
+                    action = true;
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        private void StereoImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                double angle = WeakEffects ? 3 : 5;
+
+                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                var target = source ? ImageTarget.GetInformation() : ImageSource.GetInformation();
+                if (image.ValidCurrent)
+                {
+                    image.Current.Stereo(target.Current);
                     action = true;
                 }
 
@@ -561,30 +700,6 @@ namespace ImageCompare
                 if (image.ValidCurrent)
                 {
                     image.Current.Posterize(levels, DitherMethod.Riemersma, CompareImageChannels);
-                    action = true;
-                }
-
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="source"></param>
-        private void CharcoalImage(bool source)
-        {
-            try
-            {
-                var action = false;
-                var radius = WeakEffects ? 3 : 7;
-                var sigma = WeakEffects ? 0.25 : 0.5;
-
-                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
-                if (image.ValidCurrent)
-                {
-                    image.Current.Charcoal(radius, sigma);
                     action = true;
                 }
 

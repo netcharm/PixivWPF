@@ -495,4 +495,16 @@
   <data name="ImageLayout.ToolTip" xml:space="preserve">
     <value>切換 水平/垂直 查看佈局</value>
   </data>
+  <data name="MergeX.Header" xml:space="preserve">
+    <value>水准拼接影像</value>
+  </data>
+  <data name="MergeY.Header" xml:space="preserve">
+    <value>垂直拼接影像</value>
+  </data>
+  <data name="PencilPaint.Header" xml:space="preserve">
+    <value>鉛筆草稿效果</value>
+  </data>
+  <data name="Stereo3D.Header" xml:space="preserve">
+    <value>紅藍偽3D效果</value>
+  </data>
 </root>

@@ -495,4 +495,16 @@
   <data name="ImageLayout.ToolTip" xml:space="preserve">
     <value>Horizontal/Vertical Image Layout</value>
   </data>
+  <data name="MergeX.Header" xml:space="preserve">
+    <value>Merge Horizontal</value>
+  </data>
+  <data name="MergeY.Header" xml:space="preserve">
+    <value>Merge Vertical</value>
+  </data>
+  <data name="PencilPaint.Header" xml:space="preserve">
+    <value>Pencil Paint</value>
+  </data>
+  <data name="Stereo3D.Header" xml:space="preserve">
+    <value>Stereo (Fake 3D)</value>
+  </data>
 </root>

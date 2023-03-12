@@ -1170,6 +1170,20 @@ namespace ImageCompare
                     Tag = source,
                     Icon = new TextBlock() { Text = "\uE746", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
                 };
+                var item_merge_h = new MenuItem()
+                {
+                    Header = "Merge Horizontal",
+                    Uid = "MergeX",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uF614", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                };
+                var item_merge_v = new MenuItem()
+                {
+                    Header = "Merge Vertical",
+                    Uid = "MergeY",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uF615", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                };
 
                 var item_copyfrom_result = new MenuItem()
                 {
@@ -1272,6 +1286,18 @@ namespace ImageCompare
                     var first = Keyboard.Modifiers == ModifierKeys.Shift ? true : (Keyboard.Modifiers == ModifierKeys.Control ? false : true);
                     RenderRun(() => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: true, sendto: sendto, first: first); });
                 };
+                item_merge_h.Click += (obj, evt) =>
+                {
+                    var sendto = Keyboard.Modifiers == ModifierKeys.Shift;
+                    var first = Keyboard.Modifiers == ModifierKeys.Shift ? true : (Keyboard.Modifiers == ModifierKeys.Control ? false : true);
+                    RenderRun(() => { MergeImage((bool)(obj as MenuItem).Tag, vertical: false, sendto: sendto, first: first); });
+                };
+                item_merge_v.Click += (obj, evt) =>
+                {
+                    var sendto = Keyboard.Modifiers == ModifierKeys.Shift;
+                    var first = Keyboard.Modifiers == ModifierKeys.Shift ? true : (Keyboard.Modifiers == ModifierKeys.Control ? false : true);
+                    RenderRun(() => { MergeImage((bool)(obj as MenuItem).Tag, vertical: true, sendto: sendto, first: first); });
+                };
 
                 item_copyfrom_result.Click += (obj, evt) => { RenderRun(() => { CopyImageFromResult(source); }); };
                 item_copyto_source.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(source); }); };
@@ -1308,6 +1334,8 @@ namespace ImageCompare
                 items.Add(new Separator());
                 items.Add(item_slice_h);
                 items.Add(item_slice_v);
+                items.Add(item_merge_h);
+                items.Add(item_merge_v);
                 items.Add(new Separator());
                 items.Add(item_copyfrom_result);
                 items.Add(item_copyto_source);
@@ -1390,31 +1418,18 @@ namespace ImageCompare
                     Uid = "Charcoal",
                     Tag = source
                 };
-                var item_more_blueshift = new MenuItem()
+                var item_more_pencil = new MenuItem()
                 {
-                    Header = "Blue Shift",
-                    Uid = "BlueShift",
+                    Header = "Pencil Paint",
+                    Uid = "PencilPaint",
                     Tag = source
                 };
-                var item_more_remap = new MenuItem()
+                var item_more_stereo = new MenuItem()
                 {
-                    Header = "Re-Map Color",
-                    Uid = "ReMapColor",
+                    Header = "Stereo (Fake 3D)",
+                    Uid = "Stereo3D",
                     Tag = source
                 };
-                var item_more_clut = new MenuItem()
-                {
-                    Header = "Clut",
-                    Uid = "CLUT",
-                    Tag = source
-                };
-                var item_more_haldclut = new MenuItem()
-                {
-                    Header = "Hald Clut",
-                    Uid = "HaldClut",
-                    Tag = source
-                };
-
                 var item_more_medianfilter = new MenuItem()
                 {
                     Header = "Median Filter",
@@ -1437,6 +1452,31 @@ namespace ImageCompare
                 {
                     Header = "Polaroid",
                     Uid = "Polaroid",
+                    Tag = source
+                };
+
+                var item_more_blueshift = new MenuItem()
+                {
+                    Header = "Blue Shift",
+                    Uid = "BlueShift",
+                    Tag = source
+                };
+                var item_more_remap = new MenuItem()
+                {
+                    Header = "Re-Map Color",
+                    Uid = "ReMapColor",
+                    Tag = source
+                };
+                var item_more_clut = new MenuItem()
+                {
+                    Header = "Clut",
+                    Uid = "CLUT",
+                    Tag = source
+                };
+                var item_more_haldclut = new MenuItem()
+                {
+                    Header = "Hald Clut",
+                    Uid = "HaldClut",
                     Tag = source
                 };
 
@@ -1481,6 +1521,7 @@ namespace ImageCompare
                 #region MoreEffects MenuItem Click event handles
                 item_more_oil.Click += (obj, evt) => { RenderRun(() => { OilImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_charcoal.Click += (obj, evt) => { RenderRun(() => { CharcoalImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_pencil.Click += (obj, evt) => { RenderRun(() => { PencilImage((bool)(obj as MenuItem).Tag); }); };
 
                 item_more_autoequalize.Click += (obj, evt) => { RenderRun(() => { AutoEqualizeImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_autoreducenoise.Click += (obj, evt) => { RenderRun(() => { ReduceNoiseImage((bool)(obj as MenuItem).Tag); }); };
@@ -1496,6 +1537,7 @@ namespace ImageCompare
                 item_more_posterize.Click += (obj, evt) => { RenderRun(() => { PosterizeImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_medianfilter.Click += (obj, evt) => { RenderRun(() => { MedianFilterImage((bool)(obj as MenuItem).Tag); }); };
 
+                item_more_stereo.Click += (obj, evt) => { RenderRun(() => { StereoImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_blueshift.Click += (obj, evt) => { RenderRun(() => { BlueShiftImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_autothreshold.Click += (obj, evt) => { RenderRun(() => { AutoThresholdImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_remap.Click += (obj, evt) => { RenderRun(() => { RemapImage((bool)(obj as MenuItem).Tag); }); };
@@ -1522,7 +1564,9 @@ namespace ImageCompare
                 item_more.Items.Add(new Separator());
                 item_more.Items.Add(item_more_oil);
                 item_more.Items.Add(item_more_charcoal);
+                item_more.Items.Add(item_more_pencil);
                 item_more.Items.Add(item_more_invert);
+                item_more.Items.Add(item_more_stereo);
                 item_more.Items.Add(item_more_posterize);
                 item_more.Items.Add(item_more_polaroid);
                 item_more.Items.Add(new Separator());

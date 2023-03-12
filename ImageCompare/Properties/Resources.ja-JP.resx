@@ -495,4 +495,16 @@
   <data name="ImageLayout.ToolTip" xml:space="preserve">
     <value>レイアウトの水平/垂直の切り替え</value>
   </data>
+  <data name="MergeX.Header" xml:space="preserve">
+    <value>水平向のステッチ画像</value>
+  </data>
+  <data name="MergeY.Header" xml:space="preserve">
+    <value>縦方向のステッチ画像</value>
+  </data>
+  <data name="PencilPaint.Header" xml:space="preserve">
+    <value>ペンシルドラフト効果</value>
+  </data>
+  <data name="Stereo3D.Header" xml:space="preserve">
+    <value>赤と青の擬似3D効果</value>
+  </data>
 </root>
