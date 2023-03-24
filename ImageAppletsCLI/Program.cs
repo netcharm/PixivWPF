@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Mono.Options;
+using System.Windows;
+using System.Threading;
 
 namespace ImageAppletsCLI
 {
@@ -17,8 +19,10 @@ namespace ImageAppletsCLI
 
         static private int LINE_COUNT = 80;
         static private bool show_help = false;
+        static private string[] LINE_BREAK = new string[] { "\n\r", "\r\n", "\r", "\n", Environment.NewLine };
 
         static private List<string> _log_ = new List<string>();
+        static private List<string> _flist_out_ = new List<string>();
 
         public static OptionSet Options { get; set; } = new OptionSet()
         {
@@ -43,7 +47,7 @@ namespace ImageAppletsCLI
                 if (applet is ImageApplets.Applet)
                 {
                     var extras = applet.ParseOptions(args.Skip(1));
-                    if (extras.Count == 0 && !Console.IsInputRedirected && !Console.IsOutputRedirected)
+                    if ((extras.Count == 0 && string.IsNullOrEmpty(applet.InputFile)) && !Console.IsInputRedirected && !Console.IsOutputRedirected)
                     {
                         #region Output applet help information
                         Console.Out.WriteLine(ShowHelp(applet.Name));
@@ -51,8 +55,47 @@ namespace ImageAppletsCLI
                     }
                     else
                     {
-                        #region Enum files will be processed from command line
                         var files = new List<string>();
+                        #region Enum from input filelist file
+                        if (!string.IsNullOrEmpty(applet.InputFile))
+                        {
+                            try
+                            {
+                                if (applet.InputFile.Equals("clipboard", StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    try
+                                    {
+                                        Thread clip = new Thread(new ThreadStart(delegate()
+                                        {
+                                            var _flist_in_ = new List<string>();
+
+                                            DataObject dp = new DataObject();
+                                            if (Clipboard.ContainsFileDropList())
+                                            {
+                                                foreach (var f in Clipboard.GetFileDropList()) _flist_in_.Add(f);
+                                            }
+                                            else if (Clipboard.ContainsText())
+                                            {
+                                                _flist_in_.AddRange(Clipboard.GetText().Split(LINE_BREAK, StringSplitOptions.RemoveEmptyEntries));
+                                            }
+                                            files.AddRange(_flist_in_);
+                                        }));
+                                        clip.TrySetApartmentState(ApartmentState.STA);
+                                        clip.Start();
+                                        clip.Join();
+                                    }
+                                    catch (Exception ex) { Console.WriteLine(ex.Message); }
+                                }
+                                else if (File.Exists(applet.InputFile))
+                                {
+                                    files.AddRange(File.ReadLines(applet.InputFile, Encoding.UTF8));
+                                }
+                            }
+                            catch (Exception ex) { Console.WriteLine(ex.Message); }
+                        }
+                        #endregion
+
+                        #region Enum files will be processed from command line
                         foreach (var extra in extras)
                         {
                             var folder = Path.GetDirectoryName(extra);
@@ -159,6 +202,9 @@ namespace ImageAppletsCLI
                         else
                             Console.Out.WriteLine($"{fname}");
 
+                        if (!(_flist_out_ is List<string>)) _flist_out_ = new List<string>();
+                        _flist_out_.Add(fname);
+
                         if (is_contents)
                             _log_.Add($"{fname.PadRight(Math.Max(padding, 1))} : {$"{result}"}");
                         else
@@ -194,30 +240,58 @@ namespace ImageAppletsCLI
         {
             if (!string.IsNullOrEmpty(file))
             {
-                var folder = Path.GetDirectoryName(file);
-                if (Directory.Exists(string.IsNullOrEmpty(folder) ? "." : folder))
+                if (file.Equals("clipboard", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    using (var fs = new FileStream(file, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+                    try
                     {
-                        if (fs.CanSeek) fs.Seek(0, SeekOrigin.Begin);
-                        if (fs.CanWrite)
+                        if (_flist_out_.Count > 0)
                         {
-                            var _kvs_ = _log_.Take(_log_.Count - 1).Skip(2).Select(l =>
+                            Thread clip = new Thread(new ThreadStart(delegate()
                             {
-                                var vs = l.Split(':').Select(v => v.Trim());
-                                var key = vs.First();
-                                var value = vs.Count() > 1 ? l.Replace(key, "").Trim(new char[] { ' ', ':' }) : string.Empty;
-                                return (new KeyValuePair<string, string>(key, value));
-                            });
-                            var _max_key_lens_ = _kvs_.Max(kv => kv.Key.Length);
-                            var _max_value_lens_ = _kvs_.Max(kv => kv.Value.Length);
-                            var _output_lines_ = new List<string> ();
-                            _output_lines_.Add("Result");
-                            _output_lines_.Add("".PadRight(_max_value_lens_ <= 5 ? _max_key_lens_ + 8 : 80, '='));
-                            _output_lines_.AddRange(_kvs_.Select(kv => $"{kv.Key.PadRight(_max_key_lens_)} : {kv.Value.Trim().PadLeft(_max_value_lens_ <= 5 ? 5 : 0)}"));
-                            _output_lines_.Add("".PadRight(_max_value_lens_ <= 5 ? _max_key_lens_ + 8 : 80, '='));
-                            var bytes = Encoding.UTF8.GetBytes(string.Join(Environment.NewLine, _output_lines_).Trim());
-                            fs.Write(bytes, 0, bytes.Length);
+                                DataObject dp = new DataObject();
+                                var fdl = new System.Collections.Specialized.StringCollection();
+                                fdl.AddRange(_flist_out_.ToArray());
+                                dp.SetFileDropList(fdl);
+                                dp.SetText(string.Join(Environment.NewLine, _flist_out_));
+                                Clipboard.SetDataObject(dp, true);
+                            }));
+                            clip.TrySetApartmentState(ApartmentState.STA);
+                            clip.Start();
+                            clip.Join();
+                        }
+                    }
+                    catch (Exception ex) { Console.WriteLine(ex.Message); }
+                }
+                else
+                {
+                    var folder = Path.GetDirectoryName(file);
+                    if (Directory.Exists(string.IsNullOrEmpty(folder) ? "." : folder))
+                    {
+                        using (var fs = new FileStream(file, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+                        {
+                            if (fs.CanSeek) fs.Seek(0, SeekOrigin.Begin);
+                            if (fs.CanWrite)
+                            {
+                                var _kvs_ = _log_.Take(_log_.Count - 1).Skip(2).Select(l =>
+                                {
+                                    var vs = l.Split(':').Select(v => v.Trim());
+                                    var key = vs.First();
+                                    var value = vs.Count() > 1 ? l.Replace(key, "").Trim(new char[] { ' ', ':' }) : string.Empty;
+                                    return (new KeyValuePair<string, string>(key, value));
+                                });
+                                if (_kvs_.Count() > 0)
+                                {
+                                    var _max_key_lens_ = _kvs_.Max(kv => kv.Key.Length);
+                                    var _max_value_lens_ = _kvs_.Max(kv => kv.Value.Length);
+                                    var _output_lines_ = new List<string> ();
+                                    _output_lines_.Add("Result");
+                                    _output_lines_.Add("".PadRight(_max_value_lens_ <= 5 ? _max_key_lens_ + 8 : 80, '='));
+                                    _output_lines_.AddRange(_kvs_.Select(kv => $"{kv.Key.PadRight(_max_key_lens_)} : {kv.Value.Trim().PadLeft(_max_value_lens_ <= 5 ? 5 : 0)}"));
+                                    _output_lines_.Add("".PadRight(_max_value_lens_ <= 5 ? _max_key_lens_ + 8 : 80, '='));
+                                    var bytes = Encoding.UTF8.GetBytes(string.Join(Environment.NewLine, _output_lines_).Trim());
+                                    fs.Write(bytes, 0, bytes.Length);
+                                }
+                            }
                         }
                     }
                 }
