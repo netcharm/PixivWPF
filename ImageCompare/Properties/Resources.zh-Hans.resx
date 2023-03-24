@@ -507,4 +507,7 @@
   <data name="Stereo3D.Header" xml:space="preserve">
     <value>红蓝伪3D效果</value>
   </data>
+  <data name="InfoTipQuality" xml:space="preserve">
+    <value>图像质量     =</value>
+  </data>
 </root>

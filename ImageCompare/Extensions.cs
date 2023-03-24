@@ -72,6 +72,11 @@ namespace ImageCompare
             return (GetString(text));
         }
 
+        public static bool Contains(this string text)
+        {
+            return (resourceSet.GetString(text) == null ? false : true);
+        }
+
         public static void Locale(this FrameworkElement element, IEnumerable<string> ignore_uids = null, IEnumerable<FrameworkElement> ignore_elements = null)
         {
             try
@@ -96,7 +101,7 @@ namespace ImageCompare
                         if (element is ButtonBase)
                         {
                             var ui = element as ButtonBase;
-                            if (ui.Content is string)
+                            if (ui.Content is string && !string.IsNullOrEmpty(ui.Content as string))
                             {
                                 var text = $"{ui.Uid}.Content".T();
                                 if (!string.IsNullOrEmpty(text)) ui.Content = text;
@@ -105,13 +110,16 @@ namespace ImageCompare
                         else if (element is TextBlock)
                         {
                             var ui = element as TextBlock;
-                            var text = $"{ui.Uid}.Text".T();
-                            if (!string.IsNullOrEmpty(text)) ui.Text = text;
+                            if (!string.IsNullOrEmpty(ui.Text))
+                            {
+                                var text = $"{ui.Uid}.Text".T();
+                                if (!string.IsNullOrEmpty(text)) ui.Text = text;
+                            }
                         }
                         else if (element is MenuItem)
                         {
                             var ui = element as MenuItem;
-                            if (ui.Header is string)
+                            if (ui.Header is string && !string.IsNullOrEmpty(ui.Header as string))
                             {
                                 var text = $"{ui.Uid}.Header".T();
                                 if (!string.IsNullOrEmpty(text)) ui.Header = text;
@@ -132,16 +140,31 @@ namespace ImageCompare
                         else if (element is ColorPicker)
                         {
                             var ui = element as ColorPicker;
-                            var text = $"{ui.Uid}.AdvancedTabHeader".T();
-                            if (!string.IsNullOrEmpty(text)) ui.AdvancedTabHeader = text;
-                            text = $"{ui.Uid}.StandardTabHeader".T();
-                            if (!string.IsNullOrEmpty(text)) ui.StandardTabHeader = text;
-                            text = $"{ui.Uid}.AvailableColorsHeader".T();
-                            if (!string.IsNullOrEmpty(text)) ui.AvailableColorsHeader = text;
-                            text = $"{ui.Uid}.StandardColorsHeader".T();
-                            if (!string.IsNullOrEmpty(text)) ui.StandardColorsHeader = text;
-                            text = $"{ui.Uid}.RecentColorsHeader".T();
-                            if (!string.IsNullOrEmpty(text)) ui.RecentColorsHeader = text;
+                            if (!string.IsNullOrEmpty(ui.AdvancedTabHeader))
+                            {
+                                var text = $"{ui.Uid}.AdvancedTabHeader".T();
+                                if (!string.IsNullOrEmpty(text)) ui.AdvancedTabHeader = text;
+                            }
+                            if (!string.IsNullOrEmpty(ui.AdvancedTabHeader))
+                            {
+                                var text = $"{ui.Uid}.StandardTabHeader".T();
+                                if (!string.IsNullOrEmpty(text)) ui.StandardTabHeader = text;
+                            }
+                            if (!string.IsNullOrEmpty(ui.AdvancedTabHeader))
+                            {
+                                var text = $"{ui.Uid}.AvailableColorsHeader".T();
+                                if (!string.IsNullOrEmpty(text)) ui.AvailableColorsHeader = text;
+                            }
+                            if (!string.IsNullOrEmpty(ui.AdvancedTabHeader))
+                            {
+                                var text = $"{ui.Uid}.StandardColorsHeader".T();
+                                if (!string.IsNullOrEmpty(text)) ui.StandardColorsHeader = text;
+                            }
+                            if (!string.IsNullOrEmpty(ui.AdvancedTabHeader))
+                            {
+                                var text = $"{ui.Uid}.RecentColorsHeader".T();
+                                if (!string.IsNullOrEmpty(text)) ui.RecentColorsHeader = text;
+                            }
                         }
                     }
                 }

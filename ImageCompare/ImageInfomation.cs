@@ -573,7 +573,8 @@ namespace ImageCompare
                         tip.Add($"{"InfoTipFormatInfo".T()} {Current.FormatInfo.Format.ToString()} ({Current.FormatInfo.Description}), mime:{Current.FormatInfo.MimeType}");
                     tip.Add($"{"InfoTipHasAlpha".T()} {(Current.HasAlpha ? "Included" : "NotIncluded").T()}");
                     tip.Add($"{"InfoTipColorMapsSize".T()} {Current.ColormapSize.ToString()}");
-                    tip.Add($"{"InfoTipCompression".T()} {Current.Compression.ToString().T()}");
+                    tip.Add($"{"InfoTipCompression".T()} {Current.Compression.ToString()}");
+                    tip.Add($"{"InfoTipQuality".T()} {Current.Quality.ToString()}");
 #if Q16HDRI
                     tip.Add($"{"InfoTipMemoryUsage".T()} {((long)(Current.Width * Current.Height * Current.ChannelCount * Current.Depth * 4 / 8)).SmartFileSize()}");
 #elif Q16

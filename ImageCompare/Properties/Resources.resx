@@ -507,4 +507,7 @@
   <data name="Stereo3D.Header" xml:space="preserve">
     <value>Stereo (Fake 3D)</value>
   </data>
+  <data name="InfoTipQuality" xml:space="preserve">
+    <value>Image Quality  =</value>
+  </data>
 </root>

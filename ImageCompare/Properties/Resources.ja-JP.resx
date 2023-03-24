@@ -507,4 +507,7 @@
   <data name="Stereo3D.Header" xml:space="preserve">
     <value>赤と青の擬似3D効果</value>
   </data>
+  <data name="InfoTipQuality" xml:space="preserve">
+    <value>画像品質           =</value>
+  </data>
 </root>
