@@ -773,8 +773,8 @@ namespace ImageApplets
             { "a|all", "Keep All", v => { Status = STATUS.All; } },
             { " " },
             { "verbose", "Output All When Redirected STDOUT", v => { _verbose_ = v != null ? true : false; } },
-            { "input|filelist=", "Get Files From {FILE}", v => { if (v != null) _input_file_ = v; } },
-            { "output=", "Output To {FILE}", v => { if (v != null) _output_file_ = v; } },
+            { "input|filelist=", "Get Files From {FILE} or CLIPBOARD", v => { if (v != null) _input_file_ = v; } },
+            { "output=", "Output To {FILE} or CLIPBOARD", v => { if (v != null) _output_file_ = v; } },
             { "read=", "Read Mode {<All|Line>} When Input Redirected", v => { if (v != null) Enum.TryParse(v.ToUpper(), out _ReadInputMode_); } },
         };
 
