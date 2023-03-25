@@ -3010,7 +3010,7 @@ namespace PixivWPF.Common
         {
             if (!string.IsNullOrEmpty(query))
             {
-                string[] EscapeChar = new string[] { "%", "&", "/",  "$", ":", ";" };
+                string[] EscapeChar = new string[] { "%", "&", "/", "$", ":", ";", "?", "*", "!" , "~", "=" };
                 Func<string, string> Escape = (s) =>
                 {
                     foreach(var c in EscapeChar) s = s.Replace(c, Uri.EscapeDataString(c));
@@ -3052,8 +3052,9 @@ namespace PixivWPF.Common
                     SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.ItemFolderPathDisplay, out value))
                     query_list.Add(value.Description.DisplayName, querys);
 
-                var m_sep = mode == StorageSearchMode.And ? " AND " : " OR ";
-                query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:({string.Join(m_sep, q.Value.Select(w => Escape(w)))})").ToList());
+                var m_sep = mode == StorageSearchMode.Not ? " NOT " : (mode == StorageSearchMode.And ? " AND " : " OR ");
+                //query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{string.Join(m_sep, q.Value.Select(w => $"~=\"{Escape(w)}\""))}").ToList());
+                query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{string.Join(m_sep, q.Value.Select(w => w.StartsWith("=") ? w : $"~=\"{w}\""))}").ToList());
 
                 var setting = LoadSetting(app);
 

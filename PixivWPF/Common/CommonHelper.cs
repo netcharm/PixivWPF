@@ -409,7 +409,7 @@ namespace PixivWPF.Common
                 {
                     var location = string.Join("&", targets.Select(d => $"crumb=location:{d}"));
                     var cmd = "explorer.exe";
-                    var cmd_param = $"/root,\"search-ms:{location}&query={query}&\"";
+                    var cmd_param = $"/root,\"search-ms:{location}&query={query}\"";
                     Task.Run(() =>
                     {
                         try

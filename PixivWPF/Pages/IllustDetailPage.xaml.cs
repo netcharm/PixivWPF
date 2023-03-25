@@ -3560,6 +3560,8 @@ namespace PixivWPF.Pages
                     text = IllustAuthor.Text;
                 else if (sender == IllustDate || sender == IllustDateInfo)
                     text = IllustDate.Text;
+                else if (sender == IllustSanityInfo)
+                    text = $"R{IllustSanity.Text}";
                 else if (sender is MenuItem)
                 {
                     var mi = sender as MenuItem;
@@ -3583,6 +3585,7 @@ namespace PixivWPF.Pages
                     else if (host == IllustAuthor) text = IllustAuthor.Text;
                     else if (host == IllustTitle) text = IllustTitle.Text;
                     else if (host == IllustDateInfo || host == IllustDate) text = IllustDate.Text;
+                    else if (host == IllustSanityInfo) text = $"R{IllustSanity.Text}";
                     else if (host == SubIllustsExpander || host == SubIllusts) text = IllustTitle.Text;
                     else if (host == RelatedItemsExpander || host == RelatedItems)
                     {
@@ -3703,6 +3706,8 @@ namespace PixivWPF.Pages
                 { text = fuzzy ? $"{IllustAuthor.Text}{Environment.NewLine}{Contents.UserID}" : $"=uid:{Contents.UserID}"; scope |= StorageSearchScope.Author; }
                 else if (sender == IllustDate || sender == IllustDateInfo)
                 { text = IllustDate.Text.Split().First(); scope |= StorageSearchScope.Date; }
+                else if (sender == IllustSanityInfo)
+                { text = $"R-{IllustSanity.Text}{Environment.NewLine}R{IllustSanity.Text}"; scope |= StorageSearchScope.Title | StorageSearchScope.Tag; }
                 else if (sender is MenuItem)
                 {
                     var mi = sender as MenuItem;
@@ -3713,6 +3718,7 @@ namespace PixivWPF.Pages
                     else if (host == IllustAuthor) { text = fuzzy ? $"{IllustAuthor.Text}{Environment.NewLine}{Contents.UserID}" : $"=uid:{Contents.UserID}"; scope |= StorageSearchScope.Author; }
                     else if (host == IllustTitle) { text = fuzzy ? IllustTitle.Text : $"={IllustTitle.Text}"; scope |= StorageSearchScope.Title; }
                     else if (host == IllustDateInfo || host == IllustDate) { text = IllustDate.Text.Split().First(); scope |= StorageSearchScope.Date; }
+                    else if (host == IllustSanityInfo) { text = $"R-{IllustSanity.Text}{Environment.NewLine}R{IllustSanity.Text}"; scope |= StorageSearchScope.Title | StorageSearchScope.Tag; }
                     else if (host == SubIllustsExpander || host == SubIllusts) { text = fuzzy ? $"={IllustTitle.Text}" : IllustTitle.Text; scope |= StorageSearchScope.Title; }
                     else if (host == RelatedItemsExpander || host == RelatedItems)
                     {

@@ -1062,6 +1062,7 @@
                             HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                         <Border Grid.Column="1" x:Name="IllustSanityInfo" 
                             Visibility="Collapsed"
+                            ContextMenu="{DynamicResource MenuSpeech}" 
                             BorderBrush="{DynamicResource MahApps.Brushes.SystemControlErrorTextForeground}"
                             CornerRadius="3" BorderThickness="3" Height="20" Width="Auto" Margin="0,0,2,0">
                             <TextBlock x:Name="IllustSanity" Text="18" Margin="1"
