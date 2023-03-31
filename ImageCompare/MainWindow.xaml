@@ -153,8 +153,8 @@
                 </StackPanel>
             </ToggleButton>
             <Slider x:Name="ZoomRatio" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center"
-                    Value="1" Minimum="0.25" Maximum="10" 
-                    TickPlacement="None" Ticks="0.25, 0.5, 1, 2, 5, 10" IsSnapToTickEnabled="False" ValueChanged="ZoomRatio_ValueChanged">
+                    Value="1" Minimum="0.10" Maximum="10" 
+                    TickPlacement="None" Ticks="0.10, 0.25, 0.5, 1, 2, 5, 10" IsSnapToTickEnabled="False" ValueChanged="ZoomRatio_ValueChanged">
                 <Slider.ToolTip>
                     <ToolTip x:Uid="ZoomRatioToolTip" Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}" ContentStringFormat="{}{0:F2} X" />
                 </Slider.ToolTip>

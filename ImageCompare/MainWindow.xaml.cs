@@ -239,6 +239,8 @@ namespace ImageCompare
         private Dictionary<Color, string> ColorNames = new Dictionary<Color, string>();
         private Point mouse_start;
         private Point mouse_origin;
+        private double ZoomMin = 0.1;
+        private double ZoomMax = 10.0;
 
         private void GetColorNames()
         {
@@ -518,10 +520,12 @@ namespace ImageCompare
                     if (ZoomFitAll.IsChecked ?? false)
                     {
                         //ZoomRatio.Value = 1;
+                        ZoomRatio.Minimum = ZoomMin;
                     }
                     else if (ZoomFitNone.IsChecked ?? false)
                     {
                         //ZoomRatio.Value = 1;
+                        ZoomRatio.Minimum = ZoomMin;
                     }
                     else if (ZoomFitWidth.IsChecked ?? false)
                     {
@@ -529,7 +533,9 @@ namespace ImageCompare
                         var targetY = image.Height;
                         var ratio = scroll.ActualWidth / targetX;
                         var delta = scroll.VerticalScrollBarVisibility == ScrollBarVisibility.Hidden || targetY * ratio <= scroll.ActualHeight ? 0 : 14;
-                        ZoomRatio.Value = (scroll.ActualWidth - delta) / targetX;
+                        var value = (scroll.ActualWidth - delta) / targetX;
+                        ZoomRatio.Minimum = value < ZoomMin ? value : ZoomMin;
+                        ZoomRatio.Value = value;
                     }
                     else if (ZoomFitHeight.IsChecked ?? false)
                     {
@@ -537,7 +543,9 @@ namespace ImageCompare
                         var targetY = height;
                         var ratio = scroll.ActualHeight / targetY;
                         var delta = scroll.HorizontalScrollBarVisibility == ScrollBarVisibility.Hidden || targetX * ratio <= scroll.ActualWidth ? 0 : 14;
-                        ZoomRatio.Value = (scroll.ActualHeight - delta) / targetY;
+                        var value = (scroll.ActualHeight - delta) / targetY;
+                        ZoomRatio.Minimum = value < ZoomMin ? value : ZoomMin;
+                        ZoomRatio.Value = value;
                     }
                 }
             }
@@ -1853,6 +1861,8 @@ namespace ImageCompare
             #region Default Zoom Ratio
             //ZoomFitAll.IsChecked = true;
             //ImageActions_Click(ZoomFitAll, e);
+            ZoomMin = ZoomRatio.Minimum;
+            ZoomMax = ZoomRatio.Maximum;
             #endregion
 
             if (ImageSource.Tag == null) ImageSource.Tag = new ImageInformation() { Tagetment = ImageSource };
