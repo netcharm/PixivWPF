@@ -521,31 +521,59 @@ namespace ImageCompare
                     {
                         //ZoomRatio.Value = 1;
                         ZoomRatio.Minimum = ZoomMin;
+                        //if (scroll.ActualHeight < height && scroll.ActualWidth < width)
+                        //{
+                        //    ZoomRatioValue.Text = $"{Math.Min(scroll.ActualHeight / height, scroll.ActualWidth / width):F2}X";
+                        //}
+                        //else ZoomRatioValue.Text = $"{ZoomRatio.Value:F2}X";
                     }
                     else if (ZoomFitNone.IsChecked ?? false)
                     {
                         //ZoomRatio.Value = 1;
                         ZoomRatio.Minimum = ZoomMin;
+                        //if (scroll.ActualHeight < height && scroll.ActualWidth < width)
+                        //{
+                        //    ZoomRatioValue.Text = $"{Math.Min(scroll.ActualHeight / height, scroll.ActualWidth / width):F2}X";
+                        //}
+                        //else ZoomRatioValue.Text = $"{ZoomRatio.Value:F2}";
                     }
                     else if (ZoomFitWidth.IsChecked ?? false)
                     {
-                        var targetX = width;
-                        var targetY = image.Height;
-                        var ratio = scroll.ActualWidth / targetX;
-                        var delta = scroll.VerticalScrollBarVisibility == ScrollBarVisibility.Hidden || targetY * ratio <= scroll.ActualHeight ? 0 : 14;
-                        var value = (scroll.ActualWidth - delta) / targetX;
-                        ZoomRatio.Minimum = value < ZoomMin ? value : ZoomMin;
-                        ZoomRatio.Value = value;
+                        if (scroll.ActualWidth > width)
+                        {
+                            //ZoomRatioValue.Text = $"{Math.Min(scroll.ActualHeight / height, scroll.ActualWidth / width):F2}X";
+                            ZoomRatio.Minimum = ZoomMin;
+                            ZoomRatio.Value = 1;
+                        }
+                        else
+                        {
+                            var targetX = width;
+                            var targetY = image.Height;
+                            var ratio = scroll.ActualWidth / targetX;
+                            var delta = scroll.VerticalScrollBarVisibility == ScrollBarVisibility.Hidden || targetY * ratio <= scroll.ActualHeight ? 0 : 14;
+                            var value = (scroll.ActualWidth - delta) / targetX;
+                            ZoomRatio.Minimum = value < ZoomMin ? value : ZoomMin;
+                            ZoomRatio.Value = value;
+                        }                        
                     }
                     else if (ZoomFitHeight.IsChecked ?? false)
                     {
-                        var targetX = image.Width;
-                        var targetY = height;
-                        var ratio = scroll.ActualHeight / targetY;
-                        var delta = scroll.HorizontalScrollBarVisibility == ScrollBarVisibility.Hidden || targetX * ratio <= scroll.ActualWidth ? 0 : 14;
-                        var value = (scroll.ActualHeight - delta) / targetY;
-                        ZoomRatio.Minimum = value < ZoomMin ? value : ZoomMin;
-                        ZoomRatio.Value = value;
+                        if (scroll.ActualHeight > height)
+                        {
+                            //ZoomRatioValue.Text = $"{Math.Min(scroll.ActualHeight / height, scroll.ActualWidth / width):F2}X";
+                            ZoomRatio.Minimum = ZoomMin;
+                            ZoomRatio.Value = 1;
+                        }
+                        else
+                        {
+                            var targetX = image.Width;
+                            var targetY = height;
+                            var ratio = scroll.ActualHeight / targetY;
+                            var delta = scroll.HorizontalScrollBarVisibility == ScrollBarVisibility.Hidden || targetX * ratio <= scroll.ActualWidth ? 0 : 14;
+                            var value = (scroll.ActualHeight - delta) / targetY;
+                            ZoomRatio.Minimum = value < ZoomMin ? value : ZoomMin;
+                            ZoomRatio.Value = value;
+                        }
                     }
                 }
             }
@@ -2212,11 +2240,11 @@ namespace ImageCompare
         {
             try
             {
-                if (IsLoaded && (ZoomFitNone.IsChecked ?? false))
+                if (IsLoaded && (ZoomFitNone.IsChecked ?? false) && e.OldValue != e.NewValue)
                 {
 
                     e.Handled = true;
-                    LastZoomRatio = ZoomRatio.Value;
+                    LastZoomRatio = e.NewValue;
 
                 }
             }
