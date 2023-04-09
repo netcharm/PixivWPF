@@ -18,7 +18,7 @@ namespace ImageApplets.Applets
             return (new HasExif());
         }
 
-        private List<string> Categories  = new List<string>() { "Artist", "Author", "Title", "Suject", "Comment", "Comments", "Keyword", "Keywords", "Tag", "Tags", "Copyright", "Software", "Rate", "Date", "Width", "Height", "Aspect", "Landscape", "Portrait", "Square", "Bits", "Endian", "LittleEndian", "LSB", "BigEndian", "MSB", "All" };
+        private List<string> Categories  = new List<string>() { "Artist", "Author", "Title", "Suject", "Comment", "Comments", "Keyword", "Keywords", "Tag", "Tags", "Copyright", "Software", "Rate", "Rating", "Rank", "Ranking", "Date", "Width", "Height", "Aspect", "Landscape", "Portrait", "Square", "Bits", "Endian", "LittleEndian", "LSB", "BigEndian", "MSB", "All" };
         private string[] ExifAttrs = new string[] { };
 
         private DateValue _date_ = null;
@@ -412,8 +412,8 @@ namespace ImageApplets.Applets
                                 if (cats.Contains("copyright")) status &= Compare(copyright, words);
 
                                 if (cats.Contains("software")) status &= Compare(software, words);
-                                if (cats.Contains("rate")) status &= Compare(rate, words);
-                                if (cats.Contains("rank")) status &= Compare(rank, words);
+                                if (cats.Contains("rate") || cats.Contains("rating")) status &= Compare(rate, words);
+                                if (cats.Contains("rank") || cats.Contains("ranking")) status &= Compare(rank, words);
                                 if (cats.Contains("date")) status &= Compare(date_string, words);
 
                                 if (cats.Contains("width")) status &= Compare($"{exif.Width}", words);
@@ -463,8 +463,8 @@ namespace ImageApplets.Applets
                                 if (cats.Contains("copyright")) status |= Compare(copyright, words);
 
                                 if (cats.Contains("software")) status |= Compare(software, words);
-                                if (cats.Contains("rate")) status |= Compare(rate, words);
-                                if (cats.Contains("rank")) status |= Compare(rank, words);
+                                if (cats.Contains("rate") || cats.Contains("rating")) status |= Compare(rate, words);
+                                if (cats.Contains("rank") || cats.Contains("ranking")) status |= Compare(rank, words);
                                 if (cats.Contains("date")) status |= Compare(date_string, words);
 
                                 if (cats.Contains("width")) status |= Compare($"{exif.Width}", words);
@@ -523,8 +523,8 @@ namespace ImageApplets.Applets
                                 var rate_value = string.IsNullOrEmpty(rate) ? rate : rate.PadLeft(16, '0');
                                 var rank_value = string.IsNullOrEmpty(rank) ? rank : rank.PadLeft(16, '0');
 
-                                if (cats.Contains("rate")) status |= Compare(rate_value, word_value);
-                                if (cats.Contains("rank")) status |= Compare(rank_value, word_value);
+                                if (cats.Contains("rate") || cats.Contains("rating")) status |= Compare(rate_value, word_value);
+                                if (cats.Contains("rank") || cats.Contains("ranking")) status |= Compare(rank_value, word_value);
                                 if (cats.Contains("date") && date.HasValue) status |= _date_.Compare(date.Value, Mode);
 
                                 if (cats.Contains("width")) status |= Compare($"{exif.Width}", words);
@@ -564,8 +564,8 @@ namespace ImageApplets.Applets
                                     double value_low = values.First();
                                     double value_high = values.Last();
 
-                                    if (cats.Contains("rate") && double.TryParse(rate, out value)) status |= value_low <= value && value <= value_high;
-                                    if (cats.Contains("rank") && double.TryParse(rank, out value)) status |= value_low <= value && value <= value_high;
+                                    if ((cats.Contains("rate") || cats.Contains("rating")) && double.TryParse(rate, out value)) status |= value_low <= value && value <= value_high;
+                                    if ((cats.Contains("rank") || cats.Contains("ranking")) && double.TryParse(rank, out value)) status |= value_low <= value && value <= value_high;
 
                                     if (cats.Contains("width")) status |= value_low <= exif.Width && exif.Width <= value_high;
                                     if (cats.Contains("height")) status |= value_low <= exif.Height && exif.Height <= value_high;
@@ -592,8 +592,8 @@ namespace ImageApplets.Applets
                                     double value_low = values.First();
                                     double value_high = values.Last();
 
-                                    if (cats.Contains("rate") && double.TryParse(rate, out value)) status |= value < value_low || value_high < value;
-                                    if (cats.Contains("rank") && double.TryParse(rank, out value)) status |= value < value_low || value_high < value;
+                                    if ((cats.Contains("rate") || cats.Contains("rating")) && double.TryParse(rate, out value)) status |= value < value_low || value_high < value;
+                                    if ((cats.Contains("rank") || cats.Contains("ranking")) && double.TryParse(rank, out value)) status |= value < value_low || value_high < value;
 
                                     if (cats.Contains("width")) status |= exif.Width < value_low || value_high < exif.Width;
                                     if (cats.Contains("height")) status |= exif.Height < value_low || value_high < exif.Height;
@@ -637,8 +637,8 @@ namespace ImageApplets.Applets
                         if (cats.Contains("copyright") && !string.IsNullOrEmpty(copyright)) sb.AppendLine($"{padding}{copyright}");
                         if (cats.Contains("copyrights") && !string.IsNullOrEmpty(copyright)) sb.AppendLine($"{padding}{copyright}");
                         if (cats.Contains("software") && !string.IsNullOrEmpty(software)) sb.AppendLine($"{padding}{software}");
-                        if (cats.Contains("rate") && !string.IsNullOrEmpty(rate)) sb.AppendLine($"{padding}{rate}");
-                        if (cats.Contains("rank") && !string.IsNullOrEmpty(rank)) sb.AppendLine($"{padding}{rank}");
+                        if ((cats.Contains("rate") || cats.Contains("rating")) && !string.IsNullOrEmpty(rate)) sb.AppendLine($"{padding}{rate}");
+                        if ((cats.Contains("rank") || cats.Contains("ranking")) && !string.IsNullOrEmpty(rank)) sb.AppendLine($"{padding}{rank}");
                         if (cats.Contains("date") && !string.IsNullOrEmpty(date_string)) sb.AppendLine($"{padding}{date_string}");
 
                         if (cats.Contains("width")) sb.AppendLine($"{padding}{exif.Width}");
