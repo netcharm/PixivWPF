@@ -229,6 +229,12 @@ namespace Pixeez.Objects
         [JsonProperty("metadata")]
         public Metadata Metadata { get; set; }
 
+        //[JsonProperty("aiType")]
+        //public int AIType { get; set; } = 0;
+
+        [JsonProperty("illust_ai_type")]
+        public int AIType { get; set; } = 0;
+
         [JsonProperty("content_type")]
         public string ContentType { get; set; }
         public abstract void SetBookMarkedValue(bool value);
