@@ -179,6 +179,9 @@
                     <MenuItem x:Name="LiveFilterFollowed" x:Uid="LiveFilterFollowed" Header="My Followed" Click="LiveFilterItem_Click"/>
                     <MenuItem x:Name="LiveFilterNotFollowed" x:Uid="LiveFilterNotFollowed" Header="Not Followed" Click="LiveFilterItem_Click"/>
                     <Separator/>
+                    <MenuItem x:Name="LiveFilterAI" x:Uid="LiveFilterAI" Header="AI Gen" Click="LiveFilterItem_Click"/>
+                    <MenuItem x:Name="LiveFilterNotAI" x:Uid="LiveFilterNotAI" Header="Not AI Gen" Click="LiveFilterItem_Click"/>
+                    <Separator/>
                     <MenuItem x:Name="LiveFilterUser" x:Uid="LiveFilterUser" Header="Users Only" Click="LiveFilterItem_Click"/>
                     <MenuItem x:Name="LiveFilterWork" x:Uid="LiveFilterWork" Header="Works Only" Click="LiveFilterItem_Click"/>
                     <Separator/>

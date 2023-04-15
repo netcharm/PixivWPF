@@ -1361,6 +1361,39 @@ namespace PixivWPF.Common
             }
         }
 
+        private bool download_attach_metainfo_tag_sanity = false;
+        public bool DownloadAttachMetaInfoTagSanity
+        {
+            get { return (Cache is Setting ? Cache.download_attach_metainfo_tag_sanity : download_attach_metainfo_tag_sanity); }
+            set
+            {
+                download_attach_metainfo_tag_sanity = value;
+                if (Cache is Setting) Cache.download_attach_metainfo_tag_sanity = download_attach_metainfo_tag_sanity;
+            }
+        }
+
+        private bool download_attach_metainfo_tag_ai = false;
+        public bool DownloadAttachMetaInfoTagAI
+        {
+            get { return (Cache is Setting ? Cache.download_attach_metainfo_tag_ai : download_attach_metainfo_tag_ai); }
+            set
+            {
+                download_attach_metainfo_tag_ai = value;
+                if (Cache is Setting) Cache.download_attach_metainfo_tag_ai = download_attach_metainfo_tag_ai;
+            }
+        }
+
+        private bool download_attach_metainfo_tag_trans = false;
+        public bool DownloadAttachMetaInfoTagTranslated
+        {
+            get { return (Cache is Setting ? Cache.download_attach_metainfo_tag_trans : download_attach_metainfo_tag_trans); }
+            set
+            {
+                download_attach_metainfo_tag_trans = value;
+                if (Cache is Setting) Cache.download_attach_metainfo_tag_trans = download_attach_metainfo_tag_trans;
+            }
+        }
+
         private bool download_attach_metainfo_shell = true;
         public bool DownloadAttachMetaInfoUsingShell
         {

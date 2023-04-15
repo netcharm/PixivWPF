@@ -188,6 +188,8 @@ namespace PixivWPF.Common
     {
         public PixivItem Item { get; set; } = null;
         public CompareType Type { get; set; } = CompareType.Auto;
+        public string Src { get; set; } = string.Empty;
+        public string Dst { get; set; } = string.Empty;
     }
 
     #region DPI Helper
@@ -508,6 +510,9 @@ namespace PixivWPF.Common
         public int? Ranking { get; set; } = null;
 
         public string Software { get; set; } = null;
+
+        public string AIGC { get; set; } = string.Empty;
+        public string Sanity { get; set; } = "all";
 
         public Dictionary<string, string> Attributes { get; set; } = null;
         //public Dictionary<string, IImageProfile> Profiles { get; set; } = null;
@@ -2506,6 +2511,41 @@ namespace PixivWPF.Common
             return (tag);
         }
 
+        public static string AIGCTag(this Pixeez.Objects.Work work)
+        {
+            var age = work.AIType;
+            string tag = work is Pixeez.Objects.Work && work.AIType > 1 ? $"AIGC" : string.Empty;
+            return (tag);
+        }
+
+        public static IEnumerable<string> TagsTrans(this Pixeez.Objects.Work work)
+        {
+            var result = new List<string>();
+            if (work is Pixeez.Objects.Work)
+            {
+                var match = string.Empty;
+                var tags = work.Tags.Select(t => t.TrimEnd(new char[] { ';', '；', '⸵', ' ' }));
+                result.AddRange(tags.Select(t => t.TranslatedText(out match)));
+            }
+            return (result);
+        }
+
+        public static IEnumerable<string> Tags(this Pixeez.Objects.Work work, IEnumerable<string> extras = null, bool add_trans = false, bool add_sanity = false, bool add_aigc = false)
+        {
+            var result = new List<string>();
+            if (work is Pixeez.Objects.Work)
+            {
+                var sanity = add_sanity ? work.SanityAgeTag() : string.Empty;
+                var aitype = add_aigc ? work.AIGCTag() : string.Empty;
+
+                var tags = work.Tags.Select(t => t.Replace(";", "；⸵"));
+                if (extras is IEnumerable<string>) tags = tags.Concat(extras);
+                if (add_trans) tags = tags.Concat(work.TagsTrans());
+                result.AddRange(tags.Append(sanity).Append(aitype).Where(t => !string.IsNullOrEmpty(t)).Distinct(StringComparer.CurrentCultureIgnoreCase));                
+            }
+            return (result);
+        }
+
         public static string FolderMacroReplace(this string text)
         {
             var result = text;
@@ -2922,7 +2962,26 @@ namespace PixivWPF.Common
             return ((unit ? $"{elapsed} s" : elapsed).PadLeft(padleft));
         }
 
-        public static void DragOut(this DependencyObject sender, PixivItem item, bool original = false)
+        public static void DragOut(this DependencyObject sender, string item)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(item) && File.Exists(item))
+                {
+                    var file = item;
+                    if (File.Exists(file))
+                    {
+                        var dp = new DataObject();
+                        dp.SetFileDropList(new StringCollection() { file });
+                        dp.SetData("Text", file);
+                        DragDrop.DoDragDrop(sender, dp, DragDropEffects.Copy);
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("DragOut"); }
+        }
+
+        public static void DragOut(this DependencyObject sender, PixivItem item, bool large_preview = false, bool original = false)
         {
             try
             {
@@ -2939,7 +2998,7 @@ namespace PixivWPF.Common
                     }
                     else if (item.Illust.IsDownloaded(out fp, is_meta_single_page: true)) downloaded.Add(fp);
 
-                    var file = original ? item.Illust.GetOriginalUrl(item.Index).GetImageCacheFile() : item.Illust.GetPreviewUrl(item.Index).GetImageCacheFile();
+                    var file = original ? item.Illust.GetOriginalUrl(item.Index).GetImageCachePath() : item.Illust.GetPreviewUrl(item.Index, large_preview).GetImageCachePath();
                     if (File.Exists(file))
                     {
                         var dp = new DataObject();
@@ -2958,16 +3017,16 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("DragOut"); }
         }
 
-        public static void DragOut(this DependencyObject sender, ImageListGrid gallery, bool original = false)
+        public static void DragOut(this DependencyObject sender, ImageListGrid gallery, bool large_preview = false, bool original = false)
         {
             try
             {
-                DragOut(sender, gallery.GetSelected(), original);
+                DragOut(sender, gallery.GetSelected(), large_preview, original);
             }
             catch (Exception ex) { ex.ERROR("DragOut"); }
         }
 
-        public static void DragOut(this DependencyObject sender, IEnumerable<PixivItem> items, bool original = false)
+        public static void DragOut(this DependencyObject sender, IEnumerable<PixivItem> items, bool large_preview = false, bool original = false)
         {
             try
             {
@@ -2977,7 +3036,7 @@ namespace PixivWPF.Common
                 {
                     if (item.IsWork())
                     {
-                        var file = original ? item.Illust.GetOriginalUrl(item.Index).GetImageCacheFile() : item.Illust.GetPreviewUrl(item.Index).GetImageCacheFile();
+                        var file = original ? item.Illust.GetOriginalUrl(item.Index).GetImageCachePath() : item.Illust.GetPreviewUrl(item.Index, large_preview).GetImageCachePath();
                         if (!string.IsNullOrEmpty(file) && File.Exists(file)) files.Add(file);
                         string fp = string.Empty;
                         if (item.HasPages())
@@ -4240,7 +4299,12 @@ namespace PixivWPF.Common
 
                 if (fileinfo.Exists && fileinfo.Length > 0)
                 {
-                    if (meta == null) meta = MakeMetaInfo(fileinfo, dt, id);
+                    var setting = Application.Current.LoadSetting();
+                    var sanity = setting.DownloadAttachMetaInfoTagSanity;
+                    var aigc = setting.DownloadAttachMetaInfoTagAI;
+                    var trans = setting.DownloadAttachMetaInfoTagTranslated;
+
+                    if (meta == null) meta = MakeMetaInfo(fileinfo, dt, id, add_trans: trans, add_sanity: sanity, add_aigc: aigc);
                     if (meta is MetaInfo)
                     {
                         result = UpdatePngMetaInfo(fileinfo, dt, meta);
@@ -4348,7 +4412,12 @@ namespace PixivWPF.Common
 
                 if (fileinfo.Exists && fileinfo.Length > 0)
                 {
-                    if (meta == null) meta = MakeMetaInfo(fileinfo, dt, id);
+                    var setting = Application.Current.LoadSetting();
+                    var sanity = setting.DownloadAttachMetaInfoTagSanity;
+                    var aigc = setting.DownloadAttachMetaInfoTagAI;
+                    var trans = setting.DownloadAttachMetaInfoTagTranslated;
+
+                    if (meta == null) meta = MakeMetaInfo(fileinfo, dt, id, add_trans: trans, add_sanity: sanity, add_aigc: aigc);
                     if (meta is MetaInfo)
                     {
                         result = UpdatePngMetaInfo(src, dst, dt, meta);
@@ -4374,7 +4443,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static MetaInfo MakeMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "")
+        public static MetaInfo MakeMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", bool add_trans = false, bool add_sanity = false, bool add_aigc = false)
         {
             MetaInfo meta = null;
             #region make meta struct
@@ -4385,7 +4454,9 @@ namespace PixivWPF.Common
                 if (illust is Pixeez.Objects.Work && (dt != null || dt.Ticks > 0))
                 {
                     var uid = $"{illust.User.Id}";
-                    var sanity = illust.SanityAgeTag();
+                    var sanity = add_sanity ? illust.SanityAgeTag(): string.Empty;
+                    var aitype = add_aigc ? illust.AIGCTag() : string.Empty;
+
                     meta = new MetaInfo()
                     {
                         DateCreated = dt,
@@ -4398,11 +4469,14 @@ namespace PixivWPF.Common
                         Subject = id.ArtworkLink(),
                         Authors = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}",
                         Copyrights = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}",
-                        Keywords = string.Join("; ", illust.Tags.Select(t => t.Replace(";", "；⸵")).Append(sanity).Where(t => !string.IsNullOrEmpty(t)).Distinct(StringComparer.CurrentCultureIgnoreCase)),
+                        Keywords = string.Join("; ", illust.Tags(add_trans: add_trans, add_sanity: add_sanity, add_aigc: add_aigc)),
                         Comment = illust.Caption.HtmlToText(),
 
                         Rating = illust.IsLiked() ? 75 : 0,
                         Ranking = illust.IsLiked() ? 4 : 0,
+
+                        AIGC = aitype,
+                        Sanity = sanity,
                     };
                 }
             }
@@ -4859,6 +4933,10 @@ namespace PixivWPF.Common
             if (src is Stream && src.CanRead && dst is Stream && dst.CanWrite)
             {
                 var setting = Application.Current.LoadSetting();
+                var sanity = setting.DownloadAttachMetaInfoTagSanity;
+                var aigc = setting.DownloadAttachMetaInfoTagAI;
+                var trans = setting.DownloadAttachMetaInfoTagTranslated;
+
                 src.Seek(0, SeekOrigin.Begin);
                 dst.Seek(0, SeekOrigin.Begin);
                 var exif = GetExifData(src);
@@ -4866,7 +4944,7 @@ namespace PixivWPF.Common
                 {
                     is_jpg = exif.ImageType == ImageType.Jpeg;
                     quality = is_jpg ? exif.JpegQuality : 100;
-                    var meta = MakeMetaInfo(fileinfo, dt, id);
+                    var meta = MakeMetaInfo(fileinfo, dt, id, add_trans: trans, add_sanity: sanity, add_aigc: aigc);
                     if (meta is MetaInfo)
                     {
                         if (exif.ImageType == ImageType.Png)
@@ -4906,6 +4984,9 @@ namespace PixivWPF.Common
                 if (fileinfo.Exists && fileinfo.Length > 0)
                 {
                     var setting = Application.Current.LoadSetting();
+                    var sanity = setting.DownloadAttachMetaInfoTagSanity;
+                    var aigc = setting.DownloadAttachMetaInfoTagAI;
+                    var trans = setting.DownloadAttachMetaInfoTagTranslated;
 
                     if (setting.DownloadAttachMetaInfoUsingMemory)
                     {
@@ -4934,7 +5015,7 @@ namespace PixivWPF.Common
                         if (exif is ExifData)
                         {
                             is_jpg = exif.ImageType == ImageType.Jpeg;
-                            var meta = MakeMetaInfo(fileinfo, dt, id);
+                            var meta = MakeMetaInfo(fileinfo, dt, id, add_trans: trans, add_sanity: sanity, add_aigc: aigc);
                             if (meta is MetaInfo)
                             {
                                 if (exif.ImageType == ImageType.Png && setting.DownloadAttachPngMetaInfoUsingPngCs)
@@ -4982,6 +5063,11 @@ namespace PixivWPF.Common
             var interval = setting.DownloadTouchInterval;
             var capacities = setting.DownloadTouchCapatices;
             var using_shell = setting.DownloadAttachMetaInfoUsingShell;
+
+            var sanity = setting.DownloadAttachMetaInfoTagSanity;
+            var aigc = setting.DownloadAttachMetaInfoTagAI;
+            var trans = setting.DownloadAttachMetaInfoTagTranslated;
+
             if (IsShellSupported && (force || !_Attaching_.ContainsKey(fileinfo.FullName) || now - _Attaching_[fileinfo.FullName] > TimeSpan.FromMilliseconds(interval).Ticks) && await _CanAttaching_.WaitAsync(TimeSpan.FromSeconds(60)))
             {
                 try
@@ -5007,7 +5093,6 @@ namespace PixivWPF.Common
                                 throw new Exception("Illust No User Info");
                             }
                             var uid = $"{illust.User.Id}";
-                            var sanity = illust.SanityAgeTag();
 
                             bool is_png = fileinfo.IsPng();
                             bool is_img = fileinfo.IsImage();
@@ -5051,7 +5136,7 @@ namespace PixivWPF.Common
                                         if (sh.Properties.System.Copyright.Value == null || !sh.Properties.System.Author.Value.Contains(authors[0]) || !sh.Properties.System.Author.Value.Contains(authors[1]))
                                             sh.Properties.System.Copyright.Value = string.Join("; ", authors);
 
-                                        var tags = illust.Tags.Select(t => t.Replace(";", "；⸵")).Append(sanity).Where(t => !string.IsNullOrEmpty(t)).Distinct(StringComparer.CurrentCultureIgnoreCase).ToArray();
+                                        var tags = illust.Tags(add_sanity: sanity, add_aigc: aigc, add_trans: trans).ToArray();
                                         sh.Properties.System.Keywords.AllowSetTruncatedValue = true;
                                         if (sh.Properties.System.Keywords.Value == null || sh.Properties.System.Keywords.Value.Length != tags.Length)
                                             sh.Properties.System.Keywords.Value = tags;
@@ -5150,7 +5235,7 @@ namespace PixivWPF.Common
                                     if (sh.Properties.System.Author.Value == null)
                                         sh.Properties.System.Author.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
 
-                                    var tags = illust.Tags.Select(t => t.Replace(";", "；⸵")).Distinct(StringComparer.CurrentCultureIgnoreCase).ToArray();
+                                    var tags = illust.Tags(add_sanity: sanity, add_aigc: aigc, add_trans: trans).ToArray();
                                     sh.Properties.System.Keywords.AllowSetTruncatedValue = true;
                                     if (sh.Properties.System.Keywords.Value == null || sh.Properties.System.Keywords.Value.Length != tags.Length)
                                         sh.Properties.System.Keywords.Value = tags;
@@ -6583,7 +6668,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string GetImageCachePath(this string url)
+        public static string GetImageCacheFile(this string url)
         {
             string result = string.Empty;
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
@@ -6593,7 +6678,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string GetImageCacheFile(this string url)
+        public static string GetImageCachePath(this string url)
         {
             string result = string.Empty;
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)

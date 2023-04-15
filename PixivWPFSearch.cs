@@ -1,7 +1,7 @@
 ﻿//// /ew option for compiling to windows execution file
 //// /e  option for compiling to console execution file
-//css_args /co:/win32icon:./PixivWPF/pixiv-logo.ico
-//css_co /win32icon:./PixivWPF/pixiv-logo.ico
+//css_args /co:/win32icon:./pixiv-logo.ico
+//css_co /win32icon:./pixiv-logo.ico
 
 //css_reference WindowsBase.dll
 //css_reference PresentationCore.dll
@@ -182,6 +182,7 @@ namespace netcharm
     class PixivWPFSearch
     {
         private static string AppPath = Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString()).Replace("file:\\", "");
+
         public static void Main(string[] args)
         {
             try
@@ -190,36 +191,18 @@ namespace netcharm
                 System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
                 //ShowTaskDialog($"{AppPath}", "Ready?");
                 //return;
-
+                //if (args.Length < 1) return;
                 //args = Environment.GetCommandLineArgs();
                 //Console.WriteLine(string.Join(", ", Environment.GetCommandLineArgs()));
                 //var args_alt = Environment.CommandLine.Split();
                 var args_alt = Environment.GetCommandLineArgs();
                 if (args.Length < 1 || args[0].Equals("upgrade", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    var files = args.Skip(1).ToArray();
-                    if (files == null || files.Length <= 0)
-                    {
-                        var IsExe = args_alt.Length >= 2 && args_alt[1].Equals(args[0], StringComparison.CurrentCultureIgnoreCase);
-                        var cfgfile = Path.Combine(IsExe ? AppPath : "", "config.json");
-                        //Console.WriteLine(cfgfile);
-                        if (File.Exists(cfgfile))
-                        {
-                            var json = File.ReadAllText(cfgfile);
-                            JToken token = JToken.Parse(json);
-                            JToken upgradelist = token.SelectToken("$..UpgradeFiles", false);
-                            if (upgradelist != null)
-                            {
-                                try
-                                {
-                                    files = upgradelist.ToObject<List<string>>().ToArray();
-                                    //Console.WriteLine(string.Join(", ", files));
-                                }
-                                catch { }
-                            }
-                        }
-                    }
-                    UpgradeFiles(files);
+                    WaitExit();
+
+                    var upgrades = EnumUpgradeFiles(args);
+                    if (upgrades.Count() > 0) UpgradeFiles(upgrades);
+                    else System.Diagnostics.Process.Start(Path.Combine(AppPath, "PixivWPF.exe"));
                 }
                 else if (args[0].Equals("properties", StringComparison.CurrentCultureIgnoreCase))
                     ShowFileProperties(args.Skip(1).ToArray());
@@ -349,7 +332,7 @@ namespace netcharm
             return (InstanceExists(WaitClose, TimeSpan.FromMilliseconds(WaitTime), TimeSpan.FromMilliseconds(WaitInterval), ReleaseOnly));
         }
 
-        private static bool InstanceExists(bool WaitClose = false, TimeSpan WaitTime = default(TimeSpan), TimeSpan WaitInterval=default(TimeSpan), bool ReleaseOnly = false)
+        private static bool InstanceExists(bool WaitClose = false, TimeSpan WaitTime = default(TimeSpan), TimeSpan WaitInterval = default(TimeSpan), bool ReleaseOnly = false)
         {
             bool result = false;
             var pipe = "PixivWPF*";
@@ -361,19 +344,23 @@ namespace netcharm
                 int wait_count = 0;
                 int wait_total = (int)(WaitTime.TotalMilliseconds / WaitInterval.TotalMilliseconds);
                 System.Threading.SemaphoreSlim tasks = new System.Threading.SemaphoreSlim(0, 1);
+                System.Threading.CancellationTokenSource cancel = new System.Threading.CancellationTokenSource();
                 do
                 {
                     //System.Diagnostics.Debug.WriteLine("Waiting...");
                     var pipes = System.IO.Directory.GetFiles("\\\\.\\pipe\\", pipe);
                     var pipe_list = ReleaseOnly ? pipes.Where(p => !p.ToUpper().Contains("DEBUG")) : pipes;
 
-                    if (pipe_list.Count() <= 0) { result = false; break; }
-                    else if (WaitClose)
+                    if (System.Diagnostics.Process.GetProcessesByName("PixivWPF").Count() <= 0) { cancel.Cancel(); break; }
+                    else result = true;
+
+                    if (pipe_list.Count() <= 0 && !result) { result = false; break; }
+                    else if (WaitClose && result)
                     {
                         //System.Threading.Thread.Sleep(WaitInterval);
-                        if (tasks.Wait(WaitInterval))
+                        if (tasks.Wait(WaitInterval, cancel.Token))
                         {
-                            System.Diagnostics.Debug.WriteLine("Wait Instance Exit ......");
+                            System.Diagnostics.Debug.WriteLine("Wait Instance Exit ......");                            
                         }
                     }
                     wait_count++;
@@ -391,47 +378,91 @@ namespace netcharm
             return (result);
         }
 
-        private static void UpgradeFiles(string[] files)
+        private static void WaitExit()
+        {
+            var exists = InstanceExists(WaitClose: true, WaitTime: TimeSpan.FromSeconds(65));
+            if (!exists) return;
+            var wait_count = 0;
+            try
+            {
+                do
+                {
+                    //if (System.IO.Directory.GetFiles("\\\\.\\pipe\\", "pixivwpf*").Count() <= 0) break;
+                    if (!InstanceExists(WaitClose: true, WaitTime: TimeSpan.FromSeconds(65))) break;
+                    System.Threading.Thread.Sleep(1000);
+                    wait_count++;
+                } while (wait_count < 60);
+                //system.threading.thread.sleep(2000);
+                System.Threading.Tasks.Task.Delay(10000).GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "ERROR!", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private static Dictionary<string, string> EnumUpgradeFiles(IEnumerable<string> args)
+        {
+            var result = new Dictionary<string, string>();
+            var files = args.Skip(1).ToArray();
+            if (files == null || files.Length <= 0)
+            {
+                var args_alt = Environment.GetCommandLineArgs();
+                var IsExe = args_alt.Length >= 2 && args_alt[1].Equals(args.First(), StringComparison.CurrentCultureIgnoreCase);
+                var cfgfile = Path.Combine(IsExe ? AppPath : "", "config.json");
+                //Console.WriteLine(cfgfile);                
+                if (File.Exists(cfgfile))
+                {
+                    var json = File.ReadAllText(cfgfile);
+                    JToken token = JToken.Parse(json);
+                    JToken upgradelist = token.SelectToken("$..UpgradeFiles", false);
+                    //MessageBox.Show($"{upgradelist}, {args_alt.Count()}, {IsExe}, {cfgfile}");
+                    if (upgradelist != null)
+                    {
+                        try
+                        {
+                            var u_files = upgradelist.ToObject<List<string>>();
+                            //MessageBox.Show($"{u_files.Count()}");
+                            foreach (var f_remote in u_files)
+                            {
+                                var fn = Path.GetFileName(f_remote);
+                                var f_local = Path.Combine(AppPath, fn);
+
+                                var fi_local = new FileInfo(f_local);
+                                if (!File.Exists(f_remote)) continue;
+                                var fi_remote = new FileInfo(f_remote);
+
+                                if (!fi_local.Exists || fi_local.LastWriteTime < fi_remote.LastWriteTime)
+                                {
+                                    result.Add(f_remote, f_local);
+                                }
+                            }
+                        }
+                        catch (Exception ex) { MessageBox.Show(ex.Message); }
+                        //MessageBox.Show($"{result.Count()}");
+                    }
+                }
+            }
+            return (result);
+        }
+
+        private static void UpgradeFiles(Dictionary<string, string> files)
         {
             List<string> f_upgraded = new List<string>();
-            List<string> f_skiped = new List<string>();
-            if (files.Length > 0)
+            if (files.Count() > 0)
             {
-                InstanceExists(WaitClose: true, WaitTime: TimeSpan.FromSeconds(65));
-                var wait_count = 0;
-                try
-                {
-                    do
-                    {
-                        if (System.IO.Directory.GetFiles("\\\\.\\pipe\\", "pixivwpf*").Count() <= 0) break;
-                        System.Threading.Thread.Sleep(1000);
-                        wait_count++;
-                    } while (wait_count < 60);
-                    //system.threading.thread.sleep(2000);
-                    System.Threading.Tasks.Task.Delay(5000).GetAwaiter().GetResult();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.ToString(), "ERROR!", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-
                 f_upgraded.Add($"Upgrade file ...");
-                f_skiped.Add($"Skiped file ...");
-                foreach (var f_remote in files)
+                foreach (var kv in files)
                 {
-                    var fn = Path.GetFileName(f_remote);
-                    var f_local = Path.Combine(AppPath, fn);
-                    var fi_local = new FileInfo(f_local);
-                    if (!File.Exists(f_remote)) continue;
+                    var f_remote = kv.Key;
+                    var f_local = kv.Value;
                     var fi_remote = new FileInfo(f_remote);
+                    var fi_local = new FileInfo(f_local);
                     if (!File.Exists(f_local) || fi_local.LastWriteTime < fi_remote.LastWriteTime)
                     {
-                        //f_upgraded.Add($"Upgrade file ...");
-                        //f_upgraded.Add($"  From : {f_remote}");
-                        //f_upgraded.Add($"  To   : {f_local}");
-                        f_upgraded.Add($"  {fn}");
+                        f_upgraded.Add($"  {Path.GetFileName(f_remote)}");
 
-                        wait_count = 0;
+                        var wait_count = 0;
                         while (IsFileLocked(fi_local) && wait_count < 10)
                         {
                             System.Threading.Thread.Sleep(1000);
@@ -440,15 +471,9 @@ namespace netcharm
                         };
                         File.Copy(f_remote, f_local, true);
                     }
-                    else
-                    {
-                        //f_skiped.Add($"Skiped file ...");
-                        //f_skiped.Add($"  From : {f_remote}");
-                        //f_skiped.Add($"  To   : {f_local}");
-                        f_skiped.Add($"  {fn}");
-                    }
                 }
             }
+
             if (f_upgraded.Count > 0)
             {
                 f_upgraded.Insert(0, "Upgraded Finished!");
@@ -479,11 +504,11 @@ namespace netcharm
         {
             return (ShowPropertiesDialog(Filenames as IEnumerable<string>));
         }
-        #endregion
 
         public static void ShowFileProperties(IEnumerable<string> Files)
         {
             Console.WriteLine(ShowPropertiesDialog(Files));
         }
+        #endregion
     }
 }

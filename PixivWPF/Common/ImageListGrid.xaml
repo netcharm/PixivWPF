@@ -345,7 +345,8 @@
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
                     <iconPacks:PackIconModern Grid.Column="1" 
                                               Kind="Download" x:Name="PART_IllustDownloaded" 
-                                              Width="16" Height="16"
+                                              Width="{Binding Parent.Children[0].FontSize, RelativeSource={RelativeSource Self}, Mode=OneWay}" 
+                                              Height="{Binding Parent.Children[0].FontSize, RelativeSource={RelativeSource Self}, Mode=OneWay}"
                                               HorizontalAlignment="Center" VerticalAlignment="Center"
                                               Background="{DynamicResource MahApps.Brushes.Accent}"
                                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"

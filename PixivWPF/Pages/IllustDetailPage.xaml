@@ -1053,6 +1053,7 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" x:Name="IllustTitle" Margin="4,0,2,0"
                             FontFamily="{StaticResource NormalFamily}"
@@ -1061,7 +1062,7 @@
                             Foreground="{DynamicResource MahApps.Brushes.Text}"
                             HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                         <Border Grid.Column="1" x:Name="IllustSanityInfo" 
-                            Visibility="Collapsed"
+                            Visibility="Collapsed" 
                             ContextMenu="{DynamicResource MenuSpeech}" 
                             BorderBrush="{DynamicResource MahApps.Brushes.SystemControlErrorTextForeground}"
                             CornerRadius="3" BorderThickness="3" Height="20" Width="Auto" Margin="0,0,2,0">
@@ -1071,11 +1072,15 @@
                                 Foreground="{DynamicResource MahApps.Brushes.Text}"
                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <StackPanel Grid.Column="2" x:Name="IllustDateInfo" Visibility="Collapsed" MinWidth="24" Margin="2,0,0,0"
+                        <TextBlock Grid.Column="2" x:Name="IllustAiInfo" Visibility="Collapsed" 
+                            Margin="2,-2,2,0" HorizontalAlignment="Right" VerticalAlignment="Center"
+                            Text="&#x1F52F;" FontSize="16" FontFamily="Segoe UI Symbol"                                
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                        <StackPanel Grid.Column="3" x:Name="IllustDateInfo" Visibility="Collapsed" MinWidth="24" Margin="2,0,0,0"
                                     ContextMenu="{DynamicResource MenuSpeech}" 
                                     MouseDown="IllustInfo_MouseDown"
                             HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
-                            <TextBlock x:Name="IllustDateIcon" 
+                            <TextBlock x:Name="IllustDateIcon"  Margin="0,2,0,0"
                                 Text="&#xE161;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                 Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"/>                            
@@ -1209,6 +1214,18 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button.Content>
                     </Button>
+                    <Button x:Name="IllustTagSearchInFile" x:Uid="SearchText" ToolTip="Search Selected In Downloaded"
+                        Visibility="Visible" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
+                        Click="ActionSearchSelectedText_Click">
+                        <Button.Content>
+                            <TextBlock Text="&#xE773;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button.Content>
+                    </Button>
                     <Button x:Name="IllustTagSpeech" x:Uid="Speech" ToolTip="Read Selected/All Contents"
                         Visibility="Visible" FontWeight="Normal"
                         ContextMenu="{DynamicResource MenuSpeech}"
@@ -1280,8 +1297,19 @@
                             Visibility="{Binding ElementName=IllustDescExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
                             Orientation="Horizontal" Margin="0,4,0,0"
                             HorizontalAlignment="Right" VerticalAlignment="Top">
-                    <Button
-                        x:Name="IllustDescSpeech" x:Uid="Speech" ToolTip="Read Selected/All Contents"
+                    <Button x:Name="IllustDescSearchInFile" x:Uid="SearchText" ToolTip="Search Selected In Downloaded"
+                        Visibility="Visible" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
+                        Click="ActionSearchSelectedText_Click">
+                        <Button.Content>
+                            <TextBlock Text="&#xE773;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button.Content>
+                    </Button>
+                    <Button x:Name="IllustDescSpeech" x:Uid="Speech" ToolTip="Read Selected/All Contents"
                         Visibility="Visible" FontWeight="Normal"
                         ContextMenu="{DynamicResource MenuSpeech}"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
@@ -1294,8 +1322,7 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button.Content>
                     </Button>
-                    <Button 
-                        x:Name="IllustDescRefresh" x:Uid="DescRefresh" ToolTip="Refresh Descriptions"
+                    <Button x:Name="IllustDescRefresh" x:Uid="DescRefresh" ToolTip="Refresh Descriptions"
                         Visibility="Visible" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"

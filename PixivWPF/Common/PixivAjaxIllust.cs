@@ -130,6 +130,30 @@ namespace PixivWPF.Common
         public bool IsPrivate { get; set; }
     }
 
+    public class AjaxFanboxPromotion
+    {
+        [JsonProperty("userName")]
+        public string UserName { get; set; }
+
+        [JsonProperty("description")]
+        public string Description { get; set; }
+
+        [JsonProperty("userImageUrl")]
+        public string UserImageUrl { get; set; }
+
+        [JsonProperty("contentUrl")]
+        public string ContentUrl { get; set; }
+
+        [JsonProperty("imageUrl")]
+        public string ImageUrl { get; set; }
+
+        [JsonProperty("imageUrlMobile")]
+        public string ImageUrlMobile { get; set; }
+
+        [JsonProperty("hasAdultContent")]
+        public bool HasAdultContent { get; set; }
+    }
+
     public class AjaxIllustWork
     {
         [JsonProperty("illustId")]
@@ -235,6 +259,24 @@ namespace PixivWPF.Common
 
         [JsonProperty("bookmarkData")]
         public AjaxBookmarkData BookmarkData { get; set; }
+        
+        [JsonProperty("likeData")]
+        public bool LikeData { get; set; }
+
+        [JsonProperty("bookStyle")]
+        public int BookStyle { get; set; }
+
+        [JsonProperty("isOriginal")]
+        public bool IsOriginal { get; set; }
+
+        [JsonProperty("isHowto")]
+        public bool IsHowto { get; set; }
+
+        [JsonProperty("fanboxPromotion")]
+        public AjaxFanboxPromotion FanboxPromotion { get; set; }
+
+        [JsonProperty("aiType")]
+        public int AIType { get; set; } = 0;
 
         [JsonProperty("userId")]
         public string UserId { get; set; }
@@ -789,6 +831,7 @@ namespace PixivWPF.Common
                             tags = tags,
                             meta_pages = meta_pages is IEnumerable<Pixeez.Objects.MetaPages> ?  meta_pages.ToArray() : null,
                             meta_single_page = new Pixeez.Objects.MetaSinglePage() {  OriginalImageUrl = image_urls.Original },
+                            AIType = illust.AIType,
                         };
                         //if (i is Pixeez.Objects.IllustWork) i.Id = id;
                         #endregion

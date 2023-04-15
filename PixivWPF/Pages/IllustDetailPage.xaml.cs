@@ -1320,7 +1320,7 @@ namespace PixivWPF.Pages
                         foreach (var item in SubIllusts.GetSelected())
                         {
                             if (alt)
-                                Commands.OpenFileProperties.Execute(Contents.Illust.GetPreviewUrl(large: setting.ShowLargePreview).GetImageCacheFile());
+                                Commands.OpenFileProperties.Execute(Contents.Illust.GetPreviewUrl(large: setting.ShowLargePreview).GetImageCachePath());
                             else
                                 Commands.OpenFileProperties.Execute(Contents);
                         }
@@ -1385,7 +1385,7 @@ namespace PixivWPF.Pages
             if (!string.IsNullOrEmpty(PreviewImageUrl))
             {
                 if (loadfromfile || Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
-                    Commands.CopyImage.Execute(PreviewImageUrl.GetImageCachePath());
+                    Commands.CopyImage.Execute(PreviewImageUrl.GetImageCacheFile());
                 else
                     Commands.CopyImage.Execute(Preview);
             }
@@ -1729,7 +1729,7 @@ namespace PixivWPF.Pages
                 {
                     foreach (var url in _urls_)
                     {
-                        try { if (!string.IsNullOrEmpty(url)) url.GetImageCacheFile().CleenLastDownloaded(); }
+                        try { if (!string.IsNullOrEmpty(url)) url.GetImageCachePath().CleenLastDownloaded(); }
                         catch { }
                     }
                 }
@@ -1843,6 +1843,10 @@ namespace PixivWPF.Pages
 
                 if (string.IsNullOrEmpty(IllustSanity.Text)) IllustSanityInfo.Hide();
                 else IllustSanityInfo.Show();
+
+                IllustAiInfo.ToolTip = item.IsAI() ? $"AI Type: {item.AIType}" : null;
+                if (item.IsAI()) IllustAiInfo.Show();
+                else IllustAiInfo.Hide();
 
                 var dt = item.Illust.GetDateTime();
                 var local = CultureInfo.CurrentCulture.ThreeLetterWindowsLanguageName.ToUpper();
@@ -2282,6 +2286,12 @@ namespace PixivWPF.Pages
                         related_illusts.Add(illust.Id);
                         illust.Cache();
                         illust.AddTo(RelatedItems.Items, related.next_url);
+                        if (string.IsNullOrEmpty(Contents.UserAvatarUrl) || !Contents.UserAvatarUrl.Equals(illust.GetAvatarUrl()))
+                        {
+                            Contents.User = illust.User;
+                            Contents.UserAvatarUrl = illust.GetAvatarUrl();
+                            illust.User.Cache();
+                        }
                         this.DoEvents();
                     }
                     this.DoEvents();
@@ -2721,7 +2731,7 @@ namespace PixivWPF.Pages
                         {
                             foreach (var url in _urls_)
                             {
-                                try { if (!string.IsNullOrEmpty(url)) url.GetImageCacheFile().ClearDownloading(); }
+                                try { if (!string.IsNullOrEmpty(url)) url.GetImageCachePath().ClearDownloading(); }
                                 catch { }
                             }
                         }
@@ -3371,7 +3381,7 @@ namespace PixivWPF.Pages
             }
             else if (sender == PreviewCacheOpen && Preview.Source != null)
             {
-                Commands.OpenCachedImage.Execute(string.IsNullOrEmpty(PreviewImagePath) ? Contents.Illust.GetPreviewUrl(large: setting.ShowLargePreview).GetImageCachePath() : PreviewImagePath);
+                Commands.OpenCachedImage.Execute(string.IsNullOrEmpty(PreviewImagePath) ? Contents.Illust.GetPreviewUrl(large: setting.ShowLargePreview).GetImageCacheFile() : PreviewImagePath);
             }
             else if (sender == PreviewOpenDownloadedProperties || uid.Equals("ActionOpenDownloadedProperties", StringComparison.CurrentCultureIgnoreCase))
             {
@@ -3434,7 +3444,7 @@ namespace PixivWPF.Pages
                             "Preview URLs is NULL".WARN("ActionRefreshPreview");
                         }
                         if (_urls_ is List<string>) _urls_.Add(PreviewImageUrl);
-                        if (Keyboard.Modifiers == ModifierKeys.Control) { PreviewImageUrl.GetImageCacheFile().ClearDownloading(); }
+                        if (Keyboard.Modifiers == ModifierKeys.Control) { PreviewImageUrl.GetImageCachePath().ClearDownloading(); }
 
                         using (var img = await PreviewImageUrl.LoadImageFromUrl(overwrite, progressAction: PreviewWait.ReportPercentage, cancelToken: cancelDownloading))
                         {
@@ -3495,6 +3505,7 @@ namespace PixivWPF.Pages
                         btnAuthorAvatar.Show(AuthorAvatarWait.IsFail);
 
                         var c_item = Contents;
+                        Contents.User = Contents.UserID.FindUser();
                         AvatarImageUrl = Contents.User.GetAvatarUrl();
                         if (string.IsNullOrEmpty(AvatarImageUrl)) AvatarImageUrl = Contents.UserAvatarUrl;
                         if (string.IsNullOrEmpty(AvatarImageUrl))
@@ -3532,6 +3543,7 @@ namespace PixivWPF.Pages
                     {
                         if (IllustAuthorAvatar.Source == null) AuthorAvatarWait.Fail();
                         btnAuthorAvatar.Show(AuthorAvatarWait.IsFail);
+                        AvatarImageUrl.DEBUG("RefreshAvatar");
                         this.DoEvents();
                     }
                 }).InvokeAsync();
@@ -3692,13 +3704,9 @@ namespace PixivWPF.Pages
             var is_tag = false;
             try
             {
-                if (sender == IllustTagSpeech)
-                {
-                    is_tag = true;
-                    text = IllustTagsHtml.GetText();
-                    scope |= StorageSearchScope.Tag;
-                }
-                else if (sender == IllustDescSpeech)
+                if (sender == IllustTagSpeech || sender == IllustTagSearchInFile)
+                { is_tag = true; text = IllustTagsHtml.GetText(); scope |= StorageSearchScope.Tag; }
+                else if (sender == IllustDescSpeech || sender == IllustDescSearchInFile)
                 { text = fuzzy ? IllustDescHtml.GetText() : $"={IllustDescHtml.GetText()}"; scope |= StorageSearchScope.Description; }
                 else if (sender == IllustTitle)
                 { text = fuzzy ? IllustTitle.Text : $"={IllustTitle.Text}"; scope |= StorageSearchScope.Title; }
@@ -4030,7 +4038,7 @@ namespace PixivWPF.Pages
             {
                 if (Keyboard.Modifiers == ModifierKeys.Shift && e.LeftButton == MouseButtonState.Pressed)
                 {
-                    this.DragOut(Contents);
+                    this.DragOut(PreviewImageUrl);
                     e.Handled = true;
                 }
                 else if (Keyboard.Modifiers == ModifierKeys.None && IsElement(btnSubPagePrev, e) && btnSubPagePrev.IsVisible && btnSubPagePrev.IsEnabled)
@@ -4056,7 +4064,7 @@ namespace PixivWPF.Pages
             {
                 if (IsElement(PreviewRect, e) && Keyboard.Modifiers == ModifierKeys.Shift && e.LeftButton == MouseButtonState.Pressed)
                 {
-                    this.DragOut(Contents);
+                    this.DragOut(PreviewImageUrl);
                     e.Handled = true;
                 }
             }

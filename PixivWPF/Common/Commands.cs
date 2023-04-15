@@ -168,8 +168,9 @@ namespace PixivWPF.Common
                     var ret = confirm ? MessageBox.Show("Upgrade Application?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.Yes : true;
                     if (ret)
                     {
-                        var files = string.Join(" ", setting.UpgradeFiles.Select(o=> $"\"{o.Trim()}\""));
-                        if ($"upgrade {files}".OpenFileWithShell(command: setting.UpgradeLaunch))
+                        //var files = string.Join(" ", setting.UpgradeFiles.Select(o=> $"\"{o.Trim()}\""));
+                        //if ($"upgrade {files}".OpenFileWithShell(command: setting.UpgradeLaunch))
+                        if ($"upgrade".OpenFileWithShell(command: setting.UpgradeLaunch))
                         {
                             Task.Delay(500).GetAwaiter().GetResult();
                             Application.Current.DoEvents();
@@ -717,7 +718,7 @@ namespace PixivWPF.Common
                 var item = obj as PixivItem;
                 if (item.IsWork())
                 {
-                    string fp = item.Illust.GetOriginalUrl(item.Index).GetImageCachePath();
+                    string fp = item.Illust.GetOriginalUrl(item.Index).GetImageCacheFile();
                     if (!string.IsNullOrEmpty(fp))
                     {
                         await new Action(() =>
@@ -769,26 +770,26 @@ namespace PixivWPF.Common
                             {
                                 case CompareType.Original:
                                     Compare.Execute(new string[] {
-                                        item.Illust.GetOriginalUrl(id_0).GetImageCacheFile(),
-                                        item.Illust.GetOriginalUrl(id_1).GetImageCacheFile()
+                                        item.Illust.GetOriginalUrl(id_0).GetImageCachePath(),
+                                        item.Illust.GetOriginalUrl(id_1).GetImageCachePath()
                                     });
                                     break;
                                 case CompareType.Large:
                                     Compare.Execute(new string[] {
-                                        item.Illust.GetPreviewUrl(id_0, large: true).GetImageCacheFile(),
-                                        item.Illust.GetPreviewUrl(id_1, large: true).GetImageCacheFile()
+                                        item.Illust.GetPreviewUrl(id_0, large: true).GetImageCachePath(),
+                                        item.Illust.GetPreviewUrl(id_1, large: true).GetImageCachePath()
                                     });
                                     break;
                                 case CompareType.Preview:
                                     Compare.Execute(new string[] {
-                                        item.Illust.GetPreviewUrl(id_0).GetImageCacheFile(),
-                                        item.Illust.GetPreviewUrl(id_1).GetImageCacheFile()
+                                        item.Illust.GetPreviewUrl(id_0).GetImageCachePath(),
+                                        item.Illust.GetPreviewUrl(id_1).GetImageCachePath()
                                     });
                                     break;
                                 case CompareType.Thumb:
                                     Compare.Execute(new string[] {
-                                        item.Illust.GetThumbnailUrl(id_0).GetImageCacheFile(),
-                                        item.Illust.GetThumbnailUrl(id_1).GetImageCacheFile()
+                                        item.Illust.GetThumbnailUrl(id_0).GetImageCachePath(),
+                                        item.Illust.GetThumbnailUrl(id_1).GetImageCachePath()
                                     });
                                     break;
                                 default:
@@ -801,16 +802,16 @@ namespace PixivWPF.Common
                             switch (type)
                             {
                                 case CompareType.Original:
-                                    Compare.Execute(new string[] { $"{item.Illust.GetOriginalUrl(item.Index).GetImageCacheFile()}" });
+                                    Compare.Execute(new string[] { $"{item.Illust.GetOriginalUrl(item.Index).GetImageCachePath()}" });
                                     break;
                                 case CompareType.Large:
-                                    Compare.Execute(new string[] { $"{item.Illust.GetPreviewUrl(item.Index, large: true).GetImageCacheFile()}" });
+                                    Compare.Execute(new string[] { $"{item.Illust.GetPreviewUrl(item.Index, large: true).GetImageCachePath()}" });
                                     break;
                                 case CompareType.Preview:
-                                    Compare.Execute(new string[] { $"{item.Illust.GetPreviewUrl(item.Index, large: false).GetImageCacheFile()}" });
+                                    Compare.Execute(new string[] { $"{item.Illust.GetPreviewUrl(item.Index, large: false).GetImageCachePath()}" });
                                     break;
                                 case CompareType.Thumb:
-                                    Compare.Execute(new string[] { $"{item.Illust.GetThumbnailUrl(item.Index).GetImageCacheFile()}" });
+                                    Compare.Execute(new string[] { $"{item.Illust.GetThumbnailUrl(item.Index).GetImageCachePath()}" });
                                     break;
                                 default:
                                     Compare.Invoke(item);
@@ -836,7 +837,7 @@ namespace PixivWPF.Common
             else if (obj is Pixeez.Objects.Work)
             {
                 var item = obj as Pixeez.Objects.Work;
-                var id = $"{item.GetPreviewUrl().GetImageCacheFile()}";
+                var id = $"{item.GetPreviewUrl().GetImageCachePath()}";
                 Compare.Execute(new string[] { id });
             }
             else if (obj is PixivItem)
@@ -849,13 +850,13 @@ namespace PixivWPF.Common
                         var id_0 = item.Index;
                         var id_1 = item.Index < item.Count - 1 ? item.Index + 1 : (item.Index - 1);
                         Compare.Execute(new string[] {
-                            item.Illust.GetPreviewUrl(id_0).GetImageCacheFile(),
-                            item.Illust.GetPreviewUrl(id_1).GetImageCacheFile()
+                            item.Illust.GetPreviewUrl(id_0).GetImageCachePath(),
+                            item.Illust.GetPreviewUrl(id_1).GetImageCachePath()
                         });
                     }
                     else
                     {
-                        var id = $"{item.Illust.GetPreviewUrl(item.Index).GetImageCacheFile()}";
+                        var id = $"{item.Illust.GetPreviewUrl(item.Index).GetImageCachePath()}";
                         Compare.Execute(new string[] { id });
                     }
                 }
@@ -875,7 +876,7 @@ namespace PixivWPF.Common
                             {
                                 if (selected.Count() == 0 || gallery.Items.Count <= 2)
                                 {
-                                    ids.AddRange(gallery.Items.Select(i => i.Illust.GetPreviewUrl().GetImageCacheFile()));
+                                    ids.AddRange(gallery.Items.Select(i => i.Illust.GetPreviewUrl().GetImageCachePath()));
                                 }
                                 else
                                 {
@@ -883,13 +884,13 @@ namespace PixivWPF.Common
                                     var idx = gallery.Items.IndexOf(item);
                                     if (idx < gallery.Count - 1)
                                     {
-                                        ids.Add(selected.First().Illust.GetPreviewUrl().GetImageCacheFile());
-                                        ids.Add(gallery.Items[idx + 1].Illust.GetPreviewUrl().GetImageCacheFile());
+                                        ids.Add(selected.First().Illust.GetPreviewUrl().GetImageCachePath());
+                                        ids.Add(gallery.Items[idx + 1].Illust.GetPreviewUrl().GetImageCachePath());
                                     }
                                     else
                                     {
-                                        ids.Add(gallery.Items[idx - 1].Illust.GetPreviewUrl().GetImageCacheFile());
-                                        ids.Add(selected.First().Illust.GetPreviewUrl().GetImageCacheFile());
+                                        ids.Add(gallery.Items[idx - 1].Illust.GetPreviewUrl().GetImageCachePath());
+                                        ids.Add(selected.First().Illust.GetPreviewUrl().GetImageCachePath());
                                     }
                                 }
                             }
@@ -902,7 +903,7 @@ namespace PixivWPF.Common
                         {
                             if (item.IsWork())
                             {
-                                var id = $"{item.Illust.GetPreviewUrl().GetImageCacheFile()}";
+                                var id = $"{item.Illust.GetPreviewUrl().GetImageCachePath()}";
                                 if (!ids.Contains(id)) ids.Add(id);
                             }
                         }
@@ -924,20 +925,20 @@ namespace PixivWPF.Common
                                 {
                                     if (selected.Count() == 0 || gallery.Items.Count <= 2)
                                     {
-                                        ids.AddRange(gallery.Items.Select(i => i.Illust.GetPreviewUrl(i.Index).GetImageCacheFile()));
+                                        ids.AddRange(gallery.Items.Select(i => i.Illust.GetPreviewUrl(i.Index).GetImageCachePath()));
                                     }
                                     else
                                     {
                                         var item = selected.First();
                                         if (item.Index < item.Count - 1)
                                         {
-                                            ids.Add(item.Illust.GetPreviewUrl(item.Index).GetImageCacheFile());
-                                            ids.Add(item.Illust.GetPreviewUrl(item.Index + 1).GetImageCacheFile());
+                                            ids.Add(item.Illust.GetPreviewUrl(item.Index).GetImageCachePath());
+                                            ids.Add(item.Illust.GetPreviewUrl(item.Index + 1).GetImageCachePath());
                                         }
                                         else
                                         {
-                                            ids.Add(item.Illust.GetPreviewUrl(item.Index - 1).GetImageCacheFile());
-                                            ids.Add(item.Illust.GetPreviewUrl(item.Index).GetImageCacheFile());
+                                            ids.Add(item.Illust.GetPreviewUrl(item.Index - 1).GetImageCachePath());
+                                            ids.Add(item.Illust.GetPreviewUrl(item.Index).GetImageCachePath());
                                         }
                                     }
                                 }
@@ -950,7 +951,7 @@ namespace PixivWPF.Common
                             {
                                 if (item.IsPage() || item.IsPages())
                                 {
-                                    var id = $"{item.Illust.GetPreviewUrl(item.Index).GetImageCacheFile()}";
+                                    var id = $"{item.Illust.GetPreviewUrl(item.Index).GetImageCachePath()}";
                                     if (!ids.Contains(id)) ids.Add(id);
                                 }
                             }
@@ -1772,8 +1773,8 @@ namespace PixivWPF.Common
                             string fp = string.Empty;
                             item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index, touch: false);
                             string fp_d = item.IsDownloaded ? fp : string.Empty;
-                            string fp_o = illust.GetOriginalUrl(item.Index).GetImageCachePath();
-                            string fp_p = illust.GetPreviewUrl(item.Index, large: setting.ShowLargePreview).GetImageCachePath();
+                            string fp_o = illust.GetOriginalUrl(item.Index).GetImageCacheFile();
+                            string fp_p = illust.GetPreviewUrl(item.Index, large: setting.ShowLargePreview).GetImageCacheFile();
 
                             if (File.Exists(fp_d)) ShellOpenFile.Execute(fp_d);
                             else if (File.Exists(fp_o)) ShellOpenFile.Execute(fp_o);
@@ -1784,8 +1785,8 @@ namespace PixivWPF.Common
                             string fp = string.Empty;
                             item.IsDownloaded = illust.IsPartDownloadedAsync(out fp, touch: false);
                             string fp_d = item.IsDownloaded ? fp : string.Empty;
-                            string fp_o = illust.GetOriginalUrl().GetImageCachePath();
-                            string fp_p = illust.GetPreviewUrl(large: setting.ShowLargePreview).GetImageCachePath();
+                            string fp_o = illust.GetOriginalUrl().GetImageCacheFile();
+                            string fp_p = illust.GetPreviewUrl(large: setting.ShowLargePreview).GetImageCacheFile();
 
                             if (File.Exists(fp_d)) ShellOpenFile.Execute(fp_d);
                             else if (File.Exists(fp_o)) ShellOpenFile.Execute(fp_o);
@@ -1888,8 +1889,8 @@ namespace PixivWPF.Common
                             string fp = string.Empty;
                             item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index >= 0 ? item.Index : 0, touch: false);
                             string fp_d = item.IsDownloaded ? fp : string.Empty;
-                            string fp_o = illust.GetOriginalUrl(item.Index).GetImageCachePath();
-                            string fp_p = illust.GetPreviewUrl(item.Index, large: setting.ShowLargePreview).GetImageCachePath();
+                            string fp_o = illust.GetOriginalUrl(item.Index).GetImageCacheFile();
+                            string fp_p = illust.GetPreviewUrl(item.Index, large: setting.ShowLargePreview).GetImageCacheFile();
 
                             if (File.Exists(fp_d)) ShellOpenFileProperty.Execute(fp_d);
                             else if (File.Exists(fp_o)) ShellOpenFileProperty.Execute(fp_o);
@@ -1900,8 +1901,8 @@ namespace PixivWPF.Common
                             string fp = string.Empty;
                             item.IsDownloaded = illust.IsPartDownloadedAsync(out fp, touch: false);
                             string fp_d = item.IsDownloaded ? fp : string.Empty;
-                            string fp_o = illust.GetOriginalUrl().GetImageCachePath();
-                            string fp_p = illust.GetPreviewUrl(large: setting.ShowLargePreview).GetImageCachePath();
+                            string fp_o = illust.GetOriginalUrl().GetImageCacheFile();
+                            string fp_p = illust.GetPreviewUrl(large: setting.ShowLargePreview).GetImageCacheFile();
 
                             if (File.Exists(fp_d)) ShellOpenFileProperty.Execute(fp_d);
                             else if (File.Exists(fp_o)) ShellOpenFileProperty.Execute(fp_o);
@@ -3218,7 +3219,7 @@ namespace PixivWPF.Common
                     if ((url.IsFile || url.IsUnc) && File.Exists(url.LocalPath)) url.LocalPath.OpenFileWithShell();
                     else if (url.IsAbsoluteUri)
                     {
-                        string fp_d = Uri.UnescapeDataString(url.AbsoluteUri).GetImageCachePath();
+                        string fp_d = Uri.UnescapeDataString(url.AbsoluteUri).GetImageCacheFile();
                         if (File.Exists(fp_d)) fp_d.OpenFileWithShell();
                     }
                 }
@@ -3491,7 +3492,7 @@ namespace PixivWPF.Common
                     if ((url.IsFile || url.IsUnc) && File.Exists(url.LocalPath)) url.LocalPath.OpenFileWithShell();
                     else if (url.IsAbsoluteUri)
                     {
-                        string fp_d = Uri.UnescapeDataString(url.AbsoluteUri).GetImageCachePath();
+                        string fp_d = Uri.UnescapeDataString(url.AbsoluteUri).GetImageCacheFile();
                         if (File.Exists(fp_d)) fp_d.OpenFileWithShell();
                     }
                 }
@@ -3500,7 +3501,7 @@ namespace PixivWPF.Common
             else if (obj is PixivItem)
             {
                 var item = obj as PixivItem;
-                string fp = item.Illust.GetOriginalUrl(item.Index).GetImageCachePath();
+                string fp = item.Illust.GetOriginalUrl(item.Index).GetImageCacheFile();
                 if (!string.IsNullOrEmpty(fp))
                 {
                     await new Action(() =>
@@ -3540,7 +3541,7 @@ namespace PixivWPF.Common
                     if ((url.IsFile || url.IsUnc) && File.Exists(url.LocalPath)) url.LocalPath.OpenShellProperties();
                     else if (url.IsAbsoluteUri)
                     {
-                        string fp_d = Uri.UnescapeDataString(url.AbsoluteUri).GetImageCachePath();
+                        string fp_d = Uri.UnescapeDataString(url.AbsoluteUri).GetImageCacheFile();
                         if (File.Exists(fp_d)) fp_d.OpenShellProperties();
                     }
                 }
@@ -3549,7 +3550,7 @@ namespace PixivWPF.Common
             else if (obj is PixivItem)
             {
                 var item = obj as PixivItem;
-                string fp = item.Illust.GetOriginalUrl(item.Index).GetImageCachePath();
+                string fp = item.Illust.GetOriginalUrl(item.Index).GetImageCacheFile();
                 if (!string.IsNullOrEmpty(fp))
                 {
                     await new Action(() =>

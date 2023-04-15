@@ -211,6 +211,7 @@ namespace PixivWPF.Pages
 
                             for (int i = remove.Count() - 1; i >= 0; i--)
                             {
+                                remove[i].Url.DEBUG("DM_REMOVE");
                                 remove[i].Dispose();
                                 items.Remove(remove[i]);
                             }

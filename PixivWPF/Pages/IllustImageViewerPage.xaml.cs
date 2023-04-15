@@ -191,7 +191,7 @@ namespace PixivWPF.Pages
         private string GetFileName()
         {
             //var original = this.Invoke(GetOriginalCheckState);
-            return (string.IsNullOrEmpty(IsOriginal ? OriginalImageUrl : PreviewImageUrl) ? string.Empty : $"{"File Name".PadRight(12, ' ')}: {System.IO.Path.GetFileName(IsOriginal ? OriginalImageUrl : PreviewImageUrl)}");
+            return (string.IsNullOrEmpty(IsOriginal ? OriginalImageUrl : PreviewImageUrl) ? string.Empty : $"{"File Name".PadRight(12, ' ')}: {Path.GetFileName(IsOriginal ? OriginalImageUrl : PreviewImageUrl)}");
         }
 
         private void InitProgressAction()
@@ -271,10 +271,10 @@ namespace PixivWPF.Pages
 
                 if (Keyboard.Modifiers == ModifierKeys.Control)
                 {
-                    (IsOriginal ? OriginalImageUrl : PreviewImageUrl).GetImageCacheFile().ClearDownloading();
+                    (IsOriginal ? OriginalImageUrl : PreviewImageUrl).GetImageCachePath().ClearDownloading();
                     if (reportProgress is Action<double, double>) reportProgress.Invoke(0, 0);
                 }
-                var pos = (IsOriginal ? OriginalImageUrl : PreviewImageUrl).GetImageCacheFile().QueryDownloadingState();
+                var pos = (IsOriginal ? OriginalImageUrl : PreviewImageUrl).GetImageCachePath().QueryDownloadingState();
                 var length = (await (IsOriginal ? OriginalImageUrl : PreviewImageUrl).QueryImageFileSize()) ?? 0;
                 if (reportProgress is Action<double, double>) reportProgress.Invoke(pos, length);
 
@@ -513,7 +513,7 @@ namespace PixivWPF.Pages
                 if (Contents.IsWork())
                 {
                     if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
-                        Commands.OpenCachedImage.Execute(IsOriginal ? OriginalImageUrl.GetImageCachePath() : PreviewImageUrl.GetImageCachePath());
+                        Commands.OpenCachedImage.Execute(IsOriginal ? OriginalImageUrl.GetImageCacheFile() : PreviewImageUrl.GetImageCacheFile());
                     else
                         Commands.OpenCachedImage.Execute(PreviewImage);
                 }
@@ -528,7 +528,7 @@ namespace PixivWPF.Pages
                 if (Contents.IsWork())
                 {
                     if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
-                        Commands.OpenFileProperties.Execute(IsOriginal ? OriginalImageUrl.GetImageCachePath() : PreviewImageUrl.GetImageCachePath());
+                        Commands.OpenFileProperties.Execute(IsOriginal ? OriginalImageUrl.GetImageCacheFile() : PreviewImageUrl.GetImageCacheFile());
                     else
                         Commands.OpenFileProperties.Execute(Contents);
                 }
@@ -591,7 +591,7 @@ namespace PixivWPF.Pages
             if (!string.IsNullOrEmpty(PreviewImageUrl))
             {
                 if (loadfromfile || Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
-                    Commands.CopyImage.Execute(IsOriginal ? OriginalImageUrl.GetImageCachePath() : PreviewImageUrl.GetImageCachePath());
+                    Commands.CopyImage.Execute(IsOriginal ? OriginalImageUrl.GetImageCacheFile() : PreviewImageUrl.GetImageCacheFile());
                 else
                     Commands.CopyImage.Execute(PreviewImage);
             }
@@ -678,7 +678,7 @@ namespace PixivWPF.Pages
                 {
                     foreach (var url in _urls_)
                     {
-                        try { if (!string.IsNullOrEmpty(url)) url.GetImageCacheFile().CleenLastDownloaded(); }
+                        try { if (!string.IsNullOrEmpty(url)) url.GetImageCachePath().CleenLastDownloaded(); }
                         catch { }
                     }
                 }
@@ -895,9 +895,9 @@ namespace PixivWPF.Pages
         {
             if (sender == PreviewBox && e.LeftButton == MouseButtonState.Pressed)
             {
-                if(Keyboard.Modifiers == ModifierKeys.Shift)
+                if (Keyboard.Modifiers == ModifierKeys.Shift)
                 {
-                    this.DragOut(Contents, IsOriginal);
+                    this.DragOut((IsOriginal ? OriginalImageUrl : PreviewImageUrl).GetImageCacheFile());
                 }
                 else if (PreviewBox.Stretch == Stretch.None)
                 {
@@ -1217,8 +1217,6 @@ namespace PixivWPF.Pages
 
         private void ActionCompare_Click(object sender, RoutedEventArgs e)
         {
-            //Commands.Compare.Execute(Contents);
-            //Commands.Compare.Execute(IsOriginal ? OriginalImageUrl.GetImageCachePath() : PreviewImageUrl.GetImageCachePath());
             Commands.Compare.Execute(new CompareItem() { Item = Contents, Type = IsOriginal ? CompareType.Original : CompareType.Large });
         }
 

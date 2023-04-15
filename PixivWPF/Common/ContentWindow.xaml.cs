@@ -601,6 +601,9 @@ namespace PixivWPF.Common
             var menus_down = new List<MenuItem>() {
                 LiveFilterDownloaded, LiveFilterNotDownloaded,
             };
+            var menus_ai = new List<MenuItem>() {
+                LiveFilterAI, LiveFilterNotAI,
+            };
             var menus_sanity = new List<MenuItem>() {
                 LiveFilterSanity_Any,
                 LiveFilterSanity_All, LiveFilterSanity_NoAll,
@@ -610,7 +613,7 @@ namespace PixivWPF.Common
                 LiveFilterSanity_R18, LiveFilterSanity_NoR18,
             };
 
-            var menus = new List<IEnumerable<MenuItem>>() { menus_type, menus_fav_no, menus_fast, menus_fav, menus_follow, menus_down, menus_sanity };
+            var menus = new List<IEnumerable<MenuItem>>() { menus_type, menus_fav_no, menus_fast, menus_fav, menus_follow, menus_down, menus_ai, menus_sanity };
             #endregion
 
             var idx = "LiveFilter".Length;
@@ -621,6 +624,7 @@ namespace PixivWPF.Common
             string filter_fav = string.Empty;
             string filter_follow = string.Empty;
             string filter_down = string.Empty;
+            string filter_ai = string.Empty;
             string filter_sanity = string.Empty;
 
             var menu = sender as MenuItem;
@@ -743,6 +747,17 @@ namespace PixivWPF.Common
                     if (fmenu.IsChecked) filter_down = fmenu.Name.Substring(idx);
                 }
                 #endregion
+                #region filter by ai state
+                foreach (var fmenu in menus_ai)
+                {
+                    if (menus_down.Contains(menu))
+                    {
+                        if (fmenu == menu) fmenu.IsChecked = !fmenu.IsChecked;
+                        else fmenu.IsChecked = false;
+                    }
+                    if (fmenu.IsChecked) filter_ai = fmenu.Name.Substring(idx);
+                }
+                #endregion
                 #region filter by sanity state
                 LiveFilterSanity.IsChecked = false;
                 foreach (var fmenu in menus_sanity)
@@ -779,6 +794,7 @@ namespace PixivWPF.Common
                 Favorited = filter_fav,
                 Followed = filter_follow,
                 Downloaded = filter_down,
+                AI = filter_ai,
                 Sanity = filter_sanity,
                 SanityOption_IncludeUnder = LiveFilterSanity_OptIncludeUnder.IsChecked
             };

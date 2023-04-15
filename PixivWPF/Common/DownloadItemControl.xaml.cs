@@ -1378,7 +1378,7 @@ namespace PixivWPF.Common
             if ((CanDownload || State == DownloadState.Finished) && Downloading is SemaphoreSlim && Downloading.CurrentCount <= 0) Downloading.Release();           
 
             var target_file = string.Empty;
-            string fc = Url.GetImageCachePath();
+            string fc = Url.GetImageCacheFile();
             if (File.Exists(fc))
             {
                 await Task.Run(async () =>

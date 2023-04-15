@@ -32,6 +32,7 @@ namespace PixivWPF.Common
         public string Favorited { get; set; } = string.Empty;
         public string Followed { get; set; } = string.Empty;
         public string Downloaded { get; set; } = string.Empty;
+        public string AI { get; set; } = string.Empty;
         public string Sanity { get; set; } = string.Empty;
         public bool SanityOption_IncludeUnder { get; set; } = true;
     }
@@ -109,6 +110,10 @@ namespace PixivWPF.Common
             get { return (state); }
             set { state = value; NotifyPropertyChanged("State"); }
         }
+
+        public int AIType { get; set; }
+        public bool IsAI { get { return (this.IsAI()); } }
+        public bool HasAI { get { return (this.HasAI()); } }
 
         public Pixeez.Objects.UgoiraInfo Ugoira { get; set; } = null;
         public string UgoiraPreviewFile { get; set; } = string.Empty;
@@ -512,6 +517,7 @@ namespace PixivWPF.Common
                 var filter_fav = string.IsNullOrEmpty(filter.Favorited) ? string.Empty : filter.Favorited.ToLower();
                 var filter_follow = string.IsNullOrEmpty(filter.Followed) ? string.Empty : filter.Followed.ToLower();
                 var filter_down = string.IsNullOrEmpty(filter.Downloaded) ? string.Empty : filter.Downloaded.ToLower();
+                var filter_ai = string.IsNullOrEmpty(filter.AI) ? string.Empty : filter.AI.ToLower();
                 var filter_sanity = string.IsNullOrEmpty(filter.Sanity) ? string.Empty : filter.Sanity.ToLower();
 
                 if (filter_fav_no.Length > 10) filter_fav_no = filter_fav_no.Substring(10);
@@ -533,6 +539,9 @@ namespace PixivWPF.Common
 
                 bool downloaded = filter_down.Equals("downloaded") ? true : false;
                 bool notdownloaded = filter_down.Equals("notdownloaded") ? true : false;
+
+                bool ai = filter_ai.Equals("ai") ? true : false;
+                bool notai = filter_down.Equals("notai") ? true : false;
                 #endregion
 
                 #region sanity / not_sanity
@@ -708,6 +717,15 @@ namespace PixivWPF.Common
                                 result = result && (item.IsDownloaded ? false : true);
                         }
                         #endregion
+                        #region filter by AI state
+                        if (ai || notai)
+                        {
+                            if (ai)
+                                result = result && (item.IsAI() ? true : false);
+                            else if (notai)
+                                result = result && (item.IsAI() ? false : true);
+                        }
+                        #endregion
                         #region filter by sanity state
                         if (sanity_age >= 0 || not_sanity_age >= 0)
                         {
@@ -796,6 +814,7 @@ namespace PixivWPF.Common
                         var age = string.Empty;
                         var userliked = illust.User.IsLiked() ? $"✔" : $"✘";
                         var illustliked = illust.IsLiked() ? $"🧡" : $"🤍";
+                        var aitype = illust.AIType > 1 ? $"✔" : $"✘";
                         //🎦0x1F3A6, 🎬0x1F3AC 📽0x1F4FD 🎥0x1F3A5
                         var ugoira = illust.Type.Equals("ugoira", StringComparison.CurrentCultureIgnoreCase) ? ", 🎦" : string.Empty;
                         var state = string.Empty;
@@ -805,7 +824,7 @@ namespace PixivWPF.Common
                             var like = work.Stats != null ? $", 👍[{work.Stats.ScoredCount}]" : string.Empty;
                             sanity = string.IsNullOrEmpty(work.SanityLevel) ? string.Empty : work.SanityLevel.SanityAge();
                             age = string.IsNullOrEmpty(sanity) ? string.Empty : $"R[{sanity}]";
-                            state = $", 🔞{age}, {userliked}/{illustliked}[{work.total_bookmarks}]{like}, 🖼[{work.Width}x{work.Height}]";
+                            state = $", 🔞{age}, {userliked}/{illustliked}[{work.total_bookmarks}]{like}, 🖼[{work.Width}x{work.Height}], 🔯[{aitype}, {illust.AIType}]";
                         }
                         else if (illust is Pixeez.Objects.NormalWork)
                         {
@@ -814,7 +833,7 @@ namespace PixivWPF.Common
                             var stats = work.Stats != null ? $"{illustliked}[{work.Stats.FavoritedCount.Public}/{work.Stats.FavoritedCount.Private}]" : string.Empty;
                             sanity = work.AgeLimit != null ? work.AgeLimit.SanityAge() : string.Empty;
                             age = string.IsNullOrEmpty(sanity) ? string.Empty : $"R[{sanity}]";
-                            state = $", 🔞{age}, {userliked}/{stats}{like}, 🖼[{work.Width}x{work.Height}]";
+                            state = $", 🔞{age}, {userliked}/{stats}{like}, 🖼[{work.Width}x{work.Height}], 🔯[{aitype}, {illust.AIType}]";
                         }
                         var uname = illust.User is Pixeez.Objects.UserBase ? $"{Environment.NewLine}🎨[{illust.User.Name}]" : string.Empty;
                         tooltip = string.IsNullOrEmpty(illust.Title) ? $"{uname}{state}{ugoira}{tags}{tooltip}" : $"{illust.Title}{uname}{state}{ugoira}{tags}{tooltip}";
@@ -842,6 +861,7 @@ namespace PixivWPF.Common
                             Subject = title,
                             DisplayTitle = true,
                             Caption = illust.Caption,
+                            AIType = illust.AIType,
                             ToolTip = $"📅[{illust.GetDateTime()}][{illust.Id}]{tooltip}",
                             IsDownloaded = work_type != PixivItemType.Work || illust == null ? false : illust.IsPartDownloadedAsync(touch: false),
                             Tag = illust
@@ -1874,6 +1894,28 @@ namespace PixivWPF.Common
                         item.ItemType == PixivItemType.Movie)
                         result = item.Illust is Pixeez.Objects.Work && item.Illust.Type.Equals("ugoira", StringComparison.CurrentCultureIgnoreCase) ? true : false;
                 }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+
+        public static bool IsAI(this PixivItem item)
+        {
+            bool result = false;
+            try
+            {
+                result = item.IsWork() && item.Illust.AIType > 1;
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+
+        public static bool HasAI(this PixivItem item)
+        {
+            bool result = false;
+            try
+            {
+                result = item.IsWork() && item.Illust.AIType > 0;
             }
             catch (Exception ex) { ex.ERROR(); }
             return (result);
