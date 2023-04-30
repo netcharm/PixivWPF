@@ -18,6 +18,8 @@ namespace ImageApplets.Applets
 
         private string TargetFolder = string.Empty;
         private bool OverWrite = false;
+        private bool TargetName = false;
+
         public Copy()
         {
             Category = AppletCategory.FileOP;
@@ -26,6 +28,7 @@ namespace ImageApplets.Applets
             {
                 { "d|folder=", "Target {Folder}", v => { TargetFolder = v != null ? v : "."; } },
                 { "o|overwrite", "Overwrite Exists File", v => { OverWrite = v != null ? true : false; } },
+                { "w|targetfile", "Out Target File Name", v => { TargetName = v != null ? true : false; } },
                 { "" },
             };
             AppendOptions(opts);
@@ -37,7 +40,7 @@ namespace ImageApplets.Applets
             result = default(T);
             try
             {
-                var status = false;
+                dynamic status = false;
                 if (File.Exists(file) && !string.IsNullOrEmpty(TargetFolder))
                 {
                     var folder = TargetFolder;
@@ -55,7 +58,7 @@ namespace ImageApplets.Applets
                             File.SetCreationTime(target, fi.CreationTime);
                             File.SetLastWriteTime(target, fi.LastWriteTime);
                             File.SetLastAccessTime(target, fi.LastAccessTime);
-                            status = true;
+                            status = TargetName ? (dynamic)target : (dynamic)true;
                         }
                     }
                 }
