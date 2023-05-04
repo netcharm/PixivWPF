@@ -510,4 +510,7 @@
   <data name="InfoTipQuality" xml:space="preserve">
     <value>画像品質           =</value>
   </data>
+  <data name="InfoTipFileSize" xml:space="preserve">
+    <value>ファイルサイズ     =</value>
+  </data>
 </root>

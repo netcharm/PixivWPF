@@ -478,7 +478,7 @@
     <value>Set Color To Alpha</value>
   </data>
   <data name="InfoTipColorMapsSize" xml:space="preserve">
-    <value>ColorMaps Size</value>
+    <value>ColorMaps Size =</value>
   </data>
   <data name="RepeatLastAction.ToolTip" xml:space="preserve">
     <value>Repeat Last Action</value>
@@ -509,5 +509,8 @@
   </data>
   <data name="InfoTipQuality" xml:space="preserve">
     <value>Image Quality  =</value>
+  </data>
+  <data name="InfoTipFileSize" xml:space="preserve">
+    <value>FileSize       =</value>
   </data>
 </root>

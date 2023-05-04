@@ -313,7 +313,7 @@
     <value>顯示所佔記憶體 =</value>
   </data>
   <data name="InfoTipFileName" xml:space="preserve">
-    <value>檔案名         =</value>
+    <value>檔案名稱       =</value>
   </data>
   <data name="HighlightColorPick.AdvancedTabHeader" xml:space="preserve">
     <value>自定</value>
@@ -509,5 +509,8 @@
   </data>
   <data name="InfoTipQuality" xml:space="preserve">
     <value>圖像質量       =</value>
+  </data>
+  <data name="InfoTipFileSize" xml:space="preserve">
+    <value>檔案大小       =</value>
   </data>
 </root>

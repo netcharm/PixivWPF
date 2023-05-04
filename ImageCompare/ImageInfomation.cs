@@ -582,13 +582,25 @@ namespace ImageCompare
 #else
                 tip.Add($"{"InfoTipMemoryUsage".T()} {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth / 8)}");
 #endif
-                    tip.Add($"{"InfoTipDisplayMemory".T()} {((long)(Current.Width * Current.Height * 4)).SmartFileSize()}");
+                    tip.Add($"{"InfoTipDisplayMemory".T()} {((long)(Current.Width * Current.Height * 4)).SmartFileSize()}");                    
                     if (!string.IsNullOrEmpty(FileName))
+                    {
+                        var FileSize = !string.IsNullOrEmpty(FileName) && File.Exists(FileName) ? new FileInfo(FileName).Length : -1;
+                        tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}");
                         tip.Add($"{"InfoTipFileName".T()} {FileName}");
+                    }
                     else if (ValidOriginal && !string.IsNullOrEmpty(Original.FileName))
+                    {
+                        var FileSize = !string.IsNullOrEmpty(Original.FileName) && File.Exists(Original.FileName) ? new FileInfo(Original.FileName).Length : -1;
+                        tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}");
                         tip.Add($"{"InfoTipFileName".T()} {Original.FileName}");
+                    }
                     else if (!string.IsNullOrEmpty(Current.FileName))
+                    {
+                        var FileSize = !string.IsNullOrEmpty(Current.FileName) && File.Exists(Current.FileName) ? new FileInfo(Current.FileName).Length : -1;
+                        tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}");
                         tip.Add($"{"InfoTipFileName".T()} {Current.FileName}");
+                    }
                     result = string.Join(Environment.NewLine, tip);
                     st.Stop();
 #if DEBUG
