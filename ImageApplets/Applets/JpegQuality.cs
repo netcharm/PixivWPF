@@ -40,6 +40,7 @@ namespace ImageApplets.Applets
             result = default(T);
             try
             {
+                Result.Reset();
                 var _QualityValue_ = (args.Length > 0 && args[0] is int) ? (int)args[0] : QualityValue;
                 if (exif is ExifData)
                 {
@@ -64,6 +65,7 @@ namespace ImageApplets.Applets
                     ret = GetReturnValueByStatus(status);
                     result = (T)(object)status;
                 }
+                Result.Set(InputFile, OutputFile, ret, result);
             }
             catch (Exception ex) { ShowMessage(ex, Name); }
             return (ret);

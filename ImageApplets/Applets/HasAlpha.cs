@@ -60,6 +60,7 @@ namespace ImageApplets.Applets
             result = default(T);
             try
             {
+                Result.Reset();
                 var _WindowSize_ = (args.Length > 0 && args[0] is int) ? (int)args[0] : WindowSize;
                 if (source is Stream && source.CanRead)
                 {
@@ -98,6 +99,7 @@ namespace ImageApplets.Applets
                     ret = GetReturnValueByStatus(status);
                     result = (T)(object)status;
                 }
+                Result.Set(InputFile, OutputFile, ret, result);
             }
             catch (Exception ex) { ShowMessage(ex, Name); }
             return (ret);

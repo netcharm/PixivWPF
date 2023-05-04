@@ -37,9 +37,13 @@ namespace ImageApplets.Applets
             result = default(T);
             try
             {
+                Result.Reset();
+
                 var status = false;
                 if (File.Exists(file) && !string.IsNullOrEmpty(TargetFolder))
                 {
+                    InputFile = file;
+
                     var folder = TargetFolder;
 
                     if (!string.IsNullOrEmpty(folder) && !Directory.Exists(folder))
@@ -48,18 +52,19 @@ namespace ImageApplets.Applets
                     if (Directory.Exists(folder))
                     {
                         var fi = new System.IO.FileInfo(file);
-                        var target = Path.Combine(folder, Path.GetFileName(file));
-                        if (File.Exists(target)) File.Delete(target);
-                        File.Move(file, target);
-                        File.SetCreationTime(target, fi.CreationTime);
-                        File.SetLastWriteTime(target, fi.LastWriteTime);
-                        File.SetLastAccessTime(target, fi.LastAccessTime);
+                        OutputFile = Path.Combine(folder, Path.GetFileName(file));
+                        if (File.Exists(OutputFile)) File.Delete(OutputFile);
+                        File.Move(file, OutputFile);
+                        File.SetCreationTime(OutputFile, fi.CreationTime);
+                        File.SetLastWriteTime(OutputFile, fi.LastWriteTime);
+                        File.SetLastAccessTime(OutputFile, fi.LastAccessTime);
                         status = true;
                     }
                 }
-
                 ret = GetReturnValueByStatus(status);
                 result = (T)(object)status;
+
+                Result.Set(InputFile, OutputFile, ret, result);
             }
             catch (Exception ex) { ShowMessage(ex, Name); }
             return (ret);

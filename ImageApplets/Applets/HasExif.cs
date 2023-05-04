@@ -28,6 +28,7 @@ namespace ImageApplets.Applets
             result = default(T);
             try
             {
+                Result.Reset();
                 if (exif != null)
                 {
                     var status = false;
@@ -37,6 +38,7 @@ namespace ImageApplets.Applets
                     ret = GetReturnValueByStatus(status);
                     result = (T)(object)status;
                 }
+                Result.Set(InputFile, OutputFile, ret, result);
             }
             catch (Exception ex) { ShowMessage(ex, Name); }
             return (ret);

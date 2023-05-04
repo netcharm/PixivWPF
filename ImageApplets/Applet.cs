@@ -699,10 +699,63 @@ namespace ImageApplets
 
     public class ExecuteResult
     {
-        public FileInfo FileInfo { get; set; } = null;
-        public string File { get; set; } = string.Empty;
+        public FileInfo InputInfo { get; set; } = null;
+        public string InputFile { get; set; } = string.Empty;
+        public FileInfo OutputInfo { get; set; } = null;
+        public string OutputFile { get; set; } = string.Empty;
         public bool State { get; set; } = false;
-        public dynamic Result { get; set; } = null;
+        public dynamic Message { get; set; } = null;
+
+        public void Set(bool state, dynamic message = null, bool clean = false)
+        {
+            if (clean)
+            {
+                InputFile = string.Empty;
+                InputInfo = null;
+                OutputFile = string.Empty;
+                OutputInfo = null;
+            }
+            State = state;
+            Message = message;
+        }
+
+        public void Set(string src, string dst, bool state, dynamic message = null)
+        {
+            InputFile = src;
+            InputInfo = string.IsNullOrEmpty(src) ? null : new FileInfo(src);
+            OutputFile = dst;
+            OutputInfo = string.IsNullOrEmpty(dst) ? null : new FileInfo(dst);
+            State = state;
+            Message = message;
+        }
+
+        public void Reset()
+        {
+            InputInfo = null;
+            InputFile = string.Empty;
+            OutputInfo = null;
+            OutputFile = string.Empty;
+            State = false;
+            Message = null;
+        }
+
+        public void Clear()
+        {
+            Reset();
+        }
+
+        public ExecuteResult Clone()
+        {
+            return (new ExecuteResult()
+            {
+                InputInfo = InputInfo, 
+                InputFile = InputFile,
+                OutputInfo = OutputInfo,
+                OutputFile = OutputFile,
+                State = State,
+                Message = Message
+            });
+        }
     }
 
     public interface IApplet
@@ -761,10 +814,22 @@ namespace ImageApplets
         public bool Verbose { get { return (_verbose_); } }
 
         static private string _input_file_ = string.Empty;
-        public string InputFile { get { return (_input_file_); } }
+        public string InputFile { get { return (_input_file_); } set { _input_file_ = value is string ? value : string.Empty; } }
 
         static private string _output_file_ = string.Empty;
-        public string OutputFile { get { return (_output_file_); } }
+        public string OutputFile { get { return (_output_file_); } protected internal set { _output_file_ = value is string ? value : string.Empty; } }
+
+        private ExecuteResult _result_ = new ExecuteResult();
+        public ExecuteResult Result { get { return (_result_); } }
+
+        static private IEnumerable<string> _input_files_ = new List<string>();
+        public IEnumerable<string> InputFiles { get { return (_input_files_); } set { _input_files_ = value is IEnumerable<string> ? value : new List<string>(); } }
+
+        static private IEnumerable<string> _output_files_ = new List<string>();
+        public IEnumerable<string> OutputFiles { get { return (_output_files_); } }
+
+        static private IEnumerable<ExecuteResult> _results_ = new List<ExecuteResult>();
+        public IEnumerable<ExecuteResult> Results { get { return (_results_); } }
 
         public virtual OptionSet Options { get; set; } = new OptionSet()
         {
@@ -1263,13 +1328,15 @@ namespace ImageApplets
         {
             bool ret = false;
             result = default(T);
+            Result.Reset();
             if (File.Exists(file))
             {
+                InputFile = file;
                 try
                 {
-                    var fi = new FileInfo(file);
                     using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
+                        //OutputFile = file;
                         ret = Execute<T>(fs, out result);
                     }
                 }
@@ -1287,6 +1354,7 @@ namespace ImageApplets
                 }
                 catch (Exception ex) { MessageBox.Show(ex.Message); }
             }
+            Result.Set(InputFile, OutputFile, ret, result);
             return (ret);
         }
 
@@ -1294,6 +1362,7 @@ namespace ImageApplets
         {
             bool ret = false;
             result = default(T);
+            Result.Reset();
             if (source is Stream && source.CanRead)
             {
                 try
@@ -1319,6 +1388,7 @@ namespace ImageApplets
                     MessageBox.Show(ex.Message);
                 }
             }
+            Result.Set(InputFile, OutputFile, ret, result);
             return (ret);
         }
 
@@ -1326,6 +1396,7 @@ namespace ImageApplets
         {
             bool ret = false;
             result = default(T);
+            Result.Reset();
             try
             {
                 ret = true;
@@ -1343,6 +1414,7 @@ namespace ImageApplets
                 }
             }
             catch (Exception ex) { MessageBox.Show(ex.Message); }
+            Result.Set(InputFile, OutputFile, ret, result);
             return (ret);
         }
 
@@ -1350,14 +1422,22 @@ namespace ImageApplets
         {
             Status = status;
             var infolist = new List<ExecuteResult>();
-            var index = 0;
-            var total = files.Count();
-            foreach (var file in files)
+            if (files is IEnumerable<FileInfo>)
             {
-                bool result = false;
-                var ret = Execute(file.FullName, out result, args);
-                if (ret) infolist.Add(new ExecuteResult() { File = file.FullName, FileInfo = file, State = ret, Result = result });
-                if (ReportProgress is Action<int, int, ExecuteResult, object, object>) ReportProgress.Invoke(index, total, infolist.Last(), null, null);
+                var index = 0;
+                var total = files.Count();
+                foreach (var file in files)
+                {
+                    bool result = false;
+                    Result.Reset();
+                    var ret = Execute(file.FullName, out result, args);
+                    //if (ret) infolist.Add(new ExecuteResult() { InputFile = file.FullName, InputInfo = file, State = ret, Message = result });
+                    if (ret) infolist.Add(Result.Clone());
+                    if (ReportProgress is Action<int, int, ExecuteResult, object, object>) ReportProgress.Invoke(index, total, infolist.Last(), null, null);
+                }
+                _input_files_ = infolist.Select(i => i.InputFile).ToList();
+                _output_files_ = infolist.Select(i => i.OutputFile).ToList();
+                _results_ = infolist;
             }
             return (infolist);
         }
@@ -1366,14 +1446,22 @@ namespace ImageApplets
         {
             Status = status;
             var infolist = new List<ExecuteResult>();
-            var index = 0;
-            var total = files.Count();
-            foreach (var file in files)
+            if (files is IEnumerable<string>)
             {
-                bool result = false;
-                var ret = Execute(file, out result, args);
-                if (ret) infolist.Add(new ExecuteResult() { File = file, FileInfo = new FileInfo(file), State = ret, Result = result });
-                if (ReportProgress is Action<int, int, ExecuteResult, object, object>) ReportProgress.Invoke(index, total, infolist.Last(), null, null);
+                var index = 0;
+                var total = files.Count();
+                foreach (var file in files)
+                {
+                    bool result = false;
+                    Result.Reset();
+                    var ret = Execute(file, out result, args);
+                    //if (ret) infolist.Add(new ExecuteResult() { InputFile = file, InputInfo = new FileInfo(file), State = ret, Message = result });
+                    if (ret) infolist.Add(Result.Clone());
+                    if (ReportProgress is Action<int, int, ExecuteResult, object, object>) ReportProgress.Invoke(index, total, infolist.Last(), null, null);
+                }
+                _input_files_ = infolist.Select(i => i.InputFile).ToList();
+                _output_files_ = infolist.Select(i => i.OutputFile).ToList();
+                _results_ = infolist;
             }
             return (infolist);
         }
@@ -1459,7 +1547,7 @@ namespace ImageApplets
                         {
                             bool result = false;
                             var ret = Execute(file.FullName, out result, args);
-                            if (ret) infolist.Add(new ExecuteResult() { File = file.FullName, FileInfo = file, State = ret, Result = result });
+                            if (ret) infolist.Add(new ExecuteResult() { InputFile = file.FullName, InputInfo = file, State = ret, Message = result });
                             index++;
                             bgExecuteTask.ReportProgress((int)Math.Floor(total <= 0 ? 1.0 : index / total));
                             if (ReportProgress is Action<int, int, ExecuteResult, object, object>) ReportProgress.Invoke(index, total, infolist.Last(), e.Result, "");
@@ -1477,7 +1565,7 @@ namespace ImageApplets
                         {
                             bool result = false;
                             var ret = Execute(file, out result, args);
-                            if (ret) infolist.Add(new ExecuteResult() { File = file, FileInfo = new FileInfo(file), State = ret, Result = result });
+                            if (ret) infolist.Add(new ExecuteResult() { InputFile = file, InputInfo = new FileInfo(file), State = ret, Message = result });
                             index++;
                             bgExecuteTask.ReportProgress((int)Math.Floor(total <= 0 ? 1.0 : index / total));
                             if (ReportProgress is Action<int, int, ExecuteResult, object, object>) ReportProgress.Invoke(index, total, infolist.Last(), e.Result, "");

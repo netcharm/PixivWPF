@@ -94,9 +94,14 @@ namespace ImageApplets.Applets
             result = default(T);
             try
             {
+                Result.Reset();
+
                 dynamic status = false;
                 if (File.Exists(file))
                 {
+                    InputFile = file;
+                    OutputFile = file;
+
                     #region init file informations dictionary
                     var fi = new System.IO.FileInfo(file);
                     var fi_dict = new Dictionary<string, dynamic>(StringComparer.CurrentCultureIgnoreCase)
@@ -301,6 +306,8 @@ namespace ImageApplets.Applets
                 }
                 ret = GetReturnValueByStatus(status);
                 result = (T)(object)status;
+
+                Result.Set(InputFile, OutputFile, ret, result);
             }
             catch (Exception ex) { ShowMessage(ex, Name); }
             return (ret);

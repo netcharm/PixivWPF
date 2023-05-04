@@ -326,6 +326,7 @@ namespace ImageApplets.Applets
             {
                 if (exif is ExifData)
                 {
+                    Result.Reset();
                     dynamic status = false;
 
                     #region Get exif attributes
@@ -674,6 +675,7 @@ namespace ImageApplets.Applets
                     ret = GetReturnValueByStatus(status);
                     result = (T)(object)status;
                 }
+                Result.Set(InputFile, OutputFile, ret, result);
             }
             catch (Exception ex) { ShowMessage(ex, Name); }
             return (ret);

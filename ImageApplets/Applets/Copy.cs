@@ -40,9 +40,12 @@ namespace ImageApplets.Applets
             result = default(T);
             try
             {
+                Result.Reset();
                 dynamic status = false;
                 if (File.Exists(file) && !string.IsNullOrEmpty(TargetFolder))
                 {
+                    InputFile = file;
+
                     var folder = TargetFolder;
 
                     if (!string.IsNullOrEmpty(folder) && !Directory.Exists(folder))
@@ -51,20 +54,22 @@ namespace ImageApplets.Applets
                     if (Directory.Exists(folder))
                     {
                         var fi = new System.IO.FileInfo(file);
-                        var target = Path.Combine(folder, Path.GetFileName(file));
-                        if (OverWrite || !File.Exists(target))
+                        OutputFile = Path.Combine(folder, Path.GetFileName(file));
+                        if (OverWrite || !File.Exists(OutputFile))
                         {
-                            File.Copy(file, target, OverWrite);
-                            File.SetCreationTime(target, fi.CreationTime);
-                            File.SetLastWriteTime(target, fi.LastWriteTime);
-                            File.SetLastAccessTime(target, fi.LastAccessTime);
-                            status = TargetName ? (dynamic)target : (dynamic)true;
+                            File.Copy(file, OutputFile, OverWrite);
+                            File.SetCreationTime(OutputFile, fi.CreationTime);
+                            File.SetLastWriteTime(OutputFile, fi.LastWriteTime);
+                            File.SetLastAccessTime(OutputFile, fi.LastAccessTime);
+                            status = TargetName ? (dynamic)OutputFile : (dynamic)true;
                         }
                     }
                 }
 
                 ret = GetReturnValueByStatus(status);
                 result = (T)(object)status;
+
+                Result.Set(InputFile, OutputFile, ret, result);
             }
             catch (Exception ex) { ShowMessage(ex, Name); }
             return (ret);
