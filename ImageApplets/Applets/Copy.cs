@@ -58,10 +58,22 @@ namespace ImageApplets.Applets
                         if (OverWrite || !File.Exists(OutputFile))
                         {
                             File.Copy(file, OutputFile, OverWrite);
-                            File.SetCreationTime(OutputFile, fi.CreationTime);
-                            File.SetLastWriteTime(OutputFile, fi.LastWriteTime);
-                            File.SetLastAccessTime(OutputFile, fi.LastAccessTime);
-                            status = TargetName ? (dynamic)OutputFile : (dynamic)true;
+                            if (File.Exists(OutputFile))
+                            {
+                                File.SetCreationTime(OutputFile, fi.CreationTime);
+                                File.SetLastWriteTime(OutputFile, fi.LastWriteTime);
+                                File.SetLastAccessTime(OutputFile, fi.LastWriteTime);
+                                status = TargetName ? (dynamic)OutputFile : (dynamic)true;
+                            }
+                            //var fo = fi.CopyTo(OutputFile, overwrite: OverWrite);
+                            //fo.Refresh();
+                            //if (fo.Exists)
+                            //{
+                            //    fo.CreationTime = fi.CreationTime;
+                            //    fo.LastWriteTime = fi.LastWriteTime;
+                            //    fo.LastAccessTime = fi.LastAccessTime;
+                            //    fo.Refresh();
+                            //}
                         }
                     }
                 }

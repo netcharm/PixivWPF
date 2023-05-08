@@ -819,6 +819,9 @@ namespace ImageApplets
         static private string _output_file_ = string.Empty;
         public string OutputFile { get { return (_output_file_); } protected internal set { _output_file_ = value is string ? value : string.Empty; } }
 
+        static private string _result_file_ = string.Empty;
+        public string ResultFile { get { return (_result_file_); } protected internal set { _result_file_ = value is string ? value : string.Empty; } }
+
         private ExecuteResult _result_ = new ExecuteResult();
         public ExecuteResult Result { get { return (_result_); } }
 
@@ -838,6 +841,7 @@ namespace ImageApplets
             { "a|all", "Keep All", v => { Status = STATUS.All; } },
             { " " },
             { "verbose", "Output All When Redirected STDOUT", v => { _verbose_ = v != null ? true : false; } },
+            { "result|log=", "Result To {FILE} or CLIPBOARD", v => { if (v != null) _result_file_ = v; } },
             { "input|filelist=", "Get Files From {FILE} or CLIPBOARD", v => { if (v != null) _input_file_ = v; } },
             { "output=", "Output To {FILE} or CLIPBOARD", v => { if (v != null) _output_file_ = v; } },
             { "read=", "Read Mode {<All|Line>} When Input Redirected", v => { if (v != null) Enum.TryParse(v.ToUpper(), out _ReadInputMode_); } },
