@@ -161,9 +161,9 @@ namespace ImageAppletsCLI
                         #endregion
 
                         #region Save run log to file When applet set output option with filename
-                        if (!string.IsNullOrEmpty(applet.OutputFile))
+                        if (!string.IsNullOrEmpty(applet.ResultFile))
                         {
-                            SaveLogToFile(applet.OutputFile);
+                            SaveLogToFile(applet.ResultFile);
                         }
                         #endregion
                     }
