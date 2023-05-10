@@ -122,6 +122,77 @@ namespace ImageApplets
             return (result);
         }
         #endregion
+
+        #region double inside/outside a range
+        static public bool Inside(this double src, dynamic dst, double tolerance = 0.005, bool include = true)
+        {
+            if (dst is double) return (Inside(src, (double)dst, tolerance, include));
+            else if (dst is int) return (Inside(src, (int)dst, tolerance, include));
+            else if (dst is Tuple<double, double>) return (Inside(src, (Tuple<double, double>)dst, tolerance, include));
+            else return (false);
+        }
+
+        static public bool Outside(this double src, dynamic dst, double tolerance = 0.005, bool include = false)
+        {
+            if (dst is double) return (Outside(src, (double)dst, tolerance, include));
+            else if (dst is int) return (Outside(src, (int)dst, tolerance, include));
+            else if (dst is Tuple<double, double>) return (Outside(src, (Tuple<double, double>)dst, tolerance, include));
+            else return (false);
+        }
+
+        static public bool Inside(this double src, Tuple<double, double> dst, double tolerance = 0.005, bool include = true)
+        {
+            var r_l = dst.Item1;
+            var r_r = dst.Item2;
+            if (include)
+                return (src >= r_l * (1 - tolerance) && src <= r_r * (1 + tolerance));
+            else
+                return (src > r_l * (1 - tolerance) && src < r_r * (1 + tolerance));
+        }
+
+        static public bool Outside(this double src, Tuple<double, double> dst, double tolerance = 0.005, bool include = false)
+        {
+            var r_l = dst.Item1;
+            var r_r = dst.Item2;
+            if (include)
+                return (src <= r_l * (1 - tolerance) || src >= r_r * (1 + tolerance));
+            else
+                return (src < r_l * (1 - tolerance) || src > r_r * (1 + tolerance));
+        }
+
+        static public bool Inside(this double src, double dst, double tolrence = 0.005, bool include = true)
+        {
+            if (include)
+                return (src >= dst * (1 - tolrence) && src <= dst * (1 + tolrence));
+            else
+                return (src > dst * (1 - tolrence) && src < dst * (1 + tolrence));
+        }
+
+        static public bool Outside(this double src, double dst, double tolrence = 0.005, bool include = false)
+        {
+            if (include)
+                return (src <= dst * (1 - tolrence) || src >= dst * (1 + tolrence));
+            else
+                return (src < dst * (1 - tolrence) || src > dst * (1 + tolrence));
+        }
+
+        static public bool Inside(this int src, int dst, double tolrence = 1.0, bool include = true)
+        {
+            if (include)
+                return (src >= dst * (1.0 - tolrence) && src <= dst * (1.0 + tolrence));
+            else
+                return (src > dst * (1.0 - tolrence) && src < dst * (1.0 + tolrence));
+        }
+
+        static public bool Outside(this int src, int dst, double tolrence = 1.0, bool include = false)
+        {
+            if (include)
+                return (src <= dst * (1.0 - tolrence) || src >= dst * (1.0 + tolrence));
+            else
+                return (src < dst * (1.0 - tolrence) || src > dst * (1.0 + tolrence));
+        }
+
+        #endregion
     }
 
     public class DateValue

@@ -21,6 +21,8 @@ namespace ImageApplets.Applets
 
         private int QualityValue = 85;
         private CompareMode Mode = CompareMode.VALUE;
+        private double _Tolerance_ = 0.005;
+
         public JpegQuality()
         {
             Category = AppletCategory.ImageAttribure;
@@ -29,6 +31,7 @@ namespace ImageApplets.Applets
             {
                 { "m|mode=", "Quality Comparing Mode {<EQ|NEQ|LT|LE|GT|GE|VALUE>}", v => { if (v != null) Enum.TryParse(v.ToUpper(), out Mode); } },
                 { "q|quality=", "Quality Comparing {Value}", v => { if (v != null) int.TryParse(v, out QualityValue); } },
+                { "allowance|tolerance=", $"Image Quality Tolerance, default is {_Tolerance_:P}", v => { if (v != null) double.TryParse(v, out _Tolerance_); } },
                 { "" },
             };
             AppendOptions(opts);
@@ -51,8 +54,10 @@ namespace ImageApplets.Applets
                         switch (Mode)
                         {
                             case CompareMode.VALUE: status = quality; break;
-                            case CompareMode.NEQ: status = quality != _QualityValue_; break;
-                            case CompareMode.EQ: status = quality == _QualityValue_; break;
+                            case CompareMode.NOT:
+                            case CompareMode.NEQ: status = quality.Outside(_QualityValue_, _Tolerance_); break;
+                            case CompareMode.IS:
+                            case CompareMode.EQ: status = quality.Inside(_QualityValue_, _Tolerance_); break;
                             case CompareMode.LT: status = quality < _QualityValue_; break;
                             case CompareMode.LE: status = quality <= _QualityValue_; break;
                             case CompareMode.GT: status = quality > _QualityValue_; break;

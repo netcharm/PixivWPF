@@ -35,7 +35,7 @@ namespace ImageApplets.Applets
                 { "m|mode=", "Quality Comparing Mode {VALUE} : <IS|NOT|EQ|NEQ|LT|LE|GE|GT|VALUE>", v => { if (v != null) Enum.TryParse(v.ToUpper(), out _Mode_); } },
                 //{ "type=", $"Image Type {{{JPG|JPEG|PNG|BMP|TIFF|TIF|ICO|GIF|EMF|WMF}", v => { if (v != null) TypeValue = v; } },
                 { "aspect|ratio|type=", $"Image Aspect Ratio {{VALUE}} : <{string.Join("|", GetAspectRatios())}>", v => { if (v != null) _Ratio_ = v; } },
-                { "allowance|tolerance=", $"Image Aspect Ratio Tolerance, default is {_Tolerance_}", v => { if (v != null) double.TryParse(v, out _Tolerance_); } },
+                { "allowance|tolerance=", $"Image Aspect Ratio Tolerance, default is {_Tolerance_:P}", v => { if (v != null) double.TryParse(v, out _Tolerance_); } },
                 { "" },
             };
             AppendOptions(opts);
@@ -48,41 +48,41 @@ namespace ImageApplets.Applets
             return (result.ToArray());
         }
 
-        private bool Inside(double src, Tuple<double, double> dst, double tolerance = 0.005, bool include = true)
-        {
-            var r_l = dst.Item1;
-            var r_r = dst.Item2;
-            if (include)
-                return (src >= r_l * (1 - tolerance) && src <= r_r * (1 + tolerance));
-            else
-                return (src > r_l * (1 - tolerance) && src < r_r * (1 + tolerance));
-        }
+        //private bool Inside(double src, Tuple<double, double> dst, double tolerance = 0.005, bool include = true)
+        //{
+        //    var r_l = dst.Item1;
+        //    var r_r = dst.Item2;
+        //    if (include)
+        //        return (src >= r_l * (1 - tolerance) && src <= r_r * (1 + tolerance));
+        //    else
+        //        return (src > r_l * (1 - tolerance) && src < r_r * (1 + tolerance));
+        //}
 
-        private bool Outside(double src, Tuple<double, double> dst, double tolerance = 0.005, bool include = false)
-        {
-            var r_l = dst.Item1;
-            var r_r = dst.Item2;
-            if (include)
-                return (src <= r_l * (1 - tolerance) || src >= r_r * (1 + tolerance));
-            else
-                return (src < r_l * (1 - tolerance) || src > r_r * (1 + tolerance));
-        }
+        //private bool Outside(double src, Tuple<double, double> dst, double tolerance = 0.005, bool include = false)
+        //{
+        //    var r_l = dst.Item1;
+        //    var r_r = dst.Item2;
+        //    if (include)
+        //        return (src <= r_l * (1 - tolerance) || src >= r_r * (1 + tolerance));
+        //    else
+        //        return (src < r_l * (1 - tolerance) || src > r_r * (1 + tolerance));
+        //}
 
-        private bool Inside(double src, double dst, double tolrence = 0.005, bool include = true)
-        {
-            if (include)
-                return (src >= dst * (1 - tolrence) && src <= dst * (1 + tolrence));
-            else
-                return (src > dst * (1 - tolrence) && src < dst * (1 + tolrence));
-        }
+        //private bool Inside(double src, double dst, double tolrence = 0.005, bool include = true)
+        //{
+        //    if (include)
+        //        return (src >= dst * (1 - tolrence) && src <= dst * (1 + tolrence));
+        //    else
+        //        return (src > dst * (1 - tolrence) && src < dst * (1 + tolrence));
+        //}
 
-        private bool Outside(double src, double dst, double tolrence = 0.005, bool include = false)
-        {
-            if (include)
-                return (src <= dst * (1 - tolrence) || src >= dst * (1 + tolrence));
-            else
-                return (src < dst * (1 - tolrence) || src > dst * (1 + tolrence));
-        }
+        //private bool Outside(double src, double dst, double tolrence = 0.005, bool include = false)
+        //{
+        //    if (include)
+        //        return (src <= dst * (1 - tolrence) || src >= dst * (1 + tolrence));
+        //    else
+        //        return (src < dst * (1 - tolrence) || src > dst * (1 + tolrence));
+        //}
 
         public override bool Execute<T>(Stream source, out T result, params object[] args)
         {
@@ -123,9 +123,17 @@ namespace ImageApplets.Applets
                         {
                             case CompareMode.VALUE: status = $"{aspect:F3}"; break;
                             case CompareMode.NOT:
-                            case CompareMode.NEQ: status = _aspect_ is Tuple<double, double> || !double.IsNaN(_aspect_) ? Outside(aspect, _aspect_, _Tolerance_) : false; break;
+                            case CompareMode.NEQ:
+                                if (_aspect_ is Tuple<double, double>) status = aspect.Outside((Tuple<double, double>)_aspect_, _Tolerance_);
+                                else if (!double.IsNaN(_aspect_)) status = aspect.Outside((double)_aspect_, _Tolerance_);
+                                else status = false;
+                                break;
                             case CompareMode.IS:
-                            case CompareMode.EQ: status = _aspect_ is Tuple<double, double> || !double.IsNaN(_aspect_) ? Inside(aspect, _aspect_, _Tolerance_) : false; break;
+                            case CompareMode.EQ:
+                                if (_aspect_ is Tuple<double, double>) status = aspect.Inside((Tuple<double, double>)_aspect_, _Tolerance_);
+                                else if (!double.IsNaN(_aspect_)) status = aspect.Inside((double)_aspect_, _Tolerance_);
+                                else status = false;
+                                break;
                             case CompareMode.LT: status = double.IsNaN(_aspect_) ? false : aspect < _aspect_; break;
                             case CompareMode.LE: status = double.IsNaN(_aspect_) ? false : aspect <= _aspect_; break;
                             case CompareMode.GE: status = double.IsNaN(_aspect_) ? false : aspect >= _aspect_; break;
