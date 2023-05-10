@@ -163,6 +163,9 @@ namespace PixivWPF
         public void UpdateTheme()
         {
             if (Contents is Pages.TilesPage) Contents.UpdateTheme();
+
+            CommandRestart.ContextMenu.UpdateDefaultStyle();
+            //ConvertBackColorPicker.UpdateDefaultStyle();
         }
 
         public void UpdateTitle(string title)
@@ -467,6 +470,21 @@ namespace PixivWPF
 
             LastWindowStates.Enqueue(WindowState.Normal);
 
+            ConvertBackColorPicker.SelectedColor = setting.ConvertBackColor;
+            ConvertBackColorPicker.CustomColorPalette01Header = "Recommended Colors";
+            ConvertBackColorPicker.CustomColorPalette01ItemsSource = new List<Color>()
+            {
+                setting.DownloadReduceBackGroundColor,
+                Colors.White, Colors.Black,
+                Colors.Gray, Colors.Silver, Colors.DarkGray
+            };
+            ConvertBackColorPicker.CustomColorPalette01Style = ConvertBackColorPicker.StandardColorPaletteStyle;
+            ConvertBackColorPicker.IsCustomColorPalette01Visible = true;
+#if DEBUG
+            ConvertBackColorPicker.Height += 56;
+            ConvertBackColorPicker.MaxHeight += 56;
+#endif
+
             CreateNamedPipeServer();
         }
 
@@ -527,6 +545,12 @@ namespace PixivWPF
             }
         }
 
+        private void PreftchingProgress_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (Content is Pages.TilesPage)
+                (Content as Pages.TilesPage).StopPrefetching();
+        }
+
         private void DatePicker_SelectedDatesChanged(object sender, SelectionChangedEventArgs e)
         {
             //if (Contents is Pages.TilesPage && DatePicker.SelectedDate.HasValue && DatePicker.SelectedDate.Value <= DateTime.Now)
@@ -573,8 +597,55 @@ namespace PixivWPF
             SetMemoryUsage();
         }
 
+        private void cmiProxyAction_Opened(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                setting = Application.Current.LoadSetting();
+                cmiUseProxy.IsChecked = setting.UsingProxy;
+                cmiUseProxyDown.IsChecked = setting.DownloadUsingProxy;
+
+                cmiUseHttp10.IsChecked = false;
+                cmiUseHttp11.IsChecked = false;
+                cmiUseHttp20.IsChecked = false;
+
+                var http_ver = setting.HttpVersion;
+                if (http_ver.Major == 1 && http_ver.Minor == 0) cmiUseHttp10.IsChecked = true;
+                else if (http_ver.Major == 1 && http_ver.Minor == 1) cmiUseHttp11.IsChecked = true;
+                else if (http_ver.Major == 2 && http_ver.Minor == 0) cmiUseHttp20.IsChecked = true;
+            }
+            catch (Exception ex) { ex.ERROR("cmiProxyAction_Opened"); }
+        }
+
+        private void cmiProxyAction_Closed(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                setting = Application.Current.LoadSetting();
+                setting.UsingProxy = cmiUseProxy.IsChecked;
+                setting.DownloadUsingProxy = cmiUseProxyDown.IsChecked;
+
+                var http_ver = new Version(1, 1);
+                if (cmiUseHttp10.IsChecked ?? false) http_ver = new Version(1, 0);
+                else if (cmiUseHttp11.IsChecked ?? false) http_ver = new Version(1, 1);
+                else if (cmiUseHttp20.IsChecked ?? false) http_ver = new Version(2, 0);
+                setting.HttpVersion = http_ver;
+            }
+            catch (Exception ex) { ex.ERROR("cmiProxyAction_Opened"); }
+        }
+
+        private void ConvertBackColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
+        {
+            var setting = Application.Current.LoadSetting();
+            setting.ConvertBackColor = e.NewValue ?? setting.ConvertBackColor;
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+                setting.DownloadReduceBackGroundColor = e.NewValue ?? setting.DownloadReduceBackGroundColor;
+            e.Handled = true;
+        }
+
         private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)
         {
+            e.Handled = true;
             Application.Current.ToggleTheme();
         }
 
@@ -582,6 +653,7 @@ namespace PixivWPF
         {
             if (CommandToggleTheme.SelectedIndex >= 0 && CommandToggleTheme.SelectedIndex < CommandToggleTheme.Items.Count)
             {
+                e.Handled = true;
                 var item = CommandToggleTheme.SelectedItem;
                 if (item is SimpleAccent)
                     Application.Current.SetAccent((item as SimpleAccent).AccentName);
@@ -627,6 +699,15 @@ namespace PixivWPF
                 Commands.MaintainDetailPage.Execute(null);
             else if (sender == CommandMaintainHiddenWindow)
                 Commands.MaintainDetailPage.Execute(null);
+            else if (sender == CommandSearchInFile)
+            {
+                //Commands.SearchInStorage.Execute(null);
+            }
+            else if (sender == CommandConvertBackColor)
+            {
+                // Commands.PickColor.Execute(null);
+                
+            }
         }
 
         private void CommandRestart_DropDownOpened(object sender, EventArgs e)
@@ -831,7 +912,7 @@ namespace PixivWPF
             if (!(sender is MenuItem)) return;
             if (sender == LiveFilterFavoritedRange) return;
 
-            #region pre-define filter menus list
+#region pre-define filter menus list
             var menus_type = new List<MenuItem>() {
                 LiveFilterUser, LiveFilterWork
             };
@@ -871,7 +952,7 @@ namespace PixivWPF
             };
 
             var menus = new List<IEnumerable<MenuItem>>() { menus_type, menus_fav_no, menus_fast, menus_fav, menus_follow, menus_down, menus_ai, menus_sanity };
-            #endregion
+#endregion
 
             var idx = "LiveFilter".Length;
 
@@ -893,7 +974,7 @@ namespace PixivWPF
             if (menu == LiveFilterNone)
             {
                 LiveFilterNone.IsChecked = true;
-                #region un-check all filter conditions
+#region un-check all filter conditions
                 foreach (var fmenus in menus)
                 {
                     foreach (var fmenu in fmenus)
@@ -902,12 +983,12 @@ namespace PixivWPF
                         fmenu.IsEnabled = true;
                     }
                 }
-                #endregion
+#endregion
             }
             else
             {
                 LiveFilterNone.IsChecked = false;
-                #region filter by item type 
+#region filter by item type 
                 foreach (var fmenu in menus_type)
                 {
                     if (menus_type.Contains(menu))
@@ -935,8 +1016,8 @@ namespace PixivWPF
                     foreach (var fmenu in menus_sanity)
                         fmenu.IsEnabled = true;
                 }
-                #endregion
-                #region filter by favirited number
+#endregion
+#region filter by favirited number
                 LiveFilterFavoritedRange.IsChecked = false;
                 foreach (var fmenu in menus_fav_no)
                 {
@@ -952,8 +1033,8 @@ namespace PixivWPF
                             LiveFilterFavoritedRange.IsChecked = true;
                     }
                 }
-                #endregion
-                #region filter by fast simple filter
+#endregion
+#region filter by fast simple filter
                 LiveFilterFast.IsChecked = false;
                 foreach (var fmenu in menus_fast)
                 {
@@ -970,8 +1051,8 @@ namespace PixivWPF
                             LiveFilterFast.IsChecked = true;
                     }
                 }
-                #endregion
-                #region filter by favorited state
+#endregion
+#region filter by favorited state
                 foreach (var fmenu in menus_fav)
                 {
                     if (menus_fav.Contains(menu))
@@ -981,8 +1062,8 @@ namespace PixivWPF
                     }
                     if (fmenu.IsChecked) filter_fav = fmenu.Name.Substring(idx);
                 }
-                #endregion
-                #region filter by followed state
+#endregion
+#region filter by followed state
                 foreach (var fmenu in menus_follow)
                 {
                     if (menus_follow.Contains(menu))
@@ -992,8 +1073,8 @@ namespace PixivWPF
                     }
                     if (fmenu.IsChecked) filter_follow = fmenu.Name.Substring(idx);
                 }
-                #endregion
-                #region filter by downloaded state
+#endregion
+#region filter by downloaded state
                 foreach (var fmenu in menus_down)
                 {
                     if (menus_down.Contains(menu))
@@ -1003,8 +1084,8 @@ namespace PixivWPF
                     }
                     if (fmenu.IsChecked) filter_down = fmenu.Name.Substring(idx);
                 }
-                #endregion
-                #region filter by ai state
+#endregion
+#region filter by ai state
                 foreach (var fmenu in menus_ai)
                 {
                     if (menus_down.Contains(menu))
@@ -1014,8 +1095,8 @@ namespace PixivWPF
                     }
                     if (fmenu.IsChecked) filter_ai = fmenu.Name.Substring(idx);
                 }
-                #endregion
-                #region filter by sanity state
+#endregion
+#region filter by sanity state
                 LiveFilterSanity.IsChecked = false;
                 foreach (var fmenu in menus_sanity)
                 {
@@ -1040,7 +1121,7 @@ namespace PixivWPF
                 {
                     LiveFilterSanity_NoR18.IsEnabled = LiveFilterSanity_R18.IsEnabled = true;
                 }
-                #endregion
+#endregion
             }
 
             var filter = new FilterParam()
@@ -1059,47 +1140,5 @@ namespace PixivWPF
             if (Contents is Pages.TilesPage) Contents.SetFilter(filter);
         }
 
-        private void PreftchingProgress_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (Content is Pages.TilesPage)
-                (Content as Pages.TilesPage).StopPrefetching();
-        }
-
-        private void cmiProxyAction_Opened(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                setting = Application.Current.LoadSetting();
-                cmiUseProxy.IsChecked = setting.UsingProxy;
-                cmiUseProxyDown.IsChecked = setting.DownloadUsingProxy;
-
-                cmiUseHttp10.IsChecked = false;
-                cmiUseHttp11.IsChecked = false;
-                cmiUseHttp20.IsChecked = false;
-
-                var http_ver = setting.HttpVersion;
-                if (http_ver.Major == 1 && http_ver.Minor == 0) cmiUseHttp10.IsChecked = true;
-                else if (http_ver.Major == 1 && http_ver.Minor == 1) cmiUseHttp11.IsChecked = true;
-                else if (http_ver.Major == 2 && http_ver.Minor == 0) cmiUseHttp20.IsChecked = true;
-            }
-            catch (Exception ex) { ex.ERROR("cmiProxyAction_Opened"); }
-        }
-
-        private void cmiProxyAction_Closed(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                setting = Application.Current.LoadSetting();
-                setting.UsingProxy = cmiUseProxy.IsChecked;
-                setting.DownloadUsingProxy = cmiUseProxyDown.IsChecked;
-
-                var http_ver = new Version(1, 1);
-                if (cmiUseHttp10.IsChecked ?? false) http_ver = new Version(1, 0);
-                else if (cmiUseHttp11.IsChecked ?? false) http_ver = new Version(1, 1);
-                else if (cmiUseHttp20.IsChecked ?? false) http_ver = new Version(2, 0);
-                setting.HttpVersion = http_ver;
-            }
-            catch (Exception ex) { ex.ERROR("cmiProxyAction_Opened"); }
-        }
     }
 }

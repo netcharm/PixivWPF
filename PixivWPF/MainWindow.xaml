@@ -125,9 +125,7 @@
                     </Popup>
                 </StackPanel>
             </Button>
-            <mah:DropDownButton x:Name="CommandFilter" x:Uid="CommandFilter"
-                                Click="LiveFilter_Click"
-                                ToolTip="Live Filter" ToolTipOpening="LiveFilter_ToolTipOpening">
+            <mah:DropDownButton x:Name="CommandFilter" x:Uid="CommandFilter" ToolTip="Live Filter" ToolTipOpening="LiveFilter_ToolTipOpening" Click="LiveFilter_Click">
                 <mah:DropDownButton.Icon>
                     <TextBlock 
                     Text="&#xE16E;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -305,9 +303,7 @@
             <mah:SplitButton x:Name="CommandRestart" x:Uid="CommandRestart" ToolTip="Restart Application" 
                              Click="CommandApplication_Click" DropDownOpened="CommandRestart_DropDownOpened" BorderBrush="Transparent">
                 <mah:SplitButton.Icon>
-                    <TextBlock 
-                    Text="&#xE777;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE777;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </mah:SplitButton.Icon>
                 <mah:SplitButton.ContextMenu>
                     <ContextMenu>
@@ -323,11 +319,24 @@
                             </MenuItem.Icon>
                         </MenuItem>
                         <Separator/>
-                        <MenuItem x:Name="CommandSearchFileDateOpt">
+                        <MenuItem x:Name="CommandSearchInFile" x:Uid="CommandSearchInFile" Header="Search In Downloaded Files" IsEnabled="False" Click="CommandApplication_Click" >
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE773;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             </MenuItem.Icon>
                         </MenuItem>
+                        <Separator/>
+                        <MenuItem x:Name="CommandConvertBackColor" x:Uid="CommandConvertBackColor" Header="Back Color for Convert/Reducing" IsEnabled="False" Click="CommandApplication_Click" >
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE2B1;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <mah:ColorPicker x:Name="ConvertBackColorPicker" x:Uid="ConvertBackColorPicker" 
+                                         mah:TextBoxHelper.ClearTextButton="True"
+                                         mah:TextBoxHelper.UseFloatingWatermark="True"
+                                         mah:TextBoxHelper.Watermark="Select a Color"
+                                         IsCustomColorPalette01Visible="True"
+                                         AddToRecentColorsTrigger="SelectedColorChanged"
+                                         SelectedColorChanged="ConvertBackColorPicker_SelectedColorChanged"/>
                         <Separator/>
                         <MenuItem x:Name="CommandMaintainCustomTag" x:Uid="CommandMaintainCustomTag" Header="Maintain CustomTag File" Click="CommandApplication_Click" >
                             <MenuItem.Icon>

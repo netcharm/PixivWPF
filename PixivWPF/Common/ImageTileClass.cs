@@ -98,6 +98,17 @@ namespace PixivWPF.Common
         public int Count { get; set; }
         public int Index { get; set; }
         public string UserID { get; set; }
+        public long GetUserID()
+        {
+            long result = -1;
+            try
+            {
+                if (this.IsUser()) result = string.IsNullOrEmpty(UserID) ? User.Id ?? 0 : long.Parse(UserID);
+                else if(this.IsWork()) result = string.IsNullOrEmpty(UserID) ? Illust.User.Id ?? 0 : long.Parse(UserID);
+            }
+            catch (Exception ex) { ex.ERROR("GetUserID"); }
+            return (result);
+        }
         public string UserAvatarUrl { get; set; }
         public Pixeez.Objects.UserBase User { get; set; }
         public string ID { get; set; }
@@ -814,7 +825,7 @@ namespace PixivWPF.Common
                         var age = string.Empty;
                         var userliked = illust.User.IsLiked() ? $"✔" : $"✘";
                         var illustliked = illust.IsLiked() ? $"🧡" : $"🤍";
-                        var aitype = illust.AIType > 1 ? $"✔" : $"✘";
+                        var aitype = illust.IsAI() ? $"✔" : $"✘";
                         //🎦0x1F3A6, 🎬0x1F3AC 📽0x1F4FD 🎥0x1F3A5
                         var ugoira = illust.Type.Equals("ugoira", StringComparison.CurrentCultureIgnoreCase) ? ", 🎦" : string.Empty;
                         var state = string.Empty;
@@ -1904,7 +1915,7 @@ namespace PixivWPF.Common
             bool result = false;
             try
             {
-                result = item.IsWork() && item.Illust.AIType > 1;
+                result = item.IsWork() && item.Illust.IsAI();
             }
             catch (Exception ex) { ex.ERROR(); }
             return (result);
@@ -1915,7 +1926,7 @@ namespace PixivWPF.Common
             bool result = false;
             try
             {
-                result = item.IsWork() && item.Illust.AIType > 0;
+                result = item.IsWork() && item.Illust.HasAI();
             }
             catch (Exception ex) { ex.ERROR(); }
             return (result);

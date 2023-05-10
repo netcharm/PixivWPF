@@ -1637,7 +1637,7 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR("UpdateContentsThumbnail"); }
         }
 
-        public async void UpdateThumb(bool full = false, bool overwrite = false, bool prefetching = true)
+        public async void UpdateThumb(bool full = false, bool overwrite = false, bool prefetching = true, bool wating = true)
         {
             try
             {
@@ -2286,11 +2286,18 @@ namespace PixivWPF.Pages
                         related_illusts.Add(illust.Id);
                         illust.Cache();
                         illust.AddTo(RelatedItems.Items, related.next_url);
-                        if (string.IsNullOrEmpty(Contents.UserAvatarUrl) || !Contents.UserAvatarUrl.Equals(illust.GetAvatarUrl()))
+                        
+                        if (Contents.HasUser() && Contents.IsSameUser(illust))
                         {
-                            Contents.User = illust.User;
-                            Contents.UserAvatarUrl = illust.GetAvatarUrl();
-                            illust.User.Cache();
+                            if (string.IsNullOrEmpty(Contents.UserAvatarUrl) || 
+                                string.IsNullOrEmpty(Contents.User.GetAvatarUrl()) || 
+                                !Contents.UserAvatarUrl.Equals(illust.GetAvatarUrl()))
+                            {
+                                illust.User.Cache();
+                                Contents.User = illust.User;
+                                Contents.UserAvatarUrl = illust.GetAvatarUrl();
+                                $"Update User : {Contents.User.Name} / {Contents.User.Id}, {Contents.UserAvatarUrl}".DEBUG("ShowRelatedInline");
+                            }
                         }
                         this.DoEvents();
                     }
@@ -2396,6 +2403,19 @@ namespace PixivWPF.Pages
                             related_illusts.Add(illust.Id);
                             illust.Cache();
                             illust.AddTo(RelatedItems.Items, related.next_url);
+
+                            if (Contents.HasUser() && Contents.IsSameUser(illust))
+                            {
+                                if (string.IsNullOrEmpty(Contents.UserAvatarUrl) ||
+                                    string.IsNullOrEmpty(Contents.User.GetAvatarUrl()) ||
+                                    !Contents.UserAvatarUrl.Equals(illust.GetAvatarUrl()))
+                                {
+                                    illust.User.Cache();
+                                    Contents.User = illust.User;
+                                    Contents.UserAvatarUrl = illust.GetAvatarUrl();
+                                    $"Update User : {Contents.User.Name} / {Contents.User.Id}, {Contents.UserAvatarUrl}".DEBUG("ShowUserWorksInline");
+                                }
+                            }
                             this.DoEvents();
                         }
                         this.DoEvents();
@@ -3049,10 +3069,11 @@ namespace PixivWPF.Pages
                 };
                 var ugoira_list = new string[] { "SepratorUgoira", "ActionSavePreviewUgoiraFile", "ActionSaveOriginalUgoiraFile", "ActionOpenUgoiraFile" };
 
+                var fpath = string.Empty;
+                var single = Contents.Count <= 1;
                 var file = Contents.Illust.GetOriginalUrl(Contents.Index);
                 var is_jpg = System.IO.Path.GetExtension(file).Equals(".jpg", StringComparison.CurrentCultureIgnoreCase);
-                var is_down = Contents.Illust.IsDownloaded(Contents.Index);
-                var single = Contents.Count <= 1;
+                var is_down = Contents.Illust.IsDownloaded(out fpath, Contents.Index, single);
                 var menus = sender as ContextMenu;
                 var items = menus.FindChildren<UIElement>();
                 foreach (UIElement item in items)
@@ -3083,9 +3104,21 @@ namespace PixivWPF.Pages
 
                             if (uid.Equals("ActionReduceJpegSizeTo"))
                             {
-                                if (item is MenuItem && (item as MenuItem).Tag == null)
+                                if (item is MenuItem)
                                 {
-                                    (item as MenuItem).Tag = Application.Current.GetDefaultReduceData();
+                                    var menu = item as MenuItem;
+                                    if (menu.Tag == null) menu.Tag = Application.Current.GetDefaultReduceData();
+                                    if (is_down && menu.Tag is App.MenuItemSliderData)
+                                    {
+                                        var data = menu.Tag as App.MenuItemSliderData;
+                                        var q = fpath.GetImageQualityInfo();
+                                        if(q > 0 && q != data.Value)
+                                        {
+                                            data.Value = q;
+                                            menu.Tag = null;
+                                            menu.Tag = data;
+                                        }
+                                    }
                                 }
                             }
                         }

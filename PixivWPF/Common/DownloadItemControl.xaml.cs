@@ -1583,12 +1583,23 @@ namespace PixivWPF.Common
                 ToolTip = Info.ToolTip;
             }
         }
-        
+
         private void Download_ContextMenu_Opened(object sender, RoutedEventArgs e)
         {
             if (miReduceJpegSizeTo.Tag == null)
             {
                 miReduceJpegSizeTo.Tag = Info.CustomReduceQuality is App.MenuItemSliderData ? Info.CustomReduceQuality : Application.Current.GetDefaultReduceData();
+            }
+            if (Info.FileName.IsDownloaded() && miReduceJpegSizeTo.Tag is App.MenuItemSliderData)
+            {
+                var data = miReduceJpegSizeTo.Tag as App.MenuItemSliderData;
+                var q = Info.FileName.GetImageQualityInfo();
+                if (q > 0 && q != data.Value)
+                {
+                    data.Value = q;
+                    miReduceJpegSizeTo.Tag = null;
+                    miReduceJpegSizeTo.Tag = data;
+                }
             }
             Info.CustomReduceQuality = miReduceJpegSizeTo.Tag as App.MenuItemSliderData;
         }

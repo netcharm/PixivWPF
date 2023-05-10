@@ -389,7 +389,8 @@ namespace PixivWPF.Common
         {
             if (Searchable ?? false && Directory.Exists(Folder) && !string.IsNullOrEmpty(query))
             {
-                var cmd = "explorer.exe";
+                var setting = Application.Current.LoadSetting();
+                var cmd = setting.ShellExplorer;
                 var cmd_param = $"/root,\"search-ms:crumb=location:{Folder}&query={query}&\"";
                 Task.Run(() =>
                 {
@@ -409,8 +410,9 @@ namespace PixivWPF.Common
                 var targets = folders.Where(d => Directory.Exists(d));
                 if (targets.Count() > 0)
                 {
+                    var setting = Application.Current.LoadSetting();
                     var location = string.Join("&", targets.Select(d => $"crumb=location:{d}"));
-                    var cmd = "explorer.exe";
+                    var cmd = setting.ShellExplorer;
                     var cmd_param = $"/root,\"search-ms:{location}&query={query}\"";
                     Task.Run(() =>
                     {
@@ -555,6 +557,11 @@ namespace PixivWPF.Common
                 {
                     var ret = DownloadedImageQualityInfoCache.TryGetValue(file, out result);
                     if (!ret) result = -1;
+                }
+                else if (!string.IsNullOrEmpty(file) && File.Exists(file))
+                {
+                    result = GetJpegQuality(file);
+                    if (result > -1) SetImageFileQualityInfo(file, result);
                 }
             }
             catch (Exception ex) { ex.ERROR(); }
@@ -1888,6 +1895,7 @@ namespace PixivWPF.Common
                 #endregion
 
                 #region My Custom Wildcard Tag Translated
+                bool CustomWidecardTagsMatched = false;
                 if (!(_TagsWildecardT2SCache is ConcurrentDictionary<string, TagsWildecardCacheItem>))
                     _TagsWildecardT2SCache = new ConcurrentDictionary<string, TagsWildecardCacheItem>(StringComparer.CurrentCultureIgnoreCase);
 
@@ -1897,11 +1905,13 @@ namespace PixivWPF.Common
                 {
                     result = _TagsWildecardT2SCache[src].Translated;
                     matches.Add($"CustomWildcardTagsCache => {src}:{string.Join(";", _TagsWildecardT2SCache[src].Keys)}");
+                    CustomWidecardTagsMatched = true;
                 }
                 else if (TagsWildecardT2S is OrderedDictionary)
                 {
                     var alpha = result.IsAlpha();
-                    var text = alpha || !(TagsMatched || CustomTagsMatched) ? src : result;
+                    //var text = alpha || !(TagsMatched || CustomTagsMatched) ? src : result;
+                    var text = alpha || !CustomTagsMatched ? src : result;
                     var keys = new List<string>();
                     foreach (DictionaryEntry entry in TagsWildecardT2S)
                     {
@@ -1911,20 +1921,28 @@ namespace PixivWPF.Common
                             if (_BadTags_.Contains(k)) continue;
                             var v = (entry.Value as string).Replace("\n", "\\n");
                             var vt = text;
+
+                            var _all_m_ = Regex.Matches(text, k, RegexOptions.IgnoreCase);
+                            var _all_v_ = new Match[_all_m_.Count];
+                            _all_m_.CopyTo(_all_v_, 0);
+                            if (_all_v_.Length <= 0 || _all_v_.Where(m => m.Success && !string.IsNullOrEmpty(m.Value.Trim())).Count() <= 0) continue;
+
                             text = Regex.Replace(text, k, m =>
                             {
                                 if (string.IsNullOrEmpty(v)) return (v);
+                                //if (string.IsNullOrEmpty(m.Value)) return (m.Value);
                                 var vs = Regex.Replace(v, @"\$(\d+)(%.*?%)", idx =>
-                            {
-                                var i = int.Parse(idx.Groups[1].Value);
-                                var t = idx.Groups[2].Value.Trim('%');
-                                if (t.StartsWith("!"))
-                                    return (m.Groups[i].Success ? string.Empty : $"{t.Substring(1)}");
-                                else
-                                    return (m.Groups[i].Success ? $"{t}" : string.Empty);
-                            });
+                                {
+                                    var i = int.Parse(idx.Groups[1].Value);
+                                    var t = idx.Groups[2].Value.Trim('%');
+                                    if (t.StartsWith("!"))
+                                        return (m.Groups[i].Success ? string.Empty : $"{t.Substring(1)}");
+                                    else
+                                        return (m.Groups[i].Success ? $"{t}" : string.Empty);
+                                });
                                 for (int i = 0; i < m.Groups.Count; i++)
                                 {
+                                    //if (string.IsNullOrEmpty(m.Groups[i].Value)) continue;
                                     vs = vs.Replace($"${i}", m.Groups[i].Value);
                                 }
                                 if (!keys.Contains(k) && !string.IsNullOrEmpty(m.Value)) { keys.Add(k); vt = vt.Replace(m.Value, vs); }
@@ -1947,6 +1965,7 @@ namespace PixivWPF.Common
                                 Translated = result
                             };
                             matches.Add($"CustomWildcardTags => '{string.Join(";", keys)}'");
+                            CustomWidecardTagsMatched = true;
                         }
                     }
                 }
@@ -1977,7 +1996,7 @@ namespace PixivWPF.Common
                                     matches.Add($"CustomTags => {word}");
                                     CustomTagsMatched = true;
                                 }
-                                else if (ptags && TagsCache.ContainsKey(word))
+                                else if (!CustomWidecardTagsMatched && ptags && TagsCache.ContainsKey(word))
                                 {
                                     var alpha = TagsCache[word].IsAlpha();
                                     if (!TagsCache[word].IsAlpha())
@@ -2454,7 +2473,7 @@ namespace PixivWPF.Common
             var age = "all";
             if (work is Pixeez.Objects.IllustWork)
                 age = (work as Pixeez.Objects.IllustWork).SanityLevel.SanityAge();
-            else if(work is Pixeez.Objects.NormalWork)
+            else if (work is Pixeez.Objects.NormalWork)
                 age = (work as Pixeez.Objects.NormalWork).AgeLimit.SanityAge();
             return (age);
         }
@@ -2513,8 +2532,7 @@ namespace PixivWPF.Common
 
         public static string AIGCTag(this Pixeez.Objects.Work work)
         {
-            var age = work.AIType;
-            string tag = work is Pixeez.Objects.Work && work.AIType > 1 ? $"AIGC" : string.Empty;
+            string tag = work.IsAI() ? $"AIGC" : string.Empty;
             return (tag);
         }
 
@@ -2541,7 +2559,7 @@ namespace PixivWPF.Common
                 var tags = work.Tags.Select(t => t.Replace(";", "；⸵"));
                 if (extras is IEnumerable<string>) tags = tags.Concat(extras);
                 if (add_trans) tags = tags.Concat(work.TagsTrans());
-                result.AddRange(tags.Append(sanity).Append(aitype).Where(t => !string.IsNullOrEmpty(t)).Distinct(StringComparer.CurrentCultureIgnoreCase));                
+                result.AddRange(tags.Append(sanity).Append(aitype).Where(t => !string.IsNullOrEmpty(t)).Distinct(StringComparer.CurrentCultureIgnoreCase));
             }
             return (result);
         }
@@ -2756,7 +2774,8 @@ namespace PixivWPF.Common
                         Application.Current.ReleaseKeyboardModifiers(use_keybd_event: true);
                         Application.Current.DoEvents();
 
-                        var shell = string.IsNullOrEmpty(WinDir) ? "explorer.exe" : Path.Combine(WinDir, "explorer.exe");
+                        setting = Application.Current.LoadSetting();
+                        var shell = setting.ShellExplorer;
                         if (File.Exists(file))
                         {
                             Process.Start(shell, $"/select,\"{file}\"");
@@ -4943,7 +4962,7 @@ namespace PixivWPF.Common
                 if (exif is ExifData)
                 {
                     is_jpg = exif.ImageType == ImageType.Jpeg;
-                    quality = is_jpg ? exif.JpegQuality : 100;
+                    quality = is_jpg ? exif.GetJpegQuality() : 100;
                     var meta = MakeMetaInfo(fileinfo, dt, id, add_trans: trans, add_sanity: sanity, add_aigc: aigc);
                     if (meta is MetaInfo)
                     {
@@ -5027,7 +5046,7 @@ namespace PixivWPF.Common
                                     result = true;
                                 }
                             }
-                            fileinfo.FullName.SetImageFileQualityInfo(exif.JpegQuality);
+                            fileinfo.FullName.SetImageFileQualityInfo(exif.GetJpegQuality());
                         }
                         #endregion
                     }
@@ -6158,7 +6177,7 @@ namespace PixivWPF.Common
             filepath = string.Empty;
             try
             {
-                var file = url.GetImageName(is_meta_single_page);                
+                var file = url.GetImageName(is_meta_single_page);
                 foreach (var local in setting.LocalStorage)
                 {
                     if (string.IsNullOrEmpty(local.Folder)) continue;
@@ -7070,10 +7089,20 @@ namespace PixivWPF.Common
             return null;
         }
 
+        private static int GetJpegQuality(this string file)
+        {
+            var result = -1;
+            if (!string.IsNullOrEmpty(file) && File.Exists(file))
+            {
+                result = GetJpegQuality(new ExifData(file));
+            }
+            return (result);
+        }
+
         private static int GetJpegQuality(this ExifData exif)
         {
             var result = 0;
-            if (exif is ExifData && exif.ImageType == ImageType.Jpeg) result = exif.JpegQuality;
+            if (exif is ExifData && exif.ImageType == ImageType.Jpeg) result = exif.JpegQuality == 0 ? 75 : exif.JpegQuality;
             return (result);
         }
 
@@ -7198,7 +7227,7 @@ namespace PixivWPF.Common
                             if (mi.CanSeek) mi.Seek(0, SeekOrigin.Begin);
                             if (mi.CanRead && exif_in is ExifData)
                             {
-                                var jq = exif_in.JpegQuality == 0 ? 75 : exif_in.JpegQuality;
+                                var jq = exif_in.GetJpegQuality();
                                 if (exif_in.ImageType != ImageType.Jpeg || jq > quality)
                                 {
                                     using (var mo = new MemoryStream())
@@ -7217,7 +7246,8 @@ namespace PixivWPF.Common
                                                 img.SetResolution(bmp.HorizontalResolution, bmp.VerticalResolution);
                                                 using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(img))
                                                 {
-                                                    var bg = setting.DownloadReduceBackGroundColor;
+                                                    //var bg = setting.DownloadReduceBackGroundColor;
+                                                    var bg = setting.ConvertBackColor;
                                                     var r = new System.Drawing.Rectangle(new System.Drawing.Point(0, 0), bmp.Size);
                                                     g.Clear(System.Drawing.Color.FromArgb(bg.A, bg.R, bg.G, bg.B));
                                                     g.DrawImage(bmp, 0, 0, r, System.Drawing.GraphicsUnit.Pixel);
@@ -7280,8 +7310,8 @@ namespace PixivWPF.Common
                                 if (msi.CanSeek) msi.Seek(0, SeekOrigin.Begin);
                                 if (exif_in is ExifData)
                                 {
-                                    var jq = exif_in.JpegQuality == 0 ? 75 : exif_in.JpegQuality;
-                                    file.SetImageFileQualityInfo(exif_in.JpegQuality);
+                                    var jq = exif_in.GetJpegQuality();
+                                    file.SetImageFileQualityInfo(jq);
                                     if (exif_in.ImageType != ImageType.Jpeg || jq > quality)
                                     {
                                         var reason = string.Empty;
@@ -7306,7 +7336,7 @@ namespace PixivWPF.Common
                                                 throw new WarningException($"{feature}ed File Size : {mso.Length} >= Original File Size : {fi.Length}!");
                                             }
                                             File.WriteAllBytes(fout, mso.ToArray());
-                                            file.SetImageFileQualityInfo(exif_out.JpegQuality);
+                                            file.SetImageFileQualityInfo(exif_out.GetJpegQuality());
                                         }
                                     }
                                     else throw new WarningException($"{feature}ed File Size : Original Image JPEG Quality <= {quality}!");
@@ -7318,9 +7348,10 @@ namespace PixivWPF.Common
                     else
                     {
                         var exif_in = fi.GetExifData();
-                        if (exif_in is ExifData && (exif_in.ImageType != ImageType.Jpeg || exif_in.JpegQuality > quality))
+                        var jq = exif_in.GetJpegQuality();
+                        if (exif_in is ExifData && (exif_in.ImageType != ImageType.Jpeg || jq > quality))
                         {
-                            file.SetImageFileQualityInfo(exif_in.JpegQuality);
+                            file.SetImageFileQualityInfo(jq);
                             var reason = string.Empty;
                             var bytes = File.ReadAllBytes(file).ConvertImageTo(fmt, out reason, quality: quality, force: force);
                             if (!string.IsNullOrEmpty(reason))
@@ -7341,7 +7372,7 @@ namespace PixivWPF.Common
                             var exif_out = new ExifData(fout);
                             exif_out.ReplaceAllTagsBy(exif_in);
                             exif_out.Save(fout);
-                            file.SetImageFileQualityInfo(exif_out.JpegQuality);
+                            file.SetImageFileQualityInfo(exif_out.GetJpegQuality());
                         }
                         else throw new WarningException($"{feature}ed File Size : Original Image is Error or JPEG Quality <= {quality}!");
                     }
@@ -8254,6 +8285,28 @@ namespace PixivWPF.Common
             return (work is Pixeez.Objects.Work && work.User is Pixeez.Objects.NewUser);
         }
 
+        public static bool IsAI(this Pixeez.Objects.Work work)
+        {
+            bool result = false;
+            try
+            {
+                result = work is Pixeez.Objects.Work && work.AIType > 1;
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+
+        public static bool HasAI(this Pixeez.Objects.Work work)
+        {
+            bool result = false;
+            try
+            {
+                result = work is Pixeez.Objects.Work && work.AIType > 0;
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+
         public static JObject IllustToJObject(this Pixeez.Objects.Work work)
         {
             var result = new JObject();
@@ -8469,7 +8522,72 @@ namespace PixivWPF.Common
             {
                 result = long.Parse(item.ID) == long.Parse(item_now.ID) && item.Index == item_now.Index;
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("IsSameIllust"); }
+
+            return (result);
+        }
+
+        public static bool IsSameUser(this PixivItem item, Pixeez.Objects.Work work)
+        {
+            bool result = false;
+
+            try
+            {
+                result = IsSameUser(item, work.User.Id ?? -1);
+            }
+            catch (Exception ex) { ex.ERROR("IsSameUser"); }
+
+            return (result);
+        }
+
+        public static bool IsSameUser(this PixivItem item, string id)
+        {
+            bool result = false;
+
+            try
+            {
+                result = IsSameUser(item, long.Parse(id));
+            }
+            catch (Exception ex) { ex.ERROR("IsSameUser"); }
+
+            return (result);
+        }
+
+        public static bool IsSameUser(this PixivItem item, long id)
+        {
+            bool result = false;
+
+            try
+            {
+                result = long.Parse(item.UserID) == id;
+            }
+            catch (Exception ex) { ex.ERROR("IsSameUser"); }
+
+            return (result);
+        }
+
+        public static bool IsSameUser(this PixivItem item, long? id)
+        {
+            bool result = false;
+
+            try
+            {
+                result = long.Parse(item.UserID) == (id ?? -1);
+            }
+            catch (Exception ex) { ex.ERROR("IsSameUser"); }
+
+            return (result);
+        }
+
+        public static bool IsSameUser(this PixivItem item, PixivItem item_now)
+        {
+            bool result = false;
+
+            try
+            {
+                result = long.Parse(item.UserID) == long.Parse(item_now.UserID);
+            }
+            catch (Exception ex) { ex.ERROR("IsSameUser"); }
 
             return (result);
         }
@@ -9576,8 +9694,8 @@ namespace PixivWPF.Common
                             if (illust.ImageUrls.Original == null)
                             {
                                 illust.ImageUrls.Original = string.IsNullOrEmpty(illust.ImageUrls.Large) ? illust_old.ImageUrls.Original : illust.ImageUrls.Large;
-                                if (!string.IsNullOrEmpty(illust.ImageUrls.Original) && 
-                                    illust.ImageUrls.Original.Equals(illust.ImageUrls.Large) && 
+                                if (!string.IsNullOrEmpty(illust.ImageUrls.Original) &&
+                                    illust.ImageUrls.Original.Equals(illust.ImageUrls.Large) &&
                                     !string.IsNullOrEmpty(illust_old.ImageUrls.Large))
                                     illust.ImageUrls.Large = illust_old.ImageUrls.Large;
                             }
@@ -10000,6 +10118,7 @@ namespace PixivWPF.Common
                                 win.Icon = icon.Source;
                             }
                         }
+                        win.UpdateDefaultStyle();
                     }
                 }).Invoke(async: false);
             }
@@ -10016,6 +10135,7 @@ namespace PixivWPF.Common
                     foreach (Window win in Application.Current.Windows)
                     {
                         if (win is MetroWindow) win.UpdateTheme(img);
+                        //if (win is MetroWindow) win.UpdateDefaultStyle();
                     }
                 }).Invoke(async: false);
             }

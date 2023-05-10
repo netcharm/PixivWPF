@@ -375,6 +375,59 @@ namespace PixivWPF.Common
             }
         }
 
+        private void cmiProxyAction_Opened(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var setting = Application.Current.LoadSetting();
+                cmiUseProxy.IsChecked = setting.UsingProxy;
+                cmiUseProxyDown.IsChecked = setting.DownloadUsingProxy;
+
+                cmiUseHttp10.IsChecked = false;
+                cmiUseHttp11.IsChecked = false;
+                cmiUseHttp20.IsChecked = false;
+
+                var http_ver = setting.HttpVersion;
+                if (http_ver.Major == 1 && http_ver.Minor == 0) cmiUseHttp10.IsChecked = true;
+                else if (http_ver.Major == 1 && http_ver.Minor == 1) cmiUseHttp11.IsChecked = true;
+                else if (http_ver.Major == 2 && http_ver.Minor == 0) cmiUseHttp20.IsChecked = true;
+            }
+            catch (Exception ex) { ex.ERROR("cmiProxyAction_Opened"); }
+        }
+
+        private void cmiProxyAction_Closed(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var setting = Application.Current.LoadSetting();
+                setting.UsingProxy = cmiUseProxy.IsChecked;
+                setting.DownloadUsingProxy = cmiUseProxyDown.IsChecked;
+
+                var http_ver = new Version(1, 1);
+                if (cmiUseHttp10.IsChecked ?? false) http_ver = new Version(1, 0);
+                else if (cmiUseHttp11.IsChecked ?? false) http_ver = new Version(1, 1);
+                else if (cmiUseHttp20.IsChecked ?? false) http_ver = new Version(2, 0);
+                setting.HttpVersion = http_ver;
+            }
+            catch (Exception ex) { ex.ERROR("cmiProxyAction_Opened"); }
+        }
+
+        private void PreftchingProgress_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            //if (e.ButtonState == Mouse.RightButton)
+            {
+                e.Handled = true;
+                if (Content is IllustDetailPage)
+                    (Content as IllustDetailPage).StopPrefetching();
+                else if (Content is IllustImageViewerPage)
+                    (Content as IllustImageViewerPage).StopPrefetching();
+                else if (Content is SearchResultPage)
+                    (Content as SearchResultPage).StopPrefetching();
+                else if (Content is HistoryPage)
+                    (Content as HistoryPage).StopPrefetching();
+            }
+        }
+
         private void CommandRefresh_Click(object sender, RoutedEventArgs e)
         {
             if (Mouse.RightButton == MouseButtonState.Pressed) return;
@@ -807,57 +860,5 @@ namespace PixivWPF.Common
                 (Content as HistoryPage).SetFilter(filter);
         }
 
-        private void PreftchingProgress_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            //if (e.ButtonState == Mouse.RightButton)
-            {
-                e.Handled = true;
-                if (Content is IllustDetailPage)
-                    (Content as IllustDetailPage).StopPrefetching();
-                else if (Content is IllustImageViewerPage)
-                    (Content as IllustImageViewerPage).StopPrefetching();
-                else if (Content is SearchResultPage)
-                    (Content as SearchResultPage).StopPrefetching();
-                else if (Content is HistoryPage)
-                    (Content as HistoryPage).StopPrefetching();
-            }
-        }
-
-        private void cmiProxyAction_Opened(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var setting = Application.Current.LoadSetting();
-                cmiUseProxy.IsChecked = setting.UsingProxy;
-                cmiUseProxyDown.IsChecked = setting.DownloadUsingProxy;
-
-                cmiUseHttp10.IsChecked = false;
-                cmiUseHttp11.IsChecked = false;
-                cmiUseHttp20.IsChecked = false;
-
-                var http_ver = setting.HttpVersion;
-                if (http_ver.Major == 1 && http_ver.Minor == 0) cmiUseHttp10.IsChecked = true;
-                else if (http_ver.Major == 1 && http_ver.Minor == 1) cmiUseHttp11.IsChecked = true;
-                else if (http_ver.Major == 2 && http_ver.Minor == 0) cmiUseHttp20.IsChecked = true;
-            }
-            catch (Exception ex) { ex.ERROR("cmiProxyAction_Opened"); }
-        }
-
-        private void cmiProxyAction_Closed(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var setting = Application.Current.LoadSetting();
-                setting.UsingProxy = cmiUseProxy.IsChecked;
-                setting.DownloadUsingProxy = cmiUseProxyDown.IsChecked;
-
-                var http_ver = new Version(1, 1);
-                if (cmiUseHttp10.IsChecked ?? false) http_ver = new Version(1, 0);
-                else if (cmiUseHttp11.IsChecked ?? false) http_ver = new Version(1, 1);
-                else if (cmiUseHttp20.IsChecked ?? false) http_ver = new Version(2, 0);
-                setting.HttpVersion = http_ver;
-            }
-            catch (Exception ex) { ex.ERROR("cmiProxyAction_Opened"); }
-        }
     }
 }

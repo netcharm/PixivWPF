@@ -1074,6 +1074,19 @@ namespace PixivWPF.Common
             }
         }
 
+        [JsonIgnore]
+        private Color? convert_bgcolor = null;
+        [JsonIgnore]
+        public Color ConvertBackColor
+        {
+            get { return (Cache is Setting ? Cache.convert_bgcolor ?? Cache.download_reduce_bgcolor : convert_bgcolor ?? download_reduce_bgcolor); }
+            set
+            {
+                convert_bgcolor = value;
+                if (Cache is Setting) Cache.convert_bgcolor = convert_bgcolor;
+            }
+        }
+
         private bool download_by_api = true;
         public bool DownloadByAPI
         {
@@ -2038,7 +2051,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Shell bridge Related
+        #region Shell Bridge Related
         private string shell_search_app = "PixivWPFSearch.exe";
         public string ShellSearchBridgeApplication
         {
@@ -2318,6 +2331,40 @@ namespace PixivWPF.Common
             {
                 search_multi_folder = value;
                 if (Cache is Setting) Cache.search_multi_folder = search_multi_folder;
+            }
+        }
+
+        private bool search_escape_char = true;
+        public bool SearchEscapeChar
+        {
+            get { return (Cache is Setting ? Cache.search_escape_char : search_escape_char); }
+            set
+            {
+                search_escape_char = value;
+                if (Cache is Setting) Cache.search_escape_char = search_escape_char;
+            }
+        }
+
+        [JsonIgnore]
+        private const string shell_explorer_name = "explorer.exe";
+        [JsonIgnore]
+        private string shell_explorer_cmd = string.Empty;
+        [JsonIgnore]
+        public string ShellExplorer
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(shell_explorer_cmd))
+                {
+                    try
+                    {
+                        shell_explorer_cmd = Application.Current.GetProcessPathByName(shell_explorer_name);
+                        if (string.IsNullOrEmpty(shell_compare_cmd)) shell_compare_cmd = Path.Combine(Environment.GetEnvironmentVariable("WinDir"), shell_explorer_name);
+                    }
+                    catch (Exception ex) { ex.ERROR("ShellExplorer"); }
+                    if (string.IsNullOrEmpty(shell_explorer_cmd)) shell_explorer_cmd = shell_explorer_name;
+                }
+                return (shell_explorer_cmd);
             }
         }
 

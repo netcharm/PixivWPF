@@ -93,6 +93,7 @@ namespace PixivWPF
             public int Max { get; set; } = 100;
             public int Min { get; set; } = 0;
             public int Value { get; set; } = 0;
+            public int Default { get; set; } = 0;
         }
 
         private void MenuItemSlider_MouseWheel(object sender, MouseWheelEventArgs e)

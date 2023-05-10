@@ -454,6 +454,24 @@ namespace PixivWPF.Pages
             finally { Preview.Focus(); }
         }
 
+        /// <summary>
+        /// source from : https://stackoverflow.com/a/24526749/1842521
+        /// </summary>        
+        private Point rel = new Point(0, 0);
+        private double CalculateOffset(double extent, double viewPort, double scrollWidth, double relBefore)
+        {
+            //calculate the new offset
+            double offset = Math.Max(0, relBefore * extent - 0.5 * viewPort);
+            //see if it is negative because of initial values
+            if (offset < 0)
+            {
+                //center the content
+                //this can be set to 0 if center by default is not needed
+                offset = 0.5 * scrollWidth;
+            }
+            return offset;
+        }
+
         #region Common Actions
         public void ChangeIllustLikeState()
         {
@@ -775,6 +793,33 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR("PageSizeChanged"); }
         }
 
+        private void PreviewScroll_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            ScrollViewer scroll = PreviewScroll;
+            //see if the content size is changed
+            if (e.ExtentWidthChange != 0 || e.ExtentHeightChange != 0)
+            {
+                //calculate and set accordingly
+                scroll.ScrollToHorizontalOffset(CalculateOffset(e.ExtentWidth, e.ViewportWidth, scroll.ScrollableWidth, rel.X));
+                scroll.ScrollToVerticalOffset(CalculateOffset(e.ExtentHeight, e.ViewportHeight, scroll.ScrollableHeight, rel.Y));
+            }
+            else
+            {
+                //store the relative values if normal scroll
+                rel.X = (e.HorizontalOffset + 0.5 * e.ViewportWidth) / e.ExtentWidth;
+                rel.Y = (e.VerticalOffset + 0.5 * e.ViewportHeight) / e.ExtentHeight;
+            }
+        }
+
+        private void PreviewScroll_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender == PreviewScroll && e.OriginalSource == PreviewScroll)
+            {
+                ActionViewOriginal_Click(ActionViewOriginal, e);
+                e.Handled = true;
+            }
+        }
+
         private void PreviewBadge_MouseEnter(object sender, MouseEventArgs e)
         {
             this.Invoke(() => { PreviewBadge.Opacity = 0.75; });
@@ -967,6 +1012,79 @@ namespace PixivWPF.Pages
             }
         }
 
+        private DispatcherTimer _popupTimer = null;
+        private void ActionMore_Click(object sender, RoutedEventArgs e)
+        {
+            ViewerActionMore.PlacementTarget = btnViewActionMore;
+            ViewerActionMore.Placement = System.Windows.Controls.Primitives.PlacementMode.Right;
+            ViewerActionMore.IsOpen = true;
+
+            if (_popupTimer == null)
+            {
+                _popupTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromSeconds(5) };
+                _popupTimer.Tick += (obj, evt) =>
+                {
+                    (_popupTimer as DispatcherTimer).Stop();
+                    if (ViewerActionMore.IsOpen) ViewerActionMore.IsOpen = false;
+                };
+            }
+            _popupTimer.Start();
+        }
+
+        private void ActionMoreOp_Click(object sender, RoutedEventArgs e)
+        {
+            double tsX = 1, tsY = 1, rs = 0;
+
+            if (_popupTimer is DispatcherTimer)
+            {
+                _popupTimer.Stop();
+                _popupTimer.Start();
+            }
+
+            bool IsRotated = Rotated;
+
+            if (sender == btnViewerActionReset)
+            {
+                ImageScale.ScaleX = 1;
+                ImageScale.ScaleY = 1;
+                ImageRotate.Angle = 0;
+
+                ImageViewerScale.ScaleX = 1;
+                ImageViewerScale.ScaleY = 1;
+                ImageViewerRotate.Angle = 0;
+            }
+            else if (sender == btnViewerActionFlipH) { if (IsRotated) tsY = -1; else tsX = -1; }
+            else if (sender == btnViewerActionFlipV) { if (IsRotated) tsX = -1; else tsY = -1; }
+            else if (sender == btnViewerActionRotate90L) { rs = -90; }
+            else if (sender == btnViewerActionRotate90R) { rs = 90; }
+
+            if (btnViewFullSize.IsChecked.Value)
+            {
+                ImageScale.ScaleX = 1;
+                ImageScale.ScaleY = 1;
+                ImageRotate.Angle = 0;
+
+                ImageViewerScale.ScaleX *= tsX;
+                ImageViewerScale.ScaleY *= tsY;
+                ImageViewerRotate.Angle += rs;
+            }
+            else
+            {
+                ImageScale.ScaleX *= tsX;
+                ImageScale.ScaleY *= tsY;
+                ImageRotate.Angle += rs;
+
+                ImageViewerScale.ScaleX = 1;
+                ImageViewerScale.ScaleY = 1;
+                ImageViewerRotate.Angle = 0;
+            }
+        }
+
+        private void ActionCompare_Click(object sender, RoutedEventArgs e)
+        {
+            Commands.Compare.Execute(new CompareItem() { Item = Contents, Type = IsOriginal ? CompareType.Original : CompareType.Large });
+        }
+
         private void ActionViewPrevPage_Click(object sender, RoutedEventArgs e)
         {
             PrevIllustPage();
@@ -975,11 +1093,6 @@ namespace PixivWPF.Pages
         private void ActionViewNextPage_Click(object sender, RoutedEventArgs e)
         {
             NextIllustPage();
-        }
-
-        private void ActionSaveIllust_Click(object sender, RoutedEventArgs e)
-        {
-            SaveIllust(sender);
         }
 
         private void ActionViewFullSize_Click(object sender, RoutedEventArgs e)
@@ -1059,6 +1172,7 @@ namespace PixivWPF.Pages
                     {
                         btnViewOriginalPage.IsChecked = !btnViewOriginalPage.IsChecked.Value;
                         CommonHelper.MouseLeave(btnViewOriginalPage);
+                        e.Handled = true;
                     }
                     //ActionViewOriginal.IsChecked = IsOriginal;
                     PreviewImage = await GetPreviewImage();
@@ -1147,113 +1261,9 @@ namespace PixivWPF.Pages
             }
         }
 
-        private DispatcherTimer _popupTimer = null;
-        private void ActionMore_Click(object sender, RoutedEventArgs e)
+        private void ActionSaveIllust_Click(object sender, RoutedEventArgs e)
         {
-            ViewerActionMore.PlacementTarget = btnViewActionMore;
-            ViewerActionMore.Placement = System.Windows.Controls.Primitives.PlacementMode.Right;
-            ViewerActionMore.IsOpen = true;
-
-            if (_popupTimer == null)
-            {
-                _popupTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromSeconds(5) };
-                _popupTimer.Tick += (obj, evt) =>
-                {
-                    (_popupTimer as DispatcherTimer).Stop();
-                    if (ViewerActionMore.IsOpen) ViewerActionMore.IsOpen = false;
-                };
-            }
-            _popupTimer.Start();
-        }
-
-        private void ActionMoreOp_Click(object sender, RoutedEventArgs e)
-        {
-            double tsX = 1, tsY = 1, rs = 0;
-
-            if (_popupTimer is DispatcherTimer)
-            {
-                _popupTimer.Stop();
-                _popupTimer.Start();
-            }
-
-            bool IsRotated = Rotated;
-
-            if (sender == btnViewerActionReset)
-            {
-                ImageScale.ScaleX = 1;
-                ImageScale.ScaleY = 1;
-                ImageRotate.Angle = 0;
-
-                ImageViewerScale.ScaleX = 1;
-                ImageViewerScale.ScaleY = 1;
-                ImageViewerRotate.Angle = 0;
-            }
-            else if (sender == btnViewerActionFlipH) { if (IsRotated) tsY = -1; else tsX = -1; }
-            else if (sender == btnViewerActionFlipV) { if (IsRotated) tsX = -1; else tsY = -1; }
-            else if (sender == btnViewerActionRotate90L) { rs = -90; }
-            else if (sender == btnViewerActionRotate90R) { rs = 90; }
-
-            if (btnViewFullSize.IsChecked.Value)
-            {
-                ImageScale.ScaleX = 1;
-                ImageScale.ScaleY = 1;
-                ImageRotate.Angle = 0;
-
-                ImageViewerScale.ScaleX *= tsX;
-                ImageViewerScale.ScaleY *= tsY;
-                ImageViewerRotate.Angle += rs;
-            }
-            else
-            {
-                ImageScale.ScaleX *= tsX;
-                ImageScale.ScaleY *= tsY;
-                ImageRotate.Angle += rs;
-
-                ImageViewerScale.ScaleX = 1;
-                ImageViewerScale.ScaleY = 1;
-                ImageViewerRotate.Angle = 0;
-            }
-        }
-
-        private void ActionCompare_Click(object sender, RoutedEventArgs e)
-        {
-            Commands.Compare.Execute(new CompareItem() { Item = Contents, Type = IsOriginal ? CompareType.Original : CompareType.Large });
-        }
-
-        /// <summary>
-        /// source from : https://stackoverflow.com/a/24526749/1842521
-        /// </summary>        
-        private Point rel = new Point(0, 0);
-        private double CalculateOffset(double extent, double viewPort, double scrollWidth, double relBefore)
-        {
-            //calculate the new offset
-            double offset = Math.Max(0, relBefore * extent - 0.5 * viewPort);
-            //see if it is negative because of initial values
-            if (offset < 0)
-            {
-                //center the content
-                //this can be set to 0 if center by default is not needed
-                offset = 0.5 * scrollWidth;
-            }
-            return offset;
-        }
-
-        private void PreviewScroll_ScrollChanged(object sender, ScrollChangedEventArgs e)
-        {
-            ScrollViewer scroll = PreviewScroll;
-            //see if the content size is changed
-            if (e.ExtentWidthChange != 0 || e.ExtentHeightChange != 0)
-            {
-                //calculate and set accordingly
-                scroll.ScrollToHorizontalOffset(CalculateOffset(e.ExtentWidth, e.ViewportWidth, scroll.ScrollableWidth, rel.X));
-                scroll.ScrollToVerticalOffset(CalculateOffset(e.ExtentHeight, e.ViewportHeight, scroll.ScrollableHeight, rel.Y));
-            }
-            else
-            {
-                //store the relative values if normal scroll
-                rel.X = (e.HorizontalOffset + 0.5 * e.ViewportWidth) / e.ExtentWidth;
-                rel.Y = (e.VerticalOffset + 0.5 * e.ViewportHeight) / e.ExtentHeight;
-            }
+            SaveIllust(sender);
         }
 
     }

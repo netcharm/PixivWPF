@@ -181,7 +181,7 @@
 
         <!-- Illust Preview -->
         <ScrollViewer Grid.Row="0" x:Name="PreviewScroll" ScrollChanged="PreviewScroll_ScrollChanged"
-            HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
+            HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" MouseDoubleClick="PreviewScroll_MouseDoubleClick">
             <Viewbox x:Name="PreviewBox" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                 MouseWheel="Preview_MouseWheel" MouseDown="Preview_MouseDown" MouseMove="Preview_MouseMove">

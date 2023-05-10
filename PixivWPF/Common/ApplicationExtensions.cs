@@ -346,10 +346,75 @@ namespace PixivWPF.Common
             return (CurrentProcess);
         }
 
+        public static string GetProcessPathByName(this Application app, string name, bool fuzzy = false)
+        {
+            var result = Application.Current.Dispatcher.Invoke(() =>
+            {
+                var path = string.Empty;
+                var wildsym = fuzzy ? "%" : string.Empty;
+                string wmiQuery = $"SELECT Name, ExecutablePath FROM Win32_Process WHERE Name {(fuzzy ? "LIKE" : "=")} '{wildsym}{name}{wildsym}'";
+                try
+                {
+                    using (var searcher = new ManagementObjectSearcher(wmiQuery))
+                    {
+                        using (var results = searcher.Get())
+                        {
+                            ManagementObject mo = results.Cast<ManagementObject>().FirstOrDefault();
+                            if (mo != null)
+                            {
+                                path = (string)(mo["ExecutablePath"]);
+                                $"{name} -> {path}".DEBUG("GetProcessPathByName");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex) { ex.ERROR("GetProcessPathByName"); }
+                return (path);
+            });
+            return (result);
+        }
+
+        public static string GetProcessPathById(this Application app, string id)
+        {
+            var result = Application.Current.Dispatcher.Invoke(() =>
+            {
+                var path = string.Empty;
+                string wmiQuery = $"SELECT ProcessId, ExecutablePath FROM Win32_Process WHERE ProcessId = {id}";
+                try
+                {
+                    using (var searcher = new ManagementObjectSearcher(wmiQuery))
+                    {
+                        using (var results = searcher.Get())
+                        {
+                            ManagementObject mo = results.Cast<ManagementObject>().FirstOrDefault();
+                            if (mo != null)
+                            {
+                                path = (string)(mo["ExecutablePath"]);
+                                $"{id} -> {path}".DEBUG("GetProcessPathById");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex) { ex.ERROR("GetProcessPathById"); }
+                return (path);
+            });
+            return (result);
+        }
+
+        public static string GetProcessPathById(this Application app, int id)
+        {
+            return (GetProcessPathById(app, $"{id}"));
+        }
+
+        public static string GetProcessPathById(this Application app, long id)
+        {
+            return (GetProcessPathById(app, $"{id}"));
+        }
+
         public static long MemoryUsage(this Application app, bool is_private = false)
         {
             long result = -1;
-            if (current_process == null) current_process = System.Diagnostics.Process.GetCurrentProcess();
+            if (current_process == null) current_process = Process.GetCurrentProcess();
             try
             {
                 using (PerformanceCounter PC = new PerformanceCounter())
@@ -3010,7 +3075,7 @@ namespace PixivWPF.Common
         {
             if (!string.IsNullOrEmpty(query))
             {
-                string[] EscapeChar = new string[] { "%", "&", "/", "$", ":", ";", "?", "*", "!" , "~", "=" };
+                string[] EscapeChar = new string[] { "/", "%", "&", ":", ";", "?", "*", "!", "~", "=", "<", ">", "≠", "-", "$", "#", "." };
                 Func<string, string> Escape = (s) =>
                 {
                     foreach(var c in EscapeChar) s = s.Replace(c, Uri.EscapeDataString(c));
@@ -3052,11 +3117,13 @@ namespace PixivWPF.Common
                     SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.ItemFolderPathDisplay, out value))
                     query_list.Add(value.Description.DisplayName, querys);
 
-                var m_sep = mode == StorageSearchMode.Not ? " NOT " : (mode == StorageSearchMode.And ? " AND " : " OR ");
-                //query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{string.Join(m_sep, q.Value.Select(w => $"~=\"{Escape(w)}\""))}").ToList());
-                query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{string.Join(m_sep, q.Value.Select(w => w.StartsWith("=") ? w : $"~=\"{w}\""))}").ToList());
-
                 var setting = LoadSetting(app);
+
+                var m_sep = mode == StorageSearchMode.Not ? " NOT " : (mode == StorageSearchMode.And ? " AND " : " OR ");
+                if (setting.SearchEscapeChar)
+                    query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{string.Join(m_sep, q.Value.Select(w => w.StartsWith("=") ? Escape(w) : $"~=\"{Escape(w)}\""))}"));
+                else
+                    query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{string.Join(m_sep, q.Value.Select(w => w.StartsWith("=") ? w : $"~=\"{w}\""))}"));
 
                 if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
                 {
@@ -3089,6 +3156,7 @@ namespace PixivWPF.Common
                 Min = setting.JpegQualityMin,
                 Max = setting.JpegQualityMax,
                 Value = setting.DownloadConvertJpegQuality,
+                Default = setting.DownloadConvertJpegQuality,
                 ToolTip = @"Convert Quality: {0:F0}"
             });
         }
@@ -3101,6 +3169,7 @@ namespace PixivWPF.Common
                 Min = setting.JpegQualityMin,
                 Max = setting.JpegQualityMax,
                 Value = setting.DownloadRecudeJpegQuality,
+                Default = setting.DownloadRecudeJpegQuality,
                 ToolTip = @"Reduce Quality: {0:F0}"
             });
         }
