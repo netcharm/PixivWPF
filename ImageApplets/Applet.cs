@@ -16,8 +16,8 @@ using CompactExifLib;
 
 namespace ImageApplets
 {
-    public enum CompareMode { NONE, IS, EQ, NEQ, GT, LT, GE, LE, HAS, IN, OUT, AND, OR, NOT, XOR, BEFORE, PREV, TODAY, NEXT, AFTER, VALUE };
-    public enum DateCompareMode { IS, IN, OUT, BEFORE, PREV, TODAY, NEXT, AFTER };
+    public enum CompareMode { NONE, IS, EQ, NEQ, GT, LT, GE, LE, HAS, IN, OUT, AND, OR, NOT, XOR, BEFORE, PREV, TODAY, CURRENT, NEXT, AFTER, VALUE };
+    public enum DateCompareMode { IS, NOT, IN, OUT, BEFORE, PREV, TODAY, CURRENT, NEXT, AFTER };
     public enum DateUnit { DAY, WEEK, MONTH, SEASON, QUATER, YEAR };
 
     public enum AppletCategory { FileOP, ImageType, ImageContent, ImageAttribure, Other, Unknown, None }

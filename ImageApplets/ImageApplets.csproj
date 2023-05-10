@@ -52,6 +52,7 @@
     <Compile Include="Applets\EXIF.cs" />
     <Compile Include="Applets\HasAlpha.cs" />
     <Compile Include="Applets\HasExif.cs" />
+    <Compile Include="Applets\ImageAspectRatio.cs" />
     <Compile Include="Applets\IsJPG.cs" />
     <Compile Include="Applets\IsPNG.cs" />
     <Compile Include="Applets\JpegQuality.cs" />

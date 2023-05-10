@@ -28,24 +28,24 @@ namespace ImageApplets.Applets
 
             var opts = new OptionSet()
             {
-                { "m|mode=", "Quality Comparing Mode {<EQ|NEQ|VALUE>}", v => { if (v != null) Enum.TryParse(v.ToUpper(), out Mode); } },
+                { "m|mode=", "Quality Comparing Mode {{VALUE}} : <IS|NOT|EQ|NEQ|VALUE>", v => { if (v != null) Enum.TryParse(v.ToUpper(), out Mode); } },
                 //{ "type=", $"Image Type {{{JPG|JPEG|PNG|BMP|TIFF|TIF|ICO|GIF|EMF|WMF}", v => { if (v != null) TypeValue = v; } },
-                { "type=", $"Image Type {{{string.Join("|", GetImageTypeNmaes())}}}", v => { if (v != null) TypeValue = v; } },
+                { "type=", $"Image Type {{VALUE}} : <{string.Join("|", GetImageTypeNames())}>", v => { if (v != null) TypeValue = v; } },
                 { "" },
             };
             AppendOptions(opts);
         }
 
-        private string[] GetImageTypeNmaes()
+        private string[] GetImageTypeNames()
         {
-            var result = new List<string>() { "JPG", "TIF" };
+            var result = new List<string>() { "JPG", "TIF", "PNG", "BMP" };
             var codecs = ImageCodecInfo.GetImageDecoders();
             result.AddRange(codecs.Select(c => c.FormatDescription.ToUpper()));
             result = result.OrderBy(c => c).Distinct().ToList();
             return (result.ToArray());
         }
 
-        private string GetImageTypeNmae(Guid guid)
+        private string GetImageTypeName(Guid guid)
         {
             var result = string.Empty;
             var codecs = ImageCodecInfo.GetImageDecoders();
@@ -78,11 +78,13 @@ namespace ImageApplets.Applets
                         else if (_TypeValue_.Equals("jpg", StringComparison.CurrentCultureIgnoreCase)) _TypeValue_ = "Jpeg";
                         else if (_TypeValue_.Equals("tif", StringComparison.CurrentCultureIgnoreCase)) _TypeValue_ = "Tiff";
 
-                        var typename = GetImageTypeNmae(image.RawFormat.Guid);
+                        var typename = GetImageTypeName(image.RawFormat.Guid);
                         switch (Mode)
                         {
                             case CompareMode.VALUE: status = typename; break;
+                            case CompareMode.NOT:
                             case CompareMode.NEQ: status = !typename.Equals(_TypeValue_, StringComparison.CurrentCultureIgnoreCase); break;
+                            case CompareMode.IS:
                             case CompareMode.EQ: status = typename.Equals(_TypeValue_, StringComparison.CurrentCultureIgnoreCase); break;
                             default: break;
                         }
