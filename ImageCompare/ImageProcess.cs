@@ -642,6 +642,10 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
         private void StereoImage(bool source)
         {
             try
@@ -830,11 +834,15 @@ namespace ImageCompare
             try
             {
                 var action = false;
+                var enchance = !WeakEffects;
 
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 if (image.ValidCurrent)
                 {
-                    image.Current.AutoLevel(CompareImageChannels);
+                    if(enchance)
+                        image.Current.Level(new Percentage(-25), new Percentage(125));
+                    else
+                        image.Current.AutoLevel(CompareImageChannels);
                     action = true;
                 }
 

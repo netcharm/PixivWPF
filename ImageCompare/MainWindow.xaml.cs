@@ -1676,7 +1676,6 @@ namespace ImageCompare
             }
             catch (Exception ex) { ex.ShowMessage(); }
 
-
             Extensions.AllSupportedFormats = Extensions.GetSupportedImageFormats();
             Extensions.AllSupportedExts = Extensions.AllSupportedFormats.Keys.ToList().Skip(4).Select(ext => $".{ext.ToLower()}").Where(ext => !ext.Equals(".txt")).ToList();
             var exts = Extensions.AllSupportedExts.Select(ext => $"*{ext}");
