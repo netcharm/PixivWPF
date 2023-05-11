@@ -18,7 +18,7 @@ namespace ImageApplets.Applets
             return (new HasExif());
         }
 
-        private List<string> Categories  = new List<string>() { "Artist", "Author", "Title", "Suject", "Comment", "Comments", "Keyword", "Keywords", "Tag", "Tags", "Copyright", "Software", "Rate", "Rating", "Rank", "Ranking", "Date", "Width", "Height", "Aspect", "Landscape", "Portrait", "Square", "Bits", "Endian", "LittleEndian", "LSB", "BigEndian", "MSB", "All" };
+        private List<string> Categories  = new List<string>() { "Artist", "Author", "Title", "Suject", "Comment", "Comments", "Keyword", "Keywords", "Tag", "Tags", "Copyright", "Software", "Rate", "Rating", "Rank", "Ranking", "Date", "Width", "Height", "Aspect", "Landscape", "Portrait", "Square", "Bits", "Endian", "LittleEndian", "LSB", "BigEndian", "MSB", "DPI", "DPIX", "DPIY", "All" };
         private string[] ExifAttrs = new string[] { };
 
         private DateValue _date_ = null;
@@ -417,19 +417,19 @@ namespace ImageApplets.Applets
                                 if (cats.Contains("copyright")) status &= Compare(copyright, words, ignorecase: _IgnoreCase_);
 
                                 if (cats.Contains("software")) status &= Compare(software, words, ignorecase: _IgnoreCase_);
-                                if (cats.Contains("rate") || cats.Contains("rating")) status &= Compare(rate, words, ignorecase: _IgnoreCase_);
-                                if (cats.Contains("rank") || cats.Contains("ranking")) status &= Compare(rank, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("rate") || cats.Contains("rating")) status &= Compare(rate, words, Mode);
+                                if (cats.Contains("rank") || cats.Contains("ranking")) status &= Compare(rank, words, Mode);
                                 if (cats.Contains("date")) status &= Compare(date_string, words, ignorecase: _IgnoreCase_);
 
-                                if (cats.Contains("width")) status &= Compare($"{exif.Width}", words, ignorecase: _IgnoreCase_);
-                                if (cats.Contains("height")) status &= Compare($"{exif.Height}", words, ignorecase: _IgnoreCase_);
-                                if (cats.Contains("aspect")) status &= Compare($"{exif.Width / exif.Height}", words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("width")) status &= Compare(exif.Width, words, Mode);
+                                if (cats.Contains("height")) status &= Compare(exif.Height, words, Mode);
+                                if (cats.Contains("aspect")) status &= Compare((double)exif.Width / exif.Height, words, Mode);
 
                                 if (cats.Contains("landscape")) status &= exif.Height / exif.Height > 1;
                                 if (cats.Contains("portrait")) status &= exif.Height / exif.Height < 1;
                                 if (cats.Contains("square")) status &= exif.Height / exif.Height == 1;
 
-                                if (cats.Contains("bits")) status &= Compare($"{exif.ColorDepth}", words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("bits")) status &= Compare(exif.ColorDepth, words, Mode);
                                 if (cats.Contains("endian")) status &= Compare($"{exif.ByteOrder}", words, ignorecase: _IgnoreCase_);
 
                                 if (cats.Contains("littleendian")) status &= invert && exif.ByteOrder == ExifByteOrder.LittleEndian;
@@ -437,6 +437,11 @@ namespace ImageApplets.Applets
 
                                 if (cats.Contains("bigendian")) status &= invert && exif.ByteOrder == ExifByteOrder.BigEndian;
                                 else if (cats.Contains("msb")) status &= invert && exif.ByteOrder == ExifByteOrder.BigEndian;
+
+                                if (cats.Contains("dpix")) status &= Compare(exif.ResolutionX, words, Mode);
+                                if (cats.Contains("dpiy")) status &= Compare(exif.ResolutionY, words, Mode);
+                                if (cats.Contains("dpi")) status &= Compare(exif.ResolutionX, words, Mode) && 
+                                                                    Compare(exif.ResolutionY, words, Mode);
 
                                 foreach (var attr in cats_exif)
                                 {
@@ -472,9 +477,9 @@ namespace ImageApplets.Applets
                                 if (cats.Contains("rank") || cats.Contains("ranking")) status |= Compare(rank, words, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("date")) status |= Compare(date_string, words, ignorecase: _IgnoreCase_);
 
-                                if (cats.Contains("width")) status |= Compare($"{exif.Width}", words, ignorecase: _IgnoreCase_);
-                                if (cats.Contains("height")) status |= Compare($"{exif.Height}", words, ignorecase: _IgnoreCase_);
-                                if (cats.Contains("aspect")) status |= Compare($"{(double)exif.Width / exif.Height}", words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("width")) status |= Compare(exif.Width, words, Mode);
+                                if (cats.Contains("height")) status |= Compare(exif.Height, words, Mode);
+                                if (cats.Contains("aspect")) status |= Compare((double)exif.Width / exif.Height, words, Mode);
 
                                 if (cats.Contains("landscape")) status |= (double)exif.Width / exif.Height > 1;
                                 if (cats.Contains("portrait")) status |= (double)exif.Width / exif.Height < 1;
@@ -488,6 +493,11 @@ namespace ImageApplets.Applets
 
                                 if (cats.Contains("bigendian")) status |= exif.ByteOrder == ExifByteOrder.BigEndian;
                                 else if (cats.Contains("msb")) status |= exif.ByteOrder == ExifByteOrder.BigEndian;
+
+                                if (cats.Contains("dpix")) status |= Compare(exif.ResolutionX, words, Mode);
+                                if (cats.Contains("dpiy")) status |= Compare(exif.ResolutionY, words, Mode);
+                                if (cats.Contains("dpi")) status |= Compare(exif.ResolutionX, words,Mode) ||
+                                                                    Compare(exif.ResolutionY, words, Mode);
 
                                 foreach (var attr in cats_exif)
                                 {
@@ -532,9 +542,9 @@ namespace ImageApplets.Applets
                                 if (cats.Contains("rank") || cats.Contains("ranking")) status |= Compare(rank_value, word_value, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("date") && date.HasValue) status |= _date_.Compare(date.Value, Mode);
 
-                                if (cats.Contains("width")) status |= Compare($"{exif.Width}", words, ignorecase: _IgnoreCase_);
-                                if (cats.Contains("height")) status |= Compare($"{exif.Height}", words, ignorecase: _IgnoreCase_);
-                                if (cats.Contains("aspect")) status |= Compare($"{(double)exif.Width / exif.Height}", words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("width")) status |= Compare(exif.Width, words, Mode);
+                                if (cats.Contains("height")) status |= Compare(exif.Height, words, Mode);
+                                if (cats.Contains("aspect")) status |= Compare((double)exif.Width / exif.Height, words, Mode);
 
                                 if (cats.Contains("landscape")) status |= (double)exif.Width / exif.Height > 1;
                                 if (cats.Contains("portrait")) status |= (double)exif.Width / exif.Height < 1;
@@ -548,6 +558,11 @@ namespace ImageApplets.Applets
 
                                 if (cats.Contains("bigendian")) status |= invert && exif.ByteOrder == ExifByteOrder.BigEndian;
                                 else if (cats.Contains("msb")) status |= invert && exif.ByteOrder == ExifByteOrder.BigEndian;
+
+                                if (cats.Contains("dpix")) status |= Compare(exif.ResolutionX, words, Mode);
+                                if (cats.Contains("dpiy")) status |= Compare(exif.ResolutionY, words, Mode);
+                                if (cats.Contains("dpi")) status |= Compare(exif.ResolutionX, words, Mode) ||
+                                                                    Compare(exif.ResolutionY, words, Mode);
 
                                 foreach (var attr in cats_exif)
                                 {
@@ -574,6 +589,11 @@ namespace ImageApplets.Applets
 
                                     if (cats.Contains("width")) status |= value_low <= exif.Width && exif.Width <= value_high;
                                     if (cats.Contains("height")) status |= value_low <= exif.Height && exif.Height <= value_high;
+
+                                    if (cats.Contains("dpix")) status |= value_low <= exif.ResolutionX && exif.ResolutionX <= value_high;
+                                    if (cats.Contains("dpiy")) status |= value_low <= exif.ResolutionY && exif.ResolutionY <= value_high;
+                                    if (cats.Contains("dpi")) status |= value_low <= exif.ResolutionX && exif.ResolutionX <= value_high ||
+                                                                        value_low <= exif.ResolutionY && exif.ResolutionY <= value_high;
 
                                     value = (double)exif.Width / exif.Height;
                                     if (cats.Contains("aspect")) status |= value_low <= value && value <= value_high;
@@ -602,6 +622,11 @@ namespace ImageApplets.Applets
 
                                     if (cats.Contains("width")) status |= exif.Width < value_low || value_high < exif.Width;
                                     if (cats.Contains("height")) status |= exif.Height < value_low || value_high < exif.Height;
+
+                                    if (cats.Contains("dpix")) status |= exif.ResolutionX < value_low || value_high < exif.ResolutionX;
+                                    if (cats.Contains("dpiy")) status |= exif.ResolutionY < value_low || value_high < exif.ResolutionY;
+                                    if (cats.Contains("dpi")) status |= exif.ResolutionX < value_low || value_high < exif.ResolutionX ||
+                                                                        exif.ResolutionY < value_low || value_high < exif.ResolutionY;
 
                                     value = (double)exif.Width / exif.Height;
                                     if (cats.Contains("aspect")) status |= value < value_low || value_high < value;
@@ -662,6 +687,10 @@ namespace ImageApplets.Applets
 
                         if (cats.Contains("bigendian")) sb.AppendLine($"{exif.ByteOrder == ExifByteOrder.BigEndian}");
                         else if (cats.Contains("msb")) sb.AppendLine($"{exif.ByteOrder == ExifByteOrder.BigEndian}");
+
+                        if (cats.Contains("dpix")) sb.AppendLine($"DPIX={exif.ResolutionX}");
+                        if (cats.Contains("dpiy")) sb.AppendLine($"DPIY={exif.ResolutionY}");
+                        if (cats.Contains("dpi")) sb.AppendLine($"DPI={exif.ResolutionX}x{exif.ResolutionY}");
 
                         foreach (var attr in cats_exif)
                         {

@@ -1391,6 +1391,18 @@ namespace ImageApplets
                         case CompareMode.NONE:
                             status &= Compare(text, word, Mode, ignorecase);
                             break;
+                        case CompareMode.LT:
+                            status |= Compare(text, word, Mode, ignorecase);
+                            break;
+                        case CompareMode.LE:
+                            status |= Compare(text, word, Mode, ignorecase);
+                            break;
+                        case CompareMode.GE:
+                            status |= Compare(text, word, Mode, ignorecase);
+                            break;
+                        case CompareMode.GT:
+                            status |= Compare(text, word, Mode, ignorecase);
+                            break;
                         default:
                             break;
                     }
