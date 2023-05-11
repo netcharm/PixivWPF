@@ -16,7 +16,7 @@ using CompactExifLib;
 
 namespace ImageApplets
 {
-    public enum CompareMode { NONE, IS, EQ, NEQ, GT, LT, GE, LE, HAS, IN, OUT, AND, OR, NOT, XOR, BEFORE, PREV, TODAY, CURRENT, NEXT, AFTER, VALUE };
+    public enum CompareMode { NONE, IS, EQ, NEQ, GT, LT, GE, LE, HAS, NO, IN, OUT, AND, OR, NOT, XOR, BEFORE, PREV, TODAY, CURRENT, NEXT, AFTER, VALUE };
     public enum DateCompareMode { IS, NOT, IN, OUT, BEFORE, PREV, TODAY, CURRENT, NEXT, AFTER };
     public enum DateUnit { DAY, WEEK, MONTH, SEASON, QUATER, YEAR };
 
@@ -1319,38 +1319,35 @@ namespace ImageApplets
 
                 switch (Mode)
                 {
-                    case CompareMode.AND:
-                        status = Regex.IsMatch(text, word, regex_ignore);
-                        break;
                     case CompareMode.OR:
-                        status = Regex.IsMatch(text, word, regex_ignore);
-                        break;
-                    case CompareMode.NOT:
-                        status = !Regex.IsMatch(text, word, regex_ignore);
-                        break;
-                    case CompareMode.EQ:
-                        status = regex_ignore == RegexOptions.IgnoreCase ? text.Equals(word, StringComparison.CurrentCultureIgnoreCase) : text.Equals(word);
-                        break;
-                    case CompareMode.NEQ:
-                        status = regex_ignore == RegexOptions.IgnoreCase ? !text.Equals(word, StringComparison.CurrentCultureIgnoreCase) : !text.Equals(word);
-                        break;
+                    case CompareMode.AND:
                     case CompareMode.HAS:
                         status = Regex.IsMatch(text, word, regex_ignore);
                         break;
+                    case CompareMode.NO:
+                    case CompareMode.NOT:
                     case CompareMode.NONE:
                         status = !Regex.IsMatch(text, word, regex_ignore);
                         break;
+                    case CompareMode.EQ:
+                        //status = regex_ignore == RegexOptions.IgnoreCase ? text.Equals(word, StringComparison.CurrentCultureIgnoreCase) : text.Equals(word);
+                        status = string.Compare(text, word, ignorecase ?? false) == 0;
+                        break;
+                    case CompareMode.NEQ:
+                        //status = regex_ignore == RegexOptions.IgnoreCase ? !text.Equals(word, StringComparison.CurrentCultureIgnoreCase) : !text.Equals(word);
+                        status = string.Compare(text, word, ignorecase ?? false) != 0;
+                        break;
                     case CompareMode.LT:
-                        status = string.Compare(text, word) < 0;
+                        status = string.Compare(text, word, ignorecase ?? false) < 0;
                         break;
                     case CompareMode.LE:
-                        status = string.Compare(text, word) <= 0;
+                        status = string.Compare(text, word, ignorecase ?? false) <= 0;
                         break;
                     case CompareMode.GT:
-                        status = string.Compare(text, word) > 0;
+                        status = string.Compare(text, word, ignorecase ?? false) > 0;
                         break;
                     case CompareMode.GE:
-                        status = string.Compare(text, word) >= 0;
+                        status = string.Compare(text, word, ignorecase ?? false) >= 0;
                         break;
                     default:
                         break;
@@ -1365,7 +1362,7 @@ namespace ImageApplets
                 return (text);
             else
             {
-                var status = new CompareMode[]{ CompareMode.AND, CompareMode.NOT, CompareMode.NEQ, CompareMode.NONE }.Contains(Mode) ? true : false;
+                var status = new CompareMode[]{ CompareMode.AND, CompareMode.NOT, CompareMode.NEQ, CompareMode.NO, CompareMode.NONE }.Contains(Mode) ? true : false;
                 foreach (var word in words.Select(w => w.Trim()))
                 {
                     switch (Mode)
@@ -1387,6 +1384,9 @@ namespace ImageApplets
                             break;
                         case CompareMode.HAS:
                             status |= Compare(text, word, Mode, ignorecase);
+                            break;
+                        case CompareMode.NO:
+                            status &= Compare(text, word, Mode, ignorecase);
                             break;
                         case CompareMode.NONE:
                             status &= Compare(text, word, Mode, ignorecase);

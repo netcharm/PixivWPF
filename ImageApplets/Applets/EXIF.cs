@@ -27,6 +27,7 @@ namespace ImageApplets.Applets
         private string SearchScope = "All";
         private string SearchTerm = string.Empty;
         private CompareMode Mode = CompareMode.VALUE;
+        private bool _IgnoreCase_ = true;
 
         public EXIF()
         {
@@ -34,9 +35,10 @@ namespace ImageApplets.Applets
 
             var opts = new OptionSet()
             {
-                { "m|mode=", "EXIF Search Mode {VALUE} : <EQ|NEQ|LT|LE|GT|GE|IN|OUT|AND|OR|NOT>", v => { if (v != null) Enum.TryParse(v.ToUpper(), out Mode); } },
+                { "m|mode=", "EXIF Search Mode {VALUE} : <EQ|NEQ|LT|LE|GT|GE|IN|OUT|AND|OR|NOT|HAS|NO|NONE|VALUE>", v => { if (v != null) Enum.TryParse(v.ToUpper(), out Mode); } },
                 { "c|category=", $"EXIF Search From {{VALUE}} : <{string.Join("|", Categories)}> And more EXIF Tag. Note: Support '*'.", v => { if (v != null) SearchScope = v.Trim().Trim('"'); } },
                 { "l|limit|length=", $"EXIF Value Max Length Limit {{VALUE}}", v => { if (v != null) int.TryParse(v, out MaxLength); } },
+                { "ignorecase=", $"EXIF Search Ignore Case : {{VALUE}} : <TRUE|FALSE>", v => { if (v != null) bool.TryParse(v, out _IgnoreCase_); } },
                 { "s|search=", "EXIF Search {Term}, multiple serach keywords seprated by ';' or '#'.", v => { if (v != null) SearchTerm = v.Trim().Trim('"'); } },
                 { "" },
             };
@@ -375,8 +377,10 @@ namespace ImageApplets.Applets
                         var word = SearchTerm;
                         var words_o = Regex.IsMatch(word, IsRegexPattern, RegexOptions.IgnoreCase) ?  word.Trim(RegexTrimChar).Split(SplitChar) : word.Split(SplitChar);
                         // words = words.Concat(words.ConvertChinese2Japanese()).Concat(words.ConvertJapanese2Chinese()).Distinct().ToArray();
-                        var words_j = words_o.ConvertChinese2Japanese().ToArray();
-                        var words_c = words_o.ConvertJapanese2Chinese().ToArray();
+                        var words_a = words_o.ToList();
+                        words_a.AddRange(words_o.ConvertChinese2Japanese());
+                        words_a.AddRange(words_o.ConvertJapanese2Chinese());
+                        words_a = words_a.Distinct().ToList();
 
                         if (_date_ == null) _date_ = new DateValue(word);
 
@@ -389,44 +393,44 @@ namespace ImageApplets.Applets
                         }
                         #endregion
 
-                        foreach (var words in new List<string[]>() { words_o, words_j, words_c })
+                        foreach (var words in new List<string[]>() { words_a.ToArray() })
                         {
                             #region Comparing attribute
-                            status = new CompareMode[] { CompareMode.AND, CompareMode.NOT, CompareMode.NONE }.Contains(Mode) ? true : false;
-                            var invert = new CompareMode[]{ CompareMode.NOT, CompareMode.NEQ, CompareMode.NONE }.Contains(Mode) ? false : true;
-                            if (Mode == CompareMode.AND || Mode == CompareMode.NOT)
+                            status = new CompareMode[] { CompareMode.AND, CompareMode.NOT, CompareMode.NO, CompareMode.NONE }.Contains(Mode) ? true : false;
+                            var invert = new CompareMode[]{ CompareMode.NOT, CompareMode.NO, CompareMode.NEQ, CompareMode.NONE }.Contains(Mode) ? false : true;
+                            if (Mode == CompareMode.AND || Mode == CompareMode.NOT || Mode == CompareMode.NONE || Mode == CompareMode.NO)
                             {
-                                if (cats.Contains("title")) status &= Compare(title, words);
-                                if (cats.Contains("subject")) status &= Compare(subject, words);
+                                if (cats.Contains("title")) status &= Compare(title, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("subject")) status &= Compare(subject, words, ignorecase: _IgnoreCase_);
 
-                                if (cats.Contains("keyword")) status &= Compare(keywords, words);
-                                if (cats.Contains("keywords")) status &= Compare(keywords, words);
-                                if (cats.Contains("tag")) status &= Compare(keywords, words);
-                                if (cats.Contains("tags")) status &= Compare(keywords, words);
+                                if (cats.Contains("keyword")) status &= Compare(keywords, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("keywords")) status &= Compare(keywords, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("tag")) status &= Compare(keywords, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("tags")) status &= Compare(keywords, words, ignorecase: _IgnoreCase_);
 
-                                if (cats.Contains("comment")) status &= Compare(comments, words);
-                                if (cats.Contains("comments")) status &= Compare(comments, words);
+                                if (cats.Contains("comment")) status &= Compare(comments, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("comments")) status &= Compare(comments, words, ignorecase: _IgnoreCase_);
 
-                                if (cats.Contains("artist")) status &= Compare(artist, words);
-                                else if (cats.Contains("author")) status &= Compare(artist, words);
+                                if (cats.Contains("artist")) status &= Compare(artist, words, ignorecase: _IgnoreCase_);
+                                else if (cats.Contains("author")) status &= Compare(artist, words, ignorecase: _IgnoreCase_);
 
-                                if (cats.Contains("copyright")) status &= Compare(copyright, words);
+                                if (cats.Contains("copyright")) status &= Compare(copyright, words, ignorecase: _IgnoreCase_);
 
-                                if (cats.Contains("software")) status &= Compare(software, words);
-                                if (cats.Contains("rate") || cats.Contains("rating")) status &= Compare(rate, words);
-                                if (cats.Contains("rank") || cats.Contains("ranking")) status &= Compare(rank, words);
-                                if (cats.Contains("date")) status &= Compare(date_string, words);
+                                if (cats.Contains("software")) status &= Compare(software, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("rate") || cats.Contains("rating")) status &= Compare(rate, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("rank") || cats.Contains("ranking")) status &= Compare(rank, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("date")) status &= Compare(date_string, words, ignorecase: _IgnoreCase_);
 
-                                if (cats.Contains("width")) status &= Compare($"{exif.Width}", words);
-                                if (cats.Contains("height")) status &= Compare($"{exif.Height}", words);
-                                if (cats.Contains("aspect")) status &= Compare($"{exif.Width / exif.Height}", words);
+                                if (cats.Contains("width")) status &= Compare($"{exif.Width}", words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("height")) status &= Compare($"{exif.Height}", words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("aspect")) status &= Compare($"{exif.Width / exif.Height}", words, ignorecase: _IgnoreCase_);
 
                                 if (cats.Contains("landscape")) status &= exif.Height / exif.Height > 1;
                                 if (cats.Contains("portrait")) status &= exif.Height / exif.Height < 1;
                                 if (cats.Contains("square")) status &= exif.Height / exif.Height == 1;
 
-                                if (cats.Contains("bits")) status &= Compare($"{exif.ColorDepth}", words);
-                                if (cats.Contains("endian")) status &= Compare($"{exif.ByteOrder}", words);
+                                if (cats.Contains("bits")) status &= Compare($"{exif.ColorDepth}", words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("endian")) status &= Compare($"{exif.ByteOrder}", words, ignorecase: _IgnoreCase_);
 
                                 if (cats.Contains("littleendian")) status &= invert && exif.ByteOrder == ExifByteOrder.LittleEndian;
                                 else if (cats.Contains("lsb")) status &= invert && exif.ByteOrder == ExifByteOrder.LittleEndian;
@@ -440,44 +444,44 @@ namespace ImageApplets.Applets
                                     {
                                         var value = GetTagValue(exif, attr);
                                         if (cats.Count(c => c.Equals(attr, StringComparison.CurrentCultureIgnoreCase)) > 0 && !string.IsNullOrEmpty(value))
-                                            status = (status || cats.Contains(attr)) && Compare(value, words);
+                                            status = (status || cats.Contains(attr)) && Compare(value, words, ignorecase: _IgnoreCase_);
                                     }
                                     catch { }
                                 }
                             }
                             else if (Mode == CompareMode.OR)
                             {
-                                if (cats.Contains("title")) status |= Compare(title, words);
-                                if (cats.Contains("subject")) status |= Compare(subject, words);
+                                if (cats.Contains("title")) status |= Compare(title, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("subject")) status |= Compare(subject, words, ignorecase: _IgnoreCase_);
 
-                                if (cats.Contains("keyword")) status |= Compare(keywords, words);
-                                if (cats.Contains("keywords")) status |= Compare(keywords, words);
-                                if (cats.Contains("tag")) status |= Compare(keywords, words);
-                                if (cats.Contains("tags")) status |= Compare(keywords, words);
+                                if (cats.Contains("keyword")) status |= Compare(keywords, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("keywords")) status |= Compare(keywords, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("tag")) status |= Compare(keywords, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("tags")) status |= Compare(keywords, words, ignorecase: _IgnoreCase_);
 
-                                if (cats.Contains("comment")) status |= Compare(comments, words);
-                                if (cats.Contains("comments")) status |= Compare(comments, words);
+                                if (cats.Contains("comment")) status |= Compare(comments, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("comments")) status |= Compare(comments, words, ignorecase: _IgnoreCase_);
 
-                                if (cats.Contains("artist")) status |= Compare(artist, words);
-                                else if (cats.Contains("author")) status |= Compare(artist, words);
+                                if (cats.Contains("artist")) status |= Compare(artist, words, ignorecase: _IgnoreCase_);
+                                else if (cats.Contains("author")) status |= Compare(artist, words, ignorecase: _IgnoreCase_);
 
-                                if (cats.Contains("copyright")) status |= Compare(copyright, words);
+                                if (cats.Contains("copyright")) status |= Compare(copyright, words, ignorecase: _IgnoreCase_);
 
-                                if (cats.Contains("software")) status |= Compare(software, words);
-                                if (cats.Contains("rate") || cats.Contains("rating")) status |= Compare(rate, words);
-                                if (cats.Contains("rank") || cats.Contains("ranking")) status |= Compare(rank, words);
-                                if (cats.Contains("date")) status |= Compare(date_string, words);
+                                if (cats.Contains("software")) status |= Compare(software, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("rate") || cats.Contains("rating")) status |= Compare(rate, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("rank") || cats.Contains("ranking")) status |= Compare(rank, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("date")) status |= Compare(date_string, words, ignorecase: _IgnoreCase_);
 
-                                if (cats.Contains("width")) status |= Compare($"{exif.Width}", words);
-                                if (cats.Contains("height")) status |= Compare($"{exif.Height}", words);
-                                if (cats.Contains("aspect")) status |= Compare($"{(double)exif.Width / exif.Height}", words);
+                                if (cats.Contains("width")) status |= Compare($"{exif.Width}", words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("height")) status |= Compare($"{exif.Height}", words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("aspect")) status |= Compare($"{(double)exif.Width / exif.Height}", words, ignorecase: _IgnoreCase_);
 
                                 if (cats.Contains("landscape")) status |= (double)exif.Width / exif.Height > 1;
                                 if (cats.Contains("portrait")) status |= (double)exif.Width / exif.Height < 1;
                                 if (cats.Contains("square")) status |= (double)exif.Width / exif.Height == 1;
 
-                                if (cats.Contains("bits")) status |= Compare($"{exif.ColorDepth}", words);
-                                if (cats.Contains("endian")) status |= Compare($"{exif.ByteOrder}", words);
+                                if (cats.Contains("bits")) status |= Compare($"{exif.ColorDepth}", words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("endian")) status |= Compare($"{exif.ByteOrder}", words, ignorecase: _IgnoreCase_);
 
                                 if (cats.Contains("littleendian")) status |= exif.ByteOrder == ExifByteOrder.LittleEndian;
                                 else if (cats.Contains("lsb")) status |= exif.ByteOrder == ExifByteOrder.LittleEndian;
@@ -491,7 +495,7 @@ namespace ImageApplets.Applets
                                     {
                                         var value = GetTagValue(exif, attr);
                                         if (cats.Count(c => c.Equals(attr, StringComparison.CurrentCultureIgnoreCase)) > 0 && !string.IsNullOrEmpty(value))
-                                            status |= Compare(value, words);
+                                            status |= Compare(value, words, ignorecase: _IgnoreCase_);
                                     }
                                     catch { }
                                 }
@@ -499,24 +503,24 @@ namespace ImageApplets.Applets
                             else if (Mode == CompareMode.LT || Mode == CompareMode.LE ||
                                      Mode == CompareMode.GT || Mode == CompareMode.GE ||
                                      Mode == CompareMode.EQ || Mode == CompareMode.NEQ ||
-                                     Mode == CompareMode.HAS || Mode == CompareMode.NONE)
+                                     Mode == CompareMode.HAS)
                             {
-                                if (cats.Contains("title")) status |= Compare(title, words);
-                                if (cats.Contains("subject")) status |= Compare(subject, words);
+                                if (cats.Contains("title")) status |= Compare(title, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("subject")) status |= Compare(subject, words, ignorecase: _IgnoreCase_);
 
-                                if (cats.Contains("keyword")) status |= Compare(keywords, words);
-                                if (cats.Contains("keywords")) status |= Compare(keywords, words);
-                                if (cats.Contains("tag")) status |= Compare(keywords, words);
-                                if (cats.Contains("tags")) status |= Compare(keywords, words);
+                                if (cats.Contains("keyword")) status |= Compare(keywords, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("keywords")) status |= Compare(keywords, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("tag")) status |= Compare(keywords, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("tags")) status |= Compare(keywords, words, ignorecase: _IgnoreCase_);
 
-                                if (cats.Contains("comment")) status |= Compare(comments, words);
-                                if (cats.Contains("comments")) status |= Compare(comments, words);
+                                if (cats.Contains("comment")) status |= Compare(comments, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("comments")) status |= Compare(comments, words, ignorecase: _IgnoreCase_);
 
-                                if (cats.Contains("artist")) status |= Compare(artist, words);
-                                if (cats.Contains("author")) status |= Compare(artist, words);
-                                if (cats.Contains("copyright")) status |= Compare(copyright, words);
+                                if (cats.Contains("artist")) status |= Compare(artist, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("author")) status |= Compare(artist, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("copyright")) status |= Compare(copyright, words, ignorecase: _IgnoreCase_);
 
-                                if (cats.Contains("software")) status |= Compare(software, words);
+                                if (cats.Contains("software")) status |= Compare(software, words, ignorecase: _IgnoreCase_);
 
                                 int word_int;
                                 var word_value = int.TryParse(word, out word_int) ? word.PadLeft(16, '0') : word;
@@ -524,20 +528,20 @@ namespace ImageApplets.Applets
                                 var rate_value = string.IsNullOrEmpty(rate) ? rate : rate.PadLeft(16, '0');
                                 var rank_value = string.IsNullOrEmpty(rank) ? rank : rank.PadLeft(16, '0');
 
-                                if (cats.Contains("rate") || cats.Contains("rating")) status |= Compare(rate_value, word_value);
-                                if (cats.Contains("rank") || cats.Contains("ranking")) status |= Compare(rank_value, word_value);
+                                if (cats.Contains("rate") || cats.Contains("rating")) status |= Compare(rate_value, word_value, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("rank") || cats.Contains("ranking")) status |= Compare(rank_value, word_value, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("date") && date.HasValue) status |= _date_.Compare(date.Value, Mode);
 
-                                if (cats.Contains("width")) status |= Compare($"{exif.Width}", words);
-                                if (cats.Contains("height")) status |= Compare($"{exif.Height}", words);
-                                if (cats.Contains("aspect")) status |= Compare($"{(double)exif.Width / exif.Height}", words);
+                                if (cats.Contains("width")) status |= Compare($"{exif.Width}", words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("height")) status |= Compare($"{exif.Height}", words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("aspect")) status |= Compare($"{(double)exif.Width / exif.Height}", words, ignorecase: _IgnoreCase_);
 
                                 if (cats.Contains("landscape")) status |= (double)exif.Width / exif.Height > 1;
                                 if (cats.Contains("portrait")) status |= (double)exif.Width / exif.Height < 1;
                                 if (cats.Contains("square")) status |= (double)exif.Width / exif.Height == 1;
 
-                                if (cats.Contains("bits")) status |= Compare($"{exif.ColorDepth}", words);
-                                if (cats.Contains("endian")) status |= Compare($"{exif.ByteOrder}", words);
+                                if (cats.Contains("bits")) status |= Compare($"{exif.ColorDepth}", words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("endian")) status |= Compare($"{exif.ByteOrder}", words, ignorecase: _IgnoreCase_);
 
                                 if (cats.Contains("littleendian")) status |= invert && exif.ByteOrder == ExifByteOrder.LittleEndian;
                                 else if (cats.Contains("lsb")) status |= invert && exif.ByteOrder == ExifByteOrder.LittleEndian;
@@ -551,7 +555,7 @@ namespace ImageApplets.Applets
                                     {
                                         var value = GetTagValue(exif, attr);
                                         if (cats.Count(c => c.Equals(attr, StringComparison.CurrentCultureIgnoreCase)) > 0 && !string.IsNullOrEmpty(value))
-                                            status |= Compare(value, words);
+                                            status |= Compare(value, words, ignorecase: _IgnoreCase_);
                                     }
                                     catch { }
                                 }
