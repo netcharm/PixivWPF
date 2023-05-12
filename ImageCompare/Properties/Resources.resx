@@ -292,28 +292,28 @@
     <value>Elapsed    :</value>
   </data>
   <data name="InfoTipDimention" xml:space="preserve">
-    <value>Dimention      =</value>
+    <value>Current Dimention  =</value>
   </data>
   <data name="InfoTipResolution" xml:space="preserve">
-    <value>Resolution     =</value>
+    <value>Resolution         =</value>
   </data>
   <data name="InfoTipAttributes" xml:space="preserve">
     <value>Attributes</value>
   </data>
   <data name="InfoTipColorSpace" xml:space="preserve">
-    <value>Color Space    =</value>
+    <value>Color Space        =</value>
   </data>
   <data name="InfoTipFormatInfo" xml:space="preserve">
-    <value>Format Info    =</value>
+    <value>Format Info        =</value>
   </data>
   <data name="InfoTipMemoryUsage" xml:space="preserve">
-    <value>Memory Usage   =</value>
+    <value>Memory Usage       =</value>
   </data>
   <data name="InfoTipDisplayMemory" xml:space="preserve">
-    <value>Display Memory =</value>
+    <value>Display Memory     =</value>
   </data>
   <data name="InfoTipFileName" xml:space="preserve">
-    <value>FileName       =</value>
+    <value>FileName           =</value>
   </data>
   <data name="HighlightColorPick.AdvancedTabHeader" xml:space="preserve">
     <value>Advanced</value>
@@ -379,7 +379,7 @@
     <value>Fill BoundingBox</value>
   </data>
   <data name="InfoTipBounding" xml:space="preserve">
-    <value>Bounding Box   =</value>
+    <value>Bounding Box       =</value>
   </data>
   <data name="AutoLevel.Header" xml:space="preserve">
     <value>Auto Levels</value>
@@ -412,7 +412,7 @@
     <value>Re-Map Color</value>
   </data>
   <data name="InfoTipColors" xml:space="preserve">
-    <value>Colors         =</value>
+    <value>Colors             =</value>
   </data>
   <data name="Waiting" xml:space="preserve">
     <value>Waiting ...</value>
@@ -457,10 +457,10 @@
     <value>Auto Reduce Noise</value>
   </data>
   <data name="InfoTipCompression" xml:space="preserve">
-    <value>Compression    =</value>
+    <value>Compression        =</value>
   </data>
   <data name="InfoTipHasAlpha" xml:space="preserve">
-    <value>Has Alpha      =</value>
+    <value>Has Alpha          =</value>
   </data>
   <data name="Included" xml:space="preserve">
     <value>Yes</value>
@@ -478,7 +478,7 @@
     <value>Set Color To Alpha</value>
   </data>
   <data name="InfoTipColorMapsSize" xml:space="preserve">
-    <value>ColorMaps Size =</value>
+    <value>ColorMaps Size     =</value>
   </data>
   <data name="RepeatLastAction.ToolTip" xml:space="preserve">
     <value>Repeat Last Action</value>
@@ -508,9 +508,12 @@
     <value>Stereo (Fake 3D)</value>
   </data>
   <data name="InfoTipQuality" xml:space="preserve">
-    <value>Image Quality  =</value>
+    <value>Image Quality      =</value>
   </data>
   <data name="InfoTipFileSize" xml:space="preserve">
-    <value>FileSize       =</value>
+    <value>FileSize           =</value>
+  </data>
+  <data name="InfoTipDimentionOriginal" xml:space="preserve">
+    <value>Original Dimention =</value>
   </data>
 </root>

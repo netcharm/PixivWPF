@@ -292,7 +292,7 @@
     <value>使用時 :</value>
   </data>
   <data name="InfoTipDimention" xml:space="preserve">
-    <value>サイズ             =</value>
+    <value>表示サイズ         =</value>
   </data>
   <data name="InfoTipResolution" xml:space="preserve">
     <value>解像度             =</value>
@@ -310,7 +310,7 @@
     <value>メモリ使用         =</value>
   </data>
   <data name="InfoTipDisplayMemory" xml:space="preserve">
-    <value>占有メモリを表示   =</value>
+    <value>必要なメモリを表示 =</value>
   </data>
   <data name="InfoTipFileName" xml:space="preserve">
     <value>ファイル名         =</value>
@@ -512,5 +512,8 @@
   </data>
   <data name="InfoTipFileSize" xml:space="preserve">
     <value>ファイルサイズ     =</value>
+  </data>
+  <data name="InfoTipDimentionOriginal" xml:space="preserve">
+    <value>元のサイズ         =</value>
   </data>
 </root>

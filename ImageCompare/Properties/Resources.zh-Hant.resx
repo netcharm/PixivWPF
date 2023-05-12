@@ -292,7 +292,7 @@
     <value>用時 :</value>
   </data>
   <data name="InfoTipDimention" xml:space="preserve">
-    <value>尺寸           =</value>
+    <value>顯示尺寸       =</value>
   </data>
   <data name="InfoTipResolution" xml:space="preserve">
     <value>分辨率         =</value>
@@ -310,7 +310,7 @@
     <value>記憶體使用     =</value>
   </data>
   <data name="InfoTipDisplayMemory" xml:space="preserve">
-    <value>顯示所佔記憶體 =</value>
+    <value>顯示所需記憶體 =</value>
   </data>
   <data name="InfoTipFileName" xml:space="preserve">
     <value>檔案名稱       =</value>
@@ -512,5 +512,8 @@
   </data>
   <data name="InfoTipFileSize" xml:space="preserve">
     <value>檔案大小       =</value>
+  </data>
+  <data name="InfoTipDimentionOriginal" xml:space="preserve">
+    <value>原圖尺寸       =</value>
   </data>
 </root>

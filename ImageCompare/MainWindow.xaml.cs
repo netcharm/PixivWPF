@@ -720,22 +720,24 @@ namespace ImageCompare
                     {
                         if (image_t.ValidOriginal)
                             image_t.Current = new MagickImage(image_s.Current);
-                        else
-                        {
+
+                        if(image_t.OriginalIsFile)
                             image_t.Original = new MagickImage(image_s.Current);
+
+                        if (!image_t.OriginalIsFile && image_s.OriginalIsFile)
                             image_t.FileName = image_s.FileName;
-                        }
                         action = true;
                     }
                     else if (image_t.ValidCurrent)
                     {
                         if (image_s.ValidOriginal)
                             image_s.Current = new MagickImage(image_t.Current);
-                        else
-                        {
+
+                        if (image_s.OriginalIsFile)
                             image_s.Original = new MagickImage(image_t.Current);
+
+                        if (!image_s.OriginalIsFile && image_t.OriginalIsFile)
                             image_s.FileName = image_t.FileName;
-                        }
                         action = true;
                     }
                     if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
@@ -1336,7 +1338,7 @@ namespace ImageCompare
                 };
 
                 item_copyfrom_result.Click += (obj, evt) => { RenderRun(() => { CopyImageFromResult(source); }); };
-                item_copyto_source.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(source); }); };
+                item_copyto_source.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(!source); }); };
                 item_copyto_target.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(source); }); };
 
                 item_load_prev.Click += (obj, evt) => { RenderRun(() => { LoadImageFromPrevFile((bool)(obj as MenuItem).Tag); }); };
@@ -1629,8 +1631,8 @@ namespace ImageCompare
                     var image = is_source ? ImageSource : (is_target ? ImageTarget : ImageResult);
                     if (image.Source == null) { evt.Handled = true; return; }
                     //item_saveas.Visibility = Keyboard.Modifiers == ModifierKeys.Shift ? Visibility.Visible : Visibility.Collapsed;
-                    item_copyto_source.Visibility = source ? Visibility.Collapsed : Visibility.Visible;
-                    item_copyto_target.Visibility = source ? Visibility.Visible : Visibility.Collapsed;
+                    item_copyto_source.Visibility = is_source ? Visibility.Collapsed : Visibility.Visible;
+                    item_copyto_target.Visibility = is_target ? Visibility.Collapsed : Visibility.Visible;
                     var show_load = false;
                     if (image is Image) { show_load = !string.IsNullOrEmpty(image.GetInformation().FileName); }
                     item_load_prev.Visibility = show_load ? Visibility.Visible : Visibility.Collapsed;
@@ -1644,6 +1646,7 @@ namespace ImageCompare
                 {
                     if (item is MenuItem) (item as MenuItem).Items.Clear();
                 }
+                //target.ContextMenu.Items.Clear();
             }
             else
             {
@@ -1690,11 +1693,23 @@ namespace ImageCompare
         {
             Title = $"{Uid}.Title".T(culture) ?? Title;
             ImageToolBar.Locale();
-            if (ImageSource.ContextMenu is ContextMenu) CreateImageOpMenu(ImageSource);
-            if (ImageTarget.ContextMenu is ContextMenu) CreateImageOpMenu(ImageTarget);
-            ImageSource.ToolTip = ImageSource.Source == null ? null : ImageSource.GetInformation().GetImageInfo();
-            ImageTarget.ToolTip = ImageTarget.Source == null ? null : ImageTarget.GetInformation().GetImageInfo();
-            ImageResult.ToolTip = ImageResult.Source == null ? null : ImageResult.GetInformation().GetImageInfo();
+
+            DefaultWindowTitle = Title;
+            DefaultCompareToolTip = ImageCompare.ToolTip as string;
+            DefaultComposeToolTip = ImageCompose.ToolTip as string;
+
+            ImageSource.ToolTip = "Waiting".T();
+            ImageTarget.ToolTip = "Waiting".T();
+            ImageResult.ToolTip = "Waiting".T();
+
+            CreateImageOpMenu(ImageSource);
+            CreateImageOpMenu(ImageTarget);
+
+            //if (ImageSource.ContextMenu is ContextMenu) CreateImageOpMenu(ImageSource);
+            //if (ImageTarget.ContextMenu is ContextMenu) CreateImageOpMenu(ImageTarget);
+            //ImageSource.ToolTip = ImageSource.Source == null ? null : ImageSource.GetInformation().GetImageInfo();
+            //ImageTarget.ToolTip = ImageTarget.Source == null ? null : ImageTarget.GetInformation().GetImageInfo();
+            //ImageResult.ToolTip = ImageResult.Source == null ? null : ImageResult.GetInformation().GetImageInfo();
         }
 
         private void ChangeLayout(Orientation orientation)
@@ -1758,18 +1773,14 @@ namespace ImageCompare
             //System.Diagnostics.PresentationTraceSources.DataBindingSource.Switch.Level = System.Diagnostics.SourceLevels.Critical;
             InitMagickNet();
 
-            LocaleUI(DefaultCultureInfo);
-
             #region Some Default UI Settings
-            Icon = new BitmapImage(new Uri("pack://application:,,,/ImageCompare;component/Resources/Compare.ico"));
-            DefaultWindowTitle = Title;
-            DefaultCompareToolTip = ImageCompare.ToolTip as string;
-            DefaultComposeToolTip = ImageCompose.ToolTip as string;
+            if (DefaultFontFamily == null) DefaultFontFamily = new FontFamily(DefaultFontFamilyName);
 
             ProcessStatus.Opacity = 0.66;
-
-            if (DefaultFontFamily == null) DefaultFontFamily = new FontFamily(DefaultFontFamilyName);
+            Icon = new BitmapImage(new Uri("pack://application:,,,/ImageCompare;component/Resources/Compare.ico"));
             #endregion
+
+            LocaleUI(DefaultCultureInfo);
 
             #region Create ErrorMetric Mode Selector
             cm_compare_mode = new ContextMenu() { PlacementTarget = ImageCompareFuzzy };

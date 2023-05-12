@@ -54,6 +54,8 @@ namespace ImageCompare
         public bool ValidCurrent { get { return (Current is MagickImage && !Current.IsDisposed); } }
         public bool ValidOriginal { get { return (Original is MagickImage && !Original.IsDisposed); } }
 
+        public bool OriginalIsFile { get { return (!string.IsNullOrEmpty(FileName) && File.Exists(LastFileName)); } }
+
         private bool ValidImage(MagickImage image)
         {
             return (image is MagickImage && !image.IsDisposed);
@@ -531,7 +533,8 @@ namespace ImageCompare
                     else if (Current.ColorType == ColorType.ColorSeparationAlpha) depth = 32;
 
                     var tip = new List<string>();
-                    tip.Add($"{"InfoTipDimention".T()} {Current.Width:F0}x{Current.Height:F0}x{depth:F0}");
+                    tip.Add($"{"InfoTipDimentionOriginal".T()} {OriginalSize.Width:F0}x{OriginalSize.Height:F0}x{depth:F0}");
+                    tip.Add($"{"InfoTipDimention".T()} {CurrentSize.Width:F0}x{CurrentSize.Height:F0}x{depth:F0}");
                     if (Current.BoundingBox != null)
                         tip.Add($"{"InfoTipBounding".T()} {Current.BoundingBox.Width:F0}x{Current.BoundingBox.Height:F0}");
                     tip.Add($"{"InfoTipResolution".T()} {DPI_TEXT}");
