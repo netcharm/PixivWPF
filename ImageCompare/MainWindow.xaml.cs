@@ -1702,14 +1702,10 @@ namespace ImageCompare
             ImageTarget.ToolTip = "Waiting".T();
             ImageResult.ToolTip = "Waiting".T();
 
-            CreateImageOpMenu(ImageSource);
-            CreateImageOpMenu(ImageTarget);
-
-            //if (ImageSource.ContextMenu is ContextMenu) CreateImageOpMenu(ImageSource);
-            //if (ImageTarget.ContextMenu is ContextMenu) CreateImageOpMenu(ImageTarget);
-            //ImageSource.ToolTip = ImageSource.Source == null ? null : ImageSource.GetInformation().GetImageInfo();
-            //ImageTarget.ToolTip = ImageTarget.Source == null ? null : ImageTarget.GetInformation().GetImageInfo();
-            //ImageResult.ToolTip = ImageResult.Source == null ? null : ImageResult.GetInformation().GetImageInfo();
+            #region Create Image Flip/Rotate/Effects Menu
+            CreateImageOpMenu(ImageSourceScroll);
+            CreateImageOpMenu(ImageTargetScroll);
+            #endregion
         }
 
         private void ChangeLayout(Orientation orientation)
@@ -1868,13 +1864,6 @@ namespace ImageCompare
             cm_channels_mode.Items.LiveGroupingProperties.Add("Common");
             cm_channels_mode.Items.IsLiveGrouping = true;
             UsedChannels.ContextMenu = cm_channels_mode;
-            #endregion
-
-            #region Create Image Flip/Rotate/Effects Menu
-            //CreateImageOpMenu(ImageSource);
-            //CreateImageOpMenu(ImageTarget);
-            CreateImageOpMenu(ImageSourceScroll);
-            CreateImageOpMenu(ImageTargetScroll);
             #endregion
 
             #region Result Color Defaults Value
