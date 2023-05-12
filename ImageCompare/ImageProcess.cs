@@ -79,7 +79,13 @@ namespace ImageCompare
             {
                 var src = source ? ImageSource : ImageTarget;
                 if (src.ToolTip is string && !string.IsNullOrEmpty(src.ToolTip as string))
+                {
+                    if ((src.ToolTip as string).Equals("Waiting".T(), StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        src.ToolTip = src.GetInformation().GetImageInfo();
+                    }
                     Clipboard.SetText(src.ToolTip as string);
+                }
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
