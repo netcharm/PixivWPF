@@ -43,8 +43,8 @@ namespace ImageApplets.Applets
                 { "m|mode=", "EXIF Search Mode {VALUE} : <EQ|NEQ|LT|LE|GT|GE|IN|OUT|AND|OR|NOT|HAS|NO|NONE|VALUE>", v => { if (!string.IsNullOrEmpty(v)) Enum.TryParse(v.ToUpper(), out _Mode_); } },
                 { "c|category=", $"EXIF Search From {{VALUE}} : <{string.Join("|", Categories)}> And more EXIF Tag. Note: Support '*'.", v => { if (!string.IsNullOrEmpty(v)) _SearchScope_ = v.Trim().Trim('"'); } },
                 { "l|limit|length=", $"EXIF Value Max Length Limit {{VALUE}}", v => { if (!string.IsNullOrEmpty(v)) int.TryParse(v, out _MaxLength_); } },
-                { "ignorecase=", $"EXIF Search Ignore Case : {{VALUE}} : <TRUE|FALSE>", v => { if (!string.IsNullOrEmpty(v)) bool.TryParse(v, out _IgnoreCase_); } },
                 { "s|search=", "EXIF Search {Term}, multiple serach keywords seprated by ';' or '#'.", v => { if (!string.IsNullOrEmpty(v)) _SearchTerm_ = v.Trim().Trim('"'); } },
+                { "ignorecase=", $"EXIF Search Ignore Case : {{VALUE}} : <TRUE|FALSE>", v => { if (!string.IsNullOrEmpty(v)) bool.TryParse(v, out _IgnoreCase_); } },
                 { "" },
             };
             AppendOptions(opts);

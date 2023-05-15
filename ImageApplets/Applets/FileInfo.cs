@@ -22,7 +22,7 @@ namespace ImageApplets.Applets
         public string SearchTerm { get { return (_SearchTerm_); } set { _SearchTerm_ = value; } }
         private DateValue _date_ = null;
         public DateValue Date { get { return (_date_); } set { _date_ = value; } }
-        private bool _raw_out_ = true;
+        private bool _raw_out_ = false;
         public bool RawOut { get { return (_raw_out_); } set { _raw_out_ = value; } }
 
         private List<string> CategoriesText  = new List<string>()
@@ -115,7 +115,7 @@ namespace ImageApplets.Applets
                 { "c|category=", $"File Search From {{VALUE}} : <{string.Join("|", Categories)}> And more File Attributes. Multiple serach category seprated by ','", v => { if (!string.IsNullOrEmpty(v)) _SearchScope_ = v.Trim().Trim('"'); } },
                 { "s|search=", "EXIF Search {Term}. Multiple serach keywords seprated by ';' or '#'", v => { if (!string.IsNullOrEmpty(v)) _SearchTerm_ = v.Trim().Trim('"'); } },
                 { "set|change=", "Will Chanege To {VALUE}, not implemented now.", v => { if (!string.IsNullOrEmpty(v)) _TargetValue_ = v.Trim().Trim('"'); } },
-                { "raw=", "Will Output WIth RAW data. Otherwise will output with format, such as number with ',' for thousand", v => { if (!string.IsNullOrEmpty(v)) bool.TryParse(v, out _raw_out_); } },
+                { "raw", "Will Output WIth RAW data. Otherwise will output with format, such as number with ',' for thousand", v => { _raw_out_ = true; } },
                 { "" },
             };
             AppendOptions(opts);
@@ -340,9 +340,9 @@ namespace ImageApplets.Applets
                         foreach (var c in cats.Where(cat => fi_dict.ContainsKey(cat)))
                         {
                             var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                            if (_raw_out_ && IsNumber(c))
+                            if (!_raw_out_ && IsNumber(c))
                                 sb.AppendLine($"{padding}{key} = {string.Format("{0:N0}", fi_dict[c])}");
-                            else if (_raw_out_ && IsBool(c))
+                            else if (!_raw_out_ && IsBool(c))
                                 sb.AppendLine($"{padding}{key} = {fi_dict[c]}");
                             else
                                 sb.AppendLine($"{padding}{key} = {fi_dict[c]}");
