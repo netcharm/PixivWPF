@@ -57,6 +57,42 @@ namespace ImageApplets.Applets
             "All"
         };
 
+        private List<string> _CategoriesText_ = null;
+        private List<string> _CategoriesNumber_ = null;
+        private List<string> _CategoriesDate_ = null;
+        private List<string> _CategoriesBool_ = null;
+        private List<string> _Categories_ = null;
+
+        private bool IsText(string key)
+        {
+            if (_CategoriesText_ == null) _CategoriesText_ = CategoriesText.Select(c => c.ToLower()).ToList();
+            return (_CategoriesText_.Contains(key.ToLower()));
+        }
+
+        private bool IsNumber(string key)
+        {
+            if (_CategoriesNumber_ == null) _CategoriesNumber_ = CategoriesNumber.Select(c => c.ToLower()).ToList();
+            return (_CategoriesNumber_.Contains(key.ToLower()));
+        }
+
+        private bool IsDate(string key)
+        {
+            if (_CategoriesDate_ == null) _CategoriesDate_ = CategoriesDate.Select(c => c.ToLower()).ToList();
+            return (_CategoriesDate_.Contains(key.ToLower()));
+        }
+
+        private bool IsBool(string key)
+        {
+            if (_CategoriesBool_ == null) _CategoriesBool_ = CategoriesBool.Select(c => c.ToLower()).ToList();
+            return (_CategoriesBool_.Contains(key.ToLower()));
+        }
+
+        private bool IsOther(string key)
+        {
+            if (_Categories_ == null) _Categories_ = Categories.Select(c => c.ToLower()).ToList();
+            return (_Categories_.Contains(key.ToLower()));
+        }
+
         private DateValue _date_ = null;
 
         public override Applet GetApplet()
@@ -298,7 +334,12 @@ namespace ImageApplets.Applets
                         foreach (var c in cats.Where(cat => fi_dict.ContainsKey(cat)))
                         {
                             var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                            sb.AppendLine($"{padding}{key} = {fi_dict[c]}");
+                            if (IsNumber(c))
+                                sb.AppendLine($"{padding}{key} = {string.Format("{0:N0}", fi_dict[c])}");
+                            else if (IsBool(c))
+                                sb.AppendLine($"{padding}{key} = {fi_dict[c]}");
+                            else
+                                sb.AppendLine($"{padding}{key} = {fi_dict[c]}");
                         }
                         status = sb.ToString().Trim();
                     }
