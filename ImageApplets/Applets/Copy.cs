@@ -15,10 +15,13 @@ namespace ImageApplets.Applets
         {
             return (new Copy());
         }
-
-        private string TargetFolder = string.Empty;
-        private bool OverWrite = false;
-        private bool TargetName = false;
+        
+        private string _TargetFolder_ = string.Empty;
+        public string TargetFolder { get { return (_TargetFolder_); }  set { _TargetFolder_ = value; } }
+        private bool _OverWrite_ = false;
+        public bool OverWrite { get { return (_OverWrite_); } set { _OverWrite_ = value; } }
+        private bool _TargetName_ = false;
+        public bool TargetName { get { return (_TargetName_); } set { _TargetName_ = value; } }
 
         public Copy()
         {
@@ -26,9 +29,9 @@ namespace ImageApplets.Applets
 
             var opts = new OptionSet()
             {
-                { "d|folder=", "Target {Folder}", v => { TargetFolder = v != null ? v : "."; } },
-                { "o|overwrite", "Overwrite Exists File", v => { OverWrite = v != null ? true : false; } },
-                { "w|targetfile", "Out Target File Name", v => { TargetName = v != null ? true : false; } },
+                { "d|folder=", "Target {Folder}", v => { _TargetFolder_ = !string.IsNullOrEmpty(v) ? v : "."; } },
+                { "o|overwrite", "Overwrite Exists File", v => { _OverWrite_ = true; } },
+                { "w|targetfile", "Out Target File Name", v => { _TargetName_ = true; } },
                 { "" },
             };
             AppendOptions(opts);
@@ -42,11 +45,11 @@ namespace ImageApplets.Applets
             {
                 Result.Reset();
                 dynamic status = false;
-                if (File.Exists(file) && !string.IsNullOrEmpty(TargetFolder))
+                if (File.Exists(file) && !string.IsNullOrEmpty(_TargetFolder_))
                 {
                     InputFile = file;
 
-                    var folder = TargetFolder;
+                    var folder = _TargetFolder_;
 
                     if (!string.IsNullOrEmpty(folder) && !Directory.Exists(folder))
                         Directory.CreateDirectory(folder);
@@ -55,15 +58,15 @@ namespace ImageApplets.Applets
                     {
                         var fi = new System.IO.FileInfo(file);
                         OutputFile = Path.Combine(folder, Path.GetFileName(file));
-                        if (OverWrite || !File.Exists(OutputFile))
+                        if (_OverWrite_ || !File.Exists(OutputFile))
                         {
-                            File.Copy(file, OutputFile, OverWrite);
+                            File.Copy(file, OutputFile, _OverWrite_);
                             if (File.Exists(OutputFile))
                             {
                                 File.SetCreationTime(OutputFile, fi.CreationTime);
                                 File.SetLastWriteTime(OutputFile, fi.LastWriteTime);
                                 File.SetLastAccessTime(OutputFile, fi.LastWriteTime);
-                                status = TargetName ? (dynamic)OutputFile : (dynamic)true;
+                                status = _TargetName_ ? (dynamic)OutputFile : (dynamic)true;
                             }
                             //var fo = fi.CopyTo(OutputFile, overwrite: OverWrite);
                             //fo.Refresh();

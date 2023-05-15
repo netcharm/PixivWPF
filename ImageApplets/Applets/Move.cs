@@ -16,16 +16,22 @@ namespace ImageApplets.Applets
             return (new Move());
         }
 
-        private string TargetFolder = string.Empty;
-        private bool OverWrite = false;
+        private string _TargetFolder_ = string.Empty;
+        public string TargetFolder { get { return (_TargetFolder_); } set { _TargetFolder_ = value; } }
+        private bool _OverWrite_ = false;
+        public bool OverWrite { get { return (_OverWrite_); } set { _OverWrite_ = value; } }
+        private bool _TargetName_ = false;
+        public bool TargetName { get { return (_TargetName_); } set { _TargetName_ = value; } }
+
         public Move()
         {
             Category = AppletCategory.FileOP;
 
             var opts = new OptionSet()
             {
-                { "d|folder=", "Target {Folder}", v => { TargetFolder = v != null ? v : "."; } },
-                { "o|overwrite", "Overwrite Exists File", v => { OverWrite = v != null ? true : false; } },
+                { "d|folder=", "Target {Folder}", v => { _TargetFolder_ = !string.IsNullOrEmpty(v) ? v : "."; } },
+                { "o|overwrite", "Overwrite Exists File", v => { _OverWrite_ = true; } },
+                { "w|targetfile", "Out Target File Name", v => { _TargetName_ = true; } },
                 { "" },
             };
             AppendOptions(opts);
@@ -40,11 +46,11 @@ namespace ImageApplets.Applets
                 Result.Reset();
 
                 var status = false;
-                if (File.Exists(file) && !string.IsNullOrEmpty(TargetFolder))
+                if (File.Exists(file) && !string.IsNullOrEmpty(_TargetFolder_))
                 {
                     InputFile = file;
 
-                    var folder = TargetFolder;
+                    var folder = _TargetFolder_;
 
                     if (!string.IsNullOrEmpty(folder) && !Directory.Exists(folder))
                         Directory.CreateDirectory(folder);

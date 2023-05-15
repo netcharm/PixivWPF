@@ -19,8 +19,10 @@ namespace ImageApplets.Applets
             return (new ImageType());
         }
 
-        private string TypeValue = string.Empty;
-        private CompareMode Mode = CompareMode.VALUE;
+        private CompareMode _Mode_ = CompareMode.VALUE;
+        public CompareMode Mode { get { return (_Mode_); } set { _Mode_ = value; } }
+        private string _TypeValue_ = string.Empty;
+        public string TypeValue { get { return (_TypeValue_); } set { _TypeValue_ = value; } }
 
         public ImageType()
         {
@@ -28,9 +30,9 @@ namespace ImageApplets.Applets
 
             var opts = new OptionSet()
             {
-                { "m|mode=", "Quality Comparing Mode {{VALUE}} : <IS|NOT|EQ|NEQ|VALUE>", v => { if (v != null) Enum.TryParse(v.ToUpper(), out Mode); } },
-                //{ "type=", $"Image Type {{{JPG|JPEG|PNG|BMP|TIFF|TIF|ICO|GIF|EMF|WMF}", v => { if (v != null) TypeValue = v; } },
-                { "type=", $"Image Type {{VALUE}} : <{string.Join("|", GetImageTypeNames())}>", v => { if (v != null) TypeValue = v; } },
+                { "m|mode=", "Quality Comparing Mode {{VALUE}} : <IS|NOT|EQ|NEQ|VALUE>", v => { if (!string.IsNullOrEmpty(v)) Enum.TryParse(v.ToUpper(), out _Mode_); } },
+                //{ "type=", $"Image Type {{{JPG|JPEG|PNG|BMP|TIFF|TIF|ICO|GIF|EMF|WMF}", v => { if (!string.IsNullOrEmpty(v)) TypeValue = v; } },
+                { "type=", $"Image Type {{VALUE}} : <{string.Join("|", GetImageTypeNames())}>", v => { if (!string.IsNullOrEmpty(v)) _TypeValue_ = v; } },
                 { "" },
             };
             AppendOptions(opts);
@@ -71,15 +73,15 @@ namespace ImageApplets.Applets
                     if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
                     using (Image image = Image.FromStream(source))
                     {
-                        if (!string.IsNullOrEmpty(TypeValue) && Mode == CompareMode.VALUE) Mode = CompareMode.EQ;
+                        if (!string.IsNullOrEmpty(this._TypeValue_) && _Mode_ == CompareMode.VALUE) _Mode_ = CompareMode.EQ;
 
-                        var _TypeValue_ = (args.Length > 0 && args[0] is string) ? (string)args[0] : TypeValue;
+                        var _TypeValue_ = (args.Length > 0 && args[0] is string) ? (string)args[0] : this._TypeValue_;
                         if (string.IsNullOrEmpty(_TypeValue_)) _TypeValue_ = status;
                         else if (_TypeValue_.Equals("jpg", StringComparison.CurrentCultureIgnoreCase)) _TypeValue_ = "Jpeg";
                         else if (_TypeValue_.Equals("tif", StringComparison.CurrentCultureIgnoreCase)) _TypeValue_ = "Tiff";
 
                         var typename = GetImageTypeName(image.RawFormat.Guid);
-                        switch (Mode)
+                        switch (_Mode_)
                         {
                             case CompareMode.VALUE: status = typename; break;
                             case CompareMode.NOT:

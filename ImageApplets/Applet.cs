@@ -911,11 +911,11 @@ namespace ImageApplets
             { "f|n|false|no", "Keep False Result", v => { Status = STATUS.No; } },
             { "a|all", "Keep All", v => { Status = STATUS.All; } },
             { " " },
-            { "verbose", "Output All When Redirected STDOUT", v => { _verbose_ = v != null ? true : false; } },
-            { "result|log=", "Result To {FILE} or CLIPBOARD", v => { if (v != null) _result_file_ = v; } },
-            { "input|filelist=", "Get Files From {FILE} or CLIPBOARD", v => { if (v != null) _input_file_ = v; } },
-            { "output=", "Output To {FILE} or CLIPBOARD", v => { if (v != null) _output_file_ = v; } },
-            { "read=", "Read Mode {<All|Line>} When Input Redirected", v => { if (v != null) Enum.TryParse(v.ToUpper(), out _ReadInputMode_); } },
+            { "verbose", "Output All When Redirected STDOUT", v => { _verbose_ = true; } },
+            { "result|log=", "Result To {FILE} or CLIPBOARD", v => { if (!string.IsNullOrEmpty(v)) _result_file_ = v; } },
+            { "input|filelist=", "Get Files From {FILE} or CLIPBOARD", v => { if (!string.IsNullOrEmpty(v)) _input_file_ = v; } },
+            { "output=", "Output To {FILE} or CLIPBOARD", v => { if (!string.IsNullOrEmpty(v)) _output_file_ = v; } },
+            { "read=", "Read Mode {<All|Line>} When Input Redirected", v => { if (!string.IsNullOrEmpty(v)) Enum.TryParse(v.ToUpper(), out _ReadInputMode_); } },
         };
 
         public virtual void InitBackgroundExecute()

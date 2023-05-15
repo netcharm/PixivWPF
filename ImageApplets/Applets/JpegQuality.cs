@@ -19,9 +19,12 @@ namespace ImageApplets.Applets
             return (new JpegQuality());
         }
 
-        private int QualityValue = 85;
-        private CompareMode Mode = CompareMode.VALUE;
+        private CompareMode _Mode_ = CompareMode.VALUE;
+        public CompareMode Mode { get { return (_Mode_); } set { _Mode_ = value; } }
+        private int _QualityValue_ = 85;
+        public int QualityValue { get { return (_QualityValue_); } set { _QualityValue_ = value; } }
         private double _Tolerance_ = 0.005;
+        public double Tolerance { get { return (_Tolerance_); } set { _Tolerance_ = value; } }
 
         public JpegQuality()
         {
@@ -29,9 +32,9 @@ namespace ImageApplets.Applets
 
             var opts = new OptionSet()
             {
-                { "m|mode=", "Quality Comparing Mode {<EQ|NEQ|LT|LE|GT|GE|VALUE>}", v => { if (v != null) Enum.TryParse(v.ToUpper(), out Mode); } },
-                { "q|quality=", "Quality Comparing {Value}", v => { if (v != null) int.TryParse(v, out QualityValue); } },
-                { "allowance|tolerance=", $"Image Quality Tolerance, default is {_Tolerance_:P}", v => { if (v != null) double.TryParse(v, out _Tolerance_); } },
+                { "m|mode=", "Quality Comparing Mode {<EQ|NEQ|LT|LE|GT|GE|VALUE>}", v => { if (!string.IsNullOrEmpty(v)) Enum.TryParse(v.ToUpper(), out _Mode_); } },
+                { "q|quality=", "Quality Comparing {Value}", v => { if (!string.IsNullOrEmpty(v)) int.TryParse(v, out _QualityValue_); } },
+                { "allowance|tolerance=", $"Image Quality Tolerance, default is {_Tolerance_:P}", v => { if (!string.IsNullOrEmpty(v)) double.TryParse(v, out _Tolerance_); } },
                 { "" },
             };
             AppendOptions(opts);
@@ -44,14 +47,14 @@ namespace ImageApplets.Applets
             try
             {
                 Result.Reset();
-                var _QualityValue_ = (args.Length > 0 && args[0] is int) ? (int)args[0] : QualityValue;
+                var _QualityValue_ = (args.Length > 0 && args[0] is int) ? (int)args[0] : this._QualityValue_;
                 if (exif is ExifData)
                 {
                     dynamic status = 0;
                     if (exif.ImageType == CompactExifLib.ImageType.Jpeg)
                     {
                         var quality = exif.JpegQuality;
-                        switch (Mode)
+                        switch (_Mode_)
                         {
                             case CompareMode.VALUE: status = quality; break;
                             case CompareMode.NOT:
@@ -65,7 +68,7 @@ namespace ImageApplets.Applets
                             default: break;
                         }
                     }
-                    else if (Mode != CompareMode.VALUE) status = false;
+                    else if (_Mode_ != CompareMode.VALUE) status = false;
 
                     ret = GetReturnValueByStatus(status);
                     result = (T)(object)status;

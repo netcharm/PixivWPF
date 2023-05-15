@@ -20,11 +20,12 @@ namespace ImageApplets.Applets
             return (new ImageType());
         }
 
-        private string _Ratio_ = string.Empty;
-        public string Ratio { get { return (_Ratio_); } internal set { _Ratio_ = value; } }
         private CompareMode _Mode_ = CompareMode.VALUE;
-        public CompareMode Mode { get { return (_Mode_); } internal set { _Mode_ = value; } }
+        public CompareMode Mode { get { return (_Mode_); } set { _Mode_ = value; } }
+        private string _Ratio_ = string.Empty;
+        public string Ratio { get { return (_Ratio_); } set { _Ratio_ = value; } }
         private double _Tolerance_ = 0.005;
+        public double Tolerance { get { return (_Tolerance_); } set { _Tolerance_ = value; } }
 
         public AspectRatio()
         {
@@ -32,10 +33,10 @@ namespace ImageApplets.Applets
 
             var opts = new OptionSet()
             {
-                { "m|mode=", "Quality Comparing Mode {VALUE} : <IS|NOT|EQ|NEQ|LT|LE|GE|GT|VALUE>", v => { if (v != null) Enum.TryParse(v.ToUpper(), out _Mode_); } },
-                //{ "type=", $"Image Type {{{JPG|JPEG|PNG|BMP|TIFF|TIF|ICO|GIF|EMF|WMF}", v => { if (v != null) TypeValue = v; } },
-                { "aspect|ratio|type=", $"Image Aspect Ratio {{VALUE}} : <{string.Join("|", GetAspectRatios())}>", v => { if (v != null) _Ratio_ = v; } },
-                { "allowance|tolerance=", $"Image Aspect Ratio Tolerance, default is {_Tolerance_:P}", v => { if (v != null) double.TryParse(v, out _Tolerance_); } },
+                { "m|mode=", "Quality Comparing Mode {VALUE} : <IS|NOT|EQ|NEQ|LT|LE|GE|GT|VALUE>", v => { if (!string.IsNullOrEmpty(v)) Enum.TryParse(v.ToUpper(), out _Mode_); } },
+                //{ "type=", $"Image Type {{{JPG|JPEG|PNG|BMP|TIFF|TIF|ICO|GIF|EMF|WMF}", v => { if (!string.IsNullOrEmpty(v)) TypeValue = v; } },
+                { "aspect|ratio|type=", $"Image Aspect Ratio {{VALUE}} : <{string.Join("|", GetAspectRatios())}>", v => { if (!string.IsNullOrEmpty(v)) _Ratio_ = v; } },
+                { "allowance|tolerance=", $"Image Aspect Ratio Tolerance, default is {_Tolerance_:P}", v => { if (!string.IsNullOrEmpty(v)) double.TryParse(v, out _Tolerance_); } },
                 { "" },
             };
             AppendOptions(opts);

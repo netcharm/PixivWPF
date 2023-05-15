@@ -20,16 +20,20 @@ namespace ImageApplets.Applets
             return (new HasExif());
         }
 
-        private int WindowSize = 3;
-        private int Threshold = 255;
+        private int _WindowSize_ = 3;
+        public int WindowSize { get { return (_WindowSize_); } set { _WindowSize_ = value; } }
+        private int _Threshold_ = 255;
+        public int Threshold { get { return (_Threshold_); } set { _Threshold_ = value; } }
+
+
         public HasAlpha()
         {
             Category = AppletCategory.ImageContent;
 
             var opts = new OptionSet()
             {
-                { "m|w|matrix|window=", "Matrix Window {Size}", v => { if (v != null) int.TryParse(v, out WindowSize); } },
-                { "v|threshold=", "Threshold {VALUE}", v => { if (v != null) int.TryParse(v, out Threshold); } },
+                { "m|w|matrix|window=", "Matrix Window {Size}", v => { if (!string.IsNullOrEmpty(v)) int.TryParse(v, out _WindowSize_); } },
+                { "v|threshold=", "Threshold {VALUE}", v => { if (!string.IsNullOrEmpty(v)) int.TryParse(v, out _Threshold_); } },
                 { "" },
             };
             AppendOptions(opts);
@@ -61,7 +65,7 @@ namespace ImageApplets.Applets
             try
             {
                 Result.Reset();
-                var _WindowSize_ = (args.Length > 0 && args[0] is int) ? (int)args[0] : WindowSize;
+                var _WindowSize_ = (args.Length > 0 && args[0] is int) ? (int)args[0] : this._WindowSize_;
                 if (source is Stream && source.CanRead)
                 {
                     var status = false;
@@ -86,11 +90,11 @@ namespace ImageApplets.Applets
                                 var h = bmp.Height;
                                 var m = _WindowSize_;
                                 var mt = Math.Ceiling(m * m / 2.0);
-                                var lt = GetMatrix(bmp, 0, 0, m, m).Count(c => c.A < Threshold);
-                                var rt = GetMatrix(bmp, w - m, 0, m, m).Count(c => c.A < Threshold);
-                                var lb = GetMatrix(bmp, 0, h - m, m, m).Count(c => c.A < Threshold);
-                                var rb = GetMatrix(bmp, w - m, h - m, m, m).Count(c => c.A < Threshold);
-                                var ct = GetMatrix(bmp, (int)(w / 2.0 - m / 2.0) , (int)(h / 2.0 - m / 2.0), m, m).Count(c => c.A < Threshold);
+                                var lt = GetMatrix(bmp, 0, 0, m, m).Count(c => c.A < _Threshold_);
+                                var rt = GetMatrix(bmp, w - m, 0, m, m).Count(c => c.A < _Threshold_);
+                                var lb = GetMatrix(bmp, 0, h - m, m, m).Count(c => c.A < _Threshold_);
+                                var rb = GetMatrix(bmp, w - m, h - m, m, m).Count(c => c.A < _Threshold_);
+                                var ct = GetMatrix(bmp, (int)(w / 2.0 - m / 2.0) , (int)(h / 2.0 - m / 2.0), m, m).Count(c => c.A < _Threshold_);
                                 status = (lt > mt || rt > mt || lb > mt || rb > mt || ct > mt) ? true : false;
                             }
                         }
