@@ -22,6 +22,8 @@ namespace ImageApplets
 
     public enum AppletCategory { FileOP, ImageType, ImageContent, ImageAttribure, Other, Unknown, None }
     public enum STATUS { All, Yes, No, None };
+    [Flags]
+    public enum ClipboardMode { NONE, IN, OUT, RESULT, INOUT, INRESULT, OUTRESULT, ALL };
     public enum ReadMode { ALL, LINE };
 
     static public class AppletExtensions
@@ -848,6 +850,8 @@ namespace ImageApplets
         public Action<int, int, ExecuteResult, object, object> ReportProgress { get; set; } = null;
         #endregion
 
+        public static string ClipboardName = "ClipBoard";
+
         public static string DateTimeFormat = $"yyyy-MM-dd HH:mm:ss.fffzzz";
         public static string DateTimeFormatLocal = $"{CultureInfo.CurrentCulture.DateTimeFormat.LongDatePattern}, ddd";
         public static string DateTimeFormatUtc = $"yyyy-MM-dd HH:mm:ss.fff+00:00";
@@ -869,6 +873,13 @@ namespace ImageApplets
         public string Help { get { return (GetHelp()); } }
 
         public virtual AppletCategory Category { get; internal protected set; } = AppletCategory.Unknown;
+
+        static private ClipboardMode _ClipboardMode_ = ClipboardMode.IN | ClipboardMode.RESULT;
+        public ClipboardMode ClipboardMode
+        {
+            get { return (_ClipboardMode_); }
+            set { _ClipboardMode_ = value; }
+        }
 
         static private ReadMode _ReadInputMode_ = ReadMode.LINE;
         public ReadMode ReadInputMode { get { return (_ReadInputMode_); } }
@@ -905,6 +916,9 @@ namespace ImageApplets
         static private IEnumerable<ExecuteResult> _results_ = new List<ExecuteResult>();
         public IEnumerable<ExecuteResult> Results { get { return (_results_); } }
 
+        static List<string> _log_ = new List<string>();
+        public List<string> Log { get { return (_log_); } }
+
         public virtual OptionSet Options { get; set; } = new OptionSet()
         {
             { "t|y|true|yes", "Keep True Result", v => { Status = STATUS.Yes; } },
@@ -915,6 +929,20 @@ namespace ImageApplets
             { "result|log=", "Result To {FILE} or CLIPBOARD", v => { if (!string.IsNullOrEmpty(v)) _result_file_ = v; } },
             { "input|filelist=", "Get Files From {FILE} or CLIPBOARD", v => { if (!string.IsNullOrEmpty(v)) _input_file_ = v; } },
             { "output=", "Output To {FILE} or CLIPBOARD", v => { if (!string.IsNullOrEmpty(v)) _output_file_ = v; } },
+            { "clipboard=", "using CLIPBOARD as <IN|OUT|RESULT|ALL>", v => 
+                {
+                    if (!string.IsNullOrEmpty(v) && Enum.TryParse(v, out _ClipboardMode_))
+                    {
+                        if (_ClipboardMode_.HasFlag(ClipboardMode.IN)) _input_file_ = ClipboardName;
+                        if (_ClipboardMode_.HasFlag(ClipboardMode.OUT)) _output_file_ = ClipboardName;
+                        if (_ClipboardMode_.HasFlag(ClipboardMode.RESULT)) _result_file_ = ClipboardName;
+                        if (_ClipboardMode_.HasFlag(ClipboardMode.INOUT)) { _input_file_ = ClipboardName; _output_file_ = ClipboardName; }
+                        if (_ClipboardMode_.HasFlag(ClipboardMode.INRESULT)) { _input_file_ = ClipboardName; _result_file_ = ClipboardName; }
+                        if (_ClipboardMode_.HasFlag(ClipboardMode.OUTRESULT)) { _output_file_ = ClipboardName; _result_file_ = ClipboardName; }
+                        if (_ClipboardMode_.HasFlag(ClipboardMode.ALL)) { _input_file_ = ClipboardName; _output_file_ = ClipboardName; _result_file_ = ClipboardName; }
+                    }
+                }
+            },
             { "read=", "Read Mode {<All|Line>} When Input Redirected", v => { if (!string.IsNullOrEmpty(v)) Enum.TryParse(v.ToUpper(), out _ReadInputMode_); } },
         };
 
@@ -1014,10 +1042,14 @@ namespace ImageApplets
 
         public virtual void ShowMessage(string text, string title = null)
         {
-            if (string.IsNullOrEmpty(title))
-                MessageBox.Show(text);
-            else
-                MessageBox.Show(text, title);
+            if (_verbose_)
+            {
+                if (string.IsNullOrEmpty(title))
+                    MessageBox.Show(text);
+                else
+                    MessageBox.Show(text, title);
+            }
+            _log_.Add(string.IsNullOrEmpty(title) ? text : $"[{title}]{text}");
         }
 
         public virtual void ShowMessage(Exception ex, string title = null)
@@ -1028,20 +1060,11 @@ namespace ImageApplets
                 {
                     case ExifErrCode.ImageTypeIsNotSupported: break;
                     default:
-                        if (string.IsNullOrEmpty(title))
-                            MessageBox.Show($"{ex.Message}{Environment.NewLine}{ex.StackTrace}");
-                        else
-                            MessageBox.Show($"{ex.Message}{Environment.NewLine}{ex.StackTrace}", title);
+                        ShowMessage($"{ex.Message}{Environment.NewLine}{ex.StackTrace}", title);
                         break;
                 }
             }
-            else
-            {
-                if (string.IsNullOrEmpty(title))
-                    MessageBox.Show($"{ex.Message}{Environment.NewLine}{ex.StackTrace}");
-                else
-                    MessageBox.Show($"{ex.Message}{Environment.NewLine}{ex.StackTrace}", title);
-            }
+            else ShowMessage($"{ex.Message}{Environment.NewLine}{ex.StackTrace}", title);
         }
 
         public virtual bool GetReturnValueByStatus(dynamic status)
