@@ -61,7 +61,7 @@ namespace ImageAppletsCLI
                         {
                             try
                             {
-                                if (applet.InputFile.Equals("clipboard", StringComparison.CurrentCultureIgnoreCase))
+                                if (applet.InputFile.Equals(ImageApplets.Applet.ClipboardName, StringComparison.CurrentCultureIgnoreCase))
                                 {
                                     try
                                     {
@@ -231,7 +231,7 @@ namespace ImageAppletsCLI
             {
                 foreach (var file in files)
                 {
-                    RunApplet(file, applet, padding, extras);
+                    RunApplet(file.Trim('"'), applet, padding, extras);
                 }
             }
         }
@@ -240,7 +240,7 @@ namespace ImageAppletsCLI
         {
             if (!string.IsNullOrEmpty(file))
             {
-                if (file.Equals("clipboard", StringComparison.CurrentCultureIgnoreCase))
+                if (file.Equals(ImageApplets.Applet.ClipboardName, StringComparison.CurrentCultureIgnoreCase))
                 {
                     try
                     {
