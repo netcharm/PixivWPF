@@ -2919,7 +2919,7 @@ namespace PixivWPF.Common
             if (item is DownloadInfo)
             {
                 var di = item as DownloadInfo;
-                var fail = string.IsNullOrEmpty(di.FailReason) ? string.Empty : $", Reason: {di.FailReason.Replace(Environment.NewLine, $"\t{Environment.NewLine}")}".Trim();
+                var fail = string.IsNullOrEmpty(di.FailReason) ? "." : $", Reason: {di.FailReason.Replace(Environment.NewLine, $"\t{Environment.NewLine}")}".Trim();
                 var delta = di.EndTime - di.StartTime;
                 var rate = delta.TotalSeconds <= 0 ? 0 : di.Received / delta.TotalSeconds;
                 var size = di.State == Common.DownloadState.Finished && File.Exists(di.FileName) ? (new FileInfo(di.FileName)).Length.SmartFileSize() : "????";
@@ -3342,12 +3342,13 @@ namespace PixivWPF.Common
         #endregion
 
         #region XMP XML Formating Helper
-        private static List<string> xmp_ns = new List<string> { "rdf", "xmp", "dc", "exif", "tiff", "iptc", "MicrosoftPhoto" };
+        private static List<string> xmp_ns = new List<string> { "rdf", "xmp", "dc", "exif", "tiff", "iptc", "MicrosoftPhoto", };
         private static Dictionary<string, string> xmp_ns_lookup = new Dictionary<string, string>()
         {
             {"rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#" },
             {"xmp", "http://ns.adobe.com/xap/1.0/" },
             {"dc", "http://purl.org/dc/elements/1.1/" },
+            {"lr", "http://ns.adobe.com/lightroom/1.0/" },
             //{"iptc", "http://ns.adobe.com/iptc/1.0/" },
             {"exif", "http://ns.adobe.com/exif/1.0/" },
             {"tiff", "http://ns.adobe.com/tiff/1.0/" },
@@ -3699,6 +3700,13 @@ namespace PixivWPF.Common
                             desc.AppendChild(xml_doc.CreateElement("dc:subject", "dc"));
                             root_node.AppendChild(desc);
                         }
+                        if (xml_doc.GetElementsByTagName("lr:hierarchicalSubject").Count <= 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("xmlns:lr", xmp_ns_lookup["lr"]);
+                            desc.AppendChild(xml_doc.CreateElement("lr:hierarchicalSubject", "lr"));
+                            root_node.AppendChild(desc);
+                        }
                         if (xml_doc.GetElementsByTagName("MicrosoftPhoto:LastKeywordXMP").Count <= 0)
                         {
                             var desc = xml_doc.CreateElement("rdf:Description", "rdf");
@@ -3972,6 +3980,7 @@ namespace PixivWPF.Common
                                     child.AppendChild(node_rights);
                                 }
                                 else if (child.Name.Equals("dc:subject", StringComparison.CurrentCultureIgnoreCase) ||
+                                    child.Name.Equals("lr:hierarchicalSubject", StringComparison.CurrentCultureIgnoreCase) ||
                                     child.Name.StartsWith("MicrosoftPhoto:LastKeyword", StringComparison.CurrentCultureIgnoreCase))
                                 {
                                     child.RemoveAll();

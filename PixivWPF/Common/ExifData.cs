@@ -3280,7 +3280,7 @@ namespace CompactExifLib
             int ThumbnailImageDataOffset = 0;
             ThumbnailByteCount = 0;
             ThumbnailImage = null;
-            int TagCount = ExifReadUInt16(IfdRawData, IfdRawDataIndex);
+            int TagCount = IfdRawDataIndex >= IfdRawData.Length ? 0 : ExifReadUInt16(IfdRawData, IfdRawDataIndex);
             IfdRawDataIndex += 2;
             var ThumbnailDataIfdTable = new Dictionary<ExifTagId, TagItem>(TagCount);
             TagTable[(uint)ExifIfd.ThumbnailData] = ThumbnailDataIfdTable;

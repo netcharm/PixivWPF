@@ -254,9 +254,9 @@
             </Button>
             <Slider x:Name="ZoomRatio" Orientation="Vertical" 
                     Height="200" Width="16"
-                    Maximum="10" Minimum="0.25" Value="1.0" 
+                    Maximum="10" Minimum="0.10" Value="1.0" 
                     Style="{DynamicResource MahApps.Styles.Slider}"
-                    Ticks="0.25, 0.5, 1, 2, 5, 10" IsSnapToTickEnabled="False"
+                    Ticks="0.1, 0.25, 0.5, 1, 2, 5, 10" IsSnapToTickEnabled="False"
                     Grid.IsSharedSizeScope="True" UseLayoutRounding="True" SnapsToDevicePixels="True" 
                     mah:SliderHelper.EnableMouseWheel="MouseHover" mah:SliderHelper.ChangeValueBy="LargeChange"
                     ValueChanged="ActionZoomRatio_ValueChanged">

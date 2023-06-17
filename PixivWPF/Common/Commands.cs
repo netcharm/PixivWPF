@@ -747,6 +747,50 @@ namespace PixivWPF.Common
             }
         });
 
+        public static ICommand CopyDownloadedPath { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            try
+            {
+                if (obj is PixivItem)
+                {
+                    var item = obj as PixivItem;
+                    if (item.IsWork())
+                    {
+                        var files = new List<string>();
+                        files.AddRange(item.DownloadedFilePaths);
+                        CopyText.Execute(string.Join(Environment.NewLine, files));
+                    }
+                }
+                else if (obj is ImageListGrid)
+                {
+                    await new Action(() =>
+                    {
+                        var gallery = obj as ImageListGrid;
+                        var files = new List<string>();
+                        foreach (var item in gallery.GetSelected())
+                        {
+                            files.AddRange(item.DownloadedFilePaths);
+                        }
+                        CopyText.Execute(string.Join(Environment.NewLine, files));
+                    }).InvokeAsync();
+                }
+                else if (obj is IList<PixivItem>)
+                {
+                    await new Action(() =>
+                    {
+                        var gallery = obj as IList<PixivItem>;
+                        var files = new List<string>();
+                        foreach (var item in gallery)
+                        {
+                            files.AddRange(item.DownloadedFilePaths);
+                        }
+                        CopyText.Execute(string.Join(Environment.NewLine, files));
+                    }).InvokeAsync();
+                }
+            }
+            catch (Exception ex) { ex.ERROR("OpenDownloaded"); }
+        });
+
         public static ICommand Compare { get; } = new DelegateCommand<dynamic>(async (obj) =>
         {
             if (obj is string)

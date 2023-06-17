@@ -610,7 +610,13 @@ namespace PixivWPF.Pages
                 foreach (var item in items)
                 {
                     if (item is DownloadInfo)
-                        targets.Add((item as DownloadInfo).FileName.ParseLink().ParseID());
+                    {
+                        var shift = System.Windows.Input.Keyboard.Modifiers == System.Windows.Input.ModifierKeys.Shift;
+                        var ctrl = System.Windows.Input.Keyboard.Modifiers == System.Windows.Input.ModifierKeys.Control;
+                        if (shift && (item as DownloadInfo).State == DownloadState.Finished) { targets.Add((item as DownloadInfo).FileName); }
+                        else if (ctrl) { targets.Add((item as DownloadInfo).FileName); }
+                        else targets.Add((item as DownloadInfo).FileName.ParseLink().ParseID());
+                    }
                 }
                 Commands.CopyArtworkIDs.Execute(targets);
             }).InvokeAsync(true);

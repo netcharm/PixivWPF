@@ -164,6 +164,9 @@ namespace PixivWPF.Pages
             }
         }
 
+        private const double _ZoomMin_ =  0.10;
+        private const double _ZoomMax_ = 10.00;
+
         private const int down_rate_mv = 3;
         private TimeSpan down_totalelapsed = TimeSpan.FromSeconds(0);
         private TimeSpan down_lastelapsed = TimeSpan.FromSeconds(0);
@@ -726,6 +729,8 @@ namespace PixivWPF.Pages
                 {
                     DefaultOriginalToolTip = btnViewOriginalPage.ToolTip is string ? btnViewOriginalPage.ToolTip as string : string.Empty;
 
+                    ZoomRatio.Minimum = _ZoomMin_;
+                    ZoomRatio.Maximum = _ZoomMax_;
                     ZoomBar.Hide();
 
                     #region ToolButton MouseOver action
@@ -1229,7 +1234,7 @@ namespace PixivWPF.Pages
             if (IsLoaded && !ActionZoomFitOp)
             {
                 var delta = e.NewValue - e.OldValue;
-                if (Math.Abs(delta) >= 0.25) //ZoomRatio.LargeChange)
+                if (Math.Abs(delta) >= _ZoomMin_) //ZoomRatio.LargeChange)
                 {
                     new Action(() =>
                     {
@@ -1239,13 +1244,15 @@ namespace PixivWPF.Pages
                             var eq = Math.Round(e.NewValue);
                             if (delta > 0)
                             {
-                                if (e.OldValue >= 0.25 && e.NewValue < 1.5) eq = 0.5;
+                                if (e.OldValue >= _ZoomMin_ && e.NewValue < 1.5) eq = 0.25;
+                                else if (e.OldValue >= 0.25 && e.NewValue < 1.5) eq = 0.5;
                                 else if (e.OldValue >= 0.5 && e.NewValue < 2.0) eq = 1;
                             }
                             else if (delta < 0)
                             {
                                 if (e.OldValue >= 1.0 && e.NewValue < 1.0) eq = 0.5;
                                 else if (e.OldValue >= 0.5 && e.NewValue < 0.5) eq = 0.25;
+                                else if (e.OldValue >= 0.25 && e.NewValue < 0.25) eq = _ZoomMin_;
                             }
                             if (e.NewValue != eq) ZoomRatio.Value = eq;
                         }

@@ -287,6 +287,40 @@ namespace PixivWPF.Common
         public string DownloadedTooltip { get; set; } = string.Empty;
         public string DownloadedFilePath { get; set; } = string.Empty;
 
+        private List<string> _DownloadedFilePaths_ = new List<string>();
+        public List<string> DownloadedFilePaths
+        {
+            get
+            {
+                try
+                {
+                    if (!(_DownloadedFilePaths_ is List<string>)) _DownloadedFilePaths_ = new List<string>();
+                    if (this.HasPages())
+                    {
+                        _DownloadedFilePaths_.Clear();
+                        for (var i = 0; i < Count; i++)
+                        {
+                            string fp = string.Empty;
+                            if (Illust.IsDownloaded(out fp, i, false)) _DownloadedFilePaths_.Add(fp);
+                        }
+                    }
+                    else
+                    {
+                        _DownloadedFilePaths_.Clear();
+                        string fp = string.Empty;
+                        if (Illust.IsDownloaded(out fp, -1, true))
+                        {
+                            DownloadedFilePath = fp;
+                            _DownloadedFilePaths_.Add(fp);
+                        }
+                    }
+                }
+                catch (Exception ex) { ex.ERROR("DownloadedFilePaths"); }
+                return (_DownloadedFilePaths_);
+            }
+            set { _DownloadedFilePaths_ = value; }
+        }
+
         public bool UsePartDownloaded { get; set; } = false;
 
         public string Sanity { get; set; } = "all";

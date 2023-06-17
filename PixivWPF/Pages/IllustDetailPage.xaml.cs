@@ -3400,10 +3400,17 @@ namespace PixivWPF.Pages
             //if (sender == PreviewOpenDownloaded || (sender is MenuItem && (sender as MenuItem).Uid.Equals("ActionOpenDownloaded", StringComparison.CurrentCultureIgnoreCase)))
             if (sender == PreviewOpenDownloaded || uid.Equals("ActionOpenDownloaded", StringComparison.CurrentCultureIgnoreCase))
             {
+                var shift = Keyboard.Modifiers == ModifierKeys.Shift;
                 if (Contents.Count <= 1 || SubIllusts.SelectedItems.Count == 0)
-                    Commands.OpenDownloaded.Execute(Contents);
+                {
+                    if (shift) Commands.CopyDownloadedPath.Execute(Contents);
+                    else Commands.OpenDownloaded.Execute(Contents);
+                }
                 else
-                    Commands.OpenDownloaded.Execute(SubIllusts);
+                {
+                    if (shift) Commands.CopyDownloadedPath.Execute(SubIllusts);
+                    else Commands.OpenDownloaded.Execute(SubIllusts);
+                }
             }
             else if (sender == PreviewOpen)
             {
@@ -5447,21 +5454,31 @@ namespace PixivWPF.Pages
             {
                 if (sender is MenuItem)
                 {
+                    var shift = Keyboard.Modifiers == ModifierKeys.Shift;
                     var mi = sender as MenuItem;
                     var host = mi.GetContextMenuHost();
                     if (mi.Uid.Equals("ActionOpenDownloaded", StringComparison.CurrentCultureIgnoreCase))
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
-                            Commands.OpenDownloaded.Execute(SubIllusts);
+                            if (shift)
+                                Commands.CopyDownloadedPath.Execute(SubIllusts);
+                            else
+                                Commands.OpenDownloaded.Execute(SubIllusts);
                         }
                         else if (host == RelatedItemsExpander || host == RelatedItems)
                         {
-                            Commands.OpenDownloaded.Execute(RelatedItems);
+                            if (shift)
+                                Commands.CopyDownloadedPath.Execute(RelatedItems);
+                            else
+                                Commands.OpenDownloaded.Execute(RelatedItems);
                         }
                         else if (host == FavoriteItemsExpander || host == FavoriteItems)
                         {
-                            Commands.OpenDownloaded.Execute(FavoriteItems);
+                            if (shift)
+                                Commands.CopyDownloadedPath.Execute(FavoriteItems);
+                            else
+                                Commands.OpenDownloaded.Execute(FavoriteItems);
                         }
                     }
                     else if (mi.Uid.Equals("ActionOpenDownloadedProperties", StringComparison.CurrentCultureIgnoreCase))
