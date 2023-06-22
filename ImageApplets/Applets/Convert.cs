@@ -239,7 +239,10 @@ namespace ImageApplets.Applets
 
                     fmt = fmt.ToLower();
                     if (fmt.Equals("png")) pFmt = System.Drawing.Imaging.ImageFormat.Png;
-                    else if (fmt.Equals("jpg")) pFmt = System.Drawing.Imaging.ImageFormat.Jpeg;
+                    else if (fmt.Equals("jpg") || fmt.Equals("jpeg")) pFmt = System.Drawing.Imaging.ImageFormat.Jpeg;
+                    else if (fmt.Equals("tif") || fmt.Equals("tiff")) pFmt = System.Drawing.Imaging.ImageFormat.Tiff;
+                    else if (fmt.Equals("bmp")) pFmt = System.Drawing.Imaging.ImageFormat.Bmp;
+                    else if (fmt.Equals("gif")) pFmt = System.Drawing.Imaging.ImageFormat.Gif;
                     else return (buffer);
 
                     if (quality <= 0 || quality > 100) quality = 85;
@@ -359,27 +362,27 @@ namespace ImageApplets.Applets
             return (result);
         }
 
-        private Stream ReduceImageFileSize(Stream src, string fmt, int quality = 75, bool keep_name = false)
+        private Stream ReduceImageFileSize(Stream src, string fmt, int quality = 75, bool keep_name = true)
         {
             return (ConvertImageTo(src, fmt, quality, keep_name));
         }
 
-        private string ConvertImageTo(string file, string fmt, int quality = 75, bool keep_name = false)
+        private string ConvertImageTo(string src, string dst, string fmt, int quality = 75, bool keep_name = false)
         {
             string result = string.Empty;
             try
             {
-                if (!string.IsNullOrEmpty(file) && File.Exists(file))
+                if (!string.IsNullOrEmpty(src) && File.Exists(src))
                 {
-
-                    var fi = new System.IO.FileInfo(file);
+                    var fi = new System.IO.FileInfo(src);
                     var dc = fi.CreationTime;
                     var dm = fi.LastWriteTime;
                     var da = fi.LastAccessTime;
 
-                    var fout = keep_name ? file : Path.ChangeExtension(file, $".{fmt}");
+                    if (string.IsNullOrEmpty(dst)) dst = src;
+                    var fout = keep_name ? src : Path.ChangeExtension(dst, $".{fmt}");
 
-                    var bi = File.ReadAllBytes(file);
+                    var bi = File.ReadAllBytes(src);
                     using (var msi = new MemoryStream(bi))
                     {
                         DateTime dt;
@@ -460,112 +463,36 @@ namespace ImageApplets.Applets
             return (result);
         }
 
-        private string ReduceImageFileSize(string file, string fmt, int quality = 75, bool keep_name = false)
+        private string ReduceImageFileSize(string src, string dst, string fmt, int quality = 75, bool keep_name = true)
         {
-            return (ConvertImageTo(file, fmt, quality, keep_name));
+            return (ConvertImageTo(src, dst, fmt, quality, keep_name));
         }
 
-        private async Task<string> ConvertImageToAsync(string file, string fmt, int quality = 75, bool keep_name = false)
+        public override bool Execute<T>(Stream source, out T result, params object[] args)
         {
-            string result = string.Empty;
+            var ret = false;
+            result = default(T);
             try
             {
-                if (!string.IsNullOrEmpty(file) && File.Exists(file))
+                Result.Reset();
+                dynamic status = false;
+                if (source is Stream && source.CanRead)
                 {
-                    await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                    if (string.IsNullOrEmpty(_ImageFormat_)) _ImageFormat_ = "jpg";
+
+                    if (_supported_format_.Contains(_ImageFormat_))
                     {
-                        var fi = new System.IO.FileInfo(file);
-                        var dc = fi.CreationTime;
-                        var dm = fi.LastWriteTime;
-                        var da = fi.LastAccessTime;
-
-                        var fout = keep_name ? file : Path.ChangeExtension(file, $".{fmt}");
-
-                        var bi = File.ReadAllBytes(file);
-                        using (var msi = new MemoryStream(bi))
-                        {
-                            DateTime dt;
-                            var exif = new ExifData(msi);
-                            if (exif.ImageType == CompactExifLib.ImageType.Png)
-                            {
-                                msi.Seek(0, SeekOrigin.Begin);
-                                var meta = GetPngMetaInfo(msi, full_field: false);
-                                if (meta.ContainsKey("Creation Time") && DateTime.TryParse(Regex.Replace(meta["Creation Time"], @"^(\d{4}):(\d{2})\:(\d{2})(.*?)$", "$1/$2/$3T$4", RegexOptions.IgnoreCase), out dt))
-                                {
-                                    if (!exif.TagExists(ExifTag.DateTime)) exif.SetDateChanged(dt);
-                                    if (!exif.TagExists(ExifTag.DateTimeDigitized)) exif.SetDateDigitized(dt);
-                                    if (!exif.TagExists(ExifTag.DateTimeOriginal)) exif.SetDateTaken(dt);
-                                }
-                                if (!exif.TagExists(ExifTag.XpTitle) && meta.ContainsKey("Title"))
-                                    exif.SetTagValue(ExifTag.XpTitle, meta["Title"], StrCoding.Utf16Le_Byte);
-                                if (!exif.TagExists(ExifTag.XpSubject) && meta.ContainsKey("Subject"))
-                                    exif.SetTagValue(ExifTag.XpSubject, meta["Subject"], StrCoding.Utf16Le_Byte);
-                                //exif.SetTagRawData(ExifTag.XpSubject, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta["Subject"]), Encoding.Unicode.GetBytes(meta["Subject"]));
-                                if (!exif.TagExists(ExifTag.XpAuthor) && meta.ContainsKey("Author"))
-                                {
-                                    exif.SetTagValue(ExifTag.Artist, meta["Author"], StrCoding.Utf8);
-                                    exif.SetTagValue(ExifTag.XpAuthor, meta["Author"], StrCoding.Utf16Le_Byte);
-                                    //exif.SetTagRawData(ExifTag.XpAuthor, ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta["Author"]), Encoding.Unicode.GetBytes((meta["Author"]));
-                                }
-                                if (!exif.TagExists(ExifTag.Copyright) && meta.ContainsKey("Copyright"))
-                                    exif.SetTagValue(ExifTag.Copyright, meta["Copyright"], StrCoding.Utf8);
-
-                                if (!exif.TagExists(ExifTag.XpComment) && meta.ContainsKey("Description"))
-                                    exif.SetTagValue(ExifTag.XpComment, meta["Description"], StrCoding.Utf16Le_Byte);
-                                if (!exif.TagExists(ExifTag.UserComment) && meta.ContainsKey("Description"))
-                                    exif.SetTagValue(ExifTag.UserComment, meta["Description"], StrCoding.IdCode_Utf16);
-
-                                if (!exif.TagExists(ExifTag.XpKeywords) && meta.ContainsKey("Comment"))
-                                    exif.SetTagValue(ExifTag.XpKeywords, meta["Comment"], StrCoding.Utf16Le_Byte);
-
-                                if (!exif.TagExists(ExifTag.FileSource) && meta.ContainsKey("Source"))
-                                    exif.SetTagValue(ExifTag.FileSource, meta["Source"], StrCoding.Utf8);
-
-                                if (!exif.TagExists(ExifTag.Software) && meta.ContainsKey("Software"))
-                                    exif.SetTagValue(ExifTag.Software, meta["Software"], StrCoding.Utf8);
-
-                                if (!exif.TagExists(ExifTag.XmpMetadata) && meta.ContainsKey("XML:com.adobe.xmp"))
-                                {
-                                    var value = string.Join("", meta["XML:com.adobe.xmp"].Split(new char[]{ '\0' }).Last().ToArray().SkipWhile(c => c != '<'));
-                                    exif.SetTagRawData(ExifTag.XmpMetadata, ExifTagType.Byte, Encoding.UTF8.GetByteCount(value), Encoding.UTF8.GetBytes(value));
-                                }
-                                else if (!exif.TagExists(ExifTag.XmpMetadata) && meta.ContainsKey("Raw profile type xmp"))
-                                {
-                                    var value = string.Join("", meta["Raw profile type xmp"].Split(new char[]{ '\0' }).Last().ToArray().SkipWhile(c => c != '<'));
-                                    exif.SetTagRawData(ExifTag.XmpMetadata, ExifTagType.Byte, Encoding.UTF8.GetByteCount(value), Encoding.UTF8.GetBytes(value));
-                                }
-                            }
-
-                            var bo = ConvertImageTo(bi, fmt, quality: quality);
-                            using (var msp = new MemoryStream(bo))
-                            {
-                                var exif_out = new ExifData(msp);
-                                exif_out.ReplaceAllTagsBy(exif);
-                                using (var mso = new MemoryStream())
-                                {
-                                    msp.Seek(0, SeekOrigin.Begin);
-                                    exif_out.Save(msp, mso);
-                                    File.WriteAllBytes(fout, mso.ToArray());
-                                }
-                            }
-                        }
-
-                        var fo = new System.IO.FileInfo(fout);
-                        fo.CreationTime = dc;
-                        fo.LastWriteTime = dm;
-                        fo.LastAccessTime = da;
-
-                        result = fout;
-                    }));
+                        var target = ConvertImageTo(source, _ImageFormat_, _ImageQuality_, _KeepName_);
+                        status = (dynamic)true;
+                    }
                 }
-            }
-            catch (Exception ex) { ShowMessage(ex.Message); }
-            return (result);
-        }
+                ret = GetReturnValueByStatus(status);
+                result = (T)(object)status;
 
-        private async Task<string> ReduceImageFileSizeAsync(string file, string fmt, int quality = 75, bool keep_name = false)
-        {
-            return (await ConvertImageToAsync(file, fmt, quality, keep_name));
+                Result.Set(InputFile, OutputFile, ret, result);
+            }
+            catch (Exception ex) { ShowMessage(ex, Name); }
+            return (ret);
         }
 
         public override bool Execute<T>(string file, out T result, params object[] args)
@@ -589,10 +516,10 @@ namespace ImageApplets.Applets
                     if (!_ImageFormat_.Equals(fmt) && _supported_format_.Contains(_ImageFormat_))
                     {
                         var OutputFileExt = $".{_ImageFormat_}";
-                        OutputFile = Path.Combine(_TargetFolder_.Equals(".") ? dir : _TargetFolder_, Path.ChangeExtension(Path.GetFileName(file), OutputFileExt));
+                        OutputFile = _KeepName_ ? InputFile : Path.Combine(_TargetFolder_.Equals(".") ? dir : _TargetFolder_, Path.ChangeExtension(Path.GetFileName(file), OutputFileExt));
                         if (_OverWrite_ || !File.Exists(OutputFile))
                         {
-                            var target = ConvertImageTo(InputFile, OutputFileExt, _ImageQuality_, _KeepName_);
+                            var target = ConvertImageTo(InputFile, OutputFile, _ImageFormat_, _ImageQuality_, _KeepName_);
                             if (File.Exists(OutputFile))
                             {
                                 status = _TargetName_ ? (dynamic)OutputFile : (dynamic)true;
@@ -664,8 +591,6 @@ namespace ImageApplets.Applets
         {
             var ret = false;
             result = default(T);
-
-            dynamic status = "Unknown";
             try
             {
                 Result.Reset();
@@ -686,13 +611,14 @@ namespace ImageApplets.Applets
         {
             var ret = false;
             result = default(T);
-
-            dynamic status = "Unknown";
             try
             {
                 Result.Reset();
                 if (File.Exists(file))
-                {                    
+                {
+                    _instance_.KeepName = true;
+                    _instance_.ImageQuality = _ImageQuality_;
+                    _instance_.ConvertBGColor = _BGColor_;
                     ret = _instance_.Execute(file, out result, args);
                 }
                 Result.Set(InputFile, OutputFile, ret, result);
