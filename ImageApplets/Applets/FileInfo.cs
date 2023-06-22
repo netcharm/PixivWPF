@@ -336,7 +336,7 @@ namespace ImageApplets.Applets
                     {
                         var padding = "".PadLeft(ValuePaddingLeft);
                         StringBuilder sb = new StringBuilder();
-                        sb.Append("\u20D0");
+                        sb.Append(ContentMark);
                         foreach (var c in cats.Where(cat => fi_dict.ContainsKey(cat)))
                         {
                             var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();

@@ -850,7 +850,7 @@ namespace ImageApplets
         public Action<int, int, ExecuteResult, object, object> ReportProgress { get; set; } = null;
         #endregion
 
-        public static string ClipboardName = "ClipBoard";
+        public static string ClipboardName { get; } = "ClipBoard";
 
         public static string DateTimeFormat = $"yyyy-MM-dd HH:mm:ss.fffzzz";
         public static string DateTimeFormatLocal = $"{CultureInfo.CurrentCulture.DateTimeFormat.LongDatePattern}, ddd";
@@ -885,7 +885,7 @@ namespace ImageApplets
         public ReadMode ReadInputMode { get { return (_ReadInputMode_); } }
 
         static public string[] LINE_BREAK { get; set; } = new string[] { Environment.NewLine, "\n\r", "\r\n", "\n", "\r" };
-        static public char ValueHeader = '\u20D0';
+        static public char ContentMark { get; } = '\u20D0';
 
         public string Name { get { return (this.GetType().Name); } }
 
@@ -1124,7 +1124,7 @@ namespace ImageApplets
             else if (status is string && !string.IsNullOrEmpty(status as string))
             {
                 bool value = false;
-                if (bool.TryParse((status as string).Trim().Trim(ValueHeader).Trim(), out value)) ret = GetReturnValueByStatus(value);
+                if (bool.TryParse((status as string).Trim().Trim(ContentMark).Trim(), out value)) ret = GetReturnValueByStatus(value);
             }
             else if (status is IEnumerable<bool>)
             {
@@ -1134,7 +1134,7 @@ namespace ImageApplets
             else if(status is IEnumerable<string>)
             {
                 bool value = false;
-                if (bool.TryParse((string.Join($"{Path.PathSeparator}", (IEnumerable<string>)status)).Trim().Trim(ValueHeader).Trim(), out value))
+                if (bool.TryParse((string.Join(Environment.NewLine, (IEnumerable<string>)status)).Trim().Trim(ContentMark).Trim(), out value))
                     ret = GetReturnValueByStatus(value);
             }
             return (ret);

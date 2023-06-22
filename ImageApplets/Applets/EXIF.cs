@@ -657,7 +657,7 @@ namespace ImageApplets.Applets
                         #region Output attributes
                         var padding = "".PadLeft(ValuePaddingLeft);
                         StringBuilder sb = new StringBuilder();
-                        sb.Append(ValueHeader);
+                        sb.Append(ContentMark);
                         if (cats.Contains("title") && !string.IsNullOrEmpty(title)) sb.AppendLine($"{padding}{title}");
                         if (cats.Contains("subject") && !string.IsNullOrEmpty(subject)) sb.AppendLine($"{padding}{subject}");
                         if (cats.Contains("keyword") && !string.IsNullOrEmpty(keywords)) sb.AppendLine($"{padding}{keywords}");
