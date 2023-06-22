@@ -25,40 +25,12 @@ namespace ImageApplets.Applets
 
             var opts = new OptionSet()
             {
-                { "viewer=", "Custom Specicalfiles Viewer", v => { _viewer_ = v; } },
+                { "v|viewer=", "Custom Specicalfiles Viewer", v => { _viewer_ = v; } },
                 { "" },
             };
             AppendOptions(opts);
 
             if (!string.IsNullOrEmpty(_viewer_) && !Path.IsPathRooted(_viewer_)) InSearchPath(_viewer_, out _viewer_);
-        }
-
-        private bool InSearchPath(string file, out string fullname)
-        {
-            var result = false;
-            fullname = string.Empty;
-
-            try
-            {
-                if (Path.IsPathRooted(file))
-                {
-                    result = File.Exists(file);
-                    if (result) fullname = file;
-                }
-                else
-                {
-                    var plist = Environment.GetEnvironmentVariable("PATH").Split(Path.PathSeparator);
-                    foreach (var p in plist)
-                    {
-                        var f = Path.GetFullPath(Path.Combine(p, file));
-                        result = File.Exists(file);
-                        if (result) { fullname = file; break; }
-                    }
-                }
-            }
-            catch (Exception ex) { ShowMessage(ex, Name); }
-
-            return (result);
         }
 
         public override bool Execute<T>(string file, out T result, params object[] args)

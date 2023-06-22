@@ -31,7 +31,7 @@ namespace ImageApplets.Applets
             {
                 { "d|folder=", "Target {Folder}", v => { _TargetFolder_ = !string.IsNullOrEmpty(v) ? v : "."; } },
                 { "o|overwrite", "Overwrite Exists File", v => { _OverWrite_ = true; } },
-                { "w|targetfile", "Out Target File Name", v => { _TargetName_ = true; } },
+                { "s|showtarget", "Out Target File Name", v => { _TargetName_ = true; } },
                 { "" },
             };
             AppendOptions(opts);
@@ -53,7 +53,10 @@ namespace ImageApplets.Applets
                     var folder = _TargetFolder_;
 
                     if (!string.IsNullOrEmpty(folder) && !Directory.Exists(folder))
-                        Directory.CreateDirectory(folder);
+                    {
+                        if (Directory.GetLogicalDrives().Contains(Path.GetPathRoot(Path.GetFullPath(folder))))
+                            Directory.CreateDirectory(folder);
+                    }
 
                     if (Directory.Exists(folder))
                     {

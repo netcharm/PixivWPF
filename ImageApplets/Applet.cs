@@ -895,6 +895,12 @@ namespace ImageApplets
         static private bool _verbose_ = false;
         public bool Verbose { get { return (_verbose_); } }
 
+        static private bool _descending_ = false;
+        public bool Descending { get { return (_descending_); } }
+
+        static private int _sortzero_ = 16;
+        public int SortZero { get { return (_sortzero_); } }
+
         static private string _input_file_ = string.Empty;
         public string InputFile { get { return (_input_file_); } set { _input_file_ = value is string ? value : string.Empty; } }
 
@@ -926,6 +932,8 @@ namespace ImageApplets
             { "a|all", "Keep All", v => { Status = STATUS.All; } },
             { " " },
             { "verbose", "Output All When Redirected STDOUT", v => { _verbose_ = true; } },
+            { "descending", "Process File List Order", v => { _descending_ = true; } },
+            { "sortzero=", "Max Of NaturalSort Padding Zero", v => { if (!string.IsNullOrEmpty(v)) int.TryParse(v, out _sortzero_); } },
             { "result|log=", "Result To {FILE} or CLIPBOARD", v => { if (!string.IsNullOrEmpty(v)) _result_file_ = v; } },
             { "input|filelist=", "Get Files From {FILE} or CLIPBOARD", v => { if (!string.IsNullOrEmpty(v)) _input_file_ = v; } },
             { "output=", "Output To {FILE} or CLIPBOARD", v => { if (!string.IsNullOrEmpty(v)) _output_file_ = v; } },
@@ -1035,6 +1043,34 @@ namespace ImageApplets
             return (result);
         }
 
+        public virtual bool InSearchPath(string file, out string fullname)
+        {
+            var result = false;
+            fullname = string.Empty;
+
+            try
+            {
+                if (Path.IsPathRooted(file))
+                {
+                    result = File.Exists(file);
+                    if (result) fullname = file;
+                }
+                else
+                {
+                    var plist = Environment.GetEnvironmentVariable("PATH").Split(Path.PathSeparator);
+                    foreach (var p in plist)
+                    {
+                        var f = Path.GetFullPath(Path.Combine(p, file));
+                        result = File.Exists(file);
+                        if (result) { fullname = file; break; }
+                    }
+                }
+            }
+            catch (Exception ex) { ShowMessage(ex, Name); }
+
+            return (result);
+        }
+
         public virtual List<string> ParseOptions(IEnumerable<string> args)
         {
             return (Options.Parse(args));
@@ -1088,7 +1124,18 @@ namespace ImageApplets
             else if (status is string && !string.IsNullOrEmpty(status as string))
             {
                 bool value = false;
-                if(bool.TryParse((status as string).Trim().Trim(ValueHeader).Trim(), out value)) ret = GetReturnValueByStatus(value);
+                if (bool.TryParse((status as string).Trim().Trim(ValueHeader).Trim(), out value)) ret = GetReturnValueByStatus(value);
+            }
+            else if (status is IEnumerable<bool>)
+            {
+                ret = ((IEnumerable<bool>)status).Count() > 0 ? true : false;
+                foreach (var s in (IEnumerable<bool>)status) { ret |= s; };
+            }
+            else if(status is IEnumerable<string>)
+            {
+                bool value = false;
+                if (bool.TryParse((string.Join($"{Path.PathSeparator}", (IEnumerable<string>)status)).Trim().Trim(ValueHeader).Trim(), out value))
+                    ret = GetReturnValueByStatus(value);
             }
             return (ret);
         }
@@ -1432,6 +1479,60 @@ namespace ImageApplets
                 }
                 return (status);
             }
+        }
+
+        private static string NormalizationFileName(string file, int? padding = null)
+        {
+            var f = Path.GetFileName(file);
+            return (Regex.Replace(f, @"\d+", m => m.Value.PadLeft(padding ?? _sortzero_, '0')));
+        }
+
+        public static IList<string> NaturalSort(IList<string> list, int? padding = null, bool? descending = null)
+        {
+            try
+            {
+                if (descending ?? _descending_)
+                    return (list is IList<string> ? list.OrderByDescending(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding ?? _sortzero_, '0'))).ToList() : list);
+                else
+                    return (list is IList<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding ?? _sortzero_, '0'))).ToList() : list);
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message); return (list); }
+        }
+
+        public static IList<FileInfo> NaturalSort(IList<FileInfo> list, int? padding = null, bool? descending = null)
+        {
+            try
+            {
+                if (descending ?? _descending_)
+                    return (list is IList<FileInfo> ? list.OrderByDescending(x => NormalizationFileName(x.FullName, padding)).ToList() : list);
+                else
+                    return (list is IList<FileInfo> ? list.OrderBy(x => NormalizationFileName(x.FullName, padding)).ToList() : list);
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message); return (list); }
+        }
+
+        public static IEnumerable<string> NaturalSort(IEnumerable<string> list, int? padding = null, bool? descending = null)
+        {
+            try
+            {
+                if (descending ?? _descending_)
+                    return (list is IEnumerable<string> ? list.OrderByDescending(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding ?? _sortzero_, '0'))) : list);
+                else
+                    return (list is IEnumerable<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding ?? _sortzero_, '0'))) : list);
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message); return (list); }
+        }
+
+        public static IEnumerable<FileInfo> NaturalSort(IEnumerable<FileInfo> list, int? padding = null, bool? descending = null)
+        {
+            try
+            {
+                if (descending ?? _descending_)
+                    return (list is IEnumerable<FileInfo> ? list.OrderByDescending(x => NormalizationFileName(x.FullName, padding)) : list);
+                else
+                    return (list is IEnumerable<FileInfo> ? list.OrderBy(x => NormalizationFileName(x.FullName, padding)) : list);
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message); return (list); }
         }
 
         public virtual bool Execute<T>(string file, out T result, params object[] args)
