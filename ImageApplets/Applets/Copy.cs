@@ -90,13 +90,14 @@ namespace ImageApplets.Applets
 
                 if (OutputFiles.Count > 0)
                 {
-                    status = _TargetName_ ? OutputFiles.Select(o => o.Key) : OutputFiles.Select(o => o.Value);
+                    var padding = "".PadLeft(ValuePaddingLeft);
+                    status = _TargetName_ ? OutputFiles.Select(o => $"{padding}{o.Key}") : OutputFiles.Select(o => $"{padding}{o.Value}");
                     ret = GetReturnValueByStatus(status);
                     //result = (T)(object)(string.Join($"{Path.PathSeparator}", ((IEnumerable<dynamic>)status).ToList()) + Path.PathSeparator);
-                    result = (T)(object)(string.Join($"{Path.PathSeparator}", ((IEnumerable<dynamic>)status).ToList()));
+                    result = (T)(object)(string.Join(Environment.NewLine, ((IEnumerable<dynamic>)status).ToList()).Trim());
 
                     //Result.Set(InputFile, string.Join($"{Path.PathSeparator}", OutputFiles.Select(o => o.Key)) + Path.PathSeparator, ret, result);
-                    Result.Set(InputFile, string.Join($"{Path.PathSeparator}", OutputFiles.Select(o => o.Key)), ret, result);
+                    Result.Set(InputFile, string.Join(Environment.NewLine, OutputFiles.Select(o => $"{padding}{o.Key}")).Trim(), ret, result);
                 }
                 else
                 {
