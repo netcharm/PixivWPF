@@ -155,10 +155,14 @@ namespace ImageAppletsCLI
                         if (Console.IsOutputRedirected)
                             Console.Out.Close();
 
-                        if (!Console.IsOutputRedirected || applet.Verbose )
+                        if (!Console.IsOutputRedirected || applet.Verbose)
+                        {
                             Console.Out.WriteLine("".PadRight(Math.Min(LINE_COUNT, max_len + 8), '-'));
+                            Console.Out.WriteLine($"Total {_flist_out_.Count} Items.");
+                        }                            
 
                         _log_.Add("".PadRight(Math.Min(LINE_COUNT, max_len + 8), '-'));
+                        _log_.Add($"Total {_flist_out_.Count} Items.");
                         #endregion
 
                         #region Save run log to file When applet set output option with filename
@@ -191,7 +195,7 @@ namespace ImageAppletsCLI
                     {
                         var folder = Path.GetDirectoryName(file);
                         var fname = folder.Equals(".") || folder.StartsWith(".\\") ? file.Substring(2) : file;
-                        var is_contents = result is string && (result as string).StartsWith("\u20D0");
+                        var is_contents = result is string && (result as string).StartsWith($"{ImageApplets.Applet.ContentHeader}");
                         if (is_contents) result = (result as string).Substring(1).Trim();
                         if (!Console.IsOutputRedirected || applet.Verbose)
                         {
