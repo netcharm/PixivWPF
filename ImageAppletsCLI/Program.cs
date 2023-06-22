@@ -146,6 +146,7 @@ namespace ImageAppletsCLI
                         #region Runing applet
                         if (files.Count > 0)
                         {
+                            files = ImageApplets.Applet.NaturalSort(files, descending: applet.Descending).ToList();
                             RunApplet(files, applet, max_len, extras.ToArray());
                         }
                         #endregion
@@ -229,9 +230,9 @@ namespace ImageAppletsCLI
         {
             if (files is IEnumerable<string>)
             {
-                foreach (var file in files)
+                foreach (var file in files.Select(f => f.Trim('"')))
                 {
-                    RunApplet(file.Trim('"'), applet, padding, extras);
+                    if (File.Exists(file)) RunApplet(file, applet, padding, extras);
                 }
             }
         }
