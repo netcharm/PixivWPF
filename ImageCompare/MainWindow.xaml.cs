@@ -620,6 +620,42 @@ namespace ImageCompare
                                         if (image_t.CurrentSize.Width != image_t.OriginalSize.Width && image_t.CurrentSize.Height != image_t.OriginalSize.Height)
                                             image_t.Reload();
                                     }
+
+                                    if (CompareImageAutoMatchSize)
+                                    {
+                                        if (image_s.ValidCurrent && image_t.ValidCurrent)
+                                        {
+                                            var offset = new PointD(image_s.BaseSize.Width - image_t.BaseSize.Width, image_s.BaseSize.Height - image_t.BaseSize.Height);
+                                            if (offset.X != 0 || offset.Y != 0)
+                                            {
+                                                var w_s = (int)Math.Max(image_s.BaseSize.Width, image_s.BaseSize.Width - offset.X);
+                                                var h_s = (int)Math.Max(image_s.BaseSize.Height, image_s.BaseSize.Height - offset.Y);
+                                                var w_t = (int)Math.Max(image_t.BaseSize.Width, image_t.BaseSize.Width + offset.X);
+                                                var h_t = (int)Math.Max(image_t.BaseSize.Height, image_t.BaseSize.Height + offset.Y);
+
+                                                image_s.Current.Extent(w_s, h_s, Gravity.Center, image_s.Current.HasAlpha ? MagickColors.Transparent : image_s.Current.BackgroundColor);
+                                                image_t.Current.Extent(w_t, h_t, Gravity.Center, image_t.Current.HasAlpha ? MagickColors.Transparent : image_t.Current.BackgroundColor);
+
+                                                image_s.Current.RePage();
+                                                image_t.Current.RePage();
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (image_s.ValidCurrent && image_t.ValidCurrent)
+                                        {
+                                            var offset = new PointD(image_s.BaseSize.Width - image_t.BaseSize.Width, image_s.BaseSize.Height - image_t.BaseSize.Height);
+                                            if (offset.X != 0 || offset.Y != 0)
+                                            {
+                                                image_s.Current.Crop((int)image_s.BaseSize.Width, (int)image_s.BaseSize.Height, Gravity.Center);
+                                                image_t.Current.Crop((int)image_t.BaseSize.Width, (int)image_t.BaseSize.Height, Gravity.Center);
+
+                                                image_s.Current.RePage();
+                                                image_t.Current.RePage();
+                                            }
+                                        }
+                                    }
                                 }
                                 ImageSource.Source = image_s.Source;
                                 ImageTarget.Source = image_t.Source;
@@ -653,22 +689,6 @@ namespace ImageCompare
                         }
                         image_s.ChangeColorSpace(CompareImageForceColor);
                         image_t.ChangeColorSpace(CompareImageForceColor);
-
-                        if (CompareImageAutoMatchSize && image_s.ValidCurrent && image_t.ValidCurrent)
-                        {
-                            var offset = new PointD(image_s.Current.Width - image_t.Current.Width, image_s.Current.Height - image_t.Current.Height);
-                            if (offset.X != 0 || offset.Y != 0)
-                            {
-                                var w = (int)(image_t.Current.Width + offset.X);
-                                var h = (int)(image_t.Current.Height + offset.Y);
-
-                                image_s.Current.Extent(Math.Max(0, -w), Math.Max(0, -h), Gravity.Center, image_s.Current.HasAlpha ? MagickColors.Transparent : image_s.Current.BackgroundColor);
-                                image_t.Current.Extent(Math.Max(0, w), Math.Max(0, h), Gravity.Center, image_t.Current.HasAlpha ? MagickColors.Transparent : image_t.Current.BackgroundColor);
-
-                                image_s.Current.RePage();
-                                image_t.Current.RePage();
-                            }
-                        }
 
                         image_r.Current = await Compare(image_s.Current, image_t.Current, compose: compose);
 

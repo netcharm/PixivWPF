@@ -47,6 +47,9 @@ namespace ImageCompare
         }
         public Size CurrentSize { get { return (ValidCurrent ? new Size(Current.Width, Current.Height) : new Size(0, 0)); } }
 
+        private Size _basesize_ = new Size(0, 0);
+        public Size BaseSize { get { return (ValidCurrent ? _basesize_ : new Size(0, 0)); } }
+
         private ColorSpace _last_colorspace_ = ColorSpace.Undefined;
 
         public ImageSource Source { get { return (ValidCurrent ? Current.ToBitmapSource() : null); } }
@@ -661,8 +664,9 @@ namespace ImageCompare
                     ResetTransform();
                     if (reload && !string.IsNullOrEmpty(LastFileName)) LoadImageFromFile(LastFileName, update: false);
                     Current = new MagickImage(Original);
-                    Modified = true;
+                    _basesize_ = new Size(Current.Width, Current.Height);
                     _last_colorspace_ = Current.ColorSpace;
+                    Modified = true;
                     result = true;
                 }
             }
@@ -683,6 +687,7 @@ namespace ImageCompare
                     Current = new MagickImage(Original);
                     Current.Resize(geo);
                     Current.RePage();
+                    _basesize_ = new Size(Current.Width, Current.Height);
                     _last_colorspace_ = Current.ColorSpace;
                     Modified = true;
                     result = true;
