@@ -438,7 +438,7 @@ namespace ImageCompare
                 var image_t = ImageTarget.GetInformation();
 
                 if (image_s.ValidCurrent && image_t.ValidCurrent)
-                {                   
+                {
                     var s_image = source ? image_s : image_t;
                     var t_image = source ? image_t : image_s;
                     var image = s_image.Current.Clone();
@@ -845,7 +845,7 @@ namespace ImageCompare
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 if (image.ValidCurrent)
                 {
-                    if(enchance)
+                    if (enchance)
                         image.Current.Level(new Percentage(-25), new Percentage(125));
                     else
                         image.Current.AutoLevel(CompareImageChannels);
@@ -1187,7 +1187,7 @@ namespace ImageCompare
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -1204,10 +1204,10 @@ namespace ImageCompare
                 {
                     if (image_s.Current.ColorFuzz.ToDouble() != ImageCompareFuzzy.Value) image_s.Current.ColorFuzz = new Percentage(ImageCompareFuzzy.Value);
                     if (sendto)
-                        image_t.Current = new MagickImage(MasklightColor ?? image_s.Current.MatteColor ?? image_s.Current.BackgroundColor, 
+                        image_t.Current = new MagickImage(MasklightColor ?? image_s.Current.MatteColor ?? image_s.Current.BackgroundColor,
                                                           image_s.Current.Width, image_s.Current.Height);
                     else
-                        image_s.Current = new MagickImage(MasklightColor ?? image_s.Current.MatteColor ?? image_s.Current.BackgroundColor, 
+                        image_s.Current = new MagickImage(MasklightColor ?? image_s.Current.MatteColor ?? image_s.Current.BackgroundColor,
                                                           image_s.Current.Width, image_s.Current.Height);
                     action = true;
                 }

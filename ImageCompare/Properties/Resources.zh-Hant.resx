@@ -246,10 +246,10 @@
   <data name="CropBoundingBox.Header" xml:space="preserve">
     <value>裁剪無影像邊界</value>
   </data>
-  <data name="MathcSourceSize.Header" xml:space="preserve">
+  <data name="MatchSourceSize.Header" xml:space="preserve">
     <value>適配來源影像大小</value>
   </data>
-  <data name="MathcTargetSize.Header" xml:space="preserve">
+  <data name="MatchTargetSize.Header" xml:space="preserve">
     <value>適配目標影像大小</value>
   </data>
   <data name="SlicingX.Header" xml:space="preserve">
@@ -515,5 +515,8 @@
   </data>
   <data name="InfoTipDimentionOriginal" xml:space="preserve">
     <value>原圖尺寸       =</value>
+  </data>
+  <data name="AutoMatchSize.ToolTip" xml:space="preserve">
+    <value>自動匹配圖像大小</value>
   </data>
 </root>

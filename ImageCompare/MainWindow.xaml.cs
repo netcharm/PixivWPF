@@ -60,6 +60,7 @@ namespace ImageCompare
         //private double ImageDistance = 0;
 
         private Channels CompareImageChannels = Channels.Default;
+        private bool CompareImageAutoMatchSize { get { return (AutoMatchSize.IsChecked ?? false); } }
         private bool CompareImageForceScale { get { return (UseSmallerImage.IsChecked ?? false); } }
         private bool CompareImageForceColor { get { return (UseColorImage.IsChecked ?? false); } }
         private ErrorMetric ErrorMetricMode = ErrorMetric.Fuzz;
@@ -653,6 +654,22 @@ namespace ImageCompare
                         image_s.ChangeColorSpace(CompareImageForceColor);
                         image_t.ChangeColorSpace(CompareImageForceColor);
 
+                        if (CompareImageAutoMatchSize && image_s.ValidCurrent && image_t.ValidCurrent)
+                        {
+                            var offset = new PointD(image_s.Current.Width - image_t.Current.Width, image_s.Current.Height - image_t.Current.Height);
+                            if (offset.X != 0 || offset.Y != 0)
+                            {
+                                var w = (int)(image_t.Current.Width + offset.X);
+                                var h = (int)(image_t.Current.Height + offset.Y);
+
+                                image_s.Current.Extent(Math.Max(0, -w), Math.Max(0, -h), Gravity.Center, image_s.Current.HasAlpha ? MagickColors.Transparent : image_s.Current.BackgroundColor);
+                                image_t.Current.Extent(Math.Max(0, w), Math.Max(0, h), Gravity.Center, image_t.Current.HasAlpha ? MagickColors.Transparent : image_t.Current.BackgroundColor);
+
+                                image_s.Current.RePage();
+                                image_t.Current.RePage();
+                            }
+                        }
+
                         image_r.Current = await Compare(image_s.Current, image_t.Current, compose: compose);
 
                         await Task.Delay(1);
@@ -918,6 +935,12 @@ namespace ImageCompare
                     if (Enum.TryParse(appSection.Settings["ImageLayout"].Value, out value)) CurrentImageLayout = value;
                 }
 
+                if (appSection.Settings.AllKeys.Contains("AutoMatchSize"))
+                {
+                    var value = AutoMatchSize.IsChecked ?? true;
+                    if (bool.TryParse(appSection.Settings["AutoMatchSize"].Value, out value)) AutoMatchSize.IsChecked = value;
+                }
+
                 if (appSection.Settings.AllKeys.Contains("UseSmallerImage"))
                 {
                     var value = UseSmallerImage.IsChecked ?? true;
@@ -1046,6 +1069,11 @@ namespace ImageCompare
                     var value = Orientation.Horizontal;
                     if (Enum.TryParse(appSection.Settings["ImageLayout"].Value, out value)) ImageLayout.IsChecked = value == Orientation.Vertical;
                 }
+
+                if (appSection.Settings.AllKeys.Contains("AutoMatchSize"))
+                    appSection.Settings["AutoMatchSize"].Value = AutoMatchSize.IsChecked.ToString();
+                else
+                    appSection.Settings.Add("AutoMatchSize", AutoMatchSize.IsChecked.Value.ToString());
 
                 if (appSection.Settings.AllKeys.Contains("UseSmallerImage"))
                     appSection.Settings["UseSmallerImage"].Value = UseSmallerImage.IsChecked.ToString();
@@ -1182,14 +1210,14 @@ namespace ImageCompare
                 var item_size_to_source = new MenuItem()
                 {
                     Header = "Match Source Size",
-                    Uid = "MathcSourceSize",
+                    Uid = "MatchSourceSize",
                     Tag = source,
                     Icon = new TextBlock() { Text = "\uE158", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
                 };
                 var item_size_to_target = new MenuItem()
                 {
                     Header = "Match Target Size",
-                    Uid = "MathcTargetSize",
+                    Uid = "MatchTargetSize",
                     Tag = source,
                     Icon = new TextBlock() { Text = "\uE158", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
                 };
@@ -2456,6 +2484,13 @@ namespace ImageCompare
             else if (sender == ZoomFitHeight)
             {
                 CurrentZoomFitMode = ZoomFitMode.Height;
+            }
+            else if (sender == AutoMatchSize)
+            {
+                RenderRun(new Action(() =>
+                {
+                    UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: true);
+                }));
             }
             else if (sender == UseSmallerImage)
             {

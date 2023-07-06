@@ -164,6 +164,12 @@
                        Text="{Binding ElementName=ZoomRatio, Path=Value, StringFormat={}{0:F2}X}"
                        ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>
             <Separator x:Uid="Separator_5"/>
+            <ToggleButton x:Name="AutoMatchSize" x:Uid="AutoMatchSize" IsChecked="True"
+                          ToolTip="Automatic Match Image Size Before Image Compare/Composer" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="AutoMatchSizePanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="AutoMatchSizeIcon" Text="&#xE158;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                </StackPanel>
+            </ToggleButton>
             <ToggleButton x:Name="UseSmallerImage" x:Uid="UseSmallerImage" IsChecked="True"
                           ToolTip="Using Smaller Image for Compare/Compose After Image Loaded" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="UseSmallerImagePanel" Orientation="Horizontal" Margin="2">

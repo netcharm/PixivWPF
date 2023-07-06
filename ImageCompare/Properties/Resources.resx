@@ -246,10 +246,10 @@
   <data name="CropBoundingBox.Header" xml:space="preserve">
     <value>Crop BoundingBox</value>
   </data>
-  <data name="MathcSourceSize.Header" xml:space="preserve">
+  <data name="MatchSourceSize.Header" xml:space="preserve">
     <value>Match Source Size</value>
   </data>
-  <data name="MathcTargetSize.Header" xml:space="preserve">
+  <data name="MatchTargetSize.Header" xml:space="preserve">
     <value>Match Target Size</value>
   </data>
   <data name="SlicingX.Header" xml:space="preserve">
@@ -515,5 +515,8 @@
   </data>
   <data name="InfoTipDimentionOriginal" xml:space="preserve">
     <value>Original Dimention =</value>
+  </data>
+  <data name="AutoMatchSize.ToolTip" xml:space="preserve">
+    <value>Automatic Match Image Size Before Image Compare/Composer</value>
   </data>
 </root>

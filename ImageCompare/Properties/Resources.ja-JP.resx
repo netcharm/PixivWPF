@@ -246,10 +246,10 @@
   <data name="CropBoundingBox.Header" xml:space="preserve">
     <value>画像境界なしを切り取ります</value>
   </data>
-  <data name="MathcSourceSize.Header" xml:space="preserve">
+  <data name="MatchSourceSize.Header" xml:space="preserve">
     <value>マッチ元の画像サイズ</value>
   </data>
-  <data name="MathcTargetSize.Header" xml:space="preserve">
+  <data name="MatchTargetSize.Header" xml:space="preserve">
     <value>適合先画像サイズ</value>
   </data>
   <data name="SlicingX.Header" xml:space="preserve">
@@ -515,5 +515,8 @@
   </data>
   <data name="InfoTipDimentionOriginal" xml:space="preserve">
     <value>元のサイズ         =</value>
+  </data>
+  <data name="AutoMatchSize.ToolTip" xml:space="preserve">
+    <value>画像サイズを自動的に合わせる</value>
   </data>
 </root>
