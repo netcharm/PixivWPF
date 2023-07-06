@@ -146,7 +146,7 @@ namespace ImageAppletsCLI
                         #region Runing applet
                         if (files.Count > 0)
                         {
-                            files = ImageApplets.Applet.NaturalSort(files, descending: applet.Descending).ToList();
+                            files = ImageApplets.Applet.NaturalSort(files, padding: applet.SortZero, descending: applet.Descending).ToList();
                             RunApplet(files, applet, max_len, extras.ToArray());
                         }
                         #endregion
@@ -195,7 +195,7 @@ namespace ImageAppletsCLI
                     {
                         var folder = Path.GetDirectoryName(file);
                         var fname = folder.Equals(".") || folder.StartsWith(".\\") ? file.Substring(2) : file;
-                        var is_contents = result is string && (result as string).StartsWith($"{ImageApplets.Applet.ContentHeader}");
+                        var is_contents = result is string && (result as string).StartsWith($"{ImageApplets.Applet.ContentMark}");
                         if (is_contents) result = (result as string).Substring(1).Trim();
                         if (!Console.IsOutputRedirected || applet.Verbose)
                         {
@@ -253,12 +253,16 @@ namespace ImageAppletsCLI
                         {
                             Thread clip = new Thread(new ThreadStart(delegate()
                             {
-                                DataObject dp = new DataObject();
-                                var fdl = new System.Collections.Specialized.StringCollection();
-                                fdl.AddRange(_flist_out_.ToArray());
-                                dp.SetFileDropList(fdl);
-                                dp.SetText(string.Join(Environment.NewLine, _flist_out_));
-                                Clipboard.SetDataObject(dp, true);
+                                try
+                                {
+                                    DataObject dp = new DataObject();
+                                    var fdl = new System.Collections.Specialized.StringCollection();
+                                    fdl.AddRange(_flist_out_.ToArray());
+                                    dp.SetFileDropList(fdl);
+                                    dp.SetText(string.Join(Environment.NewLine, _flist_out_));
+                                    Clipboard.SetDataObject(dp, true);
+                                }
+                                catch(Exception ex) { Console.WriteLine(ex.Message); }
                             }));
                             clip.TrySetApartmentState(ApartmentState.STA);
                             clip.Start();
