@@ -51,9 +51,12 @@ namespace ImageApplets.Applets
                 if (exif is ExifData)
                 {
                     dynamic status = 0;
-                    if (exif.ImageType == CompactExifLib.ImageType.Jpeg)
+                    if (exif.ImageType == CompactExifLib.ImageType.Jpeg || exif.ImageType == CompactExifLib.ImageType.Png)
                     {
                         var quality = exif.JpegQuality;
+                        if (exif.ImageType == CompactExifLib.ImageType.Jpeg && quality <= 0) quality = 75;
+                        else if (exif.ImageType == CompactExifLib.ImageType.Png) quality = 100;
+
                         switch (_Mode_)
                         {
                             case CompareMode.VALUE: status = quality; break;

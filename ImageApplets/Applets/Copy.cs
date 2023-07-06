@@ -18,6 +18,8 @@ namespace ImageApplets.Applets
         
         private string _TargetFolder_ = string.Empty;
         public string TargetFolder { get { return (_TargetFolder_); }  set { _TargetFolder_ = value; } }
+        private List<string> _TargetFolders_ = new List<string>();
+        public IList<string> TargetFolders { get { return (_TargetFolders_); } set { _TargetFolders_ = (List<string>)value; } }
         private bool _OverWrite_ = false;
         public bool OverWrite { get { return (_OverWrite_); } set { _OverWrite_ = value; } }
         private bool _TargetName_ = false;
@@ -50,8 +52,8 @@ namespace ImageApplets.Applets
                 {
                     InputFile = file;
 
-                    var folders = _TargetFolder_.Split(new char[] { Path.PathSeparator }, StringSplitOptions.RemoveEmptyEntries).Select(f => f.Trim('"'));
-                    foreach (var folder in folders)
+                    _TargetFolders_.AddRange(_TargetFolder_.Split(new char[] { Path.PathSeparator }, StringSplitOptions.RemoveEmptyEntries).Select(f => f.Trim('"')));
+                    foreach (var folder in NaturalSort(_TargetFolders_.Distinct(), padding: SortZero, descending: Descending))
                     {
                         if (!string.IsNullOrEmpty(folder) && !Directory.Exists(folder))
                         {
@@ -74,15 +76,6 @@ namespace ImageApplets.Applets
                                     //status = _TargetName_ ? (dynamic)OutputFile : (dynamic)true;
                                     OutputFiles.Add(OutputFile, true);
                                 }
-                                //var fo = fi.CopyTo(OutputFile, overwrite: OverWrite);
-                                //fo.Refresh();
-                                //if (fo.Exists)
-                                //{
-                                //    fo.CreationTime = fi.CreationTime;
-                                //    fo.LastWriteTime = fi.LastWriteTime;
-                                //    fo.LastAccessTime = fi.LastAccessTime;
-                                //    fo.Refresh();
-                                //}
                             }
                         }
                     }

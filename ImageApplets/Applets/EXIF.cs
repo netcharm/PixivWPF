@@ -18,7 +18,7 @@ namespace ImageApplets.Applets
             return (new HasExif());
         }
 
-        private List<string> Categories  = new List<string>() { "Artist", "Author", "Title", "Suject", "Comment", "Comments", "Keyword", "Keywords", "Tag", "Tags", "Copyright", "Software", "Rate", "Rating", "Rank", "Ranking", "Date", "Width", "Height", "Aspect", "Landscape", "Portrait", "Square", "Bits", "Endian", "LittleEndian", "LSB", "BigEndian", "MSB", "DPI", "DPIX", "DPIY", "All" };
+        private List<string> Categories  = new List<string>() { "Artist", "Author", "Title", "Suject", "Comment", "Comments", "Keyword", "Keywords", "Tag", "Tags", "Copyright", "Software", "Rate", "Rating", "Rank", "Ranking", "Date", "Width", "Height", "Aspect", "Landscape", "Portrait", "Square", "Bits", "Endian", "LittleEndian", "LSB", "BigEndian", "MSB", "DPI", "DPIX", "DPIY", "FullName", "Dir", "Folder", "Name", "Sanity", "Age", "AI", "AIGC", "All" };
         private string[] ExifAttrs = new string[] { };
 
         private DateValue _date_ = null;
@@ -31,6 +31,8 @@ namespace ImageApplets.Applets
         public string SearchTerm { get { return (_SearchTerm_); } set { _SearchTerm_ = value; } }
         private bool _IgnoreCase_ = true;
         public bool IgnoreCase { get { return (_IgnoreCase_); } set { _IgnoreCase_ = value; } }
+        private bool _RegexOn_ = false;
+        public bool RegexOn { get { return (_RegexOn_); } set { _RegexOn_ = value; } }
         private int _MaxLength_ = 64;
         public int MaxLength { get { return (_MaxLength_); } set { _MaxLength_ = value; } }
 
@@ -45,6 +47,7 @@ namespace ImageApplets.Applets
                 { "l|limit|length=", $"EXIF Value Max Length Limit {{VALUE}}", v => { if (!string.IsNullOrEmpty(v)) int.TryParse(v, out _MaxLength_); } },
                 { "s|search=", "EXIF Search {Term}, multiple serach keywords seprated by ';' or '#'.", v => { if (!string.IsNullOrEmpty(v)) _SearchTerm_ = v.Trim().Trim('"'); } },
                 { "ignorecase=", $"EXIF Search Ignore Case : {{VALUE}} : <TRUE|FALSE>", v => { if (!string.IsNullOrEmpty(v)) bool.TryParse(v, out _IgnoreCase_); } },
+                { "re", "Regex Mode Force On, default is Off, smart detect searching term.", v => { _RegexOn_ = true; } },
                 { "" },
             };
             AppendOptions(opts);
@@ -337,12 +340,28 @@ namespace ImageApplets.Applets
                     dynamic status = false;
 
                     #region Get exif attributes
+                    var fullname = exif.ImageFileInfo is System.IO.FileInfo ? exif.ImageFileInfo.FullName : string.Empty;
+                    var folder = exif.ImageFileInfo is System.IO.FileInfo ? exif.ImageFileInfo.DirectoryName : string.Empty;
+                    var name = exif.ImageFileInfo is System.IO.FileInfo ? exif.ImageFileInfo.Name : string.Empty;
+
                     var title = GetUnicodeString(exif, ExifTag.XpTitle, raw: true);
                     if (string.IsNullOrEmpty(title)) GetUTF8String(exif, ExifTag.ImageDescription);
 
                     var subject = GetUnicodeString(exif, ExifTag.XpSubject, raw: true);
 
                     var keywords = GetUnicodeString(exif, ExifTag.XpKeywords, raw: true);
+                    var sanity = "All";
+                    if (!string.IsNullOrEmpty(keywords))
+                    {
+                        var tags = keywords.Split(';').Select(k => k.Trim()).Where(k => Regex.IsMatch(k, @"^R-?\d+\+?;?$", RegexOptions.IgnoreCase));
+                        sanity = tags.Count() > 0 ? tags.FirstOrDefault() : (Regex.IsMatch(title, @"(?<!\w)\s?R-", RegexOptions.IgnoreCase) ? Regex.Replace(title, @"(.*?)(?<!\w)\s?(R-?\d+\+?;?)(.*?)", "$3", RegexOptions.IgnoreCase) : sanity);
+                    }
+                    var aigc = "None";
+                    if (!string.IsNullOrEmpty(keywords))
+                    {
+                        var tags = keywords.Split(';').Select(k => k.Trim()).Where(k => Regex.IsMatch(k, @"^AIGC-?(\d+)?;?$", RegexOptions.IgnoreCase));
+                        aigc = tags.Count() > 0 ? tags.FirstOrDefault() : (Regex.IsMatch(title, @"(?<!\w)\s?AIGC-", RegexOptions.IgnoreCase) ? Regex.Replace(title, @"(.*?)(?<!\w)\s?(AIGC(-?\d+)?;?)(.*?)", "$3", RegexOptions.IgnoreCase) : aigc);
+                    }
 
                     var comments = GetUnicodeString(exif, ExifTag.XpComment, raw: true);
                     if (string.IsNullOrEmpty(comments)) GetUnicodeString(exif, ExifTag.UserComment, id: true);
@@ -380,12 +399,18 @@ namespace ImageApplets.Applets
                     {
                         #region Config comparing 
                         var word = _SearchTerm_;
-                        var words_o = Regex.IsMatch(word, IsRegexPattern, RegexOptions.IgnoreCase) ?  word.Trim(RegexTrimChar).Split(SplitChar) : word.Split(SplitChar);
-                        // words = words.Concat(words.ConvertChinese2Japanese()).Concat(words.ConvertJapanese2Chinese()).Distinct().ToArray();
-                        var words_a = words_o.ToList();
-                        words_a.AddRange(words_o.ConvertChinese2Japanese());
-                        words_a.AddRange(words_o.ConvertJapanese2Chinese());
-                        words_a = words_a.Distinct().ToList();
+                        var words_o = word.Split(SplitChar);
+                        var words_a = words_o.Distinct().ToList();
+                        if (!_RegexOn_ && !Regex.IsMatch(word, IsRegexPattern, RegexOptions.IgnoreCase))
+                        {
+                            words_a.AddRange(words_o.ConvertChinese2Japanese());
+                            words_a.AddRange(words_o.ConvertJapanese2Chinese());
+                            words_a = words_a.Distinct().ToList();
+                        }
+                        if (_RegexOn_ && !Regex.IsMatch(word, IsRegexPattern, RegexOptions.IgnoreCase))
+                        {
+                            words_o = words_o.Select(w => $"/{w}/i").ToArray();
+                        }
 
                         if (_date_ == null) _date_ = new DateValue(word);
 
@@ -405,6 +430,10 @@ namespace ImageApplets.Applets
                             var invert = new CompareMode[]{ CompareMode.NOT, CompareMode.NO, CompareMode.NEQ, CompareMode.NONE }.Contains(_Mode_) ? false : true;
                             if (_Mode_ == CompareMode.AND || _Mode_ == CompareMode.NOT || _Mode_ == CompareMode.NONE || _Mode_ == CompareMode.NO)
                             {
+                                if (cats.Contains("fullname")) status &= Compare(fullname, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("folder") || cats.Contains("dir")) status &= Compare(folder, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("name")) status &= Compare(name, words, ignorecase: _IgnoreCase_);
+
                                 if (cats.Contains("title")) status &= Compare(title, words, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("subject")) status &= Compare(subject, words, ignorecase: _IgnoreCase_);
 
@@ -412,6 +441,9 @@ namespace ImageApplets.Applets
                                 if (cats.Contains("keywords")) status &= Compare(keywords, words, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("tag")) status &= Compare(keywords, words, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("tags")) status &= Compare(keywords, words, ignorecase: _IgnoreCase_);
+
+                                if (cats.Contains("sanity") || cats.Contains("age")) status &= Compare(sanity, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("ai") || cats.Contains("aigc")) status &= Compare(aigc, words, ignorecase: _IgnoreCase_);
 
                                 if (cats.Contains("comment")) status &= Compare(comments, words, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("comments")) status &= Compare(comments, words, ignorecase: _IgnoreCase_);
@@ -461,6 +493,10 @@ namespace ImageApplets.Applets
                             }
                             else if (_Mode_ == CompareMode.OR)
                             {
+                                if (cats.Contains("fullname")) status |= Compare(fullname, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("folder") || cats.Contains("dir")) status |= Compare(folder, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("name")) status |= Compare(name, words, ignorecase: _IgnoreCase_);
+
                                 if (cats.Contains("title")) status |= Compare(title, words, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("subject")) status |= Compare(subject, words, ignorecase: _IgnoreCase_);
 
@@ -468,6 +504,9 @@ namespace ImageApplets.Applets
                                 if (cats.Contains("keywords")) status |= Compare(keywords, words, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("tag")) status |= Compare(keywords, words, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("tags")) status |= Compare(keywords, words, ignorecase: _IgnoreCase_);
+
+                                if (cats.Contains("sanity") || cats.Contains("age")) status |= Compare(sanity, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("ai") || cats.Contains("aigc")) status |= Compare(aigc, words, ignorecase: _IgnoreCase_);
 
                                 if (cats.Contains("comment")) status |= Compare(comments, words, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("comments")) status |= Compare(comments, words, ignorecase: _IgnoreCase_);
@@ -520,6 +559,10 @@ namespace ImageApplets.Applets
                                      _Mode_ == CompareMode.EQ || _Mode_ == CompareMode.NEQ ||
                                      _Mode_ == CompareMode.HAS)
                             {
+                                if (cats.Contains("fullname")) status |= Compare(fullname, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("folder") || cats.Contains("dir")) status |= Compare(folder, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("name")) status |= Compare(name, words, ignorecase: _IgnoreCase_);
+
                                 if (cats.Contains("title")) status |= Compare(title, words, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("subject")) status |= Compare(subject, words, ignorecase: _IgnoreCase_);
 
@@ -527,6 +570,9 @@ namespace ImageApplets.Applets
                                 if (cats.Contains("keywords")) status |= Compare(keywords, words, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("tag")) status |= Compare(keywords, words, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("tags")) status |= Compare(keywords, words, ignorecase: _IgnoreCase_);
+
+                                if (cats.Contains("sanity") || cats.Contains("age")) status |= Compare(sanity, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("ai") || cats.Contains("aigc")) status |= Compare(aigc, words, ignorecase: _IgnoreCase_);
 
                                 if (cats.Contains("comment")) status |= Compare(comments, words, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("comments")) status |= Compare(comments, words, ignorecase: _IgnoreCase_);
@@ -658,6 +704,10 @@ namespace ImageApplets.Applets
                         var padding = "".PadLeft(ValuePaddingLeft);
                         StringBuilder sb = new StringBuilder();
                         sb.Append(ContentMark);
+                        if (cats.Contains("fullname") && !string.IsNullOrEmpty(fullname)) sb.AppendLine($"{padding}{fullname}");
+                        if ((cats.Contains("folder") || cats.Contains("dir")) && !string.IsNullOrEmpty(folder)) sb.AppendLine($"{padding}{folder}");
+                        if (cats.Contains("name") && !string.IsNullOrEmpty(name)) sb.AppendLine($"{padding}{name}");
+
                         if (cats.Contains("title") && !string.IsNullOrEmpty(title)) sb.AppendLine($"{padding}{title}");
                         if (cats.Contains("subject") && !string.IsNullOrEmpty(subject)) sb.AppendLine($"{padding}{subject}");
                         if (cats.Contains("keyword") && !string.IsNullOrEmpty(keywords)) sb.AppendLine($"{padding}{keywords}");
@@ -676,9 +726,12 @@ namespace ImageApplets.Applets
                         if ((cats.Contains("rank") || cats.Contains("ranking")) && !string.IsNullOrEmpty(rank)) sb.AppendLine($"{padding}{rank}");
                         if (cats.Contains("date") && !string.IsNullOrEmpty(date_string)) sb.AppendLine($"{padding}{date_string}");
 
-                        if (cats.Contains("width")) sb.AppendLine($"{padding}{exif.Width}");
-                        if (cats.Contains("height")) sb.AppendLine($"{padding}{exif.Height}");
-                        if (cats.Contains("aspect")) sb.AppendLine($"{padding}{((double)exif.Width / exif.Height):F4}");
+                        if ((cats.Contains("sanity") || cats.Contains("age")) && !string.IsNullOrEmpty(sanity)) sb.AppendLine($"{sanity}");
+                        if ((cats.Contains("ai") || cats.Contains("aigc")) && !string.IsNullOrEmpty(aigc)) sb.AppendLine($"{aigc}");
+
+                        if (cats.Contains("width")) sb.AppendLine($"{exif.Width}");
+                        if (cats.Contains("height")) sb.AppendLine($"{exif.Height}");
+                        if (cats.Contains("aspect")) sb.AppendLine($"{((double)exif.Width / exif.Height):F3}");
 
                         if (cats.Contains("landscape")) sb.AppendLine($"{(double)exif.Width / exif.Height > 1}");
                         if (cats.Contains("portrait")) sb.AppendLine($"{(double)exif.Width / exif.Height < 1}");

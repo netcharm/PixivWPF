@@ -19,13 +19,17 @@ namespace ImageApplets.Applets
         private string _viewer_ = string.Empty;
         public string Viewer { get { return (_viewer_); } set { _viewer_ = value; } }
 
+        private int _delay_ = 0;
+        public int Delay { get { return (_delay_); } set { _delay_ = value; } }
+
         public OpenWith()
         {
             Category = AppletCategory.FileOP;
 
             var opts = new OptionSet()
             {
-                { "v|viewer=", "Custom Specicalfiles Viewer", v => { _viewer_ = v; } },
+                { "v|viewer=", "Custom Specicalfiles Viewer {VIEWER}", v => { _viewer_ = v; } },
+                { "d|s|sleep|delay=", "Sleep/Delay {VALUE}ms After Open File, default is 0 millisecond", v => { int.TryParse(v, out _delay_); } },
                 { "" },
             };
             AppendOptions(opts);
@@ -54,6 +58,7 @@ namespace ImageApplets.Applets
                     {
                         System.Diagnostics.Process.Start(_viewer_, InputFile);
                     }
+                    if (_delay_ > 0) System.Threading.Thread.Sleep(_delay_);
                 }
 
                 ret = GetReturnValueByStatus(status);

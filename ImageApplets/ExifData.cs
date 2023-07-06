@@ -386,7 +386,7 @@ namespace CompactExifLib
         public int MakerNoteOriginalOffset { get; private set; }
         public const int IfdShift = 16;
 
-        public FileInfo ImageFileInfo { get; set; }
+        public FileInfo ImageFileInfo { get; set; } = null;
         public DateTime CreateTime { get; set; }
         public DateTime LastWriteTime { get; set; }
         public DateTime LastAccessTime { get; set; }
