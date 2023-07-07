@@ -73,16 +73,30 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
-        private void CopyImageInfo(bool source)
+        private async void CalcImageColors(bool source)
+        {
+            try
+            {
+                var src = source ? ImageSource : ImageTarget;
+                src.ToolTip = await src.GetInformation().GetImageInfo(include_colorinfo: true);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        private async void CopyImageInfo(bool source)
         {
             try
             {
                 var src = source ? ImageSource : ImageTarget;
                 if (src.ToolTip is string && !string.IsNullOrEmpty(src.ToolTip as string))
                 {
-                    if ((src.ToolTip as string).Equals("Waiting".T(), StringComparison.CurrentCultureIgnoreCase))
+                    if ((src.ToolTip as string).StartsWith("Waiting".T(), StringComparison.CurrentCultureIgnoreCase))
                     {
-                        src.ToolTip = src.GetInformation().GetImageInfo();
+                        src.ToolTip = await src.GetInformation().GetImageInfo();
                     }
                     Clipboard.SetText(src.ToolTip as string);
                 }

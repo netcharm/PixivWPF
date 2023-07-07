@@ -412,7 +412,7 @@
     <value>画像色を再マッピング</value>
   </data>
   <data name="InfoTipColors" xml:space="preserve">
-    <value>色の数             =</value>
+    <value>表示色の数         =</value>
   </data>
   <data name="Waiting" xml:space="preserve">
     <value>少々お待ちください ...</value>
@@ -518,5 +518,29 @@
   </data>
   <data name="AutoMatchSize.ToolTip" xml:space="preserve">
     <value>画像サイズを自動的に合わせる</value>
+  </data>
+  <data name="CalcImageColors.Header" xml:space="preserve">
+    <value>統計的な色の情報</value>
+  </data>
+  <data name="InfoTipBackgroundColor" xml:space="preserve">
+    <value>表示画像の背景色   =</value>
+  </data>
+  <data name="InfoTipBackgroundColorOriginal" xml:space="preserve">
+    <value>元の画像の背景色   =</value>
+  </data>
+  <data name="InfoTipBorderColor" xml:space="preserve">
+    <value>表示境界線の色     =</value>
+  </data>
+  <data name="InfoTipBorderColorOriginal" xml:space="preserve">
+    <value>元の境界線の色     =</value>
+  </data>
+  <data name="InfoTipColorsOriginal" xml:space="preserve">
+    <value>元の画像の色の数   =</value>
+  </data>
+  <data name="InfoTipMatteColor" xml:space="preserve">
+    <value>表示マスクの色     =</value>
+  </data>
+  <data name="InfoTipMatteColorOriginal" xml:space="preserve">
+    <value>元のマスクの色     =</value>
   </data>
 </root>

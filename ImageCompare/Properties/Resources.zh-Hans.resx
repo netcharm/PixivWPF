@@ -412,7 +412,7 @@
     <value>重映射图像颜色</value>
   </data>
   <data name="InfoTipColors" xml:space="preserve">
-    <value>色彩数量     =</value>
+    <value>显示色彩数量 =</value>
   </data>
   <data name="Waiting" xml:space="preserve">
     <value>请稍候 ...</value>
@@ -518,5 +518,29 @@
   </data>
   <data name="AutoMatchSize.ToolTip" xml:space="preserve">
     <value>自动匹配图像大小</value>
+  </data>
+  <data name="CalcImageColors.Header" xml:space="preserve">
+    <value>统计颜色信息</value>
+  </data>
+  <data name="InfoTipBackgroundColor" xml:space="preserve">
+    <value>显示背景色   =</value>
+  </data>
+  <data name="InfoTipBackgroundColorOriginal" xml:space="preserve">
+    <value>原图背景色   =</value>
+  </data>
+  <data name="InfoTipBorderColor" xml:space="preserve">
+    <value>显示边框色   =</value>
+  </data>
+  <data name="InfoTipBorderColorOriginal" xml:space="preserve">
+    <value>原图边框色   =</value>
+  </data>
+  <data name="InfoTipMatteColor" xml:space="preserve">
+    <value>显示遮罩色   =</value>
+  </data>
+  <data name="InfoTipMatteColorOriginal" xml:space="preserve">
+    <value>原图遮罩色   =</value>
+  </data>
+  <data name="InfoTipColorsOriginal" xml:space="preserve">
+    <value>原图色彩数量 =</value>
   </data>
 </root>

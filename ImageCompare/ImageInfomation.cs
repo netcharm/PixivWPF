@@ -496,11 +496,27 @@ namespace ImageCompare
             }
         }
 
-#if DEBUG
-        public async Task<string> GetImageInfo()
-#else
-        public string GetImageInfo()
-#endif
+        public async Task<string> GetTotalColors()
+        {
+            var colors = new List<string>();
+            if (ValidOriginal)
+            {
+                colors.Add($"{"InfoTipColorsOriginal".T()} {await Original.CalcTotalColors()}");
+                colors.Add($"{"InfoTipBackgroundColorOriginal".T()} {Original.BackgroundColor.ToHexString()}");
+                colors.Add($"{"InfoTipBorderColorOriginal".T()} {Original.BorderColor.ToHexString()}");
+                colors.Add($"{"InfoTipMatteColorOriginal".T()} {Original.MatteColor.ToHexString()}");
+            }
+            if (ValidCurrent)
+            {
+                colors.Add($"{"InfoTipColors".T()} {await Current.CalcTotalColors()}");
+                colors.Add($"{"InfoTipBackgroundColor".T()} {Current.BackgroundColor.ToHexString()}");
+                colors.Add($"{"InfoTipBorderColor".T()} {Current.BorderColor.ToHexString()}");
+                colors.Add($"{"InfoTipMatteColor".T()} {Current.MatteColor.ToHexString()}");
+            }
+            return (colors.Count > 0 ? string.Join(Environment.NewLine, colors) : string.Empty);
+        }
+
+        public async Task<string> GetImageInfo(bool include_colorinfo = false)
         {
             string result = string.Empty;
             try
@@ -541,11 +557,9 @@ namespace ImageCompare
                     if (Current.BoundingBox != null)
                         tip.Add($"{"InfoTipBounding".T()} {Current.BoundingBox.Width:F0}x{Current.BoundingBox.Height:F0}");
                     tip.Add($"{"InfoTipResolution".T()} {DPI_TEXT}");
-                    //tip.Add($"{"InfoTipColors".T()} {TotalColors.Invoke(image)}");
-#if DEBUG
-                    if (Keyboard.Modifiers == ModifierKeys.Alt)
-                        tip.Add($"{"InfoTipColors".T()} {await Current.CalcTotalColors()}");
-#endif
+                    
+                    if (include_colorinfo) tip.Add(await GetTotalColors());
+
                     if (Current.AttributeNames != null)
                     {
                         var exif = Current.HasProfile("exif") ? Current.GetExifProfile() : new ExifProfile();

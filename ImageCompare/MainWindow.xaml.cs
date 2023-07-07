@@ -1322,6 +1322,13 @@ namespace ImageCompare
                     Tag = source,
                     Icon = new TextBlock() { Text = "\uE117", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
                 };
+                var item_colorcalc = new MenuItem()
+                {
+                    Header = "Calc Image Colors",
+                    Uid = "CalcImageColors",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE1D0", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                };
                 var item_copyinfo = new MenuItem()
                 {
                     Header = "Copy Image Info",
@@ -1395,6 +1402,7 @@ namespace ImageCompare
                 item_reset_image.Click += (obj, evt) => { RenderRun(() => { ResetImage((bool)(obj as MenuItem).Tag); }); };
                 item_reload.Click += (obj, evt) => { RenderRun(() => { ReloadImage((bool)(obj as MenuItem).Tag); }); };
 
+                item_colorcalc.Click += (obj, evt) => { RenderRun(() => { CalcImageColors((bool)(obj as MenuItem).Tag); }); };
                 item_copyinfo.Click += (obj, evt) => { RenderRun(() => { CopyImageInfo((bool)(obj as MenuItem).Tag); }); };
                 item_copyimage.Click += (obj, evt) => { RenderRun(() => { CopyImage((bool)(obj as MenuItem).Tag); }); };
                 item_saveas.Click += (obj, evt) => { SaveImageAs((bool)(obj as MenuItem).Tag); };
@@ -1432,6 +1440,7 @@ namespace ImageCompare
                 items.Add(item_reset_image);
                 items.Add(item_reload);
                 items.Add(new Separator());
+                items.Add(item_colorcalc);
                 items.Add(item_copyinfo);
                 items.Add(item_copyimage);
                 items.Add(item_saveas);
@@ -2343,11 +2352,7 @@ namespace ImageCompare
             {
                 if (sender is FrameworkElement)
                 {
-#if DEBUG
                     this.InvokeAsync(async () =>
-#else
-                    this.InvokeAsync(() =>
-#endif
                     {
                         try
                         {
@@ -2361,13 +2366,9 @@ namespace ImageCompare
                             else if (is_result) image = ImageResult;
 
                             var element = sender as FrameworkElement;
-                            if (element.ToolTip is string && (element.ToolTip as string).Equals("Waiting".T(), StringComparison.CurrentCultureIgnoreCase))
+                            if (element.ToolTip is string && (element.ToolTip as string).StartsWith("Waiting".T(), StringComparison.CurrentCultureIgnoreCase))
                             {
-#if DEBUG
                                 element.ToolTip = await image.GetInformation().GetImageInfo();
-#else
-                                element.ToolTip = image.GetInformation().GetImageInfo();
-#endif
                             }
                         }
                         catch (Exception ex) { ex.ShowMessage(); }

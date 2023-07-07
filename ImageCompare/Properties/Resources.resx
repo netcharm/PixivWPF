@@ -519,4 +519,28 @@
   <data name="AutoMatchSize.ToolTip" xml:space="preserve">
     <value>Automatic Match Image Size Before Image Compare/Composer</value>
   </data>
+  <data name="CalcImageColors.Header" xml:space="preserve">
+    <value>Statistical Color Information</value>
+  </data>
+  <data name="InfoTipColorsOriginal" xml:space="preserve">
+    <value>Original Colors    =</value>
+  </data>
+  <data name="InfoTipBackgroundColorOriginal" xml:space="preserve">
+    <value>Original BG Color  =</value>
+  </data>
+  <data name="InfoTipBorderColorOriginal" xml:space="preserve">
+    <value>Original Border    =</value>
+  </data>
+  <data name="InfoTipMatteColorOriginal" xml:space="preserve">
+    <value>Original Matte     =</value>
+  </data>
+  <data name="InfoTipBackgroundColor" xml:space="preserve">
+    <value>Background Color   =</value>
+  </data>
+  <data name="InfoTipBorderColor" xml:space="preserve">
+    <value>Border Color       =</value>
+  </data>
+  <data name="InfoTipMatteColor" xml:space="preserve">
+    <value>Matte Color        =</value>
+  </data>
 </root>
