@@ -253,7 +253,11 @@ namespace ImageCompare
                             else
                             {
                                 try { Original = new MagickImage(fs, Path.GetExtension(file).GetImageFileFormat()); }
-                                catch { Original = new MagickImage(fs, MagickFormat.Unknown); }
+                                catch
+                                {
+                                    if (fs.CanSeek) fs.Seek(0, SeekOrigin.Begin);
+                                    Original = new MagickImage(fs, MagickFormat.Unknown);                                  
+                                }
                             }
                             if (update && Tagetment is Image && ValidCurrent)
                                 (Tagetment as Image).Source = Source;
