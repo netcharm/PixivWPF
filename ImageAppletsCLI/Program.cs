@@ -96,6 +96,7 @@ namespace ImageAppletsCLI
                         #endregion
 
                         #region Enum files will be processed from command line
+                        var sopt = applet.Recursion ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
                         foreach (var extra in extras)
                         {
                             var folder = Path.GetDirectoryName(extra);
@@ -103,7 +104,8 @@ namespace ImageAppletsCLI
                             folder = Path.IsPathRooted(folder) ? folder : Path.Combine(".", folder);
                             if (Directory.Exists(folder))
                             {
-                                files.AddRange(Directory.GetFiles(folder, pattern));
+                                //files.AddRange(Directory.GetFiles(folder, pattern, sopt));
+                                files.AddRange(Directory.EnumerateFiles(folder, pattern, sopt));
                             }
                         }
                         #endregion
@@ -146,7 +148,8 @@ namespace ImageAppletsCLI
                         #region Runing applet
                         if (files.Count > 0)
                         {
-                            files = ImageApplets.Applet.NaturalSort(files, padding: applet.SortZero, descending: applet.Descending).ToList();
+                            if (applet.Sorting)
+                                files = ImageApplets.Applet.NaturalSort(files, padding: applet.SortZero, descending: applet.Descending).ToList();
                             RunApplet(files, applet, max_len, extras.ToArray());
                         }
                         #endregion
