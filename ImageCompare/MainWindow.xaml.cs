@@ -625,19 +625,45 @@ namespace ImageCompare
                                     {
                                         if (image_s.ValidCurrent && image_t.ValidCurrent)
                                         {
-                                            var offset = new PointD(image_s.BaseSize.Width - image_t.BaseSize.Width, image_s.BaseSize.Height - image_t.BaseSize.Height);
-                                            if (offset.X != 0 || offset.Y != 0)
+                                            var resized = false;
+                                            if ((image_s.CurrentSize.Width > image_t.CurrentSize.Width) || (image_s.CurrentSize.Height > image_t.CurrentSize.Height))
+                                            { ResizeToImage(true); resized = true; }
+                                            else if ((image_s.CurrentSize.Width < image_t.CurrentSize.Width) || (image_s.CurrentSize.Height < image_t.CurrentSize.Height))
+                                            { ResizeToImage(false); resized = true; }
+
+                                            if (resized)
                                             {
-                                                var w_s = (int)Math.Max(image_s.BaseSize.Width, image_s.BaseSize.Width - offset.X);
-                                                var h_s = (int)Math.Max(image_s.BaseSize.Height, image_s.BaseSize.Height - offset.Y);
-                                                var w_t = (int)Math.Max(image_t.BaseSize.Width, image_t.BaseSize.Width + offset.X);
-                                                var h_t = (int)Math.Max(image_t.BaseSize.Height, image_t.BaseSize.Height + offset.Y);
+                                                var offset = new PointD(image_s.CurrentSize.Width - image_t.CurrentSize.Width, image_s.CurrentSize.Height - image_t.CurrentSize.Height);
+                                                if (offset.X != 0 || offset.Y != 0)
+                                                {
+                                                    var w_s = (int)Math.Max(image_s.CurrentSize.Width, image_s.CurrentSize.Width - offset.X);
+                                                    var h_s = (int)Math.Max(image_s.CurrentSize.Height, image_s.CurrentSize.Height - offset.Y);
+                                                    var w_t = (int)Math.Max(image_t.CurrentSize.Width, image_t.CurrentSize.Width + offset.X);
+                                                    var h_t = (int)Math.Max(image_t.CurrentSize.Height, image_t.CurrentSize.Height + offset.Y);
 
-                                                image_s.Current.Extent(w_s, h_s, Gravity.Center, image_s.Current.HasAlpha ? MagickColors.Transparent : image_s.Current.BackgroundColor);
-                                                image_t.Current.Extent(w_t, h_t, Gravity.Center, image_t.Current.HasAlpha ? MagickColors.Transparent : image_t.Current.BackgroundColor);
+                                                    image_s.Current.Extent(w_s, h_s, Gravity.Center, image_s.Current.HasAlpha ? MagickColors.Transparent : image_s.Current.BackgroundColor);
+                                                    image_t.Current.Extent(w_t, h_t, Gravity.Center, image_t.Current.HasAlpha ? MagickColors.Transparent : image_t.Current.BackgroundColor);
 
-                                                image_s.Current.RePage();
-                                                image_t.Current.RePage();
+                                                    image_s.Current.RePage();
+                                                    image_t.Current.RePage();
+                                                }
+                                            }
+                                            else
+                                            {
+                                                var offset = new PointD(image_s.BaseSize.Width - image_t.BaseSize.Width, image_s.BaseSize.Height - image_t.BaseSize.Height);
+                                                if (offset.X != 0 || offset.Y != 0)
+                                                {
+                                                    var w_s = (int)Math.Max(image_s.BaseSize.Width, image_s.BaseSize.Width - offset.X);
+                                                    var h_s = (int)Math.Max(image_s.BaseSize.Height, image_s.BaseSize.Height - offset.Y);
+                                                    var w_t = (int)Math.Max(image_t.BaseSize.Width, image_t.BaseSize.Width + offset.X);
+                                                    var h_t = (int)Math.Max(image_t.BaseSize.Height, image_t.BaseSize.Height + offset.Y);
+
+                                                    image_s.Current.Extent(w_s, h_s, Gravity.Center, image_s.Current.HasAlpha ? MagickColors.Transparent : image_s.Current.BackgroundColor);
+                                                    image_t.Current.Extent(w_t, h_t, Gravity.Center, image_t.Current.HasAlpha ? MagickColors.Transparent : image_t.Current.BackgroundColor);
+
+                                                    image_s.Current.RePage();
+                                                    image_t.Current.RePage();
+                                                }
                                             }
                                         }
                                     }
