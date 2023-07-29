@@ -3195,7 +3195,7 @@ namespace CompactExifLib
                 IfdRawDataIndex += 12;
                 j++;
             }
-            NextImageOffset = (int)ExifReadUInt32(IfdRawData, IfdRawDataIndex);
+            NextImageOffset = IfdRawDataIndex < IfdRawData.Length - 1 ? (int)ExifReadUInt32(IfdRawData, IfdRawDataIndex) : 0;
         }
 
 

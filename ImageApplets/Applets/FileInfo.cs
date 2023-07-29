@@ -25,9 +25,12 @@ namespace ImageApplets.Applets
         private bool _raw_out_ = false;
         public bool RawOut { get { return (_raw_out_); } set { _raw_out_ = value; } }
 
+        private bool _ignore_case_ = true;
+        public bool IgnoreCase { get { return (_ignore_case_); } set { _ignore_case_ = value; } }
+
         private List<string> CategoriesText  = new List<string>()
         {
-            "FullName", "DirectoryName", "Folder", "Dir", "Name", "Ext",
+            "FullName", "DirectoryName", "Folder", "Path", "Dir", "Name", "Ext",
             "Attribute", "Attr",
         };
         private List<string> CategoriesNumber  = new List<string>()
@@ -49,7 +52,8 @@ namespace ImageApplets.Applets
         };
         private List<string> Categories  = new List<string>()
         {
-            "FullName", "DirectoryName", "Folder", "Dir", "Name", "Ext",
+            "FullName", "DirectoryName", "Folder", "Path", "Dir", "Name", "Ext",
+
             "Length", "Size",
 
             "Date", "DateUtc",
@@ -116,6 +120,7 @@ namespace ImageApplets.Applets
                 { "s|search=", "EXIF Search {Term}. Multiple serach keywords seprated by ';' or '#'", v => { if (!string.IsNullOrEmpty(v)) _SearchTerm_ = v.Trim().Trim('"'); } },
                 { "set|change=", "Will Chanege To {VALUE}, not implemented now.", v => { if (!string.IsNullOrEmpty(v)) _TargetValue_ = v.Trim().Trim('"'); } },
                 { "raw", "Will Output WIth RAW data. Otherwise will output with format, such as number with ',' for thousand", v => { _raw_out_ = true; } },
+                { "ignorecase=", "Ignore Case of {VALUE}.", v => { if (!string.IsNullOrEmpty(v)) bool.TryParse(v.Trim().Trim('"'), out _ignore_case_); } },
                 { "" },
             };
             AppendOptions(opts);
@@ -146,11 +151,12 @@ namespace ImageApplets.Applets
 
                     #region init file informations dictionary
                     var fi = new System.IO.FileInfo(file);
+                    var fp = fi.DirectoryName.Replace("/", "\\").TrimEnd('\\') + Path.DirectorySeparatorChar;
                     var fi_dict = new Dictionary<string, dynamic>(StringComparer.CurrentCultureIgnoreCase)
                     {
-                        { "FullName", fi.FullName }, { "Name", fi.Name }, { "Ext", fi.Extension },
+                        { "FullName", fi.FullName.Replace("/", "\\").Replace(@"\", @"\\") }, { "Name", fi.Name }, { "Ext", fi.Extension },
 
-                        { "DirectoryName", fi.DirectoryName }, { "Folder", fi.DirectoryName }, { "Dir", fi.DirectoryName },
+                        { "DirectoryName", fp}, { "Folder", fp }, { "Path", fp }, { "Dir", fp },
 
                         { "Attributes", fi.Attributes.ToString() }, { "Attr", fi.Attributes.ToString() },
 
@@ -198,7 +204,7 @@ namespace ImageApplets.Applets
                     {
                         if (_Mode_ == CompareMode.VALUE) _Mode_ = CompareMode.HAS;
 
-                        var word = _SearchTerm_;
+                        var word = _SearchTerm_.Replace("\\\\", "\\").Replace("\\", "\\\\");
                         var words = Regex.IsMatch(word, IsRegexPattern, RegexOptions.IgnoreCase) ?  word.Trim(RegexTrimChar).Split(SplitChar) : word.Split(SplitChar);
 
                         if (_Mode_ == CompareMode.AND || _Mode_ == CompareMode.NOT)
@@ -206,13 +212,13 @@ namespace ImageApplets.Applets
                             foreach (var c in CategoriesText.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
                             {
                                 var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                status &= Compare((string)fi_dict[c], words, _Mode_);
+                                status &= Compare((string)fi_dict[c], words, _Mode_, ignorecase: _ignore_case_);
                             }
 
                             foreach (var c in CategoriesDate.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
                             {
                                 var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                status &= Compare(GetDateLong((DateTime)fi_dict[c]), words, _Mode_);
+                                status &= Compare(GetDateLong((DateTime)fi_dict[c]), words, _Mode_, ignorecase: _ignore_case_);
                             }
 
                             foreach (var c in CategoriesNumber.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
@@ -232,13 +238,13 @@ namespace ImageApplets.Applets
                             foreach (var c in CategoriesText.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
                             {
                                 var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                status |= Compare((string)fi_dict[c], words, _Mode_);
+                                status |= Compare((string)fi_dict[c], words, _Mode_, ignorecase: _ignore_case_);
                             }
 
                             foreach (var c in CategoriesDate.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
                             {
                                 var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                status |= Compare(GetDateLong((DateTime)fi_dict[c]), words, _Mode_);
+                                status |= Compare(GetDateLong((DateTime)fi_dict[c]), words, _Mode_, ignorecase: _ignore_case_);
                             }
 
                             foreach (var c in CategoriesNumber.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
@@ -261,7 +267,7 @@ namespace ImageApplets.Applets
                             foreach (var c in CategoriesText.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))
                             {
                                 var key = keys.Where(k => k.Equals(c, StringComparison.CurrentCultureIgnoreCase)).First();
-                                status |= Compare((string)fi_dict[c], words, _Mode_);
+                                status |= Compare((string)fi_dict[c], words, _Mode_, ignorecase: _ignore_case_);
                             }
 
                             foreach (var c in CategoriesDate.Where(cat => cats.Contains(cat.ToLower()) && fi_dict.ContainsKey(cat)))

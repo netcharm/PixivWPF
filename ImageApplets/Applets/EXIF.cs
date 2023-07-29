@@ -18,7 +18,7 @@ namespace ImageApplets.Applets
             return (new HasExif());
         }
 
-        private List<string> Categories  = new List<string>() { "Artist", "Author", "Title", "Suject", "Comment", "Comments", "Keyword", "Keywords", "Tag", "Tags", "Copyright", "Software", "Rate", "Rating", "Rank", "Ranking", "Date", "Width", "Height", "Aspect", "Landscape", "Portrait", "Square", "Bits", "Endian", "LittleEndian", "LSB", "BigEndian", "MSB", "DPI", "DPIX", "DPIY", "FullName", "Dir", "Folder", "Name", "Sanity", "Age", "AI", "AIGC", "All" };
+        private List<string> Categories  = new List<string>() { "Artist", "Author", "Title", "Suject", "Comment", "Comments", "Keyword", "Keywords", "Tag", "Tags", "Copyright", "Software", "Rate", "Rating", "Rank", "Ranking", "Date", "Width", "Height", "Depth", "Size", "Dimension", "Dim", "Aspect", "Landscape", "Portrait", "Square", "Bits", "Endian", "LittleEndian", "LSB", "BigEndian", "MSB", "DPI", "DPIX", "DPIY", "FullName", "Dir", "Folder", "Name", "Sanity", "Age", "AI", "AIGC", "State", "States", "All" };
         private string[] ExifAttrs = new string[] { };
 
         private DateValue _date_ = null;
@@ -318,6 +318,35 @@ namespace ImageApplets.Applets
             return (result);
         }
 
+        private string[] GetSanityAI(ExifData exif)
+        {
+            var result = new List<string>();
+
+            try
+            {
+                var s = string.Empty;
+                if (!exif.GetTagValue(ExifTag.XpKeywords, out s, StrCoding.Utf16Le_Byte)) s = "???";
+                var imtype = exif.ImageType.ToString().ToUpper();
+                var quality = exif.ImageType == CompactExifLib.ImageType.Png ? 100 : (exif.ImageType == CompactExifLib.ImageType.Jpeg && exif.JpegQuality == 0 ? 75 : exif.JpegQuality);
+                var keywords = string.IsNullOrEmpty(s) ? new List<string>() : s.Split(';').Select(w => w.Trim());
+                var sanity = keywords.Where(w => Regex.IsMatch(w, @"^R-?\d+$", RegexOptions.IgnoreCase));
+                var aigc = keywords.Where(w => Regex.IsMatch(w, @"^(AIGC(-?\d+)?|Novel\s?AI|Stable\s?Diffusion)$", RegexOptions.IgnoreCase));
+                var deleted = keywords.Where(w => Regex.IsMatch(w, @"^(deleted|(作品)?已?删除)$", RegexOptions.IgnoreCase));
+                var rate = GetIntString(exif, ExifTag.RatingPercent);
+                var rank = GetIntString(exif, ExifTag.Rating);
+
+                result.Add($"{imtype}, Q={quality}");
+                result.Add($"Rate:{rank}/{rate}");
+                if (sanity.Count() > 0) result.Add(sanity.Last().ToUpper());
+                //if (aigc.Count() > 0) result.Add(aigc.Last());
+                if (aigc.Count() > 0) result.Add(aigc.Last().ToUpper());
+                if (deleted.Count() > 0) result.Add(deleted.Last().ToUpper());
+            }
+            catch (Exception ex) { Log.Add(ex.Message); }
+
+            return (result.ToArray());
+        }
+
         private dynamic Compare(string text, string word, bool? ignorecase = null)
         {
             return (base.Compare(text, word, _Mode_, ignorecase));
@@ -363,6 +392,9 @@ namespace ImageApplets.Applets
                         aigc = tags.Count() > 0 ? tags.FirstOrDefault() : (Regex.IsMatch(title, @"(?<!\w)\s?AIGC-", RegexOptions.IgnoreCase) ? Regex.Replace(title, @"(.*?)(?<!\w)\s?(AIGC(-?\d+)?;?)(.*?)", "$3", RegexOptions.IgnoreCase) : aigc);
                     }
 
+                    var states = GetSanityAI(exif);
+                    var state = states.Length > 0 ? string.Join(", ", states).Trim() : string.Empty;
+
                     var comments = GetUnicodeString(exif, ExifTag.XpComment, raw: true);
                     if (string.IsNullOrEmpty(comments)) GetUnicodeString(exif, ExifTag.UserComment, id: true);
 
@@ -375,6 +407,8 @@ namespace ImageApplets.Applets
 
                     var rate = GetIntString(exif, ExifTag.RatingPercent);
                     var rank = GetIntString(exif, ExifTag.Rating);
+
+                    var dimension = $"{exif.Width}x{exif.Height}x{exif.ColorDepth}BPP";
 
                     DateTime? date = GetDateTime(exif, ExifTag.GpsDateStamp);
                     if (date == null) date = GetDateTime(exif, ExifTag.DateTimeOriginal);
@@ -444,6 +478,7 @@ namespace ImageApplets.Applets
 
                                 if (cats.Contains("sanity") || cats.Contains("age")) status &= Compare(sanity, words, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("ai") || cats.Contains("aigc")) status &= Compare(aigc, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("state") || cats.Contains("states")) status &= Compare(state, words, ignorecase: _IgnoreCase_);
 
                                 if (cats.Contains("comment")) status &= Compare(comments, words, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("comments")) status &= Compare(comments, words, ignorecase: _IgnoreCase_);
@@ -460,6 +495,8 @@ namespace ImageApplets.Applets
 
                                 if (cats.Contains("width")) status &= Compare(exif.Width, words, _Mode_);
                                 if (cats.Contains("height")) status &= Compare(exif.Height, words, _Mode_);
+                                if (cats.Contains("depth")) status &= Compare(exif.ColorDepth, words, _Mode_);
+                                if (cats.Contains("dimension") || cats.Contains("dim") || cats.Contains("size")) status &= Compare(dimension, words, _Mode_);
                                 if (cats.Contains("aspect")) status &= Compare((double)exif.Width / exif.Height, words, _Mode_);
 
                                 if (cats.Contains("landscape")) status &= exif.Height / exif.Height > 1;
@@ -507,6 +544,7 @@ namespace ImageApplets.Applets
 
                                 if (cats.Contains("sanity") || cats.Contains("age")) status |= Compare(sanity, words, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("ai") || cats.Contains("aigc")) status |= Compare(aigc, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("state") || cats.Contains("states")) status |= Compare(state, words, ignorecase: _IgnoreCase_);
 
                                 if (cats.Contains("comment")) status |= Compare(comments, words, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("comments")) status |= Compare(comments, words, ignorecase: _IgnoreCase_);
@@ -523,6 +561,8 @@ namespace ImageApplets.Applets
 
                                 if (cats.Contains("width")) status |= Compare(exif.Width, words, _Mode_);
                                 if (cats.Contains("height")) status |= Compare(exif.Height, words, _Mode_);
+                                if (cats.Contains("depth")) status |= Compare(exif.ColorDepth, words, _Mode_);
+                                if (cats.Contains("dimension") || cats.Contains("dim") || cats.Contains("size")) status |= Compare(dimension, words, _Mode_);
                                 if (cats.Contains("aspect")) status |= Compare((double)exif.Width / exif.Height, words, _Mode_);
 
                                 if (cats.Contains("landscape")) status |= (double)exif.Width / exif.Height > 1;
@@ -573,6 +613,7 @@ namespace ImageApplets.Applets
 
                                 if (cats.Contains("sanity") || cats.Contains("age")) status |= Compare(sanity, words, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("ai") || cats.Contains("aigc")) status |= Compare(aigc, words, ignorecase: _IgnoreCase_);
+                                if (cats.Contains("state") || cats.Contains("states")) status |= Compare(state, words, ignorecase: _IgnoreCase_);
 
                                 if (cats.Contains("comment")) status |= Compare(comments, words, ignorecase: _IgnoreCase_);
                                 if (cats.Contains("comments")) status |= Compare(comments, words, ignorecase: _IgnoreCase_);
@@ -595,6 +636,8 @@ namespace ImageApplets.Applets
 
                                 if (cats.Contains("width")) status |= Compare(exif.Width, words, _Mode_);
                                 if (cats.Contains("height")) status |= Compare(exif.Height, words, _Mode_);
+                                if (cats.Contains("depth")) status |= Compare(exif.ColorDepth, words, _Mode_);
+                                if (cats.Contains("dimension") || cats.Contains("dim") || cats.Contains("size")) status |= Compare(dimension, words, _Mode_);
                                 if (cats.Contains("aspect")) status |= Compare((double)exif.Width / exif.Height, words, _Mode_);
 
                                 if (cats.Contains("landscape")) status |= (double)exif.Width / exif.Height > 1;
@@ -640,6 +683,7 @@ namespace ImageApplets.Applets
 
                                     if (cats.Contains("width")) status |= value_low <= exif.Width && exif.Width <= value_high;
                                     if (cats.Contains("height")) status |= value_low <= exif.Height && exif.Height <= value_high;
+                                    if (cats.Contains("depth")) status |= value_low <= exif.ColorDepth && exif.ColorDepth <= value_high;
 
                                     if (cats.Contains("dpix")) status |= value_low <= exif.ResolutionX && exif.ResolutionX <= value_high;
                                     if (cats.Contains("dpiy")) status |= value_low <= exif.ResolutionY && exif.ResolutionY <= value_high;
@@ -673,6 +717,7 @@ namespace ImageApplets.Applets
 
                                     if (cats.Contains("width")) status |= exif.Width < value_low || value_high < exif.Width;
                                     if (cats.Contains("height")) status |= exif.Height < value_low || value_high < exif.Height;
+                                    if (cats.Contains("depth")) status |= exif.ColorDepth < value_low || value_high < exif.ColorDepth;
 
                                     if (cats.Contains("dpix")) status |= exif.ResolutionX < value_low || value_high < exif.ResolutionX;
                                     if (cats.Contains("dpiy")) status |= exif.ResolutionY < value_low || value_high < exif.ResolutionY;
@@ -726,11 +771,14 @@ namespace ImageApplets.Applets
                         if ((cats.Contains("rank") || cats.Contains("ranking")) && !string.IsNullOrEmpty(rank)) sb.AppendLine($"{padding}{rank}");
                         if (cats.Contains("date") && !string.IsNullOrEmpty(date_string)) sb.AppendLine($"{padding}{date_string}");
 
-                        if ((cats.Contains("sanity") || cats.Contains("age")) && !string.IsNullOrEmpty(sanity)) sb.AppendLine($"{sanity}");
+                        if ((cats.Contains("sanity") || cats.Contains("age")) && !string.IsNullOrEmpty(sanity)) sb.AppendLine($"{sanity.ToUpper()}");
                         if ((cats.Contains("ai") || cats.Contains("aigc")) && !string.IsNullOrEmpty(aigc)) sb.AppendLine($"{aigc}");
+                        if ((cats.Contains("state") || cats.Contains("states")) && !string.IsNullOrEmpty(state)) sb.AppendLine($"{state}");
 
                         if (cats.Contains("width")) sb.AppendLine($"{exif.Width}");
                         if (cats.Contains("height")) sb.AppendLine($"{exif.Height}");
+                        if (cats.Contains("depth")) sb.AppendLine($"{exif.ColorDepth}");
+                        if (cats.Contains("dimension") || cats.Contains("dim") || cats.Contains("size")) sb.AppendLine(dimension);
                         if (cats.Contains("aspect")) sb.AppendLine($"{((double)exif.Width / exif.Height):F3}");
 
                         if (cats.Contains("landscape")) sb.AppendLine($"{(double)exif.Width / exif.Height > 1}");

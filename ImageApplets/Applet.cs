@@ -898,6 +898,12 @@ namespace ImageApplets
         static private bool _descending_ = false;
         public bool Descending { get { return (_descending_); } }
 
+        static private bool _recursion_ = false;
+        public bool Recursion { get { return (_recursion_); } }
+
+        static private bool _sorting_ = true;
+        public bool Sorting { get { return (_sorting_); } }
+
         static private int _sortzero_ = 16;
         public int SortZero { get { return (_sortzero_); } }
 
@@ -933,6 +939,8 @@ namespace ImageApplets
             { " " },
             { "verbose", "Output All When Redirected STDOUT", v => { _verbose_ = true; } },
             { "descending", "Process File List Order", v => { _descending_ = true; } },
+            { "recursion|subfolders", "Recursion Sub Folders", v => { _recursion_ = true; } },
+            { "nosort", "Not Sorting Input List", v => { _sorting_ = false; } },
             { "sortzero=", "Max Of NaturalSort Padding Zero", v => { if (!string.IsNullOrEmpty(v)) int.TryParse(v, out _sortzero_); } },
             { "result|log=", "Result To {FILE} or CLIPBOARD", v => { if (!string.IsNullOrEmpty(v)) _result_file_ = v; } },
             { "input|filelist=", "Get Files From {FILE} or CLIPBOARD", v => { if (!string.IsNullOrEmpty(v)) _input_file_ = v; } },
