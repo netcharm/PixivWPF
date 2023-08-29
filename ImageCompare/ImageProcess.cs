@@ -366,7 +366,7 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
-        private void ResizeToImage(bool source)
+        private void ResizeToImage(bool source, bool assign = true)
         {
             try
             {
@@ -386,7 +386,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action && assign) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }

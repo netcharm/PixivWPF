@@ -113,7 +113,12 @@
                        HorizontalAlignment="Right" VerticalAlignment="Center"
                        Text="{Binding ElementName=ImageCompareFuzzy, Path=Value, StringFormat={}{0:F1}%}"
                        ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>
-            <ProgressBar x:Uid="ProcessStatus" x:Name="ProcessStatus" ToolTip="Picture Processing Progress" Margin="4,0,0,0" HorizontalAlignment="Right" Width="36" Height="20" />
+            <ProgressBar x:Uid="ProcessStatus" x:Name="ProcessStatus" ToolTip="Picture Processing Progress" Margin="4,0,2,0" HorizontalAlignment="Right" Width="36" Height="20" />
+            <Button x:Name="ImageDenoiseResult" x:Uid="ImageDenoiseResult" ToolTip="Denoise Result Picture" Click="ImageActions_Click">
+                <StackPanel x:Uid="ImageCopyResultPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ImageCopyResultIcon" Text="&#xED61;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                </StackPanel>
+            </Button>
             <Button x:Name="ImageCopyResult" x:Uid="ImageCopyResult" ToolTip="Copy Result Picture" Click="ImageActions_Click">
                 <StackPanel x:Uid="ImageCopyResultPanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="ImageCopyResultIcon" Text="&#xE16F;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
@@ -203,7 +208,7 @@
             <ToggleButton x:Name="UseWeakBlur" x:Uid="UseWeakBlur" IsChecked="True"
                           ToolTip="Low/High Intensity Blur" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="UseWeakBlurPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="UseWeakBlurIcon" Text="&#xE878;" FontSize="16" FontFamily="Segoe MDL2 Assets" Foreground="Gray">
+                    <TextBlock x:Uid="UseWeakBlurIcon" Text="&#xEB42;" FontSize="16" FontFamily="Segoe MDL2 Assets" Foreground="Gray">
                         <TextBlock.Effect>
                             <BlurEffect x:Uid="UseWeakBlurEffect" Radius="2" KernelType="Gaussian"/>
                         </TextBlock.Effect>
@@ -255,14 +260,14 @@
         <StackPanel x:Name="ViewerPanel" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal">
             <!-- Image Source Preview -->
             <ScrollViewer x:Name="ImageSourceScroll" x:Uid="ImageSourceScroll" AllowDrop="True" Focusable="False" 
-            ScrollChanged="ImageScroll_ScrollChanged" PreviewMouseWheel="ImageBox_MouseWheel"
-            MouseDown="ImageScroll_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave"
-            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
+                ScrollChanged="ImageScroll_ScrollChanged" PreviewMouseWheel="ImageBox_MouseWheel"
+                MouseDown="ImageScroll_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
                 <Viewbox x:Name="ImageSourceBox" x:Uid="ImageSourceBox" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave">
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                    MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave">
                     <Image x:Name="ImageSource" x:Uid="ImageSource" Stretch="None" ToolTipOpening="Image_ToolTipOpening"
-                    HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                        HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                         <Image.LayoutTransform>
                             <TransformGroup x:Uid="ImageSourceTransformGroup">
                                 <ScaleTransform x:Uid="ImageSourceScale" x:Name="ImageSourceScale" ScaleX="1" ScaleY="1"/>
@@ -280,14 +285,14 @@
             </ScrollViewer>
             <!-- Image Result Preview -->
             <ScrollViewer x:Name="ImageResultScroll" x:Uid="ImageResultScroll" Focusable="False" 
-            ScrollChanged="ImageScroll_ScrollChanged" PreviewMouseWheel="ImageBox_MouseWheel"
-            MouseDown="ImageScroll_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave"
-            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
+                ScrollChanged="ImageScroll_ScrollChanged" PreviewMouseWheel="ImageBox_MouseWheel"
+                MouseDown="ImageScroll_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
                 <Viewbox x:Uid="ImageResultBox" x:Name="ImageResultBox" Stretch="Uniform" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave">
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                    MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave">
                     <Image x:Name="ImageResult" x:Uid="ImageResult" Stretch="None" ToolTipOpening="Image_ToolTipOpening"
-                    HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                        HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                         <Image.LayoutTransform>
                             <TransformGroup x:Uid="TransformGroup_5">
                                 <ScaleTransform x:Name="ImageResultScale" x:Uid="ImageResultScale" ScaleX="1" ScaleY="1"/>
@@ -305,14 +310,14 @@
             </ScrollViewer>
             <!-- Image Target Preview -->
             <ScrollViewer x:Name="ImageTargetScroll" x:Uid="ImageTargetScroll" AllowDrop="True" Focusable="False" 
-            ScrollChanged="ImageScroll_ScrollChanged" PreviewMouseWheel="ImageBox_MouseWheel"
-            MouseDown="ImageScroll_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave"
-            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
+                ScrollChanged="ImageScroll_ScrollChanged" PreviewMouseWheel="ImageBox_MouseWheel"
+                MouseDown="ImageScroll_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
                 <Viewbox x:Name="ImageTargetBox" x:Uid="ImageTargetBox" Stretch="Uniform" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave">
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                    MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave">
                     <Image x:Name="ImageTarget" x:Uid="ImageTarget" Stretch="None" ToolTipOpening="Image_ToolTipOpening"
-                    HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                        HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                         <Image.LayoutTransform>
                             <TransformGroup x:Uid="ImageTargetTransformGroup">
                                 <ScaleTransform x:Name="ImageTargetScale" x:Uid="ImageTargetScale" ScaleX="1" ScaleY="1"/>

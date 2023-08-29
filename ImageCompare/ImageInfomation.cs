@@ -19,6 +19,7 @@ using ImageMagick;
 
 namespace ImageCompare
 {
+    public enum ImageTarget { None, Source, Target, Result, All };
     public class ImageInformation
     {
         private MagickImage _original_ = null;
@@ -29,8 +30,9 @@ namespace ImageCompare
             {
                 if (_original_ is MagickImage && !_original_.IsDisposed) { _original_.Dispose(); _original_ = null; }
                 _original_ = value;
+                _OriginalModified_ = true;
                 if (ValidOriginal) _original_.FilterType = FilterType.CubicSpline;
-                if (Modified) Reload();
+                if (_OriginalModified_) Reload();
             }
         }
         public Size OriginalSize { get { return (ValidOriginal ? new Size(Original.Width, Original.Height) : new Size(0, 0)); } }
@@ -42,6 +44,7 @@ namespace ImageCompare
             {
                 if (_current_ is MagickImage && !_current_.IsDisposed) { _current_.Dispose(); _current_ = null; }
                 _current_ = value;
+                _CurrentModified_ = true;
                 if (ValidCurrent) _current_.FilterType = FilterType.CubicSpline;
             }
         }
@@ -74,7 +77,10 @@ namespace ImageCompare
         public int AutoScaleSize { get; set; } = 1024;
 
         public bool Loaded { get; set; } = false;
-        public bool Modified { get; set; } = true;
+        public bool _OriginalModified_ = true;
+        public bool OriginalModified { get { bool _value_ = _OriginalModified_; _OriginalModified_ = false; return(_value_);  } set { _OriginalModified_ = value; } }
+        public bool _CurrentModified_ = true;
+        public bool CurrentModified { get { bool _value_ = _CurrentModified_; _CurrentModified_ = false; return (_value_); } set { _CurrentModified_ = value; } }
 
         public PointD DefaultOrigin { get; } = new PointD(0, 0);
         private PointD? _LastClickPos_ = null;
@@ -140,7 +146,7 @@ namespace ImageCompare
                                     Original = new MagickImage(image);
                                     image.Dispose();
                                     FileName = string.Empty;
-                                    Modified = true;
+                                    OriginalModified = true;
                                     ret = true;
                                     break;
                                 }
@@ -162,7 +168,7 @@ namespace ImageCompare
                                         {
                                             Original = new MagickImage(obj as MemoryStream);
                                             FileName = string.Empty;
-                                            Modified = true;
+                                            OriginalModified = true;
                                             ret = true;
                                             break;
                                         }
@@ -420,6 +426,22 @@ namespace ImageCompare
             return (result);
         }
 
+        public async void Denoise(int? order = null)
+        {
+            if (ValidCurrent)
+            {
+                var value = order ?? 0;
+                //if (value <= 0)
+                //    Current.ReduceNoise(3);
+                //else
+                //    Current.ReduceNoise(Math.Max(0, value));
+                ////Current.AdaptiveBlur(0.25, 1.5);
+                //Current.SelectiveBlur(5, 5, 16);
+                Current.MedianFilter(value > 0 ? value : 3);
+                await SetImage();
+            }
+        }
+
         public async void CopyToClipboard()
         {
             if (ValidCurrent)
@@ -639,26 +661,26 @@ namespace ImageCompare
 
         public bool ResetTransform()
         {
-            Modified = false;
+            CurrentModified = false;
             if (ValidCurrent)
             {
                 if (FlipX)
                 {
                     Current.Flop();
                     FlipX = false;
-                    Modified = true;
+                    CurrentModified = true;
                 }
                 if (FlipY)
                 {
                     Current.Flip();
                     FlipY = false;
-                    Modified = true;
+                    CurrentModified = true;
                 }
                 if (Rotated % 360 != 0)
                 {
                     Current.Rotate(-Rotated);
                     Rotated = 0;
-                    Modified = true;
+                    CurrentModified = true;
                 }
             }
             else
@@ -666,9 +688,9 @@ namespace ImageCompare
                 FlipX = false;
                 FlipY = false;
                 Rotated = 0;
-                Modified = true;
+                CurrentModified = true;
             }
-            return (Modified);
+            return (CurrentModified);
         }
 
         public bool Reload(bool reload = false)
@@ -678,13 +700,18 @@ namespace ImageCompare
             {
                 if (ValidOriginal)
                 {
-                    if (ValidCurrent) { Current.Dispose(); Current = null; }
-                    ResetTransform();
                     if (reload && !string.IsNullOrEmpty(LastFileName)) LoadImageFromFile(LastFileName, update: false);
-                    Current = new MagickImage(Original);
-                    _basesize_ = new Size(Current.Width, Current.Height);
-                    _last_colorspace_ = Current.ColorSpace;
-                    Modified = true;
+                    if (OriginalModified || (ValidOriginal && !ValidCurrent))
+                    {
+                        if (ValidCurrent) { Current.Dispose(); Current = null; }
+                        Current = new MagickImage(Original);
+                    }
+                    if (ValidCurrent)
+                    {
+                        ResetTransform();
+                        _basesize_ = new Size(Current.Width, Current.Height);
+                        _last_colorspace_ = Current.ColorSpace;
+                    }
                     result = true;
                 }
             }
@@ -699,15 +726,20 @@ namespace ImageCompare
             {
                 if (ValidOriginal && geo is MagickGeometry)
                 {
-                    if (ValidCurrent) { Current.Dispose(); Current = null; }
-                    ResetTransform();
                     if (reload && !string.IsNullOrEmpty(LastFileName)) LoadImageFromFile(LastFileName, update: false);
-                    Current = new MagickImage(Original);
-                    Current.Resize(geo);
-                    Current.RePage();
-                    _basesize_ = new Size(Current.Width, Current.Height);
-                    _last_colorspace_ = Current.ColorSpace;
-                    Modified = true;
+                    if (OriginalModified || (ValidOriginal && !ValidCurrent))
+                    {
+                        if (ValidCurrent) { Current.Dispose(); Current = null; }
+                        Current = new MagickImage(Original);
+                    }
+                    if (ValidCurrent)
+                    {
+                        ResetTransform();
+                        Current.Resize(geo);
+                        Current.RePage();
+                        _basesize_ = new Size(Current.Width, Current.Height);
+                        _last_colorspace_ = Current.ColorSpace;
+                    }
                     result = true;
                 }
             }

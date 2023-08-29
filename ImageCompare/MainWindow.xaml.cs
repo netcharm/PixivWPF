@@ -583,7 +583,7 @@ namespace ImageCompare
 
         private async void UpdateImageViewer(bool compose = false, bool assign = false, bool reload = true)
         {
-            if (await _CanUpdate_.WaitAsync(TimeSpan.FromMilliseconds(200)))
+            if (IsLoaded && await _CanUpdate_.WaitAsync(TimeSpan.FromMilliseconds(200)))
             {
                 await Dispatcher.InvokeAsync(async () =>
                 {
@@ -608,10 +608,12 @@ namespace ImageCompare
                                 {
                                     if (CompareImageForceScale)
                                     {
-                                        if (image_s.CurrentSize.Width > MaxCompareSize || image_s.CurrentSize.Height > MaxCompareSize)
+                                        if (image_s.OriginalSize.Width > MaxCompareSize || image_s.OriginalSize.Height > MaxCompareSize)
                                             image_s.Reload(CompareResizeGeometry);
-                                        if (image_t.CurrentSize.Width > MaxCompareSize || image_t.CurrentSize.Height > MaxCompareSize)
+                                        else image_s.Reload();
+                                        if (image_t.OriginalSize.Width > MaxCompareSize || image_t.OriginalSize.Height > MaxCompareSize)
                                             image_t.Reload(CompareResizeGeometry);
+                                        else image_t.Reload();
                                     }
                                     else
                                     {
@@ -621,15 +623,17 @@ namespace ImageCompare
                                             image_t.Reload();
                                     }
 
+                                    //DoEvents();
+
                                     if (CompareImageAutoMatchSize)
                                     {
                                         if (image_s.ValidCurrent && image_t.ValidCurrent)
                                         {
                                             var resized = false;
                                             if ((image_s.CurrentSize.Width > image_t.CurrentSize.Width) || (image_s.CurrentSize.Height > image_t.CurrentSize.Height))
-                                            { ResizeToImage(true); resized = true; }
+                                            { ResizeToImage(true, assign: false); resized = true; }
                                             else if ((image_s.CurrentSize.Width < image_t.CurrentSize.Width) || (image_s.CurrentSize.Height < image_t.CurrentSize.Height))
-                                            { ResizeToImage(false); resized = true; }
+                                            { ResizeToImage(false, assign: false); resized = true; }
 
                                             if (resized)
                                             {
@@ -777,30 +781,16 @@ namespace ImageCompare
                 try
                 {
                     var action = false;
-                    var image_s = ImageSource.GetInformation();
-                    var image_t = ImageTarget.GetInformation();
-                    if (source && image_s.ValidCurrent)
+                    var image_s = (source ? ImageSource : ImageTarget).GetInformation();
+                    var image_t = (source ? ImageTarget : ImageSource).GetInformation();
+                    if (image_s.ValidCurrent)
                     {
-                        if (image_t.ValidOriginal)
-                            image_t.Current = new MagickImage(image_s.Current);
-
-                        if(image_t.OriginalIsFile)
-                            image_t.Original = new MagickImage(image_s.Current);
-
-                        if (!image_t.OriginalIsFile && image_s.OriginalIsFile)
-                            image_t.FileName = image_s.FileName;
-                        action = true;
-                    }
-                    else if (image_t.ValidCurrent)
-                    {
-                        if (image_s.ValidOriginal)
-                            image_s.Current = new MagickImage(image_t.Current);
-
-                        if (image_s.OriginalIsFile)
-                            image_s.Original = new MagickImage(image_t.Current);
-
-                        if (!image_s.OriginalIsFile && image_t.OriginalIsFile)
-                            image_s.FileName = image_t.FileName;
+                        if (!image_t.ValidOriginal && image_s.ValidOriginal)
+                        {
+                            image_t.Original = new MagickImage(image_s.Original);
+                            if (image_s.OriginalIsFile) image_t.FileName = image_s.FileName;
+                        }
+                        image_t.Current = new MagickImage(image_s.Current);
                         action = true;
                     }
                     if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
@@ -841,12 +831,10 @@ namespace ImageCompare
 
         private void LoadImageFromFiles(string[] files, bool source = true)
         {
-            //RenderRun(new Action(() =>
-            //{
             try
             {
                 var action = false;
-                files = files.Where(f => !string.IsNullOrEmpty(f)).Where(f => Extensions.AllSupportedFormats.Keys.ToList().Select(e => $".{e.ToLower()}").ToList().Contains(Path.GetExtension(f).ToLower())).ToArray();
+                files = files.Select(f => f.Trim()).Where(f => !string.IsNullOrEmpty(f)).Where(f => Extensions.AllSupportedFormats.Keys.ToList().Select(e => $".{e.ToLower()}").ToList().Contains(Path.GetExtension(f).ToLower())).ToArray();
                 var count = files.Length;
                 if (count > 0)
                 {
@@ -876,7 +864,6 @@ namespace ImageCompare
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
-            //}));
         }
 
         private void SaveImageAs(bool source)
@@ -1419,7 +1406,7 @@ namespace ImageCompare
                 };
 
                 item_copyfrom_result.Click += (obj, evt) => { RenderRun(() => { CopyImageFromResult(source); }); };
-                item_copyto_source.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(!source); }); };
+                item_copyto_source.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(source); }); };
                 item_copyto_target.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(source); }); };
 
                 item_load_prev.Click += (obj, evt) => { RenderRun(() => { LoadImageFromPrevFile((bool)(obj as MenuItem).Tag); }); };
@@ -1801,6 +1788,33 @@ namespace ImageCompare
             }
         }
 
+        private void SetCursor(Cursor cursor)
+        {
+            try
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    Cursor = cursor;
+                    DoEvents();
+                });
+            }
+            catch { }
+        }
+
+        private Cursor SetBusy()
+        {
+            var result = Cursor;
+            SetCursor(Cursors.Wait);
+            return (result);
+        }
+
+        private Cursor SetIdle()
+        {
+            var result = Cursor;
+            SetCursor(Cursors.Arrow);
+            return (result);
+        }
+
         #region IDisposable Support
         private bool disposedValue = false; // 要检测冗余调用
 
@@ -1978,6 +1992,8 @@ namespace ImageCompare
             if (ImageSource.Tag == null) ImageSource.Tag = new ImageInformation() { Tagetment = ImageSource };
             if (ImageTarget.Tag == null) ImageTarget.Tag = new ImageInformation() { Tagetment = ImageTarget };
             if (ImageResult.Tag == null) ImageResult.Tag = new ImageInformation() { Tagetment = ImageResult };
+
+            DoEvents();
 
             var args = Environment.GetCommandLineArgs();
             LoadImageFromFiles(args.Skip(1).ToArray());
@@ -2336,7 +2352,7 @@ namespace ImageCompare
         private void ImageCompareFuzzy_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             e.Handled = true;
-            UpdateImageViewer(compose: LastOpIsCompose);
+            if (IsLoaded) UpdateImageViewer(compose: LastOpIsCompose);
         }
 
         private void MaxCompareSizeValue_TextChanged(object sender, TextChangedEventArgs e)
@@ -2497,6 +2513,11 @@ namespace ImageCompare
                     LastOpIsCompose = false;
                     UpdateImageViewer();
                 }));
+            }
+            else if (sender == ImageDenoiseResult)
+            {
+                ImageResult.GetInformation().Denoise(WeakEffects ? 3 : 5);
+                //ImageResult.Source = ImageResult.GetInformation().Current;
             }
             else if (sender == ImageCopyResult)
             {
