@@ -67,18 +67,21 @@ namespace ImageAppletsCLI
                                     {
                                         Thread clip = new Thread(new ThreadStart(delegate()
                                         {
-                                            var _flist_in_ = new List<string>();
-
-                                            DataObject dp = new DataObject();
-                                            if (Clipboard.ContainsFileDropList())
+                                            try
                                             {
-                                                foreach (var f in Clipboard.GetFileDropList()) _flist_in_.Add(f);
+                                                var _flist_in_ = new List<string>();
+                                                DataObject dp = new DataObject();
+                                                if (Clipboard.ContainsFileDropList())
+                                                {
+                                                    foreach (var f in Clipboard.GetFileDropList()) _flist_in_.Add(f);
+                                                }
+                                                else if (Clipboard.ContainsText())
+                                                {
+                                                    _flist_in_.AddRange(Clipboard.GetText().Split(LINE_BREAK, StringSplitOptions.RemoveEmptyEntries));
+                                                }
+                                                files.AddRange(_flist_in_);
                                             }
-                                            else if (Clipboard.ContainsText())
-                                            {
-                                                _flist_in_.AddRange(Clipboard.GetText().Split(LINE_BREAK, StringSplitOptions.RemoveEmptyEntries));
-                                            }
-                                            files.AddRange(_flist_in_);
+                                            catch (Exception ex) { Console.WriteLine(ex.Message); }
                                         }));
                                         clip.TrySetApartmentState(ApartmentState.STA);
                                         clip.Start();
