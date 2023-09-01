@@ -720,7 +720,8 @@ namespace ImageCompare
                         image_s.ChangeColorSpace(CompareImageForceColor);
                         image_t.ChangeColorSpace(CompareImageForceColor);
 
-                        image_r.Current = await Compare(image_s.Current, image_t.Current, compose: compose);
+                        //image_r.Current = await Compare(image_s.Current, image_t.Current, compose: compose);
+                        image_r.Original = await Compare(image_s.Current, image_t.Current, compose: compose);
 
                         await Task.Delay(1);
                         DoEvents();
@@ -2518,6 +2519,7 @@ namespace ImageCompare
             {
                 ImageResult.GetInformation().Denoise(WeakEffects ? 3 : 5);
                 //ImageResult.Source = ImageResult.GetInformation().Current;
+                ImageResult.GetInformation().DenoiseCount++;
             }
             else if (sender == ImageCopyResult)
             {

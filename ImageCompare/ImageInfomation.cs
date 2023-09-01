@@ -31,6 +31,8 @@ namespace ImageCompare
                 if (_original_ is MagickImage && !_original_.IsDisposed) { _original_.Dispose(); _original_ = null; }
                 _original_ = value;
                 _OriginalModified_ = true;
+                DenoiseCount = 0;
+                DenoiseLevel = 0;
                 if (ValidOriginal) _original_.FilterType = FilterType.CubicSpline;
                 if (_OriginalModified_) Reload();
             }
@@ -104,6 +106,9 @@ namespace ImageCompare
         public bool FlipX { get; set; } = false;
         public bool FlipY { get; set; } = false;
         public double Rotated { get; set; } = .0;
+
+        public int DenoiseCount { get; set; } = 0;
+        public int DenoiseLevel { get; set; } = 0;
 
         public void FixDPI(MagickImage image = null)
         {
@@ -431,13 +436,22 @@ namespace ImageCompare
             if (ValidCurrent)
             {
                 var value = order ?? 0;
+
+                var factor = DenoiseLevel <= 0 ? 1 : DenoiseLevel;
+                if (factor <= 1)
+                {
+                    if (DenoiseCount > 10) factor = 2;
+                    else if (DenoiseCount > 20) factor = 4;
+                    else if (DenoiseCount > 50) factor = 8;
+                    else if (DenoiseCount > 100) factor = 16;
+                }
                 //if (value <= 0)
                 //    Current.ReduceNoise(3);
                 //else
                 //    Current.ReduceNoise(Math.Max(0, value));
                 ////Current.AdaptiveBlur(0.25, 1.5);
                 //Current.SelectiveBlur(5, 5, 16);
-                Current.MedianFilter(value > 0 ? value : 3);
+                Current.MedianFilter((value > 0 ? value : 3) * factor);
                 await SetImage();
             }
         }
