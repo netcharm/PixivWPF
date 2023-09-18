@@ -707,7 +707,12 @@ namespace ImageCompare
             return (CurrentModified);
         }
 
-        public bool Reload(bool reload = false)
+        public bool Reset(int size = -1)
+        {
+            return(Reload(size, reload: false, reset: true));
+        }
+
+        public bool Reload(bool reload = false, bool reset = false)
         {
             var result = false;
             try
@@ -715,7 +720,7 @@ namespace ImageCompare
                 if (ValidOriginal)
                 {
                     if (reload && !string.IsNullOrEmpty(LastFileName)) LoadImageFromFile(LastFileName, update: false);
-                    if (OriginalModified || (ValidOriginal && !ValidCurrent))
+                    if (OriginalModified || (ValidOriginal && !ValidCurrent) || (reset && ValidOriginal))
                     {
                         if (ValidCurrent) { Current.Dispose(); Current = null; }
                         Current = new MagickImage(Original);
@@ -733,7 +738,7 @@ namespace ImageCompare
             return (result);
         }
 
-        public bool Reload(MagickGeometry geo, bool reload = false)
+        public bool Reload(MagickGeometry geo, bool reload = false, bool reset = false)
         {
             var result = false;
             try
@@ -741,7 +746,7 @@ namespace ImageCompare
                 if (ValidOriginal && geo is MagickGeometry)
                 {
                     if (reload && !string.IsNullOrEmpty(LastFileName)) LoadImageFromFile(LastFileName, update: false);
-                    if (OriginalModified || (ValidOriginal && !ValidCurrent))
+                    if (OriginalModified || (ValidOriginal && !ValidCurrent) || (reset && ValidOriginal))
                     {
                         if (ValidCurrent) { Current.Dispose(); Current = null; }
                         Current = new MagickImage(Original);
@@ -761,10 +766,10 @@ namespace ImageCompare
             return (result);
         }
 
-        public bool Reload(int size, bool reload = false)
+        public bool Reload(int size, bool reload = false, bool reset = false)
         {
-            if (size <= 0) return (Reload(reload));
-            else return (Reload(new MagickGeometry($"{size}x{size}>"), reload));
+            if (size <= 0) return (Reload(reload, reset));
+            else return (Reload(new MagickGeometry($"{size}x{size}>"), reload, reset));
         }
 
         public void Dispose()

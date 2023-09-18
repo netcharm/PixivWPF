@@ -173,9 +173,9 @@ namespace ImageCompare
                 var action = false;
                 var size = UseSmallerImage.IsChecked ?? true ? MaxCompareSize : -1;
                 if (source)
-                    action = ImageSource.GetInformation().Reload(size, reload: false);
+                    action = ImageSource.GetInformation().Reset(size);
                 else
-                    action = ImageTarget.GetInformation().Reload(size, reload: false);
+                    action = ImageTarget.GetInformation().Reset(size);
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
