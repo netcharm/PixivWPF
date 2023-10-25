@@ -177,8 +177,9 @@
                     <MenuItem x:Name="LiveFilterFollowed" x:Uid="LiveFilterFollowed" Header="My Followed" Click="LiveFilterItem_Click"/>
                     <MenuItem x:Name="LiveFilterNotFollowed" x:Uid="LiveFilterNotFollowed" Header="Not Followed" Click="LiveFilterItem_Click"/>
                     <Separator/>
-                    <MenuItem x:Name="LiveFilterAI" x:Uid="LiveFilterAI" Header="AI Gen" Click="LiveFilterItem_Click"/>
-                    <MenuItem x:Name="LiveFilterNotAI" x:Uid="LiveFilterNotAI" Header="Not AI Gen" Click="LiveFilterItem_Click"/>
+                    <MenuItem x:Name="LiveFilterAIGC" x:Uid="LiveFilterAIGC" Header="AI Gen" Click="LiveFilterItem_Click"/>
+                    <MenuItem x:Name="LiveFilterAIAD" x:Uid="LiveFilterAIAD" Header="AI Using" Click="LiveFilterItem_Click"/>
+                    <MenuItem x:Name="LiveFilterNoAI" x:Uid="LiveFilterNoAI" Header="No AI" Click="LiveFilterItem_Click"/>
                     <Separator/>
                     <MenuItem x:Name="LiveFilterUser" x:Uid="LiveFilterUser" Header="Users Only" Click="LiveFilterItem_Click"/>
                     <MenuItem x:Name="LiveFilterWork" x:Uid="LiveFilterWork" Header="Works Only" Click="LiveFilterItem_Click"/>
@@ -314,6 +315,11 @@
                         </MenuItem>
                         <Separator/>
                         <MenuItem x:Name="CommandOpenConfig" x:Uid="CommandOpenConfig" Header="Open Config File" Click="CommandApplication_Click" >
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="CommandOpenFullListUsers" x:Uid="CommandOpenFullListUsers" Header="Open Full List Users File" Click="CommandApplication_Click" >
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             </MenuItem.Icon>

@@ -385,7 +385,7 @@
             VirtualizingPanel.IsVirtualizingWhenGrouping="True"
             VirtualizingPanel.VirtualizationMode="Recycling"
             VirtualizingPanel.ScrollUnit="Item"
-            MouseDown="PART_ImageTiles_MouseDown" MouseMove="PART_ImageTiles_MouseMove"
+            MouseDown="PART_ImageTiles_MouseDown" MouseMove="PART_ImageTiles_MouseMove" MouseUp="PART_ImageTiles_MouseUp"
             MouseWheel="PART_ImageTiles_MouseWheel" PreviewMouseWheel="PART_ImageTiles_PreviewMouseWheel"
             PreviewKeyDown="PART_ImageTiles_KeyUp"
             SelectionChanged="PART_ImageTiles_SelectionChanged" >

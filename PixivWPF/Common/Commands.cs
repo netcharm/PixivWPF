@@ -79,6 +79,22 @@ namespace PixivWPF.Common
         private const int WIDTH_PEDIA = 1024;
         private const int WIDTH_SEARCH = 710;
 
+        private static Func<IEnumerable<PixivItem>, bool> MultipleOpeningConfirmFunc = items => { return(MultipleOpeningConfirm(items)); };
+        public static bool MultipleOpeningConfirm<T>(this IEnumerable<T> items)
+        {
+            var result = true;
+            try
+            {
+                if (setting.MultipleOpeningConfirm && items.Count() > setting.MultipleOpeningThreshold)
+                {
+                    var ret = MessageBox.Show("Items Reached Threshold!", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes);
+                    result &= ret == MessageBoxResult.Yes || ret == MessageBoxResult.OK;
+                }
+            }
+            catch(Exception ex) { ex.ERROR("OpenMultipleNotify"); }
+            return (result);
+        }
+
         private static bool IsPagesGallary(ImageListGrid gallery)
         {
             bool result = false;
@@ -190,6 +206,19 @@ namespace PixivWPF.Common
             await new Action(() =>
             {
                 var cfg = Path.Combine(Application.Current.GetRoot(), "config.json");
+                var viewer = string.IsNullOrEmpty(setting.ShellTextViewer) ? setting.ShellLogViewer : setting.ShellTextViewer;
+                var param = string.IsNullOrEmpty(setting.ShellTextViewer) ? setting.ShellLogViewerParams : setting.ShellTextViewerParams;
+                if (string.IsNullOrEmpty(viewer)) viewer = "notepad.exe";
+                cfg.OpenFileWithShell(command: viewer, custom_params: param);
+            }).InvokeAsync(true);
+        });
+
+        public static ICommand OpenFullListUsers { get; } = new DelegateCommand<string>(async obj =>
+        {
+            await new Action(() =>
+            {
+                setting = Application.Current.LoadSetting();
+                var cfg = Path.Combine(Application.Current.GetRoot(), setting.FullListedUsersFile);
                 var viewer = string.IsNullOrEmpty(setting.ShellTextViewer) ? setting.ShellLogViewer : setting.ShellTextViewer;
                 var param = string.IsNullOrEmpty(setting.ShellTextViewer) ? setting.ShellLogViewerParams : setting.ShellTextViewerParams;
                 if (string.IsNullOrEmpty(viewer)) viewer = "notepad.exe";
@@ -1256,15 +1285,26 @@ namespace PixivWPF.Common
                 else if (obj is ImageListGrid)
                 {
                     var gallery = obj as ImageListGrid;
-                    foreach (var item in gallery.GetSelected())
+                    if (gallery.Count > 0) OpenWork.Execute(gallery.GetSelected());
+                }
+                else if (obj is IList<PixivItem>)
+                {
+                    await new Action(async () =>
                     {
-                        await new Action(async () =>
+                        var gallery = obj as IList<PixivItem>;
+                        if (gallery.Count() > 0 && MultipleOpeningConfirm(gallery))
                         {
-                            OpenWork.Execute(item);
-                            await Task.Delay(1);
-                            Application.Current.DoEvents();
-                        }).InvokeAsync();
-                    }
+                            foreach (var item in gallery)
+                            {
+                                await new Action(async () =>
+                                {
+                                    OpenWork.Execute(item);
+                                    await Task.Delay(1);
+                                    Application.Current.DoEvents();
+                                }).InvokeAsync();
+                            }
+                        }
+                    }).InvokeAsync();
                 }
                 else if (obj is IllustDetailPage)
                 {
@@ -1335,13 +1375,24 @@ namespace PixivWPF.Common
                 else if (obj is ImageListGrid)
                 {
                     var gallery = obj as ImageListGrid;
-                    foreach (var item in gallery.GetSelected())
+                    if (gallery.Count > 0) OpenWorkPreview.Execute(gallery.GetSelected());
+                }
+                else if (obj is IList<PixivItem>)
+                {
+                    await new Action(async () =>
                     {
-                        await new Action(() =>
+                        var gallery = obj as IList<PixivItem>;
+                        if (gallery.Count() > 0 && MultipleOpeningConfirm(gallery))
                         {
-                            OpenWorkPreview.Execute(item);
-                        }).InvokeAsync();
-                    }
+                            foreach (var item in gallery)
+                            {
+                                await new Action(() =>
+                                {
+                                    OpenWorkPreview.Execute(item);
+                                }).InvokeAsync();
+                            }
+                        }
+                    }).InvokeAsync();
                 }
             }
             catch (Exception ex) { ex.ShowExceptionToast(tag: "OpenWorkPreview"); }
@@ -1472,6 +1523,8 @@ namespace PixivWPF.Common
                         {
                             if (item.IsPage() || item.IsPages())
                                 illust.IsDownloadedAsync(out fp, item.Index, touch: false);
+                            else if (item.NoPage())
+                                illust.IsDownloadedAsync(out fp, true, item.Index, touch: false);
                             else
                                 illust.IsPartDownloadedAsync(out fp, touch: false);
 
@@ -1481,29 +1534,23 @@ namespace PixivWPF.Common
                 }
                 else if (obj is ImageListGrid)
                 {
-                    await new Action(async () =>
-                    {
-                        var gallery = obj as ImageListGrid;
-                        foreach (var item in gallery.GetSelected())
-                        {
-                            await new Action(() =>
-                            {
-                                OpenDownloaded.Execute(item);
-                            }).InvokeAsync();
-                        }
-                    }).InvokeAsync();
+                    var gallery = obj as ImageListGrid;
+                    if (gallery.Count > 0) OpenDownloaded.Execute(gallery.GetSelected());
                 }
                 else if (obj is IList<PixivItem>)
                 {
                     await new Action(async () =>
                     {
                         var gallery = obj as IList<PixivItem>;
-                        foreach (var item in gallery)
+                        if (gallery.Count() > 0 && MultipleOpeningConfirm(gallery))
                         {
-                            await new Action(() =>
+                            foreach (var item in gallery)
                             {
-                                OpenDownloaded.Execute(item);
-                            }).InvokeAsync();
+                                await new Action(() =>
+                                {
+                                    OpenDownloaded.Execute(item);
+                                }).InvokeAsync();
+                            }
                         }
                     }).InvokeAsync();
                 }
@@ -1590,6 +1637,8 @@ namespace PixivWPF.Common
                         {
                             if (item.IsPage() || item.IsPages())
                                 illust.IsDownloadedAsync(out fp, item.Index, touch: false);
+                            else if (item.NoPage())
+                                illust.IsDownloadedAsync(out fp, true, item.Index, touch: false);
                             else
                                 illust.IsPartDownloadedAsync(out fp, touch: false);
 
@@ -1601,24 +1650,12 @@ namespace PixivWPF.Common
                 else if (obj is ImageListGrid)
                 {
                     var gallery = obj as ImageListGrid;
-                    if (gallery.Count > 0)
-                    {
-                        await new Action(async () =>
-                        {
-                            foreach (var item in gallery.GetSelected())
-                            {
-                                await new Action(() =>
-                                {
-                                    ShowMeta.Execute(item);
-                                }).InvokeAsync();
-                            }
-                        }).InvokeAsync();
-                    }
+                    if (gallery.Count > 0) ShowMeta.Execute(gallery.GetSelected());
                 }
                 else if (obj is IList<PixivItem>)
                 {
                     var gallery = obj as IList<PixivItem>;
-                    if (gallery.Count < 0)
+                    if (gallery.Count() > 0 && MultipleOpeningConfirm(gallery))
                     {
                         await new Action(async () =>
                         {
@@ -1745,6 +1782,8 @@ namespace PixivWPF.Common
                         {
                             if (item.IsPage() || item.IsPages())
                                 illust.IsDownloadedAsync(out fp, item.Index, touch: false);
+                            else if (item.NoPage())
+                                illust.IsDownloadedAsync(out fp, true, item.Index, touch: false);
                             else
                                 illust.IsPartDownloadedAsync(out fp, touch: false);
 
@@ -1761,24 +1800,12 @@ namespace PixivWPF.Common
                 else if (obj is ImageListGrid)
                 {
                     var gallery = obj as ImageListGrid;
-                    if (gallery.Count > 0)
-                    {
-                        await new Action(async () =>
-                        {
-                            foreach (var item in gallery.GetSelected())
-                            {
-                                await new Action(() =>
-                                {
-                                    TouchMeta.Execute(item);
-                                }).InvokeAsync();
-                            }
-                        }).InvokeAsync();
-                    }
+                    if (gallery.Count > 0) TouchMeta.Execute(gallery.GetSelected());
                 }
                 else if (obj is IList<PixivItem>)
                 {
                     var gallery = obj as IList<PixivItem>;
-                    if (gallery.Count > 0)
+                    if (gallery.Count() > 0 && (use_shell ? MultipleOpeningConfirm(gallery) : true))
                     {
                         await new Action(async () =>
                         {
@@ -1790,7 +1817,7 @@ namespace PixivWPF.Common
                                 }).InvokeAsync();
                             }
                         }).InvokeAsync();
-                    }
+                    }                
                 }
             }
             catch (Exception ex) { ex.ERROR("OpenDownloaded"); }
@@ -1957,23 +1984,20 @@ namespace PixivWPF.Common
                 else if (obj is ImageListGrid)
                 {
                     var gallery = obj as ImageListGrid;
-                    foreach (var item in gallery.GetSelected())
-                    {
-                        await new Action(() =>
-                        {
-                            OpenFileProperties.Execute(item.GetDownloadedFiles());
-                        }).InvokeAsync();
-                    }
+                    if (gallery.Count > 0) OpenFileProperties.Execute(gallery.GetSelected());
                 }
                 else if (obj is IList<PixivItem>)
                 {
                     var gallery = obj as IList<PixivItem>;
-                    foreach (var item in gallery)
+                    if (gallery.Count() > 0 && MultipleOpeningConfirm(gallery))
                     {
-                        await new Action(() =>
+                        foreach (var item in gallery)
                         {
-                            OpenFileProperties.Execute(item.GetDownloadedFiles());
-                        }).InvokeAsync();
+                            await new Action(() =>
+                            {
+                                OpenFileProperties.Execute(item.GetDownloadedFiles());
+                            }).InvokeAsync();
+                        }
                     }
                 }
                 else if (obj is TilesPage)
@@ -4215,7 +4239,7 @@ namespace PixivWPF.Common
                 if (obj is PixivItem)
                 {
                     var item = obj as PixivItem;
-                    var ret = await item.LikeIllust(pub);
+                    var ret = item.IsLiked() ? true : await item.LikeIllust(pub);
                 }
                 else if (obj is ImageListGrid)
                 {

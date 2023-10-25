@@ -132,11 +132,11 @@ namespace PixivWPF.Common
             try
             {
                 if (this is System.Windows.Forms.WebBrowser &&
-                    this.Document is System.Windows.Forms.HtmlDocument &&
-                    this.Document.DomDocument is mshtml.IHTMLDocument2)
+                    Document is System.Windows.Forms.HtmlDocument &&
+                    Document.DomDocument is mshtml.IHTMLDocument2)
                 {
                     StringBuilder sb = new StringBuilder();
-                    mshtml.IHTMLDocument2 document = this.Document.DomDocument as mshtml.IHTMLDocument2;
+                    mshtml.IHTMLDocument2 document = Document.DomDocument as mshtml.IHTMLDocument2;
                     mshtml.IHTMLSelectionObject currentSelection = document.selection;
                     if (currentSelection != null && currentSelection.type.Equals("Text", StringComparison.CurrentCultureIgnoreCase))
                     {
@@ -146,7 +146,7 @@ namespace PixivWPF.Common
                             mshtml.IHTMLElement root = range.parentElement();
                             if (root.tagName.Equals("html", StringComparison.CurrentCultureIgnoreCase))
                             {
-                                var bodies = this.Document.GetElementsByTagName("body");
+                                var bodies = Document.GetElementsByTagName("body");
                                 foreach (System.Windows.Forms.HtmlElement body in bodies)
                                 {
                                     sb.AppendLine(html ? body.InnerHtml : body.InnerText);
@@ -158,7 +158,7 @@ namespace PixivWPF.Common
                     }
                     else if (all_without_selection)
                     {
-                        var bodies = this.Document.GetElementsByTagName("body");
+                        var bodies = Document.GetElementsByTagName("body");
                         foreach (System.Windows.Forms.HtmlElement body in bodies)
                         {
                             sb.AppendLine(html ? body.InnerHtml : body.InnerText);
@@ -327,6 +327,7 @@ namespace PixivWPF.Common
         Width = 512, Height = 1024,
         Date = 2048,
         Comments = 4096,
+        Path = 32768,
         All = 65536
     };
 
@@ -345,6 +346,7 @@ namespace PixivWPF.Common
     {
         public string Query { get; set; } = string.Empty;
         public string Folder { get; set; } = string.Empty;
+        public bool? CopyQueryToClipboard { get; set; } = null;
         public StorageSearchMode Mode { get; set; } = StorageSearchMode.And;
         public StorageSearchScope Scope { get; set; } = StorageSearchScope.None;
 
@@ -473,7 +475,9 @@ namespace PixivWPF.Common
         public void Dispose()
         {
             Dispose(true);
+#if DEBUG            
             GC.SuppressFinalize(this);
+#endif            
         }
 
         protected virtual void Dispose(bool disposing)
@@ -546,8 +550,122 @@ namespace PixivWPF.Common
         private static ConcurrentDictionary<long?, Pixeez.Objects.UserBase> UserCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserBase>();
         private static ConcurrentDictionary<long?, Pixeez.Objects.UserInfo> UserInfoCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserInfo>();
         private static ConcurrentDictionary<string, byte[]> DownloadTaskCache = new ConcurrentDictionary<string, byte[]>();
+        
+        private static ConcurrentDictionary<string, string> _FullListedUser_ = null;
+        public static ConcurrentDictionary<string, string> FullListedUser
+        {
+            get { if (!(_FullListedUser_ is ConcurrentDictionary<string, string>)) _FullListedUser_ = new ConcurrentDictionary<string, string>(); return (_FullListedUser_); }
+        }
+
+        private static SemaphoreSlim FullListedUserStateLock = new SemaphoreSlim(1, 1);
+
+        public static void LoadFullListedUserState(this string file)
+        {
+            if (!(_FullListedUser_ is ConcurrentDictionary<string, string>)) _FullListedUser_ = new ConcurrentDictionary<string, string>();
+            try
+            {
+                if (File.Exists(file) && file.WaitFileUnlock() && FullListedUserStateLock.Wait(0))
+                {
+                    var json = File.ReadAllText(file);
+                    _FullListedUser_ = JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(json);
+                    $"{setting.FullListedUsersFile} Loaded!".INFO("LoadFullListedUserState");
+                    Application.Current.SetUserFullListedState();
+                }
+            }
+            catch (Exception ex) { ex.ERROR("LoadFullListedUserState"); }
+            finally { if (FullListedUserStateLock is SemaphoreSlim && FullListedUserStateLock.CurrentCount <= 0) FullListedUserStateLock.Release(); }
+        }
+
+        public static void SaveFullListedUserState(this string file)
+        {
+            try
+            {
+                if (_FullListedUser_ is ConcurrentDictionary<string, string>)
+                {
+                    if (string.IsNullOrEmpty(file)) return;
+                    if (Directory.Exists(Path.GetDirectoryName(file)) && file.WaitFileUnlock() && FullListedUserStateLock.Wait(0))
+                    {
+                        //var json = JsonConvert.SerializeObject(_FullListedUser_.OrderBy(u => u.Key).Distinct().ToDictionary(u => u.Key, u => u.Value), Newtonsoft.Json.Formatting.Indented);
+                        var ordered = new OrderedDictionary(_FullListedUser_.Count, StringComparer.CurrentCulture);
+                        foreach (var kv in _FullListedUser_.OrderBy(u => long.Parse(u.Key)).Distinct()) ordered.Add(kv.Key, kv.Value);
+                        var json = JsonConvert.SerializeObject(ordered, Newtonsoft.Json.Formatting.Indented);
+                        File.WriteAllText(file, json, new UTF8Encoding(true));
+                        $"{setting.FullListedUsersFile} Saved!".INFO("SaveFullListedUserState");
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("SaveFullListedUserState"); }
+            finally { if (FullListedUserStateLock is SemaphoreSlim && FullListedUserStateLock.CurrentCount <= 0) FullListedUserStateLock.Release(); }
+        }
+
+        public static bool IsFullListedUser(this string userid)
+        {
+            return (string.IsNullOrEmpty(GetFullListedUserState(userid)));
+        }
+
+        public static string GetFullListedUserState(this string userid)
+        {
+            var result = string.Empty;
+            if (!string.IsNullOrEmpty(userid))
+            {
+                if (!(_FullListedUser_ is ConcurrentDictionary<string, string>)) _FullListedUser_ = new ConcurrentDictionary<string, string>();
+                if (_FullListedUser_.ContainsKey(userid)) _FullListedUser_.TryGetValue(userid, out result);
+            }
+            return (result);
+        }
+
+        public static bool SetFullListedUserState(this string userid, bool remove = false)
+        {
+            var result = false;
+            if (!string.IsNullOrEmpty(userid))
+            {
+                if (_FullListedUser_ == null) _FullListedUser_ = new ConcurrentDictionary<string, string>();
+                if (remove)
+                {
+                    var data = string.Empty;
+                    if (_FullListedUser_.ContainsKey(userid)) result = _FullListedUser_.TryRemove(userid, out data);                       
+                }
+                else
+                {
+                    var now = DateTime.Now.ToString();
+                    if (_FullListedUser_.ContainsKey(userid)) result = _FullListedUser_.TryUpdate(userid, now, _FullListedUser_[userid]);
+                    else result = _FullListedUser_.TryAdd(userid, now);
+                }
+                if (result) setting.FullListedUsersFile.SaveFullListedUserState();
+            }
+            return (result);
+        }
+
+        public static void SetUserFullListedState(this Application app)
+        {
+            Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                foreach (var win in Application.Current.Windows)
+                {
+                    if (win is MainWindow)
+                        (win as MainWindow).Contents.DetailPage.SetUserFullListedState();
+                    else if (win is ContentWindow && (win as ContentWindow).Content is IllustDetailPage)
+                        ((win as ContentWindow).Content as IllustDetailPage).SetUserFullListedState();
+                }
+            });
+        }
+
+        public static void RemoveUserFullListedState(this Application app)
+        {
+            Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                foreach (var win in Application.Current.Windows)
+                {
+                    if (win is MainWindow)
+                        (win as MainWindow).Contents.DetailPage.SetUserFullListedState(remove: true);
+                    else if (win is ContentWindow && (win as ContentWindow).Content is IllustDetailPage)
+                        ((win as ContentWindow).Content as IllustDetailPage).SetUserFullListedState(remove: true);
+                }
+            });
+        }
 
         private static ConcurrentDictionary<string, int> DownloadedImageQualityInfoCache = new ConcurrentDictionary<string, int>();
+
         public static int GetImageQualityInfo(this string file)
         {
             var result = -1;
@@ -564,7 +682,7 @@ namespace PixivWPF.Common
                     if (result > -1) SetImageFileQualityInfo(file, result);
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("GetImageQualityInfo"); }
             return (result);
         }
 
@@ -750,13 +868,17 @@ namespace PixivWPF.Common
         {
             Pixeez.Tokens result = null;
             setting = Application.Current.LoadSetting();
+
+            //var web_ret = await PixivAjaxHelper.WebLogin(setting.User, setting.Pass);
+            PixivAjaxHelper.LoadWebCookie();
+
             CancelRefreshSource = cancelToken == null ? new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout)) : cancelToken;
             if (await CanRefreshToken.WaitAsync(TimeSpan.FromSeconds(setting.DownloadHttpTimeout), CancelRefreshSource.Token))
             {
                 try
                 {
                     Pixeez.Auth.TimeOut = setting.DownloadHttpTimeout;
-                    var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.RefreshToken, setting.Proxy, setting.ProxyBypass, setting.UsingProxy, CancelRefreshSource);
+                    var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.RefreshToken, setting.Proxy, setting.ProxyBypass, setting.UsingProxy, CancelRefreshSource, setting.SSLVersion);
                     setting.AccessToken = authResult.Authorize.AccessToken;
                     setting.RefreshToken = authResult.Authorize.RefreshToken;
                     setting.ExpTime = authResult.Key.KeyExpTime.ToLocalTime();
@@ -778,7 +900,7 @@ namespace PixivWPF.Common
                         try
                         {
                             Pixeez.Auth.TimeOut = setting.DownloadHttpTimeout;
-                            var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.ProxyBypass.ToArray(), setting.UsingProxy, CancelRefreshSource);
+                            var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.ProxyBypass.ToArray(), setting.UsingProxy, CancelRefreshSource, setting.SSLVersion);
                             setting.AccessToken = authResult.Authorize.AccessToken;
                             setting.RefreshToken = authResult.Authorize.RefreshToken;
                             setting.ExpTime = authResult.Key.KeyExpTime.ToLocalTime();
@@ -2532,7 +2654,7 @@ namespace PixivWPF.Common
 
         public static string AIGCTag(this Pixeez.Objects.Work work)
         {
-            string tag = work.IsAI() ? $"AIGC" : string.Empty;
+            string tag = work.IsAI() ? $"AIGC-2" : (work.HasAI() ? "AIGC-1" : string.Empty);
             return (tag);
         }
 
@@ -3000,7 +3122,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("DragOut"); }
         }
 
-        public static void DragOut(this DependencyObject sender, PixivItem item, bool large_preview = false, bool original = false)
+        public static void DragOut(this DependencyObject sender, PixivItem item, bool large_preview = false, bool original = false, bool open_downloaded = true)
         {
             try
             {
@@ -3008,44 +3130,42 @@ namespace PixivWPF.Common
                 {
                     var downloaded = new List<string>();
                     string fp = string.Empty;
-                    if (item.HasPages())
-                    {
-                        for (var i = 0; i < item.Count; i++)
-                        {
-                            if (item.Illust.IsDownloaded(out fp, i, is_meta_single_page: false)) downloaded.Add(fp);
-                        }
-                    }
+                    if (item.HasPages()) downloaded.AddRange(item.GetDownloadedFiles());
                     else if (item.Illust.IsDownloaded(out fp, is_meta_single_page: true)) downloaded.Add(fp);
 
                     var file = original ? item.Illust.GetOriginalUrl(item.Index).GetImageCachePath() : item.Illust.GetPreviewUrl(item.Index, large_preview).GetImageCachePath();
-                    if (File.Exists(file))
+                    if (string.IsNullOrEmpty(file)) file = item.Illust.GetThumbnailUrl().GetImageCachePath();
+                    if (!string.IsNullOrEmpty(file) && File.Exists(file))
                     {
                         var dp = new DataObject();
+                        dp.SetData("PixivItems", item);
                         dp.SetFileDropList(new StringCollection() { file });
                         dp.SetData("Text", file);
-                        if (downloaded.Count > 0)
+                        if (open_downloaded && downloaded.Count > 0)
                         {
                             var dc = new StringCollection();
                             dc.AddRange(downloaded.ToArray());
                             dp.SetData("Downloaded", dc);
+                            $"{dc.Count} Items DragOut".INFO();
                         }
                         DragDrop.DoDragDrop(sender, dp, DragDropEffects.Copy);
+                        $"{file}".INFO("DragOut");
                     }
                 }
             }
             catch (Exception ex) { ex.ERROR("DragOut"); }
         }
 
-        public static void DragOut(this DependencyObject sender, ImageListGrid gallery, bool large_preview = false, bool original = false)
+        public static void DragOut(this DependencyObject sender, ImageListGrid gallery, bool large_preview = false, bool original = false, bool open_downloaded = true)
         {
             try
             {
-                DragOut(sender, gallery.GetSelected(), large_preview, original);
+                DragOut(sender, gallery.GetSelected(), large_preview, original, open_downloaded);
             }
             catch (Exception ex) { ex.ERROR("DragOut"); }
         }
 
-        public static void DragOut(this DependencyObject sender, IEnumerable<PixivItem> items, bool large_preview = false, bool original = false)
+        public static void DragOut(this DependencyObject sender, IEnumerable<PixivItem> items, bool large_preview = false, bool original = false, bool open_downloaded = true)
         {
             try
             {
@@ -3056,32 +3176,31 @@ namespace PixivWPF.Common
                     if (item.IsWork())
                     {
                         var file = original ? item.Illust.GetOriginalUrl(item.Index).GetImageCachePath() : item.Illust.GetPreviewUrl(item.Index, large_preview).GetImageCachePath();
+                        if (string.IsNullOrEmpty(file)) file = item.Illust.GetThumbnailUrl().GetImageCachePath();
                         if (!string.IsNullOrEmpty(file) && File.Exists(file)) files.Add(file);
+
                         string fp = string.Empty;
-                        if (item.HasPages())
-                        {
-                            for (var i = 0; i < item.Count; i++)
-                            {
-                                if (item.Illust.IsDownloaded(out fp, i, is_meta_single_page: false)) downloaded.Add(fp);
-                            }
-                        }
+                        if (item.HasPages()) downloaded.AddRange(item.GetDownloadedFiles());
                         else if (item.Illust.IsDownloaded(out fp, is_meta_single_page: true)) downloaded.Add(fp);
                     }
                 }
+
                 if (files.Count > 0)
                 {
                     var dp = new DataObject();
+                    dp.SetData("PixivItems", items);
                     var sc = new StringCollection();
                     sc.AddRange(files.ToArray());
                     dp.SetFileDropList(sc);
                     dp.SetData("Text", string.Join(Environment.NewLine, files));
-                    if (downloaded.Count > 0)
+                    if (open_downloaded && downloaded.Count > 0)
                     {
                         var dc = new StringCollection();
                         dc.AddRange(downloaded.ToArray());
                         dp.SetData("Downloaded", dc);
                     }
                     DragDrop.DoDragDrop(sender, dp, DragDropEffects.Copy);
+                    $"{files.Count} Items".INFO("DragOut");
                 }
             }
             catch (Exception ex) { ex.ERROR("DragOut"); }
@@ -4820,7 +4939,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static bool UpdateExifDate(this ExifData exif, FileInfo fileinfo, DateTime dt = default(DateTime), MetaInfo meta = null)
+        private static bool UpdateExifData(this ExifData exif, FileInfo fileinfo, DateTime dt = default(DateTime), MetaInfo meta = null)
         {
             var result = true;
             try
@@ -4990,7 +5109,7 @@ namespace PixivWPF.Common
                             }
                         }
 
-                        if (UpdateExifDate(exif, fileinfo, dt, meta))
+                        if (UpdateExifData(exif, fileinfo, dt, meta))
                         {
                             src.Seek(0, SeekOrigin.Begin);
                             dst.Seek(0, SeekOrigin.Begin);
@@ -5049,7 +5168,7 @@ namespace PixivWPF.Common
                                 if (exif.ImageType == ImageType.Png && setting.DownloadAttachPngMetaInfoUsingPngCs)
                                     UpdatePngMetaInfo(fileinfo, dt, meta);
 
-                                if (UpdateExifDate(exif, fileinfo, dt, meta))
+                                if (UpdateExifData(exif, fileinfo, dt, meta))
                                 {
                                     exif.Save(fileinfo.FullName);
                                     result = true;
@@ -6052,7 +6171,7 @@ namespace PixivWPF.Common
             try
             {
                 var id = illustid ?? -1;
-                foreach (var item in collection)
+                foreach (var item in collection.ToList())
                 {
                     if (item.IsPage() || item.IsPages())
                     {
@@ -6186,13 +6305,15 @@ namespace PixivWPF.Common
             filepath = string.Empty;
             try
             {
+                var sep = is_meta_single_page ? string.Empty : "_*";
+                var id = url.GetIllustId();
                 var file = url.GetImageName(is_meta_single_page);
+                var orig = url.ToLower().Contains("original");
                 foreach (var local in setting.LocalStorage)
                 {
                     if (string.IsNullOrEmpty(local.Folder)) continue;
 
-                    var id = url.GetIllustId();
-                    var folder = local.Folder.FolderMacroReplace(url.GetIllustId());
+                    var folder = local.Folder.FolderMacroReplace(id);
                     if (Directory.Exists(folder))
                     {
                         var f = Path.Combine(folder, file);
@@ -6204,6 +6325,17 @@ namespace PixivWPF.Common
                                 result = true;
                                 break;
                             }
+                            else if (!orig)
+                            {
+                                var files = Directory.EnumerateFiles(folder, $"{id}{sep}.*");
+                                if (files.Count() > 0)
+                                {
+                                    //filepath = Path.Combine(folder, $"{id}{Path.GetExtension(f)}");
+                                    filepath = files.First();
+                                    result = true;
+                                    break;
+                                }
+                            }
                         }
                         else
                         {
@@ -6213,9 +6345,9 @@ namespace PixivWPF.Common
                                 result = true;
                                 break;
                             }
-                            else
+                            else if (!orig)
                             {
-                                var files = Directory.EnumerateFiles(folder, $"{id}.*");
+                                var files = Directory.EnumerateFiles(folder, $"{id}{sep}.*");
                                 if (files.Count() > 0)
                                 {
                                     //filepath = Path.Combine(folder, $"{id}{Path.GetExtension(f)}");
@@ -6429,6 +6561,7 @@ namespace PixivWPF.Common
                     var id = item.ID;
                     var is_page = item.IsPage();
                     var has_page = item.HasPages();
+                    var is_ugoira = item.IsUgoira();
                     foreach (var local in setting.LocalStorage)
                     {
                         if (string.IsNullOrEmpty(local.Folder)) continue;
@@ -6443,17 +6576,17 @@ namespace PixivWPF.Common
                                 if ((local.Cached && f.DownloadedCacheExistsAsync()) || File.Exists(f))
                                 {
                                     result.Add(f);
-                                    break;
+                                    //break;
                                 }
                             }
                             else
                             {
-                                var sep = item.HasPages() ? "_*" : "";
+                                var sep = has_page || is_ugoira ? "_*" : "";
                                 var files = Directory.EnumerateFiles(folder, $"{id}{sep}.*").NaturalSort();
                                 if (files.Count() > 0)
                                 {
                                     result.AddRange(files);
-                                    break;
+                                    //break;
                                 }
                             }
                         }
@@ -7103,7 +7236,11 @@ namespace PixivWPF.Common
             var result = -1;
             if (!string.IsNullOrEmpty(file) && File.Exists(file))
             {
-                result = GetJpegQuality(new ExifData(file));
+                try
+                {
+                    if (WaitFileUnlock(file)) result = GetJpegQuality(new ExifData(file));
+                }
+                catch (Exception ex) { ex.ERROR("GetJpegQuality"); }
             }
             return (result);
         }
@@ -7241,6 +7378,12 @@ namespace PixivWPF.Common
                                 {
                                     using (var mo = new MemoryStream())
                                     {
+                                        //var decoder = BitmapDecoder.Create(mi, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
+                                        //var encoder = new JpegBitmapEncoder();
+                                        //encoder.Frames.Add(decoder.Frames[0]);
+                                        //encoder.QualityLevel = quality;
+                                        //encoder.Save(mo);
+
                                         var bmp = new System.Drawing.Bitmap(mi);
                                         if (bmp is System.Drawing.Bitmap)
                                         {
@@ -7264,8 +7407,7 @@ namespace PixivWPF.Common
                                                 img.Save(mo, codec_info, encoderParams);
                                                 img.Dispose();
                                             }
-                                            else
-                                                bmp.Save(mo, pFmt);
+                                            else bmp.Save(mo, pFmt);
 
                                             result = mo.ToArray();
                                             bmp.Dispose();
@@ -7789,7 +7931,11 @@ namespace PixivWPF.Common
             string result = string.Empty;
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
             {
-                result = await cache.DownloadImage(url, overwrite, overwrite, progressAction, cancelToken);
+                try
+                {
+                    result = await cache.DownloadImage(url, overwrite, overwrite, progressAction, cancelToken);
+                }
+                catch (Exception ex) { ex.ERROR("DownloadCacheFile"); }
             }
             return (result);
         }
@@ -8294,12 +8440,31 @@ namespace PixivWPF.Common
             return (work is Pixeez.Objects.Work && work.User is Pixeez.Objects.NewUser);
         }
 
+        private static bool DetectAI(this Pixeez.Objects.Work work)
+        {
+            bool result = false;
+            try
+            {
+                if (work is Pixeez.Objects.Work)
+                {
+                    var ai_tags = setting.DetectAIWords.Replace(" ", "\\s");
+                    var tags = string.Join("#", work.Tags.Select(t => t.ToLower())) + (string.IsNullOrEmpty(work.Title) ? string.Empty : $"#{work.Title}");
+                    result = Regex.IsMatch(tags, ai_tags, RegexOptions.IgnoreCase);
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+
         public static bool IsAI(this Pixeez.Objects.Work work)
         {
             bool result = false;
             try
             {
-                result = work is Pixeez.Objects.Work && work.AIType > 1;
+                if (work is Pixeez.Objects.Work)
+                {
+                    result = work.AIType > 1 || DetectAI(work);
+                }
             }
             catch (Exception ex) { ex.ERROR(); }
             return (result);
@@ -8310,7 +8475,54 @@ namespace PixivWPF.Common
             bool result = false;
             try
             {
-                result = work is Pixeez.Objects.Work && work.AIType > 0;
+                if (work is Pixeez.Objects.Work)
+                {
+                    result = work.AIType > 0 || DetectAI(work);
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+
+        private static bool DetectSanity(this Pixeez.Objects.Work work)
+        {
+            bool result = false;
+            try
+            {
+                if (work is Pixeez.Objects.Work)
+                {
+                    var ai_tags = setting.DetectSanityWords.Replace(" ", "\\s");
+                    var tags = string.Join("#", work.Tags.Select(t => t.ToLower())) + (string.IsNullOrEmpty(work.Title) ? string.Empty : $"#{work.Title}");
+                    result = Regex.IsMatch(tags, ai_tags, RegexOptions.IgnoreCase);
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+
+        public static bool IsSanity(this Pixeez.Objects.Work work)
+        {
+            bool result = false;
+            try
+            {
+                if (work is Pixeez.Objects.Work)
+                {
+                    result = !work.SanityAge().Equals("all") || DetectSanity(work);
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+
+        public static bool HasSanity(this Pixeez.Objects.Work work)
+        {
+            bool result = false;
+            try
+            {
+                if (work is Pixeez.Objects.Work)
+                {
+                    result = !work.SanityAge().Equals("all") || DetectAI(work);
+                }
             }
             catch (Exception ex) { ex.ERROR(); }
             return (result);
@@ -8601,7 +8813,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static IList<PixivItem> GetSelected(this ImageListGrid gallery, bool WithSelectionOrder, bool NonForAll = false)
+        public static IList<PixivItem> GetSelected(this ImageListGrid gallery, bool WithSelectionOrder = false, bool NonForAll = false)
         {
             var result = new List<PixivItem>();
             try
@@ -8614,10 +8826,11 @@ namespace PixivWPF.Common
                 }
                 else
                 {
-                    foreach (var item in gallery.FiltedList)
-                    {
-                        if (items.Contains(item)) result.Add(item);
-                    }
+                    result = items.OrderBy(i => i.ItemIndex).ToList();
+                    //foreach (var item in gallery.FiltedList)
+                    //{
+                    //    if (items.Contains(item)) result.Add(item);
+                    //}
                 }
             }
             catch (Exception ex) { ex.ERROR(); }
@@ -9140,7 +9353,7 @@ namespace PixivWPF.Common
 
         public static async Task<Tuple<bool, Pixeez.Objects.Work>> Like(this Pixeez.Objects.Work illust, bool pub = true)
         {
-            var result = await illust.LikeIllust(pub);
+            var result = illust.IsLiked() ? new Tuple<bool, Pixeez.Objects.Work>(true, illust) : await illust.LikeIllust(pub);
             UpdateLikeStateAsync((int)(illust.Id.Value), false);
             return (result);
         }
@@ -9151,7 +9364,7 @@ namespace PixivWPF.Common
 
             if (item.IsWork())
             {
-                var ret = await item.Illust.Like(pub);
+                var ret = item.IsLiked() ? new Tuple<bool, Pixeez.Objects.Work>(true,  item.Illust) : await item.Illust.Like(pub);
                 result = ret.Item1;
                 item.Illust = ret.Item2;
                 item.IsFavorited = result;
@@ -9183,7 +9396,7 @@ namespace PixivWPF.Common
                     {
                         try
                         {
-                            var result = await item.LikeIllust(pub);
+                            var result = item.IsLiked() ? true : await item.LikeIllust(pub);
                         }
                         catch (Exception ex) { ex.ERROR(); }
                     }).InvokeAsync();
@@ -9203,7 +9416,7 @@ namespace PixivWPF.Common
         /// <returns></returns>
         public static async Task<Tuple<bool, Pixeez.Objects.Work>> UnLikeIllust(this Pixeez.Objects.Work illust)
         {
-            Tuple<bool, Pixeez.Objects.Work> result = new Tuple<bool, Pixeez.Objects.Work>(false, illust);
+            Tuple<bool, Pixeez.Objects.Work> result = new Tuple<bool, Pixeez.Objects.Work>(!illust.IsLiked(), illust);
 
             var tokens = await ShowLogin();
             if (tokens == null) return (result);
@@ -9259,7 +9472,7 @@ namespace PixivWPF.Common
 
         public static async Task<Tuple<bool, Pixeez.Objects.Work>> UnLike(this Pixeez.Objects.Work illust)
         {
-            var result = await illust.UnLikeIllust();
+            var result = illust.IsLiked() ? await illust.UnLikeIllust() : new Tuple<bool, Pixeez.Objects.Work>(true, illust);
             UpdateLikeStateAsync((int)(illust.Id.Value), false);
             return (result);
         }
@@ -9269,7 +9482,7 @@ namespace PixivWPF.Common
             bool result = false;
             if (item.IsWork())
             {
-                var ret = await item.Illust.UnLike();
+                var ret = item.IsLiked() ? await item.Illust.UnLike() : new Tuple<bool, Pixeez.Objects.Work>(true, item.Illust);
                 result = ret.Item1;
                 item.Illust = ret.Item2;
                 item.IsFavorited = result;
@@ -9299,7 +9512,7 @@ namespace PixivWPF.Common
                     {
                         try
                         {
-                            var result = await item.UnLikeIllust();
+                            var result = item.IsLiked() ? await item.UnLikeIllust() : true;
                         }
                         catch (Exception ex) { ex.ERROR(); }
                     }).InvokeAsync();
@@ -11458,49 +11671,61 @@ namespace PixivWPF.Common
             return (Regex.Replace(f, @"\d+", m => m.Value.PadLeft(padding, '0')));
         }
 
-        public static IList<string> NaturalSort(this IList<string> list, int padding = 16)
+        public static IList<string> NaturalSort(this IList<string> list, int padding = 16, bool descending = false)
         {
             try
             {
-                return (list is IList<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
+                if (descending)
+                    return (list is IList<string> ? list.OrderByDescending(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
+                else
+                    return (list is IList<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
             }
-            catch (Exception ex) { ex.ERROR("NaturalSort"); return (list); }
+            catch (Exception ex) { MessageBox.Show(ex.Message); return (list); }
         }
 
-        public static IList<FileInfo> NaturalSort(this IList<FileInfo> list, int padding = 16)
+        public static IList<FileInfo> NaturalSort(this IList<FileInfo> list, int padding = 16, bool descending = false)
         {
             try
             {
-                return (list is IList<FileInfo> ? list.OrderBy(x => NormalizationFileName(x.FullName, padding)).ToList() : list);
+                if (descending)
+                    return (list is IList<FileInfo> ? list.OrderByDescending(x => NormalizationFileName(x.FullName, padding)).ToList() : list);
+                else
+                    return (list is IList<FileInfo> ? list.OrderBy(x => NormalizationFileName(x.FullName, padding)).ToList() : list);
             }
-            catch (Exception ex) { ex.ERROR("NaturalSort"); return (list); }
+            catch (Exception ex) { MessageBox.Show(ex.Message); return (list); }
         }
 
-        public static IEnumerable<string> NaturalSort(this IEnumerable<string> list, int padding = 16)
+        public static IEnumerable<string> NaturalSort(this IEnumerable<string> list, int padding = 16, bool descending = false)
         {
             try
             {
-                return (list is IEnumerable<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
+                if (descending)
+                    return (list is IEnumerable<string> ? list.OrderByDescending(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
+                else
+                    return (list is IEnumerable<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
             }
-            catch (Exception ex) { ex.ERROR("NaturalSort"); return (list); }
+            catch (Exception ex) { MessageBox.Show(ex.Message); return (list); }
         }
 
-        public static IEnumerable<FileInfo> NaturalSort(this IEnumerable<FileInfo> list, int padding = 16)
+        public static IEnumerable<FileInfo> NaturalSort(this IEnumerable<FileInfo> list, int padding = 16, bool descending = false)
         {
             try
             {
-                return (list is IEnumerable<FileInfo> ? list.OrderBy(x => NormalizationFileName(x.FullName, padding)) : list);
+                if (descending)
+                    return (list is IEnumerable<FileInfo> ? list.OrderByDescending(x => NormalizationFileName(x.FullName, padding)) : list);
+                else
+                    return (list is IEnumerable<FileInfo> ? list.OrderBy(x => NormalizationFileName(x.FullName, padding)) : list);
             }
-            catch (Exception ex) { ex.ERROR("NaturalSort"); return (list); }
+            catch (Exception ex) { MessageBox.Show(ex.Message); return (list); }
         }
 
         public static bool CanRelease(this SemaphoreSlim ss, int? max = null)
         {
             max = max ?? -1;
             if (max <= 0)
-                return (ss is SemaphoreSlim && ss.CurrentCount >= 0);
+                return (ss is SemaphoreSlim && ss.CurrentCount <= 0);
             else
-                return (ss is SemaphoreSlim && ss.CurrentCount >= 0 && ss.CurrentCount < max);
+                return (ss is SemaphoreSlim && ss.CurrentCount < max);
         }
 
         public static void Release(this SemaphoreSlim ss, bool all = false, int? max = null)

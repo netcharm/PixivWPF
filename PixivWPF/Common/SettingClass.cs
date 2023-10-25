@@ -212,6 +212,12 @@ namespace PixivWPF.Common
             get { return (Path.IsPathRooted(config) ? config : Path.Combine(AppPath, config)); }
         }
 
+        private static string pixiv_cookie_file= "pixiv_cookie.txt";
+        public string PixivCookieFile
+        {
+            get { return (Path.IsPathRooted(pixiv_cookie_file) ? pixiv_cookie_file : Path.Combine(AppPath, pixiv_cookie_file)); }
+        }
+
         private static string tagsfile = "tags.json";
         public string TagsFile
         {
@@ -246,6 +252,17 @@ namespace PixivWPF.Common
                 else return (Path.IsPathRooted(tagsfile_t2s_widecard) ? tagsfile_t2s_widecard : Path.Combine(AppPath, tagsfile_t2s_widecard));
             }
             set { tagsfile_t2s_widecard = Path.GetFileName(value); }
+        }
+
+        private static string fulllisted_users = "fulllisted_users.json";
+        public string FullListedUsersFile
+        {
+            get
+            {
+                if (IsConfigBusy) return (fulllisted_users);
+                else return (Path.IsPathRooted(fulllisted_users) ? fulllisted_users : Path.Combine(AppPath, fulllisted_users));
+            }
+            set { fulllisted_users = Path.GetFileName(value); }
         }
 
         private string last_opened = "last_opened.json";
@@ -285,6 +302,31 @@ namespace PixivWPF.Common
             }
         }
 
+        public static void Backup()
+        {
+            if (Cache is Setting)
+            {
+                var files = new List<string>
+                {
+                    Cache.ConfigFile,
+                    Cache.FullListedUsersFile,
+                    Cache.OriginalImageSizeInfoFile,
+                    Cache.TagsFile,
+                    Cache.CustomTagsFile,
+                    Cache.CustomWildcardTagsFile
+                };
+
+                foreach (var f in files)
+                {
+                    var file = $"{Path.GetFileNameWithoutExtension(f)}_lastgood{Path.GetExtension(f)}";
+                    var src = Path.Combine(AppPath, Path.GetFileName(f));
+                    var dst = Path.Combine(AppPath, file);
+                    File.Copy(src, dst, true);
+                    src.INFO("Backup");
+                }
+            }
+        }
+
         public void Save(bool full, string configfile = "")
         {
             if (!IsConfigBusy && CanConfigWrite.Wait(1))
@@ -317,6 +359,7 @@ namespace PixivWPF.Common
                         File.WriteAllText(configfile, text, new UTF8Encoding(true));
 
                         Cache.SaveImageFileSizeData();
+                        Cache.SaveFullListedUserState();
 
                         SaveTags();
 
@@ -344,7 +387,7 @@ namespace PixivWPF.Common
         }
 
         private static DateTime lastConfigUpdate = default(DateTime);
-        public static Setting Load(bool force = false, bool loadtags = true, string configfile = "")
+        public static Setting Load(bool force = false, bool loadtags = true, string configfile = "", bool startup = false)
         {
             Setting result = Cache is Setting ? Cache : new Setting();
             if (!IsConfigBusy && CanConfigRead.Wait(0))
@@ -355,6 +398,8 @@ namespace PixivWPF.Common
                     var exists = File.Exists(configfile);
                     var filetime = configfile.GetFileTime("m");
                     if (!exists) filetime = lastConfigUpdate + TimeSpan.FromSeconds(1);
+
+                    if (startup) Backup();
 
                     if (!(Cache is Setting) || (force && lastConfigUpdate.DeltaMilliseconds(filetime) > 250))
                     {
@@ -431,6 +476,9 @@ namespace PixivWPF.Common
                             Pixeez.Auth.TimeOut = Cache.DownloadHttpTimeout;
 
                             Cache.LoadImageFileSizeData();
+                            Cache.LoadFullListedUserState(force: startup);
+
+                            PixivAjaxHelper.LoadWebCookie();
 
                             if (StartUp) "Config Setting Reloaded".ShowToast("INFO");
                         }
@@ -694,6 +742,35 @@ namespace PixivWPF.Common
             {
                 Path.Combine(AppPath, Cache.OriginalImageSizeInfoFile).SaveImageFileSizeData();
             }
+        }
+        #endregion
+
+        #region Load/Save Full Listed Users Data
+        private static DateTime lastFullListedUserStateUpdate = default(DateTime);
+        public void LoadFullListedUserState(bool force = false)
+        {
+            var fulllisted_state = Cache is Setting ? Cache.FullListedUsersFile : fulllisted_users;
+            var exists = File.Exists(fulllisted_state);
+            var filetime = exists ? fulllisted_state.GetFileTime("m") : lastFullListedUserStateUpdate + TimeSpan.FromSeconds(1);
+            
+            if (force || DateTime.Now.DeltaMilliseconds(filetime) > 250)
+            {
+                lastFullListedUserStateUpdate = filetime;
+                if (Path.IsPathRooted(fulllisted_state))
+                    fulllisted_state.LoadFullListedUserState();
+                else
+                    Path.Combine(AppPath, fulllisted_state).LoadFullListedUserState();
+            }
+        }
+
+        public void SaveFullListedUserState()
+        {
+            //lastFullListedUserStateUpdate = DateTime.Now;
+            var fulllisted_state = Cache is Setting ? Cache.FullListedUsersFile : fulllisted_users;
+            if (Path.IsPathRooted(fulllisted_state))
+                fulllisted_state.SaveFullListedUserState();
+            else
+                Path.Combine(AppPath, fulllisted_state).SaveFullListedUserState();
         }
         #endregion
 
@@ -992,6 +1069,17 @@ namespace PixivWPF.Common
                 else if (http_version.Major == 1 && http_version.Minor < 0) http_version = new Version(1, 0);
                 else if (http_version.Major == 1 && http_version.Minor > 1) http_version = new Version(1, 1);
                 if (Cache is Setting) Cache.http_version = http_version;
+            }
+        }
+
+        private bool ssl_version = true;
+        public bool SSLVersion
+        {
+            get { return (Cache is Setting ? Cache.ssl_version : ssl_version); }
+            set
+            {
+                ssl_version = value;
+                if (Cache is Setting) Cache.ssl_version = ssl_version;
             }
         }
 
@@ -1546,6 +1634,28 @@ namespace PixivWPF.Common
             }
         }
 
+        private string detect_ai_words = $@"(AIGC|Novel\s?AI|Stable\s?Diffusion|AI协助)";
+        public string DetectAIWords
+        {
+            get { return (Cache is Setting ? Cache.detect_ai_words : detect_ai_words); }
+            set
+            {
+                detect_ai_words = value;
+                if (Cache is Setting) Cache.detect_ai_words = detect_ai_words;
+            }
+        }
+
+        private string detect_sanity_words = $@"(^R\-?1[2-8]\+?|Adult|Hentai|Ecchi)";
+        public string DetectSanityWords
+        {
+            get { return (Cache is Setting ? Cache.detect_sanity_words : detect_sanity_words); }
+            set
+            {
+                detect_sanity_words = value;
+                if (Cache is Setting) Cache.detect_sanity_words = detect_sanity_words;
+            }
+        }
+
         private bool auto_convert_dpi = true;
         public bool AutoConvertDPI
         {
@@ -1675,6 +1785,17 @@ namespace PixivWPF.Common
             {
                 enabled_mini_toolbar = value;
                 if (Cache is Setting) Cache.enabled_mini_toolbar = enabled_mini_toolbar;
+            }
+        }
+
+        private bool prefetch_preview_after_append_all = false;
+        public bool PrefetchingPreviewAfterAppendAll
+        {
+            get { return (Cache is Setting ? Cache.prefetch_preview_after_append_all : prefetch_preview_after_append_all); }
+            set
+            {
+                prefetch_preview_after_append_all = value;
+                if (Cache is Setting) Cache.prefetch_preview_after_append_all = prefetch_preview_after_append_all;
             }
         }
 
@@ -1875,6 +1996,29 @@ namespace PixivWPF.Common
                 if (Cache is Setting) Cache.convert_keep_name = convert_keep_name;
             }
         }
+
+        private bool multiple_opening_confirm = true;
+        public bool MultipleOpeningConfirm
+        {
+            get { return (Cache is Setting ? Cache.multiple_opening_confirm : multiple_opening_confirm); }
+            set
+            {
+                multiple_opening_confirm = value;
+                if (Cache is Setting) Cache.multiple_opening_confirm = multiple_opening_confirm;
+            }
+        }
+
+        private int multiple_opening_threshold = 5;
+        public int MultipleOpeningThreshold
+        {
+            get { return (Cache is Setting ? Cache.multiple_opening_threshold : multiple_opening_threshold); }
+            set
+            {
+                multiple_opening_threshold = value;
+                if (Cache is Setting) Cache.multiple_opening_threshold = multiple_opening_threshold;
+            }
+        }
+
         #endregion
 
         #region Favorite/Follow Related
@@ -2342,6 +2486,28 @@ namespace PixivWPF.Common
             {
                 search_escape_char = value;
                 if (Cache is Setting) Cache.search_escape_char = search_escape_char;
+            }
+        }
+
+        private bool search_query_clip = true;
+        public bool SearchQueryToClipboard
+        {
+            get { return (Cache is Setting ? Cache.search_query_clip : search_query_clip); }
+            set
+            {
+                search_query_clip = value;
+                if (Cache is Setting) Cache.search_query_clip = search_query_clip;
+            }
+        }
+
+        private bool search_query_long_date = true;
+        public bool SearchQueryUsingLongDate
+        {
+            get { return (Cache is Setting ? Cache.search_query_long_date : search_query_long_date); }
+            set
+            {
+                search_query_long_date = value;
+                if (Cache is Setting) Cache.search_query_long_date = search_query_long_date;
             }
         }
 

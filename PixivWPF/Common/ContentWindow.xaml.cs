@@ -232,6 +232,17 @@ namespace PixivWPF.Common
                     PreftchingProgress.Show();
                     CommandFilter.Show();
                 }
+
+                RoutedCommand cmd_Escape = new RoutedCommand();
+                cmd_Escape.InputGestures.Add(new KeyGesture(Key.Escape, ModifierKeys.None, Key.Escape.ToString()));
+                CommandBindings.Add(new CommandBinding(cmd_Escape, (obj, evt) =>
+                {
+                    evt.Handled = true;
+                    if (Content is IllustDetailPage) (Content as IllustDetailPage).StopPrefetching();
+                    else if (Content is IllustImageViewerPage) (Content as IllustImageViewerPage).StopPrefetching();
+                    else if (Content is SearchResultPage) (Content as SearchResultPage).StopPrefetching();
+                    else if (Content is HistoryPage) (Content as HistoryPage).StopPrefetching();
+                }));
             }
 
             if (Content is BatchProcessPage)
@@ -342,7 +353,7 @@ namespace PixivWPF.Common
         private void MetroWindow_DragOver(object sender, DragEventArgs e)
         {
             var fmts = new List<string>(e.Data.GetFormats(true));
-            if (fmts.Contains("Text") || fmts.Contains("FileDrop"))
+            if (fmts.Contains("Text") || fmts.Contains("FileDrop") || fmts.Contains("PixivItems"))
             {
                 e.Effects = DragDropEffects.Copy;
             }
@@ -351,10 +362,22 @@ namespace PixivWPF.Common
 
         private void MetroWindow_Drop(object sender, DragEventArgs e)
         {
-            var links = e.ParseDragContent();
-            foreach (var link in links)
+            var fmts = new List<string>(e.Data.GetFormats(true));
+            if (fmts.Contains("PixivItems"))
             {
-                Commands.OpenSearch.Execute(link);
+                var items = Clipboard.GetData("PixivItems") as IEnumerable<PixivItem>;
+                Commands.OpenItem.Execute(items);
+            }
+            else
+            {
+                var links = e.ParseDragContent();
+                if (Commands.MultipleOpeningConfirm(links))
+                {
+                    foreach (var link in links)
+                    {
+                        Commands.OpenSearch.Execute(link);
+                    }
+                }
             }
         }
 
@@ -655,7 +678,7 @@ namespace PixivWPF.Common
                 LiveFilterDownloaded, LiveFilterNotDownloaded,
             };
             var menus_ai = new List<MenuItem>() {
-                LiveFilterAI, LiveFilterNotAI,
+                LiveFilterAIGC, LiveFilterAIAD, LiveFilterNoAI,
             };
             var menus_sanity = new List<MenuItem>() {
                 LiveFilterSanity_Any,
@@ -748,6 +771,7 @@ namespace PixivWPF.Common
                             LiveFilterFavoritedRange.IsChecked = true;
                     }
                 }
+                if (LiveFilterFavorited_00000.IsChecked) LiveFilterFavoritedRange.IsChecked = false;
                 #endregion
                 #region filter by fast simple filter
                 LiveFilterFast.IsChecked = false;
@@ -766,6 +790,7 @@ namespace PixivWPF.Common
                             LiveFilterFast.IsChecked = true;
                     }
                 }
+                if (LiveFilterFast_None.IsChecked) LiveFilterFast.IsChecked = false;
                 #endregion
                 #region filter by favorited state
                 foreach (var fmenu in menus_fav)
@@ -803,7 +828,7 @@ namespace PixivWPF.Common
                 #region filter by ai state
                 foreach (var fmenu in menus_ai)
                 {
-                    if (menus_down.Contains(menu))
+                    if (menus_ai.Contains(menu))
                     {
                         if (fmenu == menu) fmenu.IsChecked = !fmenu.IsChecked;
                         else fmenu.IsChecked = false;
@@ -836,6 +861,7 @@ namespace PixivWPF.Common
                 {
                     LiveFilterSanity_NoR18.IsEnabled = LiveFilterSanity_R18.IsEnabled = true;
                 }
+                if (LiveFilterSanity_Any.IsChecked) LiveFilterSanity.IsChecked = false;
                 #endregion
             }
 

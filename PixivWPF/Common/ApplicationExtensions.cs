@@ -149,9 +149,9 @@ namespace PixivWPF.Common
 
         #region Application Setting Helper
         public static Setting CurrentSetting { get { return (Setting.Instance is Setting ? Setting.Instance : Setting.Load()); } }
-        public static Setting LoadSetting(this Application app, bool force = false)
+        public static Setting LoadSetting(this Application app, bool force = false, bool startup = false)
         {
-            if (force) Setting.Load(force, force);
+            if (force) Setting.Load(force, force, startup: startup);
             return (CurrentSetting);
             //return (!force && Setting.Instance is Setting ? Setting.Instance : Setting.Load(force));
         }
@@ -499,6 +499,11 @@ namespace PixivWPF.Common
                             Setting.UpdateContentsTemplete();
                             //lastConfigEventTick = DateTime.Now;
                         }
+                        else if (fn.Equals(setting.FullListedUsersFile, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            setting.LoadFullListedUserState();
+                            //lastConfigEventTick = DateTime.Now;
+                        }
                     }
                 }
                 else if (e.ChangeType == WatcherChangeTypes.Changed)
@@ -524,6 +529,11 @@ namespace PixivWPF.Common
                         else if (fn.Equals(setting.ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
                         {
                             Setting.UpdateContentsTemplete();
+                            //lastConfigEventTick = DateTime.Now;
+                        }
+                        else if (fn.Equals(setting.FullListedUsersFile, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            setting.LoadFullListedUserState();
                             //lastConfigEventTick = DateTime.Now;
                         }
                     }
@@ -3068,20 +3078,22 @@ namespace PixivWPF.Common
 
         public static void SearchInFolder(this Application app, SearchObject search)
         {
-            SearchInFolder(app, search.Query, search.Folder, search.Scope, search.Mode);
+            SearchInFolder(app, search.Query, search.Folder, search.Scope, search.Mode, search.CopyQueryToClipboard);
         }
 
-        public static void SearchInFolder(this Application app, string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And)
+        public static void SearchInFolder(this Application app, string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And, bool? copyquery = null)
         {
             if (!string.IsNullOrEmpty(query))
             {
                 string[] EscapeChar = new string[] { "/", "%", "&", ":", ";", "?", "*", "!", "~", "=", "<", ">", "≠", "-", "$", "#", "." };
-                Func<string, string> Escape = (s) =>
+                Func<string, bool, string> Quoted = (s, q) => { return(q ? $"\"{s}\"" : s); };
+                Func<string, bool, string> Escape = (s, q) =>
                 {
                     foreach(var c in EscapeChar) s = s.Replace(c, Uri.EscapeDataString(c));
-                    return(s);
+                    return(Quoted(s, q));
                 };
 
+                var raw_keys = new List<string>();
                 var names = SystemMetaList.Select(m => $"{m.Value.Description.CanonicalName} => {m.Value.Description.DisplayName}").ToList();
                 var query_list = new Dictionary<string, string[]>();
                 var querys = query.Split(LineBreak, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
@@ -3106,27 +3118,43 @@ namespace PixivWPF.Common
                     query_list.Add(value.Description.DisplayName, querys);
                 if (scope.HasFlag(StorageSearchScope.Date) &&
                     SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Photo.DateTaken, out value))
+                {
+                    raw_keys.Add(value.Description.DisplayName);
                     query_list.Add(value.Description.DisplayName, querys);
+                }
                 else if (scope.HasFlag(StorageSearchScope.Date) &&
                     SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.DateAcquired, out value))
+                {
+                    raw_keys.Add(value.Description.DisplayName);
                     query_list.Add(value.Description.DisplayName, querys);
+                }
                 else if (scope.HasFlag(StorageSearchScope.Date) &&
                     SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.DateModified, out value))
+                {
+                    raw_keys.Add(value.Description.DisplayName);
                     query_list.Add(value.Description.DisplayName, querys);
-                else if (scope.HasFlag(StorageSearchScope.Date) &&
+                }
+                else if (scope.HasFlag(StorageSearchScope.Path) &&
                     SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.ItemFolderPathDisplay, out value))
                     query_list.Add(value.Description.DisplayName, querys);
 
                 var setting = LoadSetting(app);
-
+                raw_keys = raw_keys.Distinct().ToList();
                 var m_sep = mode == StorageSearchMode.Not ? " NOT " : (mode == StorageSearchMode.And ? " AND " : " OR ");
                 if (setting.SearchEscapeChar)
-                    query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{string.Join(m_sep, q.Value.Select(w => w.StartsWith("=") ? Escape(w) : $"~=\"{Escape(w)}\""))}"));
+                {
+                    query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{string.Join(m_sep, q.Value.Select(w => w.StartsWith("=") ? Escape(w, !raw_keys.Contains(q.Key)) : $"~={Escape(w, !raw_keys.Contains(q.Key))}"))}"));
+                }
                 else
-                    query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{string.Join(m_sep, q.Value.Select(w => w.StartsWith("=") ? w : $"~=\"{w}\""))}"));
+                {
+                    query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{string.Join(m_sep, q.Value.Select(w => w.StartsWith("=") ? Quoted(w, !raw_keys.Contains(q.Key)) : $"~={Quoted(w, !raw_keys.Contains(q.Key))}"))}"));
+                }
 
                 if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
                 {
+                    if (copyquery ?? setting.SearchQueryToClipboard) Commands.CopyText.Execute(setting.SearchEscapeChar ? Uri.UnescapeDataString(query) : query);
+                    query.INFO("SearchInFolder");
+
                     if (setting.SearchMultiFolder)
                     {
                         var targets = setting.LocalStorage.Where(f => f.Searchable ?? false).Select(s => s.Folder);
@@ -3508,7 +3536,7 @@ namespace PixivWPF.Common
             return (httpClient);
         }
 
-        public static HttpRequestMessage GetHttpRequest(this Application app, string url, HttpMethod method = null, long? range_start = null, long? range_count = null, bool xclient = true)
+        public static HttpRequestMessage GetHttpRequest(this Application app, string url, HttpMethod method = null, long? range_start = null, long? range_count = null, bool xclient = true, string cookie = null, string user_id = null)
         {
             HttpRequestMessage request = null;
             if (!string.IsNullOrEmpty(url))
@@ -3523,6 +3551,38 @@ namespace PixivWPF.Common
                     request.Properties["RequestTimeout"] = TimeSpan.FromSeconds(setting.DownloadHttpTimeout);
                     //request.Properties["ProtocolVersion"] = HttpVersion.Version10;
                     request.Version = setting.HttpVersion;
+
+                    if (!string.IsNullOrEmpty(cookie))
+                    {
+                        request.Headers.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
+                        request.Headers.Add("Accept-Encoding", "gzip, deflate, br");
+                        request.Headers.Add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-US;q=0.7,zh-TW;q=0.6,ja;q=0.5,ko;q=0.4,zh-HK;q=0.3,en-GB;q=0.2");
+                        request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 Edg/115.0.1901.183");
+                        //request.Headers.Add("Host", "accounts.pixiv.net");
+                        //request.Headers.Add("Origin", "https://accounts.pixiv.net");
+                        //request.Headers.Add("Referer", "https://accounts.pixiv.net/login?lang=zh&source=pc&view_type=page&ref=wwwtop_accounts_index");
+                        request.Headers.Add("Host", "www.pixiv.net");
+                        request.Headers.Add("Origin", "https://www.pixiv.net/");
+                        request.Headers.Add("Referer", "https://www.pixiv.net/");
+                        request.Headers.Add("Cookie", cookie);
+                        request.Headers.Add("Dnt", "1");
+
+                        request.Headers.Add("Sec-Ch-Ua", "\"Not / A)Brand\";v=\"99\", \"Microsoft Edge\";v=\"115\", \"Chromium\";v=\"115\"");
+                        request.Headers.Add("Sec-Ch-Ua-Mobile", "?0");
+                        request.Headers.Add("Sec-Ch-Ua-Platform", "\"Windows\"");
+                        request.Headers.Add("Sec-Fetch-Dest", "document");
+                        request.Headers.Add("Sec-Fetch-Mode", "navigate");
+                        request.Headers.Add("Sec-Fetch-Site", "none");
+                        request.Headers.Add("Sec-Fetch-User", "?1");
+                        request.Headers.Add("Upgrade-Insecure-Requests", "1");
+                        //if (!string.IsNullOrEmpty(user_id))
+                        //{
+                        //    request.Headers.Add("X-User-Id", user_id);
+                        //    request.Headers.Add("X-Userid", user_id);
+                        //}
+                        //request.Headers.Add("Upgrade-Insecure-Requests", "0");
+                        //request.Headers.Add("X-Frame-Options", "SAMEORIGIN");
+                    }
 
                     var start = (range_start ?? 0) <= 0 ? "0" : $"{range_start}";
                     var end = (range_count ?? 0) > 0 ? $"{range_count}" : string.Empty;
@@ -3566,14 +3626,49 @@ namespace PixivWPF.Common
             return (await client.GetResponseAsync());
         }
         
-        public static async Task<HttpResponseMessage> GetAsyncResponse(this Application app, string url, HttpMethod method = null, HttpCompletionOption option = HttpCompletionOption.ResponseHeadersRead, bool xclient = true)
+        public static async Task<HttpResponseMessage> GetAsyncResponse(this Application app, string url, HttpMethod method = null, HttpCompletionOption option = HttpCompletionOption.ResponseHeadersRead, bool xclient = true, string cookie = null, string user_id = null)
         {
-            var request = Application.Current.GetHttpRequest(url, method, xclient: xclient);
+            var request = Application.Current.GetHttpRequest(url, method, xclient: xclient, cookie: cookie, user_id: user_id);
             var httpClient = Application.Current.GetHttpClient();
             return (await httpClient.SendAsync(request, option));
         }
 
-        public static async Task<string> GetRemoteJsonAsync(this Application app, string url, HttpMethod method = null)
+        public static async Task<string> GetResponseContent(this Application app, HttpResponseMessage response)
+        {
+            var result = string.Empty;
+
+            if (response != null && response.IsSuccessStatusCode)
+            {
+                long length = response.Content.Headers.ContentLength ?? 0;
+                var encodes = response.Content.Headers.ContentEncoding;
+                if (length > 0)
+                {
+                    string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
+                    using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                    {
+                        using (MemoryStream ms = new MemoryStream())
+                        {
+                            await sr.CopyToAsync(ms);
+                            //await sr.FlushAsync();
+                            ms.Seek(0, SeekOrigin.Begin);
+                            var buf = new byte[ms.Length];
+                            await ms.ReadAsync(buf, 0, (int)ms.Length);
+                            var charset = response.Content.Headers.ContentType.CharSet.ToLower();
+                            var encoding = Encoding.GetEncoding(charset);
+                            if (encoding is Encoding) result = encoding.GetString(buf);
+                            else if (charset.Equals("utf-8") || charset.Equals("utf8")) result = Encoding.UTF8.GetString(buf);
+                            else if (charset.Equals("shift-jis") || charset.Equals("shiftjis")) result = Encoding.GetEncoding("shift-jis").GetString(buf);
+                        }
+                        sr.Close();
+                        sr.Dispose();
+                    }
+                }
+            }
+
+            return (result);
+        }
+
+        public static async Task<string> GetRemoteJsonAsync(this Application app, string url, HttpMethod method = null, string cookie = null, string user_id = null)
         {
             string result = null;
             try
@@ -3581,10 +3676,10 @@ namespace PixivWPF.Common
                 if (!string.IsNullOrEmpty(url))
                 {
                     //using (var response = await Application.Current.GetHttpClient().GetAsync(url))
-                    using (var response = await Application.Current.GetAsyncResponse(url, xclient: false))
+                    using (var response = await Application.Current.GetAsyncResponse(url, xclient: false, cookie: cookie, user_id: user_id))
                     {
                         //response.EnsureSuccessStatusCode();
-                        if (response != null)// && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
+                        if (response != null && response.IsSuccessStatusCode)// && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
                         {
                             long length = response.Content.Headers.ContentLength ?? 0;
                             var encodes = response.Content.Headers.ContentEncoding;

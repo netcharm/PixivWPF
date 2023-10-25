@@ -554,7 +554,7 @@ namespace PixivWPF.Common
                 try
                 {
                     var url = $"https://www.pixiv.net/ajax/illust/{id}/ugoira_meta";
-                    var json_text = await Application.Current.GetRemoteJsonAsync(url);
+                    var json_text = await Application.Current.GetRemoteJsonAsync(url, cookie: CookieData, user_id: CookieUserID);
                     if (!string.IsNullOrEmpty(json_text))
                     {
                         var data = JsonConvert.DeserializeObject<Pixeez.Objects.UgoiraAjaxMetadata>(json_text);
@@ -653,7 +653,7 @@ namespace PixivWPF.Common
             List<Pixeez.Objects.Page> result = null;
 
             url.DEBUG("GetMetaPages");
-            var pages_json_text = await Application.Current.GetRemoteJsonAsync(url);
+            var pages_json_text = await Application.Current.GetRemoteJsonAsync(url, cookie: CookieData, user_id: CookieUserID);
             if (!string.IsNullOrEmpty(pages_json_text))
             {
                 var pages = JToken.Parse(pages_json_text).ToObject<AjaxMetaPages>();
@@ -710,7 +710,7 @@ namespace PixivWPF.Common
             var pages = await GetMetaPages(url, tokens);
             if (pages is List<Pixeez.Objects.Page> && pages.Count > 0)
                 return (new Pixeez.Objects.Metadata() { Pages = pages });
-            else 
+            else
                 return (null);
         }
 
@@ -732,7 +732,7 @@ namespace PixivWPF.Common
 
             var url = GetAjaxIllustUrl(id);
             url.DEBUG("SearchIllustById");
-            var json_text = await Application.Current.GetRemoteJsonAsync(url);
+            var json_text = await Application.Current.GetRemoteJsonAsync(url, cookie: CookieData, user_id: CookieUserID);
             if (!string.IsNullOrEmpty(json_text))
             {
                 try
@@ -838,7 +838,7 @@ namespace PixivWPF.Common
 
                         //if (i.ImageUrls is Pixeez.Objects.ImageUrls &&
                         //    (i.PageCount == 1 || (i.PageCount > 1 && pages is List<Pixeez.Objects.Page>)))
-                            i.Cache();
+                        i.Cache();
                         result = new List<Pixeez.Objects.Work>() { i };
                         await i.RefreshIllustBookmarkState();
                     }
@@ -900,7 +900,7 @@ namespace PixivWPF.Common
             if (tokens == null) return (result);
 
             var url = GetAjaxUserUrl(id);
-            var json_text = await Application.Current.GetRemoteJsonAsync(url);
+            var json_text = await Application.Current.GetRemoteJsonAsync(url, cookie: CookieData, user_id: CookieUserID);
             if (!string.IsNullOrEmpty(json_text))
             {
                 try
@@ -936,7 +936,7 @@ namespace PixivWPF.Common
             if (tokens == null) return (result);
 
             var url = GetAjaxUserProfileUrl(id);
-            var json_text = await Application.Current.GetRemoteJsonAsync(url);
+            var json_text = await Application.Current.GetRemoteJsonAsync(url, cookie: CookieData, user_id: CookieUserID);
             if (!string.IsNullOrEmpty(json_text))
             {
                 try
@@ -972,6 +972,83 @@ namespace PixivWPF.Common
 
             return (result);
         }
+        #endregion
+
+        #region Web Login Helper
+        public static string CookieData { get; set; } = string.Empty;
+        public static string CookieUserID { get; set; } = string.Empty;
+
+        public static string LoadWebCookie()
+        {
+            var setting = Application.Current.LoadSetting();
+            if (System.IO.File.Exists(setting.PixivCookieFile))
+            {
+                CookieData = System.IO.File.ReadAllText(setting.PixivCookieFile).Trim();
+                var queries = CookieData.Split(';').Select(q => q.Trim());
+                foreach (var q in queries)
+                {
+                    var kvs = q.Split('=').Select(kv => kv.Trim());
+                    if (kvs.Count() >= 2)
+                    {
+                        var k = kvs.First();
+                        var v = string.Join("=", kvs.Skip(1));
+                        if (k.Equals("PHPSESSID"))
+                        {
+                            CookieUserID = v.Split('_').FirstOrDefault();
+                            break;
+                        }
+                    }
+                }
+            }
+            return (CookieData);
+        }
+
+        public static async Task<bool> WebLogin(string user, string pass, string cookie = "")
+        {
+            var result = false;
+            if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(pass))
+            {
+                var web_login_url = "https://accounts.pixiv.net/login";
+                //var web_post_url = "https://accounts.pixiv.net/api/login?lang=en";
+
+                //url.DEBUG("WebLogin");
+                var web_header = new System.Net.WebHeaderCollection();
+                web_header.Add(System.Net.HttpRequestHeader.UserAgent, @"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.96 Safari/537.36");
+                if (string.IsNullOrEmpty(CookieData) && CookieData.Contains("PHPSESSID=")) web_header.Add(System.Net.HttpRequestHeader.Cookie, CookieData);
+
+                var web_params = new Dictionary<string, string>()
+                {
+                    { "lang", "en" },
+                    { "source", "pc" },
+                    { "view_type", "page" },
+                    { "ref", "wwwtop_accounts_index" }
+                };
+
+                var web_datas = new Dictionary<string, string>()
+                {
+                    { "pixiv_id",  $"{user}" },
+                    { "password", $"{pass}" },
+                    { "captcha", "" },
+                    { "g_reaptcha_response", "" },
+                    { "post_key", "" },
+                    { "source", "pc" },
+                    { "ref", "wwwtop_accounts_indes" },
+                    { "return_to", "https://www.pixiv.net/" }
+                };
+
+                var http = Application.Current.GetHttpClient();
+                http.DefaultRequestHeaders.Add("User-Agent", @"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.96 Safari/537.36");
+                http.DefaultRequestHeaders.Add("Cookie", $"{cookie}");
+                var response = await http.GetAsync(web_login_url);
+                var content = Application.Current.GetResponseContent(response);
+
+                //var pages_json_text = await Application.Current.GetRemoteJsonAsync(url);
+
+            }
+            return (result);
+        }
+
+
         #endregion
     }
 }

@@ -605,53 +605,74 @@ namespace PixivWPF.Common
 
         public async void Start(bool include_page_thumb = true, bool include_page_preview = true, bool overwrite = false, bool reverse = false, bool force = false)
         {
-            Stop();
-            var setting = Application.Current.LoadSetting();
-            Options = new PrefetchingOpts()
+            try
             {
-                Name = Name ?? GetType().Name ?? "PixivItems",
-                PrefetchingPreview = setting.PrefetchingPreview,
-                PrefetchingDownloadParallel = setting.PrefetchingDownloadParallel,
-                IncludePageThumb = include_page_thumb,
-                IncludePagePreview = include_page_preview,
-                ReverseOrder = reverse,
-                Overwrite = overwrite
-            };
-            if (!Options.PrefetchingPreview) return;
-            if (force || await CanPrefetching.WaitAsync(-1))
-            {
-                if (!PrefetchingBgWorker.IsBusy && !PrefetchingBgWorker.CancellationPending)
+                Stop();
+                var setting = Application.Current.LoadSetting();
+                Options = new PrefetchingOpts()
                 {
-                    new Action(() =>
+                    Name = Name ?? GetType().Name ?? "PixivItems",
+                    PrefetchingPreview = setting.PrefetchingPreview,
+                    PrefetchingDownloadParallel = setting.PrefetchingDownloadParallel,
+                    IncludePageThumb = include_page_thumb,
+                    IncludePagePreview = include_page_preview,
+                    ReverseOrder = reverse,
+                    Overwrite = overwrite
+                };
+                if (!Options.PrefetchingPreview) return;
+                if (!PrefetchingBgWorker.IsBusy && CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
+                if (force || await CanPrefetching.WaitAsync(-1))
+                {
+                    if (!PrefetchingBgWorker.IsBusy && !PrefetchingBgWorker.CancellationPending)
                     {
-                        PrefetchingTaskCancelTokenSource = new CancellationTokenSource();
-                        PrefetchingBgWorker.RunWorkerAsync(Options);
-                    }).Invoke(async: false);
+                        new Action(() =>
+                        {
+                            PrefetchingTaskCancelTokenSource = new CancellationTokenSource();
+                            PrefetchingBgWorker.RunWorkerAsync(Options);
+                        }).Invoke(async: false);
+                    }
                 }
             }
+            catch(Exception ex) { ex.ERROR("PrefetchingTaskStart"); }
         }
 
-        public void Stop()
+        public void Stop(bool dispose = false)
         {
-            if (PrefetchingBgWorker.IsBusy || PrefetchingBgWorker.CancellationPending)
+            try
             {
-                PrefetchingBgWorker.CancelAsync();
                 if (PrefetchingTaskCancelTokenSource is CancellationTokenSource) PrefetchingTaskCancelTokenSource.Cancel();
+                if (PrefetchingBgWorker is BackgroundWorker)
+                {
+                    if (PrefetchingBgWorker.IsBusy) PrefetchingBgWorker.CancelAsync();
+                    if (!PrefetchingBgWorker.IsBusy && !PrefetchingBgWorker.CancellationPending && CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
+                    PrefetchingBgWorker.Dispose();
+                    PrefetchingBgWorker = null;
+                }
+                if (!dispose) InitBgWorker();
             }
-            if (!PrefetchingBgWorker.IsBusy && !PrefetchingBgWorker.CancellationPending && CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
+            catch (Exception ex) { ex.ERROR("PrefetchingTaskStop"); }
+        }
+
+        public void InitBgWorker()
+        {
+            try
+            {
+                if (!(PrefetchingBgWorker is BackgroundWorker)) PrefetchingBgWorker = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
+                if (PrefetchingBgWorker is BackgroundWorker)
+                {
+                    PrefetchingBgWorker.WorkerReportsProgress = true;
+                    PrefetchingBgWorker.WorkerSupportsCancellation = true;
+                    PrefetchingBgWorker.RunWorkerCompleted += PrefetchingTask_RunWorkerCompleted;
+                    PrefetchingBgWorker.ProgressChanged += PrefetchingTask_ProgressChanged;
+                    PrefetchingBgWorker.DoWork += PrefetchingTask_DoWork;
+                }
+            }
+            catch (Exception ex) { ex.ERROR("PrefetchingTaskInit"); }
         }
 
         public PrefetchingTask()
         {
-            if (PrefetchingBgWorker == null) new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
-            if (PrefetchingBgWorker is BackgroundWorker)
-            {
-                PrefetchingBgWorker.WorkerReportsProgress = true;
-                PrefetchingBgWorker.WorkerSupportsCancellation = true;
-                PrefetchingBgWorker.RunWorkerCompleted += PrefetchingTask_RunWorkerCompleted;
-                PrefetchingBgWorker.ProgressChanged += PrefetchingTask_ProgressChanged;
-                PrefetchingBgWorker.DoWork += PrefetchingTask_DoWork;
-            }
+            InitBgWorker();
         }
 
         public PrefetchingTask(Action<double, string, TaskStatus> ReportAction = null)
@@ -698,7 +719,9 @@ namespace PixivWPF.Common
             Stop();
             if (PrefetchingBgWorker is BackgroundWorker) PrefetchingBgWorker.Dispose();
             Dispose(true);
+#if DEBUG
             GC.SuppressFinalize(this);
+#endif
         }
 
         protected virtual void Dispose(bool disposing)
@@ -706,11 +729,15 @@ namespace PixivWPF.Common
             if (disposed) return;
             if (disposing)
             {
-                Stop();
-                int count = 50;
-                while (PrefetchingBgWorker.IsBusy && count > 0) { Task.Delay(100).GetAwaiter().GetResult(); count--; }
-                if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
-                PrefetchingBgWorker.Dispose();
+                Stop(dispose: true);
+                if (CanPrefetching is SemaphoreSlim && CanPrefetching.Wait(TimeSpan.FromSeconds(5)))
+                {
+                    if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
+                }
+                //int count = 100;                
+                //while (PrefetchingBgWorker.IsBusy && count > 0) { Task.Delay(50).GetAwaiter().GetResult(); count--; this.DoEvents(); }
+                //if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
+                if (PrefetchingBgWorker is BackgroundWorker) PrefetchingBgWorker.Dispose();
                 PrefetchedList.Clear();
                 Items.Clear();
             }

@@ -386,7 +386,7 @@ namespace CompactExifLib
         public int MakerNoteOriginalOffset { get; private set; }
         public const int IfdShift = 16;
 
-        public FileInfo ImageFileInfo { get; set; }
+        public FileInfo ImageFileInfo { get; set; } = null;
         public DateTime CreateTime { get; set; }
         public DateTime LastWriteTime { get; set; }
         public DateTime LastAccessTime { get; set; }
@@ -3195,7 +3195,7 @@ namespace CompactExifLib
                 IfdRawDataIndex += 12;
                 j++;
             }
-            NextImageOffset = (int)ExifReadUInt32(IfdRawData, IfdRawDataIndex);
+            NextImageOffset = IfdRawDataIndex < IfdRawData.Length - 1 ? (int)ExifReadUInt32(IfdRawData, IfdRawDataIndex) : 0;
         }
 
 

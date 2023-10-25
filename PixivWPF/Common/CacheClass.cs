@@ -126,16 +126,19 @@ namespace PixivWPF.Common
             string result = string.Empty;
             var file = GetCacheFile(url, overwrite);
             if (string.IsNullOrEmpty(file))
-            { 
-                file = GetImagePath(url);
-                if (file.IsDownloading() && await file.WaitDownloading(timeout: TimeSpan.FromSeconds(30))) result = file;
-                if (string.IsNullOrEmpty(result))
+            {
+                try
                 {
-                    //var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(canceltoken: cancelToken), file, overwrite) : await url.SaveImage(file, overwrite, progressAction, cancelToken);
-                    var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(), file, overwrite) : await url.SaveImage(file, overwrite, progressAction, cancelToken);
-                    if (success) result = file;
-                    file.ClearDownloading();
+                    file = GetImagePath(url);
+                    if (file.IsDownloading() && await file.WaitDownloading(timeout: TimeSpan.FromSeconds(30))) result = file;
+                    if (string.IsNullOrEmpty(result))
+                    {
+                        var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(), file, overwrite) : await url.SaveImage(file, overwrite, progressAction, cancelToken);
+                        if (success) result = file;
+                        file.ClearDownloading();
+                    }
                 }
+                catch(Exception ex) { ex.ERROR("DownloadImage"); }
             }
             return (result);
         }

@@ -50,7 +50,7 @@
                 "Sarasa Gothic J, 更纱黑体 SC, FontAwesome, Segoe UI Emoji, Segoe MDL2 Assets, Segoe UI"
             </FontFamily>
             <FontFamily x:Key="SegoeIconFamily">
-                "Segoe MDL2 Assets, Segoe UI Emoji, Segoe UI"
+                "Segoe MDL2 Assets, Segoe UI Emoji, Segoe UI Symbol, Segoe UI"
                 <!--"Segoe MDL2 Assets"-->
             </FontFamily>            
             <sys:Double x:Key="MonoSpaceSize">14</sys:Double>

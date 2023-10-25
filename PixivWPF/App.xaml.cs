@@ -51,7 +51,7 @@ namespace PixivWPF
             catch(Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
             finally
             {
-                var setting = this.LoadSetting(true);
+                var setting = this.LoadSetting(true, startup : true);
                 if (setting.SingleInstance && Current.Activate())
                 {
                     var checkinstance = true;

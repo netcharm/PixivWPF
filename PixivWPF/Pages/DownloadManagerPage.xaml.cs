@@ -635,5 +635,22 @@ namespace PixivWPF.Pages
             setting = Application.Current.LoadSetting();
             PART_RemoveAll_NDays.Header = $"Remove Before {setting.DownloadRemoveNDays} Days";
         }
+
+        private async void PART_Compare_Click(object sender, RoutedEventArgs e)
+        {
+            await new Action(() =>
+            {
+                if (DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1)
+                {
+                    try
+                    {
+                        var items =  DownloadItems.SelectedItems.Cast<DownloadInfo>().Where(i => i.State == DownloadState.Finished).Select(i => i.FileName).Take(2).ToList();
+                        Commands.Compare.Execute(items);
+                    }
+                    catch (Exception ex) { ex.ERROR("Compare"); }
+                }
+            }).InvokeAsync(true);
+
+        }
     }
 }

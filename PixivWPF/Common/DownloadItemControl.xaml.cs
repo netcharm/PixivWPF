@@ -272,7 +272,9 @@ namespace PixivWPF.Common
         public void Dispose()
         {
             Dispose(true);
+#if DEBUG            
             GC.SuppressFinalize(this);
+#endif            
         }
 
         protected virtual void Dispose(bool disposing)
@@ -303,13 +305,21 @@ namespace PixivWPF.Common
         {
             if (ProgressPercent == 100)
             {
-                if (FileName.IsDownloaded(touch: false))
-                    State = DownloadState.Finished;
-                else if (State == DownloadState.Finished)
+                var fexist = File.Exists(FileName);
+                if (!fexist && State == DownloadState.Finished)
                     State = DownloadState.NonExists;
+                //else if (!(exists ?? true) && State == DownloadState.Finished)
+                //    State = DownloadState.NonExists;
+                //else if (FileName.IsDownloaded(touch: false))
+                //    State = DownloadState.Finished;
+                else if (fexist) State = DownloadState.Finished;
+
+                if (State == DownloadState.NonExists) $"{FileName} has been deleted!".INFO("UpdateDownloadState");
+
                 NotifyPropertyChanged("StateChanged");
                 NotifyPropertyChanged();
             }
+            $"{FileName} : {State}[{illustid}, {exists}]".DEBUG("UpdateDownloadState");
         }
 
         public void UpdateLikeState()
@@ -604,7 +614,7 @@ namespace PixivWPF.Common
         private DateTime EndTick
         {
             get { return (Info is DownloadInfo ? Info.EndTime : default(DateTime)); }
-            set { if (Info is DownloadInfo) Info.EndTime = value; }
+            set { if (Info is DownloadInfo) Info.EndTime = value > DateTime.Now ? DateTime.Now : value; }
         }
         private DateTime lastTick = DateTime.Now;
         private TimeSpan TotalElapsed
@@ -1526,7 +1536,9 @@ namespace PixivWPF.Common
         public void Dispose()
         {
             Dispose(true);
+#if DEBUG            
             GC.SuppressFinalize(this);
+#endif            
         }
 
         protected virtual void Dispose(bool disposing)

@@ -454,6 +454,14 @@ namespace PixivWPF.Common
             if (e.Handled) return;
             MouseMove?.Invoke(sender, e);
         }
+
+        public new event MouseMoveEventHandler MouseUp;
+        public delegate void MouseUpEventHandler(object sender, MouseEventArgs e);
+        private void PART_ImageTiles_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Handled) return;
+            MouseUp?.Invoke(sender, e);
+        }
         #endregion
 
         #region Properties Handler
@@ -1401,6 +1409,7 @@ namespace PixivWPF.Common
 
             PreviewMouseMove += PART_ImageListGrid_MouseMove;
             PreviewMouseDown += PART_ImageListGrid_MouseDown;
+            PreviewMouseUp += PART_ImageListGrid_MouseUp;
 
             ItemList.Clear();
             PART_ImageTiles.ItemsSource = ItemList;
@@ -1421,7 +1430,9 @@ namespace PixivWPF.Common
         public void Dispose()
         {
             Dispose(true);
+#if DEBUG            
             GC.SuppressFinalize(this);
+#endif            
         }
 
         protected virtual void Dispose(bool disposing)
@@ -1549,12 +1560,17 @@ namespace PixivWPF.Common
             {
                 var pos = e.GetPosition(this);
                 if (last_mouse_pos.X == 0 && last_mouse_pos.Y == 0) last_mouse_pos = pos;
-                if (Point.Subtract(pos, last_mouse_pos).LengthSquared >= 100 || pos.Distance(last_mouse_pos) >= 10)
+                if (Point.Subtract(pos, last_mouse_pos).LengthSquared >= 250 || pos.Distance(last_mouse_pos) >= 50)
                 {
-                    this.DragOut(this);
+                    this.DragOut(this, open_downloaded: false);
                     e.Handled = true;
                 }
             }
+        }
+
+        private void PART_ImageListGrid_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            last_mouse_pos = new Point(0, 0);
         }
 
         private void PART_GallaryActionMenu_Opened(object sender, RoutedEventArgs e)

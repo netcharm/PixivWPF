@@ -328,6 +328,12 @@
                 </MenuItem.Icon>
             </MenuItem>
             <Separator x:Uid="ActionDownloadedSep"/>
+            <MenuItem x:Uid="ActionCompareDownloaded" Header="Compare Downloaded"  Click="ActionOpenIllust_Click">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xE11E;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
             <MenuItem x:Uid="ActionShowDownloadedMeta" Header="Show Downloaded Metadata" Click="ActionOpenIllust_Click">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xE114;" FontSize="16" FontFamily="Segoe MDL2 Assets"
@@ -568,6 +574,12 @@
                 </MenuItem.Icon>
             </MenuItem>
             <Separator/>
+            <MenuItem x:Uid="ActionCompareDownloaded" Header="Compare Downloaded"  Click="ActionCompare_Click">
+                <MenuItem.Icon>
+                    <TextBlock Margin="4,0,0,0" Text="&#xE11E;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
             <MenuItem x:Uid="ActionShowDownloadedMeta" Header="Show Downloaded Metadata" Click="ActionOpenDownloaded_Click">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xE114;" FontSize="16" FontFamily="Segoe MDL2 Assets"
@@ -1095,12 +1107,20 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" x:Name="IllustAuthor" Margin="4,0,0,0" 
-                            FontFamily="{StaticResource NormalFamily}"
-                            ContextMenu="{DynamicResource MenuSpeech}" 
-                            MouseDown="IllustInfo_MouseDown"
-                            Foreground="{DynamicResource MahApps.Brushes.Text}"
-                            HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <TextBlock Grid.Column="0" x:Name="IllustAuthor" Margin="4,0,0,0" 
+                                FontFamily="{StaticResource NormalFamily}"
+                                ContextMenu="{DynamicResource MenuSpeech}" 
+                                MouseDown="IllustInfo_MouseDown"
+                                Foreground="{DynamicResource MahApps.Brushes.Text}"
+                                HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Grid.Column="0" x:Name="UserFullListedFlag" Margin="4,0,0,0" Visibility="Collapsed"
+                                Text="&#xE129;" FontSize="16"
+                                FontFamily="{StaticResource SegoeIconFamily}"
+                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                                HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                MouseLeftButtonUp="UserFullListedFlag_MouseLeftButtonUp"/>
+                        </StackPanel>
                         <StackPanel Grid.Column="1" x:Name="IllustStatInfo" Visibility="Collapsed"
                             HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
                             <TextBlock x:Name="IllustUgoiraDownloaded" Visibility="Collapsed"
@@ -1465,7 +1485,7 @@
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
-                        Click="RelatedNextPage_Click" ToolTipOpening="RelatedNextAppend_ToolTipOpening">
+                        Click="RelatedNextPage_Click" MouseRightButtonDown="RelatedNextAppend_MouseRightButtonDown" ToolTipOpening="RelatedNextAppend_ToolTipOpening">
                         <Button.Content>
                             <TextBlock Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
