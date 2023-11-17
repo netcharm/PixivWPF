@@ -1083,6 +1083,17 @@ namespace PixivWPF.Common
             }
         }
 
+        private bool support_brotli = false;
+        public bool SupportBrotli
+        {
+            get { return (Cache is Setting ? Cache.support_brotli : support_brotli); }
+            set
+            {
+                support_brotli = value;
+                if (Cache is Setting) Cache.support_brotli = support_brotli;
+            }
+        }
+
         private bool using_ajax_api = false;
         public bool UsingAjaxAPI
         {

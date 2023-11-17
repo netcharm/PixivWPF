@@ -3433,8 +3433,8 @@ namespace PixivWPF.Common
                     ///
                     /// if added DecompressionMethods.GZip, the response contents will null
                     ///
-                    //AutomaticDecompression = DecompressionMethods.None | DecompressionMethods.Deflate | DecompressionMethods.GZip,
-                    AutomaticDecompression = DecompressionMethods.None | DecompressionMethods.Deflate,
+                    AutomaticDecompression = DecompressionMethods.None | DecompressionMethods.Deflate | DecompressionMethods.GZip,
+                    //AutomaticDecompression = DecompressionMethods.None | DecompressionMethods.Deflate,
                     UseCookies = true,
                     CookieContainer = new CookieContainer(),
                     MaxAutomaticRedirections = 15,
@@ -3466,7 +3466,7 @@ namespace PixivWPF.Common
 
                 httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("gzip");
                 httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("deflate");
-                httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("br");
+                if (setting.SupportBrotli) httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("br");
 
                 httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("zh_CN");
                 httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("ja_JP");
@@ -3555,7 +3555,7 @@ namespace PixivWPF.Common
                     if (!string.IsNullOrEmpty(cookie))
                     {
                         request.Headers.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
-                        request.Headers.Add("Accept-Encoding", "gzip, deflate, br");
+                        request.Headers.Add("Accept-Encoding", setting.SupportBrotli ? "gzip, deflate, br" : "gzip, deflate");
                         request.Headers.Add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-US;q=0.7,zh-TW;q=0.6,ja;q=0.5,ko;q=0.4,zh-HK;q=0.3,en-GB;q=0.2");
                         request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 Edg/115.0.1901.183");
                         //request.Headers.Add("Host", "accounts.pixiv.net");
@@ -3680,8 +3680,8 @@ namespace PixivWPF.Common
                     {
                         //response.EnsureSuccessStatusCode();
                         if (response != null && response.IsSuccessStatusCode)// && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
-                        {
-                            long length = response.Content.Headers.ContentLength ?? 0;
+                        {                            
+                            long length = response.Content.Headers.ContentLength ?? (response.Content.Headers.ContentRange.HasLength ? response.Content.Headers.ContentRange.Length ?? 0 : 0);
                             var encodes = response.Content.Headers.ContentEncoding;
                             if (length > 0)
                             {

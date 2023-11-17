@@ -878,7 +878,7 @@ namespace PixivWPF.Common
                 try
                 {
                     Pixeez.Auth.TimeOut = setting.DownloadHttpTimeout;
-                    var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.RefreshToken, setting.Proxy, setting.ProxyBypass, setting.UsingProxy, CancelRefreshSource, setting.SSLVersion);
+                    var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.RefreshToken, setting.Proxy, setting.ProxyBypass, setting.UsingProxy, CancelRefreshSource, setting.SSLVersion, setting.SupportBrotli);
                     setting.AccessToken = authResult.Authorize.AccessToken;
                     setting.RefreshToken = authResult.Authorize.RefreshToken;
                     setting.ExpTime = authResult.Key.KeyExpTime.ToLocalTime();
@@ -900,7 +900,7 @@ namespace PixivWPF.Common
                         try
                         {
                             Pixeez.Auth.TimeOut = setting.DownloadHttpTimeout;
-                            var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.ProxyBypass.ToArray(), setting.UsingProxy, CancelRefreshSource, setting.SSLVersion);
+                            var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.ProxyBypass.ToArray(), setting.UsingProxy, CancelRefreshSource, setting.SSLVersion, setting.SupportBrotli);
                             setting.AccessToken = authResult.Authorize.AccessToken;
                             setting.RefreshToken = authResult.Authorize.RefreshToken;
                             setting.ExpTime = authResult.Key.KeyExpTime.ToLocalTime();
