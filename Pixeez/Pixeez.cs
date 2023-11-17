@@ -175,9 +175,12 @@ namespace Pixeez
                 AutomaticDecompression = DecompressionMethods.None | DecompressionMethods.Deflate | DecompressionMethods.GZip,
                 //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
                 Proxy = string.IsNullOrEmpty(proxy) ? null : new WebProxy(proxy, true, proxybypass),
+                UseCookies = true,
                 UseProxy = string.IsNullOrEmpty(proxy) || !UsingProxy ? false : true
             };
+            //handler.AutomaticDecompression = DecompressionMethods.GZip;
             if (ssl_version) handler.SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13;
+            else handler.SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
             var httpClient = new HttpClient(handler, true){ Timeout=TimeSpan.FromSeconds(timeout) };
             httpClient.DefaultRequestHeaders.Add("App-OS", "ios");
             httpClient.DefaultRequestHeaders.Add("App-OS-Version", "14.6");
@@ -189,7 +192,7 @@ namespace Pixeez
 
             httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("gzip");
             httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("deflate");
-            httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("br");
+            //httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("br");
 
             httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("zh_CN");
             httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("ja_JP");
