@@ -161,7 +161,7 @@ namespace Pixeez
             }
         }
 
-        public static HttpClient Client(string proxy, string[] proxybypass, bool useproxy, int timeout = 30, bool ssl_version = true)
+        public static HttpClient Client(string proxy, string[] proxybypass, bool useproxy, int timeout = 30, bool ssl_version = true, bool brotli = false)
         {
             var Proxy = proxy;
             var UsingProxy = !string.IsNullOrEmpty(proxy) && useproxy;
@@ -192,7 +192,7 @@ namespace Pixeez
 
             httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("gzip");
             httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("deflate");
-            //httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("br");
+            if (brotli) httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("br");
 
             httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("zh_CN");
             httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("ja_JP");
@@ -224,11 +224,11 @@ namespace Pixeez
         /// <para>- <c>string</c> password (required)</para>
         /// </summary>
         /// <returns>Tokens.</returns>
-        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string refreshtoken, string devicetoken, string proxy, string[] proxybypass, bool useproxy = false, CancellationTokenSource cancelToken = null, bool ssl_version = true)
+        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string refreshtoken, string devicetoken, string proxy, string[] proxybypass, bool useproxy = false, CancellationTokenSource cancelToken = null, bool ssl_version = true, bool brotli = false)
         {
             //return await (AuthorizeAsync(username, password, refreshtoken, proxy, useproxy));
 
-            var httpClient = PIXIV.Client(proxy, proxybypass, useproxy, TimeOut, ssl_version);
+            var httpClient = PIXIV.Client(proxy, proxybypass, useproxy, TimeOut, ssl_version, brotli);
 
             FormUrlEncodedContent param;
             if (string.IsNullOrEmpty(refreshtoken))
@@ -288,9 +288,9 @@ namespace Pixeez
         /// <param name="proxy"></param>
         /// <param name="useproxy"></param>
         /// <returns></returns>
-        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string refreshtoken, string proxy, string[] proxybypass, bool useproxy = false, CancellationTokenSource cancelToken = null, bool ssl_version = true)
+        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string refreshtoken, string proxy, string[] proxybypass, bool useproxy = false, CancellationTokenSource cancelToken = null, bool ssl_version = true, bool brotli = false)
         {
-            var httpClient = PIXIV.Client(proxy, proxybypass, useproxy, TimeOut, ssl_version);
+            var httpClient = PIXIV.Client(proxy, proxybypass, useproxy, TimeOut, ssl_version, brotli);
 
             FormUrlEncodedContent param;
             if (string.IsNullOrEmpty(refreshtoken))
@@ -339,9 +339,9 @@ namespace Pixeez
             return result;
         }
 
-        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string refreshtoken, string proxy, IList<string> proxybypass, bool useproxy = false, CancellationTokenSource cancelToken = null, bool ssl_version = true)
+        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string refreshtoken, string proxy, IList<string> proxybypass, bool useproxy = false, CancellationTokenSource cancelToken = null, bool ssl_version = true, bool brotli = false)
         {
-            return (await (AuthorizeAsync(username, password, refreshtoken, proxy, proxybypass.ToArray(), useproxy, cancelToken)));
+            return (await (AuthorizeAsync(username, password, refreshtoken, proxy, proxybypass.ToArray(), useproxy, cancelToken, ssl_version, brotli)));
         }
 
         /// <summary>
@@ -352,9 +352,9 @@ namespace Pixeez
         /// <param name="proxy"></param>
         /// <param name="useproxy"></param>
         /// <returns></returns>
-        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string proxy, string[] proxybypass, bool useproxy = false, CancellationTokenSource cancelToken = null, bool ssl_version = true)
+        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string proxy, string[] proxybypass, bool useproxy = false, CancellationTokenSource cancelToken = null, bool ssl_version = true, bool brotli = false)
         {
-            var httpClient = PIXIV.Client(proxy, proxybypass, useproxy, TimeOut, ssl_version);
+            var httpClient = PIXIV.Client(proxy, proxybypass, useproxy, TimeOut, ssl_version, brotli);
 
             FormUrlEncodedContent param;
             param = new FormUrlEncodedContent(new Dictionary<string, string>
@@ -468,10 +468,10 @@ namespace Pixeez
         /// <param name="param"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public async Task<AsyncResponse> SendRequestWithAuthAsync(MethodType type, string url, IDictionary<string, string> param = null, IDictionary<string, string> headers = null, bool ssl_version = true)
+        public async Task<AsyncResponse> SendRequestWithAuthAsync(MethodType type, string url, IDictionary<string, string> param = null, IDictionary<string, string> headers = null, bool ssl_version = true, bool brotli = false)
         {
             AsyncResponse result = null;
-            using (var httpClient = PIXIV.Client(Auth.Proxy, Auth.ProxyBypass, Auth.UsingProxy, Auth.TimeOut, ssl_version))
+            using (var httpClient = PIXIV.Client(Auth.Proxy, Auth.ProxyBypass, Auth.UsingProxy, Auth.TimeOut, ssl_version, brotli))
             {
                 //httpClient.DefaultRequestHeaders.Add("Referer", "https://spapi.pixiv.net/");
                 httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
@@ -489,10 +489,10 @@ namespace Pixeez
         /// <param name="param"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public async Task<AsyncResponse> SendRequestToGetImageAsync(MethodType type, string url, IDictionary<string, string> param = null, IDictionary<string, string> headers = null, bool ssl_version = true)
+        public async Task<AsyncResponse> SendRequestToGetImageAsync(MethodType type, string url, IDictionary<string, string> param = null, IDictionary<string, string> headers = null, bool ssl_version = true, bool brotli = false)
         {
             AsyncResponse result = null;
-            using (var httpClient = PIXIV.Client(Auth.Proxy, Auth.ProxyBypass, Auth.UsingProxy, Auth.TimeOut, ssl_version))
+            using (var httpClient = PIXIV.Client(Auth.Proxy, Auth.ProxyBypass, Auth.UsingProxy, Auth.TimeOut, ssl_version, brotli))
             {
                 httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
                 //httpClient.DefaultRequestHeaders.Add("Referer", "https://public-api.secure.pixiv.net/");
@@ -510,10 +510,10 @@ namespace Pixeez
         /// <param name="param"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public async Task<AsyncResponse> SendRequestWithoutAuthAsync(MethodType type, string url, bool needauth = false, IDictionary<string, string> param = null, IDictionary<string, string> headers = null, bool ssl_version = true)
+        public async Task<AsyncResponse> SendRequestWithoutAuthAsync(MethodType type, string url, bool needauth = false, IDictionary<string, string> param = null, IDictionary<string, string> headers = null, bool ssl_version = true, bool brotli = false)
         {
             AsyncResponse result = null;
-            using (var httpClient = PIXIV.Client(Auth.Proxy, Auth.ProxyBypass, Auth.UsingProxy, Auth.TimeOut, ssl_version))
+            using (var httpClient = PIXIV.Client(Auth.Proxy, Auth.ProxyBypass, Auth.UsingProxy, Auth.TimeOut, ssl_version, brotli))
             {
                 if (needauth) httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + this.AccessToken);
                 result = await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient);
