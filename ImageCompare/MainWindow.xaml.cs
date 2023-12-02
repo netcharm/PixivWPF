@@ -46,6 +46,7 @@ namespace ImageCompare
         private string DefaultComposeToolTip = string.Empty;
 
         private Rect LastPositionSize = new Rect();
+        private System.Windows.WindowState LastWinState = System.Windows.WindowState.Normal;
 
         private CultureInfo DefaultCultureInfo = CultureInfo.CurrentCulture;
         #endregion
@@ -181,7 +182,7 @@ namespace ImageCompare
         }
         #endregion
 
-        #region Image Display Routines
+        #region Image Display Helper
         private Orientation CurrentImageLayout
         {
             get { return (ViewerPanel.Orientation); }
@@ -750,7 +751,7 @@ namespace ImageCompare
         }
         #endregion
 
-        #region Image Load/Save Routines
+        #region Image Load/Save Helper
         private void CopyImageFromResult(bool source = true)
         {
             RenderRun(new Action(() =>
@@ -876,7 +877,7 @@ namespace ImageCompare
         }
         #endregion
 
-        #region Config Load/Save Routines
+        #region Config Load/Save Helper
         private void LoadConfig()
         {
             Configuration appCfg =  ConfigurationManager.OpenExeConfiguration(AppExec);
@@ -895,6 +896,20 @@ namespace ImageCompare
                             Left = rect.Left;
                             Width = Math.Min(MaxWidth, Math.Max(MinWidth, rect.Width));
                             Height = Math.Min(MaxHeight, Math.Max(MinHeight, rect.Height));
+                        }
+                        catch { }
+                    }
+                }
+
+                if (appSection.Settings.AllKeys.Contains("WindowState"))
+                {
+                    var value = appSection.Settings["WindowState"].Value;
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        try
+                        {
+                            Enum.TryParse(value, out LastWinState);
+                            if (LastWinState == System.Windows.WindowState.Maximized ) WindowState = LastWinState;
                         }
                         catch { }
                     }
@@ -1028,6 +1043,11 @@ namespace ImageCompare
                 else
                     appSection.Settings.Add("WindowPosition", rect.ToString());
 
+                if (appSection.Settings.AllKeys.Contains("WindowState"))
+                    appSection.Settings["WindowState"].Value = LastWinState.ToString();
+                else
+                    appSection.Settings.Add("WindowState", LastWinState.ToString());
+
                 if (appSection.Settings.AllKeys.Contains("CachePath"))
                     appSection.Settings["CachePath"].Value = CachePath;
                 else
@@ -1145,6 +1165,26 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
         }
         #endregion
+
+        #region UI Helper
+        private void LocaleUI(CultureInfo culture = null)
+        {
+            Title = $"{Uid}.Title".T(culture) ?? Title;
+            ImageToolBar.Locale();
+
+            DefaultWindowTitle = Title;
+            DefaultCompareToolTip = ImageCompare.ToolTip as string;
+            DefaultComposeToolTip = ImageCompose.ToolTip as string;
+
+            ImageSource.ToolTip = "Waiting".T();
+            ImageTarget.ToolTip = "Waiting".T();
+            ImageResult.ToolTip = "Waiting".T();
+
+            #region Create Image Flip/Rotate/Effects Menu
+            CreateImageOpMenu(ImageSourceScroll);
+            CreateImageOpMenu(ImageTargetScroll);
+            #endregion
+        }
 
         private void CreateImageOpMenu(FrameworkElement target)
         {
@@ -1695,6 +1735,7 @@ namespace ImageCompare
                 item_more.Items.Add(item_more_setalphatocolor);
                 item_more.Items.Add(item_more_setcolortoalpha);
                 #endregion
+
                 target.ContextMenuOpening += (obj, evt) =>
                 {
                     var is_source = evt.Source == ImageSourceScroll || evt.Source == ImageSourceBox || evt.Source == ImageSource;
@@ -1728,60 +1769,9 @@ namespace ImageCompare
             target.ContextMenu.ItemsSource = new ObservableCollection<FrameworkElement>(items);
         }
 
-        private void InitMagickNet()
-        {
-            #region Magick.Net Default Settings
-            try
-            {
-                var magick_cache = Path.IsPathRooted(CachePath) ? CachePath : Path.Combine(AppPath, CachePath);
-                //if (!Directory.Exists(magick_cache)) Directory.CreateDirectory(magick_cache);
-                MagickAnyCPU.CacheDirectory = Directory.Exists(magick_cache) ? magick_cache : AppPath;
-                MagickAnyCPU.HasSharedCacheDirectory = true;
-                OpenCL.IsEnabled = true;
-                if (Directory.Exists(magick_cache)) OpenCL.SetCacheDirectory(magick_cache);
-#if DEBUG
-                Debug.WriteLine(string.Join(", ", OpenCL.Devices.Select(d => d.Name)));
-#endif
-                ResourceLimits.Memory = 256 * 1024 * 1024;
-                ResourceLimits.LimitMemory(new Percentage(5));
-                ResourceLimits.Thread = 4;
-                //ResourceLimits.Area = 4096 * 4096;
-                //ResourceLimits.Throttle = 
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-
-            Extensions.AllSupportedFormats = Extensions.GetSupportedImageFormats();
-            Extensions.AllSupportedExts = Extensions.AllSupportedFormats.Keys.ToList().Skip(4).Select(ext => $".{ext.ToLower()}").Where(ext => !ext.Equals(".txt")).ToList();
-            var exts = Extensions.AllSupportedExts.Select(ext => $"*{ext}");
-            Extensions.AllSupportedFiles = string.Join(";", exts);
-            Extensions.AllSupportedFilters = string.Join("|", Extensions.AllSupportedFormats.Select(f => $"{f.Value}|*.{f.Key}"));
-
-            CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
-            #endregion
-        }
-
-        private void LocaleUI(CultureInfo culture = null)
-        {
-            Title = $"{Uid}.Title".T(culture) ?? Title;
-            ImageToolBar.Locale();
-
-            DefaultWindowTitle = Title;
-            DefaultCompareToolTip = ImageCompare.ToolTip as string;
-            DefaultComposeToolTip = ImageCompose.ToolTip as string;
-
-            ImageSource.ToolTip = "Waiting".T();
-            ImageTarget.ToolTip = "Waiting".T();
-            ImageResult.ToolTip = "Waiting".T();
-
-            #region Create Image Flip/Rotate/Effects Menu
-            CreateImageOpMenu(ImageSourceScroll);
-            CreateImageOpMenu(ImageTargetScroll);
-            #endregion
-        }
-
         private void ChangeLayout(Orientation orientation)
         {
-            switch(orientation)
+            switch (orientation)
             {
                 case Orientation.Horizontal: break;
                 case Orientation.Vertical: break;
@@ -1814,6 +1804,39 @@ namespace ImageCompare
             var result = Cursor;
             SetCursor(Cursors.Arrow);
             return (result);
+        }
+        #endregion
+
+        private void InitMagickNet()
+        {
+            #region Magick.Net Default Settings
+            try
+            {
+                var magick_cache = Path.IsPathRooted(CachePath) ? CachePath : Path.Combine(AppPath, CachePath);
+                //if (!Directory.Exists(magick_cache)) Directory.CreateDirectory(magick_cache);
+                MagickAnyCPU.CacheDirectory = Directory.Exists(magick_cache) ? magick_cache : AppPath;
+                MagickAnyCPU.HasSharedCacheDirectory = true;
+                OpenCL.IsEnabled = true;
+                if (Directory.Exists(magick_cache)) OpenCL.SetCacheDirectory(magick_cache);
+#if DEBUG
+                Debug.WriteLine(string.Join(", ", OpenCL.Devices.Select(d => d.Name)));
+#endif
+                ResourceLimits.Memory = 256 * 1024 * 1024;
+                ResourceLimits.LimitMemory(new Percentage(5));
+                ResourceLimits.Thread = 4;
+                //ResourceLimits.Area = 4096 * 4096;
+                //ResourceLimits.Throttle = 
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+
+            Extensions.AllSupportedFormats = Extensions.GetSupportedImageFormats();
+            Extensions.AllSupportedExts = Extensions.AllSupportedFormats.Keys.ToList().Skip(4).Select(ext => $".{ext.ToLower()}").Where(ext => !ext.Equals(".txt")).ToList();
+            var exts = Extensions.AllSupportedExts.Select(ext => $"*{ext}");
+            Extensions.AllSupportedFiles = string.Join(";", exts);
+            Extensions.AllSupportedFilters = string.Join("|", Extensions.AllSupportedFormats.Select(f => $"{f.Value}|*.{f.Key}"));
+
+            CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
+            #endregion
         }
 
         #region IDisposable Support
@@ -1862,6 +1885,7 @@ namespace ImageCompare
             LoadConfig();
         }
 
+        #region Window Events
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             //System.Diagnostics.PresentationTraceSources.DataBindingSource.Switch.Level = System.Diagnostics.SourceLevels.Critical;
@@ -2006,22 +2030,30 @@ namespace ImageCompare
 
         private void Window_Closed(object sender, EventArgs e)
         {
+            LastWinState = WindowState == System.Windows.WindowState.Maximized ? System.Windows.WindowState.Maximized : System.Windows.WindowState.Normal;
             if (WindowState == System.Windows.WindowState.Normal)
                 LastPositionSize = new Rect(Top, Left, Width, Height);
             SaveConfig();
         }
 
-        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+        private void Window_LocationChanged(object sender, EventArgs e)
         {
             if (WindowState == System.Windows.WindowState.Normal)
                 LastPositionSize = new Rect(Top, Left, Width, Height);
+        }
+
+        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (WindowState == System.Windows.WindowState.Normal)
+                LastPositionSize = new Rect(Top, Left, e.NewSize.Width, e.NewSize.Height);
             CalcDisplay(set_ratio: true);
         }
 
         private void Window_StateChanged(object sender, EventArgs e)
         {
-            if (WindowState != System.Windows.WindowState.Normal)
-                LastPositionSize = new Rect(Top, Left, Width, Height);
+            LastWinState = WindowState;
+            //if (WindowState != System.Windows.WindowState.Normal)
+            //    LastPositionSize = new Rect(Top, Left, Width, Height);
         }
 
         private void Window_DragOver(object sender, DragEventArgs e)
@@ -2179,7 +2211,9 @@ namespace ImageCompare
                 catch (Exception ex) { ex.ShowMessage(); }
             }
         }
+        #endregion
 
+        #region ImageScroll Events
         private void ImageScroll_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
 
@@ -2210,7 +2244,9 @@ namespace ImageCompare
             }
             else ImageBox_MouseDown(sender, e);
         }
+        #endregion
 
+        #region ImageBox Events
         private void ImageBox_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (ZoomFitNone.IsChecked ?? false && (ImageSource.Source != null || ImageTarget.Source != null))
@@ -2334,61 +2370,9 @@ namespace ImageCompare
             }
             catch (Exception ex) { ex.ShowMessage("MouseLeave"); }
         }
+        #endregion
 
-        private void ZoomRatio_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            try
-            {
-                if (IsLoaded && (ZoomFitNone.IsChecked ?? false) && e.OldValue != e.NewValue)
-                {
-
-                    e.Handled = true;
-                    LastZoomRatio = e.NewValue;
-
-                }
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-        }
-
-        private void ImageCompareFuzzy_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            e.Handled = true;
-            if (IsLoaded) UpdateImageViewer(compose: LastOpIsCompose);
-        }
-
-        private void MaxCompareSizeValue_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            try
-            {
-                int value = MaxCompareSize;
-                if (int.TryParse(MaxCompareSizeValue.Text, out value))
-                {
-                    MaxCompareSize = Math.Max(0, Math.Min(2048, value));
-                    CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
-                }
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-        }
-
-        private void ColorPick_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
-        {
-            if (sender == HighlightColorPick)
-            {
-                var c = (sender as ColorPicker).SelectedColor ?? null;
-                HighlightColor = c == null || c == Colors.Transparent ? null : MagickColor.FromRgba(c.Value.R, c.Value.G, c.Value.B, c.Value.A);
-            }
-            else if (sender == LowlightColorPick)
-            {
-                var c = (sender as ColorPicker).SelectedColor ?? null;
-                LowlightColor = c == null || c == Colors.Transparent ? null : MagickColor.FromRgba(c.Value.R, c.Value.G, c.Value.B, c.Value.A);
-            }
-            else if (sender == MasklightColorPick)
-            {
-                var c = (sender as ColorPicker).SelectedColor ?? null;
-                MasklightColor = c == null || c == Colors.Transparent ? null : MagickColor.FromRgba(c.Value.R, c.Value.G, c.Value.B, c.Value.A);
-            }
-        }
-
+        #region Image & ContextMenu Events
         private void Image_ToolTipOpening(object sender, ToolTipEventArgs e)
         {
             try
@@ -2581,6 +2565,62 @@ namespace ImageCompare
                 UsedChannels.ContextMenu.IsOpen = true;
             }
         }
+        #endregion
 
+        #region Misc UI Control Events
+        private void ZoomRatio_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            try
+            {
+                if (IsLoaded && (ZoomFitNone.IsChecked ?? false) && e.OldValue != e.NewValue)
+                {
+
+                    e.Handled = true;
+                    LastZoomRatio = e.NewValue;
+
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        private void ImageCompareFuzzy_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            e.Handled = true;
+            if (IsLoaded) UpdateImageViewer(compose: LastOpIsCompose);
+        }
+
+        private void MaxCompareSizeValue_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                int value = MaxCompareSize;
+                if (int.TryParse(MaxCompareSizeValue.Text, out value))
+                {
+                    MaxCompareSize = Math.Max(0, Math.Min(2048, value));
+                    CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        private void ColorPick_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
+        {
+            if (sender == HighlightColorPick)
+            {
+                var c = (sender as ColorPicker).SelectedColor ?? null;
+                HighlightColor = c == null || c == Colors.Transparent ? null : MagickColor.FromRgba(c.Value.R, c.Value.G, c.Value.B, c.Value.A);
+            }
+            else if (sender == LowlightColorPick)
+            {
+                var c = (sender as ColorPicker).SelectedColor ?? null;
+                LowlightColor = c == null || c == Colors.Transparent ? null : MagickColor.FromRgba(c.Value.R, c.Value.G, c.Value.B, c.Value.A);
+            }
+            else if (sender == MasklightColorPick)
+            {
+                var c = (sender as ColorPicker).SelectedColor ?? null;
+                MasklightColor = c == null || c == Colors.Transparent ? null : MagickColor.FromRgba(c.Value.R, c.Value.G, c.Value.B, c.Value.A);
+            }
+        }
+       #endregion
     }
 }

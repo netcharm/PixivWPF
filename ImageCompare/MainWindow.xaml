@@ -15,9 +15,10 @@
         d:DesignHeight="520" d:DesignWidth="368"        
         x:Uid="MainWindow" Title="Image Compare" 
         Height="720" Width="1280" MinWidth="720" MinHeight="480"
-        SizeChanged="Window_SizeChanged" StateChanged="Window_StateChanged" PreviewKeyDown="Window_KeyDown"
+        LocationChanged="Window_LocationChanged" SizeChanged="Window_SizeChanged" StateChanged="Window_StateChanged" 
+        PreviewKeyDown="Window_KeyDown"
         Loaded="Window_Loaded" Unloaded="Window_Unloaded" Closed="Window_Closed"
-        DragOver="Window_DragOver" Drop="Window_Drop">
+        DragOver="Window_DragOver" Drop="Window_Drop" >
 
     <Grid x:Uid="Canvas" x:Name="ImageCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" AllowDrop="True">
         <Grid.RowDefinitions>
