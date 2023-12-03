@@ -47,6 +47,7 @@ namespace ImageCompare
 
         private Rect LastPositionSize = new Rect();
         private System.Windows.WindowState LastWinState = System.Windows.WindowState.Normal;
+        //private Screen screens = Screen..AllScreens;
 
         private CultureInfo DefaultCultureInfo = CultureInfo.CurrentCulture;
         #endregion
@@ -891,11 +892,8 @@ namespace ImageCompare
                     {
                         try
                         {
-                            var rect = Rect.Parse(value);
-                            Top = rect.Top;
-                            Left = rect.Left;
-                            Width = Math.Min(MaxWidth, Math.Max(MinWidth, rect.Width));
-                            Height = Math.Min(MaxHeight, Math.Max(MinHeight, rect.Height));
+                            LastPositionSize = Rect.Parse(value);
+                            RestoreWindowLocationSize();
                         }
                         catch { }
                     }
@@ -909,7 +907,7 @@ namespace ImageCompare
                         try
                         {
                             Enum.TryParse(value, out LastWinState);
-                            if (LastWinState == System.Windows.WindowState.Maximized ) WindowState = LastWinState;
+                            //RestoreWindowState();
                         }
                         catch { }
                     }
@@ -1034,7 +1032,7 @@ namespace ImageCompare
                 AppSettingsSection appSection = appCfg.AppSettings;
 
                 var rect = new Rect(
-                        LastPositionSize.Top, LastPositionSize.Left,
+                        LastPositionSize.Left, LastPositionSize.Top,
                         Math.Min(MaxWidth, Math.Max(MinWidth, LastPositionSize.Width)),
                         Math.Min(MaxHeight, Math.Max(MinHeight, LastPositionSize.Height))
                     );
@@ -1167,6 +1165,19 @@ namespace ImageCompare
         #endregion
 
         #region UI Helper
+        private void RestoreWindowLocationSize()
+        {
+            Top = LastPositionSize.Top;
+            Left = LastPositionSize.Left;
+            Width = Math.Min(MaxWidth, Math.Max(MinWidth, LastPositionSize.Width));
+            Height = Math.Min(MaxHeight, Math.Max(MinHeight, LastPositionSize.Height));
+        }
+
+        private void RestoreWindowState()
+        {
+            if (IsLoaded && LastWinState == System.Windows.WindowState.Maximized) WindowState = LastWinState;
+        }
+
         private void LocaleUI(CultureInfo culture = null)
         {
             Title = $"{Uid}.Title".T(culture) ?? Title;
@@ -1888,6 +1899,9 @@ namespace ImageCompare
         #region Window Events
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            RestoreWindowLocationSize();
+            RestoreWindowState();
+
             //System.Diagnostics.PresentationTraceSources.DataBindingSource.Switch.Level = System.Diagnostics.SourceLevels.Critical;
             InitMagickNet();
 
@@ -2032,26 +2046,32 @@ namespace ImageCompare
         {
             LastWinState = WindowState == System.Windows.WindowState.Maximized ? System.Windows.WindowState.Maximized : System.Windows.WindowState.Normal;
             if (WindowState == System.Windows.WindowState.Normal)
-                LastPositionSize = new Rect(Top, Left, Width, Height);
+                LastPositionSize = new Rect(Left, Top, Width, Height);
             SaveConfig();
         }
 
         private void Window_LocationChanged(object sender, EventArgs e)
         {
+            if (!IsLoaded) return;
             if (WindowState == System.Windows.WindowState.Normal)
-                LastPositionSize = new Rect(Top, Left, Width, Height);
+                LastPositionSize = new Rect(Left, Top, Width, Height);
         }
 
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
+            //if (!IsLoaded) return;
             if (WindowState == System.Windows.WindowState.Normal)
-                LastPositionSize = new Rect(Top, Left, e.NewSize.Width, e.NewSize.Height);
+                LastPositionSize = new Rect(Left, Top, e.NewSize.Width, e.NewSize.Height);
+            else
+                LastPositionSize = new Rect(Left, Top, LastPositionSize.Width, LastPositionSize.Height);
             CalcDisplay(set_ratio: true);
         }
 
         private void Window_StateChanged(object sender, EventArgs e)
         {
+            if (!IsLoaded) return;
             LastWinState = WindowState;
+            LastPositionSize = new Rect(Left, Top, LastPositionSize.Width, LastPositionSize.Height);
             //if (WindowState != System.Windows.WindowState.Normal)
             //    LastPositionSize = new Rect(Top, Left, Width, Height);
         }
