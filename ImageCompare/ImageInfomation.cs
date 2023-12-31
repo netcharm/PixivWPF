@@ -45,11 +45,11 @@ namespace ImageCompare
                 if (ValidOriginal)
                 {
 #if Q16HDRI
-                    return (Original.Width * Original.Height * Original.ChannelCount * Original.Depth * 4 / 8);
+                    return ((long)Original.Width * Original.Height * Original.ChannelCount * Original.Depth * 4 / 8);
 #elif Q16
-                    return (Original.Width * Original.Height * Original.ChannelCount * Original.Depth * 2 / 8);
+                    return ((long)Original.Width * Original.Height * Original.ChannelCount * Original.Depth * 2 / 8);
 #else
-                    return (Original.Width * Original.Height * Original.ChannelCount * Original.Depth / 8);
+                    return ((long)Original.Width * Original.Height * Original.ChannelCount * Original.Depth / 8);
 #endif
                 }
                 else return (-1);
@@ -61,7 +61,7 @@ namespace ImageCompare
             {
                 if (ValidOriginal)
                 {
-                    return (Original.Width * Original.Height * Original.ChannelCount * Original.Depth / 8);
+                    return ((long)Original.Width * Original.Height * Original.ChannelCount * Original.Depth / 8);
                 }
                 else return (-1);
             }
@@ -84,11 +84,11 @@ namespace ImageCompare
                 if (ValidCurrent)
                 {
 #if Q16HDRI
-                    return (Current.Width * Current.Height * Current.ChannelCount * Current.Depth * 4 / 8);
+                    return ((long)Current.Width * Current.Height * Current.ChannelCount * Current.Depth * 4 / 8);
 #elif Q16
-                    return (Current.Width * Current.Height * Current.ChannelCount * Current.Depth * 2 / 8);
+                    return ((long)Current.Width * Current.Height * Current.ChannelCount * Current.Depth * 2 / 8);
 #else
-                    return (Current.Width * Current.Height * Current.ChannelCount * Current.Depth / 8);
+                    return ((long)Current.Width * Current.Height * Current.ChannelCount * Current.Depth / 8);
 #endif
                 }
                 else return (-1);
@@ -100,7 +100,7 @@ namespace ImageCompare
             {
                 if (ValidCurrent)
                 {
-                    return (Current.Width * Current.Height * Current.ChannelCount * Current.Depth / 8);
+                    return ((long)Current.Width * Current.Height * Current.ChannelCount * Current.Depth / 8);
                 }
                 else return (-1);
             }
@@ -660,8 +660,8 @@ namespace ImageCompare
                     else if (Current.ColorType == ColorType.ColorSeparationAlpha) depth = 32;
 
                     var tip = new List<string>();
-                    tip.Add($"{"InfoTipDimentionOriginal".T()} {OriginalSize.Width:F0}x{OriginalSize.Height:F0}x{depth:F0}, {OriginalSize.Width * OriginalSize.Height / 1000000:F2}MP");
-                    tip.Add($"{"InfoTipDimention".T()} {CurrentSize.Width:F0}x{CurrentSize.Height:F0}x{depth:F0}, {CurrentSize.Width * CurrentSize.Height / 1000000:F2}MP");
+                    tip.Add($"{"InfoTipDimentionOriginal".T()} {OriginalSize.Width:F0}x{OriginalSize.Height:F0}x{depth:F0}, {(long)OriginalSize.Width * OriginalSize.Height / 1000000:F2}MP");
+                    tip.Add($"{"InfoTipDimention".T()} {CurrentSize.Width:F0}x{CurrentSize.Height:F0}x{depth:F0}, {(long)CurrentSize.Width * CurrentSize.Height / 1000000:F2}MP");
                     if (Current.BoundingBox != null)
                         tip.Add($"{"InfoTipBounding".T()} {Current.BoundingBox.Width:F0}x{Current.BoundingBox.Height:F0}");
                     tip.Add($"{"InfoTipResolution".T()} {DPI_TEXT}");
@@ -670,6 +670,7 @@ namespace ImageCompare
 
                     if (Current.AttributeNames != null)
                     {
+                        var fi = OriginalIsFile ? new FileInfo(FileName) : null;
                         var exif = Current.HasProfile("exif") ? Current.GetExifProfile() : new ExifProfile();
                         tip.Add($"{"InfoTipAttributes".T()}");
                         foreach (var attr in Current.AttributeNames)
@@ -682,7 +683,12 @@ namespace ImageCompare
                                 else if (attr.StartsWith("date:", StringComparison.CurrentCultureIgnoreCase))
                                 {
                                     var d = DateTime.Now;
-                                    if (DateTime.TryParse(value, out d)) value = d.ToLocalTime().ToString();
+                                    if (fi is FileInfo && attr.EndsWith(":create", StringComparison.CurrentCultureIgnoreCase))
+                                        value = fi.CreationTime.ToLocalTime().ToString();
+                                    else if (fi is FileInfo && attr.EndsWith(":modify", StringComparison.CurrentCultureIgnoreCase))
+                                        value = fi.LastWriteTime.ToLocalTime().ToString();
+                                    else if (DateTime.TryParse(value, out d))
+                                        value = d.ToLocalTime().ToString();
                                 }
                                 else if (attr.Equals("exif:Artist"))
                                     value = exif.GetValue(ExifTag.Artist) != null ? exif.GetValue(ExifTag.Artist).Value : value;
