@@ -543,4 +543,10 @@
   <data name="InfoTipMatteColorOriginal" xml:space="preserve">
     <value>原圖遮罩色     =</value>
   </data>
+  <data name="InfoTipMemoryMode" xml:space="preserve">
+    <value>記憶體使用模式 =</value>
+  </data>
+  <data name="InfoTipIdealMemoryUsage" xml:space="preserve">
+    <value>理想記憶體佔用 =</value>
+  </data>
 </root>

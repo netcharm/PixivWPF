@@ -38,6 +38,35 @@ namespace ImageCompare
             }
         }
         public Size OriginalSize { get { return (ValidOriginal ? new Size(Original.Width, Original.Height) : new Size(0, 0)); } }
+        public long OriginalRealMemoryUsage
+        {
+            get
+            {
+                if (ValidOriginal)
+                {
+#if Q16HDRI
+                    return (Original.Width * Original.Height * Original.ChannelCount * Original.Depth * 4 / 8);
+#elif Q16
+                    return (Original.Width * Original.Height * Original.ChannelCount * Original.Depth * 2 / 8);
+#else
+                    return (Original.Width * Original.Height * Original.ChannelCount * Original.Depth / 8);
+#endif
+                }
+                else return (-1);
+            }
+        }
+        public long OriginalIdealMemoryUsage
+        {
+            get
+            {
+                if (ValidOriginal)
+                {
+                    return (Original.Width * Original.Height * Original.ChannelCount * Original.Depth / 8);
+                }
+                else return (-1);
+            }
+        }
+
         private MagickImage _current_ = null;
         public MagickImage Current
         {
@@ -51,6 +80,45 @@ namespace ImageCompare
             }
         }
         public Size CurrentSize { get { return (ValidCurrent ? new Size(Current.Width, Current.Height) : new Size(0, 0)); } }
+        public long CurrentRealMemoryUsage { get {
+                if (ValidCurrent)
+                {
+#if Q16HDRI
+                    return (Current.Width * Current.Height * Current.ChannelCount * Current.Depth * 4 / 8);
+#elif Q16
+                    return (Current.Width * Current.Height * Current.ChannelCount * Current.Depth * 2 / 8);
+#else
+                    return (Current.Width * Current.Height * Current.ChannelCount * Current.Depth / 8);
+#endif
+                }
+                else return (-1);
+            }
+        }
+        public long CurrentIdealMemoryUsage
+        {
+            get
+            {
+                if (ValidCurrent)
+                {
+                    return (Current.Width * Current.Height * Current.ChannelCount * Current.Depth / 8);
+                }
+                else return (-1);
+            }
+        }
+
+        public string MemoryUsageMode
+        {
+            get
+            {
+#if Q16HDRI
+                return ("Q16HDRI(32bits/Pixel, 4Bytes/Pixel)");
+#elif Q16
+                return ("Q16(16bits/Pixel, 2Bytes/Pixel)");
+#else
+                return ("Q8(8bits/Pixel, 1Byte/Pixel)");
+#endif
+            }
+        }
 
         private Size _basesize_ = new Size(0, 0);
         public Size BaseSize { get { return (ValidCurrent ? _basesize_ : new Size(0, 0)); } }
@@ -592,8 +660,8 @@ namespace ImageCompare
                     else if (Current.ColorType == ColorType.ColorSeparationAlpha) depth = 32;
 
                     var tip = new List<string>();
-                    tip.Add($"{"InfoTipDimentionOriginal".T()} {OriginalSize.Width:F0}x{OriginalSize.Height:F0}x{depth:F0}");
-                    tip.Add($"{"InfoTipDimention".T()} {CurrentSize.Width:F0}x{CurrentSize.Height:F0}x{depth:F0}");
+                    tip.Add($"{"InfoTipDimentionOriginal".T()} {OriginalSize.Width:F0}x{OriginalSize.Height:F0}x{depth:F0}, {OriginalSize.Width * OriginalSize.Height / 1000000:F2}MP");
+                    tip.Add($"{"InfoTipDimention".T()} {CurrentSize.Width:F0}x{CurrentSize.Height:F0}x{depth:F0}, {CurrentSize.Width * CurrentSize.Height / 1000000:F2}MP");
                     if (Current.BoundingBox != null)
                         tip.Add($"{"InfoTipBounding".T()} {Current.BoundingBox.Width:F0}x{Current.BoundingBox.Height:F0}");
                     tip.Add($"{"InfoTipResolution".T()} {DPI_TEXT}");
@@ -635,14 +703,10 @@ namespace ImageCompare
                     tip.Add($"{"InfoTipColorMapsSize".T()} {Current.ColormapSize.ToString()}");
                     tip.Add($"{"InfoTipCompression".T()} {Current.Compression.ToString()}");
                     tip.Add($"{"InfoTipQuality".T()} {Current.Quality.ToString()}");
-#if Q16HDRI
-                    tip.Add($"{"InfoTipMemoryUsage".T()} {((long)(Current.Width * Current.Height * Current.ChannelCount * Current.Depth * 4 / 8)).SmartFileSize()}");
-#elif Q16
-                tip.Add($"{"InfoTipMemoryUsage".T()} {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth * 2 / 8)}");
-#else
-                tip.Add($"{"InfoTipMemoryUsage".T()} {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth / 8)}");
-#endif
-                    tip.Add($"{"InfoTipDisplayMemory".T()} {((long)(Current.Width * Current.Height * 4)).SmartFileSize()}");                    
+                    tip.Add($"{"InfoTipMemoryMode".T()} {MemoryUsageMode}");
+                    tip.Add($"{"InfoTipIdealMemoryUsage".T()} {(ValidOriginal ? OriginalIdealMemoryUsage.SmartFileSize() : CurrentIdealMemoryUsage.SmartFileSize())}");
+                    tip.Add($"{"InfoTipMemoryUsage".T()} {(ValidOriginal ? OriginalRealMemoryUsage.SmartFileSize() : CurrentRealMemoryUsage.SmartFileSize())}");
+                    tip.Add($"{"InfoTipDisplayMemory".T()} {CurrentRealMemoryUsage.SmartFileSize()}");                    
                     if (!string.IsNullOrEmpty(FileName))
                     {
                         var FileSize = !string.IsNullOrEmpty(FileName) && File.Exists(FileName) ? new FileInfo(FileName).Length : -1;

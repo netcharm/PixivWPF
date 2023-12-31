@@ -543,4 +543,10 @@
   <data name="InfoTipMatteColorOriginal" xml:space="preserve">
     <value>元のマスクの色     =</value>
   </data>
+  <data name="InfoTipMemoryMode" xml:space="preserve">
+    <value>メモリモード       =</value>
+  </data>
+  <data name="InfoTipIdealMemoryUsage" xml:space="preserve">
+    <value>理想的なメモリ使用 =</value>
+  </data>
 </root>

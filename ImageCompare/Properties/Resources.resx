@@ -543,4 +543,10 @@
   <data name="InfoTipMatteColor" xml:space="preserve">
     <value>Matte Color        =</value>
   </data>
+  <data name="InfoTipMemoryMode" xml:space="preserve">
+    <value>Memory Mode        =</value>
+  </data>
+  <data name="InfoTipIdealMemoryUsage" xml:space="preserve">
+    <value>Ideal Memoy Usage  =</value>
+  </data>
 </root>
