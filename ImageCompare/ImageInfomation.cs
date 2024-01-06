@@ -148,7 +148,7 @@ namespace ImageCompare
 
         public bool Loaded { get; set; } = false;
         public bool _OriginalModified_ = true;
-        public bool OriginalModified { get { bool _value_ = _OriginalModified_; _OriginalModified_ = false; return(_value_);  } set { _OriginalModified_ = value; } }
+        public bool OriginalModified { get { bool _value_ = _OriginalModified_; _OriginalModified_ = false; return (_value_); } set { _OriginalModified_ = value; } }
         public bool _CurrentModified_ = true;
         public bool CurrentModified { get { bool _value_ = _CurrentModified_; _CurrentModified_ = false; return (_value_); } set { _CurrentModified_ = value; } }
 
@@ -335,7 +335,7 @@ namespace ImageCompare
                                 catch
                                 {
                                     if (fs.CanSeek) fs.Seek(0, SeekOrigin.Begin);
-                                    Original = new MagickImage(fs, MagickFormat.Unknown);                                  
+                                    Original = new MagickImage(fs, MagickFormat.Unknown);
                                 }
                             }
                             if (update && Tagetment is Image && ValidCurrent)
@@ -624,6 +624,17 @@ namespace ImageCompare
             return (colors.Count > 0 ? string.Join(Environment.NewLine, colors) : string.Empty);
         }
 
+        public string TextPadding(string text, string label, int offset = 0, char padding_char = ' ')
+        {
+            var count = Encoding.ASCII.GetByteCount(label);
+            return (TextPadding(text, count, offset, padding_char));
+        }
+
+        public string TextPadding(string text, int count, int offset = 0, char padding = ' ')
+        {
+            return (Regex.Replace(text, @"(\n\r|\r\n|\n|\r)", $"{Environment.NewLine}{" ".PadLeft(count + offset, padding)}", RegexOptions.IgnoreCase));
+        }
+
         public async Task<string> GetImageInfo(bool include_colorinfo = false)
         {
             string result = string.Empty;
@@ -696,8 +707,18 @@ namespace ImageCompare
                                     value = exif.GetValue(ExifTag.Copyright) != null ? exif.GetValue(ExifTag.Copyright).Value : value;
                                 else if (attr.Equals("exif:ImageDescription"))
                                     value = exif.GetValue(ExifTag.ImageDescription) != null ? exif.GetValue(ExifTag.ImageDescription).Value : value;
+                                else if (attr.Equals("exif:UserComment") && exif.GetValue(ExifTag.UserComment) != null)
+                                {
+                                    //var endian = BitConverter.IsLittleEndian ? Endian.LSB : Endian.MSB;
+                                    //if (Current.Endian == Endian.MSB || endian == Endian.MSB)
+                                    //    value = Encoding.BigEndianUnicode.GetString(exif.GetValue(ExifTag.UserComment).Value.Skip(8).ToArray());
+                                    //else if (Current.Endian == Endian.LSB || endian == Endian.LSB)
+                                    //    value = Encoding.UTF32.GetString(exif.GetValue(ExifTag.UserComment).Value.Skip(8).ToArray());
+                                    value = Encoding.BigEndianUnicode.GetString(exif.GetValue(ExifTag.UserComment).Value.Skip(8).ToArray());
+                                }
                                 if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
-                                tip.Add($"  {attr.PadRight(32, ' ')}= { value }");
+                                var label = attr.PadRight(32, ' ');
+                                tip.Add($"  {label}= {TextPadding(value, label, 4)}");
                             }
                             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, $"{attr} : {ex.Message}"); }
                         }
