@@ -549,4 +549,7 @@
   <data name="InfoTipIdealMemoryUsage" xml:space="preserve">
     <value>Ideal Memoy Usage  =</value>
   </data>
+  <data name="InfoTipColorChannelCount" xml:space="preserve">
+    <value>Color Channels     =</value>
+  </data>
 </root>

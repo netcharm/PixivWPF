@@ -106,12 +106,13 @@ namespace ImageCompare
             }
         }
 
+        public int ChannelCount { get { return (ValidOriginal ? Original.ChannelCount : (ValidCurrent ? Current.ChannelCount : -1)); } }
         public string MemoryUsageMode
         {
             get
             {
 #if Q16HDRI
-                return ("Q16HDRI(32bits/Pixel, 4Bytes/Pixel)");
+                return ($"Q16HDRI[({ChannelCount}x32bits)/Pixel, ({ChannelCount}x4Bytes)/Pixel]");
 #elif Q16
                 return ("Q16(16bits/Pixel, 2Bytes/Pixel)");
 #else
@@ -729,7 +730,8 @@ namespace ImageCompare
                     tip.Add($"{"InfoTipHasAlpha".T()} {(Current.HasAlpha ? "Included" : "NotIncluded").T()}");
                     tip.Add($"{"InfoTipColorMapsSize".T()} {Current.ColormapSize.ToString()}");
                     tip.Add($"{"InfoTipCompression".T()} {Current.Compression.ToString()}");
-                    tip.Add($"{"InfoTipQuality".T()} {Current.Quality.ToString()}");
+                    tip.Add($"{"InfoTipQuality".T()} {Current.Quality}");
+                    tip.Add($"{"InfoTipColorChannelCount".T()} {ChannelCount}");
                     tip.Add($"{"InfoTipMemoryMode".T()} {MemoryUsageMode}");
                     tip.Add($"{"InfoTipIdealMemoryUsage".T()} {(ValidOriginal ? OriginalIdealMemoryUsage.SmartFileSize() : CurrentIdealMemoryUsage.SmartFileSize())}");
                     tip.Add($"{"InfoTipMemoryUsage".T()} {(ValidOriginal ? OriginalRealMemoryUsage.SmartFileSize() : CurrentRealMemoryUsage.SmartFileSize())}");

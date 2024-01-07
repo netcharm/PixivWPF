@@ -549,4 +549,7 @@
   <data name="InfoTipIdealMemoryUsage" xml:space="preserve">
     <value>理想記憶體佔用 =</value>
   </data>
+  <data name="InfoTipColorChannelCount" xml:space="preserve">
+    <value>顏色通道数     =</value>
+  </data>
 </root>
