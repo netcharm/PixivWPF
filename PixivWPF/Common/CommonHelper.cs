@@ -517,6 +517,8 @@ namespace PixivWPF.Common
 
         public string Software { get; set; } = null;
 
+        public string ExifVersion { get; set; } = "0230";
+
         public string AIGC { get; set; } = string.Empty;
         public string Sanity { get; set; } = "all";
 
@@ -4862,6 +4864,9 @@ namespace PixivWPF.Common
                         if (!result.TagExists(ExifTag.Software) && meta.ContainsKey("Software"))
                             result.SetTagValue(ExifTag.Software, meta["Software"], StrCoding.Utf8);
 
+                        if (!result.TagExists(ExifTag.ExifVersion) && meta.ContainsKey("ExifVersion"))
+                            result.SetTagValue(ExifTag.ExifVersion, meta["ExifVersion"], StrCoding.UsAscii_Undef);
+
                         if (!result.TagExists(ExifTag.XmpMetadata) && meta.ContainsKey("XML:com.adobe.xmp"))
                         {
                             var value = meta["XML:com.adobe.xmp"].Split(new char[]{ '\0' }).Last();
@@ -4921,6 +4926,9 @@ namespace PixivWPF.Common
 
                         if (!result.TagExists(ExifTag.Software) && meta.ContainsKey("Software"))
                             result.SetTagValue(ExifTag.Software, meta["Software"], StrCoding.Utf8);
+
+                        if (!result.TagExists(ExifTag.ExifVersion) && meta.ContainsKey("ExifVersion"))
+                            result.SetTagValue(ExifTag.ExifVersion, meta["ExifVersion"], StrCoding.UsAscii_Undef);
 
                         if (!result.TagExists(ExifTag.XmpMetadata) && meta.ContainsKey("XML:com.adobe.xmp"))
                         {
@@ -5059,6 +5067,8 @@ namespace PixivWPF.Common
 
                     exif.SetTagValue(ExifTag.Rating, meta.Ranking ?? 0, TagType: ExifTagType.UShort);
                     exif.SetTagValue(ExifTag.RatingPercent, meta.Rating ?? 0, TagType: ExifTagType.UShort);
+
+                    exif.SetTagValue(ExifTag.ExifVersion, meta.ExifVersion, StrCoding.UsAscii_Undef);
 
                     var xmp = string.Empty;
                     exif.GetTagValue(ExifTag.XmpMetadata, out xmp, StrCoding.Utf8);
@@ -5294,6 +5304,14 @@ namespace PixivWPF.Common
                                         {
                                             if (string.IsNullOrEmpty(comment)) sh.Properties.System.Comment.ClearValue();
                                             else sh.Properties.System.Comment.Value = comment;
+                                        }
+
+                                        var exifversion = "0230";
+                                        sh.Properties.System.Photo.EXIFVersion.AllowSetTruncatedValue = true;
+                                        if (sh.Properties.System.Photo.EXIFVersion.Value == null || !sh.Properties.System.Photo.EXIFVersion.Value.Equals(exifversion))
+                                        {
+                                            if (string.IsNullOrEmpty(exifversion)) sh.Properties.System.Photo.EXIFVersion.ClearValue();
+                                            else sh.Properties.System.Photo.EXIFVersion.Value = exifversion;
                                         }
 
                                         //if (sh.Properties.System.Contact.Webpage.Value == null) sh.Properties.System.Contact.Webpage.Value = id.ArtworkLink();
