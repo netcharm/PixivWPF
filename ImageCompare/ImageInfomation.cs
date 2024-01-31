@@ -706,6 +706,8 @@ namespace ImageCompare
                                     value = exif.GetValue(ExifTag.Artist) != null ? exif.GetValue(ExifTag.Artist).Value : value;
                                 else if (attr.Equals("exif:Copyright"))
                                     value = exif.GetValue(ExifTag.Copyright) != null ? exif.GetValue(ExifTag.Copyright).Value : value;
+                                else if (attr.Equals("exif:ExifVersion"))
+                                    value = exif.GetValue(ExifTag.ExifVersion) != null ? Encoding.UTF8.GetString(exif.GetValue(ExifTag.ExifVersion).Value) : value;
                                 else if (attr.Equals("exif:ImageDescription"))
                                     value = exif.GetValue(ExifTag.ImageDescription) != null ? exif.GetValue(ExifTag.ImageDescription).Value : value;
                                 else if (attr.Equals("exif:UserComment") && exif.GetValue(ExifTag.UserComment) != null)
