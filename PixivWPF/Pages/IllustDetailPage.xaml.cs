@@ -4182,7 +4182,7 @@ namespace PixivWPF.Pages
             {
                 if (Keyboard.Modifiers == ModifierKeys.Shift && e.LeftButton == MouseButtonState.Pressed)
                 {
-                    this.DragOut(PreviewImageUrl);
+                    this.DragOut(PreviewImageUrl.GetImageCacheFile());
                     e.Handled = true;
                 }
                 else if (Keyboard.Modifiers == ModifierKeys.None && IsElement(btnSubPagePrev, e) && btnSubPagePrev.IsVisible && btnSubPagePrev.IsEnabled)
@@ -4208,7 +4208,7 @@ namespace PixivWPF.Pages
             {
                 if (IsElement(PreviewRect, e) && Keyboard.Modifiers == ModifierKeys.Shift && e.LeftButton == MouseButtonState.Pressed)
                 {
-                    this.DragOut(PreviewImageUrl);
+                    this.DragOut(PreviewImageUrl.GetImageCacheFile());
                     e.Handled = true;
                 }
             }
@@ -4293,6 +4293,15 @@ namespace PixivWPF.Pages
             else if (Keyboard.Modifiers == ModifierKeys.Alt)
             {
                 Application.Current.RemoveUserFullListedState();
+            }
+        }
+
+        private void IllustSizeInfo_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                e.Handled = true;
+                this.DragOut(PreviewImageUrl.GetImageCacheFile());
             }
         }
         #endregion
