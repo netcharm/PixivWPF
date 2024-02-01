@@ -3081,7 +3081,7 @@ namespace PixivWPF.Common
             SearchInFolder(app, search.Query, search.Folder, search.Scope, search.Mode, search.CopyQueryToClipboard);
         }
 
-        public static void SearchInFolder(this Application app, string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And, bool? copyquery = null)
+        public static void SearchInFolder(this Application app, string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And, bool? copyquery = null, bool? fuzzy = null)
         {
             if (!string.IsNullOrEmpty(query))
             {
@@ -3092,6 +3092,9 @@ namespace PixivWPF.Common
                     foreach(var c in EscapeChar) s = s.Replace(c, Uri.EscapeDataString(c));
                     return(Quoted(s, q));
                 };
+                Func<KeyValuePair<string, string[]>, string, IEnumerable<string>, string> EscapeValues = (q, sep, keys) => string.Join(sep, q.Value.Select(w => Escape(w, !keys.Contains(q.Key))));
+                Func<KeyValuePair<string, string[]>, string, IEnumerable<string>, string> QuotedValues = (q, sep, keys) => string.Join(sep, q.Value.Select(w => Escape(w, !keys.Contains(q.Key))));
+
 
                 var raw_keys = new List<string>();
                 var names = SystemMetaList.Select(m => $"{m.Value.Description.CanonicalName} => {m.Value.Description.DisplayName}").ToList();
@@ -3143,11 +3146,11 @@ namespace PixivWPF.Common
                 var m_sep = mode == StorageSearchMode.Not ? " NOT " : (mode == StorageSearchMode.And ? " AND " : " OR ");
                 if (setting.SearchEscapeChar)
                 {
-                    query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{string.Join(m_sep, q.Value.Select(w => w.StartsWith("=") ? Escape(w, !raw_keys.Contains(q.Key)) : $"~={Escape(w, !raw_keys.Contains(q.Key))}"))}"));
+                    query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{(fuzzy ?? true ? $"~=({EscapeValues(q, m_sep, raw_keys)})" : $"=({EscapeValues(q, m_sep, raw_keys)})")}"));
                 }
                 else
                 {
-                    query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{string.Join(m_sep, q.Value.Select(w => w.StartsWith("=") ? Quoted(w, !raw_keys.Contains(q.Key)) : $"~={Quoted(w, !raw_keys.Contains(q.Key))}"))}"));
+                    query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{(fuzzy ?? true ? $"~=({QuotedValues(q, m_sep, raw_keys)})" : $"=({QuotedValues(q, m_sep, raw_keys)})")}"));
                 }
 
                 if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
