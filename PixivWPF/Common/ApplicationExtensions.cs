@@ -3095,6 +3095,7 @@ namespace PixivWPF.Common
                 Func<KeyValuePair<string, string[]>, string, IEnumerable<string>, string> EscapeValues = (q, sep, keys) => string.Join(sep, q.Value.Select(w => Escape(w, !keys.Contains(q.Key))));
                 Func<KeyValuePair<string, string[]>, string, IEnumerable<string>, string> QuotedValues = (q, sep, keys) => string.Join(sep, q.Value.Select(w => Escape(w, !keys.Contains(q.Key))));
 
+                if (query.StartsWith("=")) { fuzzy = false; query = query.TrimStart('='); }
 
                 var raw_keys = new List<string>();
                 var names = SystemMetaList.Select(m => $"{m.Value.Description.CanonicalName} => {m.Value.Description.DisplayName}").ToList();

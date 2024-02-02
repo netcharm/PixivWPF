@@ -347,15 +347,17 @@ namespace PixivWPF.Common
         public string Query { get; set; } = string.Empty;
         public string Folder { get; set; } = string.Empty;
         public bool? CopyQueryToClipboard { get; set; } = null;
+        public bool? FuzzySearch { get; set; } = null;
         public StorageSearchMode Mode { get; set; } = StorageSearchMode.And;
         public StorageSearchScope Scope { get; set; } = StorageSearchScope.None;
 
-        public SearchObject(string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And)
+        public SearchObject(string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And, bool? fuzzy = null)
         {
             Query = query;
             Folder = folder;
             Mode = mode;
             Scope = scope;
+            FuzzySearch = fuzzy;
         }
     }
 

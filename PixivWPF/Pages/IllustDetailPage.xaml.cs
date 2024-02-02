@@ -3904,7 +3904,7 @@ namespace PixivWPF.Pages
             else
                 text = string.Join(Environment.NewLine, text.Trim().Split(Speech.LineBreak, StringSplitOptions.RemoveEmptyEntries));
 
-            if (!string.IsNullOrEmpty(text)) Commands.SearchInStorage.Execute(new SearchObject(text, scope: scope, mode: mode));
+            if (!string.IsNullOrEmpty(text)) Commands.SearchInStorage.Execute(new SearchObject(text, scope: scope, mode: mode, fuzzy: fuzzy));
         }
 
         private void ActionSendToInstance_Click(object sender, RoutedEventArgs e)
@@ -4226,7 +4226,7 @@ namespace PixivWPF.Pages
                 var text = fuzzy ? $"{IllustAuthor.Text}{Environment.NewLine}{Contents.UserID}" : $"=uid:{Contents.UserID}"; 
 
                 text = string.Join(Environment.NewLine, text.Trim().Split(Speech.LineBreak, StringSplitOptions.RemoveEmptyEntries));
-                if (!string.IsNullOrEmpty(text)) Commands.SearchInStorage.Execute(new SearchObject(text, scope: scope, mode: mode));
+                if (!string.IsNullOrEmpty(text)) Commands.SearchInStorage.Execute(new SearchObject(text, scope: scope, mode: mode, fuzzy: fuzzy));
             }
         }
 
