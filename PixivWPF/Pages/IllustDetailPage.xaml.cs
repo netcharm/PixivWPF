@@ -4298,10 +4298,18 @@ namespace PixivWPF.Pages
 
         private void IllustSizeInfo_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed)
+            try
             {
-                e.Handled = true;
-                this.DragOut(PreviewImageUrl.GetImageCacheFile());
+                (sender as UIElement).AllowDrop = false;
+                if (e.LeftButton == MouseButtonState.Pressed && e.ClickCount == 1)
+                {
+                    e.Handled = true;
+                    this.DragOut(PreviewImageUrl.GetImageCacheFile());
+                }
+            }
+            finally
+            {
+                (sender as UIElement).AllowDrop = true;
             }
         }
         #endregion
