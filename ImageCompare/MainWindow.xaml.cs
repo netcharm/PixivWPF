@@ -67,6 +67,7 @@ namespace ImageCompare
         private bool CompareImageForceColor { get { return (UseColorImage.IsChecked ?? false); } }
         private ErrorMetric ErrorMetricMode = ErrorMetric.Fuzz;
         private CompositeOperator CompositeMode = CompositeOperator.Difference;
+        private PixelIntensityMethod GrayscaleMode = PixelIntensityMethod.Undefined;
 #if Q16HDRI
         private IMagickColor<float> HighlightColor = MagickColors.Red;
         private IMagickColor<float> LowlightColor = null;
@@ -85,6 +86,7 @@ namespace ImageCompare
 
         private ContextMenu cm_compare_mode = null;
         private ContextMenu cm_compose_mode = null;
+        private ContextMenu cm_grayscale_mode = null;
 
         private List<FrameworkElement> cm_image_source = new List<FrameworkElement>();
         private List<FrameworkElement> cm_image_target = new List<FrameworkElement>();
@@ -719,8 +721,8 @@ namespace ImageCompare
                             await Task.Delay(1);
                             DoEvents();
                         }
-                        image_s.ChangeColorSpace(CompareImageForceColor);
-                        image_t.ChangeColorSpace(CompareImageForceColor);
+                        //image_s.ChangeColorSpace(CompareImageForceColor);
+                        //image_t.ChangeColorSpace(CompareImageForceColor);
 
                         //image_r.Current = await Compare(image_s.Current, image_t.Current, compose: compose);
                         image_r.Original = await Compare(image_s.Current, image_t.Current, compose: compose);
@@ -971,6 +973,11 @@ namespace ImageCompare
                     var value = CompositeMode;
                     if (Enum.TryParse(appSection.Settings["CompositeMode"].Value, out value)) CompositeMode = value;
                 }
+                if (appSection.Settings.AllKeys.Contains("GrayscaleMode"))
+                {
+                    var value = GrayscaleMode;
+                    if (Enum.TryParse(appSection.Settings["GrayscaleMode"].Value, out value)) GrayscaleMode = value;
+                }
                 if (appSection.Settings.AllKeys.Contains("ZoomFitMode"))
                 {
                     var value = CurrentZoomFitMode;
@@ -1105,6 +1112,11 @@ namespace ImageCompare
                     appSection.Settings["CompositeMode"].Value = CompositeMode.ToString();
                 else
                     appSection.Settings.Add("CompositeMode", CompositeMode.ToString());
+
+                if (appSection.Settings.AllKeys.Contains("GrayscaleMode"))
+                    appSection.Settings["GrayscaleMode"].Value = GrayscaleMode.ToString();
+                else
+                    appSection.Settings.Add("GrayscaleMode", GrayscaleMode.ToString());
 
                 if (appSection.Settings.AllKeys.Contains("ZoomFitMode"))
                     appSection.Settings["ZoomFitMode"].Value = CurrentZoomFitMode.ToString();
@@ -1915,7 +1927,7 @@ namespace ImageCompare
             LocaleUI(DefaultCultureInfo);
 
             #region Create ErrorMetric Mode Selector
-            cm_compare_mode = new ContextMenu() { PlacementTarget = ImageCompareFuzzy };
+            cm_compare_mode = new ContextMenu() { PlacementTarget = ImageCompare };
             foreach (var v in Enum.GetValues(typeof(ErrorMetric)))
             {
                 var item = new MenuItem()
@@ -2000,6 +2012,28 @@ namespace ImageCompare
             cm_channels_mode.Items.LiveGroupingProperties.Add("Common");
             cm_channels_mode.Items.IsLiveGrouping = true;
             UsedChannels.ContextMenu = cm_channels_mode;
+            #endregion
+            #region Create Grayscale Mode Selector
+            cm_grayscale_mode = new ContextMenu() { PlacementTarget = UseColorImage };
+            foreach (var v in Enum.GetValues(typeof(PixelIntensityMethod)))
+            {
+                var item = new MenuItem()
+                {
+                    Header = v.ToString(),
+                    Tag = v,
+                    IsChecked = ((PixelIntensityMethod)v == GrayscaleMode ? true : false)
+                };
+                item.Click += (obj, evt) =>
+                {
+                    var menu = obj as MenuItem;
+                    foreach (MenuItem m in cm_grayscale_mode.Items) m.IsChecked = false;
+                    menu.IsChecked = true;
+                    GrayscaleMode = (PixelIntensityMethod)menu.Tag;
+                    if (!LastOpIsCompose) UpdateImageViewer(compose: LastOpIsCompose);
+                };
+                cm_grayscale_mode.Items.Add(item);
+            }
+            UseColorImage.ContextMenu = cm_grayscale_mode;
             #endregion
 
             #region Result Color Defaults Value

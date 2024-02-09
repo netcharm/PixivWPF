@@ -282,7 +282,7 @@ namespace ImageCompare
                 var action = false;
 
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
-                if (image.ValidCurrent) { image.Current.Grayscale(); action = true; }
+                if (image.ValidCurrent) { image.Current.Grayscale(GrayscaleMode); action = true; }
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
@@ -1276,7 +1276,14 @@ namespace ImageCompare
                                     LowlightColor = LowlightColor,
                                     MasklightColor = MasklightColor
                                 };
-                                var distance = source.Compare(target, setting, diff, CompareImageChannels);
+                                var distance = double.NaN;
+                                if (!CompareImageForceColor)
+                                {
+                                    var source_g = source.Clone(); source_g.Grayscale(GrayscaleMode);
+                                    var target_g = target.Clone(); target_g.Grayscale(GrayscaleMode);
+                                    distance = source_g.Compare(target_g, setting, diff, CompareImageChannels);                                    
+                                }
+                                else distance = source.Compare(target, setting, diff, CompareImageChannels);
                                 tip.Add($"{"ResultTipMode".T()} {ErrorMetricMode.ToString()}");
                                 tip.Add($"{"ResultTipDifference".T()} {distance:F4}");
                                 result = new MagickImage(diff);

@@ -719,6 +719,10 @@ namespace ImageCompare
                                     //    value = Encoding.UTF32.GetString(exif.GetValue(ExifTag.UserComment).Value.Skip(8).ToArray());
                                     value = Encoding.BigEndianUnicode.GetString(exif.GetValue(ExifTag.UserComment).Value.Skip(8).ToArray());
                                 }
+                                //else if (attr.StartsWith("png:"))
+                                //{
+
+                                //}
                                 if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
                                 var label = attr.PadRight(32, ' ');
                                 tip.Add($"  {label}= {TextPadding(value, label, 4)}");
