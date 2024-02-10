@@ -2322,13 +2322,13 @@ namespace ImageCompare
                     {
                         if (Keyboard.Modifiers == ModifierKeys.Shift)
                         {
-                            if (ImageSource.IsMouseDirectlyOver) ResetImage(true);
-                            else if (ImageTarget.IsMouseDirectlyOver) ResetImage(false);
+                            if (ImageSourceScroll.IsMouseDirectlyOver) ResetImage(true);
+                            else if (ImageTargetScroll.IsMouseDirectlyOver) ResetImage(false);
                         }
                         else if (Keyboard.Modifiers == ModifierKeys.Control)
                         {
-                            if (ImageSource.IsMouseDirectlyOver) ReloadImage(true);
-                            else if (ImageTarget.IsMouseDirectlyOver) ReloadImage(false);
+                            if (ImageSourceScroll.IsMouseDirectlyOver) ReloadImage(true);
+                            else if (ImageTargetScroll.IsMouseDirectlyOver) ReloadImage(false);
                         }
                         else RenderRun(LastAction);
                     }
