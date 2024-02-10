@@ -206,6 +206,12 @@
                               ShowDropDownButton="False" ShowAvailableColors="True" ShowRecentColors="True" 
                               DisplayColorAndName="False" DisplayColorTooltip="True"
                               SelectedColorChanged="ColorPick_SelectedColorChanged" />
+            <Separator x:Uid="Separator_6"/>
+            <Button x:Name="ImageLoadHaldLut" x:Uid="ImageLoadHaldLut" ToolTip="Load Hald LUT File" Click="ImageActions_Click" Drop="Window_Drop">
+                <StackPanel x:Uid="ImageLoadHaldLutPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ImageLoadHaldLutIcon" Text="&#xE771;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                </StackPanel>
+            </Button>
             <ToggleButton x:Name="UseWeakBlur" x:Uid="UseWeakBlur" IsChecked="True"
                           ToolTip="Low/High Intensity Blur" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="UseWeakBlurPanel" Orientation="Horizontal" Margin="2">

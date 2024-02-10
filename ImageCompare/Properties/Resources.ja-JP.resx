@@ -552,4 +552,7 @@
   <data name="InfoTipColorChannelCount" xml:space="preserve">
     <value>カラーチャンネル数 =</value>
   </data>
+  <data name="ImageLoadHaldLut.ToolTip" xml:space="preserve">
+    <value>Haldカラールックアップテーブルファイルの読み込み</value>
+  </data>
 </root>

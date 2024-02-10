@@ -552,4 +552,7 @@
   <data name="InfoTipColorChannelCount" xml:space="preserve">
     <value>颜色通道数   =</value>
   </data>
+  <data name="ImageLoadHaldLut.ToolTip" xml:space="preserve">
+    <value>载入Hald颜色查找表文件</value>
+  </data>
 </root>

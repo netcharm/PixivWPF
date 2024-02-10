@@ -1030,12 +1030,22 @@ namespace ImageCompare
             try
             {
                 var action = false;
+                var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+                var exists = File.Exists(LastHaldFile);
 
                 var image_s = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 var image_t = source ? ImageTarget.GetInformation() : ImageSource.GetInformation();
                 if (image_s.ValidCurrent && image_t.ValidCurrent)
                 {
-                    image_s.Current.HaldClut(image_t.Current);
+                    if (shift || !exists)
+                        image_s.Current.HaldClut(image_t.Current);
+                    else if (exists)
+                        image_s.Current.HaldClut(new MagickImage(LastHaldFile));
+                    action = true;
+                }
+                else if (image_s.ValidCurrent && exists)
+                {
+                    image_s.Current.HaldClut(new MagickImage(LastHaldFile));
                     action = true;
                 }
 

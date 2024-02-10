@@ -403,7 +403,7 @@
     <value>自動影像均衡</value>
   </data>
   <data name="HaldClut.Header" xml:space="preserve">
-    <value>應用Hald顏色查找錶</value>
+    <value>應用Hald顏色查找表</value>
   </data>
   <data name="KmeansCluster.Header" xml:space="preserve">
     <value>K-Means 聚類</value>
@@ -551,5 +551,8 @@
   </data>
   <data name="InfoTipColorChannelCount" xml:space="preserve">
     <value>顏色通道数     =</value>
+  </data>
+  <data name="ImageLoadHaldLut.ToolTip" xml:space="preserve">
+    <value>载入Hald顏色查找表文件</value>
   </data>
 </root>

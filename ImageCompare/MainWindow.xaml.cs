@@ -77,6 +77,9 @@ namespace ImageCompare
         private IMagickColor<byte> LowlightColor { get; set; } = null;
         private IMagickColor<byte> MasklightColor { get; set; } = null;
 #endif
+        private string LastHaldFolder { get; set; } = string.Empty;
+        private string LastHaldFile { get; set; } = string.Empty;
+
         private bool WeakBlur { get { return (UseWeakBlur.IsChecked ?? false); } }
         private bool WeakSharp { get { return (UseWeakSharp.IsChecked ?? false); } }
         private bool WeakEffects { get { return (UseWeakEffects.IsChecked ?? false); } }
@@ -755,6 +758,32 @@ namespace ImageCompare
         #endregion
 
         #region Image Load/Save Helper
+        private void LoadHaldLutFile(string hald = null)
+        {
+            if (string.IsNullOrEmpty(hald))
+            {
+                try
+                {
+                    var file_str = "AllSupportedImageFiles".T();
+                    var dlgOpen = new Microsoft.Win32.OpenFileDialog() { Multiselect = true, CheckFileExists = true, CheckPathExists = true, ValidateNames = true };
+                    //dlgOpen.Filter = $"{file_str}|{AllSupportedFiles}|{AllSupportedFilters}";
+                    dlgOpen.Filter = $"{file_str}|{Extensions.AllSupportedFiles}";
+                    if (Directory.Exists(LastHaldFolder)) dlgOpen.InitialDirectory = LastHaldFolder;
+                    if (dlgOpen.ShowDialog() ?? false) hald = dlgOpen.FileName;
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
+            }
+
+            if (File.Exists(hald))
+            {
+                LastHaldFolder = Path.GetDirectoryName(hald);
+                LastHaldFile = hald;
+                //using (var img = new MagickImage())
+                //{                   
+                //}
+            }
+        }
+
         private void CopyImageFromResult(bool source = true)
         {
             RenderRun(new Action(() =>
@@ -832,6 +861,11 @@ namespace ImageCompare
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }));
+        }
+
+        private void LoadImageFromFiles(IEnumerable<string> files, bool source = true)
+        {
+            LoadImageFromFiles(files.ToArray(), source);
         }
 
         private void LoadImageFromFiles(string[] files, bool source = true)
@@ -1005,6 +1039,18 @@ namespace ImageCompare
                     var value = UseColorImage.IsChecked ?? true;
                     if (bool.TryParse(appSection.Settings["UseColorImage"].Value, out value)) UseColorImage.IsChecked = value;
                 }
+
+                if (appSection.Settings.AllKeys.Contains("LastHaldFolder"))
+                {
+                    var value = appSection.Settings["LastHaldFolder"].Value;
+                    if (!string.IsNullOrEmpty(value)) LastHaldFolder = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("LastHaldFile"))
+                {
+                    var value = appSection.Settings["LastHaldFile"].Value;
+                    if (!string.IsNullOrEmpty(value)) LastHaldFile = value;
+                }
+
                 if (appSection.Settings.AllKeys.Contains("UseWeakBlur"))
                 {
                     var value = UseWeakBlur.IsChecked ?? true;
@@ -1015,6 +1061,7 @@ namespace ImageCompare
                     var value = UseWeakSharp.IsChecked ?? true;
                     if (bool.TryParse(appSection.Settings["UseWeakSharp"].Value, out value)) UseWeakSharp.IsChecked = value;
                 }
+
                 if (appSection.Settings.AllKeys.Contains("MaxCompareSize"))
                 {
                     var value = MaxCompareSize;
@@ -1148,6 +1195,15 @@ namespace ImageCompare
                     appSection.Settings["UseColorImage"].Value = UseColorImage.IsChecked.Value.ToString();
                 else
                     appSection.Settings.Add("UseColorImage", UseColorImage.IsChecked.Value.ToString());
+
+                if (appSection.Settings.AllKeys.Contains("LastHaldFolder"))
+                    appSection.Settings["LastHaldFolder"].Value = LastHaldFolder;
+                else
+                    appSection.Settings.Add("LastHaldFolder", LastHaldFolder);
+                if (appSection.Settings.AllKeys.Contains("LastHaldFile"))
+                    appSection.Settings["LastHaldFile"].Value = LastHaldFile;
+                else
+                    appSection.Settings.Add("LastHaldFile", LastHaldFile);
 
                 if (appSection.Settings.AllKeys.Contains("UseWeakBlur"))
                     appSection.Settings["UseWeakBlur"].Value = UseWeakBlur.IsChecked.Value.ToString();
@@ -2130,7 +2186,10 @@ namespace ImageCompare
                 var files = e.Data.GetData("FileDrop");
                 if (files is IEnumerable<string>)
                 {
-                    LoadImageFromFiles((files as IEnumerable<string>).ToArray(), e.Source == ImageSourceScroll || e.Source == ImageSource ? true : false);
+                    if (sender == ImageLoadHaldLut)
+                        LoadHaldLutFile((files as IEnumerable<string>).Where(f => File.Exists(f)).First());
+                    else
+                        LoadImageFromFiles((files as IEnumerable<string>).ToArray(), e.Source == ImageSourceScroll || e.Source == ImageSource ? true : false);
                 }
             }
             else if (e.Data.GetDataPresent("Text"))
@@ -2138,9 +2197,13 @@ namespace ImageCompare
                 var files = (e.Data.GetData("Text") as string).Split();
                 if (files is IEnumerable<string>)
                 {
-                    LoadImageFromFiles((files as IEnumerable<string>).ToArray(), e.Source == ImageSourceScroll || e.Source == ImageSource ? true : false);
+                    if (sender == ImageLoadHaldLut)
+                        LoadHaldLutFile((files as IEnumerable<string>).Where(f => File.Exists(f)).First());
+                    else
+                        LoadImageFromFiles(files as IEnumerable<string>, e.Source == ImageSourceScroll || e.Source == ImageSource ? true : false);
                 }
             }
+            e.Handled = true;
         }
 
         private Key _last_key_ = Key.None;
@@ -2257,7 +2320,17 @@ namespace ImageCompare
                     }
                     else if (e.Key == Key.R || e.SystemKey == Key.R)
                     {
-                        RenderRun(LastAction);
+                        if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        {
+                            if (ImageSource.IsMouseDirectlyOver) ResetImage(true);
+                            else if (ImageTarget.IsMouseDirectlyOver) ResetImage(false);
+                        }
+                        else if (Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            if (ImageSource.IsMouseDirectlyOver) ReloadImage(true);
+                            else if (ImageTarget.IsMouseDirectlyOver) ReloadImage(false);
+                        }
+                        else RenderRun(LastAction);
                     }
                     _last_key_ = e.Key;
                     _last_key_time_ = DateTime.Now;
@@ -2617,6 +2690,10 @@ namespace ImageCompare
             else if (sender == UsedChannels)
             {
                 UsedChannels.ContextMenu.IsOpen = true;
+            }
+            else if (sender == ImageLoadHaldLut)
+            {
+                LoadHaldLutFile();
             }
         }
         #endregion
