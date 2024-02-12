@@ -2628,9 +2628,11 @@ namespace ImageCompare
             }
             else if (sender == ImageDenoiseResult)
             {
-                ImageResult.GetInformation().Denoise(WeakEffects ? 3 : 5);
-                //ImageResult.Source = ImageResult.GetInformation().Current;
-                ImageResult.GetInformation().DenoiseCount++;
+                RenderRun(new Action(() =>
+                {
+                    ImageResult.GetInformation().Denoise(WeakEffects ? 3 : 5);
+                    ImageResult.GetInformation().DenoiseCount++;
+                }));
             }
             else if (sender == ImageCopyResult)
             {

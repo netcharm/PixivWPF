@@ -504,6 +504,7 @@ namespace ImageCompare
         {
             if (ValidCurrent)
             {
+                var shift = Keyboard.Modifiers == ModifierKeys.Shift;
                 var value = order ?? 0;
 
                 var factor = DenoiseLevel <= 0 ? 1 : DenoiseLevel;
@@ -514,13 +515,8 @@ namespace ImageCompare
                     else if (DenoiseCount > 50) factor = 8;
                     else if (DenoiseCount > 100) factor = 16;
                 }
-                //if (value <= 0)
-                //    Current.ReduceNoise(3);
-                //else
-                //    Current.ReduceNoise(Math.Max(0, value));
-                ////Current.AdaptiveBlur(0.25, 1.5);
-                //Current.SelectiveBlur(5, 5, 16);
-                Current.MedianFilter((value > 0 ? value : 3) * factor);
+
+                Current.MedianFilter((value > 0 ? value : 3) * (shift ? factor * 4 : factor));
                 await SetImage();
             }
         }
@@ -689,6 +685,7 @@ namespace ImageCompare
                         {
                             try
                             {
+                                var label = attr.PadRight(32, ' ');
                                 var value = Current.GetAttribute(attr);
                                 if (string.IsNullOrEmpty(value)) continue;
                                 if (attr.Contains("WinXP")) value = value.DecodeHexUnicode();
@@ -723,8 +720,13 @@ namespace ImageCompare
                                 //{
 
                                 //}
+                                else if (attr.StartsWith("unknown"))
+                                {
+                                    if (exif.GetValue(ExifTag.Rating).ToString().Equals(value)) label = $"exif:Rating".PadRight(32, ' ');
+                                    else if (exif.GetValue(ExifTag.RatingPercent).ToString().Equals(value)) label = $"exif:RatingPercent".PadRight(32, ' ');
+                                }
+
                                 if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
-                                var label = attr.PadRight(32, ' ');
                                 tip.Add($"  {label}= {TextPadding(value, label, 4)}");
                             }
                             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, $"{attr} : {ex.Message}"); }
