@@ -2118,10 +2118,12 @@ namespace ImageCompare
             ZoomMax = ZoomRatio.Maximum;
             #endregion
 
-            if (ImageSource.Tag == null) ImageSource.Tag = new ImageInformation() { Tagetment = ImageSource };
-            if (ImageTarget.Tag == null) ImageTarget.Tag = new ImageInformation() { Tagetment = ImageTarget };
-            if (ImageResult.Tag == null) ImageResult.Tag = new ImageInformation() { Tagetment = ImageResult };
-
+            if (ImageSource.Tag == null) ImageSource.Tag = new ImageInformation() { Tagetment = ImageSource, HighlightColor = HighlightColor, LowlightColor = LowlightColor, MasklightColor = MasklightColor };
+            else if(ImageSource.Tag is ImageInformation) { var info = ImageSource.Tag as ImageInformation; info.Tagetment = ImageSource; info.HighlightColor = HighlightColor; info.LowlightColor = LowlightColor; info.MasklightColor = MasklightColor; }
+            if (ImageTarget.Tag == null) ImageTarget.Tag = new ImageInformation() { Tagetment = ImageTarget, HighlightColor = HighlightColor, LowlightColor = LowlightColor, MasklightColor = MasklightColor };
+            else if (ImageTarget.Tag is ImageInformation) { var info = ImageTarget.Tag as ImageInformation; info.Tagetment = ImageTarget; info.HighlightColor = HighlightColor; info.LowlightColor = LowlightColor; info.MasklightColor = MasklightColor; }
+            if (ImageResult.Tag == null) ImageResult.Tag = new ImageInformation() { Tagetment = ImageResult, HighlightColor = HighlightColor, LowlightColor = LowlightColor, MasklightColor = MasklightColor };
+            else if (ImageResult.Tag is ImageInformation) { var info = ImageResult.Tag as ImageInformation; info.Tagetment = ImageResult; info.HighlightColor = HighlightColor; info.LowlightColor = LowlightColor; info.MasklightColor = MasklightColor; }
             DoEvents();
 
             var args = Environment.GetCommandLineArgs();

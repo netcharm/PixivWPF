@@ -106,6 +106,16 @@ namespace ImageCompare
             }
         }
 
+#if Q16HDRI
+        public IMagickColor<float> HighlightColor = MagickColors.Red;
+        public IMagickColor<float> LowlightColor = null;
+        public IMagickColor<float> MasklightColor = null;
+#else
+        public IMagickColor<byte> HighlightColor { get; set; } = MagickColors.Red;
+        public IMagickColor<byte> LowlightColor { get; set; } = null;
+        public IMagickColor<byte> MasklightColor { get; set; } = null;
+#endif
+
         public int ChannelCount { get { return (ValidOriginal ? Original.ChannelCount : (ValidCurrent ? Current.ChannelCount : -1)); } }
         public string MemoryUsageMode
         {
@@ -127,6 +137,7 @@ namespace ImageCompare
         private ColorSpace _last_colorspace_ = ColorSpace.Undefined;
 
         public ImageSource Source { get { return (ValidCurrent ? Current.ToBitmapSource() : null); } }
+        //public ImageSource Source { get { return (ValidCurrent ? Current.ToBitmapSourceWithDensity() : null); } }
 
         public bool ValidCurrent { get { return (Current is MagickImage && !Current.IsDisposed); } }
         public bool ValidOriginal { get { return (Original is MagickImage && !Original.IsDisposed); } }
@@ -179,7 +190,7 @@ namespace ImageCompare
         public int DenoiseCount { get; set; } = 0;
         public int DenoiseLevel { get; set; } = 0;
 
-        public void FixDPI(MagickImage image = null)
+        public void FixDPI(MagickImage image = null, bool use_system = false)
         {
             if (image == null) image = Current;
             if (ValidImage(image))
@@ -188,7 +199,7 @@ namespace ImageCompare
                 if (image.Density is Density && image.Density.X > 0 && image.Density.Y > 0)
                 {
                     var unit = image.Density.ChangeUnits(DensityUnit.PixelsPerInch);
-                    if (unit.X <= 0 || unit.Y <= 0)
+                    if (use_system || unit.X <= 0 || unit.Y <= 0)
                         image.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
                     else
                         image.Density = new Density(Math.Round(unit.X), Math.Round(unit.Y), DensityUnit.PixelsPerInch);
@@ -407,11 +418,15 @@ namespace ImageCompare
 
                     using (var image = new MagickImage(Current))
                     {
-                        FixDPI(image);
+                        image.LevelColors(LowlightColor, HighlightColor);
+
+                        FixDPI(image, use_system: true);
                         image.Format = format;
                         image.SetCompression(CompressionMethod.JPEG);
                         image.ColorType = ColorType.Palette;
                         image.ColorSpace = ColorSpace.Gray;
+                        //image.BackgroundColor = MagickColors.Black;
+                        //image.MatteColor = MagickColors.White;
                         image.Depth = 8;
 
                         image.Write(file, format);
@@ -720,16 +735,23 @@ namespace ImageCompare
                                 //{
 
                                 //}
-                                else if (attr.StartsWith("unknown"))
-                                {
-                                    if (exif.GetValue(ExifTag.Rating).ToString().Equals(value)) label = $"exif:Rating".PadRight(32, ' ');
-                                    else if (exif.GetValue(ExifTag.RatingPercent).ToString().Equals(value)) label = $"exif:RatingPercent".PadRight(32, ' ');
-                                }
+                                //else if (attr.StartsWith("unknown"))
+                                //{
+                                //    if (exif.GetValue(ExifTag.Rating).ToString().Equals(value)) label = $"exif:Rating".PadRight(32, ' ');
+                                //    else if (exif.GetValue(ExifTag.RatingPercent).ToString().Equals(value)) label = $"exif:RatingPercent".PadRight(32, ' ');
+                                //}
 
                                 if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
                                 tip.Add($"  {label}= {TextPadding(value, label, 4)}");
                             }
                             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, $"{attr} : {ex.Message}"); }
+                        }
+                        var rank_tags = new ExifTag[] { ExifTag.Rating, ExifTag.RatingPercent };
+                        foreach(var tag in exif.Values.Where(v => rank_tags.Contains(v.Tag)))
+                        {
+                            var label = $"exif:{tag.Tag.ToString()}".PadRight(32, ' ');
+                            var value = tag.GetValue().ToString();
+                            tip.Add($"  {label}= {TextPadding(value, label, 4)}");
                         }
                     }
                     tip.Add($"{"InfoTipColorSpace".T()} {Current.ColorSpace.ToString()}");
