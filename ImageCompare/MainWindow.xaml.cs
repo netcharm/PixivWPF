@@ -73,9 +73,9 @@ namespace ImageCompare
         private IMagickColor<float> LowlightColor = null;
         private IMagickColor<float> MasklightColor = null;
 #else
-        private IMagickColor<byte> HighlightColor { get; set; } = MagickColors.Red;
-        private IMagickColor<byte> LowlightColor { get; set; } = null;
-        private IMagickColor<byte> MasklightColor { get; set; } = null;
+        private IMagickColor<byte> HighlightColor = MagickColors.Red;
+        private IMagickColor<byte> LowlightColor = null;
+        private IMagickColor<byte> MasklightColor = null;
 #endif
         private string LastHaldFolder { get; set; } = string.Empty;
         private string LastHaldFile { get; set; } = string.Empty;

@@ -1277,7 +1277,7 @@ namespace ImageCompare
                         }
                         else
                         {
-                            using (MagickImage diff = new MagickImage())
+                            using (MagickImage diff = new MagickImage() { MatteColor = MasklightColor })
                             {
                                 var setting = new CompareSettings()
                                 {
@@ -1289,9 +1289,19 @@ namespace ImageCompare
                                 var distance = double.NaN;
                                 if (!CompareImageForceColor)
                                 {
-                                    var source_g = source.Clone(); source_g.Grayscale(GrayscaleMode);
-                                    var target_g = target.Clone(); target_g.Grayscale(GrayscaleMode);
-                                    distance = source_g.Compare(target_g, setting, diff, CompareImageChannels);                                    
+                                    var source_g = source.Clone();
+                                    source_g.Grayscale(GrayscaleMode);
+                                    source_g.MatteColor = MasklightColor;
+                                    source_g.ColorSpace = ColorSpace.sRGB;
+                                    source_g.ColorType = ColorType.TrueColor;
+                                    //source_g.ColorType = ColorType.TrueColorAlpha;
+                                    var target_g = target.Clone();
+                                    target_g.Grayscale(GrayscaleMode);
+                                    target_g.MatteColor = MasklightColor;
+                                    target_g.ColorSpace = ColorSpace.sRGB;
+                                    target_g.ColorType = ColorType.TrueColor;
+                                    //target_g.ColorType = ColorType.TrueColorAlpha;
+                                    distance = source_g.Compare(target_g, setting, diff, CompareImageChannels);
                                 }
                                 else distance = source.Compare(target, setting, diff, CompareImageChannels);
                                 tip.Add($"{"ResultTipMode".T()} {ErrorMetricMode.ToString()}");
