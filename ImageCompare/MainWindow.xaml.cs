@@ -328,6 +328,28 @@ namespace ImageCompare
             }
         }
 
+        private void SyncColorLighting()
+        {
+            if (IsLoaded)
+            {
+                if (ImageSource is Image)
+                {
+                    if (ImageSource.Tag == null) ImageSource.Tag = new ImageInformation() { Tagetment = ImageSource, HighlightColor = HighlightColor, LowlightColor = LowlightColor, MasklightColor = MasklightColor };
+                    else if (ImageSource.Tag is ImageInformation) { var info = ImageSource.Tag as ImageInformation; info.Tagetment = ImageSource; info.HighlightColor = HighlightColor; info.LowlightColor = LowlightColor; info.MasklightColor = MasklightColor; }
+                }
+                if (ImageTarget is Image)
+                {
+                    if (ImageTarget.Tag == null) ImageTarget.Tag = new ImageInformation() { Tagetment = ImageTarget, HighlightColor = HighlightColor, LowlightColor = LowlightColor, MasklightColor = MasklightColor };
+                    else if (ImageTarget.Tag is ImageInformation) { var info = ImageTarget.Tag as ImageInformation; info.Tagetment = ImageTarget; info.HighlightColor = HighlightColor; info.LowlightColor = LowlightColor; info.MasklightColor = MasklightColor; }
+                }
+                if (ImageResult is Image)
+                {
+                    if (ImageResult.Tag == null) ImageResult.Tag = new ImageInformation() { Tagetment = ImageResult, HighlightColor = HighlightColor, LowlightColor = LowlightColor, MasklightColor = MasklightColor };
+                    else if (ImageResult.Tag is ImageInformation) { var info = ImageResult.Tag as ImageInformation; info.Tagetment = ImageResult; info.HighlightColor = HighlightColor; info.LowlightColor = LowlightColor; info.MasklightColor = MasklightColor; }
+                }
+            }
+        }
+
         private Point GetScrollOffset(FrameworkElement sender)
         {
             double offset_x = -1, offset_y = -1;
@@ -2118,12 +2140,7 @@ namespace ImageCompare
             ZoomMax = ZoomRatio.Maximum;
             #endregion
 
-            if (ImageSource.Tag == null) ImageSource.Tag = new ImageInformation() { Tagetment = ImageSource, HighlightColor = HighlightColor, LowlightColor = LowlightColor, MasklightColor = MasklightColor };
-            else if(ImageSource.Tag is ImageInformation) { var info = ImageSource.Tag as ImageInformation; info.Tagetment = ImageSource; info.HighlightColor = HighlightColor; info.LowlightColor = LowlightColor; info.MasklightColor = MasklightColor; }
-            if (ImageTarget.Tag == null) ImageTarget.Tag = new ImageInformation() { Tagetment = ImageTarget, HighlightColor = HighlightColor, LowlightColor = LowlightColor, MasklightColor = MasklightColor };
-            else if (ImageTarget.Tag is ImageInformation) { var info = ImageTarget.Tag as ImageInformation; info.Tagetment = ImageTarget; info.HighlightColor = HighlightColor; info.LowlightColor = LowlightColor; info.MasklightColor = MasklightColor; }
-            if (ImageResult.Tag == null) ImageResult.Tag = new ImageInformation() { Tagetment = ImageResult, HighlightColor = HighlightColor, LowlightColor = LowlightColor, MasklightColor = MasklightColor };
-            else if (ImageResult.Tag is ImageInformation) { var info = ImageResult.Tag as ImageInformation; info.Tagetment = ImageResult; info.HighlightColor = HighlightColor; info.LowlightColor = LowlightColor; info.MasklightColor = MasklightColor; }
+            SyncColorLighting();
             DoEvents();
 
             var args = Environment.GetCommandLineArgs();
@@ -2639,12 +2656,17 @@ namespace ImageCompare
             else if (sender == ImageCopyResult)
             {
                 ImageResult.GetInformation().CopyToClipboard();
-                //SaveResultToClipboard();
             }
             else if (sender == ImageSaveResult)
             {
-                ImageResult.GetInformation().Save();
-                //SaveResultToFile();
+                var InfoResult = ImageResult.GetInformation();
+                if (InfoResult is ImageInformation)
+                {
+                    if (InfoResult.HighlightColor == null) InfoResult.HighlightColor = HighlightColor;
+                    if (InfoResult.LowlightColor == null) InfoResult.LowlightColor = LowlightColor;
+                    if (InfoResult.MasklightColor == null) InfoResult.MasklightColor = MasklightColor;
+                    InfoResult.Save();
+                }
             }
             else if (sender == ImageLayout)
             {
@@ -2744,16 +2766,19 @@ namespace ImageCompare
             {
                 var c = (sender as ColorPicker).SelectedColor ?? null;
                 HighlightColor = c == null || c == Colors.Transparent ? null : MagickColor.FromRgba(c.Value.R, c.Value.G, c.Value.B, c.Value.A);
+                SyncColorLighting();
             }
             else if (sender == LowlightColorPick)
             {
                 var c = (sender as ColorPicker).SelectedColor ?? null;
                 LowlightColor = c == null || c == Colors.Transparent ? null : MagickColor.FromRgba(c.Value.R, c.Value.G, c.Value.B, c.Value.A);
+                SyncColorLighting();
             }
             else if (sender == MasklightColorPick)
             {
                 var c = (sender as ColorPicker).SelectedColor ?? null;
                 MasklightColor = c == null || c == Colors.Transparent ? null : MagickColor.FromRgba(c.Value.R, c.Value.G, c.Value.B, c.Value.A);
+                SyncColorLighting();
             }
         }
        #endregion

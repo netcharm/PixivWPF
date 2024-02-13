@@ -111,9 +111,9 @@ namespace ImageCompare
         public IMagickColor<float> LowlightColor = null;
         public IMagickColor<float> MasklightColor = null;
 #else
-        public IMagickColor<byte> HighlightColor { get; set; } = MagickColors.Red;
-        public IMagickColor<byte> LowlightColor { get; set; } = null;
-        public IMagickColor<byte> MasklightColor { get; set; } = null;
+        public IMagickColor<byte> HighlightColor = MagickColors.Red;
+        public IMagickColor<byte> LowlightColor = null;
+        public IMagickColor<byte> MasklightColor = null;
 #endif
 
         public int ChannelCount { get { return (ValidOriginal ? Original.ChannelCount : (ValidCurrent ? Current.ChannelCount : -1)); } }
@@ -416,17 +416,15 @@ namespace ImageCompare
                     var fm = "-mask";
                     file = fn.ToLower().Contains(fm) ? Path.Combine(fd, $"{fn}.tiff") : Path.Combine(fd, $"{fn}{fm}.tiff");
 
-                    using (var image = new MagickImage(Current))
+                    using (var image = new MagickImage(Current) { BackgroundColor = MagickColors.Black, MatteColor = MasklightColor })
                     {
-                        image.LevelColors(LowlightColor, HighlightColor);
-
                         FixDPI(image, use_system: true);
+                        image.ColorThreshold(HighlightColor, HighlightColor);
+                        image.LevelColors(MagickColors.White, MagickColors.Black);
                         image.Format = format;
                         image.SetCompression(CompressionMethod.JPEG);
                         image.ColorType = ColorType.Palette;
                         image.ColorSpace = ColorSpace.Gray;
-                        //image.BackgroundColor = MagickColors.Black;
-                        //image.MatteColor = MagickColors.White;
                         image.Depth = 8;
 
                         image.Write(file, format);
