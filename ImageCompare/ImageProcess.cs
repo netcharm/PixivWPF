@@ -379,7 +379,7 @@ namespace ImageCompare
                     var s_image = source ? image_s.Current : image_t.Current;
                     var t_image = source ? image_t.Current : image_s.Current;
                     if (s_image.Width == t_image.Width || s_image.Height == t_image.Height)
-                        s_image.Extent(t_image.Width, t_image.Height, Gravity.Center, MasklightColor ?? MagickColors.Transparent);
+                        s_image.Extent(t_image.Width, t_image.Height, Gravity.Center, s_image.HasAlpha ? MagickColors.Transparent : MasklightColor ?? MagickColors.Transparent);
                     else
                         s_image.Scale(t_image.Width, t_image.Height);
                     s_image.RePage();
@@ -1293,14 +1293,26 @@ namespace ImageCompare
                                     source_g.Grayscale(GrayscaleMode);
                                     source_g.MatteColor = MasklightColor;
                                     source_g.ColorSpace = ColorSpace.sRGB;
-                                    source_g.ColorType = ColorType.TrueColor;
-                                    //source_g.ColorType = ColorType.TrueColorAlpha;
+                                    source_g.ColorType = source.HasAlpha ? ColorType.TrueColorAlpha : ColorType.TrueColor;
+                                    //if (source.HasAlpha)
+                                    //{
+                                    //    var source_alpha = source.Channels.Where(c => c == PixelChannel.Alpha).FirstOrDefault();
+                                    //    source_g.Channels.Append(source_alpha);
+                                    //    source_g.Alpha(AlphaOption.Activate);
+                                    //}
+
                                     var target_g = target.Clone();
                                     target_g.Grayscale(GrayscaleMode);
                                     target_g.MatteColor = MasklightColor;
                                     target_g.ColorSpace = ColorSpace.sRGB;
-                                    target_g.ColorType = ColorType.TrueColor;
-                                    //target_g.ColorType = ColorType.TrueColorAlpha;
+                                    target_g.ColorType = target.HasAlpha ? ColorType.TrueColorAlpha : ColorType.TrueColor;
+                                    //if (target.HasAlpha)
+                                    //{
+                                    //    var target_alpha = target.Channels.Where(c => c == PixelChannel.Alpha).FirstOrDefault();
+                                    //    target_g.Channels.Append(target_alpha);
+                                    //    target_g.Alpha(AlphaOption.Activate);
+                                    //}
+
                                     distance = source_g.Compare(target_g, setting, diff, CompareImageChannels);
                                 }
                                 else distance = source.Compare(target, setting, diff, CompareImageChannels);
