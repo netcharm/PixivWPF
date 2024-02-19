@@ -834,7 +834,7 @@ namespace PixivWPF.Common
                     else if (parallel >= total) parallel = total;
 
                     var opt = new ParallelOptions();
-                    opt.MaxDegreeOfParallelism = parallel;
+                    opt.MaxDegreeOfParallelism = parallel <= 0 ? 5 : parallel;
                     opt.CancellationToken = UpdateTileTaskCancelSrc.Token;
 
                     #region Setting item state
@@ -1547,23 +1547,36 @@ namespace PixivWPF.Common
         private Point last_mouse_pos;
         private void PART_ImageListGrid_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (Keyboard.Modifiers == ModifierKeys.Shift && e.ChangedButton == MouseButton.Left && e.LeftButton == MouseButtonState.Pressed)
+            if ((Keyboard.Modifiers == ModifierKeys.Shift || e.XButton1 == MouseButtonState.Pressed) && e.ChangedButton == MouseButton.Left && e.LeftButton == MouseButtonState.Pressed)
             {
                 last_mouse_pos = e.GetPosition(this);
-                //e.Handled = true;
+            }
+            else if ((Keyboard.Modifiers == ModifierKeys.Control || e.XButton2 == MouseButtonState.Pressed) && e.ChangedButton == MouseButton.Left && e.LeftButton == MouseButtonState.Pressed)
+            {
+                last_mouse_pos = e.GetPosition(this);
             }
         }
 
         private void PART_ImageListGrid_MouseMove(object sender, MouseEventArgs e)
         {
-            if (Keyboard.Modifiers == ModifierKeys.Shift && e.LeftButton == MouseButtonState.Pressed)
+            if ((Keyboard.Modifiers == ModifierKeys.Shift || e.XButton1 == MouseButtonState.Pressed) && e.LeftButton == MouseButtonState.Pressed)
             {
                 var pos = e.GetPosition(this);
                 if (last_mouse_pos.X == 0 && last_mouse_pos.Y == 0) last_mouse_pos = pos;
                 if (Point.Subtract(pos, last_mouse_pos).LengthSquared >= 250 || pos.Distance(last_mouse_pos) >= 50)
                 {
-                    this.DragOut(this, open_downloaded: false);
                     e.Handled = true;
+                    this.DragOut(this, open_downloaded: false);
+                }
+            }
+            else if ((Keyboard.Modifiers == ModifierKeys.Control || e.XButton2 == MouseButtonState.Pressed) && e.LeftButton == MouseButtonState.Pressed)
+            {
+                var pos = e.GetPosition(this);
+                if (last_mouse_pos.X == 0 && last_mouse_pos.Y == 0) last_mouse_pos = pos;
+                if (Point.Subtract(pos, last_mouse_pos).LengthSquared >= 250 || pos.Distance(last_mouse_pos) >= 50)
+                {
+                    e.Handled = true;
+                    this.DragOut(this, open_downloaded: true);
                 }
             }
         }

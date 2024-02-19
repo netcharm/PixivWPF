@@ -673,7 +673,7 @@ namespace PixivWPF.Pages
 
             if (change_detail_page)
             {
-                if (e.XButton1 == MouseButtonState.Pressed)
+                if (e.XButton1 == MouseButtonState.Pressed && e.LeftButton == MouseButtonState.Released)
                 {
                     e.Handled = true;
                     if (DetailPage is IllustDetailPage)
@@ -682,7 +682,7 @@ namespace PixivWPF.Pages
                         else DetailPage.PrevIllustPage();
                     }
                 }
-                else if (e.XButton2 == MouseButtonState.Pressed)
+                else if (e.XButton2 == MouseButtonState.Pressed && e.LeftButton == MouseButtonState.Released)
                 {
                     e.Handled = true;
                     if (DetailPage is IllustDetailPage)
@@ -694,13 +694,13 @@ namespace PixivWPF.Pages
             }
             else
             {
-                if (e.XButton1 == MouseButtonState.Pressed)
+                if (e.XButton1 == MouseButtonState.Pressed && e.LeftButton == MouseButtonState.Released)
                 {
                     e.Handled = true;
                     if (setting.ReverseMouseXButton) NextIllust();
                     else PrevIllust();
                 }
-                else if (e.XButton2 == MouseButtonState.Pressed)
+                else if (e.XButton2 == MouseButtonState.Pressed && e.LeftButton == MouseButtonState.Released)
                 {
                     e.Handled = true;
                     if (setting.ReverseMouseXButton) PrevIllust();

@@ -3116,9 +3116,45 @@ namespace PixivWPF.Common
                     var file = item;
                     if (File.Exists(file))
                     {
-                        var dp = new DataObject();
+                        //var dp = new DataObject();
+                        var dp = ClipboardHelper.CreateDataObject($"<img src=\"{file}\">", file);
                         dp.SetFileDropList(new StringCollection() { file });
-                        dp.SetData("Text", file);
+                        dp.SetData("text/uri-list", new StringCollection() { file });
+                        //dp.SetData("text/plain", file);
+                        //dp.SetData("text/html", file);
+                        //dp.SetData("Text", file);
+                        dp.SetData("FileName", file);
+                        dp.SetData("FileNameW", file);
+                        dp.SetData("UsingDefaultDragImage", true);
+                        //dp.SetData("DragImageBits", null);
+                        //dp.SetData("DragContext", null);
+                        DragDrop.DoDragDrop(sender, dp, DragDropEffects.Copy);
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("DragOut"); }
+        }
+
+        public static void DragOut(this DependencyObject sender, IEnumerable<string> items)
+        {
+            try
+            {
+                if (items is IEnumerable<string> && items.Count()>0)
+                {
+                    var files = new StringCollection();
+                    files.AddRange(items.Where(f => File.Exists(f)).ToArray());
+                    var imgs = items.Where(f => File.Exists(f)).Select(f => $"<img src=\"{f}\">");
+                    if (files.Count > 0)
+                    {
+                        //var dp = new DataObject();
+                        var dp = ClipboardHelper.CreateDataObject(string.Join(Environment.NewLine, imgs), string.Join(Environment.NewLine, files));
+                        dp.SetFileDropList(files);
+                        dp.SetData("text/uri-list", files);
+                        //dp.SetData("text/uri-list", string.Join(Environment.NewLine, files));
+                        //dp.SetData("text/plain", string.Join(Environment.NewLine, files));
+                        //dp.SetData("text/html", string.Join(Environment.NewLine, imgs));
+                        //dp.SetData("Text", string.Join(Environment.NewLine, files));
+                        dp.SetData("UsingDefaultDragImage", true);
                         DragDrop.DoDragDrop(sender, dp, DragDropEffects.Copy);
                     }
                 }
@@ -3142,7 +3178,7 @@ namespace PixivWPF.Common
                     if (!string.IsNullOrEmpty(file) && File.Exists(file))
                     {
                         var dp = new DataObject();
-                        dp.SetData("PixivItems", item);
+                        dp.SetData("PixivItems", new List<PixivItem>() { item });
                         dp.SetFileDropList(new StringCollection() { file });
                         dp.SetData("Text", file);
                         if (open_downloaded && downloaded.Count > 0)
@@ -3179,13 +3215,28 @@ namespace PixivWPF.Common
                 {
                     if (item.IsWork())
                     {
-                        var file = original ? item.Illust.GetOriginalUrl(item.Index).GetImageCachePath() : item.Illust.GetPreviewUrl(item.Index, large_preview).GetImageCachePath();
-                        if (string.IsNullOrEmpty(file)) file = item.Illust.GetThumbnailUrl().GetImageCachePath();
-                        if (!string.IsNullOrEmpty(file) && File.Exists(file)) files.Add(file);
+                        if (item.HasPages())
+                        {
+                            for (var i = 0; i < item.Count; i++)
+                            {
+                                var file = original ? item.Illust.GetOriginalUrl(i).GetImageCachePath() : item.Illust.GetPreviewUrl(i, large_preview).GetImageCachePath();
+                                if (string.IsNullOrEmpty(file)) file = item.Illust.GetThumbnailUrl().GetImageCachePath();
+                                if (!string.IsNullOrEmpty(file) && File.Exists(file)) files.Add(file);
+                            }
+                        }
+                        else
+                        {
+                            var file = original ? item.Illust.GetOriginalUrl(item.Index).GetImageCachePath() : item.Illust.GetPreviewUrl(item.Index, large_preview).GetImageCachePath();
+                            if (string.IsNullOrEmpty(file)) file = item.Illust.GetThumbnailUrl().GetImageCachePath();
+                            if (!string.IsNullOrEmpty(file) && File.Exists(file)) files.Add(file);
+                        }
 
-                        string fp = string.Empty;
-                        if (item.HasPages()) downloaded.AddRange(item.GetDownloadedFiles());
-                        else if (item.Illust.IsDownloaded(out fp, is_meta_single_page: true)) downloaded.Add(fp);
+                        if (open_downloaded)
+                        {
+                            string fp = string.Empty;
+                            if (item.HasPages() || item.IsPage()) downloaded.AddRange(item.GetDownloadedFiles());
+                            else if (item.Illust.IsDownloaded(out fp, is_meta_single_page: true)) downloaded.Add(fp);
+                        }
                     }
                 }
 
@@ -3193,15 +3244,22 @@ namespace PixivWPF.Common
                 {
                     var dp = new DataObject();
                     dp.SetData("PixivItems", items);
-                    var sc = new StringCollection();
-                    sc.AddRange(files.ToArray());
-                    dp.SetFileDropList(sc);
-                    dp.SetData("Text", string.Join(Environment.NewLine, files));
                     if (open_downloaded && downloaded.Count > 0)
                     {
                         var dc = new StringCollection();
                         dc.AddRange(downloaded.ToArray());
+                        dp.SetFileDropList(dc);
                         dp.SetData("Downloaded", dc);
+                        dp.SetData("CacheFiles", string.Join(Environment.NewLine, files));
+                        dp.SetData("Text", string.Join(Environment.NewLine, downloaded));
+                    }
+                    else
+                    {
+                        var sc = new StringCollection();
+                        sc.AddRange(files.ToArray());
+                        dp.SetFileDropList(sc);
+                        dp.SetData("CacheFiles", string.Join(Environment.NewLine, files));
+                        dp.SetData("Text", string.Join(Environment.NewLine, files));
                     }
                     DragDrop.DoDragDrop(sender, dp, DragDropEffects.Copy);
                     $"{files.Count} Items".INFO("DragOut");

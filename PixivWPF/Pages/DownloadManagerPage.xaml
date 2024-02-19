@@ -161,6 +161,7 @@
             VirtualizingPanel.IsVirtualizingWhenGrouping="True"
             VirtualizingPanel.VirtualizationMode="Recycling"
             VirtualizingPanel.ScrollUnit="Item"
+            PreviewMouseMove="DownloadItems_PreviewMouseMove"
             SelectionChanged="DownloadItems_SelectionChanged"
             TargetUpdated="DownloadItem_TargetUpdated">
             <ListView.CacheMode>

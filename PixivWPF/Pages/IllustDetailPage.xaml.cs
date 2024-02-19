@@ -795,7 +795,7 @@ namespace PixivWPF.Pages
                 var doc = sender as System.Windows.Forms.HtmlDocument;
                 System.Windows.Forms.WebBrowser browser = null;
                 if (doc == IllustTagsHtml.Document) browser = IllustTagsHtml;
-                else if(doc == IllustDescHtml.Document) browser = IllustDescHtml;
+                else if (doc == IllustDescHtml.Document) browser = IllustDescHtml;
                 if (browser is System.Windows.Forms.WebBrowser)
                 {
                     if (e.MouseButtonsPressed == System.Windows.Forms.MouseButtons.Middle)
@@ -1046,7 +1046,7 @@ namespace PixivWPF.Pages
                             IllustDownloaded.ToolTip = fp;
                             //ToolTipService.SetToolTip(IllustDownloaded, fp);
                             Contents.DownloadedFilePath = fp;
-                       }
+                        }
                         else
                         {
                             IllustDownloaded.Hide();
@@ -1054,7 +1054,7 @@ namespace PixivWPF.Pages
                             IllustDownloaded.ToolTip = string.Empty;
                             //ToolTipService.SetToolTip(IllustDownloaded, null);
                             Contents.DownloadedFilePath = string.Empty;
-                       }
+                        }
                     }
                     else
                     {
@@ -1067,7 +1067,7 @@ namespace PixivWPF.Pages
                             IllustDownloaded.ToolTip = fp;
                             //ToolTipService.SetToolTip(IllustDownloaded, fp);
                             Contents.DownloadedFilePath = fp;
-                       }
+                        }
                         else
                         {
                             IllustDownloaded.Hide();
@@ -1621,7 +1621,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch(Exception ex) { ex.ERROR("SetUserFullListedState"); }
+            catch (Exception ex) { ex.ERROR("SetUserFullListedState"); }
         }
 
         public void UpdateTheme()
@@ -1756,7 +1756,7 @@ namespace PixivWPF.Pages
                 page_index = 0;
 
                 lastMouseDown = Environment.TickCount;
-                
+
                 if (loading_related is SemaphoreSlim) { if (loading_related.CanRelease()) loading_related.Release(); }
                 else loading_related = new SemaphoreSlim(1);
                 if (loading_favorite is SemaphoreSlim) { if (loading_favorite.CanRelease()) loading_favorite.Release(); }
@@ -3090,36 +3090,53 @@ namespace PixivWPF.Pages
                 setting = Application.Current.LoadSetting();
                 if (change_illust && ParentWindow is ContentWindow)
                 {
-                    if (e.XButton1 == MouseButtonState.Pressed)
+                    if (e.XButton1 == MouseButtonState.Pressed && e.LeftButton == MouseButtonState.Released)
                     {
                         e.Handled = true;
                         if (setting.ReverseMouseXButton) NextIllust();
                         else PrevIllust();
                     }
-                    else if (e.XButton2 == MouseButtonState.Pressed)
+                    else if (e.XButton2 == MouseButtonState.Pressed && e.LeftButton == MouseButtonState.Released)
                     {
                         e.Handled = true;
                         if (setting.ReverseMouseXButton) PrevIllust();
                         else NextIllust();
                     }
+                    else if (e.XButton1 == MouseButtonState.Pressed && e.LeftButton == MouseButtonState.Pressed)
+                    {
+                        (this.ParentWindow is Window ? this.ParentWindow : this as UIElement).AllowDrop = false;
+                        IllustDetailViewer.AllowDrop = false;
+                        PreviewRect.AllowDrop = false;
+                        e.Handled = true;
+                        this.DragOut(PreviewImageUrl.GetImageCacheFile());
+                    }
                 }
                 else
                 {
-                    if (e.XButton1 == MouseButtonState.Pressed)
+                    if (e.XButton1 == MouseButtonState.Pressed && e.LeftButton == MouseButtonState.Released)
                     {
                         e.Handled = true;
                         if (setting.ReverseMouseXButton) NextIllustPage();
                         else PrevIllustPage();
                     }
-                    else if (e.XButton2 == MouseButtonState.Pressed)
+                    else if (e.XButton2 == MouseButtonState.Pressed && e.LeftButton == MouseButtonState.Released)
                     {
                         e.Handled = true;
                         if (setting.ReverseMouseXButton) PrevIllustPage();
                         else NextIllustPage();
                     }
+                    else if (e.XButton1 == MouseButtonState.Pressed && e.LeftButton == MouseButtonState.Pressed)
+                    {
+                        (this.ParentWindow is Window ? this.ParentWindow : this as UIElement).AllowDrop = false;
+                        IllustDetailViewer.AllowDrop = false;
+                        PreviewRect.AllowDrop = false;
+                        e.Handled = true;
+                        this.DragOut(PreviewImageUrl.GetImageCacheFile());
+                    }
                 }
             }
             catch (Exception ex) { ex.ERROR("IllustDetailPreviewMouseDown"); }
+            finally { PreviewRect.AllowDrop = true; IllustDetailViewer.AllowDrop = true; (this.ParentWindow is Window ? this.ParentWindow : this as UIElement).AllowDrop = true; }
         }
 
         private void PreviewBadge_MouseEnter(object sender, MouseEventArgs e)
@@ -3200,7 +3217,7 @@ namespace PixivWPF.Pages
                                     {
                                         var data = menu.Tag as App.MenuItemSliderData;
                                         var q = fpath.GetImageQualityInfo();
-                                        if(q > 0 && q != data.Value)
+                                        if (q > 0 && q != data.Value)
                                         {
                                             data.Value = q;
                                             menu.Tag = null;
@@ -4178,40 +4195,46 @@ namespace PixivWPF.Pages
 
         private void PreviewRect_MouseMove(object sender, MouseEventArgs e)
         {
-            if (Contents.HasPages())
+            try
             {
-                if (Keyboard.Modifiers == ModifierKeys.Shift && e.LeftButton == MouseButtonState.Pressed)
+                if (Contents.HasPages())
                 {
-                    this.DragOut(PreviewImageUrl.GetImageCacheFile());
-                    e.Handled = true;
+                    if ((Keyboard.Modifiers == ModifierKeys.Shift || e.XButton1 == MouseButtonState.Pressed) && e.LeftButton == MouseButtonState.Pressed)
+                    {
+                        (this.ParentWindow is Window ? this.ParentWindow : this as UIElement).AllowDrop = false;
+                        e.Handled = true;
+                        this.DragOut(PreviewImageUrl.GetImageCacheFile());
+                    }
+                    else if (Keyboard.Modifiers == ModifierKeys.None && IsElement(btnSubPagePrev, e) && btnSubPagePrev.IsVisible && btnSubPagePrev.IsEnabled)
+                    {
+                        btnSubPagePrev.MinWidth = 48;
+                        btnSubPageNext.MinWidth = 32;
+                        e.Handled = true;
+                    }
+                    else if (Keyboard.Modifiers == ModifierKeys.None && IsElement(btnSubPageNext, e) && btnSubPageNext.IsVisible && btnSubPageNext.IsEnabled)
+                    {
+                        btnSubPagePrev.MinWidth = 32;
+                        btnSubPageNext.MinWidth = 48;
+                        e.Handled = true;
+                    }
+                    else
+                    {
+                        btnSubPagePrev.MinWidth = 32;
+                        btnSubPageNext.MinWidth = 32;
+                        e.Handled = true;
+                    }
                 }
-                else if (Keyboard.Modifiers == ModifierKeys.None && IsElement(btnSubPagePrev, e) && btnSubPagePrev.IsVisible && btnSubPagePrev.IsEnabled)
+                else if (Contents.IsWork())
                 {
-                    btnSubPagePrev.MinWidth = 48;
-                    btnSubPageNext.MinWidth = 32;
-                    e.Handled = true;
-                }
-                else if (Keyboard.Modifiers == ModifierKeys.None && IsElement(btnSubPageNext, e) && btnSubPageNext.IsVisible && btnSubPageNext.IsEnabled)
-                {
-                    btnSubPagePrev.MinWidth = 32;
-                    btnSubPageNext.MinWidth = 48;
-                    e.Handled = true;
-                }
-                else
-                {
-                    btnSubPagePrev.MinWidth = 32;
-                    btnSubPageNext.MinWidth = 32;
-                    e.Handled = true;
+                    if (IsElement(PreviewRect, e) && (Keyboard.Modifiers == ModifierKeys.Shift || e.XButton1 == MouseButtonState.Pressed) && e.LeftButton == MouseButtonState.Pressed)
+                    {
+                        (this.ParentWindow is Window ? this.ParentWindow : this as UIElement).AllowDrop = false;
+                        e.Handled = true;
+                        this.DragOut(PreviewImageUrl.GetImageCacheFile());
+                    }
                 }
             }
-            else if (Contents.IsWork())
-            {
-                if (IsElement(PreviewRect, e) && Keyboard.Modifiers == ModifierKeys.Shift && e.LeftButton == MouseButtonState.Pressed)
-                {
-                    this.DragOut(PreviewImageUrl.GetImageCacheFile());
-                    e.Handled = true;
-                }
-            }
+            finally { (this.ParentWindow is Window ? this.ParentWindow : this as UIElement).AllowDrop = true; }
         }
 
         private void AuthorAvatar_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
@@ -4223,7 +4246,7 @@ namespace PixivWPF.Pages
                 var scope = StorageSearchScope.None | StorageSearchScope.Author;
                 var mode = StorageSearchMode.Or; // Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? StorageSearchMode.And : StorageSearchMode.Or;
                 var fuzzy = false; //!Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
-                var text = fuzzy ? $"{IllustAuthor.Text}{Environment.NewLine}{Contents.UserID}" : $"=uid:{Contents.UserID}"; 
+                var text = fuzzy ? $"{IllustAuthor.Text}{Environment.NewLine}{Contents.UserID}" : $"=uid:{Contents.UserID}";
 
                 text = string.Join(Environment.NewLine, text.Trim().Split(Speech.LineBreak, StringSplitOptions.RemoveEmptyEntries));
                 if (!string.IsNullOrEmpty(text)) Commands.SearchInStorage.Execute(new SearchObject(text, scope: scope, mode: mode, fuzzy: fuzzy));
@@ -4296,21 +4319,22 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void IllustSizeInfo_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void IllustSizeInfo_MouseMove(object sender, MouseEventArgs e)
         {
             try
             {
                 (sender as UIElement).AllowDrop = false;
-                if (e.LeftButton == MouseButtonState.Pressed && e.ClickCount == 1)
+                if (e.LeftButton == MouseButtonState.Pressed)
                 {
                     e.Handled = true;
-                    this.DragOut(PreviewImageUrl.GetImageCacheFile());
+                    var df = IllustDownloaded.ToolTip as string;
+                    if ((Keyboard.Modifiers == ModifierKeys.Shift || e.XButton1 == MouseButtonState.Pressed) && !string.IsNullOrEmpty(df))
+                        this.DragOut(df);
+                    else
+                        this.DragOut(PreviewImageUrl.GetImageCacheFile());
                 }
             }
-            finally
-            {
-                (sender as UIElement).AllowDrop = true;
-            }
+            finally { (sender as UIElement).AllowDrop = true; }
         }
         #endregion
 
@@ -5360,6 +5384,8 @@ namespace PixivWPF.Pages
         {
             try
             {
+                var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+                var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
                 if (sender is MenuItem)
                 {
                     var mi = sender as MenuItem;
@@ -5384,7 +5410,7 @@ namespace PixivWPF.Pages
                             else Commands.Compare.Execute(Contents);
                         }
                     }
-                    else if(mi.Uid.Equals("ActionCompareDownloaded", StringComparison.CurrentCultureIgnoreCase))
+                    else if (mi.Uid.Equals("ActionCompareDownloaded", StringComparison.CurrentCultureIgnoreCase))
                     {
                         if (host == SubIllustsExpander || host == SubIllusts || Contents.IsWork())
                         {
@@ -5411,9 +5437,34 @@ namespace PixivWPF.Pages
                         }
                     }
                 }
-                else if (sender == SubIllustCompare) { Commands.Compare.Execute(SubIllusts); }
-                else if (sender == RelatedCompare) { Commands.Compare.Execute(RelatedItems); }
-                else if (sender == FavoriteCompare) { Commands.Compare.Execute(FavoriteItems); }
+                else if (sender == SubIllustCompare)
+                {
+                    if (shift || ctrl)
+                    {
+                        var items = new List<string>();
+                        foreach (var item in SubIllusts.GetSelected()) items.AddRange(item.GetDownloadedFiles());
+                        if (items.Count > 0) Commands.Compare.Execute(items.Take(2));
+                    }
+                    else Commands.Compare.Execute(SubIllusts);
+                }
+                else if (sender == RelatedCompare)
+                {
+                    if (shift || ctrl)
+                    {
+                        var items = RelatedItems.GetSelected().Select(i => i.GetDownloadedFiles().FirstOrDefault()).ToList();
+                        if (items.Count > 0) Commands.Compare.Execute(items);
+                    }
+                    else Commands.Compare.Execute(RelatedItems);
+                }
+                else if (sender == FavoriteCompare)
+                {
+                    if (shift || ctrl)
+                    {
+                        var items = FavoriteItems.GetSelected().Select(i => i.GetDownloadedFiles().FirstOrDefault()).ToList();
+                        if (items.Count > 0) Commands.Compare.Execute(items);
+                    }
+                    else Commands.Compare.Execute(FavoriteItems);
+                }
                 else if (sender == PreviewCompare)
                 {
                     if (Contents.Count > 1) Commands.Compare.Execute(SubIllusts);

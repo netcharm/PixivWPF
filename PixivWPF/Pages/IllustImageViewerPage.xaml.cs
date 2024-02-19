@@ -945,9 +945,10 @@ namespace PixivWPF.Pages
         {
             if (sender == PreviewBox && e.LeftButton == MouseButtonState.Pressed)
             {
-                if (Keyboard.Modifiers == ModifierKeys.Shift)
+                if (Keyboard.Modifiers == ModifierKeys.Shift || e.XButton1 == MouseButtonState.Pressed)
                 {
                     this.DragOut((IsOriginal ? OriginalImageUrl : PreviewImageUrl).GetImageCacheFile());
+                    e.Handled = true;
                 }
                 else if (PreviewBox.Stretch == Stretch.None)
                 {
@@ -955,6 +956,7 @@ namespace PixivWPF.Pages
                     Vector v = start - e.GetPosition(PreviewScroll);
                     PreviewScroll.ScrollToHorizontalOffset(origin.X + v.X * factor.X);
                     PreviewScroll.ScrollToVerticalOffset(origin.Y + v.Y * factor.Y);
+                    e.Handled = true;
                 }
             }
         }

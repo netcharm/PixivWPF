@@ -3,12 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Threading;
 
 using PixivWPF.Common;
@@ -419,6 +421,34 @@ namespace PixivWPF.Pages
             }
         }
 
+        private void DownloadItems_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            try
+            {
+                var shift = Keyboard.Modifiers == ModifierKeys.Alt || e.XButton1 == MouseButtonState.Pressed;
+                if (shift && e.LeftButton == MouseButtonState.Pressed)
+                {
+                    if (DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 0)
+                    {
+                        e.Handled = true;
+                        (sender as UIElement).AllowDrop = false;
+                        //var items = DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1 ? DownloadItems.SelectedItems : DownloadItems.Items;
+                        var items = DownloadItems.SelectedItems.Cast<DownloadInfo>().Where(i => i.State == DownloadState.Finished);
+                        var target = new List<string>();
+                        foreach (var item in items)
+                        {
+                            if (item is DownloadInfo && (item as DownloadInfo).State == DownloadState.Finished) target.Add((item as DownloadInfo).FileName);
+                        }
+                        if (target.Count > 0) this.DragOut(target);
+                    }
+                }
+            }
+            finally
+            {
+                (sender as UIElement).AllowDrop = true;
+            }
+        }
+
         private void PART_ChangeFolder_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.SaveTarget(string.Empty);
@@ -611,8 +641,8 @@ namespace PixivWPF.Pages
                 {
                     if (item is DownloadInfo)
                     {
-                        var shift = System.Windows.Input.Keyboard.Modifiers == System.Windows.Input.ModifierKeys.Shift;
-                        var ctrl = System.Windows.Input.Keyboard.Modifiers == System.Windows.Input.ModifierKeys.Control;
+                        var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+                        var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
                         if (shift && (item as DownloadInfo).State == DownloadState.Finished) { targets.Add((item as DownloadInfo).FileName); }
                         else if (ctrl) { targets.Add((item as DownloadInfo).FileName); }
                         else targets.Add((item as DownloadInfo).FileName.ParseLink().ParseID());
