@@ -239,7 +239,7 @@ namespace ImageCompare
                 if (image.ValidCurrent)
                 {
                     image.Current.Flip();
-                    image.FlipY = !image.FlipX;
+                    image.FlipY = !image.FlipY;
                     action = true;
                 }
 

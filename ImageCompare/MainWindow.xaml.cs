@@ -646,10 +646,10 @@ namespace ImageCompare
                                     }
                                     else
                                     {
-                                        if (image_s.CurrentSize.Width != image_s.OriginalSize.Width && image_s.CurrentSize.Height != image_s.OriginalSize.Height)
-                                            image_s.Reload();
-                                        if (image_t.CurrentSize.Width != image_t.OriginalSize.Width && image_t.CurrentSize.Height != image_t.OriginalSize.Height)
-                                            image_t.Reload();
+                                        if (image_s.CurrentSize.Width != image_s.OriginalSize.Width || image_s.CurrentSize.Height != image_s.OriginalSize.Height)
+                                            image_s.Reload(reset: true);
+                                        if (image_t.CurrentSize.Width != image_t.OriginalSize.Width || image_t.CurrentSize.Height != image_t.OriginalSize.Height)
+                                            image_t.Reload(reset: true);
                                     }
 
                                     //DoEvents();
@@ -2696,7 +2696,7 @@ namespace ImageCompare
             {
                 RenderRun(new Action(() =>
                 {
-                    UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: true);
+                    UpdateImageViewer(compose: LastOpIsCompose, assign: false, reload: true);
                 }));
             }
             else if (sender == UseSmallerImage)
