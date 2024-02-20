@@ -4324,14 +4324,17 @@ namespace PixivWPF.Pages
             try
             {
                 (sender as UIElement).AllowDrop = false;
-                if (e.LeftButton == MouseButtonState.Pressed)
+                var shift = Keyboard.Modifiers == ModifierKeys.Shift || sender == IllustSizeIcon;
+                var df = IllustDownloaded.ToolTip as string;
+                if (shift && e.LeftButton == MouseButtonState.Pressed && !string.IsNullOrEmpty(df))
                 {
                     e.Handled = true;
-                    var df = IllustDownloaded.ToolTip as string;
-                    if ((Keyboard.Modifiers == ModifierKeys.Shift || e.XButton1 == MouseButtonState.Pressed) && !string.IsNullOrEmpty(df))
-                        this.DragOut(df);
-                    else
-                        this.DragOut(PreviewImageUrl.GetImageCacheFile());
+                    this.DragOut(df);
+                }
+                else if (e.LeftButton == MouseButtonState.Pressed)
+                {
+                    e.Handled = true;
+                    this.DragOut(PreviewImageUrl.GetImageCacheFile());
                 }
             }
             finally { (sender as UIElement).AllowDrop = true; }
