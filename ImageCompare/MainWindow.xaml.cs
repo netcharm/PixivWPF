@@ -2710,7 +2710,7 @@ namespace ImageCompare
             {
                 RenderRun(new Action(() =>
                 {
-                    UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: true);
+                    UpdateImageViewer(compose: LastOpIsCompose, assign: false, reload: true);
                 }));
             }
             else if (sender == UsedChannels)
