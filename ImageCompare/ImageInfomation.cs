@@ -31,6 +31,7 @@ namespace ImageCompare
                 if (_original_ is MagickImage && !_original_.IsDisposed) { _original_.Dispose(); _original_ = null; }
                 _original_ = value;
                 _OriginalModified_ = true;
+                GetProfiles();
                 DenoiseCount = 0;
                 DenoiseLevel = 0;
                 if (ValidOriginal) _original_.FilterType = FilterType.CubicSpline;
@@ -76,6 +77,7 @@ namespace ImageCompare
                 if (_current_ is MagickImage && !_current_.IsDisposed) { _current_.Dispose(); _current_ = null; }
                 _current_ = value;
                 _CurrentModified_ = true;
+                GetProfiles();
                 if (ValidCurrent) _current_.FilterType = FilterType.CubicSpline;
             }
         }
@@ -182,6 +184,9 @@ namespace ImageCompare
                 }
             }
         }
+
+        public Dictionary<string, IImageProfile> Profiles { get; set; } = new Dictionary<string, IImageProfile>();
+        public Dictionary<string, string> Attributes { get; set; } = new Dictionary<string, string>();
 
         public bool FlipX { get; set; } = false;
         public bool FlipY { get; set; } = false;
@@ -388,7 +393,7 @@ namespace ImageCompare
             {
                 try
                 {
-                    var e = Path.GetExtension(file);
+                    var e = Path.GetExtension(file).ToLower();
                     if (string.IsNullOrEmpty(e)) file = $"{file}{ext}";
 
                     FixDPI();
@@ -397,7 +402,19 @@ namespace ImageCompare
                     {
                         Current.Write(Path.ChangeExtension(file, ".png"), MagickFormat.Png8);
                     }
-                    else Current.Write(file, format);
+                    else
+                    {
+                        var fmt_no_alpha = new MagickFormat[] { MagickFormat.Jpg, MagickFormat.Jpeg, MagickFormat.Jpe, MagickFormat.Bmp2, MagickFormat.Bmp3 };
+                        var ext_no_alpha = new string[] { ".jpg", ".jpeg", ".jpe", ".bmp" };
+                        if (Current.HasAlpha && (fmt_no_alpha.Contains(format) || ext_no_alpha.Contains(e)))
+                        {
+                            var target = Current.Clone();
+                            target.ColorAlpha(MasklightColor ?? target.BackgroundColor);
+                            foreach (var profile in Current.ProfileNames) { if (Current.HasProfile(profile)) target.SetProfile(Current.GetProfile(profile)); }
+                            target.Write(file, format);
+                        }
+                        else Current.Write(file, format);
+                    }
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }
@@ -442,7 +459,7 @@ namespace ImageCompare
                 {
                     var file_str = "File".T();
                     var dlgSave = new Microsoft.Win32.SaveFileDialog() {  CheckPathExists = true, ValidateNames = true, DefaultExt = ".png" };
-                    dlgSave.Filter = $"PNG {file_str}| *.png|PNG8 {file_str}| *.png|JPEG {file_str}|*.jpg;*.jpeg|TIFF {file_str}|*.tif;*.tiff|BITMAP {file_str}|*.bmp|Topaz Mask {file_str}|*.tiff";
+                    dlgSave.Filter = $"PNG {file_str}| *.png|PNG8 {file_str}| *.png|JPEG {file_str}|*.jpg;*.jpeg|TIFF {file_str}|*.tif;*.tiff|BITMAP {file_str}|*.bmp|BITMAP With Alpha {file_str}|*.bmp|WEBP {file_str}|*.webp|Topaz Mask {file_str}|*.tiff";
                     dlgSave.FilterIndex = 1;
                     if (dlgSave.ShowDialog() ?? false)
                     {
@@ -455,7 +472,16 @@ namespace ImageCompare
                             ext = filters[(dlgSave.FilterIndex - 1) * 2 + 1].Replace("*", "");
                             file = $"{file}{ext}";
                         }
-                        var fmt = filter.StartsWith("png8", StringComparison.CurrentCultureIgnoreCase) ? MagickFormat.Png8 : MagickFormat.Unknown;
+
+                        var fmt = MagickFormat.Unknown;
+                        if (filter.StartsWith("BITMAP With Alpha", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.Bmp;
+                        else if (filter.StartsWith("BITMAP", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.Bmp3;
+                        else if (filter.StartsWith("png8", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.Png8;
+                        else if (filter.StartsWith("png", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.Png;
+                        else if (filter.StartsWith("jpeg", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.Jpeg;
+                        else if (filter.StartsWith("tiff", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.Tiff;
+                        else if (filter.StartsWith("webp", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.WebP;
+
                         var topaz = filter.StartsWith("Topaz", StringComparison.CurrentCultureIgnoreCase) ? true : false;
                         if (topaz)
                         {
@@ -511,6 +537,20 @@ namespace ImageCompare
                     break;
             }
             return (result);
+        }
+
+        private void GetProfiles()
+        {
+            if (ValidOriginal)
+            {
+                foreach (var profile in Original.ProfileNames) { if (Original.HasProfile(profile)) Profiles[profile] = Original.GetProfile(profile); }
+                foreach(var attr in Original.AttributeNames) { Attributes[attr] = Original.GetAttribute(attr); }
+            }
+            else if (ValidCurrent)
+            {
+                foreach (var profile in Current.ProfileNames) { if (Current.HasProfile(profile)) Profiles[profile] = Current.GetProfile(profile); }
+                foreach (var attr in Current.AttributeNames) { Attributes[attr] = Current.GetAttribute(attr); }
+            }
         }
 
         public async void Denoise(int? order = null)

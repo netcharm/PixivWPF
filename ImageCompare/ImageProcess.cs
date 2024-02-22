@@ -1177,6 +1177,8 @@ namespace ImageCompare
                     if (image.Current.HasAlpha)
                     {
                         image.Current.ColorAlpha(MasklightColor ?? image.Current.BackgroundColor);
+                        foreach (var attr in image.Attributes) image.Current.SetAttribute(attr.Key, attr.Value);
+                        foreach (var profile in image.Profiles) image.Current.SetProfile(profile.Value);
                         action = true;
                     }
                 }
