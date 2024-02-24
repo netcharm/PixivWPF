@@ -3086,14 +3086,26 @@ namespace PixivWPF.Common
             if (!string.IsNullOrEmpty(query))
             {
                 string[] EscapeChar = new string[] { "/", "%", "&", ":", ";", "?", "*", "!", "~", "=", "<", ">", "≠", "-", "$", "#", ".", "(", ")" };
-                Func<string, bool, string> Quoted = (s, q) => { return(q ? $"\"{s}\"" : s); };
+                Func<string, bool, string> Quoted = (s, q) => { return(q ? $"%22{s}%22" : s); };
                 Func<string, bool, string> Escape = (s, q) =>
                 {
                     foreach(var c in EscapeChar) s = s.Replace(c, Uri.EscapeDataString(c));
                     return(Quoted(s, q));
                 };
-                Func<KeyValuePair<string, string[]>, string, IEnumerable<string>, string> EscapeValues = (q, sep, keys) => string.Join(sep, q.Value.Select(w => Escape(w, !keys.Contains(q.Key))));
-                Func<KeyValuePair<string, string[]>, string, IEnumerable<string>, string> QuotedValues = (q, sep, keys) => string.Join(sep, q.Value.Select(w => Escape(w, !keys.Contains(q.Key))));
+                Func<KeyValuePair<string, string[]>, string, IEnumerable<string>, string> QuotedValues = (q, sep, keys) =>
+                {
+                    var values = q.Value.Select(w => Quoted(w, !keys.Contains(q.Key)));
+                    if (values.Count() > 1) return($"({string.Join(sep, values)})");
+                    else if (values.Count() > 0) return(values.FirstOrDefault());
+                    else return(string.Empty);
+                };
+                Func<KeyValuePair<string, string[]>, string, IEnumerable<string>, string> EscapeValues = (q, sep, keys) =>
+                {
+                    var values = q.Value.Select(w => Escape(w, !keys.Contains(q.Key)));
+                    if (values.Count() > 1) return($"({string.Join(sep, values)})");
+                    else if (values.Count() > 0) return(values.FirstOrDefault());
+                    else return(string.Empty);
+                };
 
                 if (query.StartsWith("=")) { fuzzy = false; query = query.TrimStart('='); }
 
@@ -3147,11 +3159,11 @@ namespace PixivWPF.Common
                 var m_sep = mode == StorageSearchMode.Not ? " NOT " : (mode == StorageSearchMode.And ? " AND " : " OR ");
                 if (setting.SearchEscapeChar)
                 {
-                    query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{(fuzzy ?? true ? $"~=({EscapeValues(q, m_sep, raw_keys)})" : $"=({EscapeValues(q, m_sep, raw_keys)})")}"));
+                    query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{(fuzzy ?? true ? $"~={EscapeValues(q, m_sep, raw_keys)}" : $"={EscapeValues(q, m_sep, raw_keys)}")}"));
                 }
                 else
                 {
-                    query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{(fuzzy ?? true ? $"~=({QuotedValues(q, m_sep, raw_keys)})" : $"=({QuotedValues(q, m_sep, raw_keys)})")}"));
+                    query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{(fuzzy ?? true ? $"~={QuotedValues(q, m_sep, raw_keys)}" : $"={QuotedValues(q, m_sep, raw_keys)}")}"));
                 }
 
                 if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
