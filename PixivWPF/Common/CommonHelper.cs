@@ -369,6 +369,8 @@ namespace PixivWPF.Common
         public bool Cached { get; set; } = true;
         [JsonProperty("IncludeSubFolder")]
         public bool IncludeSubFolder { get; set; } = false;
+        [JsonProperty("ExcludedSubFolder")]
+        public List<string> ExcludedSubFolder { get; set; } = new List<string>();
         [JsonProperty("Searchable", Required = Required.AllowNull)]
         public bool? Searchable { get; set; } = false;
 
@@ -5902,7 +5904,7 @@ namespace PixivWPF.Common
 
         #region Downloaded Cache routines
         private static ConcurrentDictionary<string, bool> _cachedDownloadedList = new ConcurrentDictionary<string, bool>();
-        internal static void UpdateDownloadedListCache(this string folder, bool cached = true)
+        internal static void UpdateDownloadedListCache(this string folder, bool cached = true, bool subfolder = false)
         {
             if (Directory.Exists(folder) && cached)
             {
@@ -5911,7 +5913,7 @@ namespace PixivWPF.Common
                     if (!_cachedDownloadedList.ContainsKey(folder))
                     {
                         _cachedDownloadedList[folder] = cached;
-                        var files = Directory.EnumerateFiles(folder, "*.*", SearchOption.AllDirectories);
+                        var files = Directory.EnumerateFiles(folder, "*.*", subfolder ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
                         foreach (var f in files)
                         {
                             if (ext_imgs.Contains(Path.GetExtension(f).ToLower()))
@@ -5923,11 +5925,11 @@ namespace PixivWPF.Common
             }
         }
 
-        internal static async void UpdateDownloadedListCacheAsync(this string folder, bool cached = true)
+        internal static async void UpdateDownloadedListCacheAsync(this string folder, bool cached = true, bool subfolder = false)
         {
             await Task.Run(() =>
             {
-                UpdateDownloadedListCache(folder, cached);
+                UpdateDownloadedListCache(folder, cached, subfolder);
             });
         }
 
@@ -5935,7 +5937,7 @@ namespace PixivWPF.Common
         {
             if (storage is StorageType)
             {
-                storage.Folder.UpdateDownloadedListCacheAsync(storage.Cached);
+                storage.Folder.UpdateDownloadedListCacheAsync(storage.Cached, storage.IncludeSubFolder);
             }
         }
 
