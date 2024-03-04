@@ -369,6 +369,17 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         }
 
+        public void SetSaveAsJPEG(bool? on)
+        {
+            if (Instance is DownloadItem) Instance.PART_SaveAsJPEG.IsOn = on ?? false;
+            SaveAsJPEG = on ?? false;
+        }
+
+        public bool GetSaveAsJPEG()
+        {
+            return(Instance is DownloadItem ? Instance.PART_SaveAsJPEG.IsOn : SaveAsJPEG);
+        }
+
         public void UpdateInfo()
         {
             if (Instance is DownloadItem) Instance.UpdateInfo();
@@ -1564,27 +1575,31 @@ namespace PixivWPF.Common
         {
             CheckProperties();
             setting = Application.Current.LoadSetting();
-
-            //PART_DownloadProgress.IsEnabled = true;
-            PART_SaveAsJPEG.IsOn = Info.SaveAsJPEG;
-
-            if (AutoStart)
+            try
             {
-                if (State == DownloadState.Finished || State == DownloadState.Downloading) return;
-                else if (State == DownloadState.Idle) //|| State == DownloadState.Failed)
+                IsEnabled = false;
+                //PART_DownloadProgress.IsEnabled = true;
+                PART_SaveAsJPEG.IsOn = Info.SaveAsJPEG;
+
+                if (AutoStart)
                 {
-                    if (string.IsNullOrEmpty(Url) && !string.IsNullOrEmpty(PART_FileURL.Text)) Url = PART_FileURL.Text;
-                    if (IsStart && !IsDownloading) Start(setting.DownloadWithFailResume);
+                    if (State == DownloadState.Finished || State == DownloadState.Downloading) return;
+                    else if (State == DownloadState.Idle) //|| State == DownloadState.Failed)
+                    {
+                        if (string.IsNullOrEmpty(Url) && !string.IsNullOrEmpty(PART_FileURL.Text)) Url = PART_FileURL.Text;
+                        if (IsStart && !IsDownloading) Start(setting.DownloadWithFailResume);
+                    }
+                }
+
+                if (Info is DownloadInfo && Info.Illust.IsUgoira() && !string.IsNullOrEmpty(Info.FileName))
+                {
+                    new Action(async () =>
+                    {
+                        (await Info.Illust.GetUgoiraMeta(ajax: true)).MakeUgoiraConcatFile(Info.FileName);
+                    }).Invoke(async: true);
                 }
             }
-
-            if (Info is DownloadInfo && Info.Illust.IsUgoira() && !string.IsNullOrEmpty(Info.FileName))
-            {
-                new Action(async () =>
-                {
-                    (await Info.Illust.GetUgoiraMeta(ajax: true)).MakeUgoiraConcatFile(Info.FileName);
-                }).Invoke(async: true);
-            }
+            finally { IsEnabled = true; }
         }
 
         private void Download_ToolTipOpening(object sender, ToolTipEventArgs e)
@@ -1632,6 +1647,7 @@ namespace PixivWPF.Common
         private async void miActions_Click(object sender, RoutedEventArgs e)
         {
             setting = Application.Current.LoadSetting();
+            var multiple = Application.Current.DownloadManagerHasMultiSelected();
             if ((sender == miCopyIllustID || sender == PART_CopyIllustID) && !string.IsNullOrEmpty(Url))
             {
                 Commands.CopyArtworkIDs.Execute(Url);
@@ -1642,15 +1658,34 @@ namespace PixivWPF.Common
             }
             else if (sender == miRefreshThumb || sender == PART_ThumbnailWait)
             {
-                if (Info is DownloadInfo) Info.RefreshThumbnail();
+                //if (Info is DownloadInfo) Info.RefreshThumbnail();
+                Action<DownloadInfo> action = (info) =>
+                {
+                    if (info is DownloadInfo) info.RefreshThumbnail();
+                };
+                if (sender == PART_ThumbnailWait || !multiple) action.Invoke(Info); 
+                else Commands.RunDownloadItemAction.Execute(action);
             }
             else if ((sender == miOpenIllust || sender == PART_OpenIllust) && !string.IsNullOrEmpty(Url))
             {
-                var illust = Url.GetIllustId().FindIllust();
-                if (illust is Pixeez.Objects.Work)
-                    Commands.OpenWork.Execute(illust);
-                else
-                    Commands.OpenWork.Execute(Url);
+                //var illust = Url.GetIllustId().FindIllust();
+                //if (illust is Pixeez.Objects.Work)
+                //    Commands.OpenWork.Execute(illust);
+                //else
+                //    Commands.OpenWork.Execute(Url);
+                Action<DownloadInfo> action = (info) =>
+                {
+                    if (info is DownloadInfo)
+                    {
+                        var illust = info.Url.GetIllustId().FindIllust();
+                        if (illust is Pixeez.Objects.Work)
+                            Commands.OpenWork.Execute(illust);
+                        else
+                            Commands.OpenWork.Execute(info.Url);
+                    }
+                };
+                if (sender == PART_OpenIllust || !multiple) action.Invoke(Info);
+                else Commands.RunDownloadItemAction.Execute(action);
             }
             else if (sender == miDownload || sender == PART_Download)
             {
@@ -1673,49 +1708,129 @@ namespace PixivWPF.Common
             }
             else if (sender == miOpenImage || sender == PART_OpenFile)
             {
-                FileName.OpenFileWithShell();
+                //FileName.OpenFileWithShell();
+                Action<DownloadInfo> action = (info) =>
+                {
+                    if (info is DownloadInfo && !string.IsNullOrEmpty(info.FileName)) info.FileName.OpenFileWithShell();
+                };
+                if (sender == PART_OpenFile || !multiple) action.Invoke(Info);
+                else Commands.RunDownloadItemAction.Execute(action);
             }
             else if (sender == miOpenFolder || sender == PART_OpenFolder)
             {
-                FileName.OpenFileWithShell(true);
+                FileName.OpenFileWithShell(ShowFolder: true);
+                //Action<DownloadInfo> action = (info) =>
+                //{
+                //    if (info is DownloadInfo&& !string.IsNullOrEmpty(info.FileName)) info.FileName.OpenFileWithShell(ShowFolder: true);
+                //};
+                //if (sender == PART_OpenFolder || !multiple) action.Invoke(Info);
+                //else Commands.RunDownloadItemAction.Execute(action);
             }
             else if (sender == miOpenImageProperties)
             {
-                FileName.OpenShellProperties();
+                //FileName.OpenShellProperties();
+                Action<DownloadInfo> action = (info) =>
+                {
+                    if (info is DownloadInfo&& !string.IsNullOrEmpty(info.FileName)) info.FileName.OpenShellProperties();
+                };
+                if (!multiple) action.Invoke(Info);
+                else Commands.RunDownloadItemAction.Execute(action);
+            }
+            else if (sender == miCompareDownloaded)
+            {
+                Commands.Compare.Execute(Application.Current.GetDownloadManager());
             }
             else if (sender == miShowImageMeta)
             {
-                Commands.ShowMeta.Execute(FileName);
+                //Commands.ShowMeta.Execute(FileName);
+                Action<DownloadInfo> action = (info) =>
+                {
+                    if (info is DownloadInfo&& !string.IsNullOrEmpty(info.FileName)) Commands.ShowMeta.Execute(info.FileName);
+                };
+                if (!multiple) action.Invoke(Info);
+                else Commands.RunDownloadItemAction.Execute(action);
             }
             else if (sender == miTouchImageMeta)
             {
-                Commands.TouchMeta.Execute(FileName);
+                //Commands.TouchMeta.Execute(FileName);
+                Action<DownloadInfo> action = (info) =>
+                {
+                    if (info is DownloadInfo&& !string.IsNullOrEmpty(info.FileName)) Commands.TouchMeta.Execute(info.FileName);
+                };
+                if (!multiple) action.Invoke(Info);
+                else Commands.RunDownloadItemAction.Execute(action);
             }
             else if (sender == miConvertImageToJpeg)
             {
-                Commands.ConvertToJpeg.Execute(FileName);
-                SaveAsJPEG = true;
-                PART_SaveAsJPEG.IsOn = SaveAsJPEG;
+                //Commands.ConvertToJpeg.Execute(FileName);
+                //SaveAsJPEG = true;
+                //PART_SaveAsJPEG.IsOn = SaveAsJPEG;
+                Action<DownloadInfo> action = (info) =>
+                {
+                    if (info is DownloadInfo&& !string.IsNullOrEmpty(info.FileName))
+                    {
+                        Commands.ConvertToJpeg.Execute(info.FileName);
+                        info.SaveAsJPEG = true;
+                        info.SetSaveAsJPEG(info.SaveAsJPEG);
+                    }
+                };
+                if (!multiple) action.Invoke(Info);
+                else Commands.RunDownloadItemAction.Execute(action);
             }
             else if (sender == miReduceJpegSize)
             {
-                Commands.ReduceJpeg.Execute(FileName);
-                SaveAsJPEG = true;
-                PART_SaveAsJPEG.IsOn = SaveAsJPEG;
+                //Commands.ReduceJpeg.Execute(FileName);
+                //SaveAsJPEG = true;
+                //PART_SaveAsJPEG.IsOn = SaveAsJPEG;
+                Action<DownloadInfo> action = (info) =>
+                {
+                    if (info is DownloadInfo&& !string.IsNullOrEmpty(info.FileName))
+                    {
+                        Commands.ReduceJpeg.Execute(info.FileName);
+                        info.SaveAsJPEG = true;
+                        info.SetSaveAsJPEG(info.SaveAsJPEG);
+                    }
+                };
+                if (!multiple) action.Invoke(Info);
+                else Commands.RunDownloadItemAction.Execute(action);
             }
             else if (sender == miReduceJpegSizeTo)
             {
-                var cq = miReduceJpegSizeTo.Tag is App.MenuItemSliderData ? (int)(miReduceJpegSizeTo.Tag as App.MenuItemSliderData).Value : setting.DownloadRecudeJpegQuality;
-                Commands.ReduceJpeg.Execute(new Tuple<string, int>(FileName, cq));
-                SaveAsJPEG = true;
-                PART_SaveAsJPEG.IsOn = SaveAsJPEG;
+                //var cq = miReduceJpegSizeTo.Tag is App.MenuItemSliderData ? (int)(miReduceJpegSizeTo.Tag as App.MenuItemSliderData).Value : setting.DownloadRecudeJpegQuality;
+                //Commands.ReduceJpeg.Execute(new Tuple<string, int>(FileName, cq));
+                //SaveAsJPEG = true;
+                //PART_SaveAsJPEG.IsOn = SaveAsJPEG;
+                Action<DownloadInfo> action = (info) =>
+                {
+                    if (info is DownloadInfo&& !string.IsNullOrEmpty(info.FileName))
+                    {
+                        var cq = miReduceJpegSizeTo.Tag is App.MenuItemSliderData ? (int)(miReduceJpegSizeTo.Tag as App.MenuItemSliderData).Value : setting.DownloadRecudeJpegQuality;
+                        Commands.ReduceJpeg.Execute(new Tuple<string, int>(info.FileName, cq));
+                        info.SaveAsJPEG = true;
+                        info.SetSaveAsJPEG(info.SaveAsJPEG);
+                    }
+                };
+                if (!multiple) action.Invoke(Info);
+                else Commands.RunDownloadItemAction.Execute(action);
             }
             else if (sender == PART_SaveAsJPEG)
             {
-                if (State == DownloadState.Finished)
-                    PART_SaveAsJPEG.IsOn = SaveAsJPEG;
-                else
-                    SaveAsJPEG = PART_SaveAsJPEG.IsOn;
+                //if (State == DownloadState.Finished)
+                //    PART_SaveAsJPEG.IsOn = SaveAsJPEG;
+                //else
+                //    SaveAsJPEG = PART_SaveAsJPEG.IsOn;
+                Action<DownloadInfo> action = (info) =>
+                {
+                    if (info is DownloadInfo)
+                    {
+                        if (info.State == DownloadState.Finished)
+                            info.SetSaveAsJPEG(info.SaveAsJPEG);
+                        else
+                            info.SaveAsJPEG = info.GetSaveAsJPEG();
+                    }
+                };
+                if (!IsEnabled || !multiple) action.Invoke(Info);
+                else Commands.RunDownloadItemAction.Execute(action);
             }
         }
     }

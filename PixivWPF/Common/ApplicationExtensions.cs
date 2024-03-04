@@ -3064,6 +3064,28 @@ namespace PixivWPF.Common
             return (_downManager_page);
         }
 
+        public static bool DownloadManagerHasSelected(this Application app)
+        {
+            var result = false;
+            var dm = GetDownloadManager(app);
+            if (dm is DownloadManagerPage)
+            {
+                result = dm.HasSelected();
+            }
+            return (result);
+        }
+
+        public static bool DownloadManagerHasMultiSelected(this Application app)
+        {
+            var result = false;
+            var dm = GetDownloadManager(app);
+            if (dm is DownloadManagerPage)
+            {
+                result = dm.HasMultipleSelected();
+            }
+            return (result);
+        }
+
         public static int GetDownloadJobsCount(this Application app)
         {
             var dm = app.GetDownloadManager();

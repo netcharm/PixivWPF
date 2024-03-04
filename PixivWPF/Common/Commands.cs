@@ -907,6 +907,25 @@ namespace PixivWPF.Common
                     }).InvokeAsync();
                 }
             }
+            else if (obj is IEnumerable<DownloadInfo>)
+            {
+                var content = (obj as IEnumerable<DownloadInfo>).Where(di => !string.IsNullOrEmpty(di.FileName) && File.Exists(di.FileName)).Select(di => di.FileName).ToArray();
+                if (content.Count() > 0)
+                {
+                    await new Action(async () =>
+                    {
+                        CommonHelper.ShellImageCompare(content);
+                        await Task.Delay(1);
+                        Application.Current.DoEvents();
+                    }).InvokeAsync();
+                }
+            }
+            else if (obj is DownloadManagerPage)
+            {
+                var _downManager = obj as DownloadManagerPage;
+                var items =  _downManager.DownloadItems.SelectedItems.Cast<DownloadInfo>().Where(i => i.State == DownloadState.Finished).Select(i => i.FileName).Take(2).ToList();
+                Compare.Execute(items);
+            }
             else if (obj is Pixeez.Objects.Work)
             {
                 var item = obj as Pixeez.Objects.Work;
@@ -1276,6 +1295,11 @@ namespace PixivWPF.Common
                         }
                     }).InvokeAsync();
                 }
+                else if (obj is IEnumerable<Pixeez.Objects.Work>)
+                {
+                    var works = obj as IEnumerable<Pixeez.Objects.Work>;
+                    foreach (var work in works.Distinct()) OpenWork.Execute(work);
+                }
                 else if (obj is PixivItem)
                 {
                     var item = obj as PixivItem;
@@ -1294,7 +1318,7 @@ namespace PixivWPF.Common
                         var gallery = obj as IList<PixivItem>;
                         if (gallery.Count() > 0 && MultipleOpeningConfirm(gallery))
                         {
-                            foreach (var item in gallery)
+                            foreach (var item in gallery.Distinct())
                             {
                                 await new Action(async () =>
                                 {
@@ -1322,6 +1346,15 @@ namespace PixivWPF.Common
                 {
                     var win = obj as Window;
                     if (win.Content is Page) OpenWork.Execute(win.Content);
+                }
+                else if (obj is string)
+                {
+                    if (!string.IsNullOrEmpty(obj as string))
+                    {
+                        var illust = (obj as string).GetIllustId().FindIllust();
+                        if (illust is Pixeez.Objects.Work)
+                            Commands.OpenWork.Execute(illust);
+                    }
                 }
             }
             catch (Exception ex) { ex.ERROR("OpenWork"); }
@@ -2146,6 +2179,35 @@ namespace PixivWPF.Common
                     _downManager.Add(dp.Url, dp.ThumbUrl, dp.Timestamp, dp.IsSinglePage, dp.OverwriteExists, jpeg: dp.SaveAsJPEG, largepreview: dp.SaveLargePreview);
                 }
             }).InvokeAsync();
+        });
+
+        public static ICommand RunDownloadItemAction { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            if (obj is Action<DownloadInfo>)
+            {
+                var _downManager = Application.Current.GetDownloadManager();
+                if (_downManager is DownloadManagerPage)
+                {
+                    var items = _downManager.GetSelectedItems();
+                    if (items is IEnumerable<DownloadInfo> && items.Count() > 0 && MultipleOpeningConfirm(items))
+                    {
+                        foreach (var item in items)
+                        {
+                            if (item is DownloadInfo)
+                            {
+                                await new Action(() =>
+                                {
+                                    try
+                                    {
+                                        (obj as Action<DownloadInfo>).Invoke(item);
+                                    }
+                                    catch (Exception ex) { ex.ERROR(); }
+                                }).InvokeAsync();
+                            }
+                        }
+                    }
+                }            
+            }
         });
 
         private static SemaphoreSlim CanOpenDownloadManager= new SemaphoreSlim(1, 1);
@@ -4228,7 +4290,7 @@ namespace PixivWPF.Common
         });
         #endregion
 
-        #region Like/Unlile Work/User Related
+        #region Like/Unlike Work/User Related
         public static ICommand LikeIllust { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try

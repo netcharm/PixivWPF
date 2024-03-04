@@ -261,12 +261,33 @@ namespace PixivWPF.Pages
         public IList<DownloadInfo> GetDownloadInfo()
         {
             List<DownloadInfo> dis = new List<DownloadInfo>();
-            var items = DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1 ? DownloadItems.SelectedItems : DownloadItems.Items;
+            var items = HasMultipleSelected() ? DownloadItems.SelectedItems : DownloadItems.Items;
             foreach (var item in DownloadItems.Items)
             {
                 if (items.Contains(item)) dis.Add(item as DownloadInfo);
             }
             return (dis);
+        }
+
+        public IList<DownloadInfo> GetSelectedItems()
+        {
+            List<DownloadInfo> dis = new List<DownloadInfo>();
+            var items = HasSelected() ? DownloadItems.SelectedItems : dis;
+            foreach (var item in DownloadItems.Items)
+            {
+                if (items.Contains(item)) dis.Add(item as DownloadInfo);
+            }
+            return (dis);
+        }
+
+        public bool HasSelected()
+        {
+            return (DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 0);
+        }
+
+        public bool HasMultipleSelected()
+        {
+            return (DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1);
         }
 
         private bool IsExists(string url)
@@ -529,7 +550,10 @@ namespace PixivWPF.Pages
                                 targets.Add(item as DownloadInfo);
                         }
                         var remove = targets.Where(o => o.State != DownloadState.Downloading);
-                        foreach (var i in remove) { i.State = DownloadState.Remove; }
+                        if (Commands.MultipleOpeningConfirm(remove))
+                        {
+                            foreach (var i in remove) { i.State = DownloadState.Remove; }
+                        }
                     }
                     else
                     {
@@ -541,7 +565,10 @@ namespace PixivWPF.Pages
                         else
                         {
                             var remove = items.Where(o => o.State != DownloadState.Downloading);
-                            foreach (var i in remove) { i.State = DownloadState.Remove; }
+                            if (Commands.MultipleOpeningConfirm(remove))
+                            {
+                                foreach (var i in remove) { i.State = DownloadState.Remove; }
+                            }
                         }
                     }
                 }).InvokeAsync();
