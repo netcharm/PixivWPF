@@ -28,6 +28,35 @@ namespace ImageApplets
 
     static public class AppletExtensions
     {
+        #region String Padding with CJK lenhth calculating
+        static private Encoding MBCS = Encoding.GetEncoding("GB18030");
+
+        static private int LengthCJK(string s)
+        {
+            return (MBCS.GetByteCount(s));
+        }
+
+        static public string PadLefttCJK(this string s, int totalWidth)
+        {
+            return (s.PadLeft(totalWidth - (LengthCJK(s) - s.Length)));
+        }
+
+        static public string PadLefttCJK(this string s, int totalWidth, char paddingChar)
+        {
+            return (s.PadLeft(totalWidth - (LengthCJK(s) - s.Length), paddingChar));
+        }
+
+        static public string PadRightCJK(this string s, int totalWidth)
+        {
+            return (s.PadRight(totalWidth - (LengthCJK(s) - s.Length)));
+        }
+
+        static public string PadRightCJK(this string s, int totalWidth, char paddingChar)
+        {
+            return (s.PadRight(totalWidth - (LengthCJK(s) - s.Length), paddingChar));
+        }
+        #endregion
+
         #region Convert Chinese to Japanese Kanji
         static private Encoding GB2312 = Encoding.GetEncoding("GB2312");
         static private Encoding JIS = Encoding.GetEncoding("SHIFT_JIS");

@@ -118,10 +118,10 @@ namespace ImageAppletsCLI
                         if (!Console.IsOutputRedirected || applet.Verbose)
                         {
                             Console.Out.WriteLine("Results");
-                            Console.Out.WriteLine("".PadRight(Math.Min(LINE_COUNT, max_len + 8), '-'));
+                            Console.Out.WriteLine("".PadRightCJK(Math.Min(LINE_COUNT, max_len + 8), '-'));
                         }
                         _log_.Add("Results");
-                        _log_.Add("".PadRight(Math.Min(LINE_COUNT, max_len + 8), '-'));
+                        _log_.Add("".PadRightCJK(Math.Min(LINE_COUNT, max_len + 8), '-'));
                         #endregion
 
                         #region Fetch files from stdin when input redirected
@@ -163,11 +163,11 @@ namespace ImageAppletsCLI
 
                         if (!Console.IsOutputRedirected || applet.Verbose)
                         {
-                            Console.Out.WriteLine("".PadRight(Math.Min(LINE_COUNT, max_len + 8), '-'));
+                            Console.Out.WriteLine("".PadRightCJK(Math.Min(LINE_COUNT, max_len + 8), '-'));
                             Console.Out.WriteLine($"Total {_flist_out_.Count} Items.");
                         }                            
 
-                        _log_.Add("".PadRight(Math.Min(LINE_COUNT, max_len + 8), '-'));
+                        _log_.Add("".PadRightCJK(Math.Min(LINE_COUNT, max_len + 8), '-'));
                         _log_.Add($"Total {_flist_out_.Count} Items.");
                         #endregion
 
@@ -206,9 +206,9 @@ namespace ImageAppletsCLI
                         if (!Console.IsOutputRedirected || applet.Verbose)
                         {
                             if (is_contents)
-                                Console.Out.WriteLine($"{fname.PadRight(Math.Max(padding, 1))} : {$"{result}"}");
+                                Console.Out.WriteLine($"{fname.PadRightCJK(Math.Max(padding, 1))} : {$"{result}"}");
                             else
-                                Console.Out.WriteLine($"{fname.PadRight(Math.Max(padding, 1))} : {($"{result}").PadLeft(5)}");
+                                Console.Out.WriteLine($"{fname.PadRightCJK(Math.Max(padding, 1))} : {($"{result}").PadLeft(5)}");
                         }
                         else
                             Console.Out.WriteLine($"{fname}");
@@ -217,9 +217,9 @@ namespace ImageAppletsCLI
                         _flist_out_.Add(fname);
 
                         if (is_contents)
-                            _log_.Add($"{fname.PadRight(Math.Max(padding, 1))} : {$"{result}"}");
+                            _log_.Add($"{fname.PadRightCJK(Math.Max(padding, 1))} : {$"{result}"}");
                         else
-                            _log_.Add($"{fname.PadRight(Math.Max(padding, 1))} : {($"{result}").PadLeft(5)}");
+                            _log_.Add($"{fname.PadRightCJK(Math.Max(padding, 1))} : {($"{result}").PadLeft(5)}");
                     }
                 }
             }
@@ -300,9 +300,9 @@ namespace ImageAppletsCLI
                                     var _max_value_lens_ = _kvs_.Max(kv => kv.Value.Length);
                                     var _output_lines_ = new List<string> ();
                                     _output_lines_.Add("Result");
-                                    _output_lines_.Add("".PadRight(_max_value_lens_ <= 5 ? _max_key_lens_ + 8 : 80, '='));
+                                    _output_lines_.Add("".PadRightCJK(_max_value_lens_ <= 5 ? _max_key_lens_ + 8 : 80, '='));
                                     _output_lines_.AddRange(_kvs_.Select(kv => $"{kv.Key.PadRight(_max_key_lens_)} : {kv.Value.Trim().PadLeft(_max_value_lens_ <= 5 ? 5 : 0)}"));
-                                    _output_lines_.Add("".PadRight(_max_value_lens_ <= 5 ? _max_key_lens_ + 8 : 80, '='));
+                                    _output_lines_.Add("".PadRightCJK(_max_value_lens_ <= 5 ? _max_key_lens_ + 8 : 80, '='));
                                     var bytes = Encoding.UTF8.GetBytes(string.Join(Environment.NewLine, _output_lines_).Trim());
                                     fs.Write(bytes, 0, bytes.Length);
                                 }
@@ -326,18 +326,18 @@ namespace ImageAppletsCLI
                     var applet_names = ImageApplets.Applet.GetApplets();
                     if (applet_names.Count() > 0)
                     {
-                        sw.WriteLine($"".PadRight(LINE_COUNT, '='));
+                        sw.WriteLine($"".PadRightCJK(LINE_COUNT, '='));
                         if (string.IsNullOrEmpty(applet_name) || applet_names.Count(a => a.Equals(applet_name, StringComparison.CurrentCultureIgnoreCase)) <= 0)
                         {
                             sw.WriteLine($"Applets:");
-                            sw.WriteLine($"".PadRight(LINE_COUNT, '-'));
+                            sw.WriteLine($"".PadRightCJK(LINE_COUNT, '-'));
                             var applets = applet_names.Select(a => ImageApplets.Applet.GetApplet(a)).OrderBy(a => a.Category);
                             foreach (var applet in applets)
                             {
                                 if (applet is ImageApplets.Applet)
                                     sw.WriteLine(applet.Help);
                                 if (!applet.Name.Equals(applets.Last().Name))
-                                    sw.WriteLine($"".PadRight(LINE_COUNT, '-'));
+                                    sw.WriteLine($"".PadRightCJK(LINE_COUNT, '-'));
                             }
                         }
                         else
@@ -347,12 +347,42 @@ namespace ImageAppletsCLI
                             if (instance is ImageApplets.Applet)
                                 sw.WriteLine(instance.Help);
                         }
-                        sw.WriteLine($"".PadRight(LINE_COUNT, '='));
+                        sw.WriteLine($"".PadRightCJK(LINE_COUNT, '='));
                     }
                     result = sw.ToString();
                 }
             }
             return (result);
+        }
+    }
+
+    static public class Extentions
+    {
+        static private Encoding MBCS = Encoding.GetEncoding("GB18030");
+
+        static private int LengthCJK(string s)
+        {
+            return (MBCS.GetByteCount(s));
+        }
+
+        static public string PadLefttCJK(this string s, int totalWidth)
+        {
+            return (s.PadLeft(totalWidth - (LengthCJK(s) - s.Length)));
+        }
+
+        static public string PadLefttCJK(this string s, int totalWidth, char paddingChar)
+        {
+            return (s.PadLeft(totalWidth - (LengthCJK(s) - s.Length), paddingChar));
+        }
+
+        static public string PadRightCJK(this string s, int totalWidth)
+        {
+            return (s.PadRight(totalWidth - (LengthCJK(s) - s.Length)));
+        }
+
+        static public string PadRightCJK(this string s, int totalWidth, char paddingChar)
+        {
+            return (s.PadRight(totalWidth - (LengthCJK(s) - s.Length), paddingChar));
         }
     }
 }
