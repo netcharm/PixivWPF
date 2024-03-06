@@ -3100,97 +3100,103 @@ namespace PixivWPF.Common
 
         public static void SearchInFolder(this Application app, SearchObject search)
         {
-            SearchInFolder(app, search.Query, search.Folder, search.Scope, search.Mode, search.CopyQueryToClipboard);
+            SearchInFolder(app, search.Query, search.Folder, search.Scope, search.Mode, search.CopyQueryToClipboard, search.FuzzySearch, search.RawMode);
         }
 
-        public static void SearchInFolder(this Application app, string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And, bool? copyquery = null, bool? fuzzy = null)
+        public static void SearchInFolder(this Application app, string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And, bool? copyquery = null, bool? fuzzy = null, bool? raw = false)
         {
             if (!string.IsNullOrEmpty(query))
             {
-                string[] EscapeChar = new string[] { "/", "%", "&", ":", ";", "?", "*", "!", "~", "=", "<", ">", "≠", "-", "$", "#", ".", "(", ")" };
-                Func<string, bool, string> Quoted = (s, q) => { return(q ? $"%22{s}%22" : s); };
-                Func<string, bool, string> Escape = (s, q) =>
+                var setting = LoadSetting(app);
+                var raw_mode = raw ?? false;
+                if (!raw_mode)
                 {
-                    foreach(var c in EscapeChar) s = s.Replace(c, Uri.EscapeDataString(c));
-                    return(Quoted(s, q));
-                };
-                Func<KeyValuePair<string, string[]>, string, IEnumerable<string>, string> QuotedValues = (q, sep, keys) =>
+                    string[] EscapeChar = new string[] { "/", "%", "&", ":", ";", "?", "*", "!", "~", "=", "<", ">", "≠", "-", "$", "#", ".", "(", ")" };
+                    Func<string, bool, string> Quoted = (s, q) => { return(q ? $"%22{s}%22" : s); };
+                    Func<string, bool, string> Escape = (s, q) =>
+                    {
+                        foreach(var c in EscapeChar) s = s.Replace(c, Uri.EscapeDataString(c));
+                        return(Quoted(s, q));
+                    };
+                    Func<KeyValuePair<string, string[]>, string, IEnumerable<string>, string> QuotedValues = (q, sep, keys) =>
                 {
                     var values = q.Value.Select(w => Quoted(w, !keys.Contains(q.Key)));
                     if (values.Count() > 1) return($"({string.Join(sep, values)})");
                     else if (values.Count() > 0) return(values.FirstOrDefault());
                     else return(string.Empty);
                 };
-                Func<KeyValuePair<string, string[]>, string, IEnumerable<string>, string> EscapeValues = (q, sep, keys) =>
-                {
-                    var values = q.Value.Select(w => Escape(w, !keys.Contains(q.Key)));
-                    if (values.Count() > 1) return($"({string.Join(sep, values)})");
-                    else if (values.Count() > 0) return(values.FirstOrDefault());
-                    else return(string.Empty);
-                };
+                    Func<KeyValuePair<string, string[]>, string, IEnumerable<string>, string> EscapeValues = (q, sep, keys) =>
+                    {
+                        var values = q.Value.Select(w => Escape(w, !keys.Contains(q.Key)));
+                        if (values.Count() > 1) return($"({string.Join(sep, values)})");
+                        else if (values.Count() > 0) return(values.FirstOrDefault());
+                        else return(string.Empty);
+                    };
 
-                if (query.StartsWith("=")) { fuzzy = false; query = query.TrimStart('='); }
+                    if (query.StartsWith("=")) { fuzzy = false; query = query.TrimStart('='); }
 
-                var raw_keys = new List<string>();
-                var names = SystemMetaList.Select(m => $"{m.Value.Description.CanonicalName} => {m.Value.Description.DisplayName}").ToList();
-                var query_list = new Dictionary<string, string[]>();
-                var querys = query.Split(LineBreak, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
-                Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty value;
-                if (scope.HasFlag(StorageSearchScope.Title) &&
-                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Title, out value))
-                    query_list.Add(value.Description.DisplayName, querys);
-                if (scope.HasFlag(StorageSearchScope.Subject) &&
-                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Subject, out value))
-                    query_list.Add(value.Description.DisplayName, querys);
-                if (scope.HasFlag(StorageSearchScope.Author) &&
-                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Author, out value))
-                    query_list.Add(value.Description.DisplayName, querys);
-                if (scope.HasFlag(StorageSearchScope.Description) &&
-                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Comment, out value))
-                    query_list.Add(value.Description.DisplayName, querys);
-                if (scope.HasFlag(StorageSearchScope.Tag) &&
-                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Keywords, out value))
-                    query_list.Add(value.Description.DisplayName, querys);
-                if (scope.HasFlag(StorageSearchScope.Copyright) &&
-                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Copyright, out value))
-                    query_list.Add(value.Description.DisplayName, querys);
-                if (scope.HasFlag(StorageSearchScope.Date) &&
-                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Photo.DateTaken, out value))
-                {
-                    raw_keys.Add(value.Description.DisplayName);
-                    query_list.Add(value.Description.DisplayName, querys);
-                }
-                else if (scope.HasFlag(StorageSearchScope.Date) &&
-                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.DateAcquired, out value))
-                {
-                    raw_keys.Add(value.Description.DisplayName);
-                    query_list.Add(value.Description.DisplayName, querys);
-                }
-                else if (scope.HasFlag(StorageSearchScope.Date) &&
-                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.DateModified, out value))
-                {
-                    raw_keys.Add(value.Description.DisplayName);
-                    query_list.Add(value.Description.DisplayName, querys);
-                }
-                else if (scope.HasFlag(StorageSearchScope.Path) &&
-                    SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.ItemFolderPathDisplay, out value))
-                    query_list.Add(value.Description.DisplayName, querys);
+                    var raw_keys = new List<string>();
+                    var names = SystemMetaList.Select(m => $"{m.Value.Description.CanonicalName} => {m.Value.Description.DisplayName}").ToList();
+                    var query_list = new Dictionary<string, string[]>();
+                    var querys = query.Split(LineBreak, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
+                    Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty value;
+                    if (scope.HasFlag(StorageSearchScope.Title) &&
+                        SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Title, out value))
+                        query_list.Add(value.Description.DisplayName, querys);
+                    if (scope.HasFlag(StorageSearchScope.Subject) &&
+                        SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Subject, out value))
+                        query_list.Add(value.Description.DisplayName, querys);
+                    if (scope.HasFlag(StorageSearchScope.Author) &&
+                        SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Author, out value))
+                        query_list.Add(value.Description.DisplayName, querys);
+                    if (scope.HasFlag(StorageSearchScope.Description) &&
+                        SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Comment, out value))
+                        query_list.Add(value.Description.DisplayName, querys);
+                    if (scope.HasFlag(StorageSearchScope.Tag) &&
+                        SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Keywords, out value))
+                        query_list.Add(value.Description.DisplayName, querys);
+                    if (scope.HasFlag(StorageSearchScope.Copyright) &&
+                        SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Copyright, out value))
+                        query_list.Add(value.Description.DisplayName, querys);
+                    if (scope.HasFlag(StorageSearchScope.Date) &&
+                        SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Photo.DateTaken, out value))
+                    {
+                        raw_keys.Add(value.Description.DisplayName);
+                        query_list.Add(value.Description.DisplayName, querys);
+                    }
+                    else if (scope.HasFlag(StorageSearchScope.Date) &&
+                        SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.DateAcquired, out value))
+                    {
+                        raw_keys.Add(value.Description.DisplayName);
+                        query_list.Add(value.Description.DisplayName, querys);
+                    }
+                    else if (scope.HasFlag(StorageSearchScope.Date) &&
+                        SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.DateModified, out value))
+                    {
+                        raw_keys.Add(value.Description.DisplayName);
+                        query_list.Add(value.Description.DisplayName, querys);
+                    }
+                    else if (scope.HasFlag(StorageSearchScope.Path) &&
+                        SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.ItemFolderPathDisplay, out value))
+                        query_list.Add(value.Description.DisplayName, querys);
 
-                var setting = LoadSetting(app);
-                raw_keys = raw_keys.Distinct().ToList();
-                var m_sep = mode == StorageSearchMode.Not ? " NOT " : (mode == StorageSearchMode.And ? " AND " : " OR ");
-                if (setting.SearchEscapeChar)
-                {
-                    query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{(fuzzy ?? true ? $"~={EscapeValues(q, m_sep, raw_keys)}" : $"={EscapeValues(q, m_sep, raw_keys)}")}"));
-                }
-                else
-                {
-                    query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{(fuzzy ?? true ? $"~={QuotedValues(q, m_sep, raw_keys)}" : $"={QuotedValues(q, m_sep, raw_keys)}")}"));
+                    raw_keys = raw_keys.Distinct().ToList();
+                    var m_sep = mode == StorageSearchMode.Not ? " NOT " : (mode == StorageSearchMode.And ? " AND " : " OR ");
+                    if (setting.SearchEscapeChar)
+                    {
+                        query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{(fuzzy ?? true ? $"~={EscapeValues(q, m_sep, raw_keys)}" : $"={EscapeValues(q, m_sep, raw_keys)}")}"));
+                    }
+                    else
+                    {
+                        query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{(fuzzy ?? true ? $"~={QuotedValues(q, m_sep, raw_keys)}" : $"={QuotedValues(q, m_sep, raw_keys)}")}"));
+                    }
                 }
 
                 if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
                 {
-                    if (copyquery ?? setting.SearchQueryToClipboard) Commands.CopyText.Execute(setting.SearchEscapeChar ? Uri.UnescapeDataString(query) : query);
+                    if (!raw_mode && (copyquery ?? setting.SearchQueryToClipboard))
+                        Commands.CopyText.Execute(setting.SearchEscapeChar ? Uri.UnescapeDataString(query) : query);
+
                     query.INFO("SearchInFolder");
 
                     if (setting.SearchMultiFolder)

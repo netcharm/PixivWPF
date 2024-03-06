@@ -2269,7 +2269,14 @@ namespace PixivWPF.Common
                     var content = CommonHelper.ParseLink((string)obj);
                     if (!string.IsNullOrEmpty(content))
                     {
-                        if (content.StartsWith("IllustID:", StringComparison.CurrentCultureIgnoreCase))
+                        if (content.StartsWith("Local:"))
+                        {
+                            //var words = Regex.Replace(content.Replace("Local:", "").Trim(), @"(AND|OR|NOT)", Environment.NewLine, RegexOptions.IgnoreCase);
+                            var so = new SearchObject(content.Replace("Local:", "").Trim(), raw: true);
+                            SearchInStorage.Execute(so);
+                            return;
+                        }
+                        else if (content.StartsWith("IllustID:", StringComparison.CurrentCultureIgnoreCase))
                         {
                             var illust = content.ParseID().FindIllust();
                             if (illust is Pixeez.Objects.Work)

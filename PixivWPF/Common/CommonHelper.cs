@@ -348,16 +348,18 @@ namespace PixivWPF.Common
         public string Folder { get; set; } = string.Empty;
         public bool? CopyQueryToClipboard { get; set; } = null;
         public bool? FuzzySearch { get; set; } = null;
+        public bool? RawMode { get; set; } = false;
         public StorageSearchMode Mode { get; set; } = StorageSearchMode.And;
         public StorageSearchScope Scope { get; set; } = StorageSearchScope.None;
 
-        public SearchObject(string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And, bool? fuzzy = null)
+        public SearchObject(string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And, bool? fuzzy = null, bool? raw = false)
         {
             Query = query;
             Folder = folder;
             Mode = mode;
             Scope = scope;
             FuzzySearch = fuzzy;
+            RawMode = raw;
         }
     }
 
@@ -1203,7 +1205,9 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    if (Regex.IsMatch(result, @"(UserID|PID)|(IllustID)[：:]( )*(\d+)", RegexOptions.IgnoreCase))
+                    if (Regex.IsMatch(result, @"(Local)[：:]( )*", RegexOptions.IgnoreCase))
+                        result = result.Trim();
+                    else if (Regex.IsMatch(result, @"(UserID|PID)|(IllustID)[：:]( )*(\d+)", RegexOptions.IgnoreCase))
                         result = result.Trim();
 
                     else if (Regex.IsMatch(result, @"(.*?/artworks?/)(\d+)(.*)", RegexOptions.IgnoreCase))
@@ -1218,6 +1222,8 @@ namespace PixivWPF.Common
                     else if (Regex.IsMatch(result, @"(.*?//www.pixiv.net/ajax/user/)(\d+)(/.*)?", RegexOptions.IgnoreCase))
                         result = Regex.Replace(result, @"(.*?//www.pixiv.net/ajax/user/)(\d+)(/.*)?", "UserID: $2", RegexOptions.IgnoreCase);
 
+                    else if (Regex.IsMatch(result, @"(.*?/users?/)(\d+)(.*)", RegexOptions.IgnoreCase))
+                        result = Regex.Replace(result, @"(.*?/users?/)(\d+)(.*)", "UserID: $2", RegexOptions.IgnoreCase);
                     else if (Regex.IsMatch(result, @"^(.*?\.pixiv.net/users?/)(\d+)(.*)$", RegexOptions.IgnoreCase))
                         result = Regex.Replace(result, @"^(.*?\.pixiv.net/users?/)(\d+)(.*)$", "UserID: $2", RegexOptions.IgnoreCase);
                     else if (Regex.IsMatch(result, @"^(.*?\.pixiv.net/fanbox/creator/)(\d+)(.*)$", RegexOptions.IgnoreCase))
@@ -10717,6 +10723,7 @@ namespace PixivWPF.Common
                     result.Add($"Tag: {text}");
                     result.Add($"Fuzzy Tag: {text}");
                 }
+                result.Add($"Local: {text}");
                 result = result.Distinct().ToList();
                 //result.Add($"Caption: {text}");
             }
