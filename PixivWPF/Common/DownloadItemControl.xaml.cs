@@ -380,9 +380,9 @@ namespace PixivWPF.Common
             return(Instance is DownloadItem ? Instance.PART_SaveAsJPEG.IsOn : SaveAsJPEG);
         }
 
-        public void UpdateInfo()
+        public void UpdateInfo(bool force = false)
         {
-            if (Instance is DownloadItem) Instance.UpdateInfo();
+            if (Instance is DownloadItem) Instance.UpdateInfo(force);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -720,9 +720,9 @@ namespace PixivWPF.Common
             if (progress is IProgress<Tuple<double, double>>) progress.Report(Progress);
         }
 
-        public void UpdateInfo()
+        public void UpdateInfo(bool force = false)
         {
-            new Action(() => { UpdateProgress(); }).Invoke(async: true);
+            new Action(() => { UpdateProgress(force); }).Invoke(async: true);
         }
         #endregion
 
@@ -1606,6 +1606,7 @@ namespace PixivWPF.Common
         {
             if (Info is DownloadInfo)
             {
+                if (State != DownloadState.Finished) UpdateProgress();
                 Info.ToolTip = string.Join(Environment.NewLine, Info.GetDownloadInfo());
                 ToolTip = Info.ToolTip;
             }

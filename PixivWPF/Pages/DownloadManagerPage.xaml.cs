@@ -438,7 +438,12 @@ namespace PixivWPF.Pages
         {
             if (DownloadItems.SelectedItem is DownloadInfo)
             {
-                (DownloadItems.SelectedItem as DownloadInfo).UpdateInfo();
+                var added = new List<DownloadInfo>();
+                var removed = new List<DownloadInfo>();
+                foreach (var i in e.AddedItems) { if (i is DownloadInfo) added.Add(i as DownloadInfo); }
+                foreach (var i in e.AddedItems) { if (i is DownloadInfo) added.Add(i as DownloadInfo); }
+                var diff = added.Except(removed);
+                if (diff.Count() > 0) (DownloadItems.SelectedItem as DownloadInfo).UpdateInfo();
             }
         }
 
