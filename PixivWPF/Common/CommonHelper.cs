@@ -2842,9 +2842,10 @@ namespace PixivWPF.Common
             var all = setting.ShellPixivPediaApplication.Where();
             var shell = all.Length > 0 ? all.First() : string.Empty;
 
-            if (File.Exists(shell) && shell.EndsWith("\\nw.exe", StringComparison.CurrentCultureIgnoreCase))
+            if (string.IsNullOrEmpty(shell) && File.Exists(shell) && shell.EndsWith("\\nw.exe", StringComparison.CurrentCultureIgnoreCase))
             {
-                var args = new List<string>() {
+                var args = new List<string>()
+                {
                     setting.ShellPixivPediaApplicationArgs,
                     $"--app=\"PixivPedia-{contents}\"",
                     $"--app-id=\"PixivPedia-{contents}\"",
@@ -2859,13 +2860,28 @@ namespace PixivWPF.Common
             }
         }
 
-        public static bool OpenUrlWithShell(this string url)
+        public static bool OpenUrlWithShell(this string url, bool search  = false)
         {
             bool result = false;
 
             try
             {
-                Process.Start(url);
+                if (string.IsNullOrEmpty(url)) return(result);
+
+                var all = setting.ShellWebBrowser.Where();
+                var shell = all.Length > 0 ? all.First() : string.Empty;
+
+                if (!string.IsNullOrEmpty(shell) && File.Exists(shell))
+                {
+                    var args = new List<string>()
+                    {
+                        setting.ShellWebBrowserParams,
+                        search ? setting.ShellWebSearchParams : string.Empty,
+                        $"\"{url}\""
+                    };
+                    Process.Start(shell, string.Join(" ", args));
+                }
+                else if (!search) Process.Start(url);
                 result = true;
             }
             catch (Exception ex) { ex.ERROR("OpenUrlWithShell"); }

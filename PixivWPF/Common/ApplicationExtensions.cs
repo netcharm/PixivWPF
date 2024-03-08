@@ -3220,6 +3220,17 @@ namespace PixivWPF.Common
             }
         }
 
+        public static void SearchInWeb(this Application app, SearchObject search)
+        {
+            SearchInWeb(app, search.Query, search.Folder, search.Scope, search.Mode, search.CopyQueryToClipboard, search.FuzzySearch, search.RawMode);
+        }
+
+        public static void SearchInWeb(this Application app, string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And, bool? copyquery = null, bool? fuzzy = null, bool? raw = false)
+        {
+            var href = string.Join(" ", query.Split(LineBreak, StringSplitOptions.RemoveEmptyEntries));
+            href.OpenUrlWithShell(search: true);
+        }
+
         public static App.MenuItemSliderData GetDefaultConvertData(this Application app)
         {
             var setting = Application.Current.LoadSetting();

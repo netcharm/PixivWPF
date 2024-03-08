@@ -2350,6 +2350,39 @@ namespace PixivWPF.Common
             }
         }
 
+        private string shell_web_browser = string.Empty;
+        public string ShellWebBrowser
+        {
+            get { return (Cache is Setting ? Cache.shell_web_browser : shell_web_browser); }
+            set
+            {
+                shell_web_browser = value;
+                if (Cache is Setting) Cache.shell_web_browser = shell_web_browser;
+            }
+        }
+
+        private string shell_web_browser_params = string.Empty;
+        public string ShellWebBrowserParams
+        {
+            get { return (Cache is Setting ? Cache.shell_web_browser_params : shell_web_browser_params); }
+            set
+            {
+                shell_web_browser_params = value;
+                if (Cache is Setting) Cache.shell_web_browser_params = shell_web_browser_params;
+            }
+        }
+
+        private string shell_web_search_params = string.Empty;
+        public string ShellWebSearchParams
+        {
+            get { return (Cache is Setting ? Cache.shell_web_search_params : shell_web_search_params); }
+            set
+            {
+                shell_web_search_params = value;
+                if (Cache is Setting) Cache.shell_web_search_params = shell_web_search_params;
+            }
+        }
+
         #endregion
 
         #region Window Related

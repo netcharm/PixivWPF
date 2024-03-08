@@ -211,11 +211,17 @@ namespace PixivWPF.Pages
 
                             PART_DownloadState.Text = $"Total: {items.Count() - remove.Count()}, Idle: {idle.Count()}, Downloading: {downloading.Count()}, Finished: {finished.Count()}, Failed: {failed.Count()}, Non-Exists: {nonexists.Count()}, Rate: {rates.SmartSpeedRate()}";
 
-                            for (int i = remove.Count() - 1; i >= 0; i--)
+                            var remove_count = remove.Count();
+                            if (remove_count > 0)
                             {
-                                remove[i].Url.DEBUG("DM_REMOVE");
-                                remove[i].Dispose();
-                                items.Remove(remove[i]);
+                                for (int i = remove_count - 1; i >= 0; i--)
+                                {
+                                    remove[i].Url.DEBUG("DM_REMOVE");
+                                    remove[i].Dispose();
+                                    items.Remove(remove[i]);
+                                }
+                                items = new ObservableCollection<DownloadInfo>(Items.ToList());
+                                DownloadItems.ItemsSource = items;
                             }
                         }
                         catch (Exception ex) { ex.ERROR("UpdateDownloadManagerStateInfo"); }
@@ -241,7 +247,12 @@ namespace PixivWPF.Pages
 
         internal void Refresh()
         {
-            DownloadItems.Items.Refresh();
+            try
+            {
+                //DownloadItems.Items.DeferRefresh();
+                DownloadItems.Items.Refresh();
+            }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public IList<string> Unfinished()

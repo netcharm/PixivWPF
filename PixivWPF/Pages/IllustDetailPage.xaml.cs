@@ -3856,6 +3856,7 @@ namespace PixivWPF.Pages
             var scope = StorageSearchScope.None;
             var mode = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? StorageSearchMode.And : StorageSearchMode.Or;
             var fuzzy = !Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+            var searching_web = false;
             var is_tag = false;
             try
             {
@@ -3874,6 +3875,9 @@ namespace PixivWPF.Pages
                 else if (sender is MenuItem)
                 {
                     var mi = sender as MenuItem;
+                    var miu = mi.GetUid();
+                    if (!string.IsNullOrEmpty(miu) && miu.Equals("SearchTextInFiles", StringComparison.CurrentCultureIgnoreCase)) searching_web = false;
+                    else if (!string.IsNullOrEmpty(miu) && miu.Equals("SearchTextInWeb", StringComparison.CurrentCultureIgnoreCase)) searching_web = true;
 
                     var host = mi.GetContextMenuHost();
                     if (host == IllustTagSpeech) { is_tag = true; text = IllustTagsHtml.GetText(); scope |= StorageSearchScope.Tag; }
@@ -3921,7 +3925,11 @@ namespace PixivWPF.Pages
             else
                 text = string.Join(Environment.NewLine, text.Trim().Split(Speech.LineBreak, StringSplitOptions.RemoveEmptyEntries));
 
-            if (!string.IsNullOrEmpty(text)) Commands.SearchInStorage.Execute(new SearchObject(text, scope: scope, mode: mode, fuzzy: fuzzy));
+            if (!string.IsNullOrEmpty(text))
+            {
+                if (searching_web) Commands.SearchInWeb.Execute(new SearchObject(text, scope: scope, mode: mode, fuzzy: fuzzy));
+                else Commands.SearchInStorage.Execute(new SearchObject(text, scope: scope, mode: mode, fuzzy: fuzzy));
+            }
         }
 
         private void ActionSendToInstance_Click(object sender, RoutedEventArgs e)
