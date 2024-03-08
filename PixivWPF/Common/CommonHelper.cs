@@ -2871,17 +2871,22 @@ namespace PixivWPF.Common
                 var all = setting.ShellWebBrowser.Where();
                 var shell = all.Length > 0 ? all.First() : string.Empty;
 
-                if (!string.IsNullOrEmpty(shell) && File.Exists(shell))
+                if (search)
                 {
-                    var args = new List<string>()
+                    if (!string.IsNullOrEmpty(shell) && File.Exists(shell))
                     {
-                        setting.ShellWebBrowserParams,
-                        search ? setting.ShellWebSearchParams : string.Empty,
-                        $"\"{url}\""
-                    };
-                    Process.Start(shell, string.Join(" ", args));
+                        if (string.IsNullOrEmpty(setting.ShellWebSearchParams)) url = $"\"{setting.ShellWebSearchUrl.Replace("{%s}", url)}\"";
+                        else url = $"{setting.ShellWebSearchParams} \"{url}\"";
+                        var args = new List<string>()
+                        {
+                            setting.ShellWebBrowserParams,
+                            url,
+                        };
+                        Process.Start(shell, string.Join(" ", args));
+                    }
                 }
-                else if (!search) Process.Start(url);
+                else Process.Start(url);
+
                 result = true;
             }
             catch (Exception ex) { ex.ERROR("OpenUrlWithShell"); }

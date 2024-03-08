@@ -2383,6 +2383,17 @@ namespace PixivWPF.Common
             }
         }
 
+        private string shell_web_search_url = string.Empty;
+        public string ShellWebSearchUrl
+        {
+            get { return (Cache is Setting ? Cache.shell_web_search_url : shell_web_search_url); }
+            set
+            {
+                shell_web_search_url = value;
+                if (Cache is Setting) Cache.shell_web_search_url = shell_web_search_url;
+            }
+        }
+
         #endregion
 
         #region Window Related
