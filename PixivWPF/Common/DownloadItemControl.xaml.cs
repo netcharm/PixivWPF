@@ -1737,6 +1737,28 @@ namespace PixivWPF.Common
                 if (!multiple) action.Invoke(Info);
                 else Commands.RunDownloadItemAction.Execute(action);
             }
+            else if (sender == miSearchArtistInFiles)
+            {
+                if (Info is DownloadInfo && Info.Illust.IsWork())
+                {
+                    Commands.SearchInStorage.Execute(new SearchObject($"=uid:{Info.UserID}", scope: StorageSearchScope.Author));
+                }
+            }
+            else if (sender == miSearchTagsInFiles)
+            {
+                if (Info is DownloadInfo && Info.Illust.IsWork())
+                {
+                    var mode = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? StorageSearchMode.And : StorageSearchMode.Or;
+                    Commands.SearchInStorage.Execute(new SearchObject(string.Join(Environment.NewLine, Info.Illust.Tags), scope: StorageSearchScope.Tag, mode: mode));
+                }
+            }
+            else if (sender == miSearchTitleInFiles)
+            {
+                if (Info is DownloadInfo && Info.Illust.IsWork())
+                {
+                    Commands.SearchInStorage.Execute(new SearchObject(Info.Illust.Title.KatakanaHalfToFull(), scope: StorageSearchScope.Title));
+                }
+            }
             else if (sender == miCompareDownloaded)
             {
                 Commands.Compare.Execute(Application.Current.GetDownloadManager());

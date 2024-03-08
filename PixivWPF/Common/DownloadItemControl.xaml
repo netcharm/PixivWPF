@@ -103,6 +103,28 @@
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
+                <MenuItem x:Name="miSearchArtistInFiles" x:Uid="SearchArtistInFiles" Header="Search Artist In Files" ToolTip="Search Selected In Downloaded" Click="miActions_Click" >
+                    <MenuItem.Icon>
+                        <TextBlock Text="&#xE773;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Name="miSearchTagsInFiles" x:Uid="SearchTagsInFiles" Header="Search Tags In Files" ToolTip="Search Selected In Downloaded" Click="miActions_Click" >
+                    <MenuItem.Icon>
+                        <TextBlock Text="&#xE773;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Name="miSearchTitleInFiles" x:Uid="SearchTitleInFiles" Header="Search Title In Files" ToolTip="Search Selected In Downloaded" Click="miActions_Click" >
+                    <MenuItem.Icon>
+                        <TextBlock Text="&#xE773;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
                 <MenuItem x:Name="miCompareDownloaded" x:Uid="miCompareDownloaded" Header="Compare Downloaded"  Click="miActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Margin="4,0,0,0" Text="&#xE11E;" FontSize="16" FontFamily="Segoe MDL2 Assets"

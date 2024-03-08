@@ -220,8 +220,11 @@ namespace PixivWPF.Pages
                                     remove[i].Dispose();
                                     items.Remove(remove[i]);
                                 }
-                                items = new ObservableCollection<DownloadInfo>(Items.ToList());
-                                DownloadItems.ItemsSource = items;
+                                if (remove_count >= 30 && DownloadItems.HasItems)
+                                {                                    
+                                    //items = new ObservableCollection<DownloadInfo>(Items.ToList());
+                                    DownloadItems.ItemsSource = items;
+                                }
                             }
                         }
                         catch (Exception ex) { ex.ERROR("UpdateDownloadManagerStateInfo"); }
