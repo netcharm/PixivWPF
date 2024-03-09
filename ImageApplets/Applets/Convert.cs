@@ -350,7 +350,7 @@ namespace ImageApplets.Applets
                         using (var msp = new MemoryStream(bo))
                         {
                             var exif_out = new ExifData(msp);
-                            exif_out.ReplaceAllTagsBy(exif);
+                            if (exif_out is ExifData && exif_out.ImageType != CompactExifLib.ImageType.Unknown) exif_out.ReplaceAllTagsBy(exif);
                             result = new MemoryStream();
                             msp.Seek(0, SeekOrigin.Begin);
                             exif_out.Save(msp, result);
@@ -441,7 +441,7 @@ namespace ImageApplets.Applets
                         using (var msp = new MemoryStream(bo))
                         {
                             var exif_out = new ExifData(msp);
-                            exif_out.ReplaceAllTagsBy(exif);
+                            if (exif_out is ExifData && exif_out.ImageType != CompactExifLib.ImageType.Unknown) exif_out.ReplaceAllTagsBy(exif);
                             using (var mso = new MemoryStream())
                             {
                                 msp.Seek(0, SeekOrigin.Begin);

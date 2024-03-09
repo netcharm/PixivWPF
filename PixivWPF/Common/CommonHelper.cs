@@ -7576,7 +7576,7 @@ namespace PixivWPF.Common
                                 if (msi.CanSeek) msi.Seek(0, SeekOrigin.Begin);
 
                                 var jq = exif_in is ExifData ? exif_in.GetJpegQuality() : 100;
-                                if (exif_in is ExifData) file.SetImageFileQualityInfo(jq);
+                                if (exif_in is ExifData && exif_in.ImageType != ImageType.Unknown) file.SetImageFileQualityInfo(jq);
                                 if ((exif_in is ExifData && exif_in.ImageType != ImageType.Jpeg) || jq > quality)
                                 {
                                     var reason = string.Empty;
@@ -7590,7 +7590,7 @@ namespace PixivWPF.Common
 
                                         msp.Seek(0, SeekOrigin.Begin);
                                         var exif_out = new ExifData(msp);
-                                        if (exif_in is ExifData)
+                                        if (exif_in is ExifData && exif_in.ImageType != ImageType.Unknown)
                                         {
                                             exif_out.ReplaceAllTagsBy(exif_in);
 
@@ -7631,7 +7631,7 @@ namespace PixivWPF.Common
                                 //$"{feature}ed File {fi.Name} Failed: {reason}".WARN("ConvertImageTo");
                                 throw new WarningException($"{feature}ed File {fi.Name} Failed: {reason}");
                             }
-                            if (exif_in is ExifData)
+                            if (exif_in is ExifData && exif_in.ImageType != ImageType.Unknown)
                             {
                                 if (((fmt.Equals("jpg", StringComparison.CurrentCultureIgnoreCase) && exif_in.ImageType == ImageType.Jpeg) ||
                                      (fmt.Equals("jpeg", StringComparison.CurrentCultureIgnoreCase) && exif_in.ImageType == ImageType.Jpeg) ||
@@ -7645,7 +7645,7 @@ namespace PixivWPF.Common
                             File.WriteAllBytes(fout, bytes);
 
                             var exif_out = new ExifData(fout);
-                            if (exif_in is ExifData) exif_out.ReplaceAllTagsBy(exif_in);
+                            if (exif_in is ExifData && exif_in.ImageType != ImageType.Unknown) exif_out.ReplaceAllTagsBy(exif_in);
                             exif_out.Save(fout);
                             file.SetImageFileQualityInfo(exif_out.GetJpegQuality());
                         }

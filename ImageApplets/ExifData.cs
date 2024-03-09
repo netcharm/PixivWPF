@@ -383,6 +383,7 @@ namespace CompactExifLib
         #region Public area
 
         public ImageType ImageType;
+        public string ImageMime = string.Empty;
         public int MakerNoteOriginalOffset { get; private set; }
         public const int IfdShift = 16;
 
@@ -1863,6 +1864,7 @@ namespace CompactExifLib
             catch { }
             #endregion
 
+
             #region Get Image Basic Properties using System.Drawing.Image
             try
             {
@@ -1878,6 +1880,15 @@ namespace CompactExifLib
                     ColorDepth = System.Drawing.Image.GetPixelFormatSize(img.PixelFormat);
 
                     if (ImageStream.CanSeek) ImageStream.Seek(0, SeekOrigin.Begin);
+                    var fmts = System.Drawing.Imaging.ImageCodecInfo.GetImageDecoders();
+                    foreach (var fmt in fmts)
+                    {
+                        if (fmt.FormatID.Equals(img.RawFormat.Guid))
+                        {
+                            ImageMime = fmt.MimeType;
+                            break;
+                        }
+                    }
                 }
             }
             catch { }
@@ -1894,27 +1905,31 @@ namespace CompactExifLib
             #endregion
 
             SourceExifStream = ImageStream;
-            ErrCodeForIllegalExifBlock = ExifErrCode.ExifBlockHasIllegalContent;
-            ImageType = CheckStreamTypeAndCompatibility(SourceExifStream);
-            if (Options.HasFlag(ExifLoadOptions.CreateEmptyBlock))
+            var supported_fmts = new List<string>() { "image/jpg", "image/jpeg", "image/tif", "image/tiff", "image/png" };
+            if (supported_fmts.Contains(ImageMime.ToLower()))
             {
-                SetEmptyExifBlock();
-            }
-            else
-            {
-                if (ImageType == ImageType.Jpeg)
+                ErrCodeForIllegalExifBlock = ExifErrCode.ExifBlockHasIllegalContent;
+                ImageType = CheckStreamTypeAndCompatibility(SourceExifStream);
+                if (Options.HasFlag(ExifLoadOptions.CreateEmptyBlock))
                 {
-                    ReadJepg();
+                    SetEmptyExifBlock();
                 }
-                else if (ImageType == ImageType.Tiff)
+                else
                 {
-                    ReadTiff();
+                    if (ImageType == ImageType.Jpeg)
+                    {
+                        ReadJepg();
+                    }
+                    else if (ImageType == ImageType.Tiff)
+                    {
+                        ReadTiff();
+                    }
+                    else if (ImageType == ImageType.Png)
+                    {
+                        ReadPng();
+                    }
+                    UpdateImageFileBlockInfo();
                 }
-                else if (ImageType == ImageType.Png)
-                {
-                    ReadPng();
-                }
-                UpdateImageFileBlockInfo();
             }
 
             SourceExifBlock = null;
