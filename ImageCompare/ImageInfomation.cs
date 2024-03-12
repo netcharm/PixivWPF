@@ -400,6 +400,7 @@ namespace ImageCompare
 
                     if (e.Equals(".png8", StringComparison.CurrentCultureIgnoreCase))
                     {
+                        Current.VirtualPixelMethod = VirtualPixelMethod.Transparent;
                         Current.Write(Path.ChangeExtension(file, ".png"), MagickFormat.Png8);
                     }
                     else
@@ -410,10 +411,33 @@ namespace ImageCompare
                         {
                             var target = Current.Clone();
                             target.ColorAlpha(MasklightColor ?? target.BackgroundColor);
+                            target.BackgroundColor = MasklightColor ?? target.BackgroundColor;
+                            target.MatteColor = MasklightColor ?? target.BackgroundColor;
                             foreach (var profile in Current.ProfileNames) { if (Current.HasProfile(profile)) target.SetProfile(Current.GetProfile(profile)); }
                             target.Write(file, format);
                         }
-                        else Current.Write(file, format);
+                        else
+                        {
+                            if (format == MagickFormat.Tif || format == MagickFormat.Tiff || format == MagickFormat.Tiff64 || e.Equals(".tif") || e.Equals(".tiff"))
+                            {
+                                Current.SetCompression(CompressionMethod.Zip);
+                                Current.Settings.Compression = CompressionMethod.Zip;
+                            }
+                            else if (format == MagickFormat.Gif || format == MagickFormat.Gif87 || e.Equals(".gif"))
+                            {
+                                Current.GifDisposeMethod = GifDisposeMethod.Background;
+                                Current.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                            }
+                            else if (format == MagickFormat.WebP || format == MagickFormat.WebM || e.Equals(".webp") || e.Equals(".webm"))
+                            {
+                                Current.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                            }
+                            else if (format == MagickFormat.Bmp || e.Equals(".bmp"))
+                            {
+                                Current.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                            }
+                            Current.Write(file, format);
+                        }
                     }
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
@@ -440,6 +464,7 @@ namespace ImageCompare
                         image.LevelColors(MagickColors.White, MagickColors.Black);
                         image.Format = format;
                         image.SetCompression(CompressionMethod.JPEG);
+                        image.Settings.Compression = CompressionMethod.JPEG;
                         image.ColorType = ColorType.Palette;
                         image.ColorSpace = ColorSpace.Gray;
                         image.Depth = 8;
