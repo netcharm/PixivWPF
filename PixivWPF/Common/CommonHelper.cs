@@ -1117,10 +1117,14 @@ namespace PixivWPF.Common
         {
             var result = false;
             Uri unc = null;
-            var invalid = new List<char> { '<', ':', '>' };
+            var invalid = new List<char> { '<', ':', '>' };            
             try
             {
-                if (!string.IsNullOrEmpty(text) && !invalid.Contains(text.FirstOrDefault()) && Uri.TryCreate(text, UriKind.RelativeOrAbsolute, out unc))
+                if (!string.IsNullOrEmpty(text) && 
+                    !Path.GetInvalidPathChars().Contains(text.FirstOrDefault()) &&
+                    //!Path.GetInvalidFileNameChars().Contains(text.FirstOrDefault()) &&
+                    !invalid.Contains(text.FirstOrDefault()) && 
+                    Uri.TryCreate(text, UriKind.RelativeOrAbsolute, out unc))
                 {
                     result = unc.IsAbsoluteUri ? unc.IsFile : false;
                 }
@@ -2924,7 +2928,7 @@ namespace PixivWPF.Common
                 var WinDir = Environment.GetEnvironmentVariable("WinDir");
                 if (ShowFolder)
                 {
-                    if (!string.IsNullOrEmpty(file))
+                    if (Commands.HugeFolderOpeningConfirm(file))
                     {
                         Application.Current.ReleaseKeyboardModifiers(use_keybd_event: true);
                         Application.Current.DoEvents();

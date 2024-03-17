@@ -2030,6 +2030,28 @@ namespace PixivWPF.Common
             }
         }
 
+        private bool huge_folder_opening_confirm = true;
+        public bool HugeFolderOpeningConfirm
+        {
+            get { return (Cache is Setting ? Cache.huge_folder_opening_confirm : huge_folder_opening_confirm); }
+            set
+            {
+                huge_folder_opening_confirm = value;
+                if (Cache is Setting) Cache.huge_folder_opening_confirm = huge_folder_opening_confirm;
+            }
+        }
+
+        private int huge_folder_opening_threshold = 150;
+        public int HugeFolderOpeningThreshold
+        {
+            get { return (Cache is Setting ? Cache.huge_folder_opening_threshold : huge_folder_opening_threshold); }
+            set
+            {
+                huge_folder_opening_threshold = value;
+                if (Cache is Setting) Cache.huge_folder_opening_threshold = huge_folder_opening_threshold;
+            }
+        }
+
         #endregion
 
         #region Favorite/Follow Related

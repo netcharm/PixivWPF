@@ -85,13 +85,49 @@ namespace PixivWPF.Common
             var result = true;
             try
             {
-                if (setting.MultipleOpeningConfirm && items.Count() > setting.MultipleOpeningThreshold)
+                if (setting.MultipleOpeningConfirm && items is IEnumerable<T>)
                 {
-                    var ret = MessageBox.Show("Items Reached Threshold!", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes);
-                    result &= ret == MessageBoxResult.Yes || ret == MessageBoxResult.OK;
+                    var count = items.LongCount();
+                    if (count > setting.MultipleOpeningThreshold)
+                    {
+                        var ret = MessageBox.Show($"More Than {setting.MultipleOpeningThreshold} Items, {count} Items Will Be Opened!", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes);
+                        result &= ret == MessageBoxResult.Yes || ret == MessageBoxResult.OK;
+                    }
                 }
             }
-            catch(Exception ex) { ex.ERROR("OpenMultipleNotify"); }
+            catch (Exception ex) { ex.ERROR("MultipleOpeningConfirm"); }
+            return (result);
+        }
+
+        private static Func<DirectoryInfo, bool> HugeFolderOpeningConfirmFunc = folder => { return(HugeFolderOpeningConfirm(folder)); };
+        public static bool HugeFolderOpeningConfirm(this DirectoryInfo folder)
+        {
+            var result = true;
+            try
+            {
+                if (setting.HugeFolderOpeningConfirm && folder is DirectoryInfo && folder.Exists)
+                {
+                    var count = folder.EnumerateFiles("*.*", SearchOption.TopDirectoryOnly).LongCount();
+                    if (count > setting.HugeFolderOpeningThreshold)
+                    {
+                        var ret = MessageBox.Show($"\"{folder.FullName}\" Contains {count} Files, More Then {setting.HugeFolderOpeningThreshold} Files!", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes);
+                        result &= ret == MessageBoxResult.Yes || ret == MessageBoxResult.OK;
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("HugeFolderOpeningConfirm"); }
+            return (result);
+        }
+
+        public static bool HugeFolderOpeningConfirm(this string folder)
+        {
+            var result = true;
+            try
+            {
+                if (string.IsNullOrEmpty(folder)) result = false;
+                else result = new DirectoryInfo(folder.IsFile() ? Path.GetDirectoryName(folder) : Path.GetFullPath(folder)).HugeFolderOpeningConfirm();
+            }
+            catch (Exception ex) { ex.ERROR("HugeFolderOpeningConfirm"); }
             return (result);
         }
 
