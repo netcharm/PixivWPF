@@ -1294,7 +1294,7 @@ namespace ImageCompare
                                     var source_g = source.Clone();
                                     source_g.Grayscale(GrayscaleMode);
                                     source_g.MatteColor = MasklightColor;
-                                    source_g.ColorSpace = ColorSpace.sRGB;
+                                    source_g.ColorSpace = ColorSpace.scRGB;
                                     source_g.ColorType = source.HasAlpha ? ColorType.TrueColorAlpha : ColorType.TrueColor;
                                     //if (source.HasAlpha)
                                     //{
@@ -1306,7 +1306,7 @@ namespace ImageCompare
                                     var target_g = target.Clone();
                                     target_g.Grayscale(GrayscaleMode);
                                     target_g.MatteColor = MasklightColor;
-                                    target_g.ColorSpace = ColorSpace.sRGB;
+                                    target_g.ColorSpace = ColorSpace.scRGB;
                                     target_g.ColorType = target.HasAlpha ? ColorType.TrueColorAlpha : ColorType.TrueColor;
                                     //if (target.HasAlpha)
                                     //{
@@ -1317,7 +1317,22 @@ namespace ImageCompare
 
                                     distance = source_g.Compare(target_g, setting, diff, CompareImageChannels);
                                 }
-                                else distance = source.Compare(target, setting, diff, CompareImageChannels);
+                                else
+                                {
+                                    if (source.ColorSpace == ColorSpace.Gray || source.ColorSpace == ColorSpace.LinearGray ||
+                                        source.ColorType != ColorType.TrueColor || source.ColorType != ColorType.TrueColorAlpha)
+                                    {
+                                        source.ColorSpace = ColorSpace.scRGB;
+                                        source.ColorType = source.HasAlpha ? ColorType.TrueColorAlpha : ColorType.TrueColor;
+                                    }
+                                    if (target.ColorSpace == ColorSpace.Gray || target.ColorSpace == ColorSpace.LinearGray ||
+                                        target.ColorType != ColorType.TrueColor || target.ColorType != ColorType.TrueColorAlpha)
+                                    {
+                                        target.ColorSpace = ColorSpace.scRGB;
+                                        target.ColorType = target.HasAlpha ? ColorType.TrueColorAlpha : ColorType.TrueColor;
+                                    }
+                                    distance = source.Compare(target, setting, diff, CompareImageChannels);
+                                }
                                 tip.Add($"{"ResultTipMode".T()} {ErrorMetricMode.ToString()}");
                                 tip.Add($"{"ResultTipDifference".T()} {distance:F4}");
                                 result = new MagickImage(diff);
