@@ -327,6 +327,7 @@ namespace PixivWPF.Common
         Width = 512, Height = 1024,
         Date = 2048,
         Comments = 4096,
+        Kind = 16384,
         Path = 32768,
         All = 65536
     };
@@ -351,8 +352,9 @@ namespace PixivWPF.Common
         public bool? RawMode { get; set; } = false;
         public StorageSearchMode Mode { get; set; } = StorageSearchMode.And;
         public StorageSearchScope Scope { get; set; } = StorageSearchScope.None;
+        public string HighlightWord { get; set; } = string.Empty;
 
-        public SearchObject(string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And, bool? fuzzy = null, bool? raw = false)
+        public SearchObject(string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And, bool? fuzzy = null, bool? raw = false, string highlight = null)
         {
             Query = query;
             Folder = folder;
@@ -360,6 +362,7 @@ namespace PixivWPF.Common
             Scope = scope;
             FuzzySearch = fuzzy;
             RawMode = raw;
+            HighlightWord = highlight;
         }
     }
 

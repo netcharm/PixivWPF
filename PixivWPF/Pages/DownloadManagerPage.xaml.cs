@@ -569,7 +569,7 @@ namespace PixivWPF.Pages
                                 targets.Add(item as DownloadInfo);
                         }
                         var remove = targets.Where(o => o.State != DownloadState.Downloading);
-                        if (Commands.MultipleOpeningConfirm(remove))
+                        if (Commands.ParallelExecutionConfirm(remove))
                         {
                             foreach (var i in remove) { i.State = DownloadState.Remove; }
                         }
@@ -584,7 +584,7 @@ namespace PixivWPF.Pages
                         else
                         {
                             var remove = items.Where(o => o.State != DownloadState.Downloading);
-                            if (Commands.MultipleOpeningConfirm(remove))
+                            if (Commands.ParallelExecutionConfirm(remove))
                             {
                                 foreach (var i in remove) { i.State = DownloadState.Remove; }
                             }

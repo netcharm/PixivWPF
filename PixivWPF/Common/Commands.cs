@@ -79,8 +79,8 @@ namespace PixivWPF.Common
         private const int WIDTH_PEDIA = 1024;
         private const int WIDTH_SEARCH = 710;
 
-        private static Func<IEnumerable<PixivItem>, bool> MultipleOpeningConfirmFunc = items => { return(MultipleOpeningConfirm(items)); };
-        public static bool MultipleOpeningConfirm<T>(this IEnumerable<T> items)
+        private static Func<IEnumerable<PixivItem>, bool> ParallelExecutionConfirmFunc = items => { return(ParallelExecutionConfirm(items)); };
+        public static bool ParallelExecutionConfirm<T>(this IEnumerable<T> items)
         {
             var result = true;
             try
@@ -90,12 +90,12 @@ namespace PixivWPF.Common
                     var count = items.LongCount();
                     if (count > setting.MultipleOpeningThreshold)
                     {
-                        var ret = MessageBox.Show($"More Than {setting.MultipleOpeningThreshold} Items, {count} Items Will Be Opened!", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes);
+                        var ret = MessageBox.Show($"More Than {setting.MultipleOpeningThreshold} Items, {count} Items Will Be Executed!", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes);
                         result &= ret == MessageBoxResult.Yes || ret == MessageBoxResult.OK;
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR("MultipleOpeningConfirm"); }
+            catch (Exception ex) { ex.ERROR("ParallelExecutionConfirm"); }
             return (result);
         }
 
@@ -1352,7 +1352,7 @@ namespace PixivWPF.Common
                     await new Action(async () =>
                     {
                         var gallery = obj as IList<PixivItem>;
-                        if (gallery.Count() > 0 && MultipleOpeningConfirm(gallery))
+                        if (gallery.Count() > 0 && ParallelExecutionConfirm(gallery))
                         {
                             foreach (var item in gallery.Distinct())
                             {
@@ -1451,7 +1451,7 @@ namespace PixivWPF.Common
                     await new Action(async () =>
                     {
                         var gallery = obj as IList<PixivItem>;
-                        if (gallery.Count() > 0 && MultipleOpeningConfirm(gallery))
+                        if (gallery.Count() > 0 && ParallelExecutionConfirm(gallery))
                         {
                             foreach (var item in gallery)
                             {
@@ -1611,7 +1611,7 @@ namespace PixivWPF.Common
                     await new Action(async () =>
                     {
                         var gallery = obj as IList<PixivItem>;
-                        if (gallery.Count() > 0 && MultipleOpeningConfirm(gallery))
+                        if (gallery.Count() > 0 && ParallelExecutionConfirm(gallery))
                         {
                             foreach (var item in gallery)
                             {
@@ -1724,7 +1724,7 @@ namespace PixivWPF.Common
                 else if (obj is IList<PixivItem>)
                 {
                     var gallery = obj as IList<PixivItem>;
-                    if (gallery.Count() > 0 && MultipleOpeningConfirm(gallery))
+                    if (gallery.Count() > 0 && ParallelExecutionConfirm(gallery))
                     {
                         await new Action(async () =>
                         {
@@ -1874,7 +1874,7 @@ namespace PixivWPF.Common
                 else if (obj is IList<PixivItem>)
                 {
                     var gallery = obj as IList<PixivItem>;
-                    if (gallery.Count() > 0 && (use_shell ? MultipleOpeningConfirm(gallery) : true))
+                    if (gallery.Count() > 0 && (use_shell ? ParallelExecutionConfirm(gallery) : true))
                     {
                         await new Action(async () =>
                         {
@@ -2058,7 +2058,7 @@ namespace PixivWPF.Common
                 else if (obj is IList<PixivItem>)
                 {
                     var gallery = obj as IList<PixivItem>;
-                    if (gallery.Count() > 0 && MultipleOpeningConfirm(gallery))
+                    if (gallery.Count() > 0 && ParallelExecutionConfirm(gallery))
                     {
                         foreach (var item in gallery)
                         {
@@ -2225,7 +2225,7 @@ namespace PixivWPF.Common
                 if (_downManager is DownloadManagerPage)
                 {
                     var items = _downManager.GetSelectedItems();
-                    if (items is IEnumerable<DownloadInfo> && items.Count() > 0 && MultipleOpeningConfirm(items))
+                    if (items is IEnumerable<DownloadInfo> && items.Count() > 0 && ParallelExecutionConfirm(items))
                     {
                         foreach (var item in items)
                         {

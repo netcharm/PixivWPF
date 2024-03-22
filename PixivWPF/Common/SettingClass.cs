@@ -2588,6 +2588,17 @@ namespace PixivWPF.Common
             }
         }
 
+        private bool search_result_highlighting_downloaded = true;
+        public bool SearchResultHighlightingDownloaded
+        {
+            get { return (Cache is Setting ? Cache.search_result_highlighting_downloaded : search_result_highlighting_downloaded); }
+            set
+            {
+                search_result_highlighting_downloaded = value;
+                if (Cache is Setting) Cache.search_result_highlighting_downloaded = search_result_highlighting_downloaded;
+            }
+        }
+
         [JsonIgnore]
         private const string shell_explorer_name = "explorer.exe";
         [JsonIgnore]

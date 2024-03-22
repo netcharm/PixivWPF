@@ -1741,7 +1741,7 @@ namespace PixivWPF.Common
             {
                 if (Info is DownloadInfo && Info.Illust.IsWork())
                 {
-                    Commands.SearchInStorage.Execute(new SearchObject($"=uid:{Info.UserID}", scope: StorageSearchScope.Author));
+                    Commands.SearchInStorage.Execute(new SearchObject($"=uid:{Info.UserID}", scope: StorageSearchScope.Author, highlight: Info.IllustID.ToString()));
                 }
             }
             else if (sender == miSearchTagsInFiles)
@@ -1749,14 +1749,14 @@ namespace PixivWPF.Common
                 if (Info is DownloadInfo && Info.Illust.IsWork())
                 {
                     var mode = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? StorageSearchMode.And : StorageSearchMode.Or;
-                    Commands.SearchInStorage.Execute(new SearchObject(string.Join(Environment.NewLine, Info.Illust.Tags), scope: StorageSearchScope.Tag, mode: mode));
+                    Commands.SearchInStorage.Execute(new SearchObject(string.Join(Environment.NewLine, Info.Illust.Tags), scope: StorageSearchScope.Tag, mode: mode, highlight: Info.IllustID.ToString()));
                 }
             }
             else if (sender == miSearchTitleInFiles)
             {
                 if (Info is DownloadInfo && Info.Illust.IsWork())
                 {
-                    Commands.SearchInStorage.Execute(new SearchObject(Info.Illust.Title.KatakanaHalfToFull(), scope: StorageSearchScope.Title));
+                    Commands.SearchInStorage.Execute(new SearchObject(Info.Illust.Title.KatakanaHalfToFull(), scope: StorageSearchScope.Title, highlight: Info.IllustID.ToString()));
                 }
             }
             else if (sender == miCompareDownloaded)

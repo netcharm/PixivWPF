@@ -3927,8 +3927,9 @@ namespace PixivWPF.Pages
 
             if (!string.IsNullOrEmpty(text))
             {
-                if (searching_web) Commands.SearchInWeb.Execute(new SearchObject(text, scope: scope, mode: mode, fuzzy: fuzzy));
-                else Commands.SearchInStorage.Execute(new SearchObject(text, scope: scope, mode: mode, fuzzy: fuzzy));
+                var id = Contents.IsWork() && Contents.IsDownloaded ? Contents.ID : null;
+                if (searching_web) Commands.SearchInWeb.Execute(new SearchObject(text, scope: scope, mode: mode, fuzzy: fuzzy, highlight: id));
+                else Commands.SearchInStorage.Execute(new SearchObject(text, scope: scope, mode: mode, fuzzy: fuzzy, highlight: id));
             }
         }
 
@@ -4255,9 +4256,10 @@ namespace PixivWPF.Pages
                 var mode = StorageSearchMode.Or; // Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? StorageSearchMode.And : StorageSearchMode.Or;
                 var fuzzy = false; //!Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
                 var text = fuzzy ? $"{IllustAuthor.Text}{Environment.NewLine}{Contents.UserID}" : $"=uid:{Contents.UserID}";
+                var id = Contents.IsWork() && Contents.IsDownloaded ? Contents.ID : null;
 
                 text = string.Join(Environment.NewLine, text.Trim().Split(Speech.LineBreak, StringSplitOptions.RemoveEmptyEntries));
-                if (!string.IsNullOrEmpty(text)) Commands.SearchInStorage.Execute(new SearchObject(text, scope: scope, mode: mode, fuzzy: fuzzy));
+                if (!string.IsNullOrEmpty(text)) Commands.SearchInStorage.Execute(new SearchObject(text, scope: scope, mode: mode, fuzzy: fuzzy, highlight: id));
             }
         }
 

@@ -3100,10 +3100,10 @@ namespace PixivWPF.Common
 
         public static void SearchInFolder(this Application app, SearchObject search)
         {
-            SearchInFolder(app, search.Query, search.Folder, search.Scope, search.Mode, search.CopyQueryToClipboard, search.FuzzySearch, search.RawMode);
+            SearchInFolder(app, search.Query, search.Folder, search.Scope, search.Mode, search.CopyQueryToClipboard, search.FuzzySearch, search.RawMode, search.HighlightWord);
         }
 
-        public static void SearchInFolder(this Application app, string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And, bool? copyquery = null, bool? fuzzy = null, bool? raw = false)
+        public static void SearchInFolder(this Application app, string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And, bool? copyquery = null, bool? fuzzy = null, bool? raw = false, string highlight = null)
         {
             if (!string.IsNullOrEmpty(query))
             {
@@ -3140,6 +3140,10 @@ namespace PixivWPF.Common
                     var query_list = new Dictionary<string, string[]>();
                     var querys = query.Split(LineBreak, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
                     Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty value;
+
+                    if (scope.HasFlag(StorageSearchScope.Kind) &&
+                        SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Kind, out value))
+                        query_list.Add(value.Description.DisplayName, querys);
                     if (scope.HasFlag(StorageSearchScope.Title) &&
                         SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.Title, out value))
                         query_list.Add(value.Description.DisplayName, querys);
@@ -3190,6 +3194,13 @@ namespace PixivWPF.Common
                     {
                         query = string.Join(m_sep, query_list.Select(q => $"{q.Key}:{(fuzzy ?? true ? $"~={QuotedValues(q, m_sep, raw_keys)}" : $"={QuotedValues(q, m_sep, raw_keys)}")}"));
                     }
+
+                    if (setting.SearchResultHighlightingDownloaded && !string.IsNullOrEmpty(highlight))
+                    {
+                        SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.ItemNameDisplay, out value);
+                        var hq = $"{value.Description.DisplayName}:~<\"{highlight}\"";
+                        query = $"{query} OR {hq}";
+                    }                    
                 }
 
                 if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))

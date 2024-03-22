@@ -545,7 +545,7 @@ namespace PixivWPF
             else
             {
                 var links = e.ParseDragContent();
-                if (Commands.MultipleOpeningConfirm(links))
+                if (Commands.ParallelExecutionConfirm(links))
                 {
                     foreach (var link in links)
                     {
