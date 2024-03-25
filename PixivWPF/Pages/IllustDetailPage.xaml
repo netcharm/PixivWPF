@@ -49,7 +49,7 @@
                 </MenuItem.Icon>
             </MenuItem>
         </ContextMenu>
-        
+
         <ContextMenu x:Key="ActionFollowAuthor">
             <MenuItem x:Uid="ActionFollowAuthorPublic" Header="Public" Click="ActionFollowAuthor_Click">
                 <MenuItem.Icon>
@@ -79,7 +79,7 @@
                 </MenuItem.Icon>
             </MenuItem>
         </ContextMenu>
-        
+
         <ContextMenu x:Key="ActionIllust" Opened="DownloadAction_Opened">
             <MenuItem x:Uid="ActionIllustNewWindow" Header="Open Illust in New Window" Click="ActionIllustInfo_Click">
                 <MenuItem.Icon>
@@ -359,8 +359,8 @@
                 </MenuItem.Icon>
             </MenuItem>
         </ContextMenu>
-        
-        <ContextMenu x:Name="MenuGallaryAction" x:Key="MenuGallaryAction" Opened="MenuGallaryAction_Opened" >
+
+        <ContextMenu x:Name="MenuGallaryAction" x:Key="MenuGallaryAction" Opened="MenuGallaryAction_Opened">
             <MenuItem x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="ActionCopyIllustID_Click" >
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xE16F;" FontSize="16" FontFamily="Segoe MDL2 Assets"

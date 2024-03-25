@@ -104,6 +104,7 @@ namespace PixivWPF.Common
                     {
                         FileName = illust.GetOriginalUrl(singlefile ? 0 : idx).GetImageName(singlefile);
                         FileName = Application.Current.SaveTarget(FileName);
+                        FolderName = Path.GetDirectoryName(FileName);
                     }
                 }
                 if (!string.IsNullOrEmpty(FileName)) Name = Path.GetFileNameWithoutExtension(FileName);
@@ -140,7 +141,7 @@ namespace PixivWPF.Common
         }
 
         public string FileName { get; set; } = string.Empty;
-        public string FolderName { get { return string.IsNullOrEmpty(FileName) ? string.Empty : Path.GetDirectoryName(FileName); } }
+        public string FolderName { get { return string.IsNullOrEmpty(FileName) ? string.Empty : Path.GetDirectoryName(FileName); } set { } }
         public DateTime FileTime { get; set; } = DateTime.Now;
 
         [DefaultValue(0)]
@@ -1649,6 +1650,7 @@ namespace PixivWPF.Common
         {
             setting = Application.Current.LoadSetting();
             var multiple = Application.Current.DownloadManagerHasMultiSelected();
+            var highlight_word = Info.State == DownloadState.Finished ? Info.IllustID.ToString() : null;
             if ((sender == miCopyIllustID || sender == PART_CopyIllustID) && !string.IsNullOrEmpty(Url))
             {
                 Commands.CopyArtworkIDs.Execute(Url);
@@ -1741,7 +1743,7 @@ namespace PixivWPF.Common
             {
                 if (Info is DownloadInfo && Info.Illust.IsWork())
                 {
-                    Commands.SearchInStorage.Execute(new SearchObject($"=uid:{Info.UserID}", scope: StorageSearchScope.Author, highlight: Info.IllustID.ToString()));
+                    Commands.SearchInStorage.Execute(new SearchObject($"=uid:{Info.UserID}", scope: StorageSearchScope.Author, highlight: highlight_word));
                 }
             }
             else if (sender == miSearchTagsInFiles)
@@ -1749,14 +1751,14 @@ namespace PixivWPF.Common
                 if (Info is DownloadInfo && Info.Illust.IsWork())
                 {
                     var mode = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? StorageSearchMode.And : StorageSearchMode.Or;
-                    Commands.SearchInStorage.Execute(new SearchObject(string.Join(Environment.NewLine, Info.Illust.Tags), scope: StorageSearchScope.Tag, mode: mode, highlight: Info.IllustID.ToString()));
+                    Commands.SearchInStorage.Execute(new SearchObject(string.Join(Environment.NewLine, Info.Illust.Tags), scope: StorageSearchScope.Tag, mode: mode, highlight: highlight_word));
                 }
             }
             else if (sender == miSearchTitleInFiles)
             {
                 if (Info is DownloadInfo && Info.Illust.IsWork())
                 {
-                    Commands.SearchInStorage.Execute(new SearchObject(Info.Illust.Title.KatakanaHalfToFull(), scope: StorageSearchScope.Title, highlight: Info.IllustID.ToString()));
+                    Commands.SearchInStorage.Execute(new SearchObject(Info.Illust.Title.KatakanaHalfToFull(), scope: StorageSearchScope.Title, highlight: highlight_word));
                 }
             }
             else if (sender == miCompareDownloaded)

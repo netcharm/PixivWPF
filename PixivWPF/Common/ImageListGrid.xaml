@@ -338,8 +338,7 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" 
-                               FontFamily="{StaticResource NormalFamily}"
+                    <TextBlock Grid.Column="0"
                                Text="{Binding Subject, Mode=OneWay}" 
                                Background="{DynamicResource MahApps.Brushes.Accent}"
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>

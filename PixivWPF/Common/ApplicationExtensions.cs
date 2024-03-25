@@ -170,6 +170,50 @@ namespace PixivWPF.Common
             }
         }
 
+        public static void ChangeResourceFonts(this Application app, Setting setting = null)
+        {
+            if (setting == null) setting = app.LoadSetting();
+            if (setting is Setting)
+            {
+                var mono_family = app.FindResource("MonoSpaceFamily");
+                if (mono_family is FontFamily && !string.IsNullOrEmpty(setting.FontFamilyMono))
+                {
+                    try
+                    {
+                        var fonts = mono_family as FontFamily;
+                        var fonts_new = new FontFamily(setting.FontFamilyMono);
+                        app.Resources.Remove("MonoSpaceFamily");
+                        app.Resources.Add("MonoSpaceFamily", fonts_new);
+                    }
+                    catch { }
+                }
+                var icon_family = app.FindResource("SegoeIconFamily");
+                if (mono_family is FontFamily && !string.IsNullOrEmpty(setting.FontFamilyIcon))
+                {
+                    try
+                    {
+                        var fonts = mono_family as FontFamily;
+                        var fonts_new = new FontFamily(setting.FontFamilyIcon);
+                        app.Resources.Remove("SegoeIconFamily");
+                        app.Resources.Add("SegoeIconFamily", fonts_new);
+                    }
+                    catch { }
+                }
+                var normal_family = app.FindResource("NormalFamily");
+                if (mono_family is FontFamily && !string.IsNullOrEmpty(setting.FontFamilyNormal))
+                {
+                    try
+                    {
+                        var fonts = mono_family as FontFamily;
+                        var fonts_new = new FontFamily(setting.FontFamilyNormal);
+                        app.Resources.Remove("NormalFamily");
+                        app.Resources.Add("NormalFamily", fonts_new);
+                    }
+                    catch { }
+                }
+            }
+        }
+
         public static async void LoadTags(this Application app, bool all = false, bool force = false)
         {
             await new Action(() =>

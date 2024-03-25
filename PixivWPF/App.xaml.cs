@@ -52,6 +52,8 @@ namespace PixivWPF
             finally
             {
                 var setting = this.LoadSetting(true, startup : true);
+                this.ChangeResourceFonts(setting);
+
                 if (setting.SingleInstance && Current.Activate())
                 {
                     var checkinstance = true;

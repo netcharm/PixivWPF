@@ -49,7 +49,7 @@
         </TextBlock>
         <TextBox Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="3" x:Name="PART_ProcessLog" Margin="8" 
                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MaxHeight="120" IsReadOnly="True"
-                 FontFamily="{StaticResource MonoSpaceFamily}" FontSize="{StaticResource MonoSpaceSize}"
+                 FontFamily="{DynamicResource MonoSpaceFamily}" FontSize="{DynamicResource MonoSpaceFontSize}"
                  Style="{DynamicResource MahApps.Styles.TextBox}"
                  BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                  mah:ControlsHelper.FocusBorderBrush="{DynamicResource MahApps.Brushes.Accent}"

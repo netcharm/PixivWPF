@@ -66,6 +66,39 @@ namespace PixivWPF.Common
         [JsonIgnore]
         public static bool StartUp { get; internal set; } = false;
 
+        private string font_family_icon = string.Empty;
+        public string FontFamilyIcon
+        {
+            get { return (Cache is Setting ? Cache.font_family_icon : font_family_icon); }
+            set
+            {
+                font_family_icon = value;
+                if (Cache is Setting) Cache.font_family_icon = font_family_icon;
+            }
+        }
+
+        private string font_family_mono = string.Empty;
+        public string FontFamilyMono
+        {
+            get { return (Cache is Setting ? Cache.font_family_mono : font_family_mono); }
+            set
+            {
+                font_family_mono = value;
+                if (Cache is Setting) Cache.font_family_mono = font_family_mono;
+            }
+        }
+
+        private string font_family_normal = string.Empty;
+        public string FontFamilyNormal
+        {
+            get { return (Cache is Setting ? Cache.font_family_normal : font_family_normal); }
+            set
+            {
+                font_family_normal = value;
+                if (Cache is Setting) Cache.font_family_normal = font_family_normal;
+            }
+        }
+
         private bool single_instance = true;
         public bool SingleInstance
         {
@@ -411,9 +444,13 @@ namespace PixivWPF.Common
                             var dict = JsonConvert.DeserializeObject<Dictionary<string, object>>(text, dso);
                             var empty = dict.Count() <= 0;
 
+                            var lastfolder = Cache is Setting ? Cache.LastFolder : string.Empty;
                             var user = Cache is Setting ? Cache.username : string.Empty;
                             var pass = Cache is Setting ? Cache.password : string.Empty;
+
                             Cache = empty ? new Setting() : JsonConvert.DeserializeObject<Setting>(text, dso);
+
+                            Cache.LastFolder = string.IsNullOrEmpty(Cache.LastFolder) ? lastfolder : Cache.LastFolder;
                             Cache.username = string.IsNullOrEmpty(Cache.username) ? user : Cache.username;
                             Cache.password = string.IsNullOrEmpty(Cache.password) ? pass : Cache.password;
 
@@ -440,7 +477,10 @@ namespace PixivWPF.Common
                             {
                                 try
                                 {
-                                    Cache.fontfamily = new FontFamily(Cache.FontName);
+                                    //Cache.FontFamilyMono = dict["FontFamilyMono"].ToString();
+                                    //Cache.FontFamilyIcon = dict["FontFamilyIcon"].ToString();
+                                    //Cache.FontFamilyNormal = dict["FontFamilyNormal"].ToString();
+                                    Application.Current.ChangeResourceFonts(Cache);
                                 }
                                 catch (Exception ex)
                                 {

@@ -39,27 +39,29 @@
             <ScaleTransform x:Key="FontStretchExpanded" ScaleX="1.2" />
 
             <BooleanToVisibilityConverter x:Key="Bool2Vis"/>
+            
             <DropShadowEffect x:Key="DropGlow" Color="{DynamicResource MahApps.Colors.IdealForeground}" ShadowDepth="0" Opacity="1" BlurRadius="5"/>
             <DropShadowEffect x:Key="DropMark" Color="{DynamicResource MahApps.Colors.Accent}" ShadowDepth="0" Opacity="1" BlurRadius="5"/>
             <BlurEffect x:Key="BlurGlow" Radius="9" RenderingBias="Quality" KernelType="Gaussian"/>
             <BlurEffect x:Key="BlurMark" Radius="5" RenderingBias="Quality" KernelType="Gaussian"/>
+            
             <FontFamily x:Key="MonoSpaceFamily">
-                "Sarasa Mono J, 等距更纱黑体 SC, FontAwesome, Iosevka, Consolas, Segoe UI Emoji, Segoe MDL2 Assets, 更纱黑体 SC, Segoe UI, Monospace"
+                "霞骛文楷等宽, LXGW WenKai Mono, Sarasa Mono J, 等距更纱黑体 SC, FontAwesome, Iosevka, Consolas, Segoe UI Emoji, Segoe MDL2 Assets, 更纱黑体 SC, Segoe UI, Monospace"
             </FontFamily>
             <FontFamily x:Key="NormalFamily">
-                "Sarasa Gothic J, 更纱黑体 SC, FontAwesome, Segoe UI Emoji, Segoe MDL2 Assets, Segoe UI"
+                "霞骛文楷, LXGW WenKai, Sarasa Gothic J, 更纱黑体 SC, FontAwesome, Segoe UI Emoji, Segoe MDL2 Assets, Segoe UI"
             </FontFamily>
             <FontFamily x:Key="SegoeIconFamily">
-                "Segoe MDL2 Assets, Segoe UI Emoji, Segoe UI Symbol, Segoe UI"
+                "Segoe MDL2 Assets, Segoe UI Emoji, Segoe UI Symbol, 霞骛文楷, LXGW WenKai, Sarasa Gothic J, 更纱黑体 SC, FontAwesome, Segoe UI"
                 <!--"Segoe MDL2 Assets"-->
             </FontFamily>            
-            <sys:Double x:Key="MonoSpaceSize">14</sys:Double>
-            <Style x:Key="SegoeIconStyle" TargetType="{x:Type Button}">
-                <Setter Property="FontFamily" Value="{StaticResource SegoeIconFamily}"/>
-            </Style>
+            <sys:Double x:Key="MonoSpaceFontSize">14</sys:Double>
+            <sys:Double x:Key="NormalFontSize">14</sys:Double>
+            <sys:Double x:Key="IconFontSize">14</sys:Double>
+
             <Style x:Key="{x:Type ToolTip}" TargetType="{x:Type ToolTip}">
-                <Setter Property="FontFamily" Value="{StaticResource MonoSpaceFamily}"/>
-                <Setter Property="FontSize" Value="{StaticResource MonoSpaceSize}"/>
+                <Setter Property="FontFamily" Value="{DynamicResource MonoSpaceFamily}"/>
+                <Setter Property="FontSize" Value="{DynamicResource MonoSpaceFontSize}"/>
                 <Setter Property="MaxWidth" Value="1024"/>
                 <Style.Resources>
                     <Style TargetType="ContentPresenter">
@@ -72,6 +74,15 @@
                         </Style.Resources>
                     </Style>
                 </Style.Resources>
+            </Style>
+            <Style TargetType="{x:Type TextBlock}">
+                <Setter Property="FontFamily" Value="{DynamicResource NormalFamily}"/>
+            </Style>
+            <Style TargetType="{x:Type TextBox}">
+                <Setter Property="FontFamily" Value="{DynamicResource NormalFamily}"/>
+            </Style>
+            <Style x:Key="SegoeIconStyle" TargetType="{x:Type Button}">
+                <Setter Property="FontFamily" Value="{DynamicResource SegoeIconFamily}"/>
             </Style>
 
             <ControlTemplate x:Key="MenuItemWithSlider" TargetType="{x:Type MenuItem}">
