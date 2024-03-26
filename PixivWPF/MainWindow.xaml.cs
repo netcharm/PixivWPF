@@ -709,6 +709,8 @@ namespace PixivWPF
                 Commands.UpgradeApplication.Execute(null);
             else if (sender == CommandOpenConfig)
                 Commands.OpenConfig.Execute(null);
+            else if (sender == CommandOpenWebViewTemplate)
+                Commands.OpenWebViewTemplate.Execute(null);
             else if (sender == CommandOpenFullListUsers)
             {
                 if (Keyboard.Modifiers == ModifierKeys.Control)

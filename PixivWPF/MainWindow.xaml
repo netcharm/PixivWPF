@@ -319,6 +319,11 @@
                                 <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             </MenuItem.Icon>
                         </MenuItem>
+                        <MenuItem x:Name="CommandOpenWebViewTemplate" x:Uid="CommandOpenWebViewTemplate" Header="Open WebView Template" Click="CommandApplication_Click" >
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
                         <MenuItem x:Name="CommandOpenFullListUsers" x:Uid="CommandOpenFullListUsers" Header="Open Full List Users File" Click="CommandApplication_Click" >
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
@@ -337,9 +342,14 @@
                             </MenuItem.Icon>
                         </MenuItem>
                         <mah:ColorPicker x:Name="ConvertBackColorPicker" x:Uid="ConvertBackColorPicker" 
-                                         mah:TextBoxHelper.ClearTextButton="True"
-                                         mah:TextBoxHelper.UseFloatingWatermark="True"
+                                         mah:TextBoxHelper.AutoWatermark="True"
                                          mah:TextBoxHelper.Watermark="Select a Color"
+                                         mah:TextBoxHelper.WatermarkTrimming="WordEllipsis"
+                                         mah:TextBoxHelper.UseFloatingWatermark="True"
+                                         mah:TextBoxHelper.ClearTextButton="True"
+                                         mah:TextBoxHelper.ButtonContent="&#x2715;"
+                                         mah:TextBoxHelper.ButtonFontFamily="Segoe UI Symbol"
+                                         mah:TextBoxHelper.ButtonsAlignment="Opposite"
                                          IsCustomColorPalette01Visible="True"
                                          AddToRecentColorsTrigger="SelectedColorChanged"
                                          SelectedColorChanged="ConvertBackColorPicker_SelectedColorChanged"/>

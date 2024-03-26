@@ -249,6 +249,19 @@ namespace PixivWPF.Common
             }).InvokeAsync(true);
         });
 
+        public static ICommand OpenWebViewTemplate { get; } = new DelegateCommand<string>(async obj =>
+        {
+            await new Action(() =>
+            {
+                var setting = Application.Current.LoadSetting();
+                var cfg = Path.Combine(Application.Current.GetRoot(), setting.ContentsTemplateFile);
+                var viewer = string.IsNullOrEmpty(setting.ShellTextViewer) ? setting.ShellLogViewer : setting.ShellTextViewer;
+                var param = string.IsNullOrEmpty(setting.ShellTextViewer) ? setting.ShellLogViewerParams : setting.ShellTextViewerParams;
+                if (string.IsNullOrEmpty(viewer)) viewer = "notepad.exe";
+                cfg.OpenFileWithShell(command: viewer, custom_params: param);
+            }).InvokeAsync(true);
+        });
+
         public static ICommand OpenFullListUsers { get; } = new DelegateCommand<string>(async obj =>
         {
             await new Action(() =>
