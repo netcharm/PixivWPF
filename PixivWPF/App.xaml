@@ -46,10 +46,10 @@
             <BlurEffect x:Key="BlurMark" Radius="5" RenderingBias="Quality" KernelType="Gaussian"/>
             
             <FontFamily x:Key="MonoSpaceFamily">
-                "霞骛文楷等宽, LXGW WenKai Mono, Sarasa Mono J, 等距更纱黑体 SC, FontAwesome, Iosevka, Consolas, Segoe UI Emoji, Segoe MDL2 Assets, 更纱黑体 SC, Segoe UI, Monospace"
+                "霞骛文楷等宽, LXGW WenKai Mono, Sarasa Mono J, 等距更纱黑体 SC, FontAwesome, Iosevka, Consolas, Segoe UI Symbol, Segoe UI Emoji, Segoe MDL2 Assets, 更纱黑体 SC, Segoe UI, Monospace"
             </FontFamily>
             <FontFamily x:Key="NormalFamily">
-                "霞骛文楷, LXGW WenKai, Sarasa Gothic J, 更纱黑体 SC, FontAwesome, Segoe UI Emoji, Segoe MDL2 Assets, Segoe UI"
+                "霞骛文楷, LXGW WenKai, Sarasa Gothic J, 更纱黑体 SC, FontAwesome, Segoe UI Emoji, Segoe MDL2 Assets, Segoe UI Symbol, Segoe UI"
             </FontFamily>
             <FontFamily x:Key="SegoeIconFamily">
                 "Segoe MDL2 Assets, Segoe UI Emoji, Segoe UI Symbol, 霞骛文楷, LXGW WenKai, Sarasa Gothic J, 更纱黑体 SC, FontAwesome, Segoe UI"
@@ -84,6 +84,16 @@
             <Style x:Key="SegoeIconStyle" TargetType="{x:Type Button}">
                 <Setter Property="FontFamily" Value="{DynamicResource SegoeIconFamily}"/>
             </Style>
+
+            <DataTemplate x:Key="TitleBarTemplate">
+                <TextBlock Text="{TemplateBinding Content}"
+                    VerticalAlignment="Center"
+                    Margin="4,0,4,0"
+                    TextTrimming="{TemplateBinding TextBlock.TextTrimming}"
+                    FontWeight="{TemplateBinding TextBlock.FontWeight}"
+                    FontSize="{TemplateBinding TextBlock.FontSize}"
+                    FontFamily="{DynamicResource NormalFamily}"/>
+            </DataTemplate>
 
             <ControlTemplate x:Key="MenuItemWithSlider" TargetType="{x:Type MenuItem}">
                 <Border x:Name="PART_SliderBorder"

@@ -8,9 +8,12 @@
                  xmlns:local="clr-namespace:PixivWPF.Common"
                  mc:Ignorable="d"
                  Icon="pack://application:,,,/PixivWPF;component/Resources/pixiv-icon.ico"
+                 BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                 GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
+                 TitleTemplate="{DynamicResource TitleBarTemplate}"
+                 BorderThickness="1" 
                  Title="ContentWindow" Height="300" Width="300" 
                  AllowDrop="True" AllowsTransparency="False"
-                 BorderThickness="1" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                  RenderOptions.BitmapScalingMode="HighQuality"
                  RenderOptions.CachingHint="Cache"
                  RenderOptions.ClearTypeHint="Enabled"
@@ -62,26 +65,26 @@
                     <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Button>
                 <Border BorderThickness="0" Background="{DynamicResource Theme.SemiTransparentBrush}">
-                <StackPanel x:Name="PreftchingProgress" Orientation="Horizontal" Width="Auto" HorizontalAlignment="Center" VerticalAlignment="Center" MouseRightButtonDown="PreftchingProgress_MouseRightButtonDown">
-                    <TextBlock x:Name="PreftchingProgressInfo" x:Uid="PreftchingProgressInfo" VerticalAlignment="Center" Margin="0,0,2,0" Text="" />
-                    <TextBlock x:Name="PreftchingProgressState" x:Uid="PreftchingProgressState" VerticalAlignment="Center"
+                    <StackPanel x:Name="PreftchingProgress" Orientation="Horizontal" Width="Auto" HorizontalAlignment="Center" VerticalAlignment="Center" MouseRightButtonDown="PreftchingProgress_MouseRightButtonDown">
+                        <TextBlock x:Name="PreftchingProgressInfo" x:Uid="PreftchingProgressInfo" VerticalAlignment="Center" Margin="0,0,2,0" Text="" />
+                        <TextBlock x:Name="PreftchingProgressState" x:Uid="PreftchingProgressState" VerticalAlignment="Center"
                                Text="&#xF16A;" FontSize="16" FontFamily="Segoe MDL2 Assets" RenderTransformOrigin="0.5,0.5" Visibility="Collapsed">
-                        <TextBlock.Resources>
-                            <Storyboard x:Key="PreftchingStateRing" x:Name="PreftchingStateRing">
-                                <DoubleAnimation
+                            <TextBlock.Resources>
+                                <Storyboard x:Key="PreftchingStateRing" x:Name="PreftchingStateRing">
+                                    <DoubleAnimation
                                     Storyboard.TargetName="PreftchingStateRingRotation"
                                     Storyboard.TargetProperty="Angle"
                                     From="0" To="360" Duration="0:0:6" DesiredFrameRate="20"
                                     AutoReverse="False" RepeatBehavior="Forever" />
-                            </Storyboard>
-                        </TextBlock.Resources>
-                        <TextBlock.RenderTransform>
-                            <TransformGroup>
-                                <RotateTransform x:Name="PreftchingStateRingRotation" Angle="0"/>
-                            </TransformGroup>
-                        </TextBlock.RenderTransform>
-                    </TextBlock>
-                </StackPanel>
+                                </Storyboard>
+                            </TextBlock.Resources>
+                            <TextBlock.RenderTransform>
+                                <TransformGroup>
+                                    <RotateTransform x:Name="PreftchingStateRingRotation" Angle="0"/>
+                                </TransformGroup>
+                            </TextBlock.RenderTransform>
+                        </TextBlock>
+                    </StackPanel>
                 </Border>
             </StackPanel>
             <Button x:Name="CommandRecents" x:Uid="CommandRecents" Click="CommandRecents_Click" ToolTip="Recents">
@@ -194,8 +197,14 @@
                       IsEditable="True" 
                       ItemsSource="{Binding Path=AutoSuggestList}"
                       Style="{DynamicResource MahApps.Styles.ComboBox.Virtualized}"
-                      mah:TextBoxHelper.ClearTextButton="True"
+                      mah:TextBoxHelper.AutoWatermark="True"
                       mah:TextBoxHelper.Watermark="Searching ..." 
+                      mah:TextBoxHelper.WatermarkTrimming="WordEllipsis"
+                      mah:TextBoxHelper.UseFloatingWatermark="True"
+                      mah:TextBoxHelper.ClearTextButton="True"
+                      mah:TextBoxHelper.ButtonContent="&#x2715;"
+                      mah:TextBoxHelper.ButtonFontFamily="Segoe UI Symbol"
+                      mah:TextBoxHelper.ButtonsAlignment="Opposite"
                       IsTextSearchEnabled="False"
                       TextBoxBase.TextChanged="SearchBox_TextChanged"
                       SelectionChanged="SearchBox_SelectionChanged"
@@ -214,7 +223,7 @@
                 <TextBlock 
                     Text="&#xE81C;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Button>            
+            </Button>
             <Button Click="CommandDownloadManager_Click" MouseRightButtonDown="CommandDownloadManager_MouseRightButtonDown"
                     ToolTip="Open Download Manager">
                 <TextBlock 
@@ -240,16 +249,14 @@
                         <Separator/>
                         <RadioButton x:Name="cmiUseHttp10" x:Uid="UseHttp10" Content="Using HTTP Version 1.0" GroupName="HttpVersion" IsChecked="False" ClickMode="Press" />
                         <RadioButton x:Name="cmiUseHttp11" x:Uid="UseHttp11" Content="Using HTTP Version 1.1" GroupName="HttpVersion" IsChecked="False" ClickMode="Press" />
-                        <RadioButton x:Name="cmiUseHttp20" x:Uid="UseHttp20" Content="Using HTTP Version 2.0" GroupName="HttpVersion" IsChecked="False" ClickMode="Press" />                        
+                        <RadioButton x:Name="cmiUseHttp20" x:Uid="UseHttp20" Content="Using HTTP Version 2.0" GroupName="HttpVersion" IsChecked="False" ClickMode="Press" />
                     </ContextMenu>
                 </Button.ContextMenu>
             </Button>
             <mah:SplitButton x:Name="CommandLog" Click="CommandLog_Click" DropDownOpened="CommandLog_DropDownOpened"
                              BorderBrush="Transparent" ToolTip="Open Logs">
                 <mah:SplitButton.Icon>
-                    <TextBlock 
-                    Text="&#xE8BC;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE8BC;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </mah:SplitButton.Icon>
                 <mah:SplitButton.ContextMenu>
                     <ContextMenu>
@@ -281,11 +288,10 @@
                         </MenuItem>
                     </ContextMenu>
                 </mah:SplitButton.ContextMenu>
-            </mah:SplitButton>            
+            </mah:SplitButton>
         </mah:WindowCommands>
     </mah:MetroWindow.RightWindowCommands>
 
     <Grid>
-
     </Grid>
 </mah:MetroWindow>

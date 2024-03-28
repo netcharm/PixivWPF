@@ -121,7 +121,7 @@
                         <MenuItem x:Name="PART_RemoveAll_Idle" Header="Remove Idle" Click="PART_RemoveAll_Context_Click"/>
                         <MenuItem x:Name="PART_RemoveAll_Downloading" Header="Remove Downloading" Click="PART_RemoveAll_Context_Click" IsEnabled="False" Visibility="Collapsed" />
                         <Separator/>
-                        <MenuItem x:Name="PART_RemoveAll_Old" Header="Remove Older" Click="PART_RemoveAll_Context_Click"/>
+                        <MenuItem x:Name="PART_RemoveAll_Old" Header="Remove Before Today" Click="PART_RemoveAll_Context_Click"/>
                         <MenuItem x:Name="PART_RemoveAll_NDays" Header="Remove NDays" Click="PART_RemoveAll_Context_Click"/>
                         <Separator/>
                         <MenuItem x:Name="PART_RemoveAll_All" Header="Remove All" Click="PART_RemoveAll_Context_Click"/>

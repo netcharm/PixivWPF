@@ -3493,12 +3493,12 @@ namespace PixivWPF.Common
         #endregion
 
         #region Illust Work DateTime routines
-        private static TimeZoneInfo TokoyTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
+        public static TimeZoneInfo TokoyTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
         public static TimeZoneInfo GetTokyoTimeZone(this Application app)
         {
             return (TokoyTimeZone);
         }
-        private static TimeZoneInfo LocalTimeZone = TimeZoneInfo.Local;
+        public static TimeZoneInfo LocalTimeZone = TimeZoneInfo.Local;
         public static TimeZoneInfo GetLocalTimeZone(this Application app)
         {
             return (LocalTimeZone);

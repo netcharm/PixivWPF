@@ -511,6 +511,52 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(); }
         }
 
+        private async void PART_CopyID_Click(object sender, RoutedEventArgs e)
+        {
+            await new Action(() =>
+            {
+                var targets = new List<string>();
+                var items = DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1 ? DownloadItems.SelectedItems : DownloadItems.Items;
+                foreach (var item in items)
+                {
+                    if (item is DownloadInfo)
+                    {
+                        var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+                        var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+                        if (shift && (item as DownloadInfo).State == DownloadState.Finished) { targets.Add((item as DownloadInfo).FileName); }
+                        else if (ctrl) { targets.Add((item as DownloadInfo).FileName); }
+                        else targets.Add((item as DownloadInfo).FileName.ParseLink().ParseID());
+                    }
+                }
+                Commands.CopyArtworkIDs.Execute(targets);
+            }).InvokeAsync(true);
+        }
+
+        private async void PART_CopyInfo_Click(object sender, RoutedEventArgs e)
+        {
+            await new Action(() =>
+            {
+                Commands.CopyDownloadInfo.Execute(GetDownloadInfo());
+            }).InvokeAsync(true);
+        }
+
+        private async void PART_Compare_Click(object sender, RoutedEventArgs e)
+        {
+            await new Action(() =>
+            {
+                if (DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1)
+                {
+                    try
+                    {
+                        var items =  DownloadItems.SelectedItems.Cast<DownloadInfo>().Where(i => i.State == DownloadState.Finished).Select(i => i.FileName).Take(2).ToList();
+                        Commands.Compare.Execute(items);
+                    }
+                    catch (Exception ex) { ex.ERROR("Compare"); }
+                }
+            }).InvokeAsync(true);
+
+        }
+
         private async void PART_DownloadAll_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -638,31 +684,24 @@ namespace PixivWPF.Pages
 
                     if (state == DownloadState.Older)
                     {
-                        var older = targets.Select(o => new KeyValuePair<DateTime, DownloadInfo>(o.Url.ParseDateTime().Date, o)).OrderByDescending(o => o.Key);
-                        if (older.Count() > 0)
+                        var items = targets.Select(o => new KeyValuePair<DateTime, DownloadInfo>(o.Url.ParseDateTime(), o)).OrderByDescending(o => o.Key);
+                        if (items.Count() > 0)
                         {
-                            var last = new KeyValuePair<DateTime, DownloadInfo>(DateTime.Now.Date, null);
-                            foreach (var i in older)
-                            {
-                                if ((last.Key - i.Key).TotalDays < 3)
-                                {
-                                    last = i;
-                                    targets.Remove(i.Value);
-                                }
-                                else break;
-                            }
+                            var tz_tokoy = CommonHelper.TokoyTimeZone.BaseUtcOffset - CommonHelper.LocalTimeZone.BaseUtcOffset;
+                            var today = DateTime.Now.Date - tz_tokoy;
+                            targets = targets.Except(items.Where(i => i.Key >= today).Select(i => i.Value)).ToList();
                         }
                         state = DownloadState.Finished;
                     }
                     else if (state == DownloadState.NDays)
                     {
                         setting = Application.Current.LoadSetting();
-                        var ndays = setting.DownloadRemoveNDays;
-                        var today = DateTime.Now.Date;
-                        var older = targets.Select(o => new KeyValuePair<DateTime, DownloadInfo>(o.Url.ParseDateTime().Date, o)).OrderByDescending(o => o.Key);
-                        if (older.Count() > 0)
+                        var items = targets.Select(o => new KeyValuePair<DateTime, DownloadInfo>(o.Url.ParseDateTime(), o)).OrderByDescending(o => o.Key);
+                        if (items.Count() > 0)
                         {
-                            targets = targets.Except(older.Where(o => (today - o.Key).TotalDays <= ndays).Select(o => o.Value)).ToList();
+                            var tz_tokoy = CommonHelper.TokoyTimeZone.BaseUtcOffset - CommonHelper.LocalTimeZone.BaseUtcOffset;
+                            var ndays = DateTime.Now.Date - tz_tokoy - TimeSpan.FromDays(Math.Max(0, setting.DownloadRemoveNDays));
+                            targets = targets.Except(items.Where(i => i.Key >= ndays).Select(i => i.Value)).ToList();
                         }
                         state = DownloadState.Finished;
                     }
@@ -677,56 +716,11 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR("DOWNLOADMANAGER"); }
         }
 
-        private async void PART_CopyID_Click(object sender, RoutedEventArgs e)
-        {
-            await new Action(() =>
-            {
-                var targets = new List<string>();
-                var items = DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1 ? DownloadItems.SelectedItems : DownloadItems.Items;
-                foreach (var item in items)
-                {
-                    if (item is DownloadInfo)
-                    {
-                        var shift = Keyboard.Modifiers == ModifierKeys.Shift;
-                        var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
-                        if (shift && (item as DownloadInfo).State == DownloadState.Finished) { targets.Add((item as DownloadInfo).FileName); }
-                        else if (ctrl) { targets.Add((item as DownloadInfo).FileName); }
-                        else targets.Add((item as DownloadInfo).FileName.ParseLink().ParseID());
-                    }
-                }
-                Commands.CopyArtworkIDs.Execute(targets);
-            }).InvokeAsync(true);
-        }
-
-        private async void PART_CopyInfo_Click(object sender, RoutedEventArgs e)
-        {
-            await new Action(() =>
-            {
-                Commands.CopyDownloadInfo.Execute(GetDownloadInfo());
-            }).InvokeAsync(true);
-        }
-
         private void PART_RemoveAll_ContextMenu_Opened(object sender, RoutedEventArgs e)
         {
             setting = Application.Current.LoadSetting();
             PART_RemoveAll_NDays.Header = $"Remove Before {setting.DownloadRemoveNDays} Days";
         }
 
-        private async void PART_Compare_Click(object sender, RoutedEventArgs e)
-        {
-            await new Action(() =>
-            {
-                if (DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1)
-                {
-                    try
-                    {
-                        var items =  DownloadItems.SelectedItems.Cast<DownloadInfo>().Where(i => i.State == DownloadState.Finished).Select(i => i.FileName).Take(2).ToList();
-                        Commands.Compare.Execute(items);
-                    }
-                    catch (Exception ex) { ex.ERROR("Compare"); }
-                }
-            }).InvokeAsync(true);
-
-        }
     }
 }

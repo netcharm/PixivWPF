@@ -10,6 +10,7 @@
                  Icon="pack://application:,,,/PixivWPF;component/Resources/pixiv-icon.ico"
                  BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                  GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
+                 TitleTemplate="{DynamicResource TitleBarTemplate}"
                  BorderThickness="1"                 
                  Title="Pixiv" 
                  VisualTextRenderingMode="Auto"
@@ -22,10 +23,10 @@
                  WindowStartupLocation="CenterScreen" MinWidth="1484" MinHeight="720" Width="1484" Height="964"
                  PreviewDragOver="MainWindow_DragOver" PreviewDrop="MainWindow_Drop"
                  MouseDown="MainWindow_MouseDown"
-                 StateChanged="MainWindow_StateChanged" Activated="MetroWindow_Activated" Deactivated="MetroWindow_Deactivated"
-                 Closing="MainWindow_Closing"  >
+                 StateChanged="MainWindow_StateChanged" Activated="MetroWindow_Activated" Deactivated="MetroWindow_Deactivated" Closing="MainWindow_Closing">
 
     <mah:MetroWindow.Resources>
+        <!--<FontFamily x:Key="{x:Static SystemFonts.CaptionFontFamilyKey}">霞骛文楷, LXGW WenKai, Sarasa Gothic J, 更纱黑体 SC, FontAwesome, Segoe UI Emoji, Segoe MDL2 Assets, Segoe UI Symbol, Segoe UI</FontFamily>-->
         <Style x:Key="MetroSplitButton" TargetType="{x:Type mah:SplitButton}">
             <!--<Setter Property="Background" Value="Transparent" />-->
             <Style.Triggers>
@@ -35,9 +36,8 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-
     </mah:MetroWindow.Resources>
-    
+
     <mah:MetroWindow.LeftWindowCommands>
         <mah:WindowCommands ShowLastSeparator="True">
             <Button x:Name="CommandRefresh" x:Uid="CommandRefresh" 
@@ -201,7 +201,7 @@
                     </MenuItem>
                 </mah:DropDownButton.Items>
             </mah:DropDownButton>
-            <TextBlock x:Name="NavPageTitle" x:Uid="NavPageTitle" Margin="4,0" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Unknown" ToolTipOpening="NavPageTitle_ToolTipOpening"/>
+            <TextBlock x:Name="NavPageTitle" x:Uid="NavPageTitle" Margin="4,0,4,0" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Unknown" ToolTipOpening="NavPageTitle_ToolTipOpening"/>
         </mah:WindowCommands>
     </mah:MetroWindow.LeftWindowCommands>
 
@@ -212,8 +212,14 @@
                       IsEditable="True" 
                       ItemsSource="{Binding Path=AutoSuggestList}"
                       Style="{DynamicResource MahApps.Styles.ComboBox.Virtualized}"
-                      mah:TextBoxHelper.ClearTextButton="True"
+                      mah:TextBoxHelper.AutoWatermark="True"
                       mah:TextBoxHelper.Watermark="Searching ..." 
+                      mah:TextBoxHelper.WatermarkTrimming="WordEllipsis"
+                      mah:TextBoxHelper.UseFloatingWatermark="True"
+                      mah:TextBoxHelper.ClearTextButton="True"
+                      mah:TextBoxHelper.ButtonContent="&#x2715;"
+                      mah:TextBoxHelper.ButtonFontFamily="Segoe UI Symbol"
+                      mah:TextBoxHelper.ButtonsAlignment="Opposite"
                       IsTextSearchEnabled="False"
                       TextBoxBase.TextChanged="SearchBox_TextChanged"
                       SelectionChanged="SearchBox_SelectionChanged"
