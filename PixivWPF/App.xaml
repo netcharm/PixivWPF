@@ -5,6 +5,7 @@
              xmlns:mahs="http://metro.mahapps.com/winfx/xaml/shared"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:local="clr-namespace:PixivWPF"
+             xmlns:common="clr-namespace:PixivWPF.Common"
              StartupUri="MainWindow.xaml"
              Startup="Application_Startup" Exit="Application_Exit">
     <Application.Resources>
@@ -86,14 +87,24 @@
             </Style>
 
             <DataTemplate x:Key="TitleBarTemplate">
-                <TextBlock Text="{TemplateBinding Content}"
+                <TextBlock Name="PART_Title"
+                    Text="{TemplateBinding Content}"
                     VerticalAlignment="Center"
-                    Margin="4,0,4,0"
-                    TextTrimming="{TemplateBinding TextBlock.TextTrimming}"
+                    Margin="8,-1,1,0"
+                    TextTrimming="CharacterEllipsis"
                     FontWeight="{TemplateBinding TextBlock.FontWeight}"
-                    FontSize="{TemplateBinding TextBlock.FontSize}"
+                    FontSize="16"
                     FontFamily="{DynamicResource NormalFamily}"/>
             </DataTemplate>
+            <Style x:Key="MetroWindowStyle" TargetType="{x:Type mah:MetroWindow}">
+                <Setter Property="TitleTemplate" Value="{DynamicResource TitleBarTemplate}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                <Setter Property="GlowBrush" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+            </Style>
+            <Style TargetType="{x:Type local:MainWindow}" BasedOn="{StaticResource MetroWindowStyle}"/>
+            <Style TargetType="{x:Type common:ContentWindow}" BasedOn="{StaticResource MetroWindowStyle}"/>
+            <Style TargetType="{x:Type common:PixivLoginDialog}" BasedOn="{StaticResource MetroWindowStyle}"/>
 
             <ControlTemplate x:Key="MenuItemWithSlider" TargetType="{x:Type MenuItem}">
                 <Border x:Name="PART_SliderBorder"

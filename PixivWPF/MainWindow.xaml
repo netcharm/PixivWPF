@@ -10,7 +10,6 @@
                  Icon="pack://application:,,,/PixivWPF;component/Resources/pixiv-icon.ico"
                  BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                  GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
-                 TitleTemplate="{DynamicResource TitleBarTemplate}"
                  BorderThickness="1"                 
                  Title="Pixiv" 
                  VisualTextRenderingMode="Auto"
@@ -93,7 +92,7 @@
                         </TextBlock.RenderTransform>
                     </TextBlock>
                 </StackPanel>
-            </StackPanel>            
+            </StackPanel>
             <Button x:Name="CommandRecents" x:Uid="CommandRecents" Click="CommandRecents_Click" ToolTip="Recents">
                 <StackPanel>
                     <TextBlock 
@@ -105,7 +104,7 @@
                                  BorderThickness="1" BorderBrush="{DynamicResource MahApps.Brushes.Accent}" 
                                  SelectionChanged="CommandRecentsList_SelectionChanged" />
                     </Popup>
-                </StackPanel>                
+                </StackPanel>
             </Button>
             <Button x:Name="CommandDatePicker" x:Uid="CommandDatePicker" 
                     Click="CommandDatePicker_Click"                                
@@ -287,7 +286,7 @@
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             </MenuItem.Icon>
-                        </MenuItem>                        
+                        </MenuItem>
                         <MenuItem x:Name="CommandLog_Debug" x:Uid="CommandLog_Debug" Header="Debug Log" Click="CommandLog_Click" >
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
@@ -432,7 +431,7 @@
             </mah:SplitButton>
         </mah:WindowCommands>
     </mah:MetroWindow.RightWindowCommands>
-    
+
     <Grid>
     </Grid>
 </mah:MetroWindow>

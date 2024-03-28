@@ -13,7 +13,6 @@
     BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
     GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
     BorderThickness="1"
-    TitleTemplate="{DynamicResource TitleBarTemplate}"
     ShowCloseButton="True"
     ShowMaxRestoreButton="False"
     ShowMinButton="False"
