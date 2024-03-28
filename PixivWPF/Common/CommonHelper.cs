@@ -561,7 +561,7 @@ namespace PixivWPF.Common
         private static ConcurrentDictionary<long?, Pixeez.Objects.UserBase> UserCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserBase>();
         private static ConcurrentDictionary<long?, Pixeez.Objects.UserInfo> UserInfoCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserInfo>();
         private static ConcurrentDictionary<string, byte[]> DownloadTaskCache = new ConcurrentDictionary<string, byte[]>();
-        
+
         private static ConcurrentDictionary<string, string> _FullListedUser_ = null;
         public static ConcurrentDictionary<string, string> FullListedUser
         {
@@ -634,7 +634,7 @@ namespace PixivWPF.Common
                 if (remove)
                 {
                     var data = string.Empty;
-                    if (_FullListedUser_.ContainsKey(userid)) result = _FullListedUser_.TryRemove(userid, out data);                       
+                    if (_FullListedUser_.ContainsKey(userid)) result = _FullListedUser_.TryRemove(userid, out data);
                 }
                 else
                 {
@@ -1120,13 +1120,13 @@ namespace PixivWPF.Common
         {
             var result = false;
             Uri unc = null;
-            var invalid = new List<char> { '<', ':', '>' };            
+            var invalid = new List<char> { '<', ':', '>' };
             try
             {
-                if (!string.IsNullOrEmpty(text) && 
+                if (!string.IsNullOrEmpty(text) &&
                     !Path.GetInvalidPathChars().Contains(text.FirstOrDefault()) &&
                     //!Path.GetInvalidFileNameChars().Contains(text.FirstOrDefault()) &&
-                    !invalid.Contains(text.FirstOrDefault()) && 
+                    !invalid.Contains(text.FirstOrDefault()) &&
                     Uri.TryCreate(text, UriKind.RelativeOrAbsolute, out unc))
                 {
                     result = unc.IsAbsoluteUri ? unc.IsFile : false;
@@ -2526,19 +2526,6 @@ namespace PixivWPF.Common
             return Regex.Matches(t, @"(.{" + lineLength + @"})", RegexOptions.IgnoreCase | RegexOptions.Multiline).Cast<Match>().Select(m => m.Value).ToArray();
         }
 
-        // MakePackUri is a utility method for computing a pack uri
-        // for the given resource. 
-        public static Uri MakePackUri(this string relativeFile)
-        {
-            Assembly a = typeof(ThresholdEffect).Assembly;
-
-            // Extract the short name.
-            string assemblyShortName = a.ToString().Split(',')[0];
-            string uriString = $"pack://application:,,,/{assemblyShortName};component/{relativeFile}";
-
-            return new Uri(uriString);
-        }
-
         public static string[] Where(this string cmd)
         {
             var result = new List<string>();
@@ -2867,13 +2854,13 @@ namespace PixivWPF.Common
             }
         }
 
-        public static bool OpenUrlWithShell(this string url, bool search  = false)
+        public static bool OpenUrlWithShell(this string url, bool search = false)
         {
             bool result = false;
 
             try
             {
-                if (string.IsNullOrEmpty(url)) return(result);
+                if (string.IsNullOrEmpty(url)) return (result);
 
                 var all = setting.ShellWebBrowser.Where();
                 var shell = all.Length > 0 ? all.First() : string.Empty;
@@ -3180,7 +3167,7 @@ namespace PixivWPF.Common
         {
             try
             {
-                if (items is IEnumerable<string> && items.Count()>0)
+                if (items is IEnumerable<string> && items.Count() > 0)
                 {
                     var files = new StringCollection();
                     files.AddRange(items.Where(f => File.Exists(f)).ToArray());
@@ -7474,6 +7461,50 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        /// <summary>
+        /// 转换Image为Icon
+        /// </summary>
+        /// <param name="image">要转换为图标的Image对象</param>
+        /// <param name="nullTonull">当image为null时是否返回null。false则抛空引用异常</param>
+        /// <exception cref="ArgumentNullException" />
+        public static System.Drawing.Icon ConvertToIcon(System.Drawing.Image image, bool nullTonull = false)
+        {
+            if (image == null)
+            {
+                if (nullTonull) { return null; }
+                throw new ArgumentNullException("Image");
+            }
+
+            using (MemoryStream msImg = new MemoryStream(), msIco = new MemoryStream())
+            {
+                image.Save(msImg, System.Drawing.Imaging.ImageFormat.Png);
+
+                using (var bin = new BinaryWriter(msIco))
+                {
+                    //写图标头部
+                    bin.Write((short)0);           //0-1保留
+                    bin.Write((short)1);           //2-3文件类型。1=图标, 2=光标
+                    bin.Write((short)1);           //4-5图像数量（图标可以包含多个图像）
+
+                    bin.Write((byte)image.Width);  //6图标宽度
+                    bin.Write((byte)image.Height); //7图标高度
+                    bin.Write((byte)0);            //8颜色数（若像素位深>=8，填0。这是显然的，达到8bpp的颜色数最少是256，byte不够表示）
+                    bin.Write((byte)0);            //9保留。必须为0
+                    bin.Write((short)0);           //10-11调色板
+                    bin.Write((short)32);          //12-13位深
+                    bin.Write((int)msImg.Length);  //14-17位图数据大小
+                    bin.Write(22);                 //18-21位图数据起始字节
+
+                    //写图像数据
+                    bin.Write(msImg.ToArray());
+
+                    bin.Flush();
+                    bin.Seek(0, SeekOrigin.Begin);
+                    return new System.Drawing.Icon(msIco);
+                }
+            }
+        }
+
         public static byte[] ConvertImageTo(this byte[] buffer, string fmt, out string failreason, int quality = 85, bool force = false)
         {
             byte[] result = buffer;
@@ -7487,6 +7518,9 @@ namespace PixivWPF.Common
                     fmt = fmt.ToLower();
                     if (fmt.Equals("png")) pFmt = System.Drawing.Imaging.ImageFormat.Png;
                     else if (fmt.Equals("jpg")) pFmt = System.Drawing.Imaging.ImageFormat.Jpeg;
+                    else if (fmt.Equals("ico")) pFmt = System.Drawing.Imaging.ImageFormat.Icon;
+                    else if (fmt.Equals("tif")) pFmt = System.Drawing.Imaging.ImageFormat.Tiff;
+                    else if (fmt.Equals("tiff")) pFmt = System.Drawing.Imaging.ImageFormat.Tiff;
                     else return (buffer);
 
                     setting = Application.Current.LoadSetting();
@@ -7528,6 +7562,12 @@ namespace PixivWPF.Common
                                                 }
                                                 img.Save(mo, codec_info, encoderParams);
                                                 img.Dispose();
+                                            }
+                                            else if (pFmt == System.Drawing.Imaging.ImageFormat.Icon)
+                                            {
+                                                /// Has bug for transparence background
+                                                var ico = bmp.PixelFormat.HasFlag(System.Drawing.Imaging.PixelFormat.Alpha) || bmp.PixelFormat.HasFlag(System.Drawing.Imaging.PixelFormat.PAlpha) ? ConvertToIcon(bmp) : System.Drawing.Icon.FromHandle(bmp.GetHicon());
+                                                ico.Save(mo);
                                             }
                                             else bmp.Save(mo, pFmt);
 
@@ -7888,6 +7928,32 @@ namespace PixivWPF.Common
             if (DownloadTaskCache.TryRemove(file, out lastdown))
             {
                 if (lastdown is byte[] && lastdown.Length >= 0) lastdown.Dispose();
+            }
+        }
+
+        public static void SaveBitmapSource(this BitmapSource source, string file, string fmt = null, int quality = 85, bool force = false)
+        {
+            if (!string.IsNullOrEmpty(file) && source is BitmapSource)
+            {
+                using (var fs = new FileStream(file, FileMode.Create, FileAccess.Write))
+                {
+                    PngBitmapEncoder encode = new PngBitmapEncoder();
+                    encode.Frames.Add(BitmapFrame.Create(source));
+                    var ms = new MemoryStream();
+                    encode.Save(ms);
+                    ms.Seek(0, SeekOrigin.Begin);
+                    var bytes = ms.ToArray();
+
+                    if (string.IsNullOrEmpty(fmt)) fmt = Path.GetExtension(file).TrimStart('.');
+                    if (string.IsNullOrEmpty(fmt)) { fmt = "png"; Path.ChangeExtension(file, ".png"); }
+                    else file = Path.ChangeExtension(file, $".{fmt.TrimStart('.')}");
+                    if (!fmt.Equals("png", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        string reason = string.Empty;
+                        bytes = ConvertImageTo(bytes, fmt, out reason, quality: quality, force: force);
+                    }
+                    fs.Write(bytes, 0, bytes.Length);
+                }
             }
         }
 
@@ -10363,6 +10429,19 @@ namespace PixivWPF.Common
         #endregion
 
         #region UI Element Related
+        // MakePackUri is a utility method for computing a pack uri
+        // for the given resource. 
+        public static Uri MakePackUri(this string relativeFile)
+        {
+            Assembly a = typeof(ThresholdEffect).Assembly;
+
+            // Extract the short name.
+            string assemblyShortName = a.ToString().Split(',')[0];
+            string uriString = $"pack://application:,,,/{assemblyShortName};component/{relativeFile}";
+
+            return new Uri(uriString);
+        }
+
         public static string GetUid(this object obj)
         {
             string result = string.Empty;
@@ -10399,6 +10478,7 @@ namespace PixivWPF.Common
                     var src = Application.Current.GetDefalutIcon();
                     src.Opacity = 0.8;
                     src.Effect = new ThresholdEffect() { Threshold = 0.67, BlankColor = Theme.WindowTitleColor };
+                    //src.Effect = new ThresholdEffect() { Threshold = 0.67, BlankColor = Theme.TransparentColor };
                     //img.Effect = new TranspranceEffect() { TransColor = Theme.WindowTitleColor };
                     //img.Effect = new TransparenceEffect() { TransColor = Color.FromRgb(0x00, 0x96, 0xfa) };
                     //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromArgb(0xff, 0x00, 0x96, 0xfa), TargetColor = Theme.MahApps.Colors.Accent };
@@ -10408,8 +10488,11 @@ namespace PixivWPF.Common
                     int width = (int)src.Source.Width;
                     int height = (int)src.Source.Height;
 
+                    if (src.Parent is Grid) (src.Parent as Grid).Children.Remove(src);
+
                     Grid root = new Grid();
                     root.Background = Theme.WindowTitleBrush;
+                    //root.Background = Theme.TransparentBrush;
                     Arrange(root, width, height);
                     root.Children.Add(src);
                     Arrange(src, width, height);
@@ -10423,7 +10506,9 @@ namespace PixivWPF.Common
                     }
                     bmp.Render(drawingVisual);
                     result = bmp;
-
+#if DEBUG
+                    SaveBitmapSource(bmp, "PixivWPF-Themed.ico", force: true);
+#endif
                     root.Children.Clear();
                     root.UpdateLayout();
                     root = null;
