@@ -175,42 +175,79 @@ namespace PixivWPF.Common
             if (setting == null) setting = app.LoadSetting();
             if (setting is Setting)
             {
-                var mono_family = app.FindResource("MonoSpaceFamily");
-                if (mono_family is FontFamily && !string.IsNullOrEmpty(setting.FontFamilyMono))
+                var customfamilies = new Dictionary<string, string>() {
+                    { "NormalFamily", setting.FontFamilyNormal },
+                    { "MonoSpaceFamily", setting.FontFamilyMono },
+                    { "SegoeIconFamily", setting.FontFamilyIcon },
+                };
+                foreach(var family in customfamilies)
                 {
-                    try
+                    var old_family = app.FindResource(family.Key);
+                    if (old_family is FontFamily && !string.IsNullOrEmpty(family.Value))
                     {
-                        var fonts = mono_family as FontFamily;
-                        var fonts_new = new FontFamily(setting.FontFamilyMono);
-                        app.Resources.Remove("MonoSpaceFamily");
-                        app.Resources.Add("MonoSpaceFamily", fonts_new);
+                        try
+                        {
+                            var old_fonts = (old_family as FontFamily).Source.Trim().Trim('"').Split(',').Select(f => f.Trim());
+                            var new_fonts = family.Value.Trim().Trim('"').Split(',').Select(f => f.Trim());
+                            var source = new_fonts.Union(old_fonts);
+                            var new_family = new FontFamily(string.Join(", ", source));
+                            app.Resources.Remove(family.Key);
+                            app.Resources.Add(family.Key, new_family);
+                        }
+                        catch(Exception ex) { ex.ERROR($"ChangeResourceFonts[{family.Key}]"); }
                     }
-                    catch { }
                 }
-                var icon_family = app.FindResource("SegoeIconFamily");
-                if (mono_family is FontFamily && !string.IsNullOrEmpty(setting.FontFamilyIcon))
-                {
-                    try
-                    {
-                        var fonts = mono_family as FontFamily;
-                        var fonts_new = new FontFamily(setting.FontFamilyIcon);
-                        app.Resources.Remove("SegoeIconFamily");
-                        app.Resources.Add("SegoeIconFamily", fonts_new);
-                    }
-                    catch { }
-                }
-                var normal_family = app.FindResource("NormalFamily");
-                if (mono_family is FontFamily && !string.IsNullOrEmpty(setting.FontFamilyNormal))
-                {
-                    try
-                    {
-                        var fonts = mono_family as FontFamily;
-                        var fonts_new = new FontFamily(setting.FontFamilyNormal);
-                        app.Resources.Remove("NormalFamily");
-                        app.Resources.Add("NormalFamily", fonts_new);
-                    }
-                    catch { }
-                }
+                #region Custom Mono Family
+                //var mono_family = app.FindResource("MonoSpaceFamily");
+                //if (mono_family is FontFamily && !string.IsNullOrEmpty(setting.FontFamilyMono))
+                //{
+                //    try
+                //    {
+                //        var fonts = mono_family as FontFamily;
+                //        var oldfonts = fonts.Source.Split(',').Select(f => f.Trim());
+                //        var newfonts = setting.FontFamilyMono.Split(',').Select(f => f.Trim());
+                //        var source = newfonts.Union(oldfonts);
+                //        var fonts_new = new FontFamily(string.Join(", ", source));
+                //        app.Resources.Remove("MonoSpaceFamily");
+                //        app.Resources.Add("MonoSpaceFamily", fonts_new);
+                //    }
+                //    catch { }
+                //}
+                #endregion
+                #region Custom Mono Family
+                //var icon_family = app.FindResource("SegoeIconFamily");
+                //if (icon_family is FontFamily && !string.IsNullOrEmpty(setting.FontFamilyIcon))
+                //{
+                //    try
+                //    {
+                //        var fonts = icon_family as FontFamily;
+                //        var oldfonts = fonts.Source.Split(',').Select(f => f.Trim());
+                //        var newfonts = setting.FontFamilyIcon.Split(',').Select(f => f.Trim());
+                //        var source = newfonts.Union(oldfonts);
+                //        var fonts_new = new FontFamily(string.Join(", ", source));
+                //        app.Resources.Remove("SegoeIconFamily");
+                //        app.Resources.Add("SegoeIconFamily", fonts_new);
+                //    }
+                //    catch { }
+                //}
+                #endregion
+                #region Custom Mono Family
+                //var normal_family = app.FindResource("NormalFamily");
+                //if (normal_family is FontFamily && !string.IsNullOrEmpty(setting.FontFamilyNormal))
+                //{
+                //    try
+                //    {
+                //        var fonts = normal_family as FontFamily;
+                //        var oldfonts = fonts.Source.Split(',').Select(f => f.Trim());
+                //        var newfonts = setting.FontFamilyNormal.Split(',').Select(f => f.Trim());
+                //        var source = newfonts.Union(oldfonts);
+                //        var fonts_new = new FontFamily(string.Join(", ", source));
+                //        app.Resources.Remove("NormalFamily");
+                //        app.Resources.Add("NormalFamily", fonts_new);
+                //    }
+                //    catch { }
+                //}
+                #endregion
             }
         }
 

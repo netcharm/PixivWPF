@@ -477,9 +477,6 @@ namespace PixivWPF.Common
                             {
                                 try
                                 {
-                                    //Cache.FontFamilyMono = dict["FontFamilyMono"].ToString();
-                                    //Cache.FontFamilyIcon = dict["FontFamilyIcon"].ToString();
-                                    //Cache.FontFamilyNormal = dict["FontFamilyNormal"].ToString();
                                     Application.Current.ChangeResourceFonts(Cache);
                                 }
                                 catch (Exception ex)

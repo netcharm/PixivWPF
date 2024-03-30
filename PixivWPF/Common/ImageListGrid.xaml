@@ -327,7 +327,7 @@
                 <mah:Badged Grid.Row="0"
                             Badge="{Binding BadgeValue, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
                             BadgePlacementMode="TopRight" Margin="0,16,16,0" 
-                            FontSize="16" FontFamily="Iosevka, Consolas, Monospace" 
+                            FontSize="16" FontFamily="{DynamicResource MonoSpaceFamily}" 
                             TargetUpdated="PART_TileBadge_TargetUpdated"
                             Tag="{Binding DisplayBadge, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}"
                             Visibility="{Binding Path=BadgeVisibility, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}, NotifyOnTargetUpdated=True}" 

@@ -657,7 +657,7 @@ namespace PixivWPF.Common
         {
             progress = new Progress<Tuple<double, double>>(i =>
             {
-                if ((State == DownloadState.Downloading && LastElapsed.TotalSeconds >= 0.2) ||
+                if ((State == DownloadState.Downloading && LastElapsed.TotalSeconds >= 0.05) ||
                      State == DownloadState.Writing ||
                      State == DownloadState.Finished ||
                      State == DownloadState.NonExists)
@@ -685,7 +685,7 @@ namespace PixivWPF.Common
                         var percent = total > 0 ? received / total : 0;
                         PART_DownloadProgress.Value = percent * 100;
                         PART_DownloadProgressPercent.Text = $"{State.ToString()}: {PART_DownloadProgress.Value:0.0}%";
-                        PART_DownInfo.Text = $"Status : {Info.Received.SmartFileSize()} / {Info.Length.SmartFileSize()}, {lastRate.SmartSpeedRate()} / {rateA.SmartSpeedRate()}";
+                        PART_DownInfo.Text = $"Status : {received.SmartFileSize()} / {total.SmartFileSize()}, {lastRate.SmartSpeedRate()} / {rateA.SmartSpeedRate()}";
                         #endregion
 
                         #region Update Progress Info Text Color Gradient
@@ -1607,9 +1607,16 @@ namespace PixivWPF.Common
         {
             if (Info is DownloadInfo)
             {
-                if (State != DownloadState.Finished) UpdateProgress();
-                Info.ToolTip = string.Join(Environment.NewLine, Info.GetDownloadInfo());
+                UpdateProgress();
+                var down_info = Info.GetDownloadInfo();
+                var statu = down_info.Where(l => l.StartsWith("Status")).FirstOrDefault();
+                Info.ToolTip = string.Join(Environment.NewLine, down_info);
                 ToolTip = Info.ToolTip;
+
+                //if (!string.IsNullOrEmpty(statu) && State != DownloadState.Finished)
+                //{
+                //    PART_DownInfo.Text = $"Status : {Info.Received.SmartFileSize()} / {Info.Length.SmartFileSize()}, {lastRate.SmartSpeedRate()} / {Info.DownRateAverage.SmartSpeedRate()}";
+                //}
             }
         }
 

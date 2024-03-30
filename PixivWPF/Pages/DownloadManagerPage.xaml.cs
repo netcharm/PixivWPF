@@ -294,6 +294,27 @@ namespace PixivWPF.Pages
             return (dis);
         }
 
+        public IList<DownloadInfo> GetOlderItems(int days = 1)
+        {
+            var result = new List<DownloadInfo>();
+            try
+            {
+                foreach (var item in (DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1 ? DownloadItems.SelectedItems : items))
+                {
+                    if (item is DownloadInfo) result.Add(item as DownloadInfo);
+                }
+                var results = result.Select(o => new KeyValuePair<DateTime, DownloadInfo>(o.Url.ParseDateTime(), o)).OrderByDescending(o => o.Key);
+                if (results.Count() > 0)
+                {
+                    var now = TimeZoneInfo.ConvertTime(DateTime.Now, CommonHelper.TokoyTimeZone);
+                    var ndays = now.Date - TimeSpan.FromDays(Math.Max(0, days - 1));
+                    result = results.Where(i => i.Key < ndays).Select(i => i.Value).ToList();
+                }
+            }
+            catch(Exception ex) { ex.ERROR("GetOlderDownloadedItems[Older then {days}(s)]"); }
+            return (result);
+        }
+
         public bool HasSelected()
         {
             return (DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 0);
@@ -622,11 +643,14 @@ namespace PixivWPF.Pages
                     }
                     else
                     {
+                        setting = Application.Current.LoadSetting();
                         var non_exists = items.Where(o => o.State == DownloadState.NonExists);
                         if (non_exists.Count() > 0)
                         {
                             foreach (var i in non_exists) { i.State = DownloadState.Remove; }
                         }
+                        else if (GetOlderItems().Count() > 0) PART_RemoveAll_Context_Click(PART_RemoveAll_Old, e);
+                        else if (GetOlderItems(setting.DownloadRemoveNDays).Count() > 0) PART_RemoveAll_Context_Click(PART_RemoveAll_NDays, e);
                         else
                         {
                             var remove = items.Where(o => o.State != DownloadState.Downloading);
@@ -684,29 +708,18 @@ namespace PixivWPF.Pages
 
                     if (state == DownloadState.Older)
                     {
-                        var items = targets.Select(o => new KeyValuePair<DateTime, DownloadInfo>(o.Url.ParseDateTime(), o)).OrderByDescending(o => o.Key);
-                        if (items.Count() > 0)
-                        {
-                            var tz_tokoy = CommonHelper.TokoyTimeZone.BaseUtcOffset - CommonHelper.LocalTimeZone.BaseUtcOffset;
-                            var today = DateTime.Now.Date - tz_tokoy;
-                            targets = targets.Except(items.Where(i => i.Key >= today).Select(i => i.Value)).ToList();
-                        }
+                        targets = GetOlderItems().ToList();
                         state = DownloadState.Finished;
                     }
                     else if (state == DownloadState.NDays)
                     {
                         setting = Application.Current.LoadSetting();
-                        var items = targets.Select(o => new KeyValuePair<DateTime, DownloadInfo>(o.Url.ParseDateTime(), o)).OrderByDescending(o => o.Key);
-                        if (items.Count() > 0)
-                        {
-                            var tz_tokoy = CommonHelper.TokoyTimeZone.BaseUtcOffset - CommonHelper.LocalTimeZone.BaseUtcOffset;
-                            var ndays = DateTime.Now.Date - tz_tokoy - TimeSpan.FromDays(Math.Max(0, setting.DownloadRemoveNDays));
-                            targets = targets.Except(items.Where(i => i.Key >= ndays).Select(i => i.Value)).ToList();
-                        }
+                        targets = GetOlderItems(setting.DownloadRemoveNDays).ToList();
                         state = DownloadState.Finished;
                     }
+                    $"Total {targets.Count} item(s) will be removed!".DEBUG("DOWNLOADMANAGER");
 
-                    if (targets.Count > 0)
+                    if (Commands.ParallelExecutionConfirm(targets))
                     {
                         var remove = state == DownloadState.Unknown ? targets : targets.Where(o => o.State == state);
                         foreach (var i in remove) { i.State = DownloadState.Remove; }

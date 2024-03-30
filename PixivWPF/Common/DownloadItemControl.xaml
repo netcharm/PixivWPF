@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:mahs="http://metro.mahapps.com/winfx/xaml/shared"             
              xmlns:local="clr-namespace:PixivWPF.Common"
              mc:Ignorable="d"
              VisualTextRenderingMode="Auto"
@@ -253,7 +254,7 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="0" x:Name="PART_DownInfo" x:Uid="PART_DownInfo"
-                       Tag="{Binding Path=State, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True, NotifyOnSourceUpdated=True}"
+                       Tag="{Binding Path=State, Mode=OneWay, NotifyOnTargetUpdated=True}"
                        TargetUpdated="PART_Download_TargetUpdated"
                        HorizontalAlignment="Left" VerticalAlignment="Center" />
             <mah:ToggleSwitch Grid.Column="1" x:Name="PART_SaveAsJPEG" x:Uid="OptionSaveAsJPEG" Margin="2,0,-8,0" Toggled="miActions_Click"                                  

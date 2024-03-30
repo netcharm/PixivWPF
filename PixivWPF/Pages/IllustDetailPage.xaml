@@ -166,7 +166,7 @@
                     <TextBlock Margin="4,0,0,0" Text="&#xE16F;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
-            </MenuItem>            
+            </MenuItem>
             <Separator />
             <MenuItem x:Uid="ActionIllustPages" Header="Show Illust Pages" Click="ActionShowIllustPages_Click">
                 <MenuItem.Icon>
@@ -285,7 +285,7 @@
                     <TextBlock Margin="4,0,0,0" Text="&#xE173;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
-            </MenuItem>            
+            </MenuItem>
         </ContextMenu>
 
         <ContextMenu x:Name="DownloadAction" x:Key="DownloadAction" Opened="DownloadAction_Opened">
@@ -605,7 +605,7 @@
                 </MenuItem.Icon>
             </MenuItem>
         </ContextMenu>
-       
+
         <ContextMenu x:Name="MenuSpeech" x:Key="MenuSpeech">
             <MenuItem x:Name="miSpeechAuto" x:Uid="SpeechAuto" Header="Auto Detect" Click="ActionSpeech_Click" >
                 <MenuItem.Icon>
@@ -1068,7 +1068,6 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" x:Name="IllustTitle" Margin="4,0,2,0"
-                            FontFamily="{StaticResource NormalFamily}"
                             ContextMenu="{DynamicResource MenuSpeech}" 
                             MouseDown="IllustInfo_MouseDown"
                             Foreground="{DynamicResource MahApps.Brushes.Text}"
@@ -1095,7 +1094,7 @@
                             <TextBlock x:Name="IllustDateIcon"  Margin="0,2,0,0"
                                 Text="&#xE161;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                 Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                                HorizontalAlignment="Right" VerticalAlignment="Center"/>                            
+                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             <TextBlock x:Name="IllustDate" Margin="2,0,4,0" 
                                Foreground="{DynamicResource MahApps.Brushes.Text}"
                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
@@ -1109,14 +1108,13 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
                             <TextBlock Grid.Column="0" x:Name="IllustAuthor" Margin="4,0,0,0" 
-                                FontFamily="{StaticResource NormalFamily}"
                                 ContextMenu="{DynamicResource MenuSpeech}" 
                                 MouseDown="IllustInfo_MouseDown"
                                 Foreground="{DynamicResource MahApps.Brushes.Text}"
                                 HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                             <TextBlock Grid.Column="0" x:Name="UserFullListedFlag" Margin="4,0,0,0" Visibility="Collapsed"
                                 Text="&#xE129;" FontSize="16"
-                                FontFamily="{StaticResource SegoeIconFamily}"
+                                FontFamily="{DynamicResource SegoeIconFamily}"
                                 Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                 HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
                                 MouseLeftButtonUp="UserFullListedFlag_MouseLeftButtonUp"/>
@@ -1152,7 +1150,7 @@
                             <TextBlock x:Name="IllustFavoritedIcon" 
                                 Text="&#xEB52;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                 Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                                HorizontalAlignment="Right" VerticalAlignment="Center"/>                            
+                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             <TextBlock x:Name="IllustFavorited" Margin="2,0,4,0" 
                                Foreground="{DynamicResource MahApps.Brushes.Text}"
                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
