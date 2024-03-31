@@ -54,7 +54,10 @@
             </FontFamily>
             <FontFamily x:Key="SegoeIconFamily">
                 Segoe MDL2 Assets, Segoe UI Emoji, Segoe UI Symbol, 霞骛文楷, LXGW WenKai, Sarasa Gothic J, 更纱黑体 SC, FontAwesome, Segoe UI
-            </FontFamily>            
+            </FontFamily>
+            <FontFamily x:Key="ExtraIconFamily">
+                Segoe UI Emoji, Segoe UI Symbol, Segoe MDL2 Assets, 霞骛文楷, LXGW WenKai, Sarasa Gothic J, 更纱黑体 SC, FontAwesome, Segoe UI
+            </FontFamily>
             <sys:Double x:Key="MonoSpaceFontSize">14</sys:Double>
             <sys:Double x:Key="NormalFontSize">14</sys:Double>
             <sys:Double x:Key="IconFontSize">14</sys:Double>
@@ -84,6 +87,12 @@
             <Style x:Key="SegoeIconStyle" TargetType="{x:Type Button}">
                 <Setter Property="FontFamily" Value="{DynamicResource SegoeIconFamily}"/>
             </Style>
+            <Style x:Key="TextIcon" TargetType="{x:Type TextBlock}">
+                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+            </Style>
+            <Style x:Key="TextContent" TargetType="{x:Type TextBlock}">
+                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Text}"/>
+            </Style>
 
             <DataTemplate x:Key="TitleBarTemplate">
                 <TextBlock Name="PART_Title"
@@ -105,6 +114,119 @@
             <Style TargetType="{x:Type common:ContentWindow}" BasedOn="{StaticResource MetroWindowStyle}"/>
             <Style TargetType="{x:Type common:PixivLoginDialog}" BasedOn="{StaticResource MetroWindowStyle}"/>
 
+            <Style x:Key="CommandButtonIcon" TargetType="{x:Type TextBlock}">
+                <Setter Property="FontFamily" Value="{DynamicResource SegoeIconFamily}"/>
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="Margin" Value="4,0,0,0"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+
+            <Style x:Key="ExpanderButton" TargetType="{x:Type TextBlock}">
+                <Setter Property="FontFamily" Value="{DynamicResource SegoeIconFamily}"/>
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+            
+            <Style x:Key="ButtonIcon" TargetType="{x:Type TextBlock}">
+                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                <Setter Property="FontFamily" Value="{DynamicResource SegoeIconFamily}"/>
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="Margin" Value="0,0,0,0"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+            <Style x:Key="ButtonIcon12" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource ButtonIcon}">
+                <Setter Property="FontSize" Value="12"/>
+            </Style>
+            <Style x:Key="ButtonIcon14" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource ButtonIcon}">
+                <Setter Property="FontSize" Value="14"/>
+            </Style>
+            <Style x:Key="ButtonIcon16" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource ButtonIcon}">
+                <Setter Property="FontSize" Value="16"/>
+            </Style>
+            <Style x:Key="ButtonIcon18" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource ButtonIcon}">
+                <Setter Property="FontSize" Value="18"/>
+            </Style>
+            <Style x:Key="ButtonIcon20" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource ButtonIcon}">
+                <Setter Property="FontSize" Value="20"/>
+            </Style>
+            <Style x:Key="ButtonIcon22" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource ButtonIcon}">
+                <Setter Property="FontSize" Value="22"/>
+            </Style>
+            <Style x:Key="ButtonIcon24" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource ButtonIcon}">
+                <Setter Property="FontSize" Value="24"/>
+            </Style>
+            <Style x:Key="ButtonIcon26" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource ButtonIcon}">
+                <Setter Property="FontSize" Value="26"/>
+            </Style>
+            <Style x:Key="ButtonIcon28" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource ButtonIcon}">
+                <Setter Property="FontSize" Value="28"/>
+            </Style>
+            <Style x:Key="ButtonIcon32" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource ButtonIcon}">
+                <Setter Property="FontSize" Value="32"/>
+            </Style>
+
+            <Style x:Key="MenuItemIcon" TargetType="{x:Type TextBlock}">
+                <Setter Property="FontFamily" Value="{DynamicResource SegoeIconFamily}"/>
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="Margin" Value="4,0,0,0"/>
+                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+            <Style x:Key="MenuItemExtraIcon" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MenuItemIcon}">
+                <Setter Property="FontFamily" Value="{DynamicResource ExtraIconFamily}"/>
+            </Style>
+            <Style x:Key="MenuItemIcon10" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MenuItemIcon}">
+                <Setter Property="FontSize" Value="10"/>
+            </Style>
+            <Style x:Key="MenuItemIcon12" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MenuItemIcon}">
+                <Setter Property="FontSize" Value="12"/>
+            </Style>
+            <Style x:Key="MenuItemIcon14" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MenuItemIcon}">
+                <Setter Property="FontSize" Value="14"/>
+            </Style>
+            <Style x:Key="MenuItemIcon16" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MenuItemIcon}">
+                <Setter Property="FontSize" Value="16"/>
+            </Style>
+            <Style x:Key="MenuItemIcon18" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MenuItemIcon}">
+                <Setter Property="FontSize" Value="18"/>
+            </Style>
+            <Style x:Key="MenuItemIcon20" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MenuItemIcon}">
+                <Setter Property="FontSize" Value="20"/>
+            </Style>
+            <Style x:Key="MenuItemIcon22" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MenuItemIcon}">
+                <Setter Property="FontSize" Value="22"/>
+            </Style>
+            <Style x:Key="MenuItemIcon32" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MenuItemIcon}">
+                <Setter Property="FontSize" Value="32"/>
+            </Style>
+            <Style x:Key="MenuItemIcon48" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MenuItemIcon}">
+                <Setter Property="FontSize" Value="48"/>
+            </Style>
+
+            <Style x:Key="HamburgerButton" TargetType="{x:Type TextBlock}">
+                <Setter Property="FontFamily" Value="{DynamicResource SegoeIconFamily}"/>
+                <Setter Property="FontSize" Value="24"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+            <Style x:Key="HamburgerItem" TargetType="{x:Type TextBlock}">
+                <!--<Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.IdealForeground}"/>-->
+                <Setter Property="FontFamily" Value="{DynamicResource SegoeIconFamily}"/>
+                <Setter Property="FontSize" Value="22"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+
+            <Style TargetType="{x:Type mah:Badged}">
+                <Setter Property="FontFamily" Value="{DynamicResource MonoSpaceFamily}"/>
+                <Setter Property="BadgeBackground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+            </Style>
+            
             <ControlTemplate x:Key="MenuItemWithSlider" TargetType="{x:Type MenuItem}">
                 <Border x:Name="PART_SliderBorder"
                     Background="{TemplateBinding Background}"

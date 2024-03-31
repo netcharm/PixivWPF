@@ -41,8 +41,7 @@
         <mah:WindowCommands ShowLastSeparator="True">
             <Button x:Name="CommandRefresh" x:Uid="CommandRefresh" Click="CommandRefresh_Click" PreviewMouseRightButtonDown="CommandRefresh_MouseRightButtonDown"  ToolTip="Refresh Current Page">
                 <TextBlock x:Name="RefreshIcon" x:Uid="RefreshIcon"
-                    Text="&#xE117;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                    HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                    Text="&#xE117;" Style="{DynamicResource CommandButtonIcon}" RenderTransformOrigin="0.5,0.5">
                     <TextBlock.Resources>
                         <Storyboard x:Key="RefreshRing" x:Name="RefreshRing">
                             <DoubleAnimation
@@ -61,13 +60,13 @@
             </Button>
             <StackPanel Orientation="Horizontal" Width="Auto" HorizontalAlignment="Center">
                 <Button x:Name="CommandRefreshThumb" x:Uid="CommandRefreshThumb" Click="CommandRefresh_Click" ToolTip="Refresh Thumbnails">
-                    <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE149;" Style="{DynamicResource CommandButtonIcon}"/>
                 </Button>
                 <Border BorderThickness="0" Background="{DynamicResource Theme.SemiTransparentBrush}">
                     <StackPanel x:Name="PreftchingProgress" Orientation="Horizontal" Width="Auto" HorizontalAlignment="Center" VerticalAlignment="Center" MouseRightButtonDown="PreftchingProgress_MouseRightButtonDown">
                         <TextBlock x:Name="PreftchingProgressInfo" x:Uid="PreftchingProgressInfo" VerticalAlignment="Center" Margin="0,0,2,0" Text="" />
                         <TextBlock x:Name="PreftchingProgressState" x:Uid="PreftchingProgressState" VerticalAlignment="Center"
-                               Text="&#xF16A;" FontSize="16" FontFamily="Segoe MDL2 Assets" RenderTransformOrigin="0.5,0.5" Visibility="Collapsed">
+                               Text="&#xF16A;" Style="{DynamicResource CommandButtonIcon}" RenderTransformOrigin="0.5,0.5" Visibility="Collapsed">
                             <TextBlock.Resources>
                                 <Storyboard x:Key="PreftchingStateRing" x:Name="PreftchingStateRing">
                                     <DoubleAnimation
@@ -89,8 +88,7 @@
             <Button x:Name="CommandRecents" x:Uid="CommandRecents" Click="CommandRecents_Click" ToolTip="Recents">
                 <StackPanel>
                     <TextBlock 
-                        Text="&#xE823;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        Text="&#xE823;" Style="{DynamicResource CommandButtonIcon}"/>
                     <Popup x:Name="RecentsPopup" StaysOpen="False" Margin="4" VerticalOffset="4" AllowsTransparency="True">
                         <ListBox x:Name="RecentsList" Margin="4" 
                                  BorderThickness="1" BorderBrush="{DynamicResource MahApps.Brushes.Accent}" 
@@ -102,9 +100,7 @@
                                 Click="LiveFilter_Click"
                                 ToolTip="Live Filter" ToolTipOpening="LiveFilter_ToolTipOpening">
                 <mah:DropDownButton.Icon>
-                    <TextBlock 
-                    Text="&#xE16E;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE16E;" Style="{DynamicResource CommandButtonIcon}"/>
                 </mah:DropDownButton.Icon>
                 <mah:DropDownButton.Items>
                     <MenuItem x:Name="LiveFilterNone" x:Uid="LiveFilterNone" Header="None" IsChecked="True" Click="LiveFilterItem_Click"/>
@@ -181,9 +177,7 @@
                 Visibility="Collapsed"
                 Click="CommandPageRead_Click"
                 ToolTip="Read Text">
-                <TextBlock 
-                    Text="&#xEFA9;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Text="&#xEFA9;" Style="{DynamicResource CommandButtonIcon}"/>
             </Button>
         </mah:WindowCommands>
     </mah:MetroWindow.LeftWindowCommands>
@@ -198,7 +192,6 @@
                       mah:TextBoxHelper.AutoWatermark="True"
                       mah:TextBoxHelper.Watermark="Searching ..." 
                       mah:TextBoxHelper.WatermarkTrimming="WordEllipsis"
-                      mah:TextBoxHelper.UseFloatingWatermark="True"
                       mah:TextBoxHelper.ClearTextButton="True"
                       mah:TextBoxHelper.ButtonContent="&#x2715;"
                       mah:TextBoxHelper.ButtonFontFamily="Segoe UI Symbol"
@@ -212,34 +205,24 @@
             </ComboBox>
             <Button Click="CommandSearch_Click" 
                     ToolTip="Searching Illust/User">
-                <TextBlock 
-                    Text="&#xE721;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Text="&#xE721;" Style="{DynamicResource CommandButtonIcon}"/>
             </Button>
             <Button Click="CommandHistory_Click" 
                     ToolTip="History">
-                <TextBlock 
-                    Text="&#xE81C;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Text="&#xE81C;" Style="{DynamicResource CommandButtonIcon}"/>
             </Button>
             <Button Click="CommandDownloadManager_Click" MouseRightButtonDown="CommandDownloadManager_MouseRightButtonDown"
                     ToolTip="Open Download Manager">
-                <TextBlock 
-                    Text="&#xE118;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Text="&#xE118;" Style="{DynamicResource CommandButtonIcon}"/>
             </Button>
             <ToggleButton x:Name="CommandDropbox" 
                           ToolTip="Open Drop Box"
                           Click="CommandDropbox_Click" MouseRightButtonDown="CommandDropbox_MouseRightButtonDown">
-                <TextBlock 
-                    Text="&#xE167;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Text="&#xE167;" Style="{DynamicResource CommandButtonIcon}"/>
             </ToggleButton>
             <Button Click="CommandLogin_Click"
                     ToolTip="Open Login Dialog">
-                <TextBlock 
-                    Text="&#xE77B;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Text="&#xE77B;" Style="{DynamicResource CommandButtonIcon}"/>
                 <Button.ContextMenu>
                     <ContextMenu x:Name="cmiProxyAction" Opened="cmiProxyAction_Opened" Closed="cmiProxyAction_Closed">
                         <MenuItem x:Name="cmiUseProxy" x:Uid="UseProxy" Header="Using Proxy" IsCheckable="True" IsChecked="False"/>
@@ -254,34 +237,34 @@
             <mah:SplitButton x:Name="CommandLog" Click="CommandLog_Click" DropDownOpened="CommandLog_DropDownOpened"
                              BorderBrush="Transparent" ToolTip="Open Logs">
                 <mah:SplitButton.Icon>
-                    <TextBlock Text="&#xE8BC;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE8BC;" Style="{DynamicResource CommandButtonIcon}"/>
                 </mah:SplitButton.Icon>
                 <mah:SplitButton.ContextMenu>
                     <ContextMenu>
                         <MenuItem x:Name="CommandLog_Info" x:Uid="CommandLog_Info" Header="Info Log" Click="CommandLog_Click" >
                             <MenuItem.Icon>
-                                <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                                <TextBlock Text="&#xE1A5;" Style="{DynamicResource MenuItemIcon16}"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <MenuItem x:Name="CommandLog_Warn" x:Uid="CommandLog_Warn" Header="Warn Log" Click="CommandLog_Click" >
                             <MenuItem.Icon>
-                                <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                                <TextBlock Text="&#xE1A5;" Style="{DynamicResource MenuItemIcon16}"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <MenuItem x:Name="CommandLog_Debug" x:Uid="CommandLog_Debug" Header="Debug Log" Click="CommandLog_Click" >
                             <MenuItem.Icon>
-                                <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                                <TextBlock Text="&#xE1A5;" Style="{DynamicResource MenuItemIcon16}"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <MenuItem x:Name="CommandLog_Error" x:Uid="CommandLog_Error" Header="Error Log" Click="CommandLog_Click" >
                             <MenuItem.Icon>
-                                <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                                <TextBlock Text="&#xE1A5;" Style="{DynamicResource MenuItemIcon16}"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <Separator/>
                         <MenuItem x:Name="CommandLog_Folder" x:Uid="CommandLog_Folder" Header="Open Log Folder" Click="CommandLog_Click" >
                             <MenuItem.Icon>
-                                <TextBlock Text="&#xED25;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                                <TextBlock Text="&#xED25;" Style="{DynamicResource MenuItemIcon16}"/>
                             </MenuItem.Icon>
                         </MenuItem>
                     </ContextMenu>

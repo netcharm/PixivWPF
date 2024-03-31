@@ -107,13 +107,12 @@
             </iconPacks:PackIconModern.Effect>
         </iconPacks:PackIconModern>
         <mah:Badged Grid.Row="0"
-                Badge="{Binding BadgeValue, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
                 BadgePlacementMode="TopRight" Margin="0,16,16,0" 
-                FontSize="16" FontFamily="{DynamicResource MonoSpaceFamily}" 
+                FontSize="16"
                 TargetUpdated="TileBadge_TargetUpdated"
+                Badge="{Binding BadgeValue, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
                 Tag="{Binding DisplayBadge, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}"
-                Visibility="{Binding Path=BadgeVisibility, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}, NotifyOnTargetUpdated=True}" 
-                BadgeBackground="{DynamicResource MahApps.Brushes.Accent}" />
+                Visibility="{Binding Path=BadgeVisibility, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}, NotifyOnTargetUpdated=True}"/>
         <Grid Grid.Row="1" Visibility="{Binding Path=TitleVisibility, ElementName=PART_PixivItemTile, Mode=OneWay, IsAsync=True}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>

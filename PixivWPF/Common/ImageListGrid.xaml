@@ -19,221 +19,186 @@
         <ContextMenu x:Name="GallaryActionMenu" x:Key="GallaryActionMenu" Opened="PART_GallaryActionMenu_Opened" >
             <MenuItem x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="PART_GalleryAction_Click" >
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE16F;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE16F;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionIllustWebLink" Header="Copy Illust Weblink" Click="PART_GalleryAction_Click" >
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE167;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE167;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionAuthorWebLink" Header="Copy Author Weblink" Click="PART_GalleryAction_Click" >
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE167;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE167;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionCopyIllustJson" Header="Copy Illust As JSON/XML" Click="PART_GalleryAction_Click" ToolTip="Click to copy illust info as JSON/XML">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE16F;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE16F;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionOpenIllust" Header="Open Selected Illusts" Click="PART_GalleryAction_Click" >
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE8A7;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE8A7;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionReadIllustTitle" Header="Read Selected Illusts Title" Click="PART_GalleryAction_Click" >
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xEFA9;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xEFA9;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator x:Uid="ActionSendSeparator"/>
             <MenuItem x:Uid="ActionSendIllustToInstance" Header="Send Illust To Other Instance" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE724;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE724;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionSendAuthorToInstance" Header="Send Author To Other Instance" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE725;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE725;" Style="{DynamicResource  MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionCompare" Header="Compare Selected"  Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE11E;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                               Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE11E;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator x:Uid="ActionRefreshSeparator"/>
             <MenuItem x:Uid="ActionRefresh" Header="Refresh Illusts" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE117;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE117;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionRefreshThumb" Header="Refresh Thumbnails" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE149;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator x:Uid="ActionNavPageSeparator"/>
             <MenuItem x:Uid="ActionPrevPage" Header="Open Previous Page" Click="PART_GalleryAction_Click" >
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE112;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE112;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionNextPage" Header="Open Next Page" Click="PART_GalleryAction_Click" >
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE111;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionNextAppend" Header="Append Next Page" Click="PART_GalleryAction_Click" >
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xEB91;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator x:Uid="ActionLikeIllustSeparator" />
             <MenuItem x:Uid="ActionLikeIllust" Header="Bookmark Selected" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xEB52;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xEB52;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionLikeIllustPrivate" Header="Bookmark Selected Private" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xEB52;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xEB52;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionUnLikeIllust" Header="Un-Bookmark Selected" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xEA92;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xEA92;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator x:Uid="ActionLikeUserSeparator" />
             <MenuItem x:Uid="ActionLikeUser" Header="Follow Selected" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE113;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE113;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionLikeUserPrivate" Header="Follow Selected Private" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE113;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE113;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionUnLikeUser" Header="Un-Follow Selected" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE734;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE734;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator x:Uid="ActionSaveSeparator"/>
             <MenuItem x:Uid="ActionSaveIllusts" Header="Save Selected Illusts (Default Page)" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE105;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionSaveIllustsAll" Header="Save Selected Illusts (All Pages)" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xEA35;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionSaveIllustsJpeg" Header="Save Selected Illusts As JPEG (Default Page)" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE105;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionSaveIllustsJpegAll" Header="Save Selected Illusts As JPEG (All Pages)" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                         Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xEA35;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionSaveIllustsPreview" Header="Save Selected Illusts Large Preview (Default Page)" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE105;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionSaveIllustsPreviewAll" Header="Save Selected Illusts Large Preview (All Pages)" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                         Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xEA35;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator x:Uid="ActionConvertSeparator"/>
             <MenuItem x:Uid="ActionConvertIllustsJpeg" Header="Convert Downloaded To JPEG" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE105;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionConvertIllustsJpegAll" Header="Convert All Downloaded To JPEG" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xEA35;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                         Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xEA35;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionReduceIllustsJpeg" Header="Reduce Downloaded JPEG Size" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE105;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionReduceIllustsJpegSizeTo" Header="Quality To" Click="PART_GalleryAction_Click" 
                       Template="{DynamicResource MenuItemWithSlider}" >
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE105;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionReduceIllustsJpegAll" Header="Reduce All Downloaded JPEG Size" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE105;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator x:Uid="ActionDownloadedSepraor"/>
             <MenuItem x:Uid="ActionShowDownloadedMeta" Header="Show Downloaded Metadata" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE114;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE114;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionTouchDownloadedMeta" Header="Touch Downloaded Metadata" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE114;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE114;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionOpenDownloaded" Header="Open Downloaded Illusts" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xE118;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE118;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionOpenDownloadedProperties" Header="View Downloaded Properties" Click="PART_GalleryAction_Click">
                 <MenuItem.Icon>
-                    <TextBlock Margin="4,0,0,0" Text="&#xEA1F;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xEA1F;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
         </ContextMenu>
@@ -325,13 +290,11 @@
                     Foreground="{DynamicResource MahApps.Brushes.Accent}"
                     Visibility="{Binding IsDownloadedVisibilityAlt, Mode=OneWay}" />
                 <mah:Badged Grid.Row="0"
-                            Badge="{Binding BadgeValue, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
-                            BadgePlacementMode="TopRight" Margin="0,16,16,0" 
-                            FontSize="16" FontFamily="{DynamicResource MonoSpaceFamily}" 
+                            BadgePlacementMode="TopRight" Margin="0,16,16,0" FontSize="16" 
                             TargetUpdated="PART_TileBadge_TargetUpdated"
+                            Badge="{Binding BadgeValue, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
                             Tag="{Binding DisplayBadge, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}"
-                            Visibility="{Binding Path=BadgeVisibility, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}, NotifyOnTargetUpdated=True}" 
-                            BadgeBackground="{DynamicResource MahApps.Brushes.Accent}" />
+                            Visibility="{Binding Path=BadgeVisibility, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}, NotifyOnTargetUpdated=True}" />
                 <Grid Grid.Row="1" Margin="1"
                       Visibility="{Binding Path=TitleVisibility, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}">
                     <Grid.ColumnDefinitions>

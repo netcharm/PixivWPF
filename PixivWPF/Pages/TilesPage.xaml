@@ -31,7 +31,7 @@
                 <TextBlock 
                     x:Name="TextPart" VerticalAlignment="Center" FontSize="16" Margin="8,0,0,0" 
                     Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" 
-                    Text="{Binding Label}" />            
+                    Text="{Binding Label}" />
             </DockPanel>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type mah:HamburgerMenu}}, Path=PanePlacement}" Value="Right">
@@ -40,7 +40,7 @@
                 </DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>
-        
+
         <!--  This is the template for the option menu item  -->
         <DataTemplate x:Key="HamburgerMenuIconItem" DataType="{x:Type mah:HamburgerMenuIconItem}">
             <DockPanel Height="30" LastChildFill="True" ToolTip="{Binding Label}">
@@ -89,7 +89,7 @@
             Focusable="True"
             SelectionMode="Single"
             SelectionChanged="ImageTiles_SelectionChanged" />
-           
+
         <!-- Pixiv Category Menu -->
         <mah:HamburgerMenu
             Grid.Column="0" x:Name="CategoryMenu" Margin="0"
@@ -110,15 +110,12 @@
             <!--  Header  -->
             <mah:HamburgerMenu.HamburgerButtonTemplate>
                 <DataTemplate>
-                    <TextBlock 
-                        Text="&#xE700;" FontSize="24" FontWeight="ExtraBlack" FontFamily="Segoe MDL2 Assets" 
-                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xE700;" FontWeight="ExtraBlack" Style="{DynamicResource HamburgerButton}"/>
                 </DataTemplate>
             </mah:HamburgerMenu.HamburgerButtonTemplate>
             <mah:HamburgerMenu.HamburgerMenuHeaderTemplate>
                 <DataTemplate>
-                    <TextBlock 
-                        HorizontalAlignment="Left" VerticalAlignment="Center" Margin="4,0,0,0"
+                    <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Margin="4,0,0,0"
                         Text="PiXiV.net" FontSize="30" FontWeight="Bold"/>
                 </DataTemplate>
             </mah:HamburgerMenu.HamburgerMenuHeaderTemplate>
@@ -128,37 +125,28 @@
                     <!-- Common -->
                     <mah:HamburgerMenuIconItem Label="Recommanded" x:Name="miPixivRecommanded" x:Uid="miPixivRecommanded" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="Home" />-->
-                            <!--<TextBlock Text="&#xE10F;" FontSize="22" FontFamily="Segoe UI Symbol" 
-                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>-->
-                            <TextBlock Text="&#xECAA;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>                            
+                            <TextBlock Text="&#xECAA;" Style="{DynamicResource HamburgerItem}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                         <mah:HamburgerMenuIconItem.Tag>
                             <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="28" FontWeight="Bold">Recommanded</TextBlock>
-                        </mah:HamburgerMenuIconItem.Tag>                        
+                        </mah:HamburgerMenuIconItem.Tag>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="Latest" x:Name="miPixivLatest" x:Uid="miPixivLatest" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="ImageMultiple" />-->
-                            <TextBlock Text="&#xE158;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </mah:HamburgerMenuIconItem.Icon>                        
+                            <TextBlock Text="&#xE158;" Style="{DynamicResource HamburgerItem}"/>
+                        </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="Trending Tags" x:Name="miPixivTrendingTags" x:Uid="miPixivTrendingTags" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="GraphLineUp" />-->
-                            <TextBlock Text="&#xE9D2;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </mah:HamburgerMenuIconItem.Icon>                        
+                            <TextBlock Text="&#xE9D2;" Style="{DynamicResource HamburgerItem}"/>
+                        </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <!-- Follwing -->
                     <mah:HamburgerMenuSeparatorItem />
                     <mah:HamburgerMenuIconItem Label="Following" x:Name="miPixivFollowing" x:Uid="miPixivFollowing" >
                         <mah:HamburgerMenuIconItem.Icon>
                             <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="Star" />
-                        </mah:HamburgerMenuIconItem.Icon>                        
+                        </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="Following Private" x:Name="miPixivFollowingPrivate" x:Uid="miPixivFollowingPrivate" >
                         <mah:HamburgerMenuIconItem.Icon>
@@ -197,83 +185,61 @@
                     <mah:HamburgerMenuSeparatorItem />
                     <mah:HamburgerMenuIconItem Label="Ranking Day" x:Name="miPixivRankingDay" x:Uid="miPixivRankingDay" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarDay" />-->
-                            <TextBlock Text="&#xE161;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xE161;" Style="{DynamicResource HamburgerItem}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="Ranking Day R18" x:Name="miPixivRankingDayR18" x:Uid="miPixivRankingDayR18" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarDay" />-->
-                            <TextBlock Text="&#xE161;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xE161;" Style="{DynamicResource HamburgerItem}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="Ranking Day Male" x:Name="miPixivRankingDayMale" x:Uid="miPixivRankingDayMale" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarDay" />-->
-                            <TextBlock Text="&#xE161;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xE161;" Style="{DynamicResource HamburgerItem}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="Ranking Day Male R18" x:Name="miPixivRankingDayMaleR18" x:Uid="miPixivRankingDayMaleR18" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarDay" />-->
-                            <TextBlock Text="&#xE161;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xE161;" Style="{DynamicResource HamburgerItem}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="Ranking Day Female" x:Name="miPixivRankingDayFemale" x:Uid="miPixivRankingDayFemale" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarDay" />-->
-                            <TextBlock Text="&#xE161;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xE161;" Style="{DynamicResource HamburgerItem}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="Ranking Day Female R18" x:Name="miPixivRankingDayFemaleR18" x:Uid="miPixivRankingDayFemaleR18" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarDay" />-->
-                            <TextBlock Text="&#xE161;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xE161;" Style="{DynamicResource HamburgerItem}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <!-- Ranking Week -->
                     <mah:HamburgerMenuSeparatorItem />
                     <mah:HamburgerMenuIconItem Label="Ranking Week" x:Name="miPixivRankingWeek" x:Uid="miPixivRankingWeek" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarWeek" />-->
-                            <TextBlock Text="&#xE162;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xE162;" Style="{DynamicResource HamburgerItem}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="Ranking Week Original" x:Name="miPixivRankingWeekOriginal" x:Uid="miPixivRankingWeekOriginal" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarWeek" />-->
-                            <TextBlock Text="&#xE162;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xE162;" Style="{DynamicResource HamburgerItem}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="Ranking Week Rookie" x:Name="miPixivRankingWeekRookie" x:Uid="miPixivRankingWeekRookie" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarWeek" />-->
-                            <TextBlock Text="&#xE162;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xE162;" Style="{DynamicResource HamburgerItem}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="Ranking Week R18" x:Name="miPixivRankingWeekR18" x:Uid="miPixivRankingWeekR18" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarWeek" />-->
-                            <TextBlock Text="&#xE162;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xE162;" Style="{DynamicResource HamburgerItem}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <!-- Ranking Month -->
                     <mah:HamburgerMenuSeparatorItem />
                     <mah:HamburgerMenuIconItem Label="Ranking Month" x:Name="miPixivRankingMonth" x:Uid="miPixivRankingMonth" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarMonth" />-->
-                            <TextBlock Text="&#xE163;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xE163;" Style="{DynamicResource HamburgerItem}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                 </mah:HamburgerMenuItemCollection>
@@ -285,52 +251,38 @@
                     <mah:HamburgerMenuSeparatorItem />
                     <mah:HamburgerMenuIconItem Label="My Information" x:Name="miPixivMine" x:Uid="miPixivMine" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <TextBlock 
-                                Text="&#xE779;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xE779;" Style="{DynamicResource HamburgerItem}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="My Follower Users" x:Name="miPixivMyFollower" x:Uid="miPixivMyFollower" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <TextBlock 
-                                Text="&#xE902;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                                HorizontalAlignment="Center" VerticalAlignment="Center"/>   
+                            <TextBlock Text="&#xE902;" Style="{DynamicResource HamburgerItem}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="My Following Users" x:Name="miPixivMyFollowing" x:Uid="miPixivMyFollowing" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <TextBlock 
-                                Text="&#xE902;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xE902;" Style="{DynamicResource HamburgerItem}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="My Following Users Private" x:Name="miPixivMyFollowingPrivate" x:Uid="miPixivMyFollowingPrivate" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <TextBlock 
-                                Text="&#xE902;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xE902;" Style="{DynamicResource HamburgerItem}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="My Pixiv Users" x:Name="miPixivMyUsers" x:Uid="miPixivMyUsers" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <TextBlock 
-                                Text="&#xE902;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xE902;" Style="{DynamicResource HamburgerItem}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="My Blacklist Users" x:Name="miPixivMyBlacklis" x:Uid="miPixivMyBlacklis" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <TextBlock 
-                                Text="&#xE902;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xE902;" Style="{DynamicResource HamburgerItem}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuSeparatorItem />
                     <mah:HamburgerMenuIconItem Label="About" x:Name="miAbout" x:Uid="miAbout" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <TextBlock 
-                                Text="&#xE946;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xE946;" Style="{DynamicResource HamburgerItem}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                         <mah:HamburgerMenuIconItem.Tag>
                             <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="28" FontWeight="Bold">About</TextBlock>
