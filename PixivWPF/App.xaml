@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"	
              xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
              xmlns:mahs="http://metro.mahapps.com/winfx/xaml/shared"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:local="clr-namespace:PixivWPF"
              xmlns:common="clr-namespace:PixivWPF.Common"
@@ -47,7 +48,7 @@
             <BlurEffect x:Key="BlurMark" Radius="5" RenderingBias="Quality" KernelType="Gaussian"/>
             
             <FontFamily x:Key="MonoSpaceFamily">
-                霞骛文楷等宽, LXGW WenKai Mono, Sarasa Mono J, 等距更纱黑体 SC, FontAwesome, Iosevka, Consolas, Segoe UI Symbol, Segoe UI Emoji, Segoe MDL2 Assets, 更纱黑体 SC, Segoe UI, Monospace
+                霞骛文楷等宽, LXGW WenKai Mono, Sarasa Mono J, 等距更纱黑体 SC, FontAwesome, Iosevka, Consolas, Segoe UI Emoji, Segoe UI Symbol, Segoe MDL2 Assets, 更纱黑体 SC, Segoe UI, Monospace
             </FontFamily>
             <FontFamily x:Key="NormalFamily">
                 霞骛文楷, LXGW WenKai, Sarasa Gothic J, 更纱黑体 SC, FontAwesome, Segoe UI Emoji, Segoe MDL2 Assets, Segoe UI Symbol, Segoe UI
@@ -208,6 +209,12 @@
                 <Setter Property="FontSize" Value="48"/>
             </Style>
 
+            <Style x:Key="{x:Type mah:HamburgerMenu}" TargetType="{x:Type mah:HamburgerMenu}">
+                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                <Setter Property="Background" Value="{DynamicResource MahApps.HamburgerMenu.Pane.Background}"/>
+                <Setter Property="PaneForeground" Value="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                <Setter Property="PaneBackground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+            </Style>
             <Style x:Key="HamburgerButton" TargetType="{x:Type TextBlock}">
                 <Setter Property="FontFamily" Value="{DynamicResource SegoeIconFamily}"/>
                 <Setter Property="FontSize" Value="24"/>
@@ -222,11 +229,43 @@
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
 
+            <Style x:Key="ToolButtonPanel" TargetType="{x:Type Rectangle}">
+                <Setter Property="Opacity" Value="0.25"/>
+                <Setter Property="Stroke" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                <Setter Property="Fill" Value="{DynamicResource MahApps.Brushes.Menu.Background}"/>
+            </Style>
+            <Style x:Key="ToolButton" TargetType="{x:Type Button}" BasedOn="{StaticResource MahApps.Styles.Button.Flat}">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Width" Value="44"/>
+                <Setter Property="Height" Value="36"/>
+                <Setter Property="BorderThickness" Value="0"/>
+            </Style>
+            <Style x:Key="ToolButtonIcon" TargetType="{x:Type TextBlock}">
+                <Setter Property="FontFamily" Value="{DynamicResource SegoeIconFamily}"/>
+                <Setter Property="FontSize" Value="24"/>
+                <Setter Property="FontWeight" Value="Regular"/>
+                <Setter Property="Foreground" Value="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Effect" Value="{DynamicResource DropGlow}"/>
+            </Style>
+
             <Style TargetType="{x:Type mah:Badged}">
                 <Setter Property="FontFamily" Value="{DynamicResource MonoSpaceFamily}"/>
                 <Setter Property="BadgeBackground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
             </Style>
-            
+
+            <Style TargetType="{x:Type iconPacks:PackIconModern}">
+                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+            <Style x:Key="IdealPackIcon" TargetType="{x:Type iconPacks:PackIconModern}">
+                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+
             <ControlTemplate x:Key="MenuItemWithSlider" TargetType="{x:Type MenuItem}">
                 <Border x:Name="PART_SliderBorder"
                     Background="{TemplateBinding Background}"

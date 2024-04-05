@@ -718,13 +718,15 @@ namespace PixivWPF.Pages
                         targets = GetOlderItems(setting.DownloadRemoveNDays).ToList();
                         state = DownloadState.Finished;
                     }
-                    $"Total {targets.Count} item(s) will be removed!".DEBUG("DOWNLOADMANAGER");
 
                     if (targets.Count > 0)
                     {
-                        var remove = state == DownloadState.Unknown ? targets : targets.Where(o => o.State == state);
+                        var remove = state == DownloadState.Unknown ? targets : targets.Where(o => o.State == state || o.State == DownloadState.NonExists);
                         if (state == DownloadState.NonExists || Commands.ParallelExecutionConfirm(remove))
+                        {
+                            $"Total {remove.Count()} item(s) will be removed!".INFO($"DOWNLOADMANAGER");
                             foreach (var i in remove) { i.State = DownloadState.Remove; }
+                        }
                     }
                 }).InvokeAsync();
             }

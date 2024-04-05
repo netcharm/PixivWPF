@@ -2756,36 +2756,14 @@ namespace PixivWPF.Pages
 
         public void SetFilter(string filter)
         {
-            try
-            {
-                RelatedItems.Filter = filter.GetFilter();
-                FavoriteItems.Filter = filter.GetFilter();
-            }
-            catch (Exception ex)
-            {
-                ex.ERROR("SetFilter");
-            }
+            RelatedItems.SetFilter(filter);
+            FavoriteItems.SetFilter(filter);
         }
 
         public void SetFilter(FilterParam filter)
         {
-            try
-            {
-                if (filter is FilterParam)
-                {
-                    RelatedItems.Filter = filter.GetFilter();
-                    FavoriteItems.Filter = filter.GetFilter();
-                }
-                else
-                {
-                    RelatedItems.Filter = null;
-                    FavoriteItems.Filter = null;
-                }
-            }
-            catch (Exception ex)
-            {
-                ex.ERROR("SetFilter");
-            }
+            RelatedItems.SetFilter(filter);
+            FavoriteItems.SetFilter(filter);
         }
 
         public dynamic GetTilesCount()

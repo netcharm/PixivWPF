@@ -98,10 +98,6 @@
             IsPaneOpen="False" ShowSelectionIndicator="True" 
             OpenPaneLength="280" CompactPaneLength="48"
             CanResizeOpenPane="False" VerticalScrollBarOnLeftSide="False"
-            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
-            Background="{DynamicResource MahApps.HamburgerMenu.Pane.Background}"
-            PaneForeground="{DynamicResource MahApps.Brushes.IdealForeground}"
-            PaneBackground="{DynamicResource MahApps.Brushes.Accent}"
             HamburgerButtonHelpText="Change Pixiv Category"
             ItemTemplate="{StaticResource HamburgerMenuIconItem}"
             OptionsItemTemplate="{StaticResource HamburgerMenuIconItem}"
@@ -145,19 +141,14 @@
                     <mah:HamburgerMenuSeparatorItem />
                     <mah:HamburgerMenuIconItem Label="Following" x:Name="miPixivFollowing" x:Uid="miPixivFollowing" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="Star" />
+                            <iconPacks:PackIconModern Kind="Star" Width="22" Height="22" Style="{DynamicResource IdealPackIcon}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="Following Private" x:Name="miPixivFollowingPrivate" x:Uid="miPixivFollowingPrivate" >
                         <mah:HamburgerMenuIconItem.Icon>
                             <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                                <iconPacks:PackIconModern 
-                                    Kind="Star" Width="22" Height="22" 
-                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <iconPacks:PackIconModern 
-                                    Kind="Lock" Width="8" Height="8" Margin="1,0,0,0"
-                                    Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <iconPacks:PackIconModern Kind="Star" Width="22" Height="22" Style="{DynamicResource IdealPackIcon}"/>
+                                <iconPacks:PackIconModern Kind="Lock" Width="8" Height="8" Margin="1,0,0,0"/>
                             </Grid>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
@@ -165,19 +156,14 @@
                     <mah:HamburgerMenuSeparatorItem />
                     <mah:HamburgerMenuIconItem Label="Favorite" x:Name="miPixivFavorite" x:Uid="miPixivFavorite" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="Heart" />
+                            <iconPacks:PackIconModern Kind="Heart" Width="22" Height="22" Style="{DynamicResource IdealPackIcon}"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="Favorite Private" x:Name="miPixivFavoritePrivate" x:Uid="miPixivFavoritePrivate" >
                         <mah:HamburgerMenuIconItem.Icon>
                             <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
-                                <iconPacks:PackIconModern 
-                                    Kind="Heart" Width="22" Height="22" 
-                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <iconPacks:PackIconModern 
-                                    Kind="Lock" Width="8" Height="8" Margin="1,0,0,0"
-                                    Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <iconPacks:PackIconModern Kind="Heart" Width="22" Height="22" Style="{DynamicResource IdealPackIcon}"/>
+                                <iconPacks:PackIconModern Kind="Lock" Width="8" Height="8" Margin="1,0,0,0"/>
                             </Grid>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>

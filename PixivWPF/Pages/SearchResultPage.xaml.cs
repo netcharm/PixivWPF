@@ -251,33 +251,12 @@ namespace PixivWPF.Pages
 
         public void SetFilter(string filter)
         {
-            try
-            {
-                ResultItems.Filter = filter.GetFilter();
-            }
-            catch (Exception ex)
-            {
-                ex.ERROR("SetFilter");
-            }
+            ResultItems.SetFilter(filter);
         }
 
         public void SetFilter(FilterParam filter)
         {
-            try
-            {
-                if (filter is FilterParam)
-                {
-                    ResultItems.Filter = filter.GetFilter();
-                }
-                else
-                {
-                    ResultItems.Filter = null;
-                }
-            }
-            catch (Exception ex)
-            {
-                ex.ERROR("SetFilter");
-            }
+            ResultItems.SetFilter(filter);
         }
 
         public dynamic GetTilesCount()

@@ -25,27 +25,21 @@
         <ContextMenu x:Key="ActionBookmarkIllust">
             <MenuItem x:Uid="ActionBookmarkIllustPublic" Header="Public" Click="ActionBookmarkIllust_Click" >
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="Heart" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="22" Height="22" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="Heart" Width="22" Height="22" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionBookmarkIllustPrivate" Header="Private" Click="ActionBookmarkIllust_Click">
                 <MenuItem.Icon>
                     <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="4,0,0,0">
-                        <iconPacks:PackIconModern 
-                            Kind="Heart" Width="22" Height="22" 
-                            HorizontalAlignment="Center" VerticalAlignment="Center"
-                            Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
-                        <iconPacks:PackIconModern 
-                            Kind="Lock" Width="8" Height="8"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"
-                            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                        <iconPacks:PackIconModern Kind="Heart" Width="22" Height="22" />
+                        <iconPacks:PackIconModern  Kind="Lock" Width="8" Height="8" Style="{DynamicResource IdealPackIcon}"/>
                     </Grid>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator/>
             <MenuItem x:Uid="ActionBookmarkIllustRemove" Header="Remove" Click="ActionBookmarkIllust_Click">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="HeartOutline" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="22" Height="22"  Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="HeartOutline" Width="22" Height="22"  Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
         </ContextMenu>
@@ -53,20 +47,14 @@
         <ContextMenu x:Key="ActionFollowAuthor">
             <MenuItem x:Uid="ActionFollowAuthorPublic" Header="Public" Click="ActionFollowAuthor_Click">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="Star" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="22" Height="22" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="Star" Width="22" Height="22" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionFollowAuthorPrivate" Header="Private" Click="ActionFollowAuthor_Click">
                 <MenuItem.Icon>
                     <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="4,0,0,0">
-                        <iconPacks:PackIconModern 
-                            Kind="Star" Width="22" Height="22" 
-                            HorizontalAlignment="Center" VerticalAlignment="Center"
-                            Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
-                        <iconPacks:PackIconModern 
-                            Kind="Lock" Width="8" Height="8"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"
-                            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                        <iconPacks:PackIconModern Kind="Star" Width="22" Height="22"/>
+                        <iconPacks:PackIconModern Kind="Lock" Width="8" Height="8" Style="{DynamicResource IdealPackIcon}"/>
                     </Grid>
                 </MenuItem.Icon>
             </MenuItem>
@@ -627,73 +615,34 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <!-- Background -->
-                <Rectangle Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="0" Grid.RowSpan="3" 
-                           Opacity="0.25"
-                           Stroke="{DynamicResource MahApps.Brushes.Accent}"
-                           Fill="{DynamicResource MahApps.Brushes.Menu.Background}"/>
+                <Rectangle Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="0" Grid.RowSpan="3" Style="{DynamicResource ToolButtonPanel}"/>
                 <!-- Tool Buttons -->
-                <Button Grid.Column="0" Grid.Row="0" Margin="4" ToolTip="Copy Illust ID"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                        Background="Transparent" Click="PreviewPopup_Click">
-                    <TextBlock Text="&#xE16F;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
-                        Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                        HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}"/>
+                <Button Grid.Column="0" Grid.Row="0" Margin="4" ToolTip="Copy Illust ID" Style="{DynamicResource ToolButton}" Click="PreviewPopup_Click">
+                    <TextBlock Text="&#xE16F;" Style="{DynamicResource ToolButtonIcon}"/>
                 </Button>
-                <Button Grid.Column="2" Grid.Row="0" Margin="4" ToolTip="Copy Preview"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                        Background="Transparent" Click="PreviewPopup_Click">
-                    <TextBlock Text="&#xE295;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
-                        Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                        HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}"/>
+                <Button Grid.Column="2" Grid.Row="0" Margin="4" ToolTip="Copy Preview" Style="{DynamicResource ToolButton}" Click="PreviewPopup_Click">
+                    <TextBlock Text="&#xE295;" Style="{DynamicResource ToolButtonIcon}"/>
                 </Button>
-                <Button Grid.Column="0" Grid.Row="2" Margin="4" ToolTip="Send Illust To Other Instance"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                        Background="Transparent" Click="PreviewPopup_Click">
-                    <TextBlock Text="&#xE724;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
-                        Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                        HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}"/>
+                <Button Grid.Column="0" Grid.Row="2" Margin="4" ToolTip="Send Illust To Other Instance" Style="{DynamicResource ToolButton}" Click="PreviewPopup_Click">
+                    <TextBlock Text="&#xE724;" Style="{DynamicResource ToolButtonIcon}"/>
                 </Button>
-                <Button Grid.Column="2" Grid.Row="2" Margin="4" ToolTip="Send Author To Other Instance"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                        Background="Transparent" Click="PreviewPopup_Click">
-                    <TextBlock Text="&#xE725;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
-                        Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                        HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}"/>
+                <Button Grid.Column="2" Grid.Row="2" Margin="4" ToolTip="Send Author To Other Instance" Style="{DynamicResource ToolButton}" Click="PreviewPopup_Click">
+                    <TextBlock Text="&#xE725;" Style="{DynamicResource ToolButtonIcon}"/>
                 </Button>
-                <Button Grid.Column="0" Grid.Row="1" Margin="4" ToolTip="Refresh Preview"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                        Background="Transparent" Click="PreviewPopup_Click">
-                    <TextBlock Text="&#xE149;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
-                        Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                        HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}"/>
+                <Button Grid.Column="0" Grid.Row="1" Margin="4" ToolTip="Refresh Preview" Style="{DynamicResource ToolButton}" Click="PreviewPopup_Click">
+                    <TextBlock Text="&#xE149;" Style="{DynamicResource ToolButtonIcon}"/>
                 </Button>
-                <Button Grid.Column="1" Grid.Row="1" Margin="4" ToolTip="Open Preview Window"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                        Background="Transparent" Click="PreviewPopup_Click">
-                    <TextBlock Text="&#xE91B;" FontSize="24" FontFamily="Segoe MDL2 Assets"                            
-                        Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                        HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}" />
+                <Button Grid.Column="1" Grid.Row="1" Margin="4" ToolTip="Open Preview Window" Style="{DynamicResource ToolButton}" Click="PreviewPopup_Click">
+                    <TextBlock Text="&#xE91B;" Style="{DynamicResource ToolButtonIcon}"/>
                 </Button>
-                <Button Grid.Column="2" Grid.Row="1" Margin="4" ToolTip="Open Preview With..."
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                        Background="Transparent" Click="PreviewPopup_Click">
-                    <TextBlock Text="&#xEB9F;" FontSize="24" FontFamily="Segoe MDL2 Assets"
-                        Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                        HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}"/>
+                <Button Grid.Column="2" Grid.Row="1" Margin="4" ToolTip="Open Preview With..." Style="{DynamicResource ToolButton}" Click="PreviewPopup_Click">
+                    <TextBlock Text="&#xEB9F;" Style="{DynamicResource ToolButtonIcon}"/>
                 </Button>
-                <Button Grid.Column="1" Grid.Row="2" Margin="4" ToolTip="Save Illust"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                        Background="Transparent" Click="PreviewPopup_Click">
-                    <TextBlock Text="&#xE105;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
-                        Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                        HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}"/>
+                <Button Grid.Column="1" Grid.Row="2" Margin="4" ToolTip="Save Illust" Style="{DynamicResource ToolButton}" Click="PreviewPopup_Click">
+                    <TextBlock Text="&#xE105;" Style="{DynamicResource ToolButtonIcon}"/>
                 </Button>
-                <Button Grid.Column="1" Grid.Row="0" Margin="4" ToolTip="Open Downloaded Illust"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                        Background="Transparent" Click="PreviewPopup_Click">
-                    <TextBlock Text="&#xE118;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
-                        Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                        HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}"/>
+                <Button Grid.Column="1" Grid.Row="0" Margin="4" ToolTip="Open Downloaded Illust" Style="{DynamicResource ToolButton}" Click="PreviewPopup_Click">
+                    <TextBlock Text="&#xE118;" Style="{DynamicResource ToolButtonIcon}"/>
                 </Button>
             </Grid>
         </Popup>

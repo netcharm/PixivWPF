@@ -969,7 +969,7 @@ namespace PixivWPF
                 LiveFilterDownloaded, LiveFilterNotDownloaded,
             };
             var menus_ai = new List<MenuItem>() {
-                LiveFilterAIGC, LiveFilterAIAD, LiveFilterNoAI,
+                LiveFilterAIGC, LiveFilterNotAIGC, LiveFilterAIAD, LiveFilterNoAI,
             };
             var menus_sanity = new List<MenuItem>() {
                 LiveFilterSanity_Any,

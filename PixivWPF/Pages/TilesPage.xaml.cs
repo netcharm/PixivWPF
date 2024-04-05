@@ -537,32 +537,12 @@ namespace PixivWPF.Pages
         #region Live Filter helper
         public void SetFilter(string filter)
         {
-            try
-            {
-                ImageTiles.Filter = filter.GetFilter();
-            }
-            catch (Exception ex)
-            {
-                ex.ERROR("SetFilter");
-            }
+            ImageTiles.SetFilter(filter);
         }
 
         public void SetFilter(FilterParam filter)
         {
-            try
-            {
-                if (filter is FilterParam)
-                    ImageTiles.Filter = filter.GetFilter();
-                else
-                    ImageTiles.Filter = null;
-
-                if (DetailPage is IllustDetailPage)
-                    DetailPage.SetFilter(filter);
-            }
-            catch (Exception ex)
-            {
-                ex.ERROR("SetFilter");
-            }
+            ImageTiles.SetFilter(filter);
         }
 
         public dynamic GetTilesCount()

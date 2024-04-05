@@ -598,6 +598,7 @@ namespace PixivWPF.Common
                 bool notdownloaded = filter_down.Equals("notdownloaded") ? true : false;
 
                 bool aigc = filter_ai.Equals("aigc") ? true : false;
+                bool notaigc = filter_ai.Equals("notaigc") ? true : false;
                 bool aiad = filter_ai.Equals("aiad") ? true : false;
                 bool noai = filter_ai.Equals("noai") ? true : false;
                 #endregion
@@ -776,10 +777,12 @@ namespace PixivWPF.Common
                         }
                         #endregion
                         #region filter by AI state
-                        if (aigc || aiad || noai)
+                        if (aigc || notaigc || aiad || noai)
                         {
                             if (aigc)
                                 result = result && (item.IsAI() ? true : false);
+                            if (notaigc)
+                                result = result && (item.IsAI() ? false : true);
                             else if (aiad)
                                 result = result && (item.HasAI() && !item.IsAI() ? true : false);
                             else if (noai)
@@ -855,6 +858,16 @@ namespace PixivWPF.Common
         }
         #endregion
 
+        public static string GetTooltip(this Pixeez.Objects.Work illust)
+        {
+            var result = string.Empty;
+            if (illust.IsWork())
+            {
+
+            }
+            return (result);
+        }
+
         public static PixivItem WorkItem(this Pixeez.Objects.Work illust, string url = "", string nexturl = "", PixivItemType work_type = PixivItemType.Work)
         {
             PixivItem result = null;
@@ -883,7 +896,7 @@ namespace PixivWPF.Common
                             var work = illust as Pixeez.Objects.IllustWork;
                             var like = work.Stats != null ? $", 👍[{work.Stats.ScoredCount}]" : string.Empty;
                             sanity = string.IsNullOrEmpty(work.SanityLevel) ? string.Empty : work.SanityLevel.SanityAge();
-                            age = string.IsNullOrEmpty(sanity) ? string.Empty : $"R[{sanity}]";
+                            age = string.IsNullOrEmpty(sanity) ? string.Empty : $"[R-{sanity}]";
                             state = $", 🔞{age}, 🔯[{aitype}, {illust.AIType}], {userliked}/{illustliked}[{work.total_bookmarks}]{like}, 🖼[{work.Width}x{work.Height}]";
                         }
                         else if (illust is Pixeez.Objects.NormalWork)
@@ -892,7 +905,7 @@ namespace PixivWPF.Common
                             var like = work.Stats != null ? $", 👍[{work.Stats.ScoredCount}]" : string.Empty;
                             var stats = work.Stats != null ? $"{illustliked}[{work.Stats.FavoritedCount.Public}/{work.Stats.FavoritedCount.Private}]" : string.Empty;
                             sanity = work.AgeLimit != null ? work.AgeLimit.SanityAge() : string.Empty;
-                            age = string.IsNullOrEmpty(sanity) ? string.Empty : $"R[{sanity}]";
+                            age = string.IsNullOrEmpty(sanity) ? string.Empty : $"[R-{sanity}]";
                             state = $", 🔞{age}, 🔯[{aitype}, {illust.AIType}], {userliked}/{stats}{like}, 🖼[{work.Width}x{work.Height}]";
                         }
                         var uname = illust.User is Pixeez.Objects.UserBase ? $"{Environment.NewLine}🎨[{illust.User.Name}]" : string.Empty;
@@ -1138,6 +1151,7 @@ namespace PixivWPF.Common
             }
             return (result);
         }
+        
         #region Image Tile Add Helper
         public static async void AddTo(this IList<Pixeez.Objects.Work> works, IList<PixivItem> Collection, string nexturl = "")
         {

@@ -149,6 +149,7 @@
                     <MenuItem x:Name="LiveFilterNotFollowed" x:Uid="LiveFilterNotFollowed" Header="Not Followed" Click="LiveFilterItem_Click"/>
                     <Separator/>
                     <MenuItem x:Name="LiveFilterAIGC" x:Uid="LiveFilterAIGC" Header="AI Gen" Click="LiveFilterItem_Click"/>
+                    <MenuItem x:Name="LiveFilterNotAIGC" x:Uid="LiveFilterNotAIGC" Header="Not AI Gen" Click="LiveFilterItem_Click"/>
                     <MenuItem x:Name="LiveFilterAIAD" x:Uid="LiveFilterAIAD" Header="AI Using" Click="LiveFilterItem_Click"/>
                     <MenuItem x:Name="LiveFilterNoAI" x:Uid="LiveFilterNoAI" Header="No AI" Click="LiveFilterItem_Click"/>
                     <Separator/>

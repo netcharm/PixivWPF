@@ -90,11 +90,26 @@ namespace PixivWPF.Common
             set { if (PART_ImageTiles.Items is ItemCollection) PART_ImageTiles.Items.Filter = value; }
         }
 
-        [Description("Get or Set Image Tiles Count after filtered/current be displayed")]
+        [Description("Get Displayed Image Tiles Count")]
         [Category("Common Properties")]
         public int ItemsCount { get { return (PART_ImageTiles.Items != null ? PART_ImageTiles.Items.Count : 0); } }
 
+        [Description("Get Total Image Tiles Count")]
+        [Category("Common Properties")]
         public int Count { get { return (ItemList is ObservableCollection<PixivItem> ? ItemList.Count : 0); } }
+
+        [Description("Get Displayed Image Tiles Count")]
+        [Category("Common Properties")]
+        public int DisplayedCount { get { return (PART_ImageTiles.Items != null ? PART_ImageTiles.Items.Count : 0); } }
+
+        [Description("Get Selected Image Tiles Count")]
+        [Category("Common Properties")]
+        public int SelectedCount { get { return (PART_ImageTiles.Items != null && PART_ImageTiles.SelectedItems != null ? PART_ImageTiles.SelectedItems.Count : 0); } }
+
+        [Description("Get Total Image Tiles Count")]
+        [Category("Common Properties")]
+        public int TotalCount { get { return (ItemList is ObservableCollection<PixivItem> ? ItemList.Count : 0); } }
+
         #endregion
 
         #region Tiles Layout
@@ -585,6 +600,33 @@ namespace PixivWPF.Common
             }
             catch (Exception ex) { ex.ERROR("ImageListGrid.FindItem<Canvas>"); }
             return (result);
+        }
+
+        public void SetFilter(string filter)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(filter)) Filter = null;
+                else Filter = filter.GetFilter();
+            }
+            catch (Exception ex)
+            {
+                ex.ERROR("SetFilter");
+            }
+        }
+
+        public void SetFilter(FilterParam filter)
+        {
+            try
+            {
+                if (filter is FilterParam)
+                    Filter = filter.GetFilter();
+                else Filter = null;
+            }
+            catch (Exception ex)
+            {
+                ex.ERROR("SetFilter");
+            }
         }
 
         public void Filtering(string filter)
