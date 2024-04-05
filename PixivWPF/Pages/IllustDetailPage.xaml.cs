@@ -2940,6 +2940,7 @@ namespace PixivWPF.Pages
             IllustActions.MouseOverAction();
 
             IllustTagPedia.MouseOverAction();
+            IllustTagSearchInFile.MouseOverAction();
             IllustTagSpeech.MouseOverAction();
             IllustTagRefresh.MouseOverAction();
 

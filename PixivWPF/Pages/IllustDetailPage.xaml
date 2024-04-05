@@ -843,12 +843,7 @@
                                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent"
                                 MouseMove="PreviewRect_MouseMove" MouseLeave="PreviewRect_MouseLeave"
                                 MouseLeftButtonDown="PreviewRect_MouseLeftButtonDown"/>
-                            <Common:ProgressRingCloud 
-                                Grid.Column="1" x:Name="PreviewWait" Size="96" Visibility="Collapsed" 
-                                ReloadEnabled="True" ReloadClick="ActionRefreshPreview_Click"
-                                Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
-                                ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="3" ShadowDepth="1" ShadowOpacity="1"
-                                VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            <Common:ProgressRingCloud Grid.Column="1" x:Name="PreviewWait" Size="96" Visibility="Collapsed" ReloadEnabled="True" ReloadClick="ActionRefreshPreview_Click"/>
                         </Grid>
                     </ContentControl>
                     <mah:Badged Grid.Row="0" x:Name="PreviewBadge" x:Uid="PreviewBadge"
@@ -980,37 +975,22 @@
                                 ToolTip="Bookmark Illust" Visibility="Collapsed"
                                 ContextMenu="{DynamicResource ActionBookmarkIllust}"
                                 ContextMenuOpening="IllustActions_ContextMenuOpening"
-                                Width="64" Height="64" Focusable="False" BorderThickness="0"
-                                HorizontalAlignment="Right" VerticalAlignment="Center"
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                Style="{DynamicResource MahApps.Styles.Button.Circle}"
-                                BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                                Foreground="{DynamicResource MahApps.Brushes.Accent}">
-                            <TextBlock Text="{Binding Tag, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Style="{DynamicResource MenuItemIcon32}"/>
+                                Style="{DynamicResource CircleButton64}" Focusable="False">
+                            <TextBlock Text="{Binding Tag, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Style="{DynamicResource ButtonIcon32}"/>
                         </Button>
                         <Button x:Name="FollowAuthor" x:Uid="FollowAuthor" Margin="-8,0,0,0" Click="ActionIllust_Click"
                                 ToolTip="Follow Author" Visibility="Collapsed" 
                                 ContextMenu="{DynamicResource ActionFollowAuthor}"
                                 ContextMenuOpening="IllustActions_ContextMenuOpening" 
-                                Width="64" Height="64" Focusable="False" BorderThickness="0"
-                                HorizontalAlignment="Right" VerticalAlignment="Center"
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                Style="{DynamicResource MahApps.Styles.Button.Circle}"
-                                BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                                Foreground="{DynamicResource MahApps.Brushes.Accent}">
-                            <TextBlock Text="{Binding Tag, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Style="{DynamicResource MenuItemIcon32}"/>
+                                Style="{DynamicResource CircleButton64}" Focusable="False">
+                            <TextBlock Text="{Binding Tag, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Style="{DynamicResource ButtonIcon32}"/>
                         </Button>
                         <Button x:Name="IllustActions" x:Uid="IllustActions" Margin="-8,0,0,0" Click="ActionIllust_Click"
                                 ToolTip="Illust Actions" Visibility="Collapsed" 
                                 ContextMenu="{DynamicResource ActionIllust}"
-                                ContextMenuOpening="IllustActions_ContextMenuOpening"                                
-                                Width="64" Height="64" Focusable="False" BorderThickness="0"
-                                HorizontalAlignment="Right" VerticalAlignment="Center"
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                Style="{DynamicResource MahApps.Styles.Button.Circle}"
-                                BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                                Foreground="{DynamicResource MahApps.Brushes.Accent}">
-                            <TextBlock Text="&#xE179;" Style="{DynamicResource MenuItemIcon32}" FontWeight="Bold" RenderTransformOrigin="0.5,0.5">
+                                ContextMenuOpening="IllustActions_ContextMenuOpening"
+                                Style="{DynamicResource CircleButton64}" Focusable="False">
+                            <TextBlock Text="&#xE179;" Style="{DynamicResource ButtonIcon32}" FontWeight="Bold" RenderTransformOrigin="0.5,0.5">
                                 <TextBlock.RenderTransform>
                                     <ScaleTransform ScaleY="1" ScaleX="-1"/>
                                 </TextBlock.RenderTransform>
@@ -1032,44 +1012,27 @@
                             Orientation="Horizontal" Margin="0,4,0,0"
                             HorizontalAlignment="Right" VerticalAlignment="Top">
                     <Button x:Name="IllustTagPedia" x:Uid="PixivPedia" ToolTip="Query Tag in Pixiv Pedia"
-                        Visibility="Visible" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
-                        Click="ActionOpenPedia_Click">
+                        Visibility="Visible" Style="{DynamicResource ExpanderButton}" Click="ActionOpenPedia_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE1D3;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xE1D3;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                     <Button x:Name="IllustTagSearchInFile" x:Uid="SearchText" ToolTip="Search Selected In Downloaded"
-                        Visibility="Visible" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
-                        Click="ActionSearchSelectedText_Click">
+                        Visibility="Visible" Style="{DynamicResource ExpanderButton}" Click="ActionSearchSelectedText_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE773;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xE773;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                     <Button x:Name="IllustTagSpeech" x:Uid="Speech" ToolTip="Read Selected/All Contents"
-                        Visibility="Visible" FontWeight="Normal"
-                        ContextMenu="{DynamicResource MenuSpeech}"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
-                        Click="ActionSpeech_Click">
+                        Visibility="Visible" Style="{DynamicResource ExpanderButton}" ContextMenu="{DynamicResource MenuSpeech}" Click="ActionSpeech_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xEFA9;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xEFA9;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                     <Button x:Name="IllustTagRefresh" x:Uid="TagsRefresh" ToolTip="Refresh Tags"
-                        Visibility="Visible" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
-                        Click="ActionRefresh_Click">
+                        Visibility="Visible" Style="{DynamicResource ExpanderButton}" Click="ActionRefresh_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE149;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xE149;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                         <Button.ContextMenu>
                             <ContextMenu>
@@ -1119,34 +1082,21 @@
                             Orientation="Horizontal" Margin="0,4,0,0"
                             HorizontalAlignment="Right" VerticalAlignment="Top">
                     <Button x:Name="IllustDescSearchInFile" x:Uid="SearchText" ToolTip="Search Selected In Downloaded"
-                        Visibility="Visible" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
-                        Click="ActionSearchSelectedText_Click">
+                        Visibility="Visible" Style="{DynamicResource ExpanderButton}" Click="ActionSearchSelectedText_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE773;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xE773;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                     <Button x:Name="IllustDescSpeech" x:Uid="Speech" ToolTip="Read Selected/All Contents"
-                        Visibility="Visible" FontWeight="Normal"
-                        ContextMenu="{DynamicResource MenuSpeech}"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
-                        Click="ActionSpeech_Click">
+                        Visibility="Visible" Style="{DynamicResource ExpanderButton}" ContextMenu="{DynamicResource MenuSpeech}" Click="ActionSpeech_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xEFA9;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xEFA9;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                     <Button x:Name="IllustDescRefresh" x:Uid="DescRefresh" ToolTip="Refresh Descriptions"
-                        Visibility="Visible" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
-                        Click="ActionRefresh_Click">
+                        Visibility="Visible" Style="{DynamicResource ExpanderButton}" Click="ActionRefresh_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE149;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xE149;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                 </StackPanel>
@@ -1176,46 +1126,30 @@
                             HorizontalAlignment="Right" VerticalAlignment="Top" >
                     <Button 
                         x:Name="SubIllustPrevPages" x:Uid="SubIllustPrevPages"
-                        Visibility="Collapsed" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
-                        Click="SubIllustPagesNav_Click">
+                        Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" Click="SubIllustPagesNav_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE112;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xE112;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                     <Button 
                         x:Name="SubIllustNextPages" x:Uid="SubIllustNextPages"
-                        Visibility="Collapsed" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
-                        Click="SubIllustPagesNav_Click">
+                        Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" Click="SubIllustPagesNav_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE111;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xE111;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                     <Button 
                         x:Name="SubIllustCompare" x:Uid="ActionCompare" ToolTip="Compare Selecteor"
-                        Visibility="{Binding ElementName=SubIllustRefresh, Path=Visibility}" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
-                        Click="ActionCompare_Click">
+                        Visibility="{Binding ElementName=SubIllustRefresh, Path=Visibility}" Style="{DynamicResource ExpanderButton}" Click="ActionCompare_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE11E;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xE11E;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                     <Button 
                         x:Name="SubIllustRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
-                        Visibility="Visible" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
-                        Click="ActionRefresh_Click">
+                        Visibility="Visible" Style="{DynamicResource ExpanderButton}" Click="ActionRefresh_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE149;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xE149;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                 </StackPanel>
@@ -1242,57 +1176,38 @@
                             HorizontalAlignment="Right" VerticalAlignment="Top" >
                     <Button 
                         x:Name="RelatedPrevPage" x:Uid="RalatedPrevPage" ToolTip="Prev Page"
-                        Visibility="Collapsed" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
-                        Click="RelatedPrevPage_Click">
+                        Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" Click="RelatedPrevPage_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE112;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xE112;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                     <Button 
                         x:Name="RelatedNextPage" x:Uid="RalatedNextPage" ToolTip="Next Page"
-                        Visibility="Collapsed" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
-                        Click="RelatedNextPage_Click">
+                        Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" Click="RelatedNextPage_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE111;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xE111;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                     <Button 
                         x:Name="RelatedNextAppend" x:Uid="RelatedNextAppend" ToolTip="Append Next Page"
-                        Visibility="{Binding Visibility, ElementName=RelatedNextPage, Mode=TwoWay}" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
-                        Click="RelatedNextPage_Click" MouseRightButtonDown="RelatedNextAppend_MouseRightButtonDown" ToolTipOpening="RelatedNextAppend_ToolTipOpening">
+                        Visibility="{Binding Visibility, ElementName=RelatedNextPage, Mode=TwoWay}" Style="{DynamicResource ExpanderButton}" Click="RelatedNextPage_Click" 
+                        MouseRightButtonDown="RelatedNextAppend_MouseRightButtonDown" ToolTipOpening="RelatedNextAppend_ToolTipOpening">
                         <Button.Content>
-                            <TextBlock Text="&#xEB91;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xEB91;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                     <Button 
                         x:Name="RelatedCompare" x:Uid="ActionCompare" ToolTip="Compare Selecteor"
-                        Visibility="{Binding ElementName=RelatedRefresh, Path=Visibility, Mode=TwoWay}" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
-                        Click="ActionCompare_Click">
+                        Visibility="{Binding ElementName=RelatedRefresh, Path=Visibility, Mode=TwoWay}" Style="{DynamicResource ExpanderButton}" Click="ActionCompare_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE11E;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xE11E;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                     <Button 
                         x:Name="RelatedRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
-                        Visibility="Collapsed" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
-                        Click="ActionRefresh_Click">
+                        Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" Click="ActionRefresh_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE149;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xE149;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                 </StackPanel>
@@ -1319,57 +1234,38 @@
                             HorizontalAlignment="Right" VerticalAlignment="Top" >
                     <Button 
                         x:Name="FavoritePrevPage" x:Uid="FavoritePrevPage" ToolTip="Prev Page"
-                        Visibility="Collapsed" FontWeight="Normal" 
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
-                        Click="FavoritePrevPage_Click">
+                        Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" Click="FavoritePrevPage_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE112;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xE112;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                     <Button 
                         x:Name="FavoriteNextPage" x:Uid="FavoriteNextPage" ToolTip="Next Page"
-                        Visibility="Collapsed" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
-                        Click="FavoriteNextPage_Click">
+                        Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" Click="FavoriteNextPage_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE111;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xE111;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                     <Button 
                         x:Name="FavoriteNextAppend" x:Uid="FavoriteNextAppend" ToolTip="Append Next Page"
-                        Visibility="{Binding Visibility, ElementName=FavoriteNextPage, Mode=TwoWay}" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
-                        Click="FavoriteNextPage_Click" ToolTipOpening="FavoriteNextAppend_ToolTipOpening">
+                        Visibility="{Binding Visibility, ElementName=FavoriteNextPage, Mode=TwoWay}" Style="{DynamicResource ExpanderButton}" Click="FavoriteNextPage_Click" 
+                        ToolTipOpening="FavoriteNextAppend_ToolTipOpening">
                         <Button.Content>
-                            <TextBlock Text="&#xEB91;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xEB91;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                     <Button 
                         x:Name="FavoriteCompare" x:Uid="ActionCompare" ToolTip="Compare Selecteor"
-                        Visibility="{Binding ElementName=FavoriteRefresh, Path=Visibility, Mode=TwoWay}" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
-                        Click="ActionCompare_Click">
+                        Visibility="{Binding ElementName=FavoriteRefresh, Path=Visibility, Mode=TwoWay}" Style="{DynamicResource ExpanderButton}" Click="ActionCompare_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE11E;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xE11E;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                     <Button 
                         x:Name="FavoriteRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
-                        Visibility="Collapsed" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
-                        Click="ActionRefresh_Click">
+                        Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" Click="ActionRefresh_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE149;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xE149;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                 </StackPanel>
@@ -1396,35 +1292,23 @@
                             HorizontalAlignment="Right" VerticalAlignment="Top" >
                     <Button 
                         x:Name="CommentsPrevPage" x:Uid="CommentsPrevPage" ToolTip="Prev Page"
-                        Visibility="Collapsed" FontWeight="Normal" 
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
-                        Click="CommentsPrevPage_Click">
+                        Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" Click="CommentsPrevPage_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE112;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xE112;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                     <Button 
                         x:Name="CommentsNextPage" x:Uid="CommentsNextPage" ToolTip="Next Page"
-                        Visibility="Collapsed" FontWeight="Normal" 
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
-                        Click="CommentsNextPage_Click">
+                        Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" Click="CommentsNextPage_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE111;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xE111;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                     <Button 
                         x:Name="btnCommentRefresh" x:Uid="ActionRefreshComment" ToolTip="Refresh Comment"
-                        Visibility="Collapsed" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
-                        Click="ActionRefresh_Click">
+                        Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" Click="ActionRefresh_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE149;" Style="{DynamicResource ExpanderButton}"/>
+                            <TextBlock Text="&#xE149;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
                 </StackPanel>
@@ -1433,11 +1317,7 @@
         </ScrollViewer>
 
         <!-- Illust Open Progress Prompt -->
-        <Common:ProgressRingCloud 
-            Grid.Column="0" x:Name="IllustDetailWait" Size="128" Visibility="Collapsed"
-            Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
-            ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="10" ShadowDepth="1" ShadowOpacity="1"
-            VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        <Common:ProgressRingCloud Grid.Column="0" x:Name="IllustDetailWait" Size="128" Visibility="Collapsed"/>
 
     </Grid>
 </Page>

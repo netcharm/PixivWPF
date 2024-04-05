@@ -314,12 +314,7 @@
                                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                               Visibility="{Binding IsDownloadedVisibility, Mode=OneWay}"/>
                 </Grid>
-                <local:ProgressRingCloud
-                    Grid.Row="0" x:Name="PART_Progress" Size="72"
-                    State="{Binding Path=State, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" TargetUpdated="PART_TileImage_TargetUpdated"
-                    Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
-                    ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="9" ShadowDepth="1" ShadowOpacity="1"
-                    VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                <local:ProgressRingCloud Grid.Row="0" x:Name="PART_Progress" Size="72" State="{Binding Path=State, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" TargetUpdated="PART_TileImage_TargetUpdated"/>
             </Grid>
         </DataTemplate>
     </UserControl.Resources>
@@ -363,11 +358,7 @@
             </ListView.ItemsPanel>
         </ListView>
 
-        <local:ProgressRingCloud 
-            Grid.Row="0" x:Name="PART_ImageTilesWait" Size="128" Visibility="Collapsed"
-            Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
-            ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="10" ShadowDepth="1" ShadowOpacity="1"
-            VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        <local:ProgressRingCloud Grid.Row="0" x:Name="PART_ImageTilesWait" Size="128" Visibility="Collapsed"/>
 
     </Grid>
 </UserControl>

@@ -95,6 +95,13 @@
                 <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Text}"/>
             </Style>
 
+            <Style TargetType="{x:Type Slider}" BasedOn="{StaticResource MahApps.Styles.Slider}"/>
+
+
+            <Style x:Key="SlideValue" TargetType="{x:Type TextBlock}">
+                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+            </Style>
+            
             <DataTemplate x:Key="TitleBarTemplate">
                 <TextBlock Name="PART_Title"
                     Text="{TemplateBinding Content}"
@@ -123,7 +130,18 @@
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
 
-            <Style x:Key="ExpanderButton" TargetType="{x:Type TextBlock}">
+            <Style x:Key="ExpanderButton" TargetType="{x:Type Button}" BasedOn="{StaticResource MahApps.Styles.Button.Square}">
+                <!--<Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.IdealForeground}"/>-->
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="FontWeight" Value="Normal"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Width" Value="28"/>
+                <Setter Property="Height" Value="20"/>
+                <Setter Property="HorizontalAlignment" Value="Right"/>
+                <Setter Property="VerticalAlignment" Value="Stretch"/>
+                <Setter Property="Margin" Value="0"/>
+            </Style>
+            <Style x:Key="ExpanderButtonIcon" TargetType="{x:Type TextBlock}">
                 <Setter Property="FontFamily" Value="{DynamicResource SegoeIconFamily}"/>
                 <Setter Property="FontSize" Value="16"/>
                 <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.IdealForeground}"/>
@@ -202,6 +220,9 @@
             <Style x:Key="MenuItemIcon22" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MenuItemIcon}">
                 <Setter Property="FontSize" Value="22"/>
             </Style>
+            <Style x:Key="MenuItemIcon24" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MenuItemIcon}">
+                <Setter Property="FontSize" Value="24"/>
+            </Style>
             <Style x:Key="MenuItemIcon32" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MenuItemIcon}">
                 <Setter Property="FontSize" Value="32"/>
             </Style>
@@ -235,6 +256,7 @@
                 <Setter Property="Fill" Value="{DynamicResource MahApps.Brushes.Menu.Background}"/>
             </Style>
             <Style x:Key="ToolButton" TargetType="{x:Type Button}" BasedOn="{StaticResource MahApps.Styles.Button.Flat}">
+                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="Width" Value="44"/>
                 <Setter Property="Height" Value="36"/>
@@ -249,7 +271,13 @@
                 <Setter Property="VerticalAlignment" Value="Center"/>
                 <Setter Property="Effect" Value="{DynamicResource DropGlow}"/>
             </Style>
-
+            <Style x:Key="ToolButtonIcon32" TargetType="{x:Type TextBlock}">
+                <Setter Property="FontSize" Value="32"/>
+            </Style>
+            <Style x:Key="ToolButtonIcon36" TargetType="{x:Type TextBlock}">
+                <Setter Property="FontSize" Value="36"/>
+            </Style>
+            
             <Style TargetType="{x:Type mah:Badged}">
                 <Setter Property="FontFamily" Value="{DynamicResource MonoSpaceFamily}"/>
                 <Setter Property="BadgeBackground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
@@ -266,6 +294,53 @@
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
 
+            <Style x:Key="CircleButton32" TargetType="{x:Type Button}" BasedOn="{StaticResource MahApps.Styles.Button.Circle}">
+                <Setter Property="Width" Value="32"/>
+                <Setter Property="Height" Value="32"/>
+                <Setter Property="BorderBrush" Value="Transparent"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="0"/>
+            </Style>
+            <Style x:Key="CircleButton64" TargetType="{x:Type Button}" BasedOn="{StaticResource CircleButton32}">
+                <Setter Property="Width" Value="64"/>
+                <Setter Property="Height" Value="64"/>
+            </Style>
+            <Style x:Key="CircleToggleButton32" TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource MahApps.Styles.Button.Circle}">
+                <Setter Property="Width" Value="32"/>
+                <Setter Property="Height" Value="32"/>
+                <Setter Property="BorderBrush" Value="Transparent"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="0"/>
+            </Style>
+            <Style x:Key="CircleToggleButton64" TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource CircleToggleButton32}">
+                <Setter Property="Width" Value="64"/>
+                <Setter Property="Height" Value="64"/>
+            </Style>
+            <Style x:Key="CircleButtonIcon" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MenuItemIcon}">
+                <Setter Property="Margin" Value="4,0,0,0"/>
+            </Style>
+            <Style x:Key="CircleButtonIcon32" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MenuItemIcon}">
+                <Setter Property="Margin" Value="0,0,0,0"/>
+                <Setter Property="FontSize" Value="32"/>
+            </Style>
+            <Style x:Key="CircleButtonIcon64" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MenuItemIcon}">
+                <Setter Property="Margin" Value="0,0,0,0"/>
+                <Setter Property="FontSize" Value="64"/>
+            </Style>
+            
+            <!--<Style x:Key="ProgressRingCloud" TargetType="{x:Type common:ProgressRingCloud}">-->
+            <Style TargetType="{x:Type common:ProgressRingCloud}">
+                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="ShadowColor" Value="{DynamicResource MahApps.Colors.IdealForeground}"/>
+                <Setter Property="ShadowBlurRadius" Value="3"/>
+                <Setter Property="ShadowDepth" Value="1"/>
+                <Setter Property="ShadowOpacity" Value="1"/>
+                <Setter Property="Opacity" Value="0.85"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+            </Style>
+            
             <ControlTemplate x:Key="MenuItemWithSlider" TargetType="{x:Type MenuItem}">
                 <Border x:Name="PART_SliderBorder"
                     Background="{TemplateBinding Background}"

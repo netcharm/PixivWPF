@@ -199,62 +199,35 @@
                 SelectionChanged="ResultItems_SelectionChanged" 
                 MouseDoubleClick="ResultItems_MouseDoubleClick" />
         </Expander>
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,4,0,0" 
-                            HorizontalAlignment="Right" VerticalAlignment="Top">
-            <Button 
-                        x:Name="SearchFilter" x:Uid="ResultFilter" ToolTip="Results Filter"
-                        Visibility="Visible" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" 
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
-                        ContextMenu="{StaticResource MenuSearchFilter}"
-                        Click="SearchFilter_Click">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,4,0,0" HorizontalAlignment="Right" VerticalAlignment="Top">
+            <Button x:Name="SearchFilter" x:Uid="ResultFilter" ToolTip="Results Filter"
+                Visibility="Visible" Style="{DynamicResource ExpanderButton}" ContextMenu="{StaticResource MenuSearchFilter}" Click="SearchFilter_Click">
                 <Button.Content>
-                    <TextBlock Text="&#xE16E;" Style="{DynamicResource ExpanderButton}"/>
+                    <TextBlock Text="&#xE16E;" Style="{DynamicResource ExpanderButtonIcon}"/>
                 </Button.Content>
             </Button>
-            <Button 
-                        x:Name="ResultPrevPage" x:Uid="ResultPrevPage" ToolTip="Previous Results Page"
-                        Visibility="Collapsed" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
-                        Click="SearchResultPrevPage_Click">
+            <Button x:Name="ResultPrevPage" x:Uid="ResultPrevPage" ToolTip="Previous Results Page"
+                Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" Click="SearchResultPrevPage_Click">
                 <Button.Content>
-                    <TextBlock Text="&#xE112;" Style="{DynamicResource ExpanderButton}"/>
+                    <TextBlock Text="&#xE112;" Style="{DynamicResource ExpanderButtonIcon}"/>
                 </Button.Content>
             </Button>
-            <Button 
-                        x:Name="ResultNextPage" x:Uid="ResultNextPage" ToolTip="Open Next Results Page"
-                        Visibility="Visible" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
-                        Click="ResultNextPage_Click">
+            <Button x:Name="ResultNextPage" x:Uid="ResultNextPage" ToolTip="Open Next Results Page"
+                Visibility="Visible" Style="{DynamicResource ExpanderButton}" Click="ResultNextPage_Click">
                 <Button.Content>
-                    <TextBlock Text="&#xE111;" Style="{DynamicResource ExpanderButton}"/>
+                    <TextBlock Text="&#xE111;" Style="{DynamicResource ExpanderButtonIcon}"/>
                 </Button.Content>
             </Button>
-            <Button 
-                        x:Name="ResultNextAppend" x:Uid="ResultNextAppend" ToolTip="Append Next Results Page"
-                        Visibility="{Binding Visibility, ElementName=ResultNextPage, Mode=Oneway}" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
-                        Click="ResultNextPage_Click">
+            <Button x:Name="ResultNextAppend" x:Uid="ResultNextAppend" ToolTip="Append Next Results Page"
+                Visibility="{Binding Visibility, ElementName=ResultNextPage, Mode=Oneway}" Style="{DynamicResource ExpanderButton}" Click="ResultNextPage_Click">
                 <Button.Content>
-                    <TextBlock Text="&#xEB91;" Style="{DynamicResource ExpanderButton}"/>
+                    <TextBlock Text="&#xEB91;" Style="{DynamicResource ExpanderButtonIcon}"/>
                 </Button.Content>
             </Button>
-            <Button 
-                        x:Name="SearchRefreshThumb" x:Uid="RefreshThumbnail" ToolTip="Refresh Thumbnails"
-                        Visibility="Visible" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
-                        Click="ActionRefreshResult_Click">
+            <Button  x:Name="SearchRefreshThumb" x:Uid="RefreshThumbnail" ToolTip="Refresh Thumbnails"
+                Visibility="Visible" Style="{DynamicResource ExpanderButton}" Click="ActionRefreshResult_Click">
                 <Button.Content>
-                    <TextBlock Text="&#xE149;" Style="{DynamicResource ExpanderButton}"/>
+                    <TextBlock Text="&#xE149;" Style="{DynamicResource ExpanderButtonIcon}"/>
                 </Button.Content>
             </Button>
         </StackPanel>
