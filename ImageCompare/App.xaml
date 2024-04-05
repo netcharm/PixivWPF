@@ -6,33 +6,53 @@
              StartupUri="MainWindow.xaml" Startup="Application_Startup">
     <Application.Resources>
         <FontFamily x:Uid="MonoSpaceFamily" x:Key="MonoSpaceFamily">
-            "Sarasa Mono J, 等距更纱黑体 SC, FontAwesome, Iosevka, Consolas, Segoe UI Emoji, Segoe MDL2 Assets, 更纱黑体 SC, Segoe UI, Monospace"
+            霞骛文楷等宽, LXGW WenKai Mono, Sarasa Mono J, 等距更纱黑体 SC, FontAwesome, Iosevka, Consolas, Segoe UI Emoji, Segoe UI Symbol, Segoe MDL2 Assets, 更纱黑体 SC, Segoe UI, Monospace
+        </FontFamily>
+        <FontFamily x:Key="SegoeIconFamily">
+            Segoe MDL2 Assets, Segoe UI Emoji, Segoe UI Symbol, 霞骛文楷, LXGW WenKai, Sarasa Gothic J, 更纱黑体 SC, FontAwesome, Segoe UI
         </FontFamily>
         <sys:Double x:Uid="MonoSpaceSize" x:Key="MonoSpaceSize">14</sys:Double>
+
+        <Style x:Key="{x:Type TextBox}" TargetType="{x:Type TextBox}">
+            <Setter Property="FontFamily" Value="{DynamicResource MonoSpaceFamily}"/>
+            <Setter Property="FontSize" Value="{DynamicResource MonoSpaceSize}"/>
+        </Style>
+
+        <Style x:Key="{x:Type TextBlock}" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontFamily" Value="{DynamicResource MonoSpaceFamily}"/>
+            <Setter Property="FontSize" Value="{DynamicResource MonoSpaceSize}"/>
+        </Style>
+        
+        <!--Fixed Bug:[System.Windows.Data Error: 4 : Cannot find source for binding with reference...] When Dynamic add MenuItem to UI-->
+        <Style TargetType="MenuItem">
+            <Setter Property="FontFamily" Value="{DynamicResource MonoSpaceFamily}"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="MenuItemIcon" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontFamily" Value="{DynamicResource SegoeIconFamily}"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Foreground" Value="DimGray"/>
+            <!--<Setter Property="Margin" Value="4,0,0,0"/>-->
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
         <Style x:Uid="ToolTipStyle" x:Key="{x:Type ToolTip}" TargetType="{x:Type ToolTip}">
-            <Setter x:Uid="ToolTipStyleFontFamily" Property="FontFamily" Value="{StaticResource MonoSpaceFamily}"/>
-            <Setter x:Uid="ToolTipStyleFontSize" Property="FontSize" Value="{StaticResource MonoSpaceSize}"/>
-            <Setter x:Uid="ToolTipStyleMaxWidth" Property="MaxWidth" Value="1024"/>
+            <Setter Property="FontFamily" Value="{DynamicResource MonoSpaceFamily}"/>
+            <Setter Property="FontSize" Value="{DynamicResource MonoSpaceSize}"/>
+            <Setter Property="MaxWidth" Value="1024"/>
             <Style.Resources>
-                <Style x:Uid="ToolTipContentStyle" TargetType="ContentPresenter">
+                <Style TargetType="ContentPresenter">
                     <Style.Resources>
-                        <Style x:Uid="ToolTipContentStyleTextBlock" TargetType="TextBlock">
+                        <Style TargetType="TextBlock">
                             <!--<Setter Property="MaxLength" Value="500" />-->
-                            <Setter x:Uid="ToolTipContentStyleTextWrapping" Property="TextWrapping" Value="Wrap" />
-                            <Setter x:Uid="ToolTipContentStyleTextTrimming" Property="TextTrimming" Value="WordEllipsis" />
+                            <Setter Property="TextWrapping" Value="Wrap" />
+                            <Setter  Property="TextTrimming" Value="WordEllipsis" />
                         </Style>
                     </Style.Resources>
                 </Style>
             </Style.Resources>
-        </Style>
-        <Style x:Uid="TextBoxStyle" x:Key="{x:Type TextBlock}" TargetType="{x:Type TextBlock}">
-            <Setter x:Uid="TextBoxStyleFontFamily" Property="FontFamily" Value="{StaticResource MonoSpaceFamily}"/>
-            <Setter x:Uid="TextBoxStyleFontSize" Property="FontSize" Value="{StaticResource MonoSpaceSize}"/>
-        </Style>
-        <!--Fixed Bug:[System.Windows.Data Error: 4 : Cannot find source for binding with reference...] When Dynamic add MenuItem to UI-->
-        <Style TargetType="MenuItem">
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
     </Application.Resources>
 </Application>

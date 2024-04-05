@@ -37,9 +37,8 @@ namespace ImageCompare
         private static string AppName = Path.GetFileNameWithoutExtension(AppPath);
         private static string CachePath =  "cache";
 
-        private string DefaultFontFamilyName = "Segoe MDL2 Assets";
-        private FontFamily DefaultFontFamily = null;
-        private int DefaultFontSize = 16;
+        private FontFamily CustomMonoFontFamily = new FontFamily();
+        private FontFamily CustomIconFontFamily = new FontFamily();
 
         private string DefaultWindowTitle = string.Empty;
         private string DefaultCompareToolTip = string.Empty;
@@ -249,6 +248,35 @@ namespace ImageCompare
         private Point mouse_origin;
         private double ZoomMin = 0.1;
         private double ZoomMax = 10.0;
+
+        public void ChangeResourceFonts(FontFamily font = null, string fonts = "")
+        {
+            var customfamilies = new Dictionary<string, FontFamily>() {
+                { "MonoSpaceFamily", CustomMonoFontFamily },
+                { "SegoeIconFamily", CustomIconFontFamily },
+            };
+
+            if (font == null) { font = new FontFamily(); }
+
+            foreach (var family in font is FontFamily ? customfamilies.Where(f => f.Value.Equals(font)) : customfamilies)
+            {
+                var old_family = FindResource(family.Key);
+                if (old_family is FontFamily && font is FontFamily && !string.IsNullOrEmpty(fonts))
+                {
+                    try
+                    {
+                        font = new FontFamily(fonts);
+                        var old_fonts = (old_family as FontFamily).Source.Trim().Trim('"').Split(',').Select(f => f.Trim());
+                        var new_fonts = fonts.Trim().Trim('"').Split(',').Select(f => f.Trim());
+                        var source = new_fonts.Union(old_fonts);
+                        var new_family = new FontFamily(string.Join(", ", source));
+                        Resources.Remove(family.Key);
+                        Resources.Add(family.Key, new_family);
+                    }
+                    catch (Exception ex) { ex.ShowMessage(); }
+                }
+            }
+        }
 
         private void GetColorNames()
         {
@@ -943,6 +971,31 @@ namespace ImageCompare
             AppSettingsSection appSection = appCfg.AppSettings;
             try
             {
+                if (appSection.Settings.AllKeys.Contains("CustomMonoFontFamily"))
+                {
+                    var value = appSection.Settings["CustomMonoFontFamily"].Value;
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        try
+                        {
+                            ChangeResourceFonts(CustomMonoFontFamily, value);
+                        }
+                        catch { }
+                    }
+                }
+                if (appSection.Settings.AllKeys.Contains("CustomIconFontFamily"))
+                {
+                    var value = appSection.Settings["CustomIconFontFamily"].Value;
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        try
+                        {
+                            ChangeResourceFonts(CustomIconFontFamily, value);
+                        }
+                        catch { }
+                    }
+                }
+
                 if (appSection.Settings.AllKeys.Contains("WindowPosition"))
                 {
                     var value = appSection.Settings["WindowPosition"].Value;
@@ -1291,8 +1344,6 @@ namespace ImageCompare
         {
             //bool source = target == ImageSource ? true : false;
             bool source = target == ImageSourceScroll ? true : false;
-            var color_gray = new SolidColorBrush(Colors.Gray);
-            var color_smoke = new SolidColorBrush(Colors.WhiteSmoke);
             var effect_blur = new System.Windows.Media.Effects.BlurEffect() { Radius = 2, KernelType = System.Windows.Media.Effects.KernelType.Gaussian };
 
             var items = source ? cm_image_source : cm_image_target;
@@ -1301,48 +1352,49 @@ namespace ImageCompare
 
             if (items.Count <= 0)
             {
+                var style = FindResource("MenuItemIcon") as Style;
                 #region Create MenuItem
                 var item_fh = new MenuItem()
                 {
                     Header = "Flip Horizontal",
                     Uid = "FlipX",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE13C", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                    Icon = new TextBlock() { Text = "\uE13C", Style = style }
                 };
                 var item_fv = new MenuItem()
                 {
                     Header = "Flip Vertical",
                     Uid = "FlipY",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE174", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                    Icon = new TextBlock() { Text = "\uE174", Style = style }
                 };
                 var item_r090 = new MenuItem()
                 {
                     Header = "Rotate +90",
                     Uid = "Rotate090",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE14A", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                    Icon = new TextBlock() { Text = "\uE14A", Style = style }
                 };
                 var item_r180 = new MenuItem()
                 {
                     Header = "Rotate 180",
                     Uid = "Rotate180",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE14A", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, LayoutTransform = new RotateTransform(180) }
+                    Icon = new TextBlock() { Text = "\uE14A", Style = style, LayoutTransform = new RotateTransform(180) }
                 };
                 var item_r270 = new MenuItem()
                 {
                     Header = "Rotate -90",
                     Uid = "Rotate270",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE14A", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, LayoutTransform = new ScaleTransform(-1, 1) }
+                    Icon = new TextBlock() { Text = "\uE14A", Style = style, LayoutTransform = new ScaleTransform(-1, 1) }
                 };
                 var item_reset_transform = new MenuItem()
                 {
                     Header = "Reset Transforms",
                     Uid = "ResetTransforms",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE777", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                    Icon = new TextBlock() { Text = "\uE777", Style = style }
                 };
 
                 var item_gray = new MenuItem()
@@ -1350,21 +1402,21 @@ namespace ImageCompare
                     Header = "Grayscale",
                     Uid = "Grayscale",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uF570", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                    Icon = new TextBlock() { Text = "\uF570", Style = style }
                 };
                 var item_blur = new MenuItem()
                 {
                     Header = "Gaussian Blur",
                     Uid = "GaussianBlur",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE878", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray, Effect = effect_blur }
+                    Icon = new TextBlock() { Text = "\uEB42", Style = style, Effect = effect_blur }
                 };
                 var item_sharp = new MenuItem()
                 {
                     Header = "Unsharp Mask",
                     Uid = "UsmSharp",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE879", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                    Icon = new TextBlock() { Text = "\uE879", Style = style }
                 };
 
                 var item_more = new MenuItem()
@@ -1372,7 +1424,7 @@ namespace ImageCompare
                     Header = "More Effects",
                     Uid = "MoreEffects",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE712", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                    Icon = new TextBlock() { Text = "\uE712", Style = style }
                 };
 
                 var item_size_crop = new MenuItem()
@@ -1380,21 +1432,21 @@ namespace ImageCompare
                     Header = "Crop BoundingBox",
                     Uid = "CropBoundingBox",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\xE123", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                    Icon = new TextBlock() { Text = "\xE123", Style = style }
                 };
                 var item_size_to_source = new MenuItem()
                 {
                     Header = "Match Source Size",
                     Uid = "MatchSourceSize",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE158", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                    Icon = new TextBlock() { Text = "\uE158", Style = style }
                 };
                 var item_size_to_target = new MenuItem()
                 {
                     Header = "Match Target Size",
                     Uid = "MatchTargetSize",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE158", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                    Icon = new TextBlock() { Text = "\uE158", Style = style }
                 };
 
                 var item_slice_h = new MenuItem()
@@ -1402,28 +1454,28 @@ namespace ImageCompare
                     Header = "Slicing Horizontal",
                     Uid = "SlicingX",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE745", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                    Icon = new TextBlock() { Text = "\uE745", Style = style }
                 };
                 var item_slice_v = new MenuItem()
                 {
                     Header = "Slicing Vertical",
                     Uid = "SlicingY",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE746", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                    Icon = new TextBlock() { Text = "\uE746", Style = style }
                 };
                 var item_merge_h = new MenuItem()
                 {
                     Header = "Merge Horizontal",
                     Uid = "MergeX",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uF614", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                    Icon = new TextBlock() { Text = "\uF614", Style = style }
                 };
                 var item_merge_v = new MenuItem()
                 {
                     Header = "Merge Vertical",
                     Uid = "MergeY",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uF615", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                    Icon = new TextBlock() { Text = "\uF615", Style = style }
                 };
 
                 var item_copyfrom_result = new MenuItem()
@@ -1431,21 +1483,21 @@ namespace ImageCompare
                     Header = "Copy Image From Result",
                     Uid = "CopyFromResult",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE16F", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                    Icon = new TextBlock() { Text = "\uE16F", Style = style }
                 };
                 var item_copyto_source = new MenuItem()
                 {
                     Header = "Copy Image To Source",
                     Uid = "CopyToSource",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE16F", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                    Icon = new TextBlock() { Text = "\uE16F", Style = style }
                 };
                 var item_copyto_target = new MenuItem()
                 {
                     Header = "Copy Image To Target",
                     Uid = "CopyToTarget",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE16F", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                    Icon = new TextBlock() { Text = "\uE16F", Style = style }
                 };
 
                 var item_load_prev = new MenuItem()
@@ -1453,14 +1505,14 @@ namespace ImageCompare
                     Header = "Load Prev Image File",
                     Uid = "LoadPrevImageFile",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE1A5", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                    Icon = new TextBlock() { Text = "\uE1A5", Style = style }
                 };
                 var item_load_next = new MenuItem()
                 {
                     Header = "Load Next Image File",
                     Uid = "LoadNextImageFile",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE1A5", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                    Icon = new TextBlock() { Text = "\uE1A5", Style = style }
                 };
 
                 var item_reset_image = new MenuItem()
@@ -1468,42 +1520,42 @@ namespace ImageCompare
                     Header = "Reset Image",
                     Uid = "ResetImage",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE117", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                    Icon = new TextBlock() { Text = "\uE117", Style = style }
                 };
                 var item_reload = new MenuItem()
                 {
                     Header = "Reload Image",
                     Uid = "ReloadImage",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE117", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                    Icon = new TextBlock() { Text = "\uE117", Style = style }
                 };
                 var item_colorcalc = new MenuItem()
                 {
                     Header = "Calc Image Colors",
                     Uid = "CalcImageColors",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE1D0", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                    Icon = new TextBlock() { Text = "\uE1D0", Style = style }
                 };
                 var item_copyinfo = new MenuItem()
                 {
                     Header = "Copy Image Info",
                     Uid = "CopyImageInfo",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE16F", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                    Icon = new TextBlock() { Text = "\uE16F", Style = style }
                 };
                 var item_copyimage = new MenuItem()
                 {
                     Header = "Copy Image",
                     Uid = "CopyImage",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE16F", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                    Icon = new TextBlock() { Text = "\uE16F", Style = style }
                 };
                 var item_saveas = new MenuItem()
                 {
                     Header = "Save As ...",
                     Uid = "SaveAs",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE105", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                    Icon = new TextBlock() { Text = "\uE105", Style = style }
                 };
                 #endregion
                 #region Create MenuItem Click event handles
@@ -1996,8 +2048,6 @@ namespace ImageCompare
             InitMagickNet();
 
             #region Some Default UI Settings
-            if (DefaultFontFamily == null) DefaultFontFamily = new FontFamily(DefaultFontFamilyName);
-
             ProcessStatus.Opacity = 0.66;
             Icon = new BitmapImage(new Uri("pack://application:,,,/ImageCompare;component/Resources/Compare.ico"));
             #endregion

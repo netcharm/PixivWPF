@@ -45,60 +45,60 @@
             </ToolBar.Resources>
             <Button x:Name="ImageOpenSource" x:Uid="ImageOpenSource" ToolTip="Open Source Picture" ToolBar.OverflowMode="Never" Click="ImageActions_Click" >
                 <StackPanel x:Uid="ImageOpenSourcePanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ImageOpenSourceIcon" Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Uid="ImageOpenSourceIcon" Text="&#xE1A5;" Style="{DynamicResource MenuItemIcon}"/>
                     <TextBlock x:Uid="Source" Text="Source" Margin="2 0"/>
                 </StackPanel>
             </Button>
             <Button x:Name="ImageOpenTarget" x:Uid="ImageOpenTarget" ToolTip="Open Target" ToolBar.OverflowMode="Never" Click="ImageActions_Click" >
                 <StackPanel x:Uid="ImageOpenTargetPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ImageOpenTargetIcon" Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Uid="ImageOpenTargetIcon" Text="&#xE1A5;" Style="{DynamicResource MenuItemIcon}"/>
                     <TextBlock x:Uid="Target" Text="Target" Margin="2 0"/>
                 </StackPanel>
             </Button>
             <Separator x:Uid="Separator_1"/>
             <Button x:Name="ImagePasteSource" x:Uid="ImagePasteSource" ToolTip="Paste Source" ToolBar.OverflowMode="Never" Click="ImageActions_Click" >
                 <StackPanel x:Uid="ImagePasteSourcePanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ImagePasteSourceIcon" Text="&#xE16D;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Uid="ImagePasteSourceIcon" Text="&#xE16D;" Style="{DynamicResource MenuItemIcon}"/>
                     <TextBlock x:Uid="Source" Text="Source" Margin="2 0"/>
                 </StackPanel>
             </Button>
             <Button x:Name="ImagePasteTarget" x:Uid="ImagePasteTarget" ToolTip="Paste Target" ToolBar.OverflowMode="Never" Click="ImageActions_Click" >
                 <StackPanel x:Uid="ImagePasteTargetPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ImagePasteTargetIcon" Text="&#xE16D;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Uid="ImagePasteTargetIcon" Text="&#xE16D;" Style="{DynamicResource MenuItemIcon}"/>
                     <TextBlock x:Uid="Target" Text="Target" Margin="2 0"/>
                 </StackPanel>
             </Button>
             <Separator x:Uid="Separator_2"/>
             <Button x:Name="ImageClear" x:Uid="ImageClear" ToolTip="Clear Source and Target Pictures" ToolBar.OverflowMode="Never" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="ImageCleanPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ImageCleanIcon" Text="&#xE106;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Uid="ImageCleanIcon" Text="&#xE106;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </Button>
             <Button x:Name="UsedChannels" x:Uid="UsedChannels" ToolTip="Channels Selector" Click="ImageActions_Click">
                 <StackPanel x:Uid="UsedChannelsPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="UsedChannelsIcon" Text="&#xE81E;" FontSize="16" FontFamily="Segoe MDL2 Assets" Foreground="Gray" />
+                    <TextBlock x:Uid="UsedChannelsIcon" Text="&#xE81E;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </Button>
             <ToggleButton x:Name="ImageExchange" x:Uid="ImageExchange" ToolTip="Exchange Source and Target" ToolBar.OverflowMode="Never" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="ImageTogglePanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ImageToggleIcon" Text="&#xE7FD;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Uid="ImageToggleIcon" Text="&#xE7FD;" Style="{DynamicResource MenuItemIcon}"/>
                     <!--<TextBlock Text="Toggle" Margin="2 0"/>-->
                 </StackPanel>
             </ToggleButton>
             <Button x:Name="RepeatLastAction" x:Uid="RepeatLastAction" ToolTip="Repeat Last Action" Click="ImageActions_Click">
                 <StackPanel x:Uid="RepeatLastActionPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="RepeatLastActionIcon" Text="&#xE8ED;" FontSize="16" FontFamily="Segoe MDL2 Assets" Foreground="Gray" />
+                    <TextBlock x:Uid="RepeatLastActionIcon" Text="&#xE8ED;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </Button>
             <Button x:Name="ImageCompare" x:Uid="ImageCompare" ToolTip="Compare Source and Target" ToolBar.OverflowMode="Never" Click="ImageActions_Click">
                 <StackPanel x:Uid="ImageComparePanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ImageCompareIcon" Text="&#xE11E;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Uid="ImageCompareIcon" Text="&#xE11E;" Style="{DynamicResource MenuItemIcon}"/>
                     <TextBlock x:Uid="Compare" Text="Compare" Margin="2 0"/>
                 </StackPanel>
             </Button>
             <Button x:Name="ImageCompose" x:Uid="ImageCompose" ToolTip="Compose Source and Target" ToolBar.OverflowMode="Never" Click="ImageActions_Click">
                 <StackPanel x:Uid="ImageCompose0anel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ImageComposeIcon" Text="&#xE81E;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Uid="ImageComposeIcon" Text="&#xE81E;" Style="{DynamicResource MenuItemIcon}"/>
                     <TextBlock x:Uid="Compose" Text="Compose" Margin="2 0"/>
                 </StackPanel>
             </Button>
@@ -117,45 +117,45 @@
             <ProgressBar x:Uid="ProcessStatus" x:Name="ProcessStatus" ToolTip="Picture Processing Progress" Margin="4,0,2,0" HorizontalAlignment="Right" Width="36" Height="20" />
             <Button x:Name="ImageDenoiseResult" x:Uid="ImageDenoiseResult" ToolTip="Denoise Result Picture" Click="ImageActions_Click">
                 <StackPanel x:Uid="ImageCopyResultPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ImageCopyResultIcon" Text="&#xED61;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Uid="ImageCopyResultIcon" Text="&#xED61;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </Button>
             <Button x:Name="ImageCopyResult" x:Uid="ImageCopyResult" ToolTip="Copy Result Picture" Click="ImageActions_Click">
                 <StackPanel x:Uid="ImageCopyResultPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ImageCopyResultIcon" Text="&#xE16F;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Uid="ImageCopyResultIcon" Text="&#xE16F;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </Button>
             <Button x:Name="ImageSaveResult" x:Uid="ImageSaveResult" ToolTip="Save Result Picture" Click="ImageActions_Click">
                 <StackPanel x:Uid="ImageSaveResultPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ImageSaveResultOIcon" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Uid="ImageSaveResultOIcon" Text="&#xE105;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </Button>
             <Separator x:Uid="Separator_3"/>
             <ToggleButton x:Name="ImageLayout" x:Uid="ImageLayout" IsChecked="False"
                           ToolTip="Horizontal/Vertical Image Layout" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="ImageLayoutPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ImageLayoutPanelIcon" Text="&#xE2AE;" FontSize="16" FontFamily="Segoe MDL2 Assets" />
+                    <TextBlock x:Uid="ImageLayoutPanelIcon" Text="&#xE2AE;" Style="{DynamicResource MenuItemIcon}" />
                 </StackPanel>
             </ToggleButton>            
             <Separator x:Uid="Separator_4"/>
             <ToggleButton x:Name="ZoomFitNone" x:Uid="ZoomFitNone" ToolTip="Fit None" ToolBar.OverflowMode="Never" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="ZoomFitNonePanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ZoomFitNoneIcon" Text="&#xE7C3;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Uid="ZoomFitNoneIcon" Text="&#xE7C3;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </ToggleButton>
             <ToggleButton x:Name="ZoomFitAll" x:Uid="ZoomFitAll" ToolTip="Fit All" ToolBar.OverflowMode="Never" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="ZoomFitAllPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ZoomFitAllIcon" Text="&#xE9A6;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Uid="ZoomFitAllIcon" Text="&#xE9A6;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </ToggleButton>
             <ToggleButton x:Name="ZoomFitWidth" x:Uid="ZoomFitWidth" ToolTip="Fit Width" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="ZoomFitWidthPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ZoomFitWidthIcon" Text="&#xF617;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Uid="ZoomFitWidthIcon" Text="&#xF617;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </ToggleButton>
             <ToggleButton x:Name="ZoomFitHeight" x:Uid="ZoomFitHeight" ToolTip="Fit Height" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="ZoomFitHeightPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ZoomFitHeightIcon" Text="&#xF616;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Uid="ZoomFitHeightIcon" Text="&#xF616;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </ToggleButton>
             <Slider x:Name="ZoomRatio" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center"
@@ -173,49 +173,49 @@
             <ToggleButton x:Name="AutoMatchSize" x:Uid="AutoMatchSize" IsChecked="True"
                           ToolTip="Automatic Match Image Size Before Image Compare/Composer" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="AutoMatchSizePanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="AutoMatchSizeIcon" Text="&#xE158;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Uid="AutoMatchSizeIcon" Text="&#xE158;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </ToggleButton>
             <ToggleButton x:Name="UseSmallerImage" x:Uid="UseSmallerImage" IsChecked="True"
                           ToolTip="Using Smaller Image for Compare/Compose After Image Loaded" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="UseSmallerImagePanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="UseSmallerImageIcon" Text="&#xE123;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Uid="UseSmallerImageIcon" Text="&#xE123;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </ToggleButton>
             <TextBox x:Name="MaxCompareSizeValue" x:Uid="MaxCompareSizeValue" Text="1024" Margin="2 0" HorizontalAlignment="Right" 
                      ToolTip="Max Image Width/Height Size When Using Smaller Image"
-                     FontFamily="{StaticResource MonoSpaceFamily}" TextChanged="MaxCompareSizeValue_TextChanged"/>
+                     FontFamily="{DynamicResource MonoSpaceFamily}" TextChanged="MaxCompareSizeValue_TextChanged"/>
             <ToggleButton x:Name="UseColorImage" x:Uid="UseColorImage" IsChecked="True"
                           ToolTip="Force Using Color Image for Compare/Compose After Image Loaded" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="UseColorImagePanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="UseColorImageIcon" Text="&#xE790;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Uid="UseColorImageIcon" Text="&#xE790;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </ToggleButton>
             <xctk:ColorPicker x:Name="HighlightColorPick"  x:Uid="HighlightColorPick" Height="24" Width="24" Margin="2 0" SelectedColor="Transparent" 
-                              ToolTip="Highlight Color"
+                              ToolTip="Highlight Color" FontFamily="{DynamicResource MonoSpaceFamily}" 
                               ShowDropDownButton="False" ShowAvailableColors="True" ShowRecentColors="True" 
                               DisplayColorAndName="False" DisplayColorTooltip="True"
                               SelectedColorChanged="ColorPick_SelectedColorChanged" />
             <xctk:ColorPicker x:Name="LowlightColorPick" x:Uid="LowlightColorPick" Height="24" Width="24" Margin="2 0" SelectedColor="Transparent" 
-                              ToolTip="Lowlight Color"
+                              ToolTip="Lowlight Color" FontFamily="{DynamicResource MonoSpaceFamily}" 
                               ShowDropDownButton="False" ShowAvailableColors="True" ShowRecentColors="True" 
                               DisplayColorAndName="False" DisplayColorTooltip="True"
                               SelectedColorChanged="ColorPick_SelectedColorChanged" />
             <xctk:ColorPicker x:Name="MasklightColorPick" x:Uid="MasklightColorPick" Height="24" Width="24" Margin="2 0" SelectedColor="Transparent" 
-                              ToolTip="Masklight Color"
+                              ToolTip="Masklight Color" FontFamily="{DynamicResource MonoSpaceFamily}" 
                               ShowDropDownButton="False" ShowAvailableColors="True" ShowRecentColors="True" 
                               DisplayColorAndName="False" DisplayColorTooltip="True"
                               SelectedColorChanged="ColorPick_SelectedColorChanged" />
             <Separator x:Uid="Separator_6"/>
             <Button x:Name="ImageLoadHaldLut" x:Uid="ImageLoadHaldLut" ToolTip="Load Hald LUT File" Click="ImageActions_Click" Drop="Window_Drop">
                 <StackPanel x:Uid="ImageLoadHaldLutPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ImageLoadHaldLutIcon" Text="&#xE771;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Uid="ImageLoadHaldLutIcon" Text="&#xE771;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </Button>
             <ToggleButton x:Name="UseWeakBlur" x:Uid="UseWeakBlur" IsChecked="True"
                           ToolTip="Low/High Intensity Blur" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="UseWeakBlurPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="UseWeakBlurIcon" Text="&#xEB42;" FontSize="16" FontFamily="Segoe MDL2 Assets" Foreground="Gray">
+                    <TextBlock x:Uid="UseWeakBlurIcon" Text="&#xEB42;" Style="{DynamicResource MenuItemIcon}" Foreground="Gray">
                         <TextBlock.Effect>
                             <BlurEffect x:Uid="UseWeakBlurEffect" Radius="2" KernelType="Gaussian"/>
                         </TextBlock.Effect>
@@ -225,39 +225,39 @@
             <ToggleButton x:Name="UseWeakSharp" x:Uid="UseWeakSharp" IsChecked="True"
                           ToolTip="Low/High Intensity Sharp" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="UseWeakSharpPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="UseWeakSharpIcon" Text="&#xE879;" FontSize="16" FontFamily="Segoe MDL2 Assets" Foreground="Gray"/>
+                    <TextBlock x:Uid="UseWeakSharpIcon" Text="&#xE879;" Style="{DynamicResource MenuItemIcon}" Foreground="Gray"/>
                 </StackPanel>
             </ToggleButton>
             <ToggleButton x:Name="UseWeakEffects" x:Uid="UseWeakEffects" IsChecked="True"
                           ToolTip="Low/High Intensity Effects" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="UseWeakEffectsPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="UseWeakEffectsIcon" Text="&#xE10C;" FontSize="16" FontFamily="Segoe MDL2 Assets" Foreground="Gray"/>
+                    <TextBlock x:Uid="UseWeakEffectsIcon" Text="&#xE10C;" Style="{DynamicResource MenuItemIcon}" Foreground="Gray"/>
                 </StackPanel>
             </ToggleButton>
             <Button x:Name="UILanguage" x:Uid="UILanguage" ToolTip="UI Language Selector" ToolBar.OverflowMode="Never" Click="ImageActions_Click">
                 <StackPanel x:Uid="UILanguagePanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="UILanguageIcon" Text="&#xF2B7;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Uid="UILanguageIcon" Text="&#xF2B7;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
                 <Button.ContextMenu>
                     <ContextMenu>
                         <MenuItem x:Name="UILanguageEn" x:Uid="UILanguageEn" Header="English" Click="ImageActions_Click">
                             <MenuItem.Icon>
-                                <TextBlock x:Uid="UILanguageEnIcon" Text="EN" FontSize="16" />
+                                <TextBlock x:Uid="UILanguageEnIcon" Text="&#xE8D2;" Style="{DynamicResource MenuItemIcon}"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <MenuItem x:Name="UILanguageCn" x:Uid="UILanguageCn" Header="Chinese Simplified" Click="ImageActions_Click">
                             <MenuItem.Icon>
-                                <TextBlock x:Uid="UILanguageCnIcon" Text="&#xE88D;" FontSize="16" FontFamily="Segoe MDL2 Assets" />
+                                <TextBlock x:Uid="UILanguageCnIcon" Text="&#xE88D;" Style="{DynamicResource MenuItemIcon}"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <MenuItem x:Name="UILanguageTw" x:Uid="UILanguageTw" Header="Chinese Traditional " Click="ImageActions_Click">
                             <MenuItem.Icon>
-                                <TextBlock x:Uid="UILanguageTwIcon" Text="&#xE88C;" FontSize="16" FontFamily="Segoe MDL2 Assets" />
+                                <TextBlock x:Uid="UILanguageTwIcon" Text="&#xE88C;" Style="{DynamicResource MenuItemIcon}"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <MenuItem x:Name="UILanguageJa" x:Uid="UILanguageJa" Header="Japanese" Click="ImageActions_Click">
                             <MenuItem.Icon>
-                                <TextBlock x:Uid="UILanguageJaIcon" Text="&#xEC45;" FontSize="16" FontFamily="Segoe MDL2 Assets" />
+                                <TextBlock x:Uid="UILanguageJaIcon" Text="&#xEC45;" Style="{DynamicResource MenuItemIcon}"/>
                             </MenuItem.Icon>
                         </MenuItem>
                     </ContextMenu>
