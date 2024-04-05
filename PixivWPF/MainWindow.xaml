@@ -171,6 +171,9 @@
                     <MenuItem x:Name="LiveFilterAIAD" x:Uid="LiveFilterAIAD" Header="AI Using" Click="LiveFilterItem_Click"/>
                     <MenuItem x:Name="LiveFilterNoAI" x:Uid="LiveFilterNoAI" Header="No AI" Click="LiveFilterItem_Click"/>
                     <Separator/>
+                    <MenuItem x:Name="LiveFilterMovie" x:Uid="LiveFilterMovie" Header="Movie" Click="LiveFilterItem_Click"/>
+                    <MenuItem x:Name="LiveFilterNoMovie" x:Uid="LiveFilterNoMovie" Header="Not Movie" Click="LiveFilterItem_Click"/>
+                    <Separator/>                    
                     <MenuItem x:Name="LiveFilterUser" x:Uid="LiveFilterUser" Header="Users Only" Click="LiveFilterItem_Click"/>
                     <MenuItem x:Name="LiveFilterWork" x:Uid="LiveFilterWork" Header="Works Only" Click="LiveFilterItem_Click"/>
                     <Separator/>

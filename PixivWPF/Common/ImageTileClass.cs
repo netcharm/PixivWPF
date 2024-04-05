@@ -33,6 +33,7 @@ namespace PixivWPF.Common
         public string Followed { get; set; } = string.Empty;
         public string Downloaded { get; set; } = string.Empty;
         public string AI { get; set; } = string.Empty;
+        public string Movie { get; set; } = string.Empty;
         public string Sanity { get; set; } = string.Empty;
         public bool SanityOption_IncludeUnder { get; set; } = true;
     }
@@ -506,6 +507,30 @@ namespace PixivWPF.Common
                         return (result);
                     });
                 }
+                else if (filter.Equals("movie"))
+                {
+                    filter_action = new Func<object, bool>(obj =>
+                    {
+                        var result = true;
+                        if (obj is PixivItem)
+                        {
+                            result = (obj as PixivItem).IsUgoira() || (obj as PixivItem).IsMovie() ? true : false;
+                        }
+                        return (result);
+                    });
+                }
+                else if (filter.Equals("notmovie"))
+                {
+                    filter_action = new Func<object, bool>(obj =>
+                    {
+                        var result = true;
+                        if (obj is PixivItem)
+                        {
+                            result = (obj as PixivItem).IsUgoira() || (obj as PixivItem).IsMovie() ? false : true;
+                        }
+                        return (result);
+                    });
+                }
                 #endregion
                 #region Sanity
                 else if (filter.Equals("allage") || filter.Equals("fullage"))
@@ -575,6 +600,7 @@ namespace PixivWPF.Common
                 var filter_follow = string.IsNullOrEmpty(filter.Followed) ? string.Empty : filter.Followed.ToLower();
                 var filter_down = string.IsNullOrEmpty(filter.Downloaded) ? string.Empty : filter.Downloaded.ToLower();
                 var filter_ai = string.IsNullOrEmpty(filter.AI) ? string.Empty : filter.AI.ToLower();
+                var filter_movie = string.IsNullOrEmpty(filter.Movie) ? string.Empty : filter.Movie.ToLower();
                 var filter_sanity = string.IsNullOrEmpty(filter.Sanity) ? string.Empty : filter.Sanity.ToLower();
 
                 if (filter_fav_no.Length > 10) filter_fav_no = filter_fav_no.Substring(10);
@@ -601,6 +627,9 @@ namespace PixivWPF.Common
                 bool notaigc = filter_ai.Equals("notaigc") ? true : false;
                 bool aiad = filter_ai.Equals("aiad") ? true : false;
                 bool noai = filter_ai.Equals("noai") ? true : false;
+
+                bool movie = filter_movie.Equals("movie") ? true : false;
+                bool notmovie = filter_movie.Equals("notmovie") ? true : false;
                 #endregion
 
                 #region sanity / not_sanity
@@ -787,6 +816,15 @@ namespace PixivWPF.Common
                                 result = result && (item.HasAI() && !item.IsAI() ? true : false);
                             else if (noai)
                                 result = result && (item.IsAI() || item.HasAI() ? false : true);
+                        }
+                        #endregion
+                        #region filter by movie state
+                        if (movie || notmovie)
+                        {
+                            if (movie)
+                                result = result && (item.IsUgoira() || item.IsMovie() ? true : false);
+                            else if (notmovie)
+                                result = result && (item.IsUgoira() || item.IsMovie() ? false : true);
                         }
                         #endregion
                         #region filter by sanity state
