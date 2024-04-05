@@ -681,7 +681,7 @@ namespace PixivWPF.Common
                 LiveFilterAIGC, LiveFilterNotAIGC, LiveFilterAIAD, LiveFilterNoAI,
             };
             var menus_movie = new List<MenuItem>() {
-                LiveFilterMovie, LiveFilterNoMovie,
+                LiveFilterMovie, LiveFilterNotMovie,
             };
             var menus_sanity = new List<MenuItem>() {
                 LiveFilterSanity_Any,
