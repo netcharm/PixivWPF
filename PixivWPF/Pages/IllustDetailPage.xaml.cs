@@ -688,7 +688,7 @@ namespace PixivWPF.Pages
                 }
                 catch (Exception ex) { ex.ERROR("BROWSER"); }
             }
-            // The WebBrowser control is checking the Uri 
+            // The WebBrowser control is checking the Uri
             else if (e.Url.ToString() != "Place your url string here") //ex: "http://stackoverflow.com"
             {
                 // Uri is not the same so it cancels the process
@@ -2945,6 +2945,7 @@ namespace PixivWPF.Pages
             IllustTagRefresh.MouseOverAction();
 
             IllustDescSpeech.MouseOverAction();
+            IllustDescSearchInFile.MouseOverAction();
             IllustDescRefresh.MouseOverAction();
 
             SubIllustPrevPages.MouseOverAction();
@@ -4994,7 +4995,7 @@ namespace PixivWPF.Pages
             if (Contents.IsWork() && IllustCommentsHtml is WebBrowserEx)
             {
                 //var tokens = await CommonHelper.ShowLogin();
-                //if (tokens == null) return;                
+                //if (tokens == null) return;
                 //IllustDetailWait.Show();
                 try
                 {

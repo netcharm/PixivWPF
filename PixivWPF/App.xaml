@@ -294,6 +294,16 @@
             </Style>
 
             <Style x:Key="CircleButton32" TargetType="{x:Type Button}" BasedOn="{StaticResource MahApps.Styles.Button.Circle}">
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.IdealForegroundBrush}"/>
+                        <Setter Property="Background" Value="{DynamicResource MahApps.Brushes.SemiTransparent}"/>
+                    </Trigger>
+                    <Trigger Property="IsMouseOver" Value="False">
+                        <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                        <Setter Property="Background" Value="{DynamicResource MahApps.Brushes.Transparent}"/>
+                    </Trigger>
+                </Style.Triggers>
                 <Setter Property="Width" Value="32"/>
                 <Setter Property="Height" Value="32"/>
                 <Setter Property="BorderBrush" Value="Transparent"/>
@@ -304,7 +314,18 @@
                 <Setter Property="Width" Value="64"/>
                 <Setter Property="Height" Value="64"/>
             </Style>
+           
             <Style x:Key="CircleToggleButton32" TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource MahApps.Styles.Button.Circle}">
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.IdealForegroundBrush}"/>
+                        <Setter Property="Background" Value="{DynamicResource MahApps.Brushes.SemiTransparent}"/>
+                    </Trigger>
+                    <Trigger Property="IsMouseOver" Value="False">
+                        <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                        <Setter Property="Background" Value="{DynamicResource MahApps.Brushes.Transparent}"/>
+                    </Trigger>
+                </Style.Triggers>
                 <Setter Property="Width" Value="32"/>
                 <Setter Property="Height" Value="32"/>
                 <Setter Property="BorderBrush" Value="Transparent"/>
@@ -315,6 +336,7 @@
                 <Setter Property="Width" Value="64"/>
                 <Setter Property="Height" Value="64"/>
             </Style>
+
             <Style x:Key="CircleButtonIcon" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MenuItemIcon}">
                 <Setter Property="Margin" Value="4,0,0,0"/>
             </Style>
