@@ -555,4 +555,10 @@
   <data name="ImageLoadHaldLut.ToolTip" xml:space="preserve">
     <value>载入Hald顏色查找表文件</value>
   </data>
+  <data name="ImageDenoiseResult.ToolTip" xml:space="preserve">
+    <value>減少結果影像噪點</value>
+  </data>
+  <data name="Zoom Ratio" xml:space="preserve">
+    <value>縮放比例</value>
+  </data>
 </root>

@@ -1350,12 +1350,12 @@ namespace ImageCompare
                     tip.Add($"{"ResultTipElapsed".T()} {TimeSpan.FromTicks(st.ElapsedTicks).TotalSeconds:F4} s");
                     if (compose)
                     {
-                        ImageCompose.ToolTip = tip.Count > 1 ? string.Join(Environment.NewLine, tip) : DefaultComposeToolTip;
+                        ImageCompose.ToolTip = tip.Count > 1 ? $"{DefaultComposeToolTip}{Environment.NewLine}{Environment.NewLine}{string.Join(Environment.NewLine, tip)}" : DefaultComposeToolTip;
                         ImageCompare.ToolTip = DefaultCompareToolTip;
                     }
                     else
                     {
-                        ImageCompare.ToolTip = tip.Count > 1 ? string.Join(Environment.NewLine, tip) : DefaultCompareToolTip;
+                        ImageCompare.ToolTip = tip.Count > 1 ? $"{DefaultComposeToolTip}{Environment.NewLine}{Environment.NewLine}{string.Join(Environment.NewLine, tip)}" : DefaultCompareToolTip;
                         ImageCompose.ToolTip = DefaultComposeToolTip;
                     }
                 }

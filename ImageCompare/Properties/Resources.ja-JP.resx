@@ -555,4 +555,10 @@
   <data name="ImageLoadHaldLut.ToolTip" xml:space="preserve">
     <value>Haldカラールックアップテーブルファイルの読み込み</value>
   </data>
+  <data name="ImageDenoiseResult.ToolTip" xml:space="preserve">
+    <value>結果画像のデノイズ</value>
+  </data>
+  <data name="Zoom Ratio" xml:space="preserve">
+    <value>ズーム比</value>
+  </data>
 </root>

@@ -555,4 +555,13 @@
   <data name="ImageLoadHaldLut.ToolTip" xml:space="preserve">
     <value>Load Hald LUT File</value>
   </data>
+  <data name="ImageDenoiseResult.ToolTip" xml:space="preserve">
+    <value>Denoise Result Picture</value>
+  </data>
+  <data name="Zoom Ratio" xml:space="preserve">
+    <value>Zoom Ratio</value>
+  </data>
+  <data name="Tolerances" xml:space="preserve">
+    <value>Tolerances</value>
+  </data>
 </root>

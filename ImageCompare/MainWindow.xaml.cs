@@ -43,6 +43,7 @@ namespace ImageCompare
         private string DefaultWindowTitle = string.Empty;
         private string DefaultCompareToolTip = string.Empty;
         private string DefaultComposeToolTip = string.Empty;
+        private string DefaultFuzzySliderToolTip = string.Empty;
 
         private Rect LastPositionSize = new Rect();
         private System.Windows.WindowState LastWinState = System.Windows.WindowState.Normal;
@@ -1329,6 +1330,9 @@ namespace ImageCompare
             DefaultWindowTitle = Title;
             DefaultCompareToolTip = ImageCompare.ToolTip as string;
             DefaultComposeToolTip = ImageCompose.ToolTip as string;
+
+            ImageCompareFuzzy.ToolTip = $"{"Tolerances".T(culture)}: {ImageCompareFuzzy.Value:F1}%";
+            ZoomRatio.ToolTip = $"{"Zoom Ratio".T(culture)}: {ZoomRatio.Value:F2}X";
 
             ImageSource.ToolTip = "Waiting".T();
             ImageTarget.ToolTip = "Waiting".T();
@@ -2781,10 +2785,9 @@ namespace ImageCompare
             {
                 if (IsLoaded && (ZoomFitNone.IsChecked ?? false) && e.OldValue != e.NewValue)
                 {
-
                     e.Handled = true;
+                    ZoomRatio.ToolTip = $"{"Zoom Ratio".T(DefaultCultureInfo)}: {e.NewValue:F2}X";
                     LastZoomRatio = e.NewValue;
-
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -2793,7 +2796,11 @@ namespace ImageCompare
         private void ImageCompareFuzzy_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             e.Handled = true;
-            if (IsLoaded) UpdateImageViewer(compose: LastOpIsCompose);
+            if (IsLoaded)
+            {
+                ImageCompareFuzzy.ToolTip = $"{"Tolerances".T(DefaultCultureInfo)}: {e.NewValue:F1}%";
+                UpdateImageViewer(compose: LastOpIsCompose);
+            }
         }
 
         private void MaxCompareSizeValue_TextChanged(object sender, TextChangedEventArgs e)
