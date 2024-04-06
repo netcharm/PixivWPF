@@ -34,6 +34,7 @@ namespace PixivWPF.Common
         public string Downloaded { get; set; } = string.Empty;
         public string AI { get; set; } = string.Empty;
         public string Movie { get; set; } = string.Empty;
+        public string FullListed { get; set; } = string.Empty;
         public string Sanity { get; set; } = string.Empty;
         public bool SanityOption_IncludeUnder { get; set; } = true;
     }
@@ -601,6 +602,7 @@ namespace PixivWPF.Common
                 var filter_down = string.IsNullOrEmpty(filter.Downloaded) ? string.Empty : filter.Downloaded.ToLower();
                 var filter_ai = string.IsNullOrEmpty(filter.AI) ? string.Empty : filter.AI.ToLower();
                 var filter_movie = string.IsNullOrEmpty(filter.Movie) ? string.Empty : filter.Movie.ToLower();
+                var filter_full = string.IsNullOrEmpty(filter.FullListed) ? string.Empty : filter.FullListed.ToLower();
                 var filter_sanity = string.IsNullOrEmpty(filter.Sanity) ? string.Empty : filter.Sanity.ToLower();
 
                 if (filter_fav_no.Length > 10) filter_fav_no = filter_fav_no.Substring(10);
@@ -630,6 +632,9 @@ namespace PixivWPF.Common
 
                 bool movie = filter_movie.Equals("movie") ? true : false;
                 bool notmovie = filter_movie.Equals("notmovie") ? true : false;
+
+                bool full = filter_full.Equals("fulllist") ? true : false;
+                bool notfull = filter_full.Equals("notfulllist") ? true : false;
                 #endregion
 
                 #region sanity / not_sanity
@@ -825,6 +830,15 @@ namespace PixivWPF.Common
                                 result = result && (item.IsUgoira() || item.IsMovie() ? true : false);
                             else if (notmovie)
                                 result = result && (item.IsUgoira() || item.IsMovie() ? false : true);
+                        }
+                        #endregion
+                        #region filter by full listed state
+                        if (full || notfull)
+                        {
+                            if (full)
+                                result = result && (item.IsFulllisted() ? true : false);
+                            else if (notfull)
+                                result = result && (item.IsFulllisted() ? false : true);
                         }
                         #endregion
                         #region filter by sanity state
@@ -1893,6 +1907,21 @@ namespace PixivWPF.Common
         #endregion
 
         #region Misc Helper
+        public static bool IsFulllisted(this PixivItem item)
+        {
+            bool result = false;
+            try
+            {
+                if (item.HasUser() && !string.IsNullOrEmpty(item.UserID))
+                {
+                    var fulllisted = item.UserID.GetFullListedUserState();
+                    result = !string.IsNullOrEmpty(fulllisted);
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+
         public static bool IsUser(this PixivItem item)
         {
             bool result = false;

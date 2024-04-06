@@ -95,8 +95,7 @@
                 <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Text}"/>
             </Style>
 
-            <Style TargetType="{x:Type Slider}" BasedOn="{StaticResource MahApps.Styles.Slider}"/>
-
+            <Style TargetType="{x:Type Slider}" BasedOn="{StaticResource MahApps.Styles.Slider.Win10}"/>
 
             <Style x:Key="SlideValue" TargetType="{x:Type TextBlock}">
                 <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
