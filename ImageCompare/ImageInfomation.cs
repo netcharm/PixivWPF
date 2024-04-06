@@ -56,6 +56,17 @@ namespace ImageCompare
                 else return (-1);
             }
         }
+        public long OriginalDisplayMemoryUsage
+        {
+            get
+            {
+                if (ValidOriginal)
+                {
+                    return ((long)Original.Width * Original.Height * Application.Current.GetSystemColorDepth() / 8);
+                }
+                else return (-1);
+            }
+        }
         public long OriginalIdealMemoryUsage
         {
             get
@@ -92,6 +103,17 @@ namespace ImageCompare
 #else
                     return ((long)Current.Width * Current.Height * Current.ChannelCount * Current.Depth / 8);
 #endif
+                }
+                else return (-1);
+            }
+        }
+        public long CurrentDisplayMemoryUsage
+        {
+            get
+            {
+                if (ValidCurrent)
+                {
+                    return ((long)Current.Width * Current.Height * Application.Current.GetSystemColorDepth() / 8);
                 }
                 else return (-1);
             }
@@ -828,7 +850,7 @@ namespace ImageCompare
                     tip.Add($"{"InfoTipMemoryMode".T()} {MemoryUsageMode}");
                     tip.Add($"{"InfoTipIdealMemoryUsage".T()} {(ValidOriginal ? OriginalIdealMemoryUsage.SmartFileSize() : CurrentIdealMemoryUsage.SmartFileSize())}");
                     tip.Add($"{"InfoTipMemoryUsage".T()} {(ValidOriginal ? OriginalRealMemoryUsage.SmartFileSize() : CurrentRealMemoryUsage.SmartFileSize())}");
-                    tip.Add($"{"InfoTipDisplayMemory".T()} {CurrentRealMemoryUsage.SmartFileSize()}");                    
+                    tip.Add($"{"InfoTipDisplayMemory".T()} {CurrentDisplayMemoryUsage.SmartFileSize()}");                    
                     if (!string.IsNullOrEmpty(FileName))
                     {
                         var FileSize = !string.IsNullOrEmpty(FileName) && File.Exists(FileName) ? new FileInfo(FileName).Length : -1;

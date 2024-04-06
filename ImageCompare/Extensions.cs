@@ -17,6 +17,7 @@ using Xceed.Wpf.Toolkit;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Windows.Media.Imaging;
+using System.Runtime.InteropServices;
 
 namespace ImageCompare
 {
@@ -27,6 +28,15 @@ namespace ImageCompare
         private static System.Resources.ResourceManager resourceMan = Properties.Resources.ResourceManager;
         private static System.Resources.ResourceSet resourceSet = resourceMan.GetResourceSet(resourceCulture, true, true);
         private static Dictionary<FrameworkElement, bool> _be_locale_ = null;
+
+        [DllImport("user32.dll")]
+        private static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetDC(IntPtr hwnd);
+
+        [DllImport("gdi32.dll")]
+        private static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
 
         public static bool IsRecursiveCall(string method_name)
         {
@@ -244,17 +254,65 @@ namespace ImageCompare
         #endregion
 
         #region Application Helper
+        private static Point GetDpi()
+        {
+            var result = new Point(96, 96);
+            IntPtr desktopWnd = IntPtr.Zero;
+            IntPtr dc = GetDC(desktopWnd);
+            const int LOGPIXELSX = 88;
+            const int LOGPIXELSY = 90;
+            try
+            {
+                result.X = GetDeviceCaps(dc, LOGPIXELSX);
+                result.Y = GetDeviceCaps(dc, LOGPIXELSY);
+            }
+            finally
+            {
+                ReleaseDC(desktopWnd, dc);
+            }
+            return (result);
+        }
+
+        private static int GetColorDepth()
+        {
+            var result = 0;
+            IntPtr desktopWnd = IntPtr.Zero;
+            IntPtr dc = GetDC(desktopWnd);
+            const int BITSPIXEL = 12;
+            try
+            {
+                result = GetDeviceCaps(dc, BITSPIXEL);
+            }
+            finally
+            {
+                ReleaseDC(desktopWnd, dc);
+            }
+            return(result);
+        }
+
         public static Point GetSystemDPI(this Application app)
         {
             var result = new Point(96, 96);
             try
             {
+                //result = GetDpi();
                 System.Reflection.BindingFlags flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static;
                 var dpiXProperty = typeof(SystemParameters).GetProperty("DpiX", flags);
                 //var dpiYProperty = typeof(SystemParameters).GetProperty("DpiY", flags);
                 var dpiYProperty = typeof(SystemParameters).GetProperty("Dpi", flags);
                 if (dpiXProperty != null) { result.X = (int)dpiXProperty.GetValue(null, null); }
                 if (dpiYProperty != null) { result.Y = (int)dpiYProperty.GetValue(null, null); }
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message); }
+            return (result);
+        }
+
+        public static int GetSystemColorDepth(this Application app)
+        {
+            var result = 0;
+            try
+            {
+                result = GetColorDepth();
             }
             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message); }
             return (result);
