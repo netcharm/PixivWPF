@@ -462,7 +462,10 @@ namespace PixivWPF.Common
             else if (sender == CommandRefreshThumb)
             {
                 e.Handled = true;
-                Commands.RefreshPageThumb.Execute(Content);
+                if (Keyboard.Modifiers == ModifierKeys.Shift || Keyboard.Modifiers == ModifierKeys.Control)
+                    Application.Current.RefreshThumb();
+                else
+                    Commands.RefreshPageThumb.Execute(Content);
             }
         }
 

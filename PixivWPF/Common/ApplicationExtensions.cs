@@ -1498,6 +1498,21 @@ namespace PixivWPF.Common
             }
             return (result);
         }
+        
+        public static void RefreshThumb(this Application app)
+        {
+            foreach (var win in ContentWindows.ToList())
+            {
+                try
+                {
+                    if (win.Value is ContentWindow && win.Value.Content is IllustDetailPage && (win.Value.Content as IllustDetailPage).Contents.IsWork())
+                    {
+                        Commands.RefreshPageThumb.Execute(win);
+                    }
+                }
+                catch (Exception ex) { ex.ERROR("Application.RefreshThumb"); }
+            }
+        }
         #endregion
 
         #region Application DropBox

@@ -206,10 +206,10 @@
 
         <StackPanel Grid.Row="0" x:Name="ZoomBar" Orientation="Vertical" Width="48" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,84,28">
             <Button x:Name="btnZoomFitWidth" x:Uid="ZoomFitWidth" Margin="0,0,0,4" Style="{DynamicResource CircleButton32}" ToolTip="Fit Width" Click="ActionZoomFit_Click">
-                <TextBlock Text="&#xF617;" Style="{DynamicResource ButtonIcon24}" Margin="2,0,0,0"/>
+                <TextBlock Text="&#xF617;" Style="{DynamicResource ToolButtonIcon24}" Margin="2,0,0,0"/>
             </Button>
             <Button x:Name="btnZoomFitHeight" x:Uid="ZoomFitHeight" Margin="0,0,0,4" Style="{DynamicResource CircleButton32}" ToolTip="Fit Height" Click="ActionZoomFit_Click">
-                <TextBlock Text="&#xF616;" Style="{DynamicResource ButtonIcon24}" Margin="2,0,0,0"/>
+                <TextBlock Text="&#xF616;" Style="{DynamicResource ToolButtonIcon24}" Margin="2,0,0,0"/>
             </Button>
             <Slider x:Name="ZoomRatio" Orientation="Vertical" 
                     Height="200" Width="16"
@@ -264,30 +264,30 @@
         <StackPanel Grid.Row="0" x:Name="ActionBar"
                     HorizontalAlignment="Right" VerticalAlignment="Bottom">
             <Button x:Name="btnViewPrevPage" x:Uid="ViewPrevPage" Style="{DynamicResource CircleButton64}" ToolTip="Prev Page" Click="ActionViewPrevPage_Click" >
-                <TextBlock Text="&#xE76B;" Style="{DynamicResource ButtonIcon32}"/>
+                <TextBlock Text="&#xE76B;" Style="{DynamicResource ToolButtonIcon32}"/>
                 <!--<Path Data="F1 M 14.091797 19.970703 L 4.111328 10 L 14.091797 0.029297 L 14.970703 0.908203 L 5.888672 10 L 14.970703 19.091797 Z " Margin="4,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Center" />-->
             </Button>
             <Button x:Name="btnViewNextPage" x:Uid="ViewNextPage" Style="{DynamicResource CircleButton64}" ToolTip="Next Page" Click="ActionViewNextPage_Click" >
-                <TextBlock Text="&#xE76C;" Style="{DynamicResource ButtonIcon32}"/>
+                <TextBlock Text="&#xE76C;" Style="{DynamicResource ToolButtonIcon32}"/>
                 <!--<Path Data="F1 M 5.029297 19.091797 L 14.111328 10 L 5.029297 0.908203 L 5.908203 0.029297 L 15.888672 10 L 5.908203 19.970703 Z " Margin="4,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Center" />-->
             </Button>
             <Button x:Name="btnViewActionMore" x:Uid="ViewerAction" Style="{DynamicResource CircleButton64}" ToolTip="More Actions" Click="ActionMore_Click">
-                <TextBlock Text="&#xE10C;" Style="{DynamicResource ButtonIcon32}"/>
+                <TextBlock Text="&#xE10C;" Style="{DynamicResource ToolButtonIcon32}"/>
             </Button>
             <ToggleButton x:Name="btnViewOriginalPage" x:Uid="ViewOriginalPage" Style="{DynamicResource CircleToggleButton64}" ToolTip="Original Size" Click="ActionViewOriginal_Click" >
-                <TextBlock Text="&#xE1D9;" Style="{DynamicResource ButtonIcon32}"/>
+                <TextBlock Text="&#xE1D9;" Style="{DynamicResource ToolButtonIcon32}"/>
             </ToggleButton>
             <ToggleButton x:Name="btnViewFullSize" x:Uid="ViewFullSize" Style="{DynamicResource CircleToggleButton64}" ToolTip="Full Size" Click="ActionViewFullSize_Click" >
-                <TextBlock Text="&#xE8A3;" Style="{DynamicResource ButtonIcon32}"/>
+                <TextBlock Text="&#xE8A3;" Style="{DynamicResource ToolButtonIcon32}"/>
             </ToggleButton>
             <Button x:Name="btnOpenIllust" x:Uid="OpenIllust" Style="{DynamicResource CircleButton64}" ToolTip="Open Illust" Click="ActionIllustInfo_Click" >
-                <TextBlock Text="&#xE8A7;" Style="{DynamicResource ButtonIcon32}"/>
+                <TextBlock Text="&#xE8A7;" Style="{DynamicResource ToolButtonIcon32}"/>
             </Button>
             <Button x:Name="btnOpenCache" x:Uid="OpenCache" Style="{DynamicResource CircleButton64}" ToolTip="Open Cached File" Click="ActionIllustInfo_Click" >
-                <TextBlock Text="&#xEB9F;" Style="{DynamicResource ButtonIcon32}"/>
+                <TextBlock Text="&#xEB9F;" Style="{DynamicResource ToolButtonIcon32}"/>
             </Button>
             <Button x:Name="btnSavePage" x:Uid="SavePage" Style="{DynamicResource CircleButton64}" ToolTip="Save Image" Click="ActionSaveIllust_Click" >
-                <TextBlock Text="&#xE105;" Style="{DynamicResource ButtonIcon32}"/>
+                <TextBlock Text="&#xE105;" Style="{DynamicResource ToolButtonIcon32}"/>
             </Button>
         </StackPanel>
 

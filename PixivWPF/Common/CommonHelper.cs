@@ -10695,7 +10695,7 @@ namespace PixivWPF.Common
             if (element is Control)
             {
                 element.IsEnabled = state;
-                element.Foreground = state ? Theme.AccentBrush : Theme.GrayBrush;
+                if (!(element is MenuItem)) element.Foreground = state ? Theme.AccentBrush : Theme.GrayBrush;
                 if (show)
                     element.Visibility = Visibility.Visible;
                 else
@@ -10708,7 +10708,7 @@ namespace PixivWPF.Common
             if (element is Control)
             {
                 element.IsEnabled = true;
-                element.Foreground = Theme.AccentBrush;
+                if (!(element is MenuItem)) element.Foreground = Theme.AccentBrush;
                 element.Visibility = Visibility.Visible;
             }
         }
@@ -10718,7 +10718,7 @@ namespace PixivWPF.Common
             if (element is Control)
             {
                 element.IsEnabled = !state;
-                element.Foreground = state ? Theme.GrayBrush : Theme.AccentBrush;
+                if (!(element is MenuItem)) element.Foreground = state ? Theme.GrayBrush : Theme.AccentBrush;
                 if (show)
                     element.Visibility = Visibility.Visible;
                 else
@@ -10731,7 +10731,7 @@ namespace PixivWPF.Common
             if (element is Control)
             {
                 element.IsEnabled = false;
-                element.Foreground = Theme.GrayBrush;
+                if (!(element is MenuItem)) element.Foreground = Theme.GrayBrush;
                 element.Visibility = Visibility.Visible;
             }
         }
@@ -10771,8 +10771,11 @@ namespace PixivWPF.Common
                 if ((button.Parent is Grid) && (button.Parent as Grid).Name.Equals("PopupContainer") && button.ActualWidth >= 24)
                     button.Foreground = Theme.IdealForegroundBrush;
 
-                if (!(button is ToggleButton) || (button is ToggleButton && !(button as ToggleButton).IsChecked.Value))
+                //if (!(button is ToggleButton) || (button is ToggleButton && !(button as ToggleButton).IsChecked.Value))
+                if (button is ButtonBase)
+                {
                     button.Background = Theme.SemiTransparentBrush;
+                }
             }
             catch (Exception ex) { ex.ERROR(); }
         }
@@ -10794,7 +10797,9 @@ namespace PixivWPF.Common
                     button.Foreground = Theme.AccentBrush;
 
                 if (!(button is ToggleButton) || (button is ToggleButton && !(button as ToggleButton).IsChecked.Value))
+                {
                     button.Background = Theme.TransparentBrush;
+                }
                 else if (button is ToggleButton && (button as ToggleButton).IsChecked.Value)
                 {
                     var bg = new SolidColorBrush(Theme.SemiTransparentColor);

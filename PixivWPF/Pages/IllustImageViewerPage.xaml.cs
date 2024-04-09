@@ -145,7 +145,7 @@ namespace PixivWPF.Pages
                 if (index_n < 0) index_n = 0;
                 if (index_n >= Contents.Count - 1) index_n = Contents.Count - 1;
                 if (index_n == index_p) return;
-
+                
                 var i = illust.WorkItem();
                 if (i.IsWork())
                 {
@@ -386,6 +386,59 @@ namespace PixivWPF.Pages
             return (img);
         }
 
+        private void UpdatePreviewLayout()
+        {
+            if (btnViewFullSize.IsChecked.Value)
+            {
+                ImageViewerRotate.Angle = ImageRotate.Angle;
+                ImageViewerScale.ScaleX = ImageScale.ScaleX;
+                ImageViewerScale.ScaleY = ImageScale.ScaleY;
+
+                ImageScale.ScaleX = 1;
+                ImageScale.ScaleY = 1;
+                ImageRotate.Angle = 0;
+
+                PreviewBox.HorizontalAlignment = HorizontalAlignment.Center;
+                PreviewBox.VerticalAlignment = VerticalAlignment.Center;
+                PreviewBox.Stretch = Stretch.None;
+                PreviewBox.StretchDirection = StretchDirection.Both;
+                PreviewScroll.PanningMode = PanningMode.Both;
+                PreviewScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
+                PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+                InfoBar.Margin = new Thickness(16, 16, 16, 32);
+                StatusBar.Margin = new Thickness(16, 16, 16, 52);
+                ActionBar.Margin = new Thickness(0, 0, 16, 16);
+                PreviewBadge.Margin = new Thickness(0, 0, 0, 36);
+                ZoomRatio.Value = LastZoomRatio;
+            }
+            else
+            {
+                ImageRotate.Angle = ImageViewerRotate.Angle;
+                ImageScale.ScaleX = ImageViewerScale.ScaleX;
+                ImageScale.ScaleY = ImageViewerScale.ScaleY;
+
+                ImageViewerScale.ScaleX = 1;
+                ImageViewerScale.ScaleY = 1;
+                ImageViewerRotate.Angle = 0;
+
+                LastZoomRatio = ZoomRatio.Value;
+                PreviewBox.HorizontalAlignment = HorizontalAlignment.Stretch;
+                PreviewBox.VerticalAlignment = VerticalAlignment.Stretch;
+                PreviewBox.Stretch = Stretch.Uniform;
+                PreviewBox.StretchDirection = StretchDirection.DownOnly;
+                PreviewScroll.PanningMode = PanningMode.None;
+                PreviewScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden;
+                PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
+                InfoBar.Margin = new Thickness(16);
+                StatusBar.Margin = new Thickness(16, 16, 16, 36);
+                ActionBar.Margin = new Thickness(0);
+                PreviewBadge.Margin = new Thickness(0, 0, 0, 20);
+                ZoomRatio.Value = 1.0;
+            }
+            //ActionViewFullSize.IsChecked = IsFullSize;
+            Page_SizeChanged(null, null);
+        }
+
         internal async void UpdateDetail(PixivItem item, bool overwrite = false)
         {
             try
@@ -409,8 +462,13 @@ namespace PixivWPF.Pages
                         ActionViewNextPage.Show();
                         ActionViewPageSep.Show();
 
-                        btnViewPrevPage.Enable(Contents.Index > 0);
-                        btnViewNextPage.Enable(Contents.Index < Contents.Count - 1);
+                        //btnViewPrevPage.Enable(Contents.Index > 0);
+                        //btnViewNextPage.Enable(Contents.Index < Contents.Count - 1);
+
+                        btnViewPrevPage.Disable(IsFirstPage);
+                        btnViewNextPage.Disable(IsLastPage);
+                        ActionViewPrevPage.Disable(IsFirstPage);
+                        ActionViewNextPage.Disable(IsLastPage);
                     }
                     else
                     {
@@ -1115,55 +1173,7 @@ namespace PixivWPF.Pages
 
                 ZoomBar.Show(show: btnViewFullSize.IsChecked.Value);
 
-                if (btnViewFullSize.IsChecked.Value)
-                {
-                    ImageViewerRotate.Angle = ImageRotate.Angle;
-                    ImageViewerScale.ScaleX = ImageScale.ScaleX;
-                    ImageViewerScale.ScaleY = ImageScale.ScaleY;
-
-                    ImageScale.ScaleX = 1;
-                    ImageScale.ScaleY = 1;
-                    ImageRotate.Angle = 0;
-
-                    PreviewBox.HorizontalAlignment = HorizontalAlignment.Center;
-                    PreviewBox.VerticalAlignment = VerticalAlignment.Center;
-                    PreviewBox.Stretch = Stretch.None;
-                    PreviewBox.StretchDirection = StretchDirection.Both;
-                    PreviewScroll.PanningMode = PanningMode.Both;
-                    PreviewScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
-                    PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
-                    InfoBar.Margin = new Thickness(16, 16, 16, 32);
-                    StatusBar.Margin = new Thickness(16, 16, 16, 52);
-                    ActionBar.Margin = new Thickness(0, 0, 16, 16);
-                    PreviewBadge.Margin = new Thickness(0, 0, 0, 36);
-                    ZoomRatio.Value = LastZoomRatio;
-                }
-                else
-                {
-                    ImageRotate.Angle = ImageViewerRotate.Angle;
-                    ImageScale.ScaleX = ImageViewerScale.ScaleX;
-                    ImageScale.ScaleY = ImageViewerScale.ScaleY;
-
-                    ImageViewerScale.ScaleX = 1;
-                    ImageViewerScale.ScaleY = 1;
-                    ImageViewerRotate.Angle = 0;
-
-                    LastZoomRatio = ZoomRatio.Value;
-                    PreviewBox.HorizontalAlignment = HorizontalAlignment.Stretch;
-                    PreviewBox.VerticalAlignment = VerticalAlignment.Stretch;
-                    PreviewBox.Stretch = Stretch.Uniform;
-                    PreviewBox.StretchDirection = StretchDirection.DownOnly;
-                    PreviewScroll.PanningMode = PanningMode.None;
-                    PreviewScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden;
-                    PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
-                    InfoBar.Margin = new Thickness(16);
-                    StatusBar.Margin = new Thickness(16, 16, 16, 36);
-                    ActionBar.Margin = new Thickness(0);
-                    PreviewBadge.Margin = new Thickness(0, 0, 0, 20);
-                    ZoomRatio.Value = 1.0;
-                }
-                //ActionViewFullSize.IsChecked = IsFullSize;
-                Page_SizeChanged(null, null);
+                UpdatePreviewLayout();
             }
             catch (Exception ex) { ex.ERROR("ViewFullSize"); }
             finally { ActionZoomFitOp = false; }
@@ -1181,8 +1191,9 @@ namespace PixivWPF.Pages
                         CommonHelper.MouseLeave(btnViewOriginalPage);
                         e.Handled = true;
                     }
-                    //ActionViewOriginal.IsChecked = IsOriginal;
+
                     PreviewImage = await GetPreviewImage();
+                    UpdatePreviewLayout();
                 }
                 catch (Exception ex) { ex.ERROR("ViewOriginal"); }
             }
