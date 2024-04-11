@@ -1501,13 +1501,13 @@ namespace PixivWPF.Common
         
         public static void RefreshThumb(this Application app)
         {
-            foreach (var win in ContentWindows.ToList())
+            foreach (var win in ContentWindows.Select(w => w.Value).ToList())
             {
                 try
                 {
-                    if (win.Value is ContentWindow && win.Value.Content is IllustDetailPage && (win.Value.Content as IllustDetailPage).Contents.IsWork())
+                    if (win is ContentWindow && win.Content is IllustDetailPage && (win.Content as IllustDetailPage).Contents.IsWork())
                     {
-                        Commands.RefreshPageThumb.Execute(win);
+                        Commands.RefreshPageThumb.Execute(win.Content);
                     }
                 }
                 catch (Exception ex) { ex.ERROR("Application.RefreshThumb"); }

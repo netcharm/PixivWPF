@@ -63,6 +63,14 @@
             <sys:Double x:Key="NormalFontSize">14</sys:Double>
             <sys:Double x:Key="IconFontSize">14</sys:Double>
 
+            <Style TargetType="{x:Type TextBlock}">
+                <Setter Property="FontFamily" Value="{DynamicResource NormalFamily}"/>
+            </Style>
+
+            <Style TargetType="{x:Type TextBox}">
+                <Setter Property="FontFamily" Value="{DynamicResource NormalFamily}"/>
+            </Style>
+
             <Style x:Key="{x:Type ToolTip}" TargetType="{x:Type ToolTip}">
                 <Setter Property="FontFamily" Value="{DynamicResource MonoSpaceFamily}"/>
                 <Setter Property="FontSize" Value="{DynamicResource MonoSpaceFontSize}"/>
@@ -79,47 +87,18 @@
                     </Style>
                 </Style.Resources>
             </Style>
-            <Style TargetType="{x:Type TextBlock}">
-                <Setter Property="FontFamily" Value="{DynamicResource NormalFamily}"/>
-            </Style>
-            <Style TargetType="{x:Type TextBox}">
-                <Setter Property="FontFamily" Value="{DynamicResource NormalFamily}"/>
-            </Style>
-            <Style x:Key="SegoeIconStyle" TargetType="{x:Type Button}">
-                <Setter Property="FontFamily" Value="{DynamicResource SegoeIconFamily}"/>
-            </Style>
+
             <Style x:Key="TextIcon" TargetType="{x:Type TextBlock}">
                 <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
             </Style>
+            
             <Style x:Key="TextContent" TargetType="{x:Type TextBlock}">
                 <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Text}"/>
             </Style>
 
-            <Style TargetType="{x:Type Slider}" BasedOn="{StaticResource MahApps.Styles.Slider.Win10}"/>
-
-            <Style x:Key="SlideValue" TargetType="{x:Type TextBlock}">
-                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+            <Style x:Key="SegoeIconStyle" TargetType="{x:Type Button}">
+                <Setter Property="FontFamily" Value="{DynamicResource SegoeIconFamily}"/>
             </Style>
-            
-            <DataTemplate x:Key="TitleBarTemplate">
-                <TextBlock Name="PART_Title"
-                    Text="{TemplateBinding Content}"
-                    VerticalAlignment="Center"
-                    Margin="8,-1,1,0"
-                    TextTrimming="CharacterEllipsis"
-                    FontWeight="{TemplateBinding TextBlock.FontWeight}"
-                    FontSize="16"
-                    FontFamily="{DynamicResource NormalFamily}"/>
-            </DataTemplate>
-            <Style x:Key="MetroWindowStyle" TargetType="{x:Type mah:MetroWindow}">
-                <Setter Property="TitleTemplate" Value="{DynamicResource TitleBarTemplate}"/>
-                <Setter Property="BorderBrush" Value="{DynamicResource MahApps.Brushes.Accent}"/>
-                <Setter Property="GlowBrush" Value="{DynamicResource MahApps.Brushes.Accent}"/>
-                <Setter Property="BorderThickness" Value="1"/>
-            </Style>
-            <Style TargetType="{x:Type local:MainWindow}" BasedOn="{StaticResource MetroWindowStyle}"/>
-            <Style TargetType="{x:Type common:ContentWindow}" BasedOn="{StaticResource MetroWindowStyle}"/>
-            <Style TargetType="{x:Type common:PixivLoginDialog}" BasedOn="{StaticResource MetroWindowStyle}"/>
 
             <Style x:Key="CommandButtonIcon" TargetType="{x:Type TextBlock}">
                 <Setter Property="FontFamily" Value="{DynamicResource SegoeIconFamily}"/>
@@ -129,23 +108,25 @@
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
 
-            <Style x:Key="ExpanderButton" TargetType="{x:Type Button}" BasedOn="{StaticResource MahApps.Styles.Button.Square}">
-                <!--<Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.IdealForeground}"/>-->
+            <Style x:Key="SquareButton" TargetType="{x:Type ButtonBase}" BasedOn="{StaticResource MahApps.Styles.Button.Square}">
+                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
                 <Setter Property="Background" Value="Transparent"/>
-                <Setter Property="FontWeight" Value="Normal"/>
-                <Setter Property="BorderThickness" Value="0"/>
-                <Setter Property="Width" Value="28"/>
-                <Setter Property="Height" Value="20"/>
-                <Setter Property="HorizontalAlignment" Value="Right"/>
-                <Setter Property="VerticalAlignment" Value="Stretch"/>
-                <Setter Property="Margin" Value="0"/>
-            </Style>
-            <Style x:Key="ExpanderButtonIcon" TargetType="{x:Type TextBlock}">
-                <Setter Property="FontFamily" Value="{DynamicResource SegoeIconFamily}"/>
-                <Setter Property="FontSize" Value="16"/>
-                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <!--<Setter Property="Width" Value="24"/>
+                <Setter Property="Height" Value="24"/>-->
                 <Setter Property="HorizontalAlignment" Value="Center"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+            </Style>
+            <Style x:Key="SquareButtonContent" TargetType="{x:Type TextBlock}">
+                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="FontSize" Value="10"/>
+                <Setter Property="Margin" Value="2,0,0,0"/>
             </Style>
             
             <Style x:Key="ButtonIcon" TargetType="{x:Type TextBlock}">
@@ -256,7 +237,7 @@
                 <Setter Property="HorizontalAlignment" Value="Center"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
-
+           
             <Style x:Key="ToolButtonPanel" TargetType="{x:Type Rectangle}">
                 <Setter Property="Opacity" Value="0.25"/>
                 <Setter Property="Stroke" Value="{DynamicResource MahApps.Brushes.Accent}"/>
@@ -385,6 +366,25 @@
                 <Setter Property="Height" Value="64"/>
             </Style>
 
+            <Style x:Key="ExpanderButton" TargetType="{x:Type Button}" BasedOn="{StaticResource MahApps.Styles.Button.Square}">
+                <!--<Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.IdealForeground}"/>-->
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="FontWeight" Value="Normal"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Width" Value="28"/>
+                <Setter Property="Height" Value="20"/>
+                <Setter Property="HorizontalAlignment" Value="Right"/>
+                <Setter Property="VerticalAlignment" Value="Stretch"/>
+                <Setter Property="Margin" Value="0"/>
+            </Style>
+            <Style x:Key="ExpanderButtonIcon" TargetType="{x:Type TextBlock}">
+                <Setter Property="FontFamily" Value="{DynamicResource SegoeIconFamily}"/>
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+
             <!--<Style x:Key="ProgressRingCloud" TargetType="{x:Type common:ProgressRingCloud}">-->
             <Style TargetType="{x:Type common:ProgressRingCloud}">
                 <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
@@ -397,7 +397,69 @@
                 <Setter Property="VerticalAlignment" Value="Center"/>
                 <Setter Property="HorizontalAlignment" Value="Center"/>
             </Style>
+
+
+            <Style TargetType="{x:Type Slider}" BasedOn="{StaticResource MahApps.Styles.Slider.Win10}"/>
+            <Style x:Key="SlideValue" TargetType="{x:Type TextBlock}">
+                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+            </Style>
+
+            <DataTemplate x:Key="GradientProgressContent">
+                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
+                   TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow">
+                    <TextBlock.Foreground>
+                        <LinearGradientBrush x:Name="PART_ProgressInfoLinear" StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="{DynamicResource MahApps.Colors.IdealForeground}" Offset="0"/>
+                            <GradientStop Color="{DynamicResource MahApps.Colors.IdealForeground}" Offset="0" x:Name="PART_ProgressInfoLinearLeft"/>
+                            <GradientStop Color="{DynamicResource MahApps.Colors.Accent}" Offset="0" x:Name="PART_ProgressInfoLinearRight"/>
+                            <GradientStop Color="{DynamicResource MahApps.Colors.Accent}" Offset="1"/>
+                        </LinearGradientBrush>
+                    </TextBlock.Foreground>
+                </TextBlock>
+            </DataTemplate>
+            <Style x:Key="GradientBegin" TargetType="GradientStop">
+                <Setter Property="Color" Value="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                <Setter Property="Offset" Value="0"/>
+            </Style>
+            <Style x:Key="GradientLeft" TargetType="GradientStop">
+                <Setter Property="Color" Value="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                <Setter Property="Offset" Value="0"/>
+            </Style>
+            <Style x:Key="GradientRight" TargetType="GradientStop">
+                <Setter Property="Color" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                <Setter Property="Offset" Value="0"/>
+            </Style>
+            <Style x:Key="GradientEnd" TargetType="GradientStop">
+                <Setter Property="Color" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                <Setter Property="Offset" Value="1"/>
+            </Style>
+
+            <Style TargetType="{x:Type mah:MetroProgressBar}">
+                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
             
+            <DataTemplate x:Key="TitleBarTemplate">
+                <TextBlock Name="PART_Title"
+                    Text="{TemplateBinding Content}"
+                    VerticalAlignment="Center"
+                    Margin="8,-1,1,0"
+                    TextTrimming="CharacterEllipsis"
+                    FontWeight="{TemplateBinding TextBlock.FontWeight}"
+                    FontSize="16"
+                    FontFamily="{DynamicResource NormalFamily}"/>
+            </DataTemplate>
+            <Style x:Key="MetroWindowStyle" TargetType="{x:Type mah:MetroWindow}">
+                <Setter Property="TitleTemplate" Value="{DynamicResource TitleBarTemplate}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                <Setter Property="GlowBrush" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+            </Style>
+            <Style TargetType="{x:Type local:MainWindow}" BasedOn="{StaticResource MetroWindowStyle}"/>
+            <Style TargetType="{x:Type common:ContentWindow}" BasedOn="{StaticResource MetroWindowStyle}"/>
+            <Style TargetType="{x:Type common:PixivLoginDialog}" BasedOn="{StaticResource MetroWindowStyle}"/>
+
             <ControlTemplate x:Key="MenuItemWithSlider" TargetType="{x:Type MenuItem}">
                 <Border x:Name="PART_SliderBorder"
                     Background="{TemplateBinding Background}"

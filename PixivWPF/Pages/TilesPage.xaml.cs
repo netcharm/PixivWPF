@@ -181,24 +181,13 @@ namespace PixivWPF.Pages
             return (id);
         }
 
-        private void KeepLastSelected(string id)
+        private void KeepLastSelected(string id = null)
         {
+            if (string.IsNullOrEmpty(id)) id = lastSelectedId;
             new Action(() =>
             {
                 if (ImageTiles.Items.Count > 0)
                 {
-                    //foreach(var id_l in ids_last.Take(10))
-                    //{
-                    //    var items = ImageTiles.Items.Where(i => i.ID == $"{id_l}");
-                    //    if (items.Count() > 0)
-                    //    {
-                    //        ImageTiles.SelectedItem = items.First();
-                    //        ImageTiles.ScrollIntoView(ImageTiles.SelectedItem);
-                    //        this.DoEvents();
-                    //        break;
-                    //    }
-                    //}
-
                     if (ImageTiles.SelectedItem == null && !string.IsNullOrEmpty(id))
                     {
                         foreach (var item in ImageTiles.Items)
@@ -537,12 +526,16 @@ namespace PixivWPF.Pages
         #region Live Filter helper
         public void SetFilter(string filter)
         {
+            GetLastSelectedID();
             ImageTiles.SetFilter(filter);
+            KeepLastSelected();
         }
 
         public void SetFilter(FilterParam filter)
         {
+            GetLastSelectedID();
             ImageTiles.SetFilter(filter);
+            KeepLastSelected();
         }
 
         public dynamic GetTilesCount()

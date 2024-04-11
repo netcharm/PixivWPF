@@ -153,14 +153,14 @@
             Kind="Star" SnapsToDevicePixels="True" UseLayoutRounding="True"
             Width="18" Height="18" Margin="0,0,11,11" 
             HorizontalAlignment="Right" VerticalAlignment="Bottom" 
-            Foreground="{DynamicResource MahApps.Brushes.Accent}" Effect="{DynamicResource DropMark}"
+            Effect="{DynamicResource DropMark}"
             Visibility="{Binding IsFollow, Mode=OneWay, Converter={StaticResource Bool2Vis}}" />
         <!-- Favorited Mark Glow -->
         <iconPacks:PackIconModern 
             Grid.Row="0" Grid.Column="0" Grid.RowSpan="5" 
             Kind="Heart" SnapsToDevicePixels="True" UseLayoutRounding="True"
             Width="28" Height="28" Margin="0,0,6,6" 
-            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" Effect="{DynamicResource DropGlow}"
+            Style="{DynamicResource IdealPackIcon}" Effect="{DynamicResource DropGlow}"
             HorizontalAlignment="Right" VerticalAlignment="Bottom" 
             Visibility="{Binding IsFav, Mode=OneWay, Converter={StaticResource Bool2Vis}}" />
         <!-- Favorited Mark -->
@@ -169,7 +169,6 @@
             Kind="Heart" SnapsToDevicePixels="True" UseLayoutRounding="True"
             Width="24" Height="24" Margin="0,0,8,8" 
             HorizontalAlignment="Right" VerticalAlignment="Bottom" 
-            Foreground="{DynamicResource MahApps.Brushes.Accent}"
             Visibility="{Binding IsFav, Mode=OneWay, Converter={StaticResource Bool2Vis}}" />
         <!-- Follow Mark -->
         <iconPacks:PackIconModern 
@@ -177,44 +176,39 @@
             Kind="Star" SnapsToDevicePixels="True" UseLayoutRounding="True"
             Width="12" Height="12" Margin="0,0,14,14" 
             HorizontalAlignment="Right" VerticalAlignment="Bottom" 
-            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"  Effect="{DynamicResource DropMark}"
+            Style="{DynamicResource IdealPackIcon}" Effect="{DynamicResource DropMark}"
             Visibility="{Binding IsFollow, Mode=OneWay, Converter={StaticResource Bool2Vis}}" />
         <local:ProgressRingCloud 
             Grid.Row="0" Grid.Column="0" Grid.RowSpan="5" x:Name="PART_ThumbnailWait" Size="96" 
-            Visibility="Visible" IsActive="False" ReloadEnabled="True" ReloadClick="miActions_Click"
-            Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
-            ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="10" ShadowDepth="1" ShadowOpacity="1"
-            VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            Visibility="Visible" IsActive="False" ReloadEnabled="True" ReloadClick="miActions_Click"/>
 
         <TextBlock Grid.Row="0" Grid.Column="1" x:Name="PART_FileURL" 
                    HorizontalAlignment="Stretch" Margin="2"
                    Tag="{Binding FileTime, Mode=OneWay}"
-                   Foreground="{DynamicResource MahApps.Brushes.Text}" 
+                   Style="{DynamicResource TextContent}"
                    Text="{Binding Url, Mode=OneWay}" TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"/>
         <TextBlock Grid.Row="1" Grid.Column="1" x:Name="PART_FileName" 
                    HorizontalAlignment="Stretch" Margin="2"
                    Tag="{Binding Url, Mode=OneWay}"
-                   Foreground="{DynamicResource MahApps.Brushes.Text}" 
+                   Style="{DynamicResource TextContent}"
                    Text="{Binding FileName, Mode=OneWay}" TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"/>
         <TextBlock Grid.Row="2" Grid.Column="1" x:Name="PART_FileFolder" 
                    HorizontalAlignment="Stretch" Margin="2"
-                   Foreground="{DynamicResource MahApps.Brushes.Text}" 
+                   Style="{DynamicResource TextContent}"
                    Text="{Binding FolderName, Mode=OneWay}" TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"/>
         <mah:MetroProgressBar Grid.Row="3" Grid.Column="1" x:Name="PART_DownloadProgress" x:Uid="DownloadProgress"
-                    Foreground="{DynamicResource MahApps.Brushes.Accent}"
                     Tag="{Binding Progress, Mode=OneWay}" IsEnabled="True"
                     Height="18" IsIndeterminate="False" Minimum="0" Maximum="100" Margin="2"
-                    Value="{Binding ProgressPercent, Mode=OneWay, IsAsync=True, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
-                    HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                    Value="{Binding ProgressPercent, Mode=OneWay, IsAsync=True, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"/>
         <TextBlock Grid.Row="3" Grid.Column="1" x:Name="PART_DownloadProgressPercent" 
                    HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
                    TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow">
             <TextBlock.Foreground>
                 <LinearGradientBrush x:Name="PART_ProgressInfoLinear" StartPoint="0,0" EndPoint="1,0">
-                    <GradientStop Color="{DynamicResource MahApps.Colors.IdealForeground}" Offset="0"></GradientStop>
-                    <GradientStop Color="{DynamicResource MahApps.Colors.IdealForeground}" Offset="0" x:Name="PART_ProgressInfoLinearLeft"></GradientStop>
-                    <GradientStop Color="{DynamicResource MahApps.Colors.Accent}" Offset="0" x:Name="PART_ProgressInfoLinearRight"></GradientStop>
-                    <GradientStop Color="{DynamicResource MahApps.Colors.Accent}" Offset="1"></GradientStop>
+                    <GradientStop Color="{DynamicResource MahApps.Colors.IdealForeground}" Offset="0"/>
+                    <GradientStop Color="{DynamicResource MahApps.Colors.IdealForeground}" Offset="0" x:Name="PART_ProgressInfoLinearLeft"/>
+                    <GradientStop Color="{DynamicResource MahApps.Colors.Accent}" Offset="0" x:Name="PART_ProgressInfoLinearRight"/>
+                    <GradientStop Color="{DynamicResource MahApps.Colors.Accent}" Offset="1"/>
                 </LinearGradientBrush>
             </TextBlock.Foreground>
         </TextBlock>
@@ -249,79 +243,39 @@
                     Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"
                     Background="Transparent" >
                 <Button x:Name="PART_CopyIllustID" x:Uid="ActionCopyIllustID" Margin="2,0,2,0" Click="miActions_Click"
-                        ToolTip="Copy Illust ID" 
-                        HorizontalAlignment="Right" VerticalAlignment="Center"
-                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"                        
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
-                        BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                        Foreground="{DynamicResource MahApps.Brushes.Text}" 
-                        Background="Transparent">
+                        ToolTip="Copy Illust ID" Style="{DynamicResource SquareButton}" HorizontalAlignment="Right">
                     <TextBlock Text="&#xE16F;" Style="{DynamicResource MenuItemIcon16}"/>
                 </Button>
                 <Button x:Name="PART_OpenIllust" x:Uid="ActionOpenIllust" Margin="2,0,2,0" Click="miActions_Click"
-                        ToolTip="Open Illust" 
-                        HorizontalAlignment="Right" VerticalAlignment="Center"
-                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"                        
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
-                        BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                        Foreground="{DynamicResource MahApps.Brushes.Text}" 
-                        Background="Transparent">
+                        ToolTip="Open Illust" Style="{DynamicResource SquareButton}" HorizontalAlignment="Right">
                     <TextBlock Text="&#xE8A7;" Style="{DynamicResource MenuItemIcon16}"/>
                 </Button>
                 <Button x:Name="PART_Remove" x:Uid="ActionRemove" Margin="2,0,2,0" Click="miActions_Click"
-                        ToolTip="Remove Item" 
-                        HorizontalAlignment="Right" VerticalAlignment="Center"
-                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"                        
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
-                        BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                        Foreground="{DynamicResource MahApps.Brushes.Text}" 
-                        Background="Transparent">
+                        ToolTip="Remove Item" Style="{DynamicResource SquareButton}" HorizontalAlignment="Right">
                     <TextBlock Text="&#xE107;" Style="{DynamicResource MenuItemIcon16}"/>
                 </Button>
                 <Button x:Name="PART_StopDownload" x:Uid="ActionStop" Margin="2,0,2,0" Click="miActions_Click"
-                        ToolTip="Stop Downloading" 
-                        HorizontalAlignment="Right" VerticalAlignment="Center"
-                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"                        
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
-                        BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                        Foreground="{DynamicResource MahApps.Brushes.Text}" 
-                        Background="Transparent">
+                        ToolTip="Stop Downloading" Style="{DynamicResource SquareButton}" HorizontalAlignment="Right">
                     <TextBlock Text="&#xE10A;" Style="{DynamicResource MenuItemIcon16}"/>
                 </Button>
                 <Button x:Name="PART_Download" x:Uid="Download" Margin="2,0,2,0" Click="miActions_Click"
                         ToolTip="Download File" Tag="{Binding IsStart, Mode=OneWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
-                        TargetUpdated="PART_Download_TargetUpdated"
-                        HorizontalAlignment="Right" VerticalAlignment="Center"
-                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
-                        BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                        Foreground="{DynamicResource MahApps.Brushes.Text}" 
-                        Background="Transparent">
+                        TargetUpdated="PART_Download_TargetUpdated" Style="{DynamicResource SquareButton}" HorizontalAlignment="Right">
                     <TextBlock Text="&#xE118;" Style="{DynamicResource MenuItemIcon16}"/>
                 </Button>
                 <Button x:Name="PART_OpenFolder" x:Uid="OpenFolder" Margin="2,0,2,0" Click="miActions_Click"
                     ToolTip="Open Image Folder" Tag="{Binding FileName, Mode=OneWay}"
-                    HorizontalAlignment="Right" VerticalAlignment="Center"
-                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                    Style="{DynamicResource MahApps.Styles.Button.Square}"  BorderThickness="1"
-                    BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                    Foreground="{DynamicResource MahApps.Brushes.Text}"
-                    Background="Transparent" IsEnabled="False">
+                    Style="{DynamicResource SquareButton}" HorizontalAlignment="Right" IsEnabled="False" Visibility="Collapsed">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="&#xED25;" Style="{DynamicResource MenuItemIcon16}"/>
                     </StackPanel>
                 </Button>
                 <Button x:Name="PART_OpenFile" x:Uid="OpenFile" Margin="2,0,2,0" Click="miActions_Click"
                     ToolTip="View Image With Default Application" Tag="{Binding FileName, Mode=OneWay}"
-                    HorizontalAlignment="Right" VerticalAlignment="Center"
-                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                    Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
-                    BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                    Foreground="{DynamicResource MahApps.Brushes.Text}" 
-                    Background="Transparent" IsEnabled="False">
+                    Style="{DynamicResource SquareButton}" HorizontalAlignment="Right" IsEnabled="False">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="&#xEB9F;" Style="{DynamicResource MenuItemIcon16}"/>
-                        <TextBlock Text="View Image" Margin="2,0,0,0" FontSize="10" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                        <TextBlock Text="View Image" Style="{DynamicResource SquareButtonContent}"/>
                     </StackPanel>
                 </Button>
             </StackPanel>
