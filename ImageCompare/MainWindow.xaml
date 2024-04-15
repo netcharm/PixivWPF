@@ -175,6 +175,57 @@
                 <StackPanel x:Uid="AutoMatchSizePanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="AutoMatchSizeIcon" Text="&#xE158;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
+                <ToggleButton.ContextMenu>
+                    <ContextMenu x:Name="MatchSizeAlign" x:Uid="MatchSizeAlign">
+                        <MenuItem x:Name="MatchSizeAlignTL" x:Uid="MatchSizeAlignTL" Header="Align To Top Left" Click="MatchSizeAlign_Click">
+                            <MenuItem.Icon>
+                                <TextBlock x:Uid="MatchSizeAlignTLIcon" Text="&#xE742;" Style="{DynamicResource MenuItemIcon}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="MatchSizeAlignTC" x:Uid="MatchSizeAlignTC" Header="Align To Top Center" Click="MatchSizeAlign_Click">
+                            <MenuItem.Icon>
+                                <TextBlock x:Uid="MatchSizeAlignTCIcon" Text="&#xE7EB;" Style="{DynamicResource MenuItemIcon}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="MatchSizeAlignTR" x:Uid="MatchSizeAlignTR" Header="Align To Top Right" Click="MatchSizeAlign_Click">
+                            <MenuItem.Icon>
+                                <TextBlock x:Uid="MatchSizeAlignTRIcon" Text="&#xE742;" Style="{DynamicResource MenuItemIcon}" LayoutTransform="{DynamicResource FlipX}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <Separator/>
+                        <MenuItem x:Name="MatchSizeAlignCL" x:Uid="MatchSizeAlignCL" Header="Align To Center Left" Click="MatchSizeAlign_Click">
+                            <MenuItem.Icon>
+                                <TextBlock x:Uid="MatchSizeAlignCLIcon" Text="&#xEA62;" Style="{DynamicResource MenuItemIcon}" LayoutTransform="{DynamicResource FlipX}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="MatchSizeAlignCC" x:Uid="MatchSizeAlignCC" Header="Align To Center" Click="MatchSizeAlign_Click" IsChecked="True">
+                            <MenuItem.Icon>
+                                <TextBlock x:Uid="MatchSizeAlignCCIcon" Text="&#xE14E;" Style="{DynamicResource MenuItemIcon}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="MatchSizeAlignCR" x:Uid="MatchSizeAlignCR" Header="Align To Center Right" Click="MatchSizeAlign_Click">
+                            <MenuItem.Icon>
+                                <TextBlock x:Uid="MatchSizeAlignCRIcon" Text="&#xEA62;" Style="{DynamicResource MenuItemIcon}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <Separator/>
+                        <MenuItem x:Name="MatchSizeAlignBL" x:Uid="MatchSizeAlignBL" Header="Align To Bottom Left" Click="MatchSizeAlign_Click">
+                            <MenuItem.Icon>
+                                <TextBlock x:Uid="MatchSizeAlignBLIcon" Text="&#xE741;" Style="{DynamicResource MenuItemIcon}" LayoutTransform="{DynamicResource FlipX}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="MatchSizeAlignBC" x:Uid="MatchSizeAlignBC" Header="Align To Bottom Center" Click="MatchSizeAlign_Click">
+                            <MenuItem.Icon>
+                                <TextBlock x:Uid="MatchSizeAlignBCIcon" Text="&#xE7EB;" Style="{DynamicResource MenuItemIcon}" LayoutTransform="{DynamicResource FlipY}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="MatchSizeAlignBR" x:Uid="MatchSizeAlignBR" Header="Align To Bottom Right" Click="MatchSizeAlign_Click">
+                            <MenuItem.Icon>
+                                <TextBlock x:Uid="MatchSizeAlignBRIcon" Text="&#xE741;" Style="{DynamicResource MenuItemIcon}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </ContextMenu>
+                </ToggleButton.ContextMenu>
             </ToggleButton>
             <ToggleButton x:Name="UseSmallerImage" x:Uid="UseSmallerImage" IsChecked="True"
                           ToolTip="Using Smaller Image for Compare/Compose After Image Loaded" HorizontalAlignment="Right" Click="ImageActions_Click">
@@ -250,7 +301,7 @@
                                 <TextBlock x:Uid="UILanguageCnIcon" Text="&#xE88D;" Style="{DynamicResource MenuItemIcon}"/>
                             </MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem x:Name="UILanguageTw" x:Uid="UILanguageTw" Header="Chinese Traditional " Click="ImageActions_Click">
+                        <MenuItem x:Name="UILanguageTw" x:Uid="UILanguageTw" Header="Chinese Traditional" Click="ImageActions_Click">
                             <MenuItem.Icon>
                                 <TextBlock x:Uid="UILanguageTwIcon" Text="&#xE88C;" Style="{DynamicResource MenuItemIcon}"/>
                             </MenuItem.Icon>

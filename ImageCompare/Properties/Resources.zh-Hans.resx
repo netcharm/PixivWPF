@@ -564,4 +564,31 @@
   <data name="Tolerances" xml:space="preserve">
     <value>容差</value>
   </data>
+  <data name="MatchSizeAlignBC.Header" xml:space="preserve">
+    <value>底部中心对齐</value>
+  </data>
+  <data name="MatchSizeAlignBL.Header" xml:space="preserve">
+    <value>对齐到左下角</value>
+  </data>
+  <data name="MatchSizeAlignBR.Header" xml:space="preserve">
+    <value>对齐到右下角</value>
+  </data>
+  <data name="MatchSizeAlignCC.Header" xml:space="preserve">
+    <value>完全居中对齐</value>
+  </data>
+  <data name="MatchSizeAlignCL.Header" xml:space="preserve">
+    <value>左侧居中对齐</value>
+  </data>
+  <data name="MatchSizeAlignCR.Header" xml:space="preserve">
+    <value>右侧居中对齐</value>
+  </data>
+  <data name="MatchSizeAlignTC.Header" xml:space="preserve">
+    <value>顶部中心对齐</value>
+  </data>
+  <data name="MatchSizeAlignTL.Header" xml:space="preserve">
+    <value>对齐到左上角</value>
+  </data>
+  <data name="MatchSizeAlignTR.Header" xml:space="preserve">
+    <value>对齐到右上角</value>
+  </data>
 </root>

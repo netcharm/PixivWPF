@@ -366,7 +366,7 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
-        private void ResizeToImage(bool source, bool assign = true)
+        private void ResizeToImage(bool source, bool assign = true, Gravity align = Gravity.Center)
         {
             try
             {
@@ -379,7 +379,7 @@ namespace ImageCompare
                     var s_image = source ? image_s.Current : image_t.Current;
                     var t_image = source ? image_t.Current : image_s.Current;
                     if (s_image.Width == t_image.Width || s_image.Height == t_image.Height)
-                        s_image.Extent(t_image.Width, t_image.Height, Gravity.Center, s_image.HasAlpha ? MagickColors.Transparent : MasklightColor ?? MagickColors.Transparent);
+                        s_image.Extent(t_image.Width, t_image.Height, align, s_image.HasAlpha ? MagickColors.Transparent : MasklightColor ?? MagickColors.Transparent);
                     else
                         s_image.Scale(t_image.Width, t_image.Height);
                     s_image.RePage();

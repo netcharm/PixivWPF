@@ -45,6 +45,8 @@ namespace ImageCompare
         private string DefaultComposeToolTip = string.Empty;
         private string DefaultFuzzySliderToolTip = string.Empty;
 
+        private Gravity DefaultMatchAlign = Gravity.Center;
+
         private Rect LastPositionSize = new Rect();
         private System.Windows.WindowState LastWinState = System.Windows.WindowState.Normal;
         //private Screen screens = Screen..AllScreens;
@@ -639,6 +641,53 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
         }
 
+        private void MatchImageSize(ImageInformation src, ImageInformation dst, Gravity align = Gravity.Center, MagickColor mask = null)
+        {
+            if (src is ImageInformation && dst is ImageInformation && src.ValidCurrent && dst.ValidCurrent)
+            {
+                var resized = false;
+                if ((src.CurrentSize.Width > dst.CurrentSize.Width) || (src.CurrentSize.Height > dst.CurrentSize.Height))
+                { ResizeToImage(false, assign: false, align: align); resized = true; }
+                else if ((src.CurrentSize.Width < dst.CurrentSize.Width) || (src.CurrentSize.Height < dst.CurrentSize.Height))
+                { ResizeToImage(true, assign: false, align: align); resized = true; }
+
+                if (resized)
+                {
+                    var offset = new PointD(src.CurrentSize.Width - dst.CurrentSize.Width, src.CurrentSize.Height - dst.CurrentSize.Height);
+                    if (offset.X != 0 || offset.Y != 0)
+                    {
+                        var w_s = (int)Math.Max(src.CurrentSize.Width, src.CurrentSize.Width - offset.X);
+                        var h_s = (int)Math.Max(src.CurrentSize.Height, src.CurrentSize.Height - offset.Y);
+                        var w_t = (int)Math.Max(dst.CurrentSize.Width, dst.CurrentSize.Width + offset.X);
+                        var h_t = (int)Math.Max(dst.CurrentSize.Height, dst.CurrentSize.Height + offset.Y);
+
+                        src.Current.Extent(w_s, h_s, align, src.Current.HasAlpha ? MagickColors.Transparent : src.Current.BackgroundColor);
+                        dst.Current.Extent(w_t, h_t, align, dst.Current.HasAlpha ? MagickColors.Transparent : dst.Current.BackgroundColor);
+
+                        src.Current.RePage();
+                        dst.Current.RePage();
+                    }
+                }
+                else
+                {
+                    var offset = new PointD(src.BaseSize.Width - dst.BaseSize.Width, src.BaseSize.Height - dst.BaseSize.Height);
+                    if (offset.X != 0 || offset.Y != 0)
+                    {
+                        var w_s = (int)Math.Max(src.BaseSize.Width, src.BaseSize.Width - offset.X);
+                        var h_s = (int)Math.Max(src.BaseSize.Height, src.BaseSize.Height - offset.Y);
+                        var w_t = (int)Math.Max(dst.BaseSize.Width, dst.BaseSize.Width + offset.X);
+                        var h_t = (int)Math.Max(dst.BaseSize.Height, dst.BaseSize.Height + offset.Y);
+
+                        src.Current.Extent(w_s, h_s, align, src.Current.HasAlpha ? MagickColors.Transparent : src.Current.BackgroundColor);
+                        dst.Current.Extent(w_t, h_t, align, dst.Current.HasAlpha ? MagickColors.Transparent : dst.Current.BackgroundColor);
+
+                        src.Current.RePage();
+                        dst.Current.RePage();
+                    }
+                }
+            }
+        }
+
         private async void UpdateImageViewer(bool compose = false, bool assign = false, bool reload = true)
         {
             if (IsLoaded && await _CanUpdate_.WaitAsync(TimeSpan.FromMilliseconds(200)))
@@ -668,10 +717,10 @@ namespace ImageCompare
                                     {
                                         if (image_s.OriginalSize.Width > MaxCompareSize || image_s.OriginalSize.Height > MaxCompareSize)
                                             image_s.Reload(CompareResizeGeometry);
-                                        else image_s.Reload();
+                                        else image_s.Reload(reload: image_s.CurrentSize.Width != image_s.OriginalSize.Width || image_s.CurrentSize.Height != image_s.OriginalSize.Height);
                                         if (image_t.OriginalSize.Width > MaxCompareSize || image_t.OriginalSize.Height > MaxCompareSize)
                                             image_t.Reload(CompareResizeGeometry);
-                                        else image_t.Reload();
+                                        else image_t.Reload(reload: image_t.CurrentSize.Width != image_t.OriginalSize.Width || image_t.CurrentSize.Height != image_t.OriginalSize.Height);
                                     }
                                     else
                                     {
@@ -685,49 +734,7 @@ namespace ImageCompare
 
                                     if (CompareImageAutoMatchSize)
                                     {
-                                        if (image_s.ValidCurrent && image_t.ValidCurrent)
-                                        {
-                                            var resized = false;
-                                            if ((image_s.CurrentSize.Width > image_t.CurrentSize.Width) || (image_s.CurrentSize.Height > image_t.CurrentSize.Height))
-                                            { ResizeToImage(true, assign: false); resized = true; }
-                                            else if ((image_s.CurrentSize.Width < image_t.CurrentSize.Width) || (image_s.CurrentSize.Height < image_t.CurrentSize.Height))
-                                            { ResizeToImage(false, assign: false); resized = true; }
-
-                                            if (resized)
-                                            {
-                                                var offset = new PointD(image_s.CurrentSize.Width - image_t.CurrentSize.Width, image_s.CurrentSize.Height - image_t.CurrentSize.Height);
-                                                if (offset.X != 0 || offset.Y != 0)
-                                                {
-                                                    var w_s = (int)Math.Max(image_s.CurrentSize.Width, image_s.CurrentSize.Width - offset.X);
-                                                    var h_s = (int)Math.Max(image_s.CurrentSize.Height, image_s.CurrentSize.Height - offset.Y);
-                                                    var w_t = (int)Math.Max(image_t.CurrentSize.Width, image_t.CurrentSize.Width + offset.X);
-                                                    var h_t = (int)Math.Max(image_t.CurrentSize.Height, image_t.CurrentSize.Height + offset.Y);
-
-                                                    image_s.Current.Extent(w_s, h_s, Gravity.Center, image_s.Current.HasAlpha ? MagickColors.Transparent : image_s.Current.BackgroundColor);
-                                                    image_t.Current.Extent(w_t, h_t, Gravity.Center, image_t.Current.HasAlpha ? MagickColors.Transparent : image_t.Current.BackgroundColor);
-
-                                                    image_s.Current.RePage();
-                                                    image_t.Current.RePage();
-                                                }
-                                            }
-                                            else
-                                            {
-                                                var offset = new PointD(image_s.BaseSize.Width - image_t.BaseSize.Width, image_s.BaseSize.Height - image_t.BaseSize.Height);
-                                                if (offset.X != 0 || offset.Y != 0)
-                                                {
-                                                    var w_s = (int)Math.Max(image_s.BaseSize.Width, image_s.BaseSize.Width - offset.X);
-                                                    var h_s = (int)Math.Max(image_s.BaseSize.Height, image_s.BaseSize.Height - offset.Y);
-                                                    var w_t = (int)Math.Max(image_t.BaseSize.Width, image_t.BaseSize.Width + offset.X);
-                                                    var h_t = (int)Math.Max(image_t.BaseSize.Height, image_t.BaseSize.Height + offset.Y);
-
-                                                    image_s.Current.Extent(w_s, h_s, Gravity.Center, image_s.Current.HasAlpha ? MagickColors.Transparent : image_s.Current.BackgroundColor);
-                                                    image_t.Current.Extent(w_t, h_t, Gravity.Center, image_t.Current.HasAlpha ? MagickColors.Transparent : image_t.Current.BackgroundColor);
-
-                                                    image_s.Current.RePage();
-                                                    image_t.Current.RePage();
-                                                }
-                                            }
-                                        }
+                                        MatchImageSize(image_s, image_t, DefaultMatchAlign);
                                     }
                                     else
                                     {
@@ -736,8 +743,8 @@ namespace ImageCompare
                                             var offset = new PointD(image_s.BaseSize.Width - image_t.BaseSize.Width, image_s.BaseSize.Height - image_t.BaseSize.Height);
                                             if (offset.X != 0 || offset.Y != 0)
                                             {
-                                                image_s.Current.Crop((int)image_s.BaseSize.Width, (int)image_s.BaseSize.Height, Gravity.Center);
-                                                image_t.Current.Crop((int)image_t.BaseSize.Width, (int)image_t.BaseSize.Height, Gravity.Center);
+                                                image_s.Current.Crop((int)image_s.BaseSize.Width, (int)image_s.BaseSize.Height, DefaultMatchAlign);
+                                                image_t.Current.Crop((int)image_t.BaseSize.Width, (int)image_t.BaseSize.Height, DefaultMatchAlign);
 
                                                 image_s.Current.RePage();
                                                 image_t.Current.RePage();
@@ -745,6 +752,7 @@ namespace ImageCompare
                                         }
                                     }
                                 }
+
                                 ImageSource.Source = image_s.Source;
                                 ImageTarget.Source = image_t.Source;
 
@@ -1575,8 +1583,8 @@ namespace ImageCompare
                 item_sharp.Click += (obj, evt) => { RenderRun(() => { SharpImage((bool)(obj as MenuItem).Tag); }); };
 
                 item_size_crop.Click += (obj, evt) => { RenderRun(() => { CropImage((bool)(obj as MenuItem).Tag); }); };
-                item_size_to_source.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(false); }); };
-                item_size_to_target.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(true); }); };
+                item_size_to_source.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(false, align: DefaultMatchAlign); }); };
+                item_size_to_target.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(true, align: DefaultMatchAlign); }); };
 
                 item_slice_h.Click += (obj, evt) =>
                 {
@@ -2750,7 +2758,7 @@ namespace ImageCompare
             {
                 RenderRun(new Action(() =>
                 {
-                    UpdateImageViewer(compose: LastOpIsCompose, assign: false, reload: true);
+                    UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: true);
                 }));
             }
             else if (sender == UseSmallerImage)
@@ -2774,6 +2782,30 @@ namespace ImageCompare
             else if (sender == ImageLoadHaldLut)
             {
                 LoadHaldLutFile();
+            }
+        }
+
+        private void MatchSizeAlign_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem)
+            {
+                var menu = sender as MenuItem;
+                foreach (MenuItem m in MatchSizeAlign.Items) m.IsChecked = false;
+                menu.IsChecked = true;
+
+                if      (menu == MatchSizeAlignTL) { DefaultMatchAlign = Gravity.Northwest; }
+                else if (menu == MatchSizeAlignTC) { DefaultMatchAlign = Gravity.North; }
+                else if (menu == MatchSizeAlignTR) { DefaultMatchAlign = Gravity.Northeast; }
+
+                else if (menu == MatchSizeAlignCL) { DefaultMatchAlign = Gravity.West; }
+                else if (menu == MatchSizeAlignCC) { DefaultMatchAlign = Gravity.Center; }
+                else if (menu == MatchSizeAlignCR) { DefaultMatchAlign = Gravity.East; }
+
+                else if (menu == MatchSizeAlignBL) { DefaultMatchAlign = Gravity.Southwest; }
+                else if (menu == MatchSizeAlignBC) { DefaultMatchAlign = Gravity.South; }
+                else if (menu == MatchSizeAlignBR) { DefaultMatchAlign = Gravity.Southeast; }
+
+                if (!LastOpIsCompose && CompareImageAutoMatchSize) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: true);
             }
         }
         #endregion
@@ -2838,6 +2870,7 @@ namespace ImageCompare
                 SyncColorLighting();
             }
         }
-       #endregion
+        #endregion
+
     }
 }

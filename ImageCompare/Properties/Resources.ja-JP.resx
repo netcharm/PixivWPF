@@ -561,4 +561,34 @@
   <data name="Zoom Ratio" xml:space="preserve">
     <value>ズーム比</value>
   </data>
+  <data name="Tolerances" xml:space="preserve">
+    <value>容许偏差</value>
+  </data>
+  <data name="MatchSizeAlignBC.Header" xml:space="preserve">
+    <value>下部中央揃え</value>
+  </data>
+  <data name="MatchSizeAlignBL.Header" xml:space="preserve">
+    <value>左下隅に揃える</value>
+  </data>
+  <data name="MatchSizeAlignBR.Header" xml:space="preserve">
+    <value>右下揃に揃える</value>
+  </data>
+  <data name="MatchSizeAlignCC.Header" xml:space="preserve">
+    <value>完全中央揃え</value>
+  </data>
+  <data name="MatchSizeAlignCL.Header" xml:space="preserve">
+    <value>左側中央揃え</value>
+  </data>
+  <data name="MatchSizeAlignCR.Header" xml:space="preserve">
+    <value>右側中央揃え</value>
+  </data>
+  <data name="MatchSizeAlignTC.Header" xml:space="preserve">
+    <value>上部中央揃え</value>
+  </data>
+  <data name="MatchSizeAlignTL.Header" xml:space="preserve">
+    <value>左上隅に揃える</value>
+  </data>
+  <data name="MatchSizeAlignTR.Header" xml:space="preserve">
+    <value>右上隅に揃える</value>
+  </data>
 </root>

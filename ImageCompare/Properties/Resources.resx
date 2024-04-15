@@ -564,4 +564,31 @@
   <data name="Tolerances" xml:space="preserve">
     <value>Tolerances</value>
   </data>
+  <data name="MatchSizeAlignTL.Header" xml:space="preserve">
+    <value>Align To Top Left</value>
+  </data>
+  <data name="MatchSizeAlignTC.Header" xml:space="preserve">
+    <value>Align To Top Center</value>
+  </data>
+  <data name="MatchSizeAlignTR.Header" xml:space="preserve">
+    <value>Align To Top Right</value>
+  </data>
+  <data name="MatchSizeAlignCL.Header" xml:space="preserve">
+    <value>Align To Center Left</value>
+  </data>
+  <data name="MatchSizeAlignCC.Header" xml:space="preserve">
+    <value>Align To Center</value>
+  </data>
+  <data name="MatchSizeAlignCR.Header" xml:space="preserve">
+    <value>Align To Center Right</value>
+  </data>
+  <data name="MatchSizeAlignBL.Header" xml:space="preserve">
+    <value>Align To Bottom Left</value>
+  </data>
+  <data name="MatchSizeAlignBC.Header" xml:space="preserve">
+    <value>Align To Bottom Center</value>
+  </data>
+  <data name="MatchSizeAlignBR.Header" xml:space="preserve">
+    <value>Align To Bottom Right</value>
+  </data>
 </root>
