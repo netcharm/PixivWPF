@@ -46,6 +46,7 @@ namespace ImageCompare
         private string DefaultFuzzySliderToolTip = string.Empty;
 
         private Gravity DefaultMatchAlign = Gravity.Center;
+        private ImageType LastMatchedImage = ImageType.None;
 
         private Rect LastPositionSize = new Rect();
         private System.Windows.WindowState LastWinState = System.Windows.WindowState.Normal;
@@ -647,9 +648,9 @@ namespace ImageCompare
             {
                 var resized = false;
                 if ((src.CurrentSize.Width > dst.CurrentSize.Width) || (src.CurrentSize.Height > dst.CurrentSize.Height))
-                { ResizeToImage(false, assign: false, align: align); resized = true; }
+                { ResizeToImage(false, assign: false, reset: true, align: align); resized = true; }
                 else if ((src.CurrentSize.Width < dst.CurrentSize.Width) || (src.CurrentSize.Height < dst.CurrentSize.Height))
-                { ResizeToImage(true, assign: false, align: align); resized = true; }
+                { ResizeToImage(true, assign: false, reset: true, align: align); resized = true; }
 
                 if (resized)
                 {
@@ -716,10 +717,10 @@ namespace ImageCompare
                                     if (CompareImageForceScale)
                                     {
                                         if (image_s.OriginalSize.Width > MaxCompareSize || image_s.OriginalSize.Height > MaxCompareSize)
-                                            image_s.Reload(CompareResizeGeometry);
+                                            image_s.Reload(CompareResizeGeometry, reset: true);
                                         else image_s.Reload(reload: image_s.CurrentSize.Width != image_s.OriginalSize.Width || image_s.CurrentSize.Height != image_s.OriginalSize.Height);
                                         if (image_t.OriginalSize.Width > MaxCompareSize || image_t.OriginalSize.Height > MaxCompareSize)
-                                            image_t.Reload(CompareResizeGeometry);
+                                            image_t.Reload(CompareResizeGeometry, reset: true);
                                         else image_t.Reload(reload: image_t.CurrentSize.Width != image_t.OriginalSize.Width || image_t.CurrentSize.Height != image_t.OriginalSize.Height);
                                     }
                                     else
@@ -1583,8 +1584,8 @@ namespace ImageCompare
                 item_sharp.Click += (obj, evt) => { RenderRun(() => { SharpImage((bool)(obj as MenuItem).Tag); }); };
 
                 item_size_crop.Click += (obj, evt) => { RenderRun(() => { CropImage((bool)(obj as MenuItem).Tag); }); };
-                item_size_to_source.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(false, align: DefaultMatchAlign); }); };
-                item_size_to_target.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(true, align: DefaultMatchAlign); }); };
+                item_size_to_source.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(false, reset: true, align: DefaultMatchAlign); }); };
+                item_size_to_target.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(true, reset: true, align: DefaultMatchAlign); }); };
 
                 item_slice_h.Click += (obj, evt) =>
                 {
@@ -2789,10 +2790,11 @@ namespace ImageCompare
         {
             if (sender is MenuItem)
             {
+                var old_align = DefaultMatchAlign;
                 var menu = sender as MenuItem;
                 foreach (var m in MatchSizeAlign.Items) { if (m is MenuItem) (m as MenuItem).IsChecked = false; }
                 menu.IsChecked = true;
-                if      (menu == MatchSizeAlignTL) { DefaultMatchAlign = Gravity.Northwest; }
+                if (menu == MatchSizeAlignTL) { DefaultMatchAlign = Gravity.Northwest; }
                 else if (menu == MatchSizeAlignTC) { DefaultMatchAlign = Gravity.North; }
                 else if (menu == MatchSizeAlignTR) { DefaultMatchAlign = Gravity.Northeast; }
 
@@ -2806,7 +2808,16 @@ namespace ImageCompare
 
                 e.Handled = true;
 
-                if (!LastOpIsCompose && CompareImageAutoMatchSize) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: true);
+                if (!CompareImageAutoMatchSize && !old_align.Equals(DefaultMatchAlign))
+                {
+                    switch (LastMatchedImage)
+                    {
+                        case ImageType.Source: RenderRun(() => { ResizeToImage(false, reset: true, align: DefaultMatchAlign); }); break;
+                        case ImageType.Target: RenderRun(() => { ResizeToImage(true, reset: true, align: DefaultMatchAlign); }); break;
+                        default: break;
+                    }
+                }
+                else if (!LastOpIsCompose && CompareImageAutoMatchSize) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: true);
             }
         }
         #endregion
