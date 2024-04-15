@@ -46,7 +46,67 @@
             <DropShadowEffect x:Key="DropMark" Color="{DynamicResource MahApps.Colors.Accent}" ShadowDepth="0" Opacity="1" BlurRadius="5"/>
             <BlurEffect x:Key="BlurGlow" Radius="9" RenderingBias="Quality" KernelType="Gaussian"/>
             <BlurEffect x:Key="BlurMark" Radius="5" RenderingBias="Quality" KernelType="Gaussian"/>
-            
+
+            <ScaleTransform x:Key="FlipX">
+                <ScaleTransform.CenterX>0.5</ScaleTransform.CenterX>
+                <ScaleTransform.CenterY>0.5</ScaleTransform.CenterY>
+                <ScaleTransform.ScaleX>-1</ScaleTransform.ScaleX>
+                <ScaleTransform.ScaleY>1</ScaleTransform.ScaleY>
+            </ScaleTransform>
+            <ScaleTransform x:Key="FlipY">
+                <ScaleTransform.CenterX>0.5</ScaleTransform.CenterX>
+                <ScaleTransform.CenterY>0.5</ScaleTransform.CenterY>
+                <ScaleTransform.ScaleX>1</ScaleTransform.ScaleX>
+                <ScaleTransform.ScaleY>-1</ScaleTransform.ScaleY>
+            </ScaleTransform>
+
+            <RotateTransform x:Key="RotateLeft">
+                <RotateTransform.CenterX>0.5</RotateTransform.CenterX>
+                <RotateTransform.CenterY>0.5</RotateTransform.CenterY>
+                <RotateTransform.Angle>-90</RotateTransform.Angle>
+            </RotateTransform>
+            <RotateTransform x:Key="RotateRight">
+                <RotateTransform.CenterX>0.5</RotateTransform.CenterX>
+                <RotateTransform.CenterY>0.5</RotateTransform.CenterY>
+                <RotateTransform.Angle>90</RotateTransform.Angle>
+            </RotateTransform>
+
+            <RotateTransform x:Key="Rotate045">
+                <RotateTransform.CenterX>0.5</RotateTransform.CenterX>
+                <RotateTransform.CenterY>0.5</RotateTransform.CenterY>
+                <RotateTransform.Angle>45</RotateTransform.Angle>
+            </RotateTransform>
+            <RotateTransform x:Key="Rotate090">
+                <RotateTransform.CenterX>0.5</RotateTransform.CenterX>
+                <RotateTransform.CenterY>0.5</RotateTransform.CenterY>
+                <RotateTransform.Angle>90</RotateTransform.Angle>
+            </RotateTransform>
+            <RotateTransform x:Key="Rotate135">
+                <RotateTransform.CenterX>0.5</RotateTransform.CenterX>
+                <RotateTransform.CenterY>0.5</RotateTransform.CenterY>
+                <RotateTransform.Angle>135</RotateTransform.Angle>
+            </RotateTransform>
+            <RotateTransform x:Key="Rotate180">
+                <RotateTransform.CenterX>0.5</RotateTransform.CenterX>
+                <RotateTransform.CenterY>0.5</RotateTransform.CenterY>
+                <RotateTransform.Angle>180</RotateTransform.Angle>
+            </RotateTransform>
+            <RotateTransform x:Key="Rotate225">
+                <RotateTransform.CenterX>0.5</RotateTransform.CenterX>
+                <RotateTransform.CenterY>0.5</RotateTransform.CenterY>
+                <RotateTransform.Angle>90</RotateTransform.Angle>
+            </RotateTransform>
+            <RotateTransform x:Key="Rotate270">
+                <RotateTransform.CenterX>0.5</RotateTransform.CenterX>
+                <RotateTransform.CenterY>0.5</RotateTransform.CenterY>
+                <RotateTransform.Angle>270</RotateTransform.Angle>
+            </RotateTransform>
+            <RotateTransform x:Key="Rotate315">
+                <RotateTransform.CenterX>0.5</RotateTransform.CenterX>
+                <RotateTransform.CenterY>0.5</RotateTransform.CenterY>
+                <RotateTransform.Angle>315</RotateTransform.Angle>
+            </RotateTransform>
+
             <FontFamily x:Key="MonoSpaceFamily">
                 霞骛文楷等宽, LXGW WenKai Mono, Sarasa Mono J, 等距更纱黑体 SC, FontAwesome, Iosevka, Consolas, Segoe UI Emoji, Segoe UI Symbol, Segoe MDL2 Assets, 更纱黑体 SC, Segoe UI, Monospace
             </FontFamily>

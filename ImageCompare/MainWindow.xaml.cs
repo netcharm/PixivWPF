@@ -2790,9 +2790,8 @@ namespace ImageCompare
             if (sender is MenuItem)
             {
                 var menu = sender as MenuItem;
-                foreach (MenuItem m in MatchSizeAlign.Items) m.IsChecked = false;
+                foreach (var m in MatchSizeAlign.Items) { if (m is MenuItem) (m as MenuItem).IsChecked = false; }
                 menu.IsChecked = true;
-
                 if      (menu == MatchSizeAlignTL) { DefaultMatchAlign = Gravity.Northwest; }
                 else if (menu == MatchSizeAlignTC) { DefaultMatchAlign = Gravity.North; }
                 else if (menu == MatchSizeAlignTR) { DefaultMatchAlign = Gravity.Northeast; }
@@ -2804,6 +2803,8 @@ namespace ImageCompare
                 else if (menu == MatchSizeAlignBL) { DefaultMatchAlign = Gravity.Southwest; }
                 else if (menu == MatchSizeAlignBC) { DefaultMatchAlign = Gravity.South; }
                 else if (menu == MatchSizeAlignBR) { DefaultMatchAlign = Gravity.Southeast; }
+
+                e.Handled = true;
 
                 if (!LastOpIsCompose && CompareImageAutoMatchSize) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: true);
             }
