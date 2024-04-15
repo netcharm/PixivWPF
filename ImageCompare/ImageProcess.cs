@@ -177,6 +177,8 @@ namespace ImageCompare
                 else
                     action = ImageTarget.GetInformation().Reset(size);
 
+                LastMatchedImage = ImageType.None;
+
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -196,6 +198,8 @@ namespace ImageCompare
                     action = ImageSource.GetInformation().Reload(size, reload: true);
                 else
                     action = ImageTarget.GetInformation().Reload(size, reload: true);
+
+                LastMatchedImage = ImageType.None;
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
