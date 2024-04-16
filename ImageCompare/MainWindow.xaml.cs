@@ -2810,12 +2810,13 @@ namespace ImageCompare
 
                 if (!CompareImageAutoMatchSize && !old_align.Equals(DefaultMatchAlign))
                 {
-                    switch (LastMatchedImage)
-                    {
-                        case ImageType.Source: RenderRun(() => { ResizeToImage(false, reset: true, align: DefaultMatchAlign); }); break;
-                        case ImageType.Target: RenderRun(() => { ResizeToImage(true, reset: true, align: DefaultMatchAlign); }); break;
-                        default: break;
-                    }
+                    UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                    //switch (LastMatchedImage)
+                    //{
+                    //    case ImageType.Source: RenderRun(() => { ResizeToImage(false, reset: true, align: DefaultMatchAlign); }); break;
+                    //    case ImageType.Target: RenderRun(() => { ResizeToImage(true, reset: true, align: DefaultMatchAlign); }); break;
+                    //    default: break;
+                    //}
                 }
                 else if (!LastOpIsCompose && CompareImageAutoMatchSize) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: true);
             }

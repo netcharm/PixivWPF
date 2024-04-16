@@ -1274,20 +1274,31 @@ namespace ImageCompare
                         if (source.ColorFuzz.ToDouble() != fuzzy) source.ColorFuzz = new Percentage(fuzzy);
                         if (target.ColorFuzz.ToDouble() != fuzzy) target.ColorFuzz = new Percentage(fuzzy);
 
+                        var max_w = Math.Max(source.Width, target.Width);
+                        var max_h = Math.Max(source.Height, target.Height);
+
                         if (compose)
                         {
-                            using (MagickImage diff = new MagickImage(target.Clone()))
-                            {
-                                diff.Composite(source, CompositeMode, CompareImageChannels);
-                                tip.Add($"{"ResultTipMode".T()} {CompositeMode.ToString()}");
-                                result = new MagickImage(diff);
-                                await Task.Delay(1);
-                                DoEvents();
-                            }
+                            //using (MagickImage diff = new MagickImage(target.Clone()))
+                            //{
+                            //    diff.Composite(source, DefaultMatchAlign, CompositeMode, CompareImageChannels);
+                            //    result = new MagickImage(diff);
+                            //}
+
+                            var source_x = source.Clone();
+                            var target_x = target.Clone();
+                            source_x.Extent(max_w, max_h, DefaultMatchAlign, MagickColors.Transparent);
+                            target_x.Extent(max_w, max_h, DefaultMatchAlign, MagickColors.Transparent);
+                            target_x.Composite(source_x, DefaultMatchAlign, CompositeMode, CompareImageChannels);
+                            result = new MagickImage(target_x);
+
+                            tip.Add($"{"ResultTipMode".T()} {CompositeMode.ToString()}");
+                            await Task.Delay(1);
+                            DoEvents();
                         }
                         else
                         {
-                            using (MagickImage diff = new MagickImage() { MatteColor = MasklightColor })
+                            using (MagickImage diff = new MagickImage() { BorderColor = MagickColors.Transparent, BackgroundColor = MagickColors.Transparent, MatteColor = MagickColors.Transparent })
                             {
                                 var setting = new CompareSettings()
                                 {
@@ -1323,7 +1334,16 @@ namespace ImageCompare
                                     //    target_g.Alpha(AlphaOption.Activate);
                                     //}
 
-                                    distance = source_g.Compare(target_g, setting, diff, CompareImageChannels);
+                                    //distance = source_g.Compare(target_g, setting, diff, CompareImageChannels);
+
+                                    //diff.ColorSpace = ColorSpace.scRGB;
+                                    //diff.ColorType = ColorType.TrueColorAlpha;
+
+                                    var source_x = source_g.Clone();
+                                    var target_x = target_g.Clone();
+                                    source_x.Extent(max_w, max_h, DefaultMatchAlign, MagickColors.Transparent);
+                                    target_x.Extent(max_w, max_h, DefaultMatchAlign, MagickColors.Transparent);
+                                    distance = source_x.Compare(target_x, setting, diff, CompareImageChannels);
                                 }
                                 else
                                 {
@@ -1339,7 +1359,25 @@ namespace ImageCompare
                                         target.ColorSpace = ColorSpace.scRGB;
                                         target.ColorType = target.HasAlpha ? ColorType.TrueColorAlpha : ColorType.TrueColor;
                                     }
-                                    distance = source.Compare(target, setting, diff, CompareImageChannels);
+
+                                    //distance = source.Compare(target, setting, diff, CompareImageChannels);
+
+                                    var source_x = source.Clone();
+                                    var target_x = target.Clone();
+                                    //source_x.ColorType = ColorType.TrueColorAlpha;
+                                    //target_x.ColorType = ColorType.TrueColorAlpha;
+                                    //source_x.MatteColor = MagickColors.Transparent;
+                                    //target_x.MatteColor = MagickColors.Transparent;
+                                    //source_x.BackgroundColor = MagickColors.Transparent;
+                                    //target_x.BackgroundColor = MagickColors.Transparent;
+                                    source_x.Extent(max_w, max_h, DefaultMatchAlign, MagickColors.Transparent);
+                                    target_x.Extent(max_w, max_h, DefaultMatchAlign, MagickColors.Transparent);
+
+                                    //diff.Compose = CompositeOperator.Blend;
+                                    distance = source_x.Compare(target_x, setting, diff, CompareImageChannels);
+
+                                    //diff.ColorSpace = ColorSpace.scRGB;
+                                    //diff.ColorType = ColorType.TrueColorAlpha;
                                 }
                                 tip.Add($"{"ResultTipMode".T()} {ErrorMetricMode.ToString()}");
                                 tip.Add($"{"ResultTipDifference".T()} {distance:F4}");
