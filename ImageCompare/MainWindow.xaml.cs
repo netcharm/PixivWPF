@@ -550,6 +550,7 @@ namespace ImageCompare
 
                 if (ZoomFitNone.IsChecked ?? false) ZoomRatio.IsEnabled = true;
                 else ZoomRatio.IsEnabled = false;
+                ZoomRatioValue.IsEnabled = ZoomRatio.IsEnabled;
 
                 CalcZoomRatio();
             }
