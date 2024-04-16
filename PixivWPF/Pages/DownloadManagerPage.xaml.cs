@@ -533,8 +533,22 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(); }
         }
 
+        private async void PART_CopyInfo_Click(object sender, RoutedEventArgs e)
+        {
+            var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+            var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+
+            await new Action(() =>
+            {
+                Commands.CopyDownloadInfo.Execute(GetDownloadInfo());
+            }).InvokeAsync(true);
+        }
+
         private async void PART_CopyID_Click(object sender, RoutedEventArgs e)
         {
+            var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+            var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+
             await new Action(() =>
             {
                 var targets = new List<string>();
@@ -543,22 +557,13 @@ namespace PixivWPF.Pages
                 {
                     if (item is DownloadInfo)
                     {
-                        var shift = Keyboard.Modifiers == ModifierKeys.Shift;
-                        var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
                         if (shift && (item as DownloadInfo).State == DownloadState.Finished) { targets.Add((item as DownloadInfo).FileName); }
                         else if (ctrl) { targets.Add((item as DownloadInfo).FileName); }
-                        else targets.Add((item as DownloadInfo).FileName.ParseLink().ParseID());
+                        else targets.Add((item as DownloadInfo).IllustID.ToString());//.FileName.ParseLink().ParseID());
                     }
                 }
-                Commands.CopyArtworkIDs.Execute(targets);
-            }).InvokeAsync(true);
-        }
-
-        private async void PART_CopyInfo_Click(object sender, RoutedEventArgs e)
-        {
-            await new Action(() =>
-            {
-                Commands.CopyDownloadInfo.Execute(GetDownloadInfo());
+                //Commands.CopyArtworkIDs.Execute(targets);
+                Commands.CopyText.Execute(targets);
             }).InvokeAsync(true);
         }
 

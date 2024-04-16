@@ -244,37 +244,37 @@
                     Background="Transparent" >
                 <Button x:Name="PART_CopyIllustID" x:Uid="ActionCopyIllustID" Margin="2,0,2,0" Click="miActions_Click"
                         ToolTip="Copy Illust ID" Style="{DynamicResource SquareButton}" HorizontalAlignment="Right">
-                    <TextBlock Text="&#xE16F;" Style="{DynamicResource MenuItemIcon16}"/>
+                    <TextBlock Text="&#xE16F;" Style="{DynamicResource ButtonIcon}"/>
                 </Button>
                 <Button x:Name="PART_OpenIllust" x:Uid="ActionOpenIllust" Margin="2,0,2,0" Click="miActions_Click"
                         ToolTip="Open Illust" Style="{DynamicResource SquareButton}" HorizontalAlignment="Right">
-                    <TextBlock Text="&#xE8A7;" Style="{DynamicResource MenuItemIcon16}"/>
+                    <TextBlock Text="&#xE8A7;" Style="{DynamicResource ButtonIcon}"/>
                 </Button>
                 <Button x:Name="PART_Remove" x:Uid="ActionRemove" Margin="2,0,2,0" Click="miActions_Click"
                         ToolTip="Remove Item" Style="{DynamicResource SquareButton}" HorizontalAlignment="Right">
-                    <TextBlock Text="&#xE107;" Style="{DynamicResource MenuItemIcon16}"/>
+                    <TextBlock Text="&#xE107;" Style="{DynamicResource ButtonIcon}"/>
                 </Button>
                 <Button x:Name="PART_StopDownload" x:Uid="ActionStop" Margin="2,0,2,0" Click="miActions_Click"
                         ToolTip="Stop Downloading" Style="{DynamicResource SquareButton}" HorizontalAlignment="Right">
-                    <TextBlock Text="&#xE10A;" Style="{DynamicResource MenuItemIcon16}"/>
+                    <TextBlock Text="&#xE10A;" Style="{DynamicResource ButtonIcon}"/>
                 </Button>
                 <Button x:Name="PART_Download" x:Uid="Download" Margin="2,0,2,0" Click="miActions_Click"
                         ToolTip="Download File" Tag="{Binding IsStart, Mode=OneWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
                         TargetUpdated="PART_Download_TargetUpdated" Style="{DynamicResource SquareButton}" HorizontalAlignment="Right">
-                    <TextBlock Text="&#xE118;" Style="{DynamicResource MenuItemIcon16}"/>
+                    <TextBlock Text="&#xE118;" Style="{DynamicResource ButtonIcon}"/>
                 </Button>
                 <Button x:Name="PART_OpenFolder" x:Uid="OpenFolder" Margin="2,0,2,0" Click="miActions_Click"
                     ToolTip="Open Image Folder" Tag="{Binding FileName, Mode=OneWay}"
                     Style="{DynamicResource SquareButton}" HorizontalAlignment="Right" IsEnabled="False" Visibility="Collapsed">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="&#xED25;" Style="{DynamicResource MenuItemIcon16}"/>
+                        <TextBlock Text="&#xED25;" Style="{DynamicResource ButtonIcon}"/>
                     </StackPanel>
                 </Button>
                 <Button x:Name="PART_OpenFile" x:Uid="OpenFile" Margin="2,0,2,0" Click="miActions_Click"
                     ToolTip="View Image With Default Application" Tag="{Binding FileName, Mode=OneWay}"
                     Style="{DynamicResource SquareButton}" HorizontalAlignment="Right" IsEnabled="False">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="&#xEB9F;" Style="{DynamicResource MenuItemIcon16}"/>
+                        <TextBlock Text="&#xEB9F;" Style="{DynamicResource ButtonIcon}"/>
                         <TextBlock Text="View Image" Style="{DynamicResource SquareButtonContent}"/>
                     </StackPanel>
                 </Button>
