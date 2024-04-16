@@ -393,6 +393,10 @@ namespace PixivWPF.Common
                 {
                     CopyHtml.Execute(obj);
                 }
+                else if (obj is IEnumerable<string>)
+                {
+                    CopyText.Execute(string.Join(Environment.NewLine, obj as IEnumerable<string>));
+                }
                 else
                 {
                     if (obj != null) CopyText.Execute(obj.ToString());
