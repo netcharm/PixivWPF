@@ -169,7 +169,11 @@ namespace PixivWPF.Pages
         internal string GetLastSelectedID()
         {
             string id = lastSelectedId;
-            if (ImageTiles.Items.Count > 0)
+            if (DetailPage is IllustDetailPage && DetailPage.Contents.IsWork())
+            {
+                id = DetailPage.Contents.ID;
+            }
+            else if (ImageTiles.Items.Count > 0)
             {
                 //var recents = Application.Current.HistoryRecentIllusts(setting.MostRecents);
                 //lastSelectedId = recents.Count() > 0 ? recents.First().ID : string.Empty;
@@ -186,9 +190,9 @@ namespace PixivWPF.Pages
             if (string.IsNullOrEmpty(id)) id = lastSelectedId;
             new Action(() =>
             {
-                if (ImageTiles.Items.Count > 0)
+                if (ImageTiles.ItemsCount > 0)
                 {
-                    if (ImageTiles.SelectedItem == null && !string.IsNullOrEmpty(id))
+                    if (!string.IsNullOrEmpty(id))
                     {
                         foreach (var item in ImageTiles.Items)
                         {
@@ -526,16 +530,16 @@ namespace PixivWPF.Pages
         #region Live Filter helper
         public void SetFilter(string filter)
         {
-            GetLastSelectedID();
+            var id = GetLastSelectedID();
             ImageTiles.SetFilter(filter);
-            KeepLastSelected();
+            KeepLastSelected(id);
         }
 
         public void SetFilter(FilterParam filter)
         {
-            GetLastSelectedID();
+            var id = GetLastSelectedID();
             ImageTiles.SetFilter(filter);
-            KeepLastSelected();
+            KeepLastSelected(id);
         }
 
         public dynamic GetTilesCount()
