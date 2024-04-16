@@ -1585,8 +1585,8 @@ namespace ImageCompare
                 item_sharp.Click += (obj, evt) => { RenderRun(() => { SharpImage((bool)(obj as MenuItem).Tag); }); };
 
                 item_size_crop.Click += (obj, evt) => { RenderRun(() => { CropImage((bool)(obj as MenuItem).Tag); }); };
-                item_size_to_source.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(false, reset: true, align: DefaultMatchAlign); }); };
-                item_size_to_target.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(true, reset: true, align: DefaultMatchAlign); }); };
+                item_size_to_source.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(false, reset: false, align: DefaultMatchAlign); }); };
+                item_size_to_target.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(true, reset: false, align: DefaultMatchAlign); }); };
 
                 item_slice_h.Click += (obj, evt) =>
                 {
