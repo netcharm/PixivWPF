@@ -591,7 +591,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <ContentPresenter Grid.Column="0" x:Name="PART_SliderLabel" x:Uid="PART_SliderLabel" ContentSource="Header"
-                                    Margin="4,0,6,0" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                    Margin="4,0,6,0" VerticalAlignment="Center" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                                 <Slider Grid.Column="1" x:Name="PART_Slider" x:Uid="PART_Slider" MinWidth="96" MaxWidth="128" Margin="4,0"
                                     HorizontalAlignment="Stretch" VerticalAlignment="Center" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
                                     TickFrequency="1" TickPlacement="None" SmallChange="1" LargeChange="5" IsSnapToTickEnabled="True"
