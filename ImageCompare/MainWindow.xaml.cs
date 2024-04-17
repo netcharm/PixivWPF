@@ -155,6 +155,59 @@ namespace ImageCompare
         private Action LastAction { get; set; } = null;
         private BackgroundWorker RenderWorker = null;
 
+        public T FindParent<T>(DependencyObject child) where T : DependencyObject
+        {
+            //get parent item
+            DependencyObject parentObject = VisualTreeHelper.GetParent(child);
+
+            //we've reached the end of the tree
+            if (parentObject == null) return null;
+
+            //check if the parent matches the type we're looking for
+            T parent = parentObject as T;
+            if (parent != null)
+                return parent;
+            else
+                return FindParent<T>(parentObject);
+        }
+
+        public UIElement GetContextMenuHost(UIElement item)
+        {
+            UIElement result = null;
+            if (item is MenuItem)
+            {
+                var parent = FindParent<ContextMenu>(item);
+                if (parent is ContextMenu)
+                {
+                    result = parent.PlacementTarget;
+                }
+            }
+            return (result);
+        }
+
+        private ImageType GetImageType(object sender)
+        {
+            var result = ImageType.None;
+            try
+            {
+                if (sender is MenuItem)
+                {
+                    var host = GetContextMenuHost(sender as MenuItem);
+                    if (host is UIElement)
+                    {
+                        var ui_source = new UIElement[] { ImageSourceScroll, ImageSourceBox, ImageSource };
+                        var ui_target = new UIElement[] { ImageTargetScroll, ImageTargetBox, ImageTarget };
+                        var ui_result = new UIElement[] { ImageResultScroll, ImageResultBox, ImageResult };
+                        if (ui_source.Contains(host)) result = ImageType.Source;
+                        else if(ui_target.Contains(host)) result = ImageType.Target;
+                        else if (ui_result.Contains(host)) result = ImageType.Result;
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+            return (result);
+        }
+
         private void InitRenderWorker()
         {
             if (RenderWorker == null)
@@ -1907,9 +1960,10 @@ namespace ImageCompare
                 {
                     var is_source = evt.Source == ImageSourceScroll || evt.Source == ImageSourceBox || evt.Source == ImageSource;
                     var is_target = evt.Source == ImageTargetScroll || evt.Source == ImageTargetBox || evt.Source == ImageTarget;
+                    var is_result = evt.Source == ImageResultScroll || evt.Source == ImageResultBox || evt.Source == ImageResult;
                     var image = is_source ? ImageSource : (is_target ? ImageTarget : ImageResult);
                     if (image.Source == null) { evt.Handled = true; return; }
-                    //item_saveas.Visibility = Keyboard.Modifiers == ModifierKeys.Shift ? Visibility.Visible : Visibility.Collapsed;
+
                     item_copyto_source.Visibility = is_source ? Visibility.Collapsed : Visibility.Visible;
                     item_copyto_target.Visibility = is_target ? Visibility.Collapsed : Visibility.Visible;
                     var show_load = false;
@@ -1929,7 +1983,7 @@ namespace ImageCompare
             }
             else
             {
-                var result = new ContextMenu() { PlacementTarget = target, Tag = source };
+                var result = new ContextMenu() { IsTextSearchEnabled = true, PlacementTarget = target, Tag = source };
                 target.ContextMenu = result;
             }
             items.Locale();
@@ -2069,7 +2123,7 @@ namespace ImageCompare
             LocaleUI(DefaultCultureInfo);
 
             #region Create ErrorMetric Mode Selector
-            cm_compare_mode = new ContextMenu() { PlacementTarget = ImageCompare };
+            cm_compare_mode = new ContextMenu() { IsTextSearchEnabled = true, PlacementTarget = ImageCompare };
             foreach (var v in Enum.GetValues(typeof(ErrorMetric)))
             {
                 var item = new MenuItem()
@@ -2091,14 +2145,16 @@ namespace ImageCompare
             ImageCompare.ContextMenu = cm_compare_mode;
             #endregion
             #region Create Compose Mode Selector
-            cm_compose_mode = new ContextMenu() { PlacementTarget = ImageCompose };
+            var mi_count = 0;
+            cm_compose_mode = new ContextMenu() { IsTextSearchEnabled = true, PlacementTarget = ImageCompose };
             foreach (var v in Enum.GetValues(typeof(CompositeOperator)))
             {
+                mi_count++;
                 var item = new MenuItem()
-                {
+                {                    
                     Header = v.ToString(),
                     Tag = v,
-                    IsChecked = ((CompositeOperator)v == CompositeMode ? true : false)
+                    IsChecked = ((CompositeOperator)v == CompositeMode ? true : false)                    
                 };
                 item.Click += (obj, evt) =>
                 {
@@ -2117,7 +2173,7 @@ namespace ImageCompare
             var rgb = new string[] { "Red", "Green", "Blue", "RGB" };
             var cmyk = new string[] { "Cyan", "Magenta", "Yellow", "Black", "CMYK" };
             var gray = new string[] { "Grays, Gray" };
-            var cm_channels_mode = new ContextMenu() { PlacementTarget = UsedChannels };
+            var cm_channels_mode = new ContextMenu() { IsTextSearchEnabled = true, PlacementTarget = UsedChannels };
             //foreach (string v in Enum.GetNames(typeof(Channels)))
             foreach (string v in names)
             {
@@ -2156,7 +2212,7 @@ namespace ImageCompare
             UsedChannels.ContextMenu = cm_channels_mode;
             #endregion
             #region Create Grayscale Mode Selector
-            cm_grayscale_mode = new ContextMenu() { PlacementTarget = UseColorImage };
+            cm_grayscale_mode = new ContextMenu() { IsTextSearchEnabled = true, PlacementTarget = UseColorImage };
             foreach (var v in Enum.GetValues(typeof(PixelIntensityMethod)))
             {
                 var item = new MenuItem()
