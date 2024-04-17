@@ -365,7 +365,7 @@
                 <Setter Property="Width" Value="16"/>
                 <Setter Property="Height" Value="16"/>
             </Style>
-            <Style  x:Key="PackIcon" TargetType="{x:Type iconPacks:PackIconModern}">
+            <Style x:Key="PackIcon" TargetType="{x:Type iconPacks:PackIconModern}">
                 <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
                 <Setter Property="HorizontalAlignment" Value="Center"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
@@ -497,20 +497,6 @@
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
 
-            <!--<Style x:Key="ProgressRingCloud" TargetType="{x:Type common:ProgressRingCloud}">-->
-            <Style TargetType="{x:Type common:ProgressRingCloud}">
-                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
-                <Setter Property="Background" Value="Transparent"/>
-                <Setter Property="ShadowColor" Value="{DynamicResource MahApps.Colors.IdealForeground}"/>
-                <Setter Property="ShadowBlurRadius" Value="3"/>
-                <Setter Property="ShadowDepth" Value="1"/>
-                <Setter Property="ShadowOpacity" Value="1"/>
-                <Setter Property="Opacity" Value="0.85"/>
-                <Setter Property="VerticalAlignment" Value="Center"/>
-                <Setter Property="HorizontalAlignment" Value="Center"/>
-            </Style>
-
-
             <Style TargetType="{x:Type Slider}" BasedOn="{StaticResource MahApps.Styles.Slider.Win10}"/>
             <Style x:Key="SlideValue" TargetType="{x:Type TextBlock}">
                 <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
@@ -546,6 +532,19 @@
                 <Setter Property="Offset" Value="1"/>
             </Style>
 
+            <!--<Style x:Key="ProgressRingCloud" TargetType="{x:Type common:ProgressRingCloud}">-->
+            <Style TargetType="{x:Type common:ProgressRingCloud}">
+                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="ShadowColor" Value="{DynamicResource MahApps.Colors.IdealForeground}"/>
+                <Setter Property="ShadowBlurRadius" Value="3"/>
+                <Setter Property="ShadowDepth" Value="1"/>
+                <Setter Property="ShadowOpacity" Value="1"/>
+                <Setter Property="Opacity" Value="0.85"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+            </Style>
+
             <Style TargetType="{x:Type mah:MetroProgressBar}">
                 <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
                 <Setter Property="HorizontalAlignment" Value="Stretch"/>
@@ -573,38 +572,61 @@
             <Style TargetType="{x:Type common:PixivLoginDialog}" BasedOn="{StaticResource MetroWindowStyle}"/>
 
             <ControlTemplate x:Key="MenuItemWithSlider" TargetType="{x:Type MenuItem}">
-                <Border x:Name="PART_SliderBorder"
-                    Background="{TemplateBinding Background}"
-                    BorderBrush="{TemplateBinding BorderBrush}"
-                    BorderThickness="{TemplateBinding BorderThickness}">
-                    <Grid x:Name="PART_SliderPanel" x:Uid="PART_SliderPanel" HorizontalAlignment="Stretch" VerticalAlignment="Center" >
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIconColumnGroup"/>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="MenuTextColumnGroup"/>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIGTColumnGroup"/>
-                        </Grid.ColumnDefinitions>
-                        <ContentPresenter Grid.Column="0" x:Name="PART_SliderIcon" x:Uid="PART_SliderIcon" Margin="4,0,6,0" MinWidth="17" VerticalAlignment="Center" ContentSource="Icon" />
-                        <Grid Grid.Column="1">
+                <Border x:Name="PART_SliderBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0" Margin="0">
+                    <Grid SnapsToDevicePixels="True" Margin="0">
+                        <Rectangle x:Name="Bg" Grid.ColumnSpan="3" Margin="0" Fill="{TemplateBinding Background}" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="0"/>
+                        <Grid x:Name="PART_SliderPanel" x:Uid="PART_SliderPanel" HorizontalAlignment="Stretch" VerticalAlignment="Center" SnapsToDevicePixels="True" Margin="0">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIconColumnGroup"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="MenuTextColumnGroup"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIGTColumnGroup"/>
                             </Grid.ColumnDefinitions>
-                            <ContentPresenter  Grid.Column="0" x:Name="PART_SliderLabel" x:Uid="PART_SliderLabel" Margin="4,0,6,0" VerticalAlignment="Center" ContentSource="Header" />
-                            <Slider Grid.Column="1" x:Name="PART_Slider" x:Uid="PART_Slider" MinWidth="96" MaxWidth="128" Margin="4,0"
-                                HorizontalAlignment="Stretch" VerticalAlignment="Center"
-                                TickFrequency="1" TickPlacement="None" SmallChange="1" LargeChange="5" IsSnapToTickEnabled="True"
-                                Minimum="50" Maximum="100" Value="65" 
-                                Tag="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay, NotifyOnTargetUpdated=True}"
-                                TargetUpdated="MenuItemSlider_TargetUpdated"
-                                ValueChanged="MenuItemSlider_ValueChanged" MouseWheel="MenuItemSlider_MouseWheel" >
-                            </Slider>
-                            <TextBlock Grid.Column="2" x:Name="PART_SliderValue" x:Uid="PART_SliderValue" Width="36" Margin="8,0,0,0"
-                                HorizontalAlignment="Right" VerticalAlignment="Center" Text="85"/>
+                            <ContentPresenter Grid.Column="0" x:Name="PART_SliderIcon" x:Uid="PART_SliderIcon" 
+                                Margin="6,0,6,0" VerticalAlignment="Center" ContentSource="Icon" 
+                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                            <Grid Grid.Column="1" Margin="{TemplateBinding Padding}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ContentPresenter Grid.Column="0" x:Name="PART_SliderLabel" x:Uid="PART_SliderLabel" ContentSource="Header"
+                                    Margin="4,0,6,0" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                <Slider Grid.Column="1" x:Name="PART_Slider" x:Uid="PART_Slider" MinWidth="96" MaxWidth="128" Margin="4,0"
+                                    HorizontalAlignment="Stretch" VerticalAlignment="Center" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                    TickFrequency="1" TickPlacement="None" SmallChange="1" LargeChange="5" IsSnapToTickEnabled="True"
+                                    Minimum="50" Maximum="100" Value="65" 
+                                    Tag="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay, NotifyOnTargetUpdated=True}"
+                                    TargetUpdated="MenuItemSlider_TargetUpdated"
+                                    ValueChanged="MenuItemSlider_ValueChanged" MouseWheel="MenuItemSlider_MouseWheel">
+                                </Slider>
+                                <TextBlock Grid.Column="2" x:Name="PART_SliderValue" x:Uid="PART_SliderValue" Width="36" Margin="8,0,0,0"
+                                    HorizontalAlignment="Right" VerticalAlignment="Center" Text="85" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                            </Grid>
+                            <ContentPresenter Grid.Column="2" x:Name="PART_SliderIGTHost" x:Uid="PART_SliderIGTHost" RecognizesAccessKey="True"
+                                VerticalAlignment="Center" ContentSource="InputGestureText" Margin="8,1,8,1" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                         </Grid>
-                        <ContentPresenter Grid.Column="2" x:Name="PART_SliderIGTHost" x:Uid="PART_SliderIGTHost" Margin="8,1,8,1" VerticalAlignment="Center" ContentSource="InputGestureText" />
                     </Grid>
                 </Border>
+                <ControlTemplate.Triggers>
+                    <!--<Trigger Property="IsMouseOver" Value="True">
+                        --><!--<Setter Property="Background" Value="{DynamicResource MahApps.Brushes.MenuItem.SelectionStroke}"/>
+                        <Setter Property="Background" Value="{DynamicResource MahApps.Brushes.TopMenuItem.SelectionStroke}"/>--><!--
+                        <Setter TargetName="Bg" Property="Fill" Value="{DynamicResource MahApps.Brushes.TopMenuItem.PressedFill}" />
+                        <Setter TargetName="Bg" Property="Stroke" Value="{DynamicResource MahApps.Brushes.TopMenuItem.SelectionStroke}" />
+                    </Trigger>-->
+                    <Trigger Property="IsHighlighted" Value="True">
+                        <Setter TargetName="Bg" Property="Fill" Value="{DynamicResource MahApps.Brushes.TopMenuItem.PressedFill}" />
+                        <Setter TargetName="Bg" Property="Stroke" Value="{DynamicResource MahApps.Brushes.TopMenuItem.SelectionStroke}" />
+                    </Trigger>
+                    <Trigger Property="IsKeyboardFocused" Value="True">
+                        <Setter TargetName="Bg" Property="Fill" Value="{DynamicResource MahApps.Brushes.TopMenuItem.PressedFill}" />
+                        <Setter TargetName="Bg" Property="Stroke" Value="{DynamicResource MahApps.Brushes.TopMenuItem.PressedStroke}" />
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.MenuItem.Foreground.Disabled}" />
+                    </Trigger>
+                </ControlTemplate.Triggers>                
             </ControlTemplate>
 
             <DataTemplate x:Key="MenuItemWithSliderHeader">
