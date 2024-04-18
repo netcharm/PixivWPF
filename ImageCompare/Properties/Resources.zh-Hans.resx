@@ -592,6 +592,6 @@
     <value>对齐到右上角</value>
   </data>
   <data name="CropImageEdge.Header" xml:space="preserve">
-    <value>裁剪图像边界</value>
+    <value>裁剪图像的边界</value>
   </data>
 </root>
