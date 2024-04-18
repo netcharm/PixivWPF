@@ -370,6 +370,9 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
+        /// <param name="assign"></param>
+        /// <param name="reset"></param>
+        /// <param name="align"></param>
         private void ResizeToImage(bool source, bool assign = true, bool reset = false, Gravity align = Gravity.Center)
         {
             try
@@ -404,6 +407,8 @@ namespace ImageCompare
         /// </summary>
         /// <param name="source"></param>
         /// <param name="vertical"></param>
+        /// <param name="sendto"></param>
+        /// <param name="first"></param>
         private void SlicingImage(bool source, bool vertical, bool sendto = true, bool first = true)
         {
             try
@@ -515,6 +520,7 @@ namespace ImageCompare
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="geomatry"></param>
         /// <param name="source"></param>
         private void ScaleImage(MagickGeometry geomatry = null, bool? source = null)
         {
@@ -590,6 +596,47 @@ namespace ImageCompare
                     }
                     action = true;
                 }
+
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <param name="align"></param>
+        private void CropImageEdge(bool source, int width = 0, int height = 0, Gravity align = Gravity.Center)
+        {
+            try
+            {
+                var action = false;
+
+                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                if (image.ValidCurrent)
+                {
+                    switch (align)
+                    {
+                        case Gravity.Center: width *= 2; height *= 2; break;
+                        case Gravity.North: width = 0; break;
+                        case Gravity.South: width = 0; break;
+                        case Gravity.East: height = 0; break;
+                        case Gravity.West: height = 0; break;
+                        default: break;
+                    }
+                    var box = new MagickGeometry(image.Current.Width, image.Current.Height)
+                    {
+                        IgnoreAspectRatio = true,
+                        Width = Math.Max(1, Math.Min(image.Current.Width, image.Current.Width - width)),
+                        Height = Math.Max(1, Math.Min(image.Current.Height, image.Current.Height - height)),
+                    };
+                    image.Current.Crop(box, align);
+                    image.Current.RePage();
+                }
+                action = true;
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
@@ -1226,6 +1273,7 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
+        /// <param name="sendto"></param>
         private void CreateColorImage(bool source, bool sendto = false)
         {
             try

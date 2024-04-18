@@ -1501,6 +1501,13 @@ namespace ImageCompare
                     Tag = source,
                     Icon = new TextBlock() { Text = "\xE123", Style = style }
                 };
+                var item_size_cropedge = new MenuItem()
+                {
+                    Header = "Crop Image Edge",
+                    Uid = "CropImageEdge",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\xE123", Style = style }
+                };
                 var item_size_to_source = new MenuItem()
                 {
                     Header = "Match Source Size",
@@ -1638,6 +1645,7 @@ namespace ImageCompare
                 item_sharp.Click += (obj, evt) => { RenderRun(() => { SharpImage((bool)(obj as MenuItem).Tag); }); };
 
                 item_size_crop.Click += (obj, evt) => { RenderRun(() => { CropImage((bool)(obj as MenuItem).Tag); }); };
+                item_size_cropedge.Click += (obj, evt) => { RenderRun(() => { CropImageEdge((bool)(obj as MenuItem).Tag, 1, 1, DefaultMatchAlign); }); };
                 item_size_to_source.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(false, reset: false, align: DefaultMatchAlign); }); };
                 item_size_to_target.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(true, reset: false, align: DefaultMatchAlign); }); };
 
@@ -1697,6 +1705,7 @@ namespace ImageCompare
                 items.Add(item_more);
                 items.Add(new Separator());
                 items.Add(item_size_crop);
+                items.Add(item_size_cropedge);
                 items.Add(item_size_to_source);
                 items.Add(item_size_to_target);
                 items.Add(new Separator());

@@ -591,4 +591,7 @@
   <data name="MatchSizeAlignTR.Header" xml:space="preserve">
     <value>對齊到右上角</value>
   </data>
+  <data name="CropImageEdge.Header" xml:space="preserve">
+    <value>裁剪影像邊界</value>
+  </data>
 </root>

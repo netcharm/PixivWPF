@@ -6,10 +6,10 @@
              StartupUri="MainWindow.xaml" Startup="Application_Startup">
     <Application.Resources>
         <FontFamily x:Uid="MonoSpaceFamily" x:Key="MonoSpaceFamily">
-            霞骛文楷等宽, LXGW WenKai Mono, Sarasa Mono J, 等距更纱黑体 SC, FontAwesome, Iosevka, Consolas, Segoe UI Emoji, Segoe UI Symbol, Segoe MDL2 Assets, 更纱黑体 SC, Segoe UI, Monospace
+            霞骛文楷等宽, LXGW WenKai Mono, Sarasa Mono J, 等距更纱黑体 SC, Noto Color Emoji, Noto Emoji, EmojiOne Color, EmojiOne Mozilla, FontAwesome, Iosevka, Consolas, Segoe UI Emoji, Segoe UI Symbol, Segoe MDL2 Assets, 更纱黑体 SC, Segoe UI, Monospace
         </FontFamily>
         <FontFamily x:Key="SegoeIconFamily">
-            Segoe MDL2 Assets, Segoe UI Emoji, Segoe UI Symbol, 霞骛文楷, LXGW WenKai, Sarasa Gothic J, 更纱黑体 SC, FontAwesome, Segoe UI
+            Segoe MDL2 Assets, Segoe UI Emoji, Segoe UI Symbol, 霞骛文楷, LXGW WenKai, Noto Color Emoji, Noto Emoji, EmojiOne Color, EmojiOne Mozilla, FontAwesome, Sarasa Gothic J, 更纱黑体 SC, Segoe UI
         </FontFamily>
         <sys:Double x:Uid="MonoSpaceSize" x:Key="MonoSpaceSize">14</sys:Double>
 

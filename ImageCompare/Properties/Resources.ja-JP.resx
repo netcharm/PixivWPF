@@ -591,4 +591,7 @@
   <data name="MatchSizeAlignTR.Header" xml:space="preserve">
     <value>右上隅に揃える</value>
   </data>
+  <data name="CropImageEdge.Header" xml:space="preserve">
+    <value>画像の境界を切り取る</value>
+  </data>
 </root>
