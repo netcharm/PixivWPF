@@ -448,7 +448,7 @@
     <value>中值过滤降噪</value>
   </data>
   <data name="CopyImage.Header" xml:space="preserve">
-    <value>复制图像</value>
+    <value>复制当前图像</value>
   </data>
   <data name="CLUT.Header" xml:space="preserve">
     <value>应用普通颜色查找表</value>
@@ -487,7 +487,7 @@
     <value>透明通道设为指定颜色</value>
   </data>
   <data name="ResetImage.Header" xml:space="preserve">
-    <value>重置图像</value>
+    <value>重置当前图像</value>
   </data>
   <data name="CopyFromResult.Header" xml:space="preserve">
     <value>从结果复制图像</value>

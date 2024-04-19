@@ -615,8 +615,9 @@ namespace ImageCompare
             {
                 var action = false;
 
-                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
-                if (image.ValidCurrent)
+                var image_s = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                var image_t = source ? ImageTarget.GetInformation() : ImageSource.GetInformation();
+                if (image_s.ValidCurrent)
                 {
                     switch (align)
                     {
@@ -627,16 +628,24 @@ namespace ImageCompare
                         case Gravity.West: height = 0; break;
                         default: break;
                     }
-                    var box = new MagickGeometry(image.Current.Width, image.Current.Height)
+                    if (image_t.ValidCurrent && align == Gravity.Center)
+                    {
+                        if (image_t.Current.Width == image_s.Current.Width) width = 0;
+                        if (image_t.Current.Height == image_s.Current.Height) height = 0;
+                    }
+                    var box = new MagickGeometry(image_s.Current.Width, image_s.Current.Height)
                     {
                         IgnoreAspectRatio = true,
-                        Width = Math.Max(1, Math.Min(image.Current.Width, image.Current.Width - width)),
-                        Height = Math.Max(1, Math.Min(image.Current.Height, image.Current.Height - height)),
+                        Width = Math.Max(1, Math.Min(image_s.Current.Width, image_s.Current.Width - width)),
+                        Height = Math.Max(1, Math.Min(image_s.Current.Height, image_s.Current.Height - height)),
                     };
-                    image.Current.Crop(box, align);
-                    image.Current.RePage();
+                    if (width > 0 || height > 0)
+                    {
+                        image_s.Current.Crop(box, align);
+                        image_s.Current.RePage();
+                        action = true;
+                    }
                 }
-                action = true;
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
             }
