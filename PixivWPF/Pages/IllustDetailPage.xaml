@@ -889,31 +889,22 @@
                         <TextBlock Grid.Column="0" x:Name="IllustTitle" Margin="4,0,2,0"
                             ContextMenu="{DynamicResource MenuSpeech}" 
                             MouseDown="IllustInfo_MouseDown"
-                            Foreground="{DynamicResource MahApps.Brushes.Text}"
                             HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                         <Border Grid.Column="1" x:Name="IllustSanityInfo" 
-                            Visibility="Collapsed" 
+                            Visibility="Collapsed" Style="{DynamicResource ErrorBorder}"
                             ContextMenu="{DynamicResource MenuSpeech}" 
-                            BorderBrush="{DynamicResource MahApps.Brushes.SystemControlErrorTextForeground}"
                             CornerRadius="3" BorderThickness="3" Height="20" Width="Auto" Margin="0,0,2,0">
-                            <TextBlock x:Name="IllustSanity" Text="18" Margin="1"
-                                FontSize="{Binding Height, ElementName=IllustSanityInfo, Converter={mah:MathMultiplyConverter}, ConverterParameter='0.75'}" 
-                                FontWeight="SemiBold"
-                                Foreground="{DynamicResource MahApps.Brushes.Text}"
-                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="IllustSanity" Text="18" Margin="1" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                FontSize="{Binding Height, ElementName=IllustSanityInfo, Converter={mah:MathMultiplyConverter}, ConverterParameter='0.75'}"/>
                         </Border>
                         <TextBlock Grid.Column="2" x:Name="IllustAiInfo" Visibility="Collapsed" 
                             Margin="2,-2,2,0" HorizontalAlignment="Right" VerticalAlignment="Center"
                             Text="&#x1F52F;" Style="{DynamicResource MenuItemExtraIcon}"/>
                         <StackPanel Grid.Column="3" x:Name="IllustDateInfo" Visibility="Collapsed" MinWidth="24" Margin="2,0,0,0"
-                                    ContextMenu="{DynamicResource MenuSpeech}" 
-                                    MouseDown="IllustInfo_MouseDown"
+                            ContextMenu="{DynamicResource MenuSpeech}" MouseDown="IllustInfo_MouseDown"
                             HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
-                            <TextBlock x:Name="IllustDateIcon"  Margin="0,2,0,0"
-                                Text="&#xE161;" Style="{DynamicResource MenuItemIcon16}"/>
-                            <TextBlock x:Name="IllustDate" Margin="2,0,4,0" 
-                               Foreground="{DynamicResource MahApps.Brushes.Text}"
-                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="IllustDateIcon"  Margin="0,2,0,0" Text="&#xE161;" Style="{DynamicResource MenuItemIcon16}"/>
+                            <TextBlock x:Name="IllustDate" Margin="2,0,4,0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Grid>
 
@@ -926,7 +917,6 @@
                             <TextBlock Grid.Column="0" x:Name="IllustAuthor" Margin="4,0,0,0" 
                                 ContextMenu="{DynamicResource MenuSpeech}" 
                                 MouseDown="IllustInfo_MouseDown"
-                                Foreground="{DynamicResource MahApps.Brushes.Text}"
                                 HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                             <TextBlock Grid.Column="0" x:Name="UserFullListedFlag" Margin="4,0,0,0" Visibility="Collapsed"
                                 Text="&#xE129;" Style="{DynamicResource ButtonIcon16}" TextTrimming="CharacterEllipsis"
@@ -934,43 +924,32 @@
                         </StackPanel>
                         <StackPanel Grid.Column="1" x:Name="IllustStatInfo" Visibility="Collapsed"
                             HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
-                            <TextBlock x:Name="IllustUgoiraDownloaded" Visibility="Collapsed"
-                                Margin="2,0,4,0"
+                            <TextBlock x:Name="IllustUgoiraDownloaded" Visibility="Collapsed" Margin="2,0,4,0"
                                 Text="&#xE173;" Style="{DynamicResource ButtonIcon16}"
-                                MouseDown="IllustUgoiraDownloaded_MouseDown"
-                                Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                                MouseDown="IllustUgoiraDownloaded_MouseDown"/>
                             <TextBlock x:Name="IllustDownloaded" Visibility="Collapsed"
                                 Margin="2,0,4,0" HorizontalAlignment="Right" VerticalAlignment="Center"
                                 Text="&#xE118;" Style="{DynamicResource ButtonIcon16}" FontWeight="Black"
-                                MouseDown="IllustDownloaded_MouseDown"
-                                Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                                MouseDown="IllustDownloaded_MouseDown"/>
                             <TextBlock x:Name="IllustSizeIcon" ContextMenu="{DynamicResource DownloadAction}"
                                 Text="&#xE1CA;" Style="{DynamicResource ButtonIcon16}" FontWeight="Black"
-                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 PreviewMouseMove="IllustSizeInfo_MouseMove" />
                             <TextBlock x:Name="IllustSize" Margin="2,0,4,0" ContextMenu="{DynamicResource DownloadAction}"
-                               Style="{DynamicResource TextContent}"
-                               HorizontalAlignment="Right" VerticalAlignment="Center"
-                               PreviewMouseMove="IllustSizeInfo_MouseMove" />
-                            <TextBlock x:Name="IllustViewedIcon" 
-                                Text="&#xE18B;" Style="{DynamicResource ButtonIcon16}" FontWeight="Black"
-                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                            <TextBlock x:Name="IllustViewed" Margin="2,0,4,0" 
-                               Style="{DynamicResource TextContent}"
+                               Style="{DynamicResource TextContent}" HorizontalAlignment="Right" VerticalAlignment="Center" PreviewMouseMove="IllustSizeInfo_MouseMove" />
+                            <TextBlock x:Name="IllustViewedIcon" Text="&#xE18B;" FontWeight="Black" Style="{DynamicResource ButtonIcon16}" 
                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                            <TextBlock x:Name="IllustFavoritedIcon" 
-                                Text="&#xEB52;" Style="{DynamicResource ButtonIcon16}"
-                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                            <TextBlock x:Name="IllustFavorited" Margin="2,0,4,0" 
-                               Style="{DynamicResource TextContent}"
+                            <TextBlock x:Name="IllustViewed" Margin="2,0,4,0" Style="{DynamicResource TextContent}" 
                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="IllustFavoritedIcon" Text="&#xEB52;" Style="{DynamicResource ButtonIcon16}" 
+                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="IllustFavorited" Margin="2,0,4,0" Style="{DynamicResource TextContent}" 
+                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Grid>
 
                     <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" x:Name="ActionBarInfo"
-                                Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <Button x:Name="BookmarkIllust" x:Uid="BookmarkIllust" Click="ActionIllust_Click"
                                 ToolTip="Bookmark Illust" Visibility="Collapsed"
                                 ContextMenu="{DynamicResource ActionBookmarkIllust}"
