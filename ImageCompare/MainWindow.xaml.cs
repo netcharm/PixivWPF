@@ -25,6 +25,7 @@ namespace ImageCompare
 {
     public enum ImageType { All = 0, Source = 1, Target = 2, Result = 3, None = 255 }
     public enum ZoomFitMode { None = 0, All = 1, Width = 2, Height = 3 }
+    public enum ImageOpMode { None = 0, Compare = 1, Compose = 2 }
 
     /// <summary>
     /// MainWindow.xaml 的交互逻辑
@@ -45,6 +46,18 @@ namespace ImageCompare
         private string DefaultComposeToolTip = string.Empty;
         private string DefaultFuzzySliderToolTip = string.Empty;
 
+        private Percentage DefaultColorFuzzy
+        {
+            get
+            {
+                if (IsLoaded)
+                {
+                    var value = Math.Min(Math.Max(ImageCompareFuzzy.Minimum, ImageCompareFuzzy.Value), ImageCompareFuzzy.Maximum);
+                    return (new Percentage(value));
+                }
+                else return (new Percentage());
+            }
+        }
         private Gravity DefaultMatchAlign = Gravity.Center;
         private ImageType LastMatchedImage = ImageType.None;
 
@@ -843,6 +856,8 @@ namespace ImageCompare
 
                         //image_r.Current = await Compare(image_s.Current, image_t.Current, compose: compose);
                         image_r.Original = await Compare(image_s.Current, image_t.Current, compose: compose);
+                        image_r.OpMode = LastOpIsCompose ? ImageOpMode.Compose : ImageOpMode.Compare;
+                        image_r.ColorFuzzy = DefaultColorFuzzy;
 
                         await Task.Delay(1);
                         DoEvents();

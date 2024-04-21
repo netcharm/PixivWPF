@@ -139,6 +139,8 @@ namespace ImageCompare
         public IMagickColor<byte> LowlightColor = null;
         public IMagickColor<byte> MasklightColor = null;
 #endif
+        public ImageOpMode OpMode = ImageOpMode.None;
+        public Percentage ColorFuzzy = new Percentage();
 
         public int ChannelCount { get { return (ValidOriginal ? Original.ChannelCount : (ValidCurrent ? Current.ChannelCount : -1)); } }
         public string MemoryUsageMode
@@ -479,14 +481,32 @@ namespace ImageCompare
                     var fm = "-mask";
                     file = fn.ToLower().Contains(fm) ? Path.Combine(fd, $"{fn}.tiff") : Path.Combine(fd, $"{fn}{fm}.tiff");
 
-                    using (var image = new MagickImage(Current) { BackgroundColor = MagickColors.Black, MatteColor = MasklightColor })
-                    {
+                    using (var image = new MagickImage(Current) { BackgroundColor = MagickColors.Black, MatteColor = new MagickColor(MasklightColor.R, MasklightColor.G, MasklightColor.B) })
+                    {                        
+                        var threshold_color = new MagickColor(HighlightColor.R, HighlightColor.G, HighlightColor.B);
                         FixDPI(image, use_system: true);
-                        image.ColorThreshold(HighlightColor, HighlightColor);
-                        image.LevelColors(MagickColors.White, MagickColors.Black);
+                        if (OpMode == ImageOpMode.Compose)
+                        {
+                            image.Grayscale();
+                            image.LevelColors(MagickColors.White, MagickColors.Black);
+                            if (LowlightColor.HasAlpha() || LowlightColor == null) image.ColorAlpha(MagickColors.White);
+                            image.Threshold(new Percentage(100 - ColorFuzzy.ToDouble() - 5.0));
+                        }
+                        else if (HighlightColor.HasAlpha() || LowlightColor.HasAlpha() || MasklightColor.HasAlpha())
+                        {
+                            image.Grayscale();
+                            image.ColorAlpha(MagickColors.White);
+                            image.LevelColors(MagickColors.Black, MagickColors.White);
+                            image.AutoThreshold(AutoThresholdMethod.OTSU);
+                        }
+                        else
+                        {
+                            image.ColorThreshold(threshold_color, threshold_color);
+                            image.LevelColors(MagickColors.White, MagickColors.Black);
+                        }
                         image.Format = format;
-                        image.SetCompression(CompressionMethod.JPEG);
-                        image.Settings.Compression = CompressionMethod.JPEG;
+                        image.SetCompression(CompressionMethod.Zip);
+                        image.Settings.Compression = CompressionMethod.Zip;
                         image.ColorType = ColorType.Palette;
                         image.ColorSpace = ColorSpace.Gray;
                         image.Depth = 8;

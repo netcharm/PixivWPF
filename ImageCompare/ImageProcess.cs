@@ -20,6 +20,32 @@ using Xceed.Wpf.Toolkit;
 
 namespace ImageCompare
 {
+    public static class Extentions
+    {
+        #region Color Processing Routunes
+        static public bool HasAlpha(this MagickColor color)
+        {
+            var result = false;
+            if (color is MagickColor)
+            {
+                result = color.A < MagickColors.White.A;
+            }
+            return (result);
+        }
+
+        static public bool HasAlpha(this IMagickColor<float> color)
+        {
+            var result = false;
+            if (color is MagickColor)
+            {
+                result = color.A < MagickColors.White.A;
+            }
+            return (result);
+        }
+        #endregion
+
+    }
+
     public partial class MainWindow : Window
     {
         #region Image Processing Switch/Params
@@ -1347,7 +1373,7 @@ namespace ImageCompare
                             source_x.Extent(max_w, max_h, DefaultMatchAlign, MagickColors.Transparent);
                             target_x.Extent(max_w, max_h, DefaultMatchAlign, MagickColors.Transparent);
                             target_x.Composite(source_x, DefaultMatchAlign, CompositeMode, CompareImageChannels);
-                            result = new MagickImage(target_x);
+                            result = new MagickImage(target_x) { ColorFuzz = new Percentage(fuzzy) };
 
                             tip.Add($"{"ResultTipMode".T()} {CompositeMode.ToString()}");
                             await Task.Delay(1);
@@ -1438,7 +1464,7 @@ namespace ImageCompare
                                 }
                                 tip.Add($"{"ResultTipMode".T()} {ErrorMetricMode.ToString()}");
                                 tip.Add($"{"ResultTipDifference".T()} {distance:F4}");
-                                result = new MagickImage(diff);
+                                result = new MagickImage(diff) { ColorFuzz = new Percentage(fuzzy) };
                                 //result.Comment = "NetCharm Created";
                                 await Task.Delay(1);
                                 DoEvents();
