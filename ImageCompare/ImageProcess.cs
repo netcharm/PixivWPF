@@ -662,12 +662,13 @@ namespace ImageCompare
                     var box = new MagickGeometry(image_s.Current.Width, image_s.Current.Height)
                     {
                         IgnoreAspectRatio = true,
+                        LimitPixels = true,
                         Width = Math.Max(1, Math.Min(image_s.Current.Width, image_s.Current.Width - width)),
                         Height = Math.Max(1, Math.Min(image_s.Current.Height, image_s.Current.Height - height)),
                     };
                     if (width > 0 || height > 0)
                     {
-                        image_s.Current.Crop(box, align);
+                        image_s.Current.Extent(box.Width, box.Height, align);
                         image_s.Current.RePage();
                         action = true;
                     }

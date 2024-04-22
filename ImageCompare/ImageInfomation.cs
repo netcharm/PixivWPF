@@ -981,6 +981,9 @@ namespace ImageCompare
                     }
                     if (ValidCurrent)
                     {
+                        FlipX = false;
+                        FlipY = false;
+                        Rotated = 0;
                         ResetTransform();
                         Current.Resize(geo);
                         Current.RePage();
