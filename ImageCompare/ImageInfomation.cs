@@ -859,7 +859,7 @@ namespace ImageCompare
                                 //    if (exif.GetValue(ExifTag.Rating).ToString().Equals(value)) label = $"exif:Rating".PadRight(32, ' ');
                                 //    else if (exif.GetValue(ExifTag.RatingPercent).ToString().Equals(value)) label = $"exif:RatingPercent".PadRight(32, ' ');
                                 //}
-
+                                if (string.IsNullOrEmpty(value)) continue;
                                 if (attr.EndsWith("Keywords"))
                                 {
                                     var keywords = value.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(w => w.Trim()).ToList();
