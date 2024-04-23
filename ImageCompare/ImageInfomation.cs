@@ -801,13 +801,14 @@ namespace ImageCompare
                         var fi = OriginalIsFile ? new FileInfo(FileName) : null;
                         var exif = Current.HasProfile("exif") ? Current.GetExifProfile() : new ExifProfile();
                         tip.Add($"{"InfoTipAttributes".T()}");
-                        foreach (var attr in Current.AttributeNames)
+                        var attrs = new List<string>();
+                        foreach (var attr in Current.AttributeNames.Union(new string[] { "exif:Rating", "exif:RatingPercent" }))
                         {
                             try
                             {
                                 var label = attr.PadRight(32, ' ');
                                 var value = Current.GetAttribute(attr);
-                                if (string.IsNullOrEmpty(value)) continue;
+                                if (string.IsNullOrEmpty(value) && !attr.Contains("Rating")) continue;
                                 if (attr.Contains("WinXP")) value = value.DecodeHexUnicode();
                                 else if (attr.StartsWith("date:", StringComparison.CurrentCultureIgnoreCase))
                                 {
@@ -836,6 +837,19 @@ namespace ImageCompare
                                     //    value = Encoding.UTF32.GetString(exif.GetValue(ExifTag.UserComment).Value.Skip(8).ToArray());
                                     value = Encoding.BigEndianUnicode.GetString(exif.GetValue(ExifTag.UserComment).Value.Skip(8).ToArray());
                                 }
+                                else if (attr.Equals("exif:ExtensibleMetadataPlatform") || attr.Equals("exif:XmpMetadata"))
+                                {
+                                    var xmp = exif.GetValue(ExifTag.XMP);
+                                    if (xmp != null && xmp.IsArray) value = Regex.Replace(Encoding.UTF8.GetString(xmp.Value), @"(\n\r|\r\n|\n|\r|\t)", "", RegexOptions.IgnoreCase);
+                                }
+                                else if (attr.Equals("exif:Rating"))
+                                {
+                                    foreach(var tag in exif.Values.Where(v => v.Tag.Equals(ExifTag.Rating))) { value = tag.GetValue().ToString(); }                                    
+                                }
+                                else if (attr.Equals("exif:RatingPercent"))
+                                {
+                                    foreach (var tag in exif.Values.Where(v => v.Tag.Equals(ExifTag.RatingPercent))) { value = tag.GetValue().ToString(); }
+                                }
                                 //else if (attr.StartsWith("png:"))
                                 //{
 
@@ -846,18 +860,27 @@ namespace ImageCompare
                                 //    else if (exif.GetValue(ExifTag.RatingPercent).ToString().Equals(value)) label = $"exif:RatingPercent".PadRight(32, ' ');
                                 //}
 
-                                if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
-                                tip.Add($"  {label}= {TextPadding(value, label, 4)}");
+                                if (attr.EndsWith("Keywords"))
+                                {
+                                    var keywords = value.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(w => w.Trim()).ToList();
+                                    for (var i = 5; i < keywords.Count; i += 5) { keywords[i] = $"{Environment.NewLine}{keywords[i]}"; }
+                                    //if (keywords.Count() > 5) keywords[6] = $"{Environment.NewLine}{keywords[5]}";
+                                    value = string.Join("; ", keywords) + ';';
+                                }
+                                else if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
+                                attrs.Add($"  {label}= {TextPadding(value, label, 4)}");
                             }
                             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, $"{attr} : {ex.Message}"); }
                         }
-                        var rank_tags = new ExifTag[] { ExifTag.Rating, ExifTag.RatingPercent };
-                        foreach(var tag in exif.Values.Where(v => rank_tags.Contains(v.Tag)))
-                        {
-                            var label = $"exif:{tag.Tag.ToString()}".PadRight(32, ' ');
-                            var value = tag.GetValue().ToString();
-                            tip.Add($"  {label}= {TextPadding(value, label, 4)}");
-                        }
+                        //var rank_tags = new ExifTag[] { ExifTag.Rating, ExifTag.RatingPercent };
+                        //foreach(var tag in exif.Values.Where(v => rank_tags.Contains(v.Tag)))
+                        //{
+                        //    var label = $"exif:{tag.Tag.ToString()}".PadRight(32, ' ');
+                        //    var value = tag.GetValue().ToString();
+                        //    attrs.Add($"  {label}= {TextPadding(value, label, 4)}");
+                        //}
+                        //attrs.Sort();
+                        tip.AddRange(attrs.OrderBy(a => a));
                     }
                     tip.Add($"{"InfoTipColorSpace".T()} {Current.ColorSpace.ToString()}");
                     if (Current.FormatInfo != null)
