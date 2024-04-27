@@ -756,7 +756,7 @@ namespace ImageCompare
             }
         }
 
-        private async void UpdateImageViewer(bool compose = false, bool assign = false, bool reload = true)
+        private async void UpdateImageViewer(bool compose = false, bool assign = false, bool reload = true, ImageType reload_type = ImageType.All)
         {
             if (IsLoaded && await _CanUpdate_.WaitAsync(TimeSpan.FromMilliseconds(200)))
             {
@@ -783,19 +783,31 @@ namespace ImageCompare
                                 {
                                     if (CompareImageForceScale)
                                     {
-                                        if (image_s.OriginalSize.Width > MaxCompareSize || image_s.OriginalSize.Height > MaxCompareSize)
-                                            image_s.Reload(CompareResizeGeometry, reset: true);
-                                        else image_s.Reload(reload: image_s.CurrentSize.Width != image_s.OriginalSize.Width || image_s.CurrentSize.Height != image_s.OriginalSize.Height);
-                                        if (image_t.OriginalSize.Width > MaxCompareSize || image_t.OriginalSize.Height > MaxCompareSize)
-                                            image_t.Reload(CompareResizeGeometry, reset: true);
-                                        else image_t.Reload(reload: image_t.CurrentSize.Width != image_t.OriginalSize.Width || image_t.CurrentSize.Height != image_t.OriginalSize.Height);
+                                        if (reload_type == ImageType.All || reload_type == ImageType.Source)
+                                        {
+                                            if (image_s.OriginalSize.Width > MaxCompareSize || image_s.OriginalSize.Height > MaxCompareSize)
+                                                image_s.Reload(CompareResizeGeometry, reset: true);
+                                            else image_s.Reload(reload: image_s.CurrentSize.Width != image_s.OriginalSize.Width || image_s.CurrentSize.Height != image_s.OriginalSize.Height);
+                                        }
+                                        if (reload_type == ImageType.All || reload_type == ImageType.Target)
+                                        {
+                                            if (image_t.OriginalSize.Width > MaxCompareSize || image_t.OriginalSize.Height > MaxCompareSize)
+                                                image_t.Reload(CompareResizeGeometry, reset: true);
+                                            else image_t.Reload(reload: image_t.CurrentSize.Width != image_t.OriginalSize.Width || image_t.CurrentSize.Height != image_t.OriginalSize.Height);
+                                        }
                                     }
                                     else
                                     {
-                                        if (image_s.CurrentSize.Width != image_s.OriginalSize.Width || image_s.CurrentSize.Height != image_s.OriginalSize.Height)
-                                            image_s.Reload(reset: true);
-                                        if (image_t.CurrentSize.Width != image_t.OriginalSize.Width || image_t.CurrentSize.Height != image_t.OriginalSize.Height)
-                                            image_t.Reload(reset: true);
+                                        if (reload_type == ImageType.All || reload_type == ImageType.Source)
+                                        {
+                                            if (image_s.CurrentSize.Width != image_s.OriginalSize.Width || image_s.CurrentSize.Height != image_s.OriginalSize.Height)
+                                                image_s.Reload(reset: true);
+                                        }
+                                        if (reload_type == ImageType.All || reload_type == ImageType.Target)
+                                        {
+                                            if (image_t.CurrentSize.Width != image_t.OriginalSize.Width || image_t.CurrentSize.Height != image_t.OriginalSize.Height)
+                                                image_t.Reload(reset: true);
+                                        }
                                     }
 
                                     //DoEvents();
@@ -971,7 +983,7 @@ namespace ImageCompare
                 {
                     var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                     ret = await image.LoadImageFromPrevFile();
-                    if (ret) UpdateImageViewer(assign: true, reload: true);
+                    if (ret) UpdateImageViewer(assign: true, reload: true, reload_type: source ? ImageType.Source : ImageType.Target);
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }));
@@ -986,7 +998,7 @@ namespace ImageCompare
                 {
                     var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                     ret = await image.LoadImageFromNextFile();
-                    if (ret) UpdateImageViewer(assign: true, reload: true);
+                    if (ret) UpdateImageViewer(assign: true, reload: true, reload_type: source ? ImageType.Source : ImageType.Target);
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }));
@@ -1006,6 +1018,8 @@ namespace ImageCompare
                 var count = files.Length;
                 if (count > 0)
                 {
+                    var load_type = ImageType.None;
+
                     var image_s = ImageSource.GetInformation();
                     var image_t = ImageTarget.GetInformation();
 
@@ -1018,16 +1032,18 @@ namespace ImageCompare
 
                         action |= image_s.LoadImageFromFile(file_s, false);
                         action |= image_t.LoadImageFromFile(file_t, false);
+                        load_type = ImageType.All;
                     }
                     else
                     {
                         var image  = source ? image_s : image_t;
                         file_s = files.First();
                         action |= image.LoadImageFromFile(file_s, false);
+                        load_type = source ? ImageType.Source : ImageType.Target;
                     }
                     if (action) RenderRun(new Action(() =>
                     {
-                        UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: true);
+                        UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: true, reload_type: load_type);
                     }));
                 }
             }

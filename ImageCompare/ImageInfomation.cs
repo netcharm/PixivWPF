@@ -22,6 +22,8 @@ namespace ImageCompare
     public enum ImageTarget { None, Source, Target, Result, All };
     public class ImageInformation
     {
+        public ImageType Type { get; set; } = ImageType.None;
+
         private MagickImage _original_ = null;
         public MagickImage Original
         {
@@ -978,6 +980,9 @@ namespace ImageCompare
                     }
                     if (ValidCurrent)
                     {
+                        FlipX = false;
+                        FlipY = false;
+                        Rotated = 0;
                         ResetTransform();
                         _basesize_ = new Size(Current.Width, Current.Height);
                         _last_colorspace_ = Current.ColorSpace;
