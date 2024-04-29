@@ -3080,7 +3080,7 @@ namespace PixivWPF.Common
                 result.Add($"File   : {di.FileName}, {di.FileTime.ToString("yyyy-MM-dd HH:mm:sszzz")}");
                 result.Add($"State  : {di.State}{fail} Disk Usage : {size}, {fmt}");
                 result.Add($"Elapsed: {di.StartTime.ToString("yyyy-MM-dd HH:mm:sszzz")} -> {di.EndTime.ToString("yyyy-MM-dd HH:mm:sszzz")}, {delta.SmartElapsed()} s");
-                result.Add($"Status : {di.Received.SmartFileSize()} / {di.Length.SmartFileSize()} ({di.Received} Bytes / {di.Length} Bytes), Rate ≈ {rate.SmartSpeedRate()}");
+                result.Add($"Status : {di.Received.SmartFileSize(trimzero: false)} / {di.Length.SmartFileSize(trimzero: false)} ({di.Received} Bytes / {di.Length} Bytes), Rate ≈ {rate.SmartSpeedRate(trimzero: false)}");
                 if (di.Illust.IsWork())
                 {
                     result.Add($"Title  : {di.Illust.Title.KatakanaHalfToFull()}");
@@ -3569,59 +3569,130 @@ namespace PixivWPF.Common
 
         #region below tags will be touching
         private static string[] tag_date = new string[] {
-            "exif:DateTimeDigitized",
-            "exif:DateTimeOriginal",
-            "exif:DateTime",
-            "MicrosoftPhoto:DateAcquired",
-            "MicrosoftPhoto:DateTaken",
-            //"png:tIME",
-            "xmp:CreateDate",
-            "xmp:ModifyDate",
-            "xmp:DateTimeDigitized",
-            "xmp:DateTimeOriginal",
-            "Creation Time",
-            "create-date",
-            "modify-date",
-            "tiff:DateTime",
-            //"date:modify",
-            //"date:create",
+          "exif:DateTimeDigitized",
+          "exif:DateTimeOriginal",
+          "exif:DateTime",
+          "MicrosoftPhoto:DateAcquired",
+          "MicrosoftPhoto:DateTaken",
+          //"png:tIME",
+          "xmp:CreateDate",
+          "xmp:ModifyDate",
+          "xmp:DateTimeDigitized",
+          "xmp:DateTimeOriginal",
+          "Creation Time",
+          "create-date",
+          "modify-date",
+          "tiff:DateTime",
+          "tiff:datetime",
+          //"date:modify",
+          //"date:create",
         };
         private static string[] tag_author = new string[] {
-            "exif:Artist",
-            "exif:WinXP-Author",
-            "tiff:artist",
+          "exif:Artist",
+          "exif:WinXP-Author",
+          "dc:creator",
+          "dc:Creator",
+          "tiff:Artist",
+          "tiff:artist",
+          "xmp:creator",
+          "xmp:Creator",
         };
         private static string[] tag_copyright = new string[] {
-            "exif:Copyright",
-            "tiff:copyright",
-            //"iptc:CopyrightNotice",
+          "exif:Copyright",
+          "dc:rights",
+          "dc:Rights",
+          "tiff:copyright",
+          "tiff:Copyright",
+          //"iptc:CopyrightNotice",
         };
         private static string[] tag_title = new string[] {
-            "exif:ImageDescription",
-            "exif:WinXP-Title",
+          "exif:ImageDescription",
+          "exif:WinXP-Title",
+          "dc:title",
+          "dc:Title",
+          "tiff:title",
+          "tiff:Title",
         };
         private static string[] tag_subject = new string[] {
-            "exif:WinXP-Subject",
+          "exif:WinXP-Subject",
+          "dc:source",
+          "dc:Source",
+          "tiff:Subject",
+          "tiff:subject",
         };
         private static string[] tag_comments = new string[] {
-            "exif:WinXP-Comments",
-            "exif:UserComment"
+          "exif:WinXP-Comments",
+          "exif:UserComment",
+          "dc:description",
+          "dc:Description",
+          "tiff:comment",
+          "tiff:Comment",
+          "tiff:comments",
+          "tiff:Comments",
+          "tiff:imagedescription",
+          "tiff:ImageDescription",
         };
         private static string[] tag_keywords = new string[] {
-            "exif:WinXP-Keywords",
+          "exif:WinXP-Keywords",
             //"iptc:Keywords",
-            "dc:Subject",
+          "dc:subject",
+          "dc:Subject",
         };
         private static string[] tag_rating = new string[] {
-            "Rating",
-            "RatingPercent",
-            "MicrosoftPhoto:Rating",
-            "xmp:Rating",
+          "Rating",
+          "RatingPercent",
+          "MicrosoftPhoto:Rating",
+          "xmp:rating",
+          "xmp:Rating",
         };
         private static string[] tag_software = new string[] {
-            "Software"
+          "exif:Software",
+          "tiff:Software",
+          "tiff:software",
+          "Software",
+          "xmp:CreatorTool",
         };
         #endregion
+
+        private static int RatingToRanking(int rating)
+        {
+            var ranking = 0;
+            try
+            {
+                if (rating >= 99) ranking = 5;
+                else if (rating >= 75) ranking = 4;
+                else if (rating >= 50) ranking = 3;
+                else if (rating >= 25) ranking = 2;
+                else if (rating >= 01) ranking = 1;
+            }
+            catch { }
+            return (ranking);
+        }
+
+        private static int RatingToRanking(int? rating)
+        {
+            return (RatingToRanking(rating ?? 0));
+        }
+
+        private static int RankingToRating(int ranking)
+        {
+            var rating = 0;
+            try
+            {
+                if (ranking >= 5) rating = 99;
+                else if (ranking >= 4) rating = 75;
+                else if (ranking >= 3) rating = 50;
+                else if (ranking >= 2) rating = 25;
+                else if (ranking >= 1) rating = 01;
+            }
+            catch { }
+            return (rating);
+        }
+
+        private static int RankingToRating(int? ranking)
+        {
+            return (RankingToRating(ranking ?? 0));
+        }
 
         private static string FormatXML(string xml)
         {
@@ -3798,22 +3869,28 @@ namespace PixivWPF.Common
 
         private static string TouchXMP(FileInfo fi, string xml, MetaInfo meta)
         {
-            if (meta is MetaInfo)
+            return (TouchXMP(xml, fi, meta));
+        }
+
+        private static string TouchXMP(string xml, FileInfo fi, MetaInfo meta)
+        {
+            if (meta is MetaInfo && fi is FileInfo)
             {
                 var title = meta is MetaInfo ? meta.Title ?? Path.GetFileNameWithoutExtension(fi.Name) : Path.GetFileNameWithoutExtension(fi.Name);
                 var subject = meta is MetaInfo ? meta.Subject : title;
                 var authors = meta is MetaInfo ? meta.Authors : string.Empty;
-                var copyright = meta is MetaInfo ? meta.Copyrights : authors;
+                var copyrights = meta is MetaInfo ? meta.Copyrights : authors;
                 var keywords = meta is MetaInfo ? meta.Keywords : string.Empty;
                 var comment = meta is MetaInfo ? meta.Comment : string.Empty;
                 var rating = meta is MetaInfo ? meta.Rating : null;
                 if (!string.IsNullOrEmpty(title)) title.Replace("\0", string.Empty).TrimEnd('\0');
                 if (!string.IsNullOrEmpty(subject)) subject.Replace("\0", string.Empty).TrimEnd('\0');
                 if (!string.IsNullOrEmpty(authors)) authors.Replace("\0", string.Empty).TrimEnd('\0');
-                if (!string.IsNullOrEmpty(copyright)) copyright.Replace("\0", string.Empty).TrimEnd('\0');
+                if (!string.IsNullOrEmpty(copyrights)) copyrights.Replace("\0", string.Empty).TrimEnd('\0');
                 if (!string.IsNullOrEmpty(keywords)) keywords.Replace("\0", string.Empty).TrimEnd('\0');
                 if (!string.IsNullOrEmpty(comment)) comment.Replace("\0", string.Empty).TrimEnd('\0');
 
+                #region Init datetime string
                 var dc = (meta is MetaInfo ? meta.DateCreated ?? meta.DateAcquired ?? meta.DateTaken : null) ?? fi.CreationTime;
                 var dm = (meta is MetaInfo ? meta.DateModified ?? meta.DateAcquired ?? meta.DateTaken : null) ?? fi.LastWriteTime;
                 var da = (meta is MetaInfo ? meta.DateAccesed ?? meta.DateAcquired ?? meta.DateTaken : null) ?? fi.LastAccessTime;
@@ -3846,9 +3923,12 @@ namespace PixivWPF.Common
                 var dc_misc = dc.ToString("yyyy:MM:dd HH:mm:sszzz");
                 var dm_misc = dm.ToString("yyyy:MM:dd HH:mm:sszzz");
                 var da_misc = da.ToString("yyyy:MM:dd HH:mm:sszzz");
+                #endregion
 
+                #region Normalization Keywords
                 var keyword_list = string.IsNullOrEmpty(keywords) ? new List<string>() : keywords.Split(new char[] { ';', '#' }, StringSplitOptions.RemoveEmptyEntries).Select(k => k.Trim()).Where(k => !string.IsNullOrEmpty(k)).Distinct();
                 keywords = string.Join("; ", keyword_list);
+                #endregion
 
                 #region Init a XMP contents
                 if (string.IsNullOrEmpty(xml))
@@ -3861,6 +3941,9 @@ namespace PixivWPF.Common
                 #endregion
                 try
                 {
+                    // fixed: for last error code :(
+                    xml = Regex.Replace(xml, @"xmlns:tiff=['""]dc['""]", "xmlns:tiff='tiff'", RegexOptions.IgnoreCase);
+
                     var xml_doc = new XmlDocument();
                     xml_doc.LoadXml(xml);
                     var root_nodes = xml_doc.GetElementsByTagName("rdf:RDF");
@@ -3876,12 +3959,35 @@ namespace PixivWPF.Common
                             root_node.AppendChild(desc);
                         }
                         #endregion
+                        #region Subject node
+                        if (xml_doc.GetElementsByTagName("dc:source").Count <= 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("xmlns:dc", xmp_ns_lookup["dc"]);
+                            desc.AppendChild(xml_doc.CreateElement("dc:source", "dc"));
+                            root_node.AppendChild(desc);
+                        }
+                        if (xml_doc.GetElementsByTagName("tiff:subject").Count <= 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("xmlns:tiff", xmp_ns_lookup["tiff"]);
+                            desc.AppendChild(xml_doc.CreateElement("tiff:subject", "tiff"));
+                            root_node.AppendChild(desc);
+                        }
+                        #endregion
                         #region Comment node
                         if (xml_doc.GetElementsByTagName("dc:description").Count <= 0)
                         {
                             var desc = xml_doc.CreateElement("rdf:Description", "rdf");
                             desc.SetAttribute("xmlns:dc", xmp_ns_lookup["dc"]);
                             desc.AppendChild(xml_doc.CreateElement("dc:description", "dc"));
+                            root_node.AppendChild(desc);
+                        }
+                        if (xml_doc.GetElementsByTagName("tiff:comments").Count <= 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("xmlns:tiff", xmp_ns_lookup["tiff"]);
+                            desc.AppendChild(xml_doc.CreateElement("tiff:comments", "tiff"));
                             root_node.AppendChild(desc);
                         }
                         #endregion
@@ -3944,6 +4050,13 @@ namespace PixivWPF.Common
                             var desc = xml_doc.CreateElement("rdf:Description", "rdf");
                             desc.SetAttribute("xmlns:dc", xmp_ns_lookup["dc"]);
                             desc.AppendChild(xml_doc.CreateElement("dc:rights", "dc"));
+                            root_node.AppendChild(desc);
+                        }
+                        if (xml_doc.GetElementsByTagName("tiff:copyright").Count <= 0)
+                        {
+                            var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                            desc.SetAttribute("xmlns:tiff", xmp_ns_lookup["tiff"]);
+                            desc.AppendChild(xml_doc.CreateElement("tiff:copyright", "tiff"));
                             root_node.AppendChild(desc);
                         }
                         #endregion
@@ -4082,8 +4195,15 @@ namespace PixivWPF.Common
                                 root_node.AppendChild(desc);
                             }
                         }
+                        //if (xml_doc.GetElementsByTagName("MicrosoftPhoto_1_:DateAcquired").Count <= 0)
+                        //{
+                        //    var desc = xml_doc.CreateElement("rdf:Description", "rdf");
+                        //    desc.SetAttribute("rdf:about", "uuid:faf5bdd5-ba3d-11da-ad31-d33d75182f1b");
+                        //    desc.SetAttribute("xmlns:MicrosoftPhoto_1_", xmp_ns_lookup["MicrosoftPhoto_1_"]);
+                        //    desc.AppendChild(xml_doc.CreateElement("MicrosoftPhoto_1_:DateAcquired", "MicrosoftPhoto_1_"));
+                        //    root_node.AppendChild(desc);
+                        //}
                         #endregion
-
                         #region Remove duplicate node
                         var all_elements = new List<string>()
                         {
@@ -4095,7 +4215,8 @@ namespace PixivWPF.Common
                             "xmp:CreateDate", "xmp:ModifyDate", "xmp:DateTimeOriginal", "xmp:DateTimeDigitized", "xmp:MetadataDate",
                             "xmp:Rating", "MicrosoftPhoto:Rating",
                             "exif:DateTimeDigitized", "exif:DateTimeOriginal",
-                            "tiff:DateTime",
+                            "tiff:DateTime", "tiff:Artist", "tiff:Copyright", "tiff:Endian", "tiff:Photometric", "tiff:Software", "tiff:Timestamp",
+                            "tiff:datetime", "tiff:artist", "tiff:artist", "tiff:copyright", "tiff:endian", "tiff:photometric", "tiff:software", "tiff:timestamp",
                             "MicrosoftPhoto:DateAcquired", "MicrosoftPhoto:DateTaken",
                             "xmp:CreatorTool",
                         };
@@ -4161,7 +4282,20 @@ namespace PixivWPF.Common
                                     node_title.AppendChild(node_title_li);
                                     child.AppendChild(node_title);
                                 }
-                                else if (child.Name.Equals("dc:description", StringComparison.CurrentCultureIgnoreCase))
+                                else if (child.Name.Equals("tiff:subject", StringComparison.CurrentCultureIgnoreCase) ||
+                                         child.Name.Equals("dc:source", StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    child.RemoveAll();
+                                    var node_subject = xml_doc.CreateElement("rdf:Alt", "rdf");
+                                    var node_subject_li = xml_doc.CreateElement("rdf:li", "rdf");
+                                    node_subject_li.SetAttribute("xml:lang", "x-default");
+                                    node_subject_li.InnerText = subject;
+                                    node_subject.AppendChild(node_subject_li);
+                                    child.AppendChild(node_subject);
+                                }
+                                else if (child.Name.Equals("dc:description", StringComparison.CurrentCultureIgnoreCase) ||
+                                         child.Name.Equals("tiff:comment", StringComparison.CurrentCultureIgnoreCase) ||
+                                         child.Name.Equals("tiff:comments", StringComparison.CurrentCultureIgnoreCase))
                                 {
                                     child.RemoveAll();
                                     var node_comment = xml_doc.CreateElement("rdf:Alt", "rdf");
@@ -4172,7 +4306,7 @@ namespace PixivWPF.Common
                                     child.AppendChild(node_comment);
                                 }
                                 else if (child.Name.Equals("xmp:creator", StringComparison.CurrentCultureIgnoreCase) ||
-                                    child.Name.Equals("dc:creator", StringComparison.CurrentCultureIgnoreCase))
+                                         child.Name.Equals("dc:creator", StringComparison.CurrentCultureIgnoreCase))
                                 {
                                     child.RemoveAll();
                                     var node_author = xml_doc.CreateElement("rdf:Seq", "rdf");
@@ -4180,17 +4314,19 @@ namespace PixivWPF.Common
                                     add_rdf_li.Invoke(node_author, authors);
                                     child.AppendChild(node_author);
                                 }
-                                else if (child.Name.Equals("dc:rights", StringComparison.CurrentCultureIgnoreCase))
+                                else if (child.Name.Equals("dc:rights", StringComparison.CurrentCultureIgnoreCase) ||
+                                         child.Name.Equals("tiff:copyright", StringComparison.CurrentCultureIgnoreCase))
                                 {
                                     child.RemoveAll();
-                                    var node_rights = xml_doc.CreateElement("rdf:Bag", "rdf");
+                                    var node_rights = xml_doc.CreateElement("rdf:Seq", "rdf");
                                     node_rights.SetAttribute(rdf_attr, rdf_value);
-                                    add_rdf_li.Invoke(node_rights, copyright);
+                                    add_rdf_li.Invoke(node_rights, copyrights);
                                     child.AppendChild(node_rights);
                                 }
                                 else if (child.Name.Equals("dc:subject", StringComparison.CurrentCultureIgnoreCase) ||
-                                    child.Name.Equals("lr:hierarchicalSubject", StringComparison.CurrentCultureIgnoreCase) ||
-                                    child.Name.StartsWith("MicrosoftPhoto:LastKeyword", StringComparison.CurrentCultureIgnoreCase))
+                                         child.Name.Equals("tiff:subject", StringComparison.CurrentCultureIgnoreCase) ||
+                                         child.Name.Equals("lr:hierarchicalSubject", StringComparison.CurrentCultureIgnoreCase) ||
+                                         child.Name.StartsWith("MicrosoftPhoto:LastKeyword", StringComparison.CurrentCultureIgnoreCase))
                                 {
                                     child.RemoveAll();
                                     var node_subject = xml_doc.CreateElement("rdf:Bag", "rdf");
@@ -4206,13 +4342,9 @@ namespace PixivWPF.Common
                                 }
                                 else if (child.Name.Equals("xmp:Rating", StringComparison.CurrentCultureIgnoreCase))
                                 {
-                                    var rating_level = 0;
-                                    if (rating >= 99) rating_level = 5;
-                                    else if (rating >= 75) rating_level = 4;
-                                    else if (rating >= 50) rating_level = 3;
-                                    else if (rating >= 25) rating_level = 2;
-                                    else if (rating >= 01) rating_level = 1;
-                                    child.InnerText = $"{rating_level}";
+                                    var rating_level = RatingToRanking(rating);
+                                    var rating_value = rating_level <= 0 ? string.Empty : $"{rating_level}";
+                                    child.InnerText = $"{rating_value}";
                                     //if (rating_level > 0) child.InnerText = $"{rating_level}";
                                     //else child.ParentNode.RemoveChild(child);
                                 }
@@ -4228,6 +4360,8 @@ namespace PixivWPF.Common
                                     child.InnerText = dm_msxmp;
                                 else if (child.Name.Equals("MicrosoftPhoto:DateTaken", StringComparison.CurrentCultureIgnoreCase))
                                     child.InnerText = dm_msxmp;
+                                //else if (child.Name.Equals("MicrosoftPhoto_1_:DateAcquired", StringComparison.CurrentCultureIgnoreCase))
+                                //    child.InnerText = dm_msxmp;
                                 else if (child.Name.Equals("exif:DateTimeDigitized", StringComparison.CurrentCultureIgnoreCase))
                                     child.InnerText = dm_ms;
                                 else if (child.Name.Equals("exif:DateTimeOriginal", StringComparison.CurrentCultureIgnoreCase))
@@ -7346,6 +7480,23 @@ namespace PixivWPF.Common
             return null;
         }
 
+        private static Guid GetImageEncoderGuid(System.Drawing.Image image)
+        {
+            return (image.RawFormat.Guid);
+        }
+
+        private static long GetImageColorDepth(System.Drawing.Image image)
+        {
+            var result = long.Parse(image.GetPropertyItem(0x0102).ToString());
+            if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.Indexed) result = 8L;
+            return (result);
+        }
+
+        private static System.Drawing.Imaging.EncoderParameters GetImageEncoderParams(System.Drawing.Image image)
+        {
+            return (image is System.Drawing.Image ? image.GetEncoderParameterList(image.RawFormat.Guid) : new System.Drawing.Imaging.EncoderParameters());
+        }
+
         private static int GetJpegQuality(this string file)
         {
             var result = -1;
@@ -7545,8 +7696,10 @@ namespace PixivWPF.Common
                                         {
                                             var codec_info = GetEncoderInfo("image/jpeg");
                                             var qualityParam = new System.Drawing.Imaging.EncoderParameter(System.Drawing.Imaging.Encoder.Quality, quality);
-                                            var encoderParams = new System.Drawing.Imaging.EncoderParameters(1);
+                                            var colordepth = new System.Drawing.Imaging.EncoderParameter(System.Drawing.Imaging.Encoder.ColorDepth, exif_in.ColorDepth);
+                                            var encoderParams = new System.Drawing.Imaging.EncoderParameters(2);
                                             encoderParams.Param[0] = qualityParam;
+                                            encoderParams.Param[1] = colordepth;
 
                                             if (pFmt == System.Drawing.Imaging.ImageFormat.Jpeg)
                                             {
@@ -11470,6 +11623,34 @@ namespace PixivWPF.Common
                 content.LOG(title);
 
                 setting = Application.Current.LoadSetting();
+                //await Task.Run(async () =>
+                //{
+                //    INotificationDialogService _dialogService = new NotificationDialogService();
+                //    NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
+                //    NotificationConfiguration cfg = new NotificationConfiguration(
+                //        //new TimeSpan(0, 0, 30), 
+                //        TimeSpan.FromSeconds(setting.ToastTimeout),
+                //        cfgDefault.Width+32, cfgDefault.Height,
+                //        "ToastTemplate",
+                //        //cfgDefault.TemplateName, 
+                //        cfgDefault.NotificationFlowDirection
+                //    );
+                //    var newNotification = new CustomToast()
+                //    {
+                //        Type = ToastType.DOWNLOAD,
+                //        Title = title,
+                //        ImgURL = imgsrc,
+                //        Message = content,
+                //        Extra = string.IsNullOrEmpty(file) ? string.Empty : file,
+                //        State = state,
+                //        StateDescription = state_description,
+                //        Tag = tag
+                //    };
+                //    _dialogService.ClearNotifications();
+                //    _dialogService.ShowNotificationWindow(newNotification, cfg);
+                //    _dialogService.DoEvents();
+                //    await Task.Delay(1);
+                //});
 
                 await new Action(async () =>
                 {
@@ -11482,7 +11663,6 @@ namespace PixivWPF.Common
                     "ToastTemplate",
                     //cfgDefault.TemplateName, 
                     cfgDefault.NotificationFlowDirection);
-
                     var newNotification = new CustomToast()
                     {
                         Type = ToastType.DOWNLOAD,
@@ -11494,12 +11674,11 @@ namespace PixivWPF.Common
                         StateDescription = state_description,
                         Tag = tag
                     };
-
                     _dialogService.ClearNotifications();
                     _dialogService.ShowNotificationWindow(newNotification, cfg);
                     _dialogService.DoEvents();
                     await Task.Delay(1);
-                }).InvokeAsync(true);
+                }).InvokeAsync(false);
             }
             catch (Exception ex) { ex.ERROR("ShowDownloadToast"); }
         }
@@ -11510,10 +11689,38 @@ namespace PixivWPF.Common
             {
                 Regex.Replace(content, @"(\r\n|\n\r|\r|\n|\s)+", " ", RegexOptions.IgnoreCase).LOG(title, tag);
 
-                setting = Application.Current.LoadSetting();
                 var main = Application.Current.GetMainWindow();
                 if (main is MainWindow && main.IsVisible())
                 {
+                    setting = Application.Current.LoadSetting();
+                    //await Task.Run(async () =>
+                    //{
+                    //    INotificationDialogService _dialogService = new NotificationDialogService();
+                    //    NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
+                    //    NotificationConfiguration cfg = new NotificationConfiguration(
+                    //        //new TimeSpan(0, 0, 30), 
+                    //        TimeSpan.FromSeconds(setting.ToastTimeout),
+                    //        cfgDefault.Width + 32, cfgDefault.Height,
+                    //        "ToastTemplate",
+                    //        //cfgDefault.TemplateName, 
+                    //        cfgDefault.NotificationFlowDirection
+                    //    );
+                    //    var newNotification = new CustomToast()
+                    //    {
+                    //        Type = ToastType.OK,
+                    //        Title = title,
+                    //        ImgURL = imgsrc,
+                    //        Message = content,
+                    //        State = state,
+                    //        StateDescription = state_description,
+                    //        Tag = null
+                    //    };
+                    //    _dialogService.ClearNotifications();
+                    //    _dialogService.ShowNotificationWindow(newNotification, cfg);
+                    //    _dialogService.DoEvents();
+                    //    await Task.Delay(1);
+                    //});
+
                     await new Action(async () =>
                     {
                         INotificationDialogService _dialogService = new NotificationDialogService();
@@ -11526,7 +11733,6 @@ namespace PixivWPF.Common
                             //cfgDefault.TemplateName, 
                             cfgDefault.NotificationFlowDirection
                         );
-
                         var newNotification = new CustomToast()
                         {
                             Type = ToastType.OK,
@@ -11537,12 +11743,11 @@ namespace PixivWPF.Common
                             StateDescription = state_description,
                             Tag = null
                         };
-
                         _dialogService.ClearNotifications();
                         _dialogService.ShowNotificationWindow(newNotification, cfg);
                         _dialogService.DoEvents();
                         await Task.Delay(1);
-                    }).InvokeAsync(true);
+                    }).InvokeAsync(false);
                 }
             }
             catch (Exception ex) { ex.ERROR("ShowToast"); }
@@ -11560,6 +11765,27 @@ namespace PixivWPF.Common
                 if (main is MainWindow && main.IsVisible())
                 {
                     setting = Application.Current.LoadSetting();
+                    //await Task.Run(async () =>
+                    //{
+                    //    INotificationDialogService _dialogService = new NotificationDialogService();
+                    //    NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
+                    //    NotificationConfiguration cfg = new NotificationConfiguration(
+                    //        TimeSpan.FromSeconds(setting.ToastTimeout),
+                    //        cfgDefault.Width + 32, cfgDefault.Height,
+                    //        "ToastTemplate",
+                    //        //cfgDefault.TemplateName, 
+                    //        cfgDefault.NotificationFlowDirection
+                    //    );
+                    //    var newNotification = new CustomToast()
+                    //    {
+                    //        Title = title,
+                    //        Message = content
+                    //    };
+                    //    _dialogService.ClearNotifications();
+                    //    _dialogService.ShowNotificationWindow(newNotification, cfg);
+                    //    _dialogService.DoEvents();
+                    //    await Task.Delay(1);
+                    //});
 
                     await new Action(async () =>
                     {
@@ -11572,18 +11798,16 @@ namespace PixivWPF.Common
                             //cfgDefault.TemplateName, 
                             cfgDefault.NotificationFlowDirection
                         );
-
                         var newNotification = new CustomToast()
                         {
                             Title = title,
                             Message = content
                         };
-
                         _dialogService.ClearNotifications();
                         _dialogService.ShowNotificationWindow(newNotification, cfg);
                         _dialogService.DoEvents();
                         await Task.Delay(1);
-                    }).InvokeAsync(true);
+                    }).InvokeAsync(false);
                 }
             }
             catch (Exception ex) { ex.ERROR("ShowToast"); }
