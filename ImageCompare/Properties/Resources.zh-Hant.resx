@@ -133,10 +133,10 @@
     <value>複製影像資訊</value>
   </data>
   <data name="ImageOpenSource.ToolTip" xml:space="preserve">
-    <value>[F1] 打開來源影像\n[Shift+F1] 載入前一個影像檔案\n[Ctrl+F1] 載入後一個影像檔案</value>
+    <value>[F1] 打開來源影像\n[Shift+F1] 載入前一個影像檔案\n[Ctrl+F1] 載入後一個影像檔案\n[Alt+F1] 以遮罩顏色新建純色影像為來源影像</value>
   </data>
   <data name="ImageOpenTarget.ToolTip" xml:space="preserve">
-    <value>[F2] 打開目標影像\n[Shift+F2] 載入前一個影像檔案\n[Ctrl+F2] 載入後一個影像檔案</value>
+    <value>[F2] 打開目標影像\n[Shift+F2] 載入前一個影像檔案\n[Ctrl+F2] 載入後一個影像檔案\n[Alt+F2] 以遮罩顏色新建純色影像為目標影像</value>
   </data>
   <data name="ImagePasteTarget.ToolTip" xml:space="preserve">
     <value>[F4] 粘貼目標影像</value>
@@ -593,5 +593,17 @@
   </data>
   <data name="CropImageEdge.Header" xml:space="preserve">
     <value>裁剪影像的邊界</value>
+  </data>
+  <data name="CreateImageWithColorSource.Header" xml:space="preserve">
+    <value>以指定顏色創建來源影像</value>
+  </data>
+  <data name="CreateImageWithColorTarget.Header" xml:space="preserve">
+    <value>以指定顏色創建目標影像</value>
+  </data>
+  <data name="Edge.Header" xml:space="preserve">
+    <value>線稿效果</value>
+  </data>
+  <data name="Emboss.Header" xml:space="preserve">
+    <value>浮雕效果</value>
   </data>
 </root>

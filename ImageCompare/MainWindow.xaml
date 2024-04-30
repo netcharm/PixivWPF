@@ -98,7 +98,7 @@
             </Button>
             <Button x:Name="ImageCompose" x:Uid="ImageCompose" ToolTip="Compose Source and Target" ToolBar.OverflowMode="Never" Click="ImageActions_Click">
                 <StackPanel x:Uid="ImageCompose0anel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ImageComposeIcon" Text="&#xE81E;" Style="{DynamicResource MenuItemIcon}"/>
+                    <TextBlock x:Uid="ImageComposeIcon" Text="&#xF5ED;" Style="{DynamicResource MenuItemIcon}"/>
                     <TextBlock x:Uid="Compose" Text="Compose" Margin="2 0"/>
                 </StackPanel>
             </Button>
@@ -173,7 +173,7 @@
             <ToggleButton x:Name="AutoMatchSize" x:Uid="AutoMatchSize" IsChecked="True"
                           ToolTip="Automatic Match Image Size Before Image Compare/Composer" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="AutoMatchSizePanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="AutoMatchSizeIcon" Text="&#xE158;" Style="{DynamicResource MenuItemIcon}"/>
+                    <TextBlock x:Uid="AutoMatchSizeIcon" Text="&#xE8B2;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
                 <ToggleButton.ContextMenu>
                     <ContextMenu x:Name="MatchSizeAlign" x:Uid="MatchSizeAlign">
@@ -256,7 +256,22 @@
                               ToolTip="Masklight Color" FontFamily="{DynamicResource MonoSpaceFamily}" 
                               ShowDropDownButton="False" ShowAvailableColors="True" ShowRecentColors="True" 
                               DisplayColorAndName="False" DisplayColorTooltip="True"
-                              SelectedColorChanged="ColorPick_SelectedColorChanged" />
+                              SelectedColorChanged="ColorPick_SelectedColorChanged">
+                <xctk:ColorPicker.ContextMenu>
+                    <ContextMenu x:Name="CreateImageWithColor" x:Uid="CreateImageWithColor">
+                        <MenuItem x:Name="CreateImageWithColorSource" x:Uid="CreateImageWithColorSource" Header="Create Color Source Image" Click="ImageActions_Click">
+                            <MenuItem.Icon>
+                                <TextBlock x:Uid="CreateImageWithColorSourceIcon" Text="&#xE1A5;" Style="{DynamicResource MenuItemIcon}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="CreateImageWithColorTarget" x:Uid="CreateImageWithColorTarget" Header="Create Color Target Image" Click="ImageActions_Click">
+                            <MenuItem.Icon>
+                                <TextBlock x:Uid="CreateImageWithColorTargetIcon" Text="&#xE1A5;" Style="{DynamicResource MenuItemIcon}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </ContextMenu>
+                </xctk:ColorPicker.ContextMenu>
+            </xctk:ColorPicker>
             <Separator x:Uid="Separator_6"/>
             <Button x:Name="ImageLoadHaldLut" x:Uid="ImageLoadHaldLut" ToolTip="Load Hald LUT File" Click="ImageActions_Click" Drop="Window_Drop">
                 <StackPanel x:Uid="ImageLoadHaldLutPanel" Orientation="Horizontal" Margin="2">

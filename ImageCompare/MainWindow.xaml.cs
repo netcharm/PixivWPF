@@ -1544,14 +1544,14 @@ namespace ImageCompare
                     Header = "Match Source Size",
                     Uid = "MatchSourceSize",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE158", Style = style }
+                    Icon = new TextBlock() { Text = "\uE799", Style = style }
                 };
                 var item_size_to_target = new MenuItem()
                 {
                     Header = "Match Target Size",
                     Uid = "MatchTargetSize",
                     Tag = source,
-                    Icon = new TextBlock() { Text = "\uE158", Style = style }
+                    Icon = new TextBlock() { Text = "\uE799", Style = style }
                 };
 
                 var item_slice_h = new MenuItem()
@@ -1833,6 +1833,24 @@ namespace ImageCompare
                     Uid = "PencilPaint",
                     Tag = source
                 };
+                var item_more_edge = new MenuItem()
+                {
+                    Header = "Edge",
+                    Uid = "Edge",
+                    Tag = source
+                };
+                var item_more_emboss = new MenuItem()
+                {
+                    Header = "Emboss",
+                    Uid = "Emboss",
+                    Tag = source
+                };
+                var item_more_morph = new MenuItem()
+                {
+                    Header = "Morphology",
+                    Uid = "Morphology",
+                    Tag = source
+                };
                 var item_more_stereo = new MenuItem()
                 {
                     Header = "Stereo (Fake 3D)",
@@ -1931,6 +1949,9 @@ namespace ImageCompare
                 item_more_oil.Click += (obj, evt) => { RenderRun(() => { OilImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_charcoal.Click += (obj, evt) => { RenderRun(() => { CharcoalImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_pencil.Click += (obj, evt) => { RenderRun(() => { PencilImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_edge.Click += (obj, evt) => { RenderRun(() => { EdgeImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_emboss.Click += (obj, evt) => { RenderRun(() => { EmbossImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_morph.Click += (obj, evt) => { RenderRun(() => { MorphologyImage((bool)(obj as MenuItem).Tag); }); };
 
                 item_more_autoequalize.Click += (obj, evt) => { RenderRun(() => { AutoEqualizeImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_autoreducenoise.Click += (obj, evt) => { RenderRun(() => { ReduceNoiseImage((bool)(obj as MenuItem).Tag); }); };
@@ -1972,6 +1993,9 @@ namespace ImageCompare
                 item_more.Items.Add(item_more_autogamma);
                 item_more.Items.Add(new Separator());
                 item_more.Items.Add(item_more_oil);
+                item_more.Items.Add(item_more_edge);
+                item_more.Items.Add(item_more_emboss);
+                item_more.Items.Add(item_more_morph);
                 item_more.Items.Add(item_more_charcoal);
                 item_more.Items.Add(item_more_pencil);
                 item_more.Items.Add(item_more_invert);
@@ -2414,6 +2438,8 @@ namespace ImageCompare
                             LoadImageFromPrevFile(true);
                         else if (Keyboard.Modifiers == ModifierKeys.Control)
                             LoadImageFromNextFile(true);
+                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                            CreateColorImage(true);
                         else
                             ImageActions_Click(ImageOpenSource, e);
                     }
@@ -2424,6 +2450,8 @@ namespace ImageCompare
                             LoadImageFromPrevFile(false);
                         else if (Keyboard.Modifiers == ModifierKeys.Control)
                             LoadImageFromNextFile(false);
+                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                            CreateColorImage(false);
                         else
                             ImageActions_Click(ImageOpenTarget, e);
                     }
@@ -2754,6 +2782,23 @@ namespace ImageCompare
                     if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
                 }));
             }
+            else if (sender == CreateImageWithColorSource)
+            {
+                RenderRun(new Action(() =>
+                {
+                    CreateColorImage(true);
+                    UpdateImageViewer(assign: true, compose: LastOpIsCompose);
+                }));
+            }
+            else if (sender == CreateImageWithColorTarget)
+            {
+                RenderRun(new Action(() =>
+                {
+                    CreateColorImage(false);
+                    UpdateImageViewer(assign: true, compose: LastOpIsCompose);
+                }));
+            }
+
             else if (sender == ImagePasteSource)
             {
                 RenderRun(new Action(async () =>

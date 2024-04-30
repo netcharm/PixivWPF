@@ -133,10 +133,10 @@
     <value>Copy Image Info</value>
   </data>
   <data name="ImageOpenSource.ToolTip" xml:space="preserve">
-    <value>[F1] Open The Source Picture\n[Shift+F1] Load Prev Image File\n[Ctrl+F1] Load Next Image File</value>
+    <value>[F1] Open The Source Picture\n[Shift+F1] Load Prev Image File\n[Ctrl+F1] Load Next Image File\n[Alt+F1] Create Source Image With Masklight Color</value>
   </data>
   <data name="ImageOpenTarget.ToolTip" xml:space="preserve">
-    <value>[F2] Open The Target Picture\n[Shift+F2] Load Prev Image File\n[Ctrl+F2] Load Next Image File</value>
+    <value>[F2] Open The Target Picture\n[Shift+F2] Load Prev Image File\n[Ctrl+F2] Load Next Image File\n[Alt+F2] Create Target Image With Masklight Color</value>
   </data>
   <data name="ImagePasteSource.ToolTip" xml:space="preserve">
     <value>[F3] Paste The Source Picture</value>
@@ -472,7 +472,7 @@
     <value>Undefined</value>
   </data>
   <data name="CreateColorImage.Header" xml:space="preserve">
-    <value>Set Color To Alpha</value>
+    <value>Create Color Image</value>
   </data>
   <data name="SetColorToAlpha.Header" xml:space="preserve">
     <value>Set Color To Alpha</value>
@@ -593,5 +593,20 @@
   </data>
   <data name="CropImageEdge.Header" xml:space="preserve">
     <value>Crop Image Edge</value>
+  </data>
+  <data name="CreateImageWithColorSource.Header" xml:space="preserve">
+    <value>Create Color Source Image</value>
+  </data>
+  <data name="CreateImageWithColorTarget.Header" xml:space="preserve">
+    <value>Create Color Target Image</value>
+  </data>
+  <data name="Edge.Header" xml:space="preserve">
+    <value>Edge Line</value>
+  </data>
+  <data name="Emboss.Header" xml:space="preserve">
+    <value>Emboss</value>
+  </data>
+  <data name="Morphology.Header" xml:space="preserve">
+    <value>Morphology</value>
   </data>
 </root>

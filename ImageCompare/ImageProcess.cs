@@ -134,6 +134,27 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
+        private void CreateColorImage(bool source)
+        {
+            try
+            {
+                var src = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                var dst = source ? ImageTarget.GetInformation() : ImageSource.GetInformation();
+
+                if (dst.ValidOriginal)
+                    src.Original = new MagickImage(MasklightColor, dst.Original.Width, dst.Original.Height);
+                else if (dst.ValidCurrent)
+                    src.Current = new MagickImage(MasklightColor, dst.Current.Width, dst.Current.Height);
+                else
+                    src.Current = new MagickImage(MasklightColor, MaxCompareSize, MaxCompareSize);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
         private void CopyImage(bool source)
         {
             try
@@ -672,6 +693,80 @@ namespace ImageCompare
                         image_s.Current.RePage();
                         action = true;
                     }
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        private void EmbossImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var radius = WeakBlur ? 5 : 10;
+                var sigma = WeakBlur ? 0.75 : 1.5;
+
+                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                if (image.ValidCurrent)
+                {
+                    image.Current.Emboss(radius, sigma);
+                    action = true;
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="method"></param>
+        /// <param name="kernel"></param>
+        private void MorphologyImage(bool source, MorphologyMethod method = MorphologyMethod.Smooth, Kernel kernel = Kernel.Euclidean)
+        {
+            try
+            {
+                var action = false;
+                var radius = WeakBlur ? 5 : 10;
+                var sigma = WeakBlur ? 0.75 : 1.5;
+
+                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                if (image.ValidCurrent)
+                {
+                    image.Current.Morphology(MorphologyMethod.Smooth, Kernel.Euclidean);
+                    action = true;
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        private void EdgeImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var radius = WeakBlur ? 5 : 10;
+                var sigma = WeakBlur ? 0.75 : 1.5;
+
+                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                if (image.ValidCurrent)
+                {
+                    image.Current.CannyEdge(radius, sigma, new Percentage(3.0), new Percentage(15));
+                    action = true;
                 }
 
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);

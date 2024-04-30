@@ -133,10 +133,10 @@
     <value>画像情報のコピー</value>
   </data>
   <data name="ImageOpenSource.ToolTip" xml:space="preserve">
-    <value>[F1] ソース画像を開く\n[Shift+F1] 前の画像ファイルを読み込む\n[Ctrl+F1] 後の画像ファイルを読み込む</value>
+    <value>[F1] ソース画像を開く\n[Shift+F1] 前の画像ファイルを読み込む\n[Ctrl+F1] 後の画像ファイルを読み込む\n[Alt+F1] マスクライトの色でソース画像を作成する</value>
   </data>
   <data name="ImageOpenTarget.ToolTip" xml:space="preserve">
-    <value>[F2] 対象画像を開く\n[Shift+F2] 前の画像ファイルを読み込む\n[Ctrl+F2] 後の画像ファイルを読み込む</value>
+    <value>[F2] ターゲット画像を開く\n[Shift+F2] 前の画像ファイルを読み込む\n[Ctrl+F2] 後の画像ファイルを読み込む\n[Alt+F2] マスクライトの色でターゲット画像を作成</value>
   </data>
   <data name="ImagePasteTarget.ToolTip" xml:space="preserve">
     <value>[F4] ターゲット画像をペーストする</value>
@@ -593,5 +593,17 @@
   </data>
   <data name="CropImageEdge.Header" xml:space="preserve">
     <value>画像の境界を切り取る</value>
+  </data>
+  <data name="CreateImageWithColorSource.Header" xml:space="preserve">
+    <value>カラーソース画像の作成</value>
+  </data>
+  <data name="CreateImageWithColorTarget.Header" xml:space="preserve">
+    <value>カラーターゲット画像の作成</value>
+  </data>
+  <data name="Edge.Header" xml:space="preserve">
+    <value>スクリプト効果</value>
+  </data>
+  <data name="Emboss.Header" xml:space="preserve">
+    <value>エンボス効果</value>
   </data>
 </root>
