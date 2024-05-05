@@ -1919,6 +1919,12 @@ namespace ImageCompare
                     Uid = "KmeansCluster",
                     Tag = source
                 };
+                var item_more_segment = new MenuItem()
+                {
+                    Header = "Segment",
+                    Uid = "Segment",
+                    Tag = source
+                };
 
                 var item_more_setalphatocolor = new MenuItem()
                 {
@@ -1976,6 +1982,7 @@ namespace ImageCompare
 
                 item_more_meanshift.Click += (obj, evt) => { RenderRun(() => { MeanShiftImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_kmeans.Click += (obj, evt) => { RenderRun(() => { KmeansImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_segment.Click += (obj, evt) => { RenderRun(() => { SegmentImage((bool)(obj as MenuItem).Tag); }); };
 
                 item_more_fillflood.Click += (obj, evt) => { RenderRun(() => { FillOutBoundBoxImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_setalphatocolor.Click += (obj, evt) => { RenderRun(() => { SetAlphaToColorImage((bool)(obj as MenuItem).Tag); }); };
@@ -2010,6 +2017,7 @@ namespace ImageCompare
                 item_more.Items.Add(item_more_clut);
                 item_more.Items.Add(item_more_haldclut);
                 item_more.Items.Add(new Separator());
+                item_more.Items.Add(item_more_segment);
                 item_more.Items.Add(item_more_medianfilter);
                 item_more.Items.Add(item_more_meanshift);
                 item_more.Items.Add(item_more_kmeans);

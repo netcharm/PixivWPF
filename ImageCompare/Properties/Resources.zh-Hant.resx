@@ -606,4 +606,10 @@
   <data name="Emboss.Header" xml:space="preserve">
     <value>浮雕效果</value>
   </data>
+  <data name="Morphology.Header" xml:space="preserve">
+    <value>形態學效果</value>
+  </data>
+  <data name="Segment.Header" xml:space="preserve">
+    <value>影像色彩分割</value>
+  </data>
 </root>

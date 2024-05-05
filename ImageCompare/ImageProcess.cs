@@ -1310,6 +1310,27 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
         }
 
+        private void SegmentImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var sigma = WeakEffects ? 16 : 8;
+
+                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                if (image.ValidCurrent)
+                {
+                    image.Current.Segment(ColorSpace.scRGB, 500, 50);
+                    //image.Current.Segment();
+                    //image.Current.();
+                    action = true;
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -1447,6 +1468,33 @@ namespace ImageCompare
                 var tip = new List<string>();
                 try
                 {
+                    Func<MagickImage, IMagickImage<float>> ToGray = (im) => 
+                    {
+                        var im_out = im.Clone();
+                        im_out.Grayscale(GrayscaleMode);
+                        im_out.MatteColor = MasklightColor;
+                        im_out.ColorSpace = ColorSpace.scRGB;
+                        im_out.ColorType = im.HasAlpha ? ColorType.TrueColorAlpha : ColorType.TrueColor;
+                        return(im_out);
+                    };
+
+                    Func<MagickImage, IMagickImage<float>> ToColor = (im) =>
+                    {
+                        var im_out = im.Clone();
+                        if (im_out.ColorSpace == ColorSpace.Gray || im_out.ColorSpace == ColorSpace.LinearGray ||
+                            im_out.ColorType != ColorType.TrueColor || im_out.ColorType != ColorType.TrueColorAlpha)
+                        {
+                            im_out.ColorSpace = ColorSpace.scRGB;
+                            im_out.ColorType = im_out.HasAlpha ? ColorType.TrueColorAlpha : ColorType.TrueColor;
+                        }
+                        return(im_out);
+                    };
+
+                    Action<IMagickImage<float>, int, int> NormSize = (im, w, h) =>
+                    {
+                        im.Extent(w, h, DefaultMatchAlign, MagickColors.Transparent);
+                    };
+
                     if (source is MagickImage && target is MagickImage)
                     {
                         var fuzzy = Math.Min(Math.Max(ImageCompareFuzzy.Minimum, ImageCompareFuzzy.Value), ImageCompareFuzzy.Maximum);
@@ -1458,16 +1506,12 @@ namespace ImageCompare
 
                         if (compose)
                         {
-                            //using (MagickImage diff = new MagickImage(target.Clone()))
-                            //{
-                            //    diff.Composite(source, DefaultMatchAlign, CompositeMode, CompareImageChannels);
-                            //    result = new MagickImage(diff);
-                            //}
-
                             var source_x = source.Clone();
                             var target_x = target.Clone();
-                            source_x.Extent(max_w, max_h, DefaultMatchAlign, MagickColors.Transparent);
-                            target_x.Extent(max_w, max_h, DefaultMatchAlign, MagickColors.Transparent);
+
+                            NormSize(source_x, max_w, max_h);
+                            NormSize(target_x, max_w, max_h);
+
                             target_x.Composite(source_x, DefaultMatchAlign, CompositeMode, CompareImageChannels);
                             result = new MagickImage(target_x) { ColorFuzz = new Percentage(fuzzy) };
 
@@ -1487,81 +1531,32 @@ namespace ImageCompare
                                     MasklightColor = MasklightColor
                                 };
                                 var distance = double.NaN;
-                                if (!CompareImageForceColor)
+                                if (CompareImageForceColor)
                                 {
-                                    var source_g = source.Clone();
-                                    source_g.Grayscale(GrayscaleMode);
-                                    source_g.MatteColor = MasklightColor;
-                                    source_g.ColorSpace = ColorSpace.scRGB;
-                                    source_g.ColorType = source.HasAlpha ? ColorType.TrueColorAlpha : ColorType.TrueColor;
-                                    //if (source.HasAlpha)
-                                    //{
-                                    //    var source_alpha = source.Channels.Where(c => c == PixelChannel.Alpha).FirstOrDefault();
-                                    //    source_g.Channels.Append(source_alpha);
-                                    //    source_g.Alpha(AlphaOption.Activate);
-                                    //}
+                                    var source_x = ToColor(source);
+                                    var target_x = ToColor(target);
 
-                                    var target_g = target.Clone();
-                                    target_g.Grayscale(GrayscaleMode);
-                                    target_g.MatteColor = MasklightColor;
-                                    target_g.ColorSpace = ColorSpace.scRGB;
-                                    target_g.ColorType = target.HasAlpha ? ColorType.TrueColorAlpha : ColorType.TrueColor;
-                                    //if (target.HasAlpha)
-                                    //{
-                                    //    var target_alpha = target.Channels.Where(c => c == PixelChannel.Alpha).FirstOrDefault();
-                                    //    target_g.Channels.Append(target_alpha);
-                                    //    target_g.Alpha(AlphaOption.Activate);
-                                    //}
+                                    NormSize(source_x, max_w, max_h);
+                                    NormSize(target_x, max_w, max_h);
 
-                                    //distance = source_g.Compare(target_g, setting, diff, CompareImageChannels);
-
-                                    //diff.ColorSpace = ColorSpace.scRGB;
-                                    //diff.ColorType = ColorType.TrueColorAlpha;
-
-                                    var source_x = source_g.Clone();
-                                    var target_x = target_g.Clone();
-                                    source_x.Extent(max_w, max_h, DefaultMatchAlign, MagickColors.Transparent);
-                                    target_x.Extent(max_w, max_h, DefaultMatchAlign, MagickColors.Transparent);
                                     distance = source_x.Compare(target_x, setting, diff, CompareImageChannels);
                                 }
                                 else
                                 {
-                                    if (source.ColorSpace == ColorSpace.Gray || source.ColorSpace == ColorSpace.LinearGray ||
-                                        source.ColorType != ColorType.TrueColor || source.ColorType != ColorType.TrueColorAlpha)
-                                    {
-                                        source.ColorSpace = ColorSpace.scRGB;
-                                        source.ColorType = source.HasAlpha ? ColorType.TrueColorAlpha : ColorType.TrueColor;
-                                    }
-                                    if (target.ColorSpace == ColorSpace.Gray || target.ColorSpace == ColorSpace.LinearGray ||
-                                        target.ColorType != ColorType.TrueColor || target.ColorType != ColorType.TrueColorAlpha)
-                                    {
-                                        target.ColorSpace = ColorSpace.scRGB;
-                                        target.ColorType = target.HasAlpha ? ColorType.TrueColorAlpha : ColorType.TrueColor;
-                                    }
+                                    var source_x = ToGray(source);
+                                    var target_x = ToGray(target);
 
-                                    //distance = source.Compare(target, setting, diff, CompareImageChannels);
+                                    NormSize(source_x, max_w, max_h);
+                                    NormSize(target_x, max_w, max_h);
 
-                                    var source_x = source.Clone();
-                                    var target_x = target.Clone();
-                                    //source_x.ColorType = ColorType.TrueColorAlpha;
-                                    //target_x.ColorType = ColorType.TrueColorAlpha;
-                                    //source_x.MatteColor = MagickColors.Transparent;
-                                    //target_x.MatteColor = MagickColors.Transparent;
-                                    //source_x.BackgroundColor = MagickColors.Transparent;
-                                    //target_x.BackgroundColor = MagickColors.Transparent;
-                                    source_x.Extent(max_w, max_h, DefaultMatchAlign, MagickColors.Transparent);
-                                    target_x.Extent(max_w, max_h, DefaultMatchAlign, MagickColors.Transparent);
-
-                                    //diff.Compose = CompositeOperator.Blend;
                                     distance = source_x.Compare(target_x, setting, diff, CompareImageChannels);
-
-                                    //diff.ColorSpace = ColorSpace.scRGB;
-                                    //diff.ColorType = ColorType.TrueColorAlpha;
                                 }
-                                tip.Add($"{"ResultTipMode".T()} {ErrorMetricMode.ToString()}");
-                                tip.Add($"{"ResultTipDifference".T()} {distance:F4}");
                                 result = new MagickImage(diff) { ColorFuzz = new Percentage(fuzzy) };
                                 //result.Comment = "NetCharm Created";
+
+                                tip.Add($"{"ResultTipMode".T()} {ErrorMetricMode.ToString()}");
+                                tip.Add($"{"ResultTipDifference".T()} {distance:F4}");
+
                                 await Task.Delay(1);
                                 DoEvents();
                             }

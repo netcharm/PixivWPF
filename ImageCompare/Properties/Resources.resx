@@ -609,4 +609,7 @@
   <data name="Morphology.Header" xml:space="preserve">
     <value>Morphology</value>
   </data>
+  <data name="Segment.Header" xml:space="preserve">
+    <value>Segment</value>
+  </data>
 </root>

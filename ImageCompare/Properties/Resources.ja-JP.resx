@@ -606,4 +606,10 @@
   <data name="Emboss.Header" xml:space="preserve">
     <value>エンボス効果</value>
   </data>
+  <data name="Morphology.Header" xml:space="preserve">
+    <value>形態学効果</value>
+  </data>
+  <data name="Segment.Header" xml:space="preserve">
+    <value>画像の色セグメント</value>
+  </data>
 </root>

@@ -609,4 +609,7 @@
   <data name="Morphology.Header" xml:space="preserve">
     <value>形态学效果</value>
   </data>
+  <data name="Segment.Header" xml:space="preserve">
+    <value>图像色彩分割</value>
+  </data>
 </root>
