@@ -899,6 +899,30 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
+        private void SolarizeImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var sigma = WeakEffects ? 12.5 : 25;
+
+                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                if (image.ValidCurrent)
+                {
+                    //image.Current.Solarize(new Percentage(sigma));
+                    image.Current.Solarize();
+                    action = true;
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
         private void PosterizeImage(bool source)
         {
             try
@@ -1310,19 +1334,44 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
         private void SegmentImage(bool source)
         {
             try
             {
                 var action = false;
-                var sigma = WeakEffects ? 16 : 8;
+                var sigma = WeakEffects ? 200 : 100;
 
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 if (image.ValidCurrent)
                 {
-                    image.Current.Segment(ColorSpace.scRGB, 500, 50);
-                    //image.Current.Segment();
-                    //image.Current.();
+                    image.Current.Segment(ColorSpace.RGB, sigma, sigma * 0.25);
+                    action = true;
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        private void QuantizeImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var sigma = WeakEffects ? 256 : 64;
+
+                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                if (image.ValidCurrent)
+                {
+                    image.Current.Quantize(new QuantizeSettings() { Colors = sigma, ColorSpace = ColorSpace.RGB, MeasureErrors = false });
                     action = true;
                 }
 

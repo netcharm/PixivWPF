@@ -612,4 +612,10 @@
   <data name="Segment.Header" xml:space="preserve">
     <value>Segment</value>
   </data>
+  <data name="Quantize.Header" xml:space="preserve">
+    <value>Quantize</value>
+  </data>
+  <data name="Solarize.Header" xml:space="preserve">
+    <value>Solarize</value>
+  </data>
 </root>

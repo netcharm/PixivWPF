@@ -612,4 +612,10 @@
   <data name="Segment.Header" xml:space="preserve">
     <value>画像の色セグメント</value>
   </data>
+  <data name="Quantize.Header" xml:space="preserve">
+    <value>画像の色を量子化する</value>
+  </data>
+  <data name="Solarize.Header" xml:space="preserve">
+    <value>シャボン玉効果</value>
+  </data>
 </root>

@@ -612,4 +612,10 @@
   <data name="Segment.Header" xml:space="preserve">
     <value>图像色彩分割</value>
   </data>
+  <data name="Quantize.Header" xml:space="preserve">
+    <value>量化图像色彩</value>
+  </data>
+  <data name="Solarize.Header" xml:space="preserve">
+    <value>肥皂泡效果</value>
+  </data>
 </root>

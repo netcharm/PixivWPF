@@ -1833,6 +1833,12 @@ namespace ImageCompare
                     Uid = "PencilPaint",
                     Tag = source
                 };
+                var item_more_solarize = new MenuItem()
+                {
+                    Header = "Solarize",
+                    Uid = "Solarize",
+                    Tag = source
+                };
                 var item_more_edge = new MenuItem()
                 {
                     Header = "Edge",
@@ -1925,6 +1931,12 @@ namespace ImageCompare
                     Uid = "Segment",
                     Tag = source
                 };
+                var item_more_quantize = new MenuItem()
+                {
+                    Header = "Quantize",
+                    Uid = "Quantize",
+                    Tag = source
+                };
 
                 var item_more_setalphatocolor = new MenuItem()
                 {
@@ -1969,6 +1981,7 @@ namespace ImageCompare
 
                 item_more_autovignette.Click += (obj, evt) => { RenderRun(() => { AutoVignetteImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_invert.Click += (obj, evt) => { RenderRun(() => { InvertImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_solarize.Click += (obj, evt) => { RenderRun(() => { SolarizeImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_polaroid.Click += (obj, evt) => { RenderRun(() => { PolaroidImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_posterize.Click += (obj, evt) => { RenderRun(() => { PosterizeImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_medianfilter.Click += (obj, evt) => { RenderRun(() => { MedianFilterImage((bool)(obj as MenuItem).Tag); }); };
@@ -1983,6 +1996,7 @@ namespace ImageCompare
                 item_more_meanshift.Click += (obj, evt) => { RenderRun(() => { MeanShiftImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_kmeans.Click += (obj, evt) => { RenderRun(() => { KmeansImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_segment.Click += (obj, evt) => { RenderRun(() => { SegmentImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_quantize.Click += (obj, evt) => { RenderRun(() => { QuantizeImage((bool)(obj as MenuItem).Tag); }); };
 
                 item_more_fillflood.Click += (obj, evt) => { RenderRun(() => { FillOutBoundBoxImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_setalphatocolor.Click += (obj, evt) => { RenderRun(() => { SetAlphaToColorImage((bool)(obj as MenuItem).Tag); }); };
@@ -2002,6 +2016,7 @@ namespace ImageCompare
                 item_more.Items.Add(item_more_oil);
                 item_more.Items.Add(item_more_edge);
                 item_more.Items.Add(item_more_emboss);
+                item_more.Items.Add(item_more_solarize);
                 item_more.Items.Add(item_more_morph);
                 item_more.Items.Add(item_more_charcoal);
                 item_more.Items.Add(item_more_pencil);
@@ -2018,6 +2033,7 @@ namespace ImageCompare
                 item_more.Items.Add(item_more_haldclut);
                 item_more.Items.Add(new Separator());
                 item_more.Items.Add(item_more_segment);
+                item_more.Items.Add(item_more_quantize);
                 item_more.Items.Add(item_more_medianfilter);
                 item_more.Items.Add(item_more_meanshift);
                 item_more.Items.Add(item_more_kmeans);

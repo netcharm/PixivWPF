@@ -166,7 +166,7 @@
     <value>合成</value>
   </data>
   <data name="ProcessStatus.ToolTip" xml:space="preserve">
-    <value>圖像處理進展</value>
+    <value>影像處理進展</value>
   </data>
   <data name="ImageCopyResult.ToolTip" xml:space="preserve">
     <value>[F7] 複製結果影像</value>
@@ -611,5 +611,11 @@
   </data>
   <data name="Segment.Header" xml:space="preserve">
     <value>影像色彩分割</value>
+  </data>
+  <data name="Quantize.Header" xml:space="preserve">
+    <value>量化影像色彩</value>
+  </data>
+  <data name="Solarize.Header" xml:space="preserve">
+    <value>肥皂泡效果</value>
   </data>
 </root>
