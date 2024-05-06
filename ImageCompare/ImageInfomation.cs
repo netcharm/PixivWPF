@@ -244,11 +244,12 @@ namespace ImageCompare
             var result = await Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 var ret = false;
+                var exceptions = new List<string>();
                 try
                 {
                     var supported_fmts = new string[] { "PNG", "image/png", "image/jpg", "image/jpeg", "image/tif", "image/tiff", "image/bmp", "DeviceIndependentBitmap", "image/wbmp", "image/webp", "Text" };
                     IDataObject dataPackage = Clipboard.GetDataObject();
-                    var fmts = dataPackage.GetFormats();
+                    var fmts = dataPackage.GetFormats(true);
                     foreach (var fmt in supported_fmts)
                     {
                         if (fmts.Contains(fmt))
@@ -267,9 +268,9 @@ namespace ImageCompare
                                     break;
                                 }
 #if DEBUG
-                                catch (Exception ex) { Debug.WriteLine(ex.Message); }
+                                catch (Exception ex) { exceptions.Add($"{fmt} : {ex.Message}"); Debug.WriteLine(ex.Message); }
 #else
-                                catch (Exception ex) { ex.ShowMessage(); }
+                                catch (Exception ex) { exceptions.Add($"{fmt} : {ex.Message}"); }
 #endif
                             }
                             else
@@ -277,25 +278,31 @@ namespace ImageCompare
                                 var exists = dataPackage.GetDataPresent(fmt, true);
                                 if (exists)
                                 {
-                                    var obj = dataPackage.GetData(fmt, true);
-                                    if (obj is MemoryStream)
+                                    try
                                     {
-                                        try
+                                        var obj = dataPackage.GetData(fmt, true);
+                                        if (obj is MemoryStream)
                                         {
+
                                             Original = new MagickImage(obj as MemoryStream);
                                             FileName = string.Empty;
                                             OriginalModified = true;
                                             ret = true;
                                             break;
                                         }
-                                        catch (Exception ex) { ex.ShowMessage(); }
                                     }
+#if DEBUG
+                                    catch (Exception ex) { exceptions.Add($"{fmt} : {ex.Message}"); Debug.WriteLine(ex.Message); }
+#else
+                                    catch (Exception ex) { exceptions.Add($"{fmt} : {ex.Message}"); }
+#endif
                                 }
                             }
                         }
                     }
                 }
                 catch (Exception ex) { ex.ShowMessage();}
+                if(!ret) string.Join(Environment.NewLine, exceptions).ShowMessage();
                 return(ret);
             }, DispatcherPriority.Render);
             return (result);
