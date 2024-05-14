@@ -3068,10 +3068,11 @@ namespace PixivWPF.Common
             if (item is DownloadInfo)
             {
                 var di = item as DownloadInfo;
+                var finished = di.State == DownloadItemState.Finished;
                 var fail = string.IsNullOrEmpty(di.FailReason) ? "." : $", Reason: {di.FailReason.Replace(Environment.NewLine, $"\t{Environment.NewLine}")}".Trim();
                 var delta = di.EndTime - di.StartTime;
                 var rate = delta.TotalSeconds <= 0 ? 0 : di.Received / delta.TotalSeconds;
-                var size = di.State == Common.DownloadState.Finished && File.Exists(di.FileName) ? (new FileInfo(di.FileName)).Length.SmartFileSize() : "????";
+                var size = di.State == Common.DownloadItemState.Finished && File.Exists(di.FileName) ? (new FileInfo(di.FileName)).Length.SmartFileSize() : "????";
                 //var fmt = di.SaveAsJPEG ? $"JPG_Q<={di.JPEGQuality}" : $"{Path.GetExtension(di.FileName).Trim('.').ToUpper()}";
                 var quality = di.FileName.GetImageQualityInfo();
                 var fmt = di.SaveAsJPEG && quality != -1 ? $"JPG_Q≈{quality}" : $"{Path.GetExtension(di.FileName).Trim('.').ToUpper()}";
@@ -3080,7 +3081,7 @@ namespace PixivWPF.Common
                 result.Add($"File   : {di.FileName}, {di.FileTime.ToString("yyyy-MM-dd HH:mm:sszzz")}");
                 result.Add($"State  : {di.State}{fail} Disk Usage : {size}, {fmt}");
                 result.Add($"Elapsed: {di.StartTime.ToString("yyyy-MM-dd HH:mm:sszzz")} -> {di.EndTime.ToString("yyyy-MM-dd HH:mm:sszzz")}, {delta.SmartElapsed()} s");
-                result.Add($"Status : {di.Received.SmartFileSize(trimzero: false)} / {di.Length.SmartFileSize(trimzero: false)} ({di.Received} Bytes / {di.Length} Bytes), Rate ≈ {rate.SmartSpeedRate(trimzero: false)}");
+                result.Add($"Status : {di.Received.SmartFileSize(trimzero: finished)} / {di.Length.SmartFileSize(trimzero: finished)} ({di.Received} Bytes / {di.Length} Bytes), Rate ≈ {rate.SmartSpeedRate(trimzero: finished)}");
                 if (di.Illust.IsWork())
                 {
                     result.Add($"Title  : {di.Illust.Title.KatakanaHalfToFull()}");

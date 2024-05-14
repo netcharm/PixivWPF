@@ -1394,24 +1394,27 @@ namespace PixivWPF.Pages
 
                 var condition = IsPrivate ? "private" : "public";
                 var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetMyFollowingWorksAsync(condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                nexturl = root.next_url ?? string.Empty;
-                NextURL = nexturl;
-
-                if (root.illusts != null)
+                if (root != null)
                 {
-                    foreach (var illust in root.illusts)
+                    nexturl = root.next_url ?? string.Empty;
+                    NextURL = nexturl;
+
+                    if (root.illusts != null)
                     {
-                        illust.Cache();
-                        if (!ids.Contains(illust.Id.Value))
+                        foreach (var illust in root.illusts)
                         {
-                            ids.Add(illust.Id.Value);
-                            illust.AddTo(ImageTiles.Items, nexturl);
-                            this.DoEvents();
+                            illust.Cache();
+                            if (!ids.Contains(illust.Id.Value))
+                            {
+                                ids.Add(illust.Id.Value);
+                                illust.AddTo(ImageTiles.Items, nexturl);
+                                this.DoEvents();
+                            }
                         }
+                        if (!Application.Current.IsLogin()) await Task.Delay(250);
+                        this.DoEvents();
+                        ImageTiles.UpdateTilesImage();
                     }
-                    if (!Application.Current.IsLogin()) await Task.Delay(250);
-                    this.DoEvents();
-                    ImageTiles.UpdateTilesImage();
                 }
             }
             catch (Exception ex)

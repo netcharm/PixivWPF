@@ -56,7 +56,7 @@ namespace PixivWPF.Pages
             get
             {
                 if (!(items is ObservableCollection<DownloadInfo>)) items = new ObservableCollection<DownloadInfo>();
-                return (items.Where(item => item.State == DownloadState.Downloading || item.State == DownloadState.Writing));
+                return (items.Where(item => item.State == DownloadItemState.Downloading || item.State == DownloadItemState.Writing));
             }
         }
 
@@ -70,7 +70,7 @@ namespace PixivWPF.Pages
             get
             {
                 if (!(items is ObservableCollection<DownloadInfo>)) items = new ObservableCollection<DownloadInfo>();
-                return (items.Where(item => item.State == DownloadState.Idle || item.State == DownloadState.Paused));
+                return (items.Where(item => item.State == DownloadItemState.Idle || item.State == DownloadItemState.Paused));
             }
         }
 
@@ -200,12 +200,12 @@ namespace PixivWPF.Pages
                         {
                             var none = new List<DownloadInfo>();
                             var cats = items.GroupBy(i => i.State).ToDictionary(i => i.Key, i => i.ToList());
-                            var idle = cats.ContainsKey(DownloadState.Idle) ? cats[DownloadState.Idle] : none;
-                            var remove = cats.ContainsKey(DownloadState.Remove) ? cats[DownloadState.Remove] : none;
-                            var failed = cats.ContainsKey(DownloadState.Failed) ? cats[DownloadState.Failed] : none;
-                            var finished = cats.ContainsKey(DownloadState.Finished) ? cats[DownloadState.Finished] : none;
-                            var nonexists = cats.ContainsKey(DownloadState.NonExists) ? cats[DownloadState.NonExists] : none;
-                            var downloading = cats.ContainsKey(DownloadState.Downloading) ? cats[DownloadState.Downloading] : none;
+                            var idle = cats.ContainsKey(DownloadItemState.Idle) ? cats[DownloadItemState.Idle] : none;
+                            var remove = cats.ContainsKey(DownloadItemState.Remove) ? cats[DownloadItemState.Remove] : none;
+                            var failed = cats.ContainsKey(DownloadItemState.Failed) ? cats[DownloadItemState.Failed] : none;
+                            var finished = cats.ContainsKey(DownloadItemState.Finished) ? cats[DownloadItemState.Finished] : none;
+                            var nonexists = cats.ContainsKey(DownloadItemState.NonExists) ? cats[DownloadItemState.NonExists] : none;
+                            var downloading = cats.ContainsKey(DownloadItemState.Downloading) ? cats[DownloadItemState.Downloading] : none;
 
                             var rates = downloading.Sum(o => o.DownRateCurrent);
 
@@ -263,7 +263,7 @@ namespace PixivWPF.Pages
             List<string> result = new List<string>();
             Dispatcher.Invoke(() =>
             {
-                var unfinished = items.Where(i => i.State != DownloadState.Finished).ToList();
+                var unfinished = items.Where(i => i.State != DownloadItemState.Finished).ToList();
                 foreach (var item in unfinished)
                 {
                     result.Add($"Downloading: {item.Url.ParseID()}");
@@ -495,11 +495,11 @@ namespace PixivWPF.Pages
                         e.Handled = true;
                         (sender as UIElement).AllowDrop = false;
                         //var items = DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1 ? DownloadItems.SelectedItems : DownloadItems.Items;
-                        var items = DownloadItems.SelectedItems.Cast<DownloadInfo>().Where(i => i.State == DownloadState.Finished);
+                        var items = DownloadItems.SelectedItems.Cast<DownloadInfo>().Where(i => i.State == DownloadItemState.Finished);
                         var target = new List<string>();
                         foreach (var item in items)
                         {
-                            if (item is DownloadInfo && (item as DownloadInfo).State == DownloadState.Finished) target.Add((item as DownloadInfo).FileName);
+                            if (item is DownloadInfo && (item as DownloadInfo).State == DownloadItemState.Finished) target.Add((item as DownloadInfo).FileName);
                         }
                         if (target.Count > 0) this.DragOut(target);
                     }
@@ -557,7 +557,7 @@ namespace PixivWPF.Pages
                 {
                     if (item is DownloadInfo)
                     {
-                        if (shift && (item as DownloadInfo).State == DownloadState.Finished) { targets.Add((item as DownloadInfo).FileName); }
+                        if (shift && (item as DownloadInfo).State == DownloadItemState.Finished) { targets.Add((item as DownloadInfo).FileName); }
                         else if (ctrl) { targets.Add((item as DownloadInfo).FileName); }
                         else targets.Add((item as DownloadInfo).IllustID.ToString());//.FileName.ParseLink().ParseID());
                     }
@@ -575,7 +575,7 @@ namespace PixivWPF.Pages
                 {
                     try
                     {
-                        var items =  DownloadItems.SelectedItems.Cast<DownloadInfo>().Where(i => i.State == DownloadState.Finished).Select(i => i.FileName).Take(2).ToList();
+                        var items =  DownloadItems.SelectedItems.Cast<DownloadInfo>().Where(i => i.State == DownloadItemState.Finished).Select(i => i.FileName).Take(2).ToList();
                         Commands.Compare.Execute(items);
                     }
                     catch (Exception ex) { ex.ERROR("Compare"); }
@@ -598,27 +598,27 @@ namespace PixivWPF.Pages
                             if (item is DownloadInfo)
                                 targets.Add(item as DownloadInfo);
                         }
-                        var needUpdate = targets.Where(item => item.State != DownloadState.Downloading && item.State != DownloadState.Finished && item.State != DownloadState.NonExists);
+                        var needUpdate = targets.Where(item => item.State != DownloadItemState.Downloading && item.State != DownloadItemState.Finished && item.State != DownloadItemState.NonExists);
                         if (needUpdate.Count() > 0)
                         {
                             var opt = new ParallelOptions();
                             opt.MaxDegreeOfParallelism = (int)SimultaneousJobs;
                             var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                             {
-                                item.State = DownloadState.Idle;
+                                item.State = DownloadItemState.Idle;
                             });
                         }
                     }
                     else
                     {
-                        var needUpdate = items.Where(item => item.State != DownloadState.Downloading && item.State != DownloadState.Finished && item.State != DownloadState.NonExists);
+                        var needUpdate = items.Where(item => item.State != DownloadItemState.Downloading && item.State != DownloadItemState.Finished && item.State != DownloadItemState.NonExists);
                         if (needUpdate.Count() > 0)
                         {
                             var opt = new ParallelOptions();
                             opt.MaxDegreeOfParallelism = (int)SimultaneousJobs;
                             var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                             {
-                                item.State = DownloadState.Idle;
+                                item.State = DownloadItemState.Idle;
                             });
                         }
                     }
@@ -641,28 +641,28 @@ namespace PixivWPF.Pages
                             if (item is DownloadInfo)
                                 targets.Add(item as DownloadInfo);
                         }
-                        var remove = targets.Where(o => o.State != DownloadState.Downloading);
+                        var remove = targets.Where(o => o.State != DownloadItemState.Downloading);
                         if (Commands.ParallelExecutionConfirm(remove))
                         {
-                            foreach (var i in remove) { i.State = DownloadState.Remove; }
+                            foreach (var i in remove) { i.State = DownloadItemState.Remove; }
                         }
                     }
                     else
                     {
                         setting = Application.Current.LoadSetting();
-                        var non_exists = items.Where(o => o.State == DownloadState.NonExists);
+                        var non_exists = items.Where(o => o.State == DownloadItemState.NonExists);
                         if (non_exists.Count() > 0)
                         {
-                            foreach (var i in non_exists) { i.State = DownloadState.Remove; }
+                            foreach (var i in non_exists) { i.State = DownloadItemState.Remove; }
                         }
                         else if (GetOlderItems(setting.DownloadRemoveNDays).Count() > 0) PART_RemoveAll_Context_Click(PART_RemoveAll_NDays, e);
                         else if (GetOlderItems().Count() > 0) PART_RemoveAll_Context_Click(PART_RemoveAll_Old, e);
                         else
                         {
-                            var remove = items.Where(o => o.State != DownloadState.Downloading);
+                            var remove = items.Where(o => o.State != DownloadItemState.Downloading);
                             if (Commands.ParallelExecutionConfirm(remove))
                             {
-                                foreach (var i in remove) { i.State = DownloadState.Remove; }
+                                foreach (var i in remove) { i.State = DownloadItemState.Remove; }
                             }
                         }
                     }
@@ -675,30 +675,30 @@ namespace PixivWPF.Pages
         {
             try
             {
-                DownloadState state = DownloadState.Unknown;
+                DownloadItemState state = DownloadItemState.Unknown;
                 if (sender == PART_RemoveAll_NonExists)
                 {
-                    state = DownloadState.NonExists;
+                    state = DownloadItemState.NonExists;
                 }
                 else if (sender == PART_RemoveAll_Failed)
                 {
-                    state = DownloadState.Failed;
+                    state = DownloadItemState.Failed;
                 }
                 else if (sender == PART_RemoveAll_Finished)
                 {
-                    state = DownloadState.Finished;
+                    state = DownloadItemState.Finished;
                 }
                 else if (sender == PART_RemoveAll_Idle)
                 {
-                    state = DownloadState.Idle;
+                    state = DownloadItemState.Idle;
                 }
                 else if (sender == PART_RemoveAll_Old)
                 {
-                    state = DownloadState.Older;
+                    state = DownloadItemState.Older;
                 }
                 else if (sender == PART_RemoveAll_NDays)
                 {
-                    state = DownloadState.NDays;
+                    state = DownloadItemState.NDays;
                 }
                 else if (sender == PART_RemoveAll_All)
                 {
@@ -712,25 +712,25 @@ namespace PixivWPF.Pages
                         if (item is DownloadInfo) targets.Add(item as DownloadInfo);
                     }
 
-                    if (state == DownloadState.Older)
+                    if (state == DownloadItemState.Older)
                     {
                         targets = GetOlderItems().ToList();
-                        state = DownloadState.Finished;
+                        state = DownloadItemState.Finished;
                     }
-                    else if (state == DownloadState.NDays)
+                    else if (state == DownloadItemState.NDays)
                     {
                         setting = Application.Current.LoadSetting();
                         targets = GetOlderItems(setting.DownloadRemoveNDays).ToList();
-                        state = DownloadState.Finished;
+                        state = DownloadItemState.Finished;
                     }
 
                     if (targets.Count > 0)
                     {
-                        var remove = state == DownloadState.Unknown ? targets : targets.Where(o => o.State == state || o.State == DownloadState.NonExists);
-                        if (state == DownloadState.NonExists || Commands.ParallelExecutionConfirm(remove))
+                        var remove = state == DownloadItemState.Unknown ? targets : targets.Where(o => o.State == state || o.State == DownloadItemState.NonExists);
+                        if (state == DownloadItemState.NonExists || Commands.ParallelExecutionConfirm(remove))
                         {
                             $"Total {remove.Count()} item(s) will be removed!".INFO($"DOWNLOADMANAGER");
-                            foreach (var i in remove) { i.State = DownloadState.Remove; }
+                            foreach (var i in remove) { i.State = DownloadItemState.Remove; }
                         }
                     }
                 }).InvokeAsync();

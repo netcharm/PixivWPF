@@ -8,7 +8,6 @@
       xmlns:Common="clr-namespace:PixivWPF.Common"
       xmlns:local="clr-namespace:PixivWPF.Pages"
       mc:Ignorable="d" 
-      VisualTextRenderingMode="Auto"
       RenderOptions.BitmapScalingMode="HighQuality"
       RenderOptions.CachingHint="Cache"
       RenderOptions.ClearTypeHint="Enabled"
@@ -232,10 +231,6 @@
             <Grid>
                 <Rectangle Grid.Column="0" Grid.Row="0" Style="{DynamicResource ToolButtonPanel}"/>
                 <StackPanel Grid.Column="0" Grid.Row="0" x:Name="TransformBar" x:Uid="TransformBar" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <Button x:Name="btnViewerActionCompare" x:Uid="ActionCompare" Margin="4" Style="{DynamicResource ToolButton}" ToolTip="Flip Horizontal" Click="ActionCompare_Click">
-                        <TextBlock Text="&#xE11E;" Style="{DynamicResource ToolButtonIcon}"/>
-                    </Button>
-                    <Separator Margin="2,0"/>
                     <Button x:Name="btnViewerActionFlipH" x:Uid="ViewerActionFlipH" Margin="4" Style="{DynamicResource ToolButton}" ToolTip="Flip Horizontal" Click="ActionMoreOp_Click">
                         <TextBlock Text="&#xE13C;" Style="{DynamicResource ToolButtonIcon}"/>
                     </Button>
@@ -256,6 +251,10 @@
                     <Separator Margin="2,0"/>
                     <Button x:Name="btnViewerActionReset" x:Uid="ViewerActionReset" Margin="4" Style="{DynamicResource ToolButton}" ToolTip="Restore" Click="ActionMoreOp_Click">
                         <TextBlock Text="&#xE777;" Style="{DynamicResource ToolButtonIcon}"/>
+                    </Button>
+                    <Separator Margin="2,0"/>
+                    <Button x:Name="btnViewerActionCompare" x:Uid="ActionCompare" Margin="4" Style="{DynamicResource ToolButton}" ToolTip="Compare Image" Click="ActionCompare_Click">
+                        <TextBlock Text="&#xE11E;" Style="{DynamicResource ToolButtonIcon}"/>
                     </Button>
                 </StackPanel>
             </Grid>

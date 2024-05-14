@@ -563,6 +563,7 @@
                     Text="{TemplateBinding Content}"
                     VerticalAlignment="Center"
                     Margin="8,-1,1,0"
+                    MinWidth="8"
                     TextTrimming="CharacterEllipsis"
                     FontWeight="{TemplateBinding TextBlock.FontWeight}"
                     FontSize="16"

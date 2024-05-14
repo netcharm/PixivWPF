@@ -1081,7 +1081,7 @@ namespace PixivWPF.Pages
         private void ActionMore_Click(object sender, RoutedEventArgs e)
         {
             ViewerActionMore.PlacementTarget = btnViewActionMore;
-            ViewerActionMore.Placement = System.Windows.Controls.Primitives.PlacementMode.Right;
+            ViewerActionMore.Placement = System.Windows.Controls.Primitives.PlacementMode.Left;
             ViewerActionMore.IsOpen = true;
 
             if (_popupTimer == null)

@@ -976,7 +976,7 @@ namespace PixivWPF.Common
             else if (obj is DownloadManagerPage)
             {
                 var _downManager = obj as DownloadManagerPage;
-                var items =  _downManager.DownloadItems.SelectedItems.Cast<DownloadInfo>().Where(i => i.State == DownloadState.Finished).Select(i => i.FileName).Take(2).ToList();
+                var items =  _downManager.DownloadItems.SelectedItems.Cast<DownloadInfo>().Where(i => i.State == DownloadItemState.Finished).Select(i => i.FileName).Take(2).ToList();
                 Compare.Execute(items);
             }
             else if (obj is Pixeez.Objects.Work)

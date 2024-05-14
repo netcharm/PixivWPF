@@ -10,7 +10,6 @@
       xmlns:interop="clr-namespace:Microsoft.DwayneNeed.Interop;assembly=Microsoft.DwayneNeed"
       mc:Ignorable="d" 
       d:DesignHeight="600" d:DesignWidth="300"
-      VisualTextRenderingMode="Auto"
       RenderOptions.BitmapScalingMode="HighQuality"
       RenderOptions.CachingHint="Cache"
       RenderOptions.ClearTypeHint="Enabled"
@@ -597,7 +596,7 @@
 
         <Popup x:Name="PreviewPopup" x:Uid="PreviewPopup" x:Key="PreviewPopup" 
                Placement="MousePoint" StaysOpen="False" AllowsTransparency="True" 
-               HorizontalOffset="78" VerticalOffset="-64" 
+               HorizontalOffset="-78" VerticalOffset="-64" 
                Margin="4" HorizontalAlignment="Center" VerticalAlignment="Center"
                Style="{StaticResource PreviewPopupTrigger}"
                Opened="PreviewPopup_Opened" Closed="PreviewPopup_Closed"

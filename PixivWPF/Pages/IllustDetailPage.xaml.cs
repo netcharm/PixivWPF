@@ -85,22 +85,26 @@ namespace PixivWPF.Pages
 
         private void PopupOpen(Popup popup)
         {
-            try
+            if (popup is Popup)
             {
-                if (PreviewBox.ContextMenu is ContextMenu && PreviewBox.ContextMenu.IsOpen) PreviewBox.ContextMenu.IsOpen = false;
+                try
+                {
+                    if (PreviewBox.ContextMenu is ContextMenu && PreviewBox.ContextMenu.IsOpen) PreviewBox.ContextMenu.IsOpen = false;
 
-                if (PreviewPopupBackground is Rectangle) PreviewPopupBackground.Fill = Theme.MenuBackgroundBrush;
-                foreach (var button in PreviewPopupToolButtons) button.Foreground = Theme.AccentBrush;
+                    if (PreviewPopupBackground is Rectangle) PreviewPopupBackground.Fill = Theme.MenuBackgroundBrush;
+                    foreach (var button in PreviewPopupToolButtons) button.Foreground = Theme.AccentBrush;
 
-                PreviewPopup.IsOpen = true;
+                    PreviewPopup.IsOpen = true;
+                }
+                catch (Exception ex) { ex.ERROR("ShowPopup"); }
             }
-            catch (Exception ex) { ex.ERROR("ShowPopup"); }
         }
 
         private void PopupOpen(object sender, ContextMenu menu)
         {
             try
             {
+                if (!(menu is ContextMenu)) return;
                 if (sender is UIElement)
                 {
                     menu.PlacementTarget = sender as UIElement;
@@ -2975,6 +2979,8 @@ namespace PixivWPF.Pages
                 if (PreviewPopup is Popup)
                 {
                     PreviewPopup.PlacementTarget = Preview;
+                    PreviewPopup.Placement = PlacementMode.MousePoint;
+
                     PreviewPopupBackground = PreviewPopup.GetChildren<Rectangle>().FirstOrDefault();
                     PreviewPopupToolButtons = PreviewPopup.GetChildren<Button>();
                     foreach (var button in PreviewPopupToolButtons)
