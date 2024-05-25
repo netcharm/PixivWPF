@@ -247,12 +247,12 @@ namespace ImageCompare
                 var exceptions = new List<string>();
                 try
                 {
-                    var supported_fmts = new string[] { "PNG", "image/png", "image/jpg", "image/jpeg", "image/tif", "image/tiff", "image/bmp", "DeviceIndependentBitmap", "image/wbmp", "image/webp", "Text" };
+                    var supported_fmts = new string[] { "PNG", "image/png", "image/tif", "image/tiff", "image/webp", "image/xpm", "image/ico", "image/cur", "image/jpg", "image/jpeg", "image/bmp", "DeviceIndependentBitmap", "image/wbmp", "Text" };
                     IDataObject dataPackage = Clipboard.GetDataObject();
                     var fmts = dataPackage.GetFormats(true);
                     foreach (var fmt in supported_fmts)
                     {
-                        if (fmts.Contains(fmt))
+                        if (fmts.Contains(fmt) && dataPackage.GetDataPresent(fmt, true))
                         {
                             if (fmt.Equals("Text", StringComparison.CurrentCultureIgnoreCase))
                             {
@@ -275,28 +275,23 @@ namespace ImageCompare
                             }
                             else
                             {
-                                var exists = dataPackage.GetDataPresent(fmt, true);
-                                if (exists)
+                                try
                                 {
-                                    try
+                                    var obj = dataPackage.GetData(fmt, true);
+                                    if (obj is MemoryStream)
                                     {
-                                        var obj = dataPackage.GetData(fmt, true);
-                                        if (obj is MemoryStream)
-                                        {
-
-                                            Original = new MagickImage(obj as MemoryStream);
-                                            FileName = string.Empty;
-                                            OriginalModified = true;
-                                            ret = true;
-                                            break;
-                                        }
+                                        Original = new MagickImage(obj as MemoryStream);
+                                        FileName = string.Empty;
+                                        OriginalModified = true;
+                                        ret = true;
+                                        break;
                                     }
-#if DEBUG
-                                    catch (Exception ex) { exceptions.Add($"{fmt} : {ex.Message}"); Debug.WriteLine(ex.Message); }
-#else
-                                    catch (Exception ex) { exceptions.Add($"{fmt} : {ex.Message}"); }
-#endif
                                 }
+#if DEBUG
+                                catch (Exception ex) { exceptions.Add($"{fmt} : {ex.Message}"); Debug.WriteLine(ex.Message); }
+#else
+                                catch (Exception ex) { exceptions.Add($"{fmt} : {ex.Message}"); }
+#endif
                             }
                         }
                     }
@@ -839,12 +834,12 @@ namespace ImageCompare
                                     value = exif.GetValue(ExifTag.ImageDescription) != null ? exif.GetValue(ExifTag.ImageDescription).Value : value;
                                 else if (attr.Equals("exif:UserComment") && exif.GetValue(ExifTag.UserComment) != null)
                                 {
-                                    //var endian = BitConverter.IsLittleEndian ? Endian.LSB : Endian.MSB;
-                                    //if (Current.Endian == Endian.MSB || endian == Endian.MSB)
-                                    //    value = Encoding.BigEndianUnicode.GetString(exif.GetValue(ExifTag.UserComment).Value.Skip(8).ToArray());
-                                    //else if (Current.Endian == Endian.LSB || endian == Endian.LSB)
-                                    //    value = Encoding.UTF32.GetString(exif.GetValue(ExifTag.UserComment).Value.Skip(8).ToArray());
-                                    value = Encoding.BigEndianUnicode.GetString(exif.GetValue(ExifTag.UserComment).Value.Skip(8).ToArray());
+                                    var endian = BitConverter.IsLittleEndian ? Endian.LSB : Endian.MSB;
+                                    if (Current.Endian == Endian.MSB || endian == Endian.MSB)
+                                        value = Encoding.BigEndianUnicode.GetString(exif.GetValue(ExifTag.UserComment).Value.Skip(8).ToArray());
+                                    else if (Current.Endian == Endian.LSB || endian == Endian.LSB)
+                                        value = Encoding.Unicode.GetString(exif.GetValue(ExifTag.UserComment).Value.Skip(8).ToArray());
+                                    //value = Encoding.BigEndianUnicode.GetString(exif.GetValue(ExifTag.UserComment).Value.Skip(8).ToArray());
                                 }
                                 else if (attr.Equals("exif:ExtensibleMetadataPlatform") || attr.Equals("exif:XmpMetadata"))
                                 {
