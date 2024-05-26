@@ -756,6 +756,21 @@ namespace ImageCompare
             return (Regex.Replace(text, @"(\n\r|\r\n|\n|\r)", $"{Environment.NewLine}{" ".PadLeft(count + offset, padding)}", RegexOptions.IgnoreCase));
         }
 
+        public Endian DetectFileEndian(string file)
+        {
+            var result = Endian.Undefined;
+            if (File.Exists(file))
+            {
+                var exif = new CompactExifLib.ExifData(file);
+                if (exif is CompactExifLib.ExifData)
+                {
+                    if (exif.ByteOrder == CompactExifLib.ExifByteOrder.BigEndian) result = Endian.MSB;
+                    else if(exif.ByteOrder == CompactExifLib.ExifByteOrder.LittleEndian) result = Endian.LSB;
+                }
+            }
+            return (result);
+        }
+
         public async Task<string> GetImageInfo(bool include_colorinfo = false)
         {
             string result = string.Empty;
@@ -803,6 +818,11 @@ namespace ImageCompare
                     if (Current.AttributeNames != null)
                     {
                         var fi = OriginalIsFile ? new FileInfo(FileName) : null;
+                        if (fi is FileInfo && fi.Exists)
+                        {
+                            if (Original.Endian == Endian.Undefined) Original.Endian = DetectFileEndian(fi.FullName);
+                            if (Current.Endian == Endian.Undefined) Current.Endian = Original.Endian;
+                        }
                         var exif = Current.HasProfile("exif") ? Current.GetExifProfile() : new ExifProfile();
                         tip.Add($"{"InfoTipAttributes".T()}");
                         var attrs = new List<string>();
@@ -834,12 +854,13 @@ namespace ImageCompare
                                     value = exif.GetValue(ExifTag.ImageDescription) != null ? exif.GetValue(ExifTag.ImageDescription).Value : value;
                                 else if (attr.Equals("exif:UserComment") && exif.GetValue(ExifTag.UserComment) != null)
                                 {
-                                    var endian = BitConverter.IsLittleEndian ? Endian.LSB : Endian.MSB;
-                                    if (Current.Endian == Endian.MSB || endian == Endian.MSB)
+                                    var endian_system = BitConverter.IsLittleEndian ? Endian.LSB : Endian.MSB;
+                                    var endian_current = Current.Endian == Endian.Undefined ? endian_system : Current.Endian;
+                                    var endian_original = Original.Endian == Endian.Undefined ? endian_system : Original.Endian;
+                                    if (endian_current == Endian.MSB || endian_original == Endian.MSB || endian_system == Endian.MSB)
                                         value = Encoding.BigEndianUnicode.GetString(exif.GetValue(ExifTag.UserComment).Value.Skip(8).ToArray());
-                                    else if (Current.Endian == Endian.LSB || endian == Endian.LSB)
+                                    else if (endian_current == Endian.LSB || endian_original == Endian.LSB || endian_system == Endian.LSB)
                                         value = Encoding.Unicode.GetString(exif.GetValue(ExifTag.UserComment).Value.Skip(8).ToArray());
-                                    //value = Encoding.BigEndianUnicode.GetString(exif.GetValue(ExifTag.UserComment).Value.Skip(8).ToArray());
                                 }
                                 else if (attr.Equals("exif:ExtensibleMetadataPlatform") || attr.Equals("exif:XmpMetadata"))
                                 {
@@ -854,21 +875,11 @@ namespace ImageCompare
                                 {
                                     foreach (var tag in exif.Values.Where(v => v.Tag.Equals(ExifTag.RatingPercent))) { value = tag.GetValue().ToString(); }
                                 }
-                                //else if (attr.StartsWith("png:"))
-                                //{
-
-                                //}
-                                //else if (attr.StartsWith("unknown"))
-                                //{
-                                //    if (exif.GetValue(ExifTag.Rating).ToString().Equals(value)) label = $"exif:Rating".PadRight(32, ' ');
-                                //    else if (exif.GetValue(ExifTag.RatingPercent).ToString().Equals(value)) label = $"exif:RatingPercent".PadRight(32, ' ');
-                                //}
                                 if (string.IsNullOrEmpty(value)) continue;
                                 if (attr.EndsWith("Keywords"))
                                 {
                                     var keywords = value.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(w => w.Trim()).ToList();
                                     for (var i = 5; i < keywords.Count; i += 5) { keywords[i] = $"{Environment.NewLine}{keywords[i]}"; }
-                                    //if (keywords.Count() > 5) keywords[6] = $"{Environment.NewLine}{keywords[5]}";
                                     value = string.Join("; ", keywords) + ';';
                                 }
                                 else if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
@@ -876,14 +887,6 @@ namespace ImageCompare
                             }
                             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, $"{attr} : {ex.Message}"); }
                         }
-                        //var rank_tags = new ExifTag[] { ExifTag.Rating, ExifTag.RatingPercent };
-                        //foreach(var tag in exif.Values.Where(v => rank_tags.Contains(v.Tag)))
-                        //{
-                        //    var label = $"exif:{tag.Tag.ToString()}".PadRight(32, ' ');
-                        //    var value = tag.GetValue().ToString();
-                        //    attrs.Add($"  {label}= {TextPadding(value, label, 4)}");
-                        //}
-                        //attrs.Sort();
                         tip.AddRange(attrs.OrderBy(a => a));
                     }
                     tip.Add($"{"InfoTipColorSpace".T()} {Current.ColorSpace.ToString()}");
@@ -901,13 +904,13 @@ namespace ImageCompare
                     if (!string.IsNullOrEmpty(FileName))
                     {
                         var FileSize = !string.IsNullOrEmpty(FileName) && File.Exists(FileName) ? new FileInfo(FileName).Length : -1;
-                        tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}");
+                        tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}, {Original.Endian}");
                         tip.Add($"{"InfoTipFileName".T()} {FileName}");
                     }
                     else if (ValidOriginal && !string.IsNullOrEmpty(Original.FileName))
                     {
                         var FileSize = !string.IsNullOrEmpty(Original.FileName) && File.Exists(Original.FileName) ? new FileInfo(Original.FileName).Length : -1;
-                        tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}");
+                        tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}, {Original.Endian}");
                         tip.Add($"{"InfoTipFileName".T()} {Original.FileName}");
                     }
                     else if (!string.IsNullOrEmpty(Current.FileName))
