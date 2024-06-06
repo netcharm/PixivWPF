@@ -473,6 +473,283 @@ namespace ImageCompare
             }
             return (result);
         }
+
+        public static string DecodeWinXP(this string text)
+        {
+            var result = text;
+
+            return (result);
+        }
+
+        private static byte[] ByteStringToBytes(string text, bool msb = false, int offset = 0)
+        {
+            byte[] result = null;
+            if (!string.IsNullOrEmpty(text))
+            {
+                List<byte> bytes = new List<byte>();
+                foreach (Match m in Regex.Matches($"{text.TrimEnd().TrimEnd(',')},", @"(0x[0-9,a-f]{1,2}|\d{1,4}),"))
+                {
+                    var value = m.Groups[1].Value;//.Trim().TrimEnd(',');
+                    if (string.IsNullOrEmpty(value)) continue;
+                    if (value.StartsWith("0x", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var v = value.Substring(2);
+                        if (v.Length <= 0 || v.Length > 2) continue;
+                        bytes.Add(byte.Parse(v, NumberStyles.HexNumber));
+                    }
+                    else
+                    {
+                        if (int.Parse(value) > 255)
+                        {
+                            if (msb && BitConverter.IsLittleEndian)
+                                bytes.AddRange(BitConverter.GetBytes(int.Parse(value)).Reverse().SkipWhile(b => b == 0));
+                            else if (!msb && BitConverter.IsLittleEndian)
+                                bytes.AddRange(BitConverter.GetBytes(int.Parse(value)).Reverse().SkipWhile(b => b == 0).Reverse());
+                            else if (msb && !BitConverter.IsLittleEndian)
+                                bytes.AddRange(BitConverter.GetBytes(int.Parse(value)).SkipWhile(b => b == 0));
+                            else if (!msb && !BitConverter.IsLittleEndian)
+                                bytes.AddRange(BitConverter.GetBytes(int.Parse(value)).SkipWhile(b => b == 0).Reverse());
+                        }
+                        else bytes.Add(byte.Parse(value));
+                    }
+
+                }
+                result = bytes.Count > offset ? bytes.Skip(offset).ToArray() : bytes.ToArray();
+            }
+            return (result);
+        }
+
+        private static string BytesToUnicode(string text, bool msb = false, int offset = 0)
+        {
+            var result = text;
+            if (!string.IsNullOrEmpty(text))
+            {
+                var bytes = ByteStringToBytes(text, msb);
+                if (bytes.Length > offset) result = msb ? Encoding.BigEndianUnicode.GetString(bytes.Skip(offset).ToArray()) : Encoding.Unicode.GetString(bytes.Skip(offset).ToArray());
+            }
+            return (result);
+        }
+
+        private static string BytesToString(byte[] bytes, bool ascii = false, bool msb = false, Encoding encoding = null)
+        {
+            var result = string.Empty;
+            if (bytes is byte[] && bytes.Length > 0)
+            {
+                if (ascii) result = Encoding.ASCII.GetString(bytes);
+                else
+                {
+                    if (bytes.Length > 8)
+                    {
+                        var idcode_bytes = bytes.Take(8).ToArray();
+                        var idcode_name = Encoding.ASCII.GetString(idcode_bytes).TrimEnd().TrimEnd('\0').TrimEnd();
+                        if ("UNICODE".Equals(idcode_name, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            if (msb)
+                                result = Encoding.BigEndianUnicode.GetString(bytes.Skip(8).ToArray());
+                            else
+                                result = Encoding.Unicode.GetString(bytes.Skip(8).ToArray());
+                        }
+                        else if ("Ascii".Equals(idcode_name, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            result = Encoding.ASCII.GetString(bytes.Skip(8).ToArray());
+                        }
+                        else if ("Default".Equals(idcode_name, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            result = Encoding.Default.GetString(bytes.Skip(8).ToArray());
+                        }
+                        else if (idcode_bytes.Where(b => b == 0).Count() == 8)
+                        {
+                            result = Encoding.Default.GetString(bytes.Skip(8).ToArray());
+                        }
+                        else
+                        {
+                            if (msb)
+                                result = Encoding.BigEndianUnicode.GetString(bytes);
+                            else
+                                result = Encoding.Unicode.GetString(bytes);
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(result))
+                    {
+                        var bytes_text = bytes.Select(c => ascii ? $"{Convert.ToChar(c)}" : $"{c}");
+                        if (encoding == null)
+                        {
+                            result = string.Join(", ", bytes_text);
+                            if (bytes.Length > 4)
+                            {
+                                var text = BytesToUnicode(result);
+                                if (!result.StartsWith("0,") && !string.IsNullOrEmpty(text)) result = text;
+                            }
+                        }
+                        else result = encoding.GetString(bytes);
+                    }
+                }
+            }
+            return (result);
+        }
+
+        private static string ByteStringToString(string text, Encoding encoding = default(Encoding), bool msb = false)
+        {
+            if (encoding == null) encoding = Encoding.UTF8;
+            if (msb && encoding == Encoding.Unicode) encoding = Encoding.BigEndianUnicode;
+            return (encoding.GetString(ByteStringToBytes(text)));
+        }
+
+        public static bool IsValidRead(this MagickImage image)
+        {
+            return (image is MagickImage && MagickFormatInfo.Create(image.Format).SupportsReading);
+        }
+
+        public static string GetAttributes(this MagickImage image, string attr)
+        {
+            string result = null;
+            try
+            {
+                if (image is MagickImage && IsValidRead(image))
+                {
+                    var is_msb = image.Endian == Endian.MSB;
+
+                    var exif = image.HasProfile("exif") ? image.GetExifProfile() : new ExifProfile();
+                    var iptc = image.HasProfile("iptc") ? image.GetIptcProfile() : new IptcProfile();
+                    Type exiftag_type = typeof(ImageMagick.ExifTag);
+
+                    result = image.GetAttribute(attr);
+                    if (attr.Contains("WinXP"))
+                    {
+                        var tag_name = $"XP{attr.Substring(11)}";
+                        dynamic tag_property = exiftag_type.GetProperty(tag_name) ?? exiftag_type.GetProperty($"{tag_name}s") ?? exiftag_type.GetProperty(tag_name.Substring(0, tag_name.Length-1));
+                        if (tag_property != null)
+                        {
+                            IExifValue tag_value = exif.GetValue(tag_property.GetValue(exif));
+                            if (tag_value != null)
+                            {
+                                if (tag_value.DataType == ExifDataType.String)
+                                    result = tag_value.GetValue() as string;
+                                else if (tag_value.DataType == ExifDataType.Byte)
+                                    result = Encoding.Unicode.GetString(tag_value.GetValue() as byte[]);
+                            }
+                        }
+                    }
+                    else if (attr.StartsWith("exif:") && !attr.Contains("WinXP"))
+                    {
+                        var tag_name = attr.Substring(5);
+                        if (tag_name.Equals("FlashPixVersion")) tag_name = "FlashpixVersion";
+                        dynamic tag_property = exiftag_type.GetProperty(tag_name) ?? exiftag_type.GetProperty($"{tag_name}s") ?? exiftag_type.GetProperty(tag_name.Substring(0, tag_name.Length-1));
+                        if (tag_property != null)
+                        {
+                            IExifValue tag_value = exif.GetValue(tag_property.GetValue(exif));
+                            if (tag_value != null)
+                            {
+                                if (tag_value.DataType == ExifDataType.String)
+                                    result = tag_value.GetValue() as string;
+                                else if (tag_value.DataType == ExifDataType.Rational && tag_value.IsArray)
+                                {
+                                    var rs = (Rational[])(tag_value.GetValue());
+                                    var rr = new List<string>();
+                                    foreach (var r in rs)
+                                    {
+                                        var ri = r.Numerator == 0 ? 0 : r.Numerator / r.Denominator;
+                                        var rf = r.ToDouble();
+                                        rr.Add(ri == rf ? $"{ri}" : (rf > 0 ? $"{rf:F8}" : $"{r.Numerator}/{r.Denominator}"));
+                                    }
+                                    result = string.Join(", ", rr);
+                                }
+                                else if (tag_value.DataType == ExifDataType.Rational)
+                                {
+                                    var r = (Rational)(tag_value.GetValue());
+                                    var ri = r.Numerator == 0 ? 0 : r.Numerator / r.Denominator;
+                                    var rf = r.ToDouble();
+                                    result = ri == rf ? $"{ri}" : (rf > 0 ? $"{rf:F1}" : $"{r.Numerator}/{r.Denominator}");
+                                }
+                                else if (tag_value.DataType == ExifDataType.SignedRational && tag_value.IsArray)
+                                {
+                                    var rs = (SignedRational[])(tag_value.GetValue());
+                                    var rr = new List<string>();
+                                    foreach (var r in rs)
+                                    {
+                                        var ri = r.Numerator == 0 ? 0 : r.Numerator / r.Denominator;
+                                        var rf = r.ToDouble();
+                                        rr.Add(ri == rf ? $"{ri}" : (rf > 0 ? $"{rf:F8}" : $"{r.Numerator}/{r.Denominator}"));
+                                    }
+                                    result = string.Join(", ", rr);
+                                }
+                                else if (tag_value.DataType == ExifDataType.SignedRational)
+                                {
+                                    var r = (SignedRational)(tag_value.GetValue());
+                                    var ri = r.Numerator == 0 ? 0 : r.Numerator / r.Denominator;
+                                    var rf = r.ToDouble();
+                                    result = ri == rf ? $"{ri}" : (rf > 0 ? $"{rf:F0}" : $"{r.Numerator}/{r.Denominator}");
+                                }
+                                else if (tag_value.DataType == ExifDataType.Undefined && tag_value.IsArray)
+                                {
+                                    if (tag_value.Tag == ImageMagick.ExifTag.ExifVersion)
+                                        result = BytesToString(tag_value.GetValue() as byte[], true, is_msb);
+                                    else if (tag_value.Tag == ImageMagick.ExifTag.GPSProcessingMethod || tag_value.Tag == ImageMagick.ExifTag.MakerNote)
+                                        result = Encoding.UTF8.GetString(tag_value.GetValue() as byte[]).TrimEnd('\0').Trim();
+                                    else if (tag_value.Tag == ImageMagick.ExifTag.UserComment)
+                                        result = BytesToString(tag_value.GetValue() as byte[], false, is_msb);
+                                    else
+                                        result = BytesToString(tag_value.GetValue() as byte[], false, is_msb);
+                                }
+                                else if (tag_value.DataType == ExifDataType.Byte && tag_value.IsArray)
+                                {
+                                    result = BytesToString(tag_value.GetValue() as byte[], msb: is_msb);
+                                }
+                                else if (tag_value.DataType == ExifDataType.Unknown && tag_value.IsArray)
+                                {
+                                    var is_ascii = tag_value.Tag.ToString().Contains("Version");
+                                    result = BytesToString(tag_value.GetValue() as byte[], is_ascii, is_msb);
+                                }
+                            }
+                            else if (!string.IsNullOrEmpty(result))
+                            {
+                                if (tag_name.Equals("UserComment") && Regex.IsMatch(result, @"(0x\d{2,2},){2,}", RegexOptions.IgnoreCase))
+                                {
+                                    result = BytesToUnicode(result, offset: 8);
+                                }
+                            }
+                        }
+                        else if (attr.Equals("exif:ExtensibleMetadataPlatform"))
+                        {
+                            var xmp_tag = exif.Values.Where(t => t.Tag == ImageMagick.ExifTag.XMP);
+                            if (xmp_tag.Count() > 0)
+                            {
+                                var bytes = xmp_tag.First().GetValue() as byte[];
+                                result = Encoding.UTF8.GetString(bytes);
+                            }
+                        }
+                    }
+                    else if (attr.StartsWith("iptc:"))
+                    {
+                        Type tag_type = typeof(IptcTag);
+                        var tag_name = attr.Substring(5);
+                        dynamic tag_property = tag_type.GetProperty(tag_name);
+                        if (tag_property != null)
+                        {
+                            IEnumerable<IIptcValue> iptc_values = iptc.GetAllValues(tag_property);
+                            var values = new List<string>();
+                            foreach (var tag_value in iptc_values)
+                            {
+                                if (tag_value != null) values.Add(tag_value.Value as string);
+                            }
+                            result = string.Join("; ", values);
+                        }
+                    }
+
+                    if (attr.StartsWith("date:"))
+                    {
+                        DateTime dt;
+                        if (DateTime.TryParse(result, out dt)) result = dt.ToString("yyyy-MM-ddTHH:mm:sszzz");
+                    }
+
+                    if (!string.IsNullOrEmpty(result)) result = result.Replace("\0", string.Empty).TrimEnd('\0');
+                    if (!string.IsNullOrEmpty(result) && Regex.IsMatch($"{result.TrimEnd().TrimEnd(',')},", @"((\d{1,3}) ?, ?){16,}", RegexOptions.IgnoreCase)) result = ByteStringToString(result);
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+            return (result);
+        }
         #endregion
 
         #region Magick.Net Helper
@@ -483,20 +760,20 @@ namespace ImageCompare
 
         public static bool Valid(this MagickImage image)
         {
-            return (image is MagickImage && !image.IsDisposed);
+            return (image is MagickImage);
         }
 
         public static bool Invalided(this MagickImage image)
         {
-            return (image == null || image.IsDisposed);
+            return (image == null);
         }
 
-        public static Func<MagickImage, int> FuncTotalColors = (i)=> { return ((i is MagickImage && !i.IsDisposed) ? i.TotalColors : 0); };
+        public static Func<MagickImage, int> FuncTotalColors = (i)=> { return ((i is MagickImage) ? i.TotalColors : 0); };
 
         public static async Task<int> CalcTotalColors(this MagickImage image)
         {
             var result = 0;
-            Func<int> GetColorsCount = () => { return ((image is MagickImage && !image.IsDisposed) ? image.TotalColors : 0);};
+            Func<int> GetColorsCount = () => { return ((image is MagickImage) ? image.TotalColors : 0);};
             result = await Application.Current.Dispatcher.InvokeAsync<int>(GetColorsCount, DispatcherPriority.Background);
             return (result);
         }
@@ -656,7 +933,7 @@ namespace ImageCompare
                         else if (profile is XmpProfile)
                         {
                             var xmp = profile as XmpProfile;
-                            var xml = Encoding.UTF8.GetString(xmp.GetData());
+                            var xml = Encoding.UTF8.GetString(xmp.ToByteArray());
                             //image.SetAttribute()
                         }
 #endif
@@ -671,7 +948,7 @@ namespace ImageCompare
             var result = image.BoundingBox;
             try
             {
-                if (image is MagickImage && !image.IsDisposed)
+                if (image is MagickImage)
                 {
                     var diff = new MagickImage(image);
                     diff.ColorType = ColorType.Bilevel;
@@ -690,7 +967,7 @@ namespace ImageCompare
             {
                 foreach (var fmt in MagickNET.SupportedFormats)
                 {
-                    if (fmt.IsReadable)
+                    if (fmt.SupportsReading)
                     {
                         if (fmt.MimeType != null && fmt.MimeType.StartsWith("video", StringComparison.CurrentCultureIgnoreCase)) continue;
                         else if (fmt.Description.StartsWith("video", StringComparison.CurrentCultureIgnoreCase)) continue;

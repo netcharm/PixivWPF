@@ -1046,7 +1046,7 @@ namespace ImageCompare
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 if (image.ValidCurrent)
                 {
-                    image.Current.Contrast(enchance);
+                    image.Current.Contrast();
                     action = true;
                 }
 
@@ -1405,7 +1405,10 @@ namespace ImageCompare
                         image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, image.Current.Height - 2);
                     }
                     else
-                        image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, image.LastClickPos ?? image.DefaultOrigin);
+                    {
+                        var pos = image.LastClickPos ?? image.DefaultOrigin;
+                        image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, (int)pos.X, (int)pos.Y);
+                    }
                     action = true;
                 }
 

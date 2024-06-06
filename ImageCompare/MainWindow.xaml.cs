@@ -77,7 +77,7 @@ namespace ImageCompare
         //private ImageType LastImageType = ImageType.Result;
         //private double ImageDistance = 0;
 
-        private Channels CompareImageChannels = Channels.Default;
+        private Channels CompareImageChannels = Channels.All;
         private bool CompareImageAutoMatchSize { get { return (AutoMatchSize.IsChecked ?? false); } }
         private bool CompareImageForceScale { get { return (UseSmallerImage.IsChecked ?? false); } }
         private bool CompareImageForceColor { get { return (UseColorImage.IsChecked ?? false); } }
@@ -2123,8 +2123,8 @@ namespace ImageCompare
             {
                 var magick_cache = Path.IsPathRooted(CachePath) ? CachePath : Path.Combine(AppPath, CachePath);
                 //if (!Directory.Exists(magick_cache)) Directory.CreateDirectory(magick_cache);
-                MagickAnyCPU.CacheDirectory = Directory.Exists(magick_cache) ? magick_cache : AppPath;
-                MagickAnyCPU.HasSharedCacheDirectory = true;
+                //MagickAnyCPU.CacheDirectory = Directory.Exists(magick_cache) ? magick_cache : AppPath;
+                //MagickAnyCPU.HasSharedCacheDirectory = true;
                 OpenCL.IsEnabled = true;
                 if (Directory.Exists(magick_cache)) OpenCL.SetCacheDirectory(magick_cache);
 #if DEBUG
@@ -2257,38 +2257,42 @@ namespace ImageCompare
             ImageCompose.ContextMenu = cm_compose_mode;
             #endregion
             #region Create Channels Selector
-            var names = new string[] { "Default", "All", "None", "-", "RGB", "Red", "Green", "Blue", "-", "CMYK", "Cyan", "Magenta", "Yellow", "Black", "-", "Grays", "Gray", "-", "Alpha", "Opacity", "TrueAlpha", "Composite", "Index", "Sync" };
-            var rgb = new string[] { "Red", "Green", "Blue", "RGB" };
-            var cmyk = new string[] { "Cyan", "Magenta", "Yellow", "Black", "CMYK" };
-            var gray = new string[] { "Grays, Gray" };
+            var names = new string[] { "Undefined", "All", "-", "RGB", "RGBA", "Red", "Green", "Blue", "-", "CMYK", "CMYKA", "Cyan", "Magenta", "Yellow", "Black", "-", "Alpha", "Opacity", "Gray", "Index", "TrueAlpha", "Composite" };
+            var rgb = new string[] { "Red", "Green", "Blue", "RGB", "RGBA" };
+            var cmyk = new string[] { "Cyan", "Magenta", "Yellow", "Black", "CMYK", "CMYKA" };
+            var gray = new string[] { "Gray" };
             var cm_channels_mode = new ContextMenu() { IsTextSearchEnabled = true, PlacementTarget = UsedChannels };
             //foreach (string v in Enum.GetNames(typeof(Channels)))
             foreach (string v in names)
             {
-                dynamic item = null;
-                if (v.Equals("-")) item = new Separator();
-                else
+                try
                 {
-                    item = new MenuItem()
+                    dynamic item = null;
+                    if (v.Equals("-")) item = new Separator();
+                    else
                     {
-                        Header = v,
-                        Tag = v.Equals("-") ? null : Enum.Parse(typeof(Channels), v, true),
-                        IsChecked = (v.Equals("Default") ? true : false),
-                    };
-                    (item as MenuItem).Click += (obj, evt) =>
-                    {
-                        foreach (var m in cm_channels_mode.Items) { if (m is MenuItem) (m as MenuItem).IsChecked = false; }
-                        if (obj is MenuItem)
+                        item = new MenuItem()
                         {
-                            var menu = obj as MenuItem;
-                            menu.IsChecked = true;
-                            CompareImageChannels = (Channels)menu.Tag;
-                            UpdateImageViewer(compose: LastOpIsCompose);
-                        }
-                    };
+                            Header = v,
+                            Tag = v.Equals("-") ? null : Enum.Parse(typeof(Channels), v, true),
+                            IsChecked = (v.Equals("Default") ? true : false),
+                        };
+                        (item as MenuItem).Click += (obj, evt) =>
+                        {
+                            foreach (var m in cm_channels_mode.Items) { if (m is MenuItem) (m as MenuItem).IsChecked = false; }
+                            if (obj is MenuItem)
+                            {
+                                var menu = obj as MenuItem;
+                                menu.IsChecked = true;
+                                CompareImageChannels = (Channels)menu.Tag;
+                                UpdateImageViewer(compose: LastOpIsCompose);
+                            }
+                        };
+                    }
+                    //if (cm_channels_mode.Items.Cast<MenuItem>().Where(i => i.Header.Equals(item.Header)).Count() < 1)
+                    cm_channels_mode.Items.Add(item);
                 }
-                //if (cm_channels_mode.Items.Cast<MenuItem>().Where(i => i.Header.Equals(item.Header)).Count() < 1)
-                cm_channels_mode.Items.Add(item);
+                catch(Exception ex) { ex.ShowMessage($"CreateChannelsSelector: {v}"); }
             }
             cm_channels_mode.Items.LiveGroupingProperties.Add("Header");
             cm_channels_mode.Items.LiveGroupingProperties.Add("Tag");
