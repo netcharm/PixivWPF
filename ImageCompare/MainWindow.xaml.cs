@@ -212,7 +212,7 @@ namespace ImageCompare
                         var ui_target = new UIElement[] { ImageTargetScroll, ImageTargetBox, ImageTarget };
                         var ui_result = new UIElement[] { ImageResultScroll, ImageResultBox, ImageResult };
                         if (ui_source.Contains(host)) result = ImageType.Source;
-                        else if(ui_target.Contains(host)) result = ImageType.Target;
+                        else if (ui_target.Contains(host)) result = ImageType.Target;
                         else if (ui_result.Contains(host)) result = ImageType.Result;
                     }
                 }
@@ -551,7 +551,7 @@ namespace ImageCompare
                 {
                     w = ViewerPanel.ActualWidth / 3.0;
                 }
-                else if(ViewerPanel.Orientation == Orientation.Vertical)
+                else if (ViewerPanel.Orientation == Orientation.Vertical)
                 {
                     h = ViewerPanel.ActualHeight / 3.0;
                 }
@@ -683,7 +683,7 @@ namespace ImageCompare
                             var value = (scroll.ActualWidth - delta) / targetX;
                             ZoomRatio.Minimum = value < ZoomMin ? value : ZoomMin;
                             ZoomRatio.Value = value;
-                        }                        
+                        }
                     }
                     else if (ZoomFitHeight.IsChecked ?? false)
                     {
@@ -2239,10 +2239,10 @@ namespace ImageCompare
             {
                 mi_count++;
                 var item = new MenuItem()
-                {                    
+                {
                     Header = v.ToString(),
                     Tag = v,
-                    IsChecked = ((CompositeOperator)v == CompositeMode ? true : false)                    
+                    IsChecked = ((CompositeOperator)v == CompositeMode ? true : false)
                 };
                 item.Click += (obj, evt) =>
                 {
@@ -2292,7 +2292,7 @@ namespace ImageCompare
                     //if (cm_channels_mode.Items.Cast<MenuItem>().Where(i => i.Header.Equals(item.Header)).Count() < 1)
                     cm_channels_mode.Items.Add(item);
                 }
-                catch(Exception ex) { ex.ShowMessage($"CreateChannelsSelector: {v}"); }
+                catch (Exception ex) { ex.ShowMessage($"CreateChannelsSelector: {v}"); }
             }
             cm_channels_mode.Items.LiveGroupingProperties.Add("Header");
             cm_channels_mode.Items.LiveGroupingProperties.Add("Tag");
@@ -2592,18 +2592,24 @@ namespace ImageCompare
             {
                 e.Handled = true;
                 var action = false;
-                var reload_type = ImageType.None;
-                if (sender == ImageSourceScroll || sender == ImageSourceBox) { action |= await ImageSource.GetInformation().LoadImageFromNextFile(); reload_type = ImageType.Source; }
-                else if (sender == ImageTargetScroll || sender == ImageTargetBox) { action |= await ImageTarget.GetInformation().LoadImageFromNextFile(); reload_type = ImageType.Target; }
+                var reload_type = GetImageType(sender);
+                if (reload_type == ImageType.Source)
+                    action |= await ImageSource.GetInformation().LoadImageFromNextFile();
+                else if (reload_type == ImageType.Target)
+                    action |= await ImageTarget.GetInformation().LoadImageFromNextFile();
+
                 if (action) UpdateImageViewer(assign: true, reload_type: reload_type);
             }
             else if (e.ChangedButton == MouseButton.XButton2)
             {
                 e.Handled = true;
                 var action = false;
-                var reload_type = ImageType.None;
-                if (sender == ImageSourceScroll || sender == ImageSourceBox) { action |= await ImageSource.GetInformation().LoadImageFromPrevFile(); reload_type = ImageType.Source; }
-                else if (sender == ImageTargetScroll || sender == ImageTargetBox) { action |= await ImageTarget.GetInformation().LoadImageFromPrevFile(); reload_type = ImageType.Target; }
+                var reload_type = GetImageType(sender);
+                if (reload_type == ImageType.Source)
+                    action |= await ImageSource.GetInformation().LoadImageFromPrevFile();
+                else if (reload_type == ImageType.Target)
+                    action |= await ImageTarget.GetInformation().LoadImageFromPrevFile();
+
                 if (action) UpdateImageViewer(assign: true, reload_type: reload_type);
             }
             else ImageBox_MouseDown(sender, e);
