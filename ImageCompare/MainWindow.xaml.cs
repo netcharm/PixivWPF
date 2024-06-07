@@ -2592,17 +2592,19 @@ namespace ImageCompare
             {
                 e.Handled = true;
                 var action = false;
-                if (sender == ImageSourceScroll || sender == ImageSourceBox) action |= await ImageSource.GetInformation().LoadImageFromNextFile();
-                else if (sender == ImageTargetScroll || sender == ImageTargetBox) action |= await ImageTarget.GetInformation().LoadImageFromNextFile();
-                if (action) UpdateImageViewer(assign: true);
+                var reload_type = ImageType.None;
+                if (sender == ImageSourceScroll || sender == ImageSourceBox) { action |= await ImageSource.GetInformation().LoadImageFromNextFile(); reload_type = ImageType.Source; }
+                else if (sender == ImageTargetScroll || sender == ImageTargetBox) { action |= await ImageTarget.GetInformation().LoadImageFromNextFile(); reload_type = ImageType.Target; }
+                if (action) UpdateImageViewer(assign: true, reload_type: reload_type);
             }
             else if (e.ChangedButton == MouseButton.XButton2)
             {
                 e.Handled = true;
                 var action = false;
-                if (sender == ImageSourceScroll || sender == ImageSourceBox) action |= await ImageSource.GetInformation().LoadImageFromPrevFile();
-                else if (sender == ImageTargetScroll || sender == ImageTargetBox) action |= await ImageTarget.GetInformation().LoadImageFromPrevFile();
-                if (action) UpdateImageViewer(assign: true);
+                var reload_type = ImageType.None;
+                if (sender == ImageSourceScroll || sender == ImageSourceBox) { action |= await ImageSource.GetInformation().LoadImageFromPrevFile(); reload_type = ImageType.Source; }
+                else if (sender == ImageTargetScroll || sender == ImageTargetBox) { action |= await ImageTarget.GetInformation().LoadImageFromPrevFile(); reload_type = ImageType.Target; }
+                if (action) UpdateImageViewer(assign: true, reload_type: reload_type);
             }
             else ImageBox_MouseDown(sender, e);
         }
