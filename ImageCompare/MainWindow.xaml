@@ -6,7 +6,6 @@
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:local="clr-namespace:ImageCompare"
         mc:Ignorable="d"
-        VisualTextRenderingMode="Auto"
         RenderOptions.BitmapScalingMode="HighQuality"
         RenderOptions.CachingHint="Cache"
         RenderOptions.ClearTypeHint="Enabled"
@@ -330,6 +329,19 @@
                     </ContextMenu>
                 </Button.ContextMenu>
             </Button>
+            <Separator/>
+            <ToggleButton x:Name="DarkBackground" x:Uid="DarkBackground" IsChecked="False"
+                          ToolTip="Dark Background" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="AutoSaveOptionsPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="AutoSaveOptionsIcon" Text="&#xE793;" Style="{DynamicResource MenuItemIcon}" Foreground="Gray"/>
+                </StackPanel>
+            </ToggleButton>
+            <ToggleButton x:Name="AutoSaveOptions" x:Uid="AutoSaveOptions" IsChecked="True"
+                          ToolTip="Auto Save Options" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="AutoSaveOptionsPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="AutoSaveOptionsIcon" Text="&#xE115;" Style="{DynamicResource MenuItemIcon}" Foreground="Gray"/>
+                </StackPanel>
+            </ToggleButton>
         </ToolBar>
         <StackPanel x:Name="ViewerPanel" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal">
             <!-- Image Source Preview -->

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Resources;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -15,6 +16,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
@@ -37,6 +39,18 @@ namespace ImageCompare
         private static string AppPath = Path.GetDirectoryName(AppExec);
         private static string AppName = Path.GetFileNameWithoutExtension(AppPath);
         private static string CachePath =  "cache";
+
+        private bool AutoSaveConfig 
+        { 
+            get { return (AutoSaveOptions.IsChecked ?? true); }
+            set { AutoSaveOptions.IsChecked = value; }
+        }
+
+        private bool DarkTheme
+        {
+            get { return (DarkBackground.IsChecked ?? true); }
+            set { DarkBackground.IsChecked = value; }
+        }
 
         private FontFamily CustomMonoFontFamily = new FontFamily();
         private FontFamily CustomIconFontFamily = new FontFamily();
@@ -318,6 +332,30 @@ namespace ImageCompare
         private Point mouse_origin;
         private double ZoomMin = 0.1;
         private double ZoomMax = 10.0;
+
+        public void ChangeTheme()
+        {
+            try
+            {
+                var source = new Uri(@"pack://application:,,,/ImageCompare;component/Resources/CheckboardPattern_32.png", UriKind.RelativeOrAbsolute);
+                var sri = Application.GetResourceStream(source);
+                if (sri is System.Windows.Resources.StreamResourceInfo && sri.ContentType.Equals("image/png") && sri.Stream is Stream && sri.Stream.CanRead && sri.Stream.Length > 0)
+                {
+                    //var bg = ImageCanvas.Background;
+                    var opacity = 0.1;
+                    var pattern = new MagickImage(sri.Stream);
+                    if (DarkTheme)
+                    {
+                        pattern.Negate(Channels.RGB);
+                        pattern.Opaque(MagickColors.White, MagickColors.DimGray);
+                        opacity = 0.9;
+                    }
+                    ImageCanvas.Background = new ImageBrush(pattern.ToBitmapSource()) { TileMode = TileMode.Tile, Opacity = opacity, ViewportUnits = BrushMappingMode.Absolute, Viewport = new Rect(0, 0, 32, 32) };
+                    ImageCanvas.InvalidateVisual();
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
 
         public void ChangeResourceFonts(FontFamily font = null, string fonts = "")
         {
@@ -1066,6 +1104,19 @@ namespace ImageCompare
             AppSettingsSection appSection = appCfg.AppSettings;
             try
             {
+                
+                if (appSection.Settings.AllKeys.Contains("AutoSaveOptions"))
+                {
+                    var value = AutoSaveOptions.IsChecked ?? true;
+                    if (bool.TryParse(appSection.Settings["AutoSaveOptions"].Value, out value)) AutoSaveConfig = value;
+                }
+
+                if (appSection.Settings.AllKeys.Contains("DarkTheme"))
+                {
+                    var value = DarkBackground.IsChecked ?? true;
+                    if (bool.TryParse(appSection.Settings["DarkTheme"].Value, out value)) DarkTheme = value;
+                }
+
                 if (appSection.Settings.AllKeys.Contains("CustomMonoFontFamily"))
                 {
                     var value = appSection.Settings["CustomMonoFontFamily"].Value;
@@ -1255,146 +1306,158 @@ namespace ImageCompare
                 Configuration appCfg =  ConfigurationManager.OpenExeConfiguration(AppExec);
                 AppSettingsSection appSection = appCfg.AppSettings;
 
-                var rect = new Rect(
+                if (appSection.Settings.AllKeys.Contains("AutoSaveOptions"))
+                    appSection.Settings["AutoSaveOptions"].Value = AutoSaveConfig.ToString();
+                else
+                    appSection.Settings.Add("AutoSaveOptions", AutoSaveConfig.ToString());
+
+                if (AutoSaveConfig)
+                {
+                    var rect = new Rect(
                         LastPositionSize.Left, LastPositionSize.Top,
                         Math.Min(MaxWidth, Math.Max(MinWidth, LastPositionSize.Width)),
                         Math.Min(MaxHeight, Math.Max(MinHeight, LastPositionSize.Height))
                     );
-                if (appSection.Settings.AllKeys.Contains("WindowPosition"))
-                    appSection.Settings["WindowPosition"].Value = rect.ToString();
-                else
-                    appSection.Settings.Add("WindowPosition", rect.ToString());
+                    if (appSection.Settings.AllKeys.Contains("WindowPosition"))
+                        appSection.Settings["WindowPosition"].Value = rect.ToString();
+                    else
+                        appSection.Settings.Add("WindowPosition", rect.ToString());
 
-                if (appSection.Settings.AllKeys.Contains("WindowState"))
-                    appSection.Settings["WindowState"].Value = LastWinState.ToString();
-                else
-                    appSection.Settings.Add("WindowState", LastWinState.ToString());
+                    if (appSection.Settings.AllKeys.Contains("WindowState"))
+                        appSection.Settings["WindowState"].Value = LastWinState.ToString();
+                    else
+                        appSection.Settings.Add("WindowState", LastWinState.ToString());
 
-                if (appSection.Settings.AllKeys.Contains("CachePath"))
-                    appSection.Settings["CachePath"].Value = CachePath;
-                else
-                    appSection.Settings.Add("CachePath", CachePath);
+                    if (appSection.Settings.AllKeys.Contains("CachePath"))
+                        appSection.Settings["CachePath"].Value = CachePath;
+                    else
+                        appSection.Settings.Add("CachePath", CachePath);
 
-                if (appSection.Settings.AllKeys.Contains("CachePath"))
-                    appSection.Settings["CachePath"].Value = CachePath;
-                else
-                    appSection.Settings.Add("CachePath", CachePath);
+                    if (appSection.Settings.AllKeys.Contains("CachePath"))
+                        appSection.Settings["CachePath"].Value = CachePath;
+                    else
+                        appSection.Settings.Add("CachePath", CachePath);
 
-                if (appSection.Settings.AllKeys.Contains("UILanguage"))
-                    appSection.Settings["UILanguage"].Value = DefaultCultureInfo.IetfLanguageTag;
-                else
-                    appSection.Settings.Add("UILanguage", DefaultCultureInfo.IetfLanguageTag);
+                    if (appSection.Settings.AllKeys.Contains("DarkTheme"))
+                        appSection.Settings["DarkTheme"].Value = DarkTheme.ToString();
+                    else
+                        appSection.Settings.Add("DarkTheme", DarkTheme.ToString());
 
-                if (appSection.Settings.AllKeys.Contains("HighlightColor"))
-                    appSection.Settings["HighlightColor"].Value = HighlightColor == null ? string.Empty : HighlightColor.ToHexString();
-                else
-                    appSection.Settings.Add("HighlightColor", HighlightColor == null ? string.Empty : HighlightColor.ToHexString());
+                    if (appSection.Settings.AllKeys.Contains("UILanguage"))
+                        appSection.Settings["UILanguage"].Value = DefaultCultureInfo.IetfLanguageTag;
+                    else
+                        appSection.Settings.Add("UILanguage", DefaultCultureInfo.IetfLanguageTag);
 
-                if (appSection.Settings.AllKeys.Contains("HighlightColorRecents"))
-                    appSection.Settings["HighlightColorRecents"].Value = string.Join(", ", GetRecentHexColors(HighlightColorPick));
-                else
-                    appSection.Settings.Add("HighlightColorRecents", string.Join(", ", GetRecentHexColors(HighlightColorPick)));
+                    if (appSection.Settings.AllKeys.Contains("HighlightColor"))
+                        appSection.Settings["HighlightColor"].Value = HighlightColor == null ? string.Empty : HighlightColor.ToHexString();
+                    else
+                        appSection.Settings.Add("HighlightColor", HighlightColor == null ? string.Empty : HighlightColor.ToHexString());
 
-                if (appSection.Settings.AllKeys.Contains("LowlightColor"))
-                    appSection.Settings["LowlightColor"].Value = LowlightColor == null ? string.Empty : LowlightColor.ToHexString();
-                else
-                    appSection.Settings.Add("LowlightColor", LowlightColor == null ? string.Empty : LowlightColor.ToHexString());
+                    if (appSection.Settings.AllKeys.Contains("HighlightColorRecents"))
+                        appSection.Settings["HighlightColorRecents"].Value = string.Join(", ", GetRecentHexColors(HighlightColorPick));
+                    else
+                        appSection.Settings.Add("HighlightColorRecents", string.Join(", ", GetRecentHexColors(HighlightColorPick)));
 
-                if (appSection.Settings.AllKeys.Contains("LowlightColorRecents"))
-                    appSection.Settings["LowlightColorRecents"].Value = string.Join(", ", GetRecentHexColors(LowlightColorPick));
-                else
-                    appSection.Settings.Add("LowlightColorRecents", string.Join(", ", GetRecentHexColors(LowlightColorPick)));
+                    if (appSection.Settings.AllKeys.Contains("LowlightColor"))
+                        appSection.Settings["LowlightColor"].Value = LowlightColor == null ? string.Empty : LowlightColor.ToHexString();
+                    else
+                        appSection.Settings.Add("LowlightColor", LowlightColor == null ? string.Empty : LowlightColor.ToHexString());
 
-                if (appSection.Settings.AllKeys.Contains("MasklightColor"))
-                    appSection.Settings["MasklightColor"].Value = MasklightColor == null ? string.Empty : MasklightColor.ToHexString();
-                else
-                    appSection.Settings.Add("MasklightColor", MasklightColor == null ? string.Empty : MasklightColor.ToHexString());
+                    if (appSection.Settings.AllKeys.Contains("LowlightColorRecents"))
+                        appSection.Settings["LowlightColorRecents"].Value = string.Join(", ", GetRecentHexColors(LowlightColorPick));
+                    else
+                        appSection.Settings.Add("LowlightColorRecents", string.Join(", ", GetRecentHexColors(LowlightColorPick)));
 
-                if (appSection.Settings.AllKeys.Contains("MasklightColorRecents"))
-                    appSection.Settings["MasklightColorRecents"].Value = string.Join(", ", GetRecentHexColors(MasklightColorPick));
-                else
-                    appSection.Settings.Add("MasklightColorRecents", string.Join(", ", GetRecentHexColors(MasklightColorPick)));
+                    if (appSection.Settings.AllKeys.Contains("MasklightColor"))
+                        appSection.Settings["MasklightColor"].Value = MasklightColor == null ? string.Empty : MasklightColor.ToHexString();
+                    else
+                        appSection.Settings.Add("MasklightColor", MasklightColor == null ? string.Empty : MasklightColor.ToHexString());
 
-                if (appSection.Settings.AllKeys.Contains("ImageCompareFuzzy"))
-                    appSection.Settings["ImageCompareFuzzy"].Value = ImageCompareFuzzy.Value.ToString();
-                else
-                    appSection.Settings.Add("ImageCompareFuzzy", ImageCompareFuzzy.Value.ToString());
+                    if (appSection.Settings.AllKeys.Contains("MasklightColorRecents"))
+                        appSection.Settings["MasklightColorRecents"].Value = string.Join(", ", GetRecentHexColors(MasklightColorPick));
+                    else
+                        appSection.Settings.Add("MasklightColorRecents", string.Join(", ", GetRecentHexColors(MasklightColorPick)));
 
-                if (appSection.Settings.AllKeys.Contains("ErrorMetricMode"))
-                    appSection.Settings["ErrorMetricMode"].Value = ErrorMetricMode.ToString();
-                else
-                    appSection.Settings.Add("ErrorMetricMode", ErrorMetricMode.ToString());
+                    if (appSection.Settings.AllKeys.Contains("ImageCompareFuzzy"))
+                        appSection.Settings["ImageCompareFuzzy"].Value = ImageCompareFuzzy.Value.ToString();
+                    else
+                        appSection.Settings.Add("ImageCompareFuzzy", ImageCompareFuzzy.Value.ToString());
 
-                if (appSection.Settings.AllKeys.Contains("CompositeMode"))
-                    appSection.Settings["CompositeMode"].Value = CompositeMode.ToString();
-                else
-                    appSection.Settings.Add("CompositeMode", CompositeMode.ToString());
+                    if (appSection.Settings.AllKeys.Contains("ErrorMetricMode"))
+                        appSection.Settings["ErrorMetricMode"].Value = ErrorMetricMode.ToString();
+                    else
+                        appSection.Settings.Add("ErrorMetricMode", ErrorMetricMode.ToString());
 
-                if (appSection.Settings.AllKeys.Contains("GrayscaleMode"))
-                    appSection.Settings["GrayscaleMode"].Value = GrayscaleMode.ToString();
-                else
-                    appSection.Settings.Add("GrayscaleMode", GrayscaleMode.ToString());
+                    if (appSection.Settings.AllKeys.Contains("CompositeMode"))
+                        appSection.Settings["CompositeMode"].Value = CompositeMode.ToString();
+                    else
+                        appSection.Settings.Add("CompositeMode", CompositeMode.ToString());
 
-                if (appSection.Settings.AllKeys.Contains("ZoomFitMode"))
-                    appSection.Settings["ZoomFitMode"].Value = CurrentZoomFitMode.ToString();
-                else
-                    appSection.Settings.Add("ZoomFitMode", CurrentZoomFitMode.ToString());
+                    if (appSection.Settings.AllKeys.Contains("GrayscaleMode"))
+                        appSection.Settings["GrayscaleMode"].Value = GrayscaleMode.ToString();
+                    else
+                        appSection.Settings.Add("GrayscaleMode", GrayscaleMode.ToString());
 
-                if (appSection.Settings.AllKeys.Contains("ImageLayout"))
-                    appSection.Settings["ImageLayout"].Value = CurrentImageLayout.ToString();
-                else
-                    appSection.Settings.Add("ImageLayout", CurrentImageLayout.ToString());
+                    if (appSection.Settings.AllKeys.Contains("ZoomFitMode"))
+                        appSection.Settings["ZoomFitMode"].Value = CurrentZoomFitMode.ToString();
+                    else
+                        appSection.Settings.Add("ZoomFitMode", CurrentZoomFitMode.ToString());
 
-                if (appSection.Settings.AllKeys.Contains("ImageLayout"))
-                {
-                    var value = Orientation.Horizontal;
-                    if (Enum.TryParse(appSection.Settings["ImageLayout"].Value, out value)) ImageLayout.IsChecked = value == Orientation.Vertical;
+                    if (appSection.Settings.AllKeys.Contains("ImageLayout"))
+                        appSection.Settings["ImageLayout"].Value = CurrentImageLayout.ToString();
+                    else
+                        appSection.Settings.Add("ImageLayout", CurrentImageLayout.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("ImageLayout"))
+                    {
+                        var value = Orientation.Horizontal;
+                        if (Enum.TryParse(appSection.Settings["ImageLayout"].Value, out value)) ImageLayout.IsChecked = value == Orientation.Vertical;
+                    }
+
+                    if (appSection.Settings.AllKeys.Contains("AutoMatchSize"))
+                        appSection.Settings["AutoMatchSize"].Value = AutoMatchSize.IsChecked.ToString();
+                    else
+                        appSection.Settings.Add("AutoMatchSize", AutoMatchSize.IsChecked.Value.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("UseSmallerImage"))
+                        appSection.Settings["UseSmallerImage"].Value = UseSmallerImage.IsChecked.ToString();
+                    else
+                        appSection.Settings.Add("UseSmallerImage", UseSmallerImage.IsChecked.Value.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("UseColorImage"))
+                        appSection.Settings["UseColorImage"].Value = UseColorImage.IsChecked.Value.ToString();
+                    else
+                        appSection.Settings.Add("UseColorImage", UseColorImage.IsChecked.Value.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("LastHaldFolder"))
+                        appSection.Settings["LastHaldFolder"].Value = LastHaldFolder;
+                    else
+                        appSection.Settings.Add("LastHaldFolder", LastHaldFolder);
+                    if (appSection.Settings.AllKeys.Contains("LastHaldFile"))
+                        appSection.Settings["LastHaldFile"].Value = LastHaldFile;
+                    else
+                        appSection.Settings.Add("LastHaldFile", LastHaldFile);
+
+                    if (appSection.Settings.AllKeys.Contains("UseWeakBlur"))
+                        appSection.Settings["UseWeakBlur"].Value = UseWeakBlur.IsChecked.Value.ToString();
+                    else
+                        appSection.Settings.Add("UseWeakBlur", UseWeakBlur.IsChecked.Value.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("UseWeakSharp"))
+                        appSection.Settings["UseWeakSharp"].Value = UseWeakSharp.IsChecked.Value.ToString();
+                    else
+                        appSection.Settings.Add("UseWeakSharp", UseWeakSharp.IsChecked.Value.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("MaxCompareSize"))
+                        appSection.Settings["MaxCompareSize"].Value = MaxCompareSize.ToString();
+                    else
+                        appSection.Settings.Add("MaxCompareSize", MaxCompareSize.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("SimpleTrimCropBoundingBox"))
+                        appSection.Settings["SimpleTrimCropBoundingBox"].Value = SimpleTrimCropBoundingBox.ToString();
+                    else
+                        appSection.Settings.Add("SimpleTrimCropBoundingBox", SimpleTrimCropBoundingBox.ToString());
                 }
-
-                if (appSection.Settings.AllKeys.Contains("AutoMatchSize"))
-                    appSection.Settings["AutoMatchSize"].Value = AutoMatchSize.IsChecked.ToString();
-                else
-                    appSection.Settings.Add("AutoMatchSize", AutoMatchSize.IsChecked.Value.ToString());
-
-                if (appSection.Settings.AllKeys.Contains("UseSmallerImage"))
-                    appSection.Settings["UseSmallerImage"].Value = UseSmallerImage.IsChecked.ToString();
-                else
-                    appSection.Settings.Add("UseSmallerImage", UseSmallerImage.IsChecked.Value.ToString());
-
-                if (appSection.Settings.AllKeys.Contains("UseColorImage"))
-                    appSection.Settings["UseColorImage"].Value = UseColorImage.IsChecked.Value.ToString();
-                else
-                    appSection.Settings.Add("UseColorImage", UseColorImage.IsChecked.Value.ToString());
-
-                if (appSection.Settings.AllKeys.Contains("LastHaldFolder"))
-                    appSection.Settings["LastHaldFolder"].Value = LastHaldFolder;
-                else
-                    appSection.Settings.Add("LastHaldFolder", LastHaldFolder);
-                if (appSection.Settings.AllKeys.Contains("LastHaldFile"))
-                    appSection.Settings["LastHaldFile"].Value = LastHaldFile;
-                else
-                    appSection.Settings.Add("LastHaldFile", LastHaldFile);
-
-                if (appSection.Settings.AllKeys.Contains("UseWeakBlur"))
-                    appSection.Settings["UseWeakBlur"].Value = UseWeakBlur.IsChecked.Value.ToString();
-                else
-                    appSection.Settings.Add("UseWeakBlur", UseWeakBlur.IsChecked.Value.ToString());
-
-                if (appSection.Settings.AllKeys.Contains("UseWeakSharp"))
-                    appSection.Settings["UseWeakSharp"].Value = UseWeakSharp.IsChecked.Value.ToString();
-                else
-                    appSection.Settings.Add("UseWeakSharp", UseWeakSharp.IsChecked.Value.ToString());
-
-                if (appSection.Settings.AllKeys.Contains("MaxCompareSize"))
-                    appSection.Settings["MaxCompareSize"].Value = MaxCompareSize.ToString();
-                else
-                    appSection.Settings.Add("MaxCompareSize", MaxCompareSize.ToString());
-
-                if (appSection.Settings.AllKeys.Contains("SimpleTrimCropBoundingBox"))
-                    appSection.Settings["SimpleTrimCropBoundingBox"].Value = SimpleTrimCropBoundingBox.ToString();
-                else
-                    appSection.Settings.Add("SimpleTrimCropBoundingBox", SimpleTrimCropBoundingBox.ToString());
-
 
                 appCfg.Save();
             }
@@ -2206,6 +2269,7 @@ namespace ImageCompare
             #region Some Default UI Settings
             ProcessStatus.Opacity = 0.66;
             Icon = new BitmapImage(new Uri("pack://application:,,,/ImageCompare;component/Resources/Compare.ico"));
+            ChangeTheme();
             #endregion
 
             LocaleUI(DefaultCultureInfo);
@@ -2802,6 +2866,16 @@ namespace ImageCompare
                 DefaultCultureInfo = CultureInfo.GetCultureInfo("ja-JP");
                 LocaleUI(DefaultCultureInfo);
             }
+
+            else if (sender == DarkBackground)
+            {
+                ChangeTheme();
+            }
+            else if (sender == AutoSaveOptions)
+            {
+                //if()
+            }
+
             else if (sender == ImageOpenSource)
             {
                 RenderRun(new Action(() =>
