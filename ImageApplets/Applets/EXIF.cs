@@ -372,6 +372,7 @@ namespace ImageApplets.Applets
                     var fullname = exif.ImageFileInfo is System.IO.FileInfo ? exif.ImageFileInfo.FullName : string.Empty;
                     var folder = exif.ImageFileInfo is System.IO.FileInfo ? exif.ImageFileInfo.DirectoryName : string.Empty;
                     var name = exif.ImageFileInfo is System.IO.FileInfo ? exif.ImageFileInfo.Name : string.Empty;
+                    var size = exif.ImageFileInfo is System.IO.FileInfo ? exif.ImageFileInfo.Length : -1;
 
                     var title = GetUnicodeString(exif, ExifTag.XpTitle, raw: true);
                     if (string.IsNullOrEmpty(title)) GetUTF8String(exif, ExifTag.ImageDescription);
@@ -496,7 +497,8 @@ namespace ImageApplets.Applets
                                 if (cats.Contains("width")) status &= Compare(exif.Width, words, _Mode_);
                                 if (cats.Contains("height")) status &= Compare(exif.Height, words, _Mode_);
                                 if (cats.Contains("depth")) status &= Compare(exif.ColorDepth, words, _Mode_);
-                                if (cats.Contains("dimension") || cats.Contains("dim") || cats.Contains("size")) status &= Compare(dimension, words, _Mode_);
+                                if (cats.Contains("dimension") || cats.Contains("dim")) status &= Compare(dimension, words, _Mode_);
+                                if (cats.Contains("size")) status &= Compare(size, words, _Mode_);
                                 if (cats.Contains("aspect")) status &= Compare((double)exif.Width / exif.Height, words, _Mode_);
 
                                 if (cats.Contains("landscape")) status &= exif.Height / exif.Height > 1;
@@ -562,7 +564,8 @@ namespace ImageApplets.Applets
                                 if (cats.Contains("width")) status |= Compare(exif.Width, words, _Mode_);
                                 if (cats.Contains("height")) status |= Compare(exif.Height, words, _Mode_);
                                 if (cats.Contains("depth")) status |= Compare(exif.ColorDepth, words, _Mode_);
-                                if (cats.Contains("dimension") || cats.Contains("dim") || cats.Contains("size")) status |= Compare(dimension, words, _Mode_);
+                                if (cats.Contains("dimension") || cats.Contains("dim")) status |= Compare(dimension, words, _Mode_);
+                                if (cats.Contains("size")) status |= Compare(size, words, _Mode_);
                                 if (cats.Contains("aspect")) status |= Compare((double)exif.Width / exif.Height, words, _Mode_);
 
                                 if (cats.Contains("landscape")) status |= (double)exif.Width / exif.Height > 1;
@@ -637,7 +640,8 @@ namespace ImageApplets.Applets
                                 if (cats.Contains("width")) status |= Compare(exif.Width, words, _Mode_);
                                 if (cats.Contains("height")) status |= Compare(exif.Height, words, _Mode_);
                                 if (cats.Contains("depth")) status |= Compare(exif.ColorDepth, words, _Mode_);
-                                if (cats.Contains("dimension") || cats.Contains("dim") || cats.Contains("size")) status |= Compare(dimension, words, _Mode_);
+                                if (cats.Contains("dimension") || cats.Contains("dim")) status |= Compare(dimension, words, _Mode_);
+                                if (cats.Contains("size")) status |= Compare(size, words, _Mode_);
                                 if (cats.Contains("aspect")) status |= Compare((double)exif.Width / exif.Height, words, _Mode_);
 
                                 if (cats.Contains("landscape")) status |= (double)exif.Width / exif.Height > 1;
@@ -771,32 +775,33 @@ namespace ImageApplets.Applets
                         if ((cats.Contains("rank") || cats.Contains("ranking")) && !string.IsNullOrEmpty(rank)) sb.AppendLine($"{padding}{rank}");
                         if (cats.Contains("date") && !string.IsNullOrEmpty(date_string)) sb.AppendLine($"{padding}{date_string}");
 
-                        if ((cats.Contains("sanity") || cats.Contains("age")) && !string.IsNullOrEmpty(sanity)) sb.AppendLine($"{sanity.ToUpper()}");
-                        if ((cats.Contains("ai") || cats.Contains("aigc")) && !string.IsNullOrEmpty(aigc)) sb.AppendLine($"{aigc}");
-                        if ((cats.Contains("state") || cats.Contains("states")) && !string.IsNullOrEmpty(state)) sb.AppendLine($"{state}");
+                        if ((cats.Contains("sanity") || cats.Contains("age")) && !string.IsNullOrEmpty(sanity)) sb.AppendLine($"{padding}{sanity.ToUpper()}");
+                        if ((cats.Contains("ai") || cats.Contains("aigc")) && !string.IsNullOrEmpty(aigc)) sb.AppendLine($"{padding}{aigc}");
+                        if ((cats.Contains("state") || cats.Contains("states")) && !string.IsNullOrEmpty(state)) sb.AppendLine($"{padding}{state}");
 
-                        if (cats.Contains("width")) sb.AppendLine($"{exif.Width}");
-                        if (cats.Contains("height")) sb.AppendLine($"{exif.Height}");
-                        if (cats.Contains("depth")) sb.AppendLine($"{exif.ColorDepth}");
-                        if (cats.Contains("dimension") || cats.Contains("dim") || cats.Contains("size")) sb.AppendLine(dimension);
-                        if (cats.Contains("aspect")) sb.AppendLine($"{((double)exif.Width / exif.Height):F3}");
+                        if (cats.Contains("width")) sb.AppendLine($"{padding}{exif.Width}");
+                        if (cats.Contains("height")) sb.AppendLine($"{padding}{exif.Height}");
+                        if (cats.Contains("depth")) sb.AppendLine($"{padding}{exif.ColorDepth}");
+                        if (cats.Contains("dimension") || cats.Contains("dim")) sb.AppendLine($"{padding}{dimension}");
+                        if (cats.Contains("size")) sb.AppendLine($"{padding}{size:N0} Bytes");
+                        if (cats.Contains("aspect")) sb.AppendLine($"{padding}{((double)exif.Width / exif.Height):F3}");
 
-                        if (cats.Contains("landscape")) sb.AppendLine($"{(double)exif.Width / exif.Height > 1}");
-                        if (cats.Contains("portrait")) sb.AppendLine($"{(double)exif.Width / exif.Height < 1}");
-                        if (cats.Contains("square")) sb.AppendLine($"{(double)exif.Width / exif.Height == 1}");
+                        if (cats.Contains("landscape")) sb.AppendLine($"{padding}{(double)exif.Width / exif.Height > 1}");
+                        if (cats.Contains("portrait")) sb.AppendLine($"{padding}{(double)exif.Width / exif.Height < 1}");
+                        if (cats.Contains("square")) sb.AppendLine($"{padding}{(double)exif.Width / exif.Height == 1}");
 
-                        if (cats.Contains("bits")) sb.AppendLine($"{exif.ColorDepth}");
-                        if (cats.Contains("endian")) sb.AppendLine($"{exif.ByteOrder}");
+                        if (cats.Contains("bits")) sb.AppendLine($"{padding}{exif.ColorDepth}");
+                        if (cats.Contains("endian")) sb.AppendLine($"{padding}{exif.ByteOrder}");
 
-                        if (cats.Contains("littleendian")) sb.AppendLine($"{exif.ByteOrder == ExifByteOrder.LittleEndian}");
-                        else if (cats.Contains("lsb")) sb.AppendLine($"{exif.ByteOrder == ExifByteOrder.LittleEndian}");
+                        if (cats.Contains("littleendian")) sb.AppendLine($"{padding}{exif.ByteOrder == ExifByteOrder.LittleEndian}");
+                        else if (cats.Contains("lsb")) sb.AppendLine($"{padding}{exif.ByteOrder == ExifByteOrder.LittleEndian}");
 
-                        if (cats.Contains("bigendian")) sb.AppendLine($"{exif.ByteOrder == ExifByteOrder.BigEndian}");
-                        else if (cats.Contains("msb")) sb.AppendLine($"{exif.ByteOrder == ExifByteOrder.BigEndian}");
+                        if (cats.Contains("bigendian")) sb.AppendLine($"{padding}{exif.ByteOrder == ExifByteOrder.BigEndian}");
+                        else if (cats.Contains("msb")) sb.AppendLine($"{padding}{exif.ByteOrder == ExifByteOrder.BigEndian}");
 
-                        if (cats.Contains("dpix")) sb.AppendLine($"DPIX={exif.ResolutionX}");
-                        if (cats.Contains("dpiy")) sb.AppendLine($"DPIY={exif.ResolutionY}");
-                        if (cats.Contains("dpi")) sb.AppendLine($"DPI={exif.ResolutionX}x{exif.ResolutionY}");
+                        if (cats.Contains("dpix")) sb.AppendLine($"{padding}DPIX={exif.ResolutionX}");
+                        if (cats.Contains("dpiy")) sb.AppendLine($"{padding}DPIY={exif.ResolutionY}");
+                        if (cats.Contains("dpi")) sb.AppendLine($"{padding}DPI={exif.ResolutionX}x{exif.ResolutionY}");
 
                         foreach (var attr in cats_exif)
                         {
