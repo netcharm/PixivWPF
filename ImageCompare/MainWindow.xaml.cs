@@ -347,7 +347,7 @@ namespace ImageCompare
                     if (DarkTheme)
                     {
                         pattern.Negate(Channels.RGB);
-                        pattern.Opaque(MagickColors.White, MagickColors.DimGray);
+                        pattern.Opaque(MagickColors.White, new MagickColor("#303030"));
                         opacity = 0.9;
                     }
                     ImageCanvas.Background = new ImageBrush(pattern.ToBitmapSource()) { TileMode = TileMode.Tile, Opacity = opacity, ViewportUnits = BrushMappingMode.Absolute, Viewport = new Rect(0, 0, 32, 32) };
