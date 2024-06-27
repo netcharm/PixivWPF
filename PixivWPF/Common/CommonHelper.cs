@@ -8647,6 +8647,7 @@ namespace PixivWPF.Common
         public static async Task<string> SaveImage(this string url, Pixeez.Tokens tokens, DateTime dt, bool is_meta_single_page = false, bool overwrite = true, bool jpeg = false, bool largepreview = false)
         {
             var timer = new Stopwatch();
+            timer.Start();
             var file = await url.SaveImage(tokens, is_meta_single_page, overwrite);
             var id = url.GetIllustId();
 
