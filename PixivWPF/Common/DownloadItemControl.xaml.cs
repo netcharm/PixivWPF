@@ -1077,7 +1077,7 @@ namespace PixivWPF.Common
             lastRates.Clear();
             lastRate = 0;
             LastElapsed = TimeSpan.FromSeconds(0);
-            lastReceived = 0;            
+            lastReceived = 0;
 
             if (State == DownloadItemState.Finished)
             {
@@ -1092,10 +1092,11 @@ namespace PixivWPF.Common
                 var state = "Succeed";
                 var as_jpeg = SaveAsJPEG ? $" As JPEG_Q<={setting.DownloadConvertJpegQuality} " : " ";
                 $"{FileName}{as_jpeg}{state}.".INFO("Download");
-                if (setting.DownloadCompletedToast)
-                    $"{Path.GetFileName(FileName)} is saved!".ShowDownloadToast(state, ThumbnailUrl, FileName, state);
-                if (setting.DownloadCompletedSound && StartTick.DeltaSeconds(EndTick) > setting.DownloadCompletedSoundForElapsedSeconds)
-                    this.Sound();
+                if (StartTick.DeltaSeconds(EndTick) > setting.DownloadCompletedSoundForElapsedSeconds)
+                {
+                    if (setting.DownloadCompletedToast) $"{Path.GetFileName(FileName)} is saved!".ShowDownloadToast(state, ThumbnailUrl, FileName, state);
+                    if (setting.DownloadCompletedSound) this.Sound();
+                }
             }
             else if (State == DownloadItemState.Downloading)
             {

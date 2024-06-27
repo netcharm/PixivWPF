@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -8645,6 +8646,7 @@ namespace PixivWPF.Common
 
         public static async Task<string> SaveImage(this string url, Pixeez.Tokens tokens, DateTime dt, bool is_meta_single_page = false, bool overwrite = true, bool jpeg = false, bool largepreview = false)
         {
+            var timer = new Stopwatch();
             var file = await url.SaveImage(tokens, is_meta_single_page, overwrite);
             var id = url.GetIllustId();
 
@@ -8654,7 +8656,8 @@ namespace PixivWPF.Common
                 File.SetLastWriteTime(file, dt);
                 File.SetLastAccessTime(file, dt);
                 var state = "Succeed";
-                $"{Path.GetFileName(file)} is saved!".ShowDownloadToast(state, file, state);
+                if (timer.Elapsed.TotalSeconds > setting.DownloadCompletedSoundForElapsedSeconds)
+                    $"{Path.GetFileName(file)} is saved!".ShowDownloadToast(state, file, state);
 
                 if (Regex.IsMatch(file, @"_ugoira\d+\.", RegexOptions.IgnoreCase))
                 {
@@ -8668,7 +8671,8 @@ namespace PixivWPF.Common
                         File.SetLastWriteTime(ugoira_file, dt);
                         File.SetLastAccessTime(ugoira_file, dt);
                         state = "Succeed";
-                        $"{Path.GetFileName(ugoira_file)} is saved!".ShowDownloadToast(state, ugoira_file, state);
+                        if (timer.Elapsed.TotalSeconds > setting.DownloadCompletedSoundForElapsedSeconds)
+                            $"{Path.GetFileName(ugoira_file)} is saved!".ShowDownloadToast(state, ugoira_file, state);
                     }
                     else
                     {
@@ -8682,6 +8686,7 @@ namespace PixivWPF.Common
                 var state = "Failed";
                 $"Save {Path.GetFileName(url)} failed!".ShowDownloadToast(state, "", state);
             }
+            timer.Stop();
             return (file);
         }
 
