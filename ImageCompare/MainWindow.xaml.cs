@@ -217,18 +217,16 @@ namespace ImageCompare
             var result = ImageType.None;
             try
             {
-                if (sender is MenuItem)
+                var host = sender as UIElement;
+                if (sender is MenuItem) host = GetContextMenuHost(sender as MenuItem);
+                if (host is UIElement)
                 {
-                    var host = GetContextMenuHost(sender as MenuItem);
-                    if (host is UIElement)
-                    {
-                        var ui_source = new UIElement[] { ImageSourceScroll, ImageSourceBox, ImageSource };
-                        var ui_target = new UIElement[] { ImageTargetScroll, ImageTargetBox, ImageTarget };
-                        var ui_result = new UIElement[] { ImageResultScroll, ImageResultBox, ImageResult };
-                        if (ui_source.Contains(host)) result = ImageType.Source;
-                        else if (ui_target.Contains(host)) result = ImageType.Target;
-                        else if (ui_result.Contains(host)) result = ImageType.Result;
-                    }
+                    var ui_source = new UIElement[] { ImageSourceScroll, ImageSourceBox, ImageSource };
+                    var ui_target = new UIElement[] { ImageTargetScroll, ImageTargetBox, ImageTarget };
+                    var ui_result = new UIElement[] { ImageResultScroll, ImageResultBox, ImageResult };
+                    if (ui_source.Contains(host)) result = ImageType.Source;
+                    else if (ui_target.Contains(host)) result = ImageType.Target;
+                    else if (ui_result.Contains(host)) result = ImageType.Result;
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -347,8 +345,9 @@ namespace ImageCompare
                     if (DarkTheme)
                     {
                         pattern.Negate(Channels.RGB);
+                        pattern.Opaque(MagickColors.Black, new MagickColor("#202020"));
                         pattern.Opaque(MagickColors.White, new MagickColor("#303030"));
-                        opacity = 0.9;
+                        opacity = 1.0;
                     }
                     ImageCanvas.Background = new ImageBrush(pattern.ToBitmapSource()) { TileMode = TileMode.Tile, Opacity = opacity, ViewportUnits = BrushMappingMode.Absolute, Viewport = new Rect(0, 0, 32, 32) };
                     ImageCanvas.InvalidateVisual();
@@ -1299,7 +1298,7 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
         }
 
-        private void SaveConfig()
+        private void SaveConfig(bool force = false)
         {
             try
             {
@@ -1458,8 +1457,7 @@ namespace ImageCompare
                     else
                         appSection.Settings.Add("SimpleTrimCropBoundingBox", SimpleTrimCropBoundingBox.ToString());
                 }
-
-                appCfg.Save();
+                if (AutoSaveConfig || force) appCfg.Save();
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -2873,7 +2871,7 @@ namespace ImageCompare
             }
             else if (sender == AutoSaveOptions)
             {
-                //if()
+                SaveConfig(force: true);
             }
 
             else if (sender == ImageOpenSource)

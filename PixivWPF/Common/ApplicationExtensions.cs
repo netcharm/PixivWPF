@@ -3207,7 +3207,8 @@ namespace PixivWPF.Common
                 var raw_mode = raw ?? false;
                 if (!raw_mode)
                 {
-                    string[] EscapeChar = new string[] { "/", "%", "&", ":", ";", "?", "*", "!", "~", "=", "<", ">", "≠", "-", "$", "#", ".", "(", ")" };
+                    //string[] EscapeChar = new string[] { "/", "%", "&", ":", ";", "?", "*", "!", "~", "=", "<", ">", "≠", "-", "$", "#", ".", "(", ")" };
+                    string[] EscapeChar = new string[] { "%", "&", ":", ";", "?", "*", "!", "~", "=", "<", ">", "≠", "-", "$", "#", ".", "(", ")" };
                     Func<string, bool, string> Quoted = (s, q) => { return(q ? $"%22{s}%22" : s); };
                     Func<string, bool, string> Escape = (s, q) =>
                     {

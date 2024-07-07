@@ -131,13 +131,6 @@
                 </StackPanel>
             </Button>
             <Separator x:Uid="Separator_3"/>
-            <ToggleButton x:Name="ImageLayout" x:Uid="ImageLayout" IsChecked="False"
-                          ToolTip="Horizontal/Vertical Image Layout" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel x:Uid="ImageLayoutPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ImageLayoutPanelIcon" Text="&#xE2AE;" Style="{DynamicResource MenuItemIcon}" />
-                </StackPanel>
-            </ToggleButton>            
-            <Separator x:Uid="Separator_4"/>
             <ToggleButton x:Name="ZoomFitNone" x:Uid="ZoomFitNone" ToolTip="Fit None" ToolBar.OverflowMode="Never" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="ZoomFitNonePanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="ZoomFitNoneIcon" Text="&#xE7C3;" Style="{DynamicResource MenuItemIcon}"/>
@@ -169,7 +162,7 @@
                        HorizontalAlignment="Right" VerticalAlignment="Center"
                        Text="{Binding ElementName=ZoomRatio, Path=Value, StringFormat={}{0:F2}X}"
                        ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>
-            <Separator x:Uid="Separator_5"/>
+            <Separator x:Uid="Separator_4"/>
             <ToggleButton x:Name="AutoMatchSize" x:Uid="AutoMatchSize" IsChecked="True"
                           ToolTip="Automatic Match Image Size Before Image Compare/Composer" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="AutoMatchSizePanel" Orientation="Horizontal" Margin="2">
@@ -272,7 +265,7 @@
                     </ContextMenu>
                 </xctk:ColorPicker.ContextMenu>
             </xctk:ColorPicker>
-            <Separator x:Uid="Separator_6"/>
+            <Separator x:Uid="Separator_5"/>
             <Button x:Name="ImageLoadHaldLut" x:Uid="ImageLoadHaldLut" ToolTip="Load Hald LUT File" Click="ImageActions_Click" Drop="Window_Drop">
                 <StackPanel x:Uid="ImageLoadHaldLutPanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="ImageLoadHaldLutIcon" Text="&#xE771;" Style="{DynamicResource MenuItemIcon}"/>
@@ -298,6 +291,19 @@
                           ToolTip="Low/High Intensity Effects" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="UseWeakEffectsPanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="UseWeakEffectsIcon" Text="&#xE10C;" Style="{DynamicResource MenuItemIcon}" Foreground="Gray"/>
+                </StackPanel>
+            </ToggleButton>
+            <Separator x:Uid="Separator_6"/>
+            <ToggleButton x:Name="ImageLayout" x:Uid="ImageLayout" IsChecked="False"
+                          ToolTip="Horizontal/Vertical Image Layout" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="ImageLayoutPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ImageLayoutPanelIcon" Text="&#xE2AE;" Style="{DynamicResource MenuItemIcon}" />
+                </StackPanel>
+            </ToggleButton>
+            <ToggleButton x:Name="DarkBackground" x:Uid="DarkBackground" IsChecked="False"
+                          ToolTip="Dark Background" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="AutoSaveOptionsPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="AutoSaveOptionsIcon" Text="&#xE793;" Style="{DynamicResource MenuItemIcon}" Foreground="Gray"/>
                 </StackPanel>
             </ToggleButton>
             <Button x:Name="UILanguage" x:Uid="UILanguage" ToolTip="UI Language Selector" ToolBar.OverflowMode="Never" Click="ImageActions_Click">
@@ -329,13 +335,6 @@
                     </ContextMenu>
                 </Button.ContextMenu>
             </Button>
-            <Separator/>
-            <ToggleButton x:Name="DarkBackground" x:Uid="DarkBackground" IsChecked="False"
-                          ToolTip="Dark Background" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel x:Uid="AutoSaveOptionsPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="AutoSaveOptionsIcon" Text="&#xE793;" Style="{DynamicResource MenuItemIcon}" Foreground="Gray"/>
-                </StackPanel>
-            </ToggleButton>
             <ToggleButton x:Name="AutoSaveOptions" x:Uid="AutoSaveOptions" IsChecked="True"
                           ToolTip="Auto Save Options" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="AutoSaveOptionsPanel" Orientation="Horizontal" Margin="2">
