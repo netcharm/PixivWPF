@@ -1608,20 +1608,23 @@ namespace PixivWPF.Pages
                 if (IsLoaded)
                 {
                     if (item == null) item = Contents;
-                    if (remove)
+                    if (item is PixivItem)
                     {
-                        item.UserID.SetFullListedUserState(remove: true);
-                        UserFullListedFlag.IsEnabled = false;
-                        UserFullListedFlag.ToolTip = $"Update Date: Unknown";
-                        UserFullListedFlag.Show(show: false);
-                    }
-                    else
-                    {
-                        var fulllisted = item.UserID.GetFullListedUserState();
-                        var is_fulllisted = !string.IsNullOrEmpty(fulllisted);
-                        UserFullListedFlag.IsEnabled = is_fulllisted ? true : false;
-                        UserFullListedFlag.ToolTip = $"Update Date: {(is_fulllisted ? fulllisted : "Unknown")}";
-                        UserFullListedFlag.Show(show: is_fulllisted);
+                        if (remove)
+                        {
+                            item.UserID.SetFullListedUserState(remove: true);
+                            UserFullListedFlag.IsEnabled = false;
+                            UserFullListedFlag.ToolTip = $"Update Date: Unknown";
+                            UserFullListedFlag.Show(show: false);
+                        }
+                        else
+                        {
+                            var fulllisted = item.UserID.GetFullListedUserState();
+                            var is_fulllisted = !string.IsNullOrEmpty(fulllisted);
+                            UserFullListedFlag.IsEnabled = is_fulllisted ? true : false;
+                            UserFullListedFlag.ToolTip = $"Update Date: {(is_fulllisted ? fulllisted : "Unknown")}";
+                            UserFullListedFlag.Show(show: is_fulllisted);
+                        }
                     }
                 }
             }

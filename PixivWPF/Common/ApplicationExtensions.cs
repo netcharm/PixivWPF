@@ -3216,15 +3216,19 @@ namespace PixivWPF.Common
                         return(Quoted(s, q));
                     };
                     Func<KeyValuePair<string, string[]>, string, IEnumerable<string>, string> QuotedValues = (q, sep, keys) =>
-                {
-                    var values = q.Value.Select(w => Quoted(w, !keys.Contains(q.Key)));
-                    if (values.Count() > 1) return($"({string.Join(sep, values)})");
-                    else if (values.Count() > 0) return(values.FirstOrDefault());
-                    else return(string.Empty);
-                };
+                    {
+                        var values = q.Value.Select(w => Quoted(w, !keys.Contains(q.Key)));
+                        values = values.Select(w => { var j = w.ConvertChinese2Japanese(); return(w.Equals(j) ? w : $"(\"{w}\" OR \"{j}\")"); });
+
+                        if (values.Count() > 1) return($"({string.Join(sep, values)})");
+                        else if (values.Count() > 0) return(values.FirstOrDefault());
+                        else return(string.Empty);
+                    };
                     Func<KeyValuePair<string, string[]>, string, IEnumerable<string>, string> EscapeValues = (q, sep, keys) =>
                     {
                         var values = q.Value.Select(w => Escape(w, !keys.Contains(q.Key)));
+                        values = values.Select(w => { var j = w.ConvertChinese2Japanese(); return(w.Equals(j) ? w : $"(\"{w}\" OR \"{j}\")"); });
+
                         if (values.Count() > 1) return($"({string.Join(sep, values)})");
                         else if (values.Count() > 0) return(values.FirstOrDefault());
                         else return(string.Empty);
@@ -3281,6 +3285,7 @@ namespace PixivWPF.Common
                         SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.ItemFolderPathDisplay, out value))
                         query_list.Add(value.Description.DisplayName, querys);
 
+                    raw_keys.AddRange(raw_keys.ConvertChinese2Japanese());
                     raw_keys = raw_keys.Distinct().ToList();
                     var m_sep = mode == StorageSearchMode.Not ? " NOT " : (mode == StorageSearchMode.And ? " AND " : " OR ");
                     if (setting.SearchEscapeChar)
@@ -3297,7 +3302,12 @@ namespace PixivWPF.Common
                         SystemMetaList.TryGetValue(Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System.ItemNameDisplay, out value);
                         var hq = $"{value.Description.DisplayName}:~<\"{highlight}\"";
                         query = $"{query} OR {hq}";
-                    }                    
+                    }
+                }
+                else
+                {
+                    var query_c = query.ConvertChinese2Japanese();
+                    if (!query.Equals(query_c)) query = $"(\"{query}\" OR \"{query_c}\")";
                 }
 
                 if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
