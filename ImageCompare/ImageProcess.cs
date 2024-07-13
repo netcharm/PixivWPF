@@ -1574,7 +1574,7 @@ namespace ImageCompare
                 var tip = new List<string>();
                 try
                 {
-                    Func<MagickImage, IMagickImage<float>> ToGray = (im) => 
+                    Func<MagickImage, IMagickImage<float>> ToGray = (im) =>
                     {
                         var im_out = im.Clone();
                         im_out.Grayscale(GrayscaleMode);

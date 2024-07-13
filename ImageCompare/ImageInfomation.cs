@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
@@ -92,11 +93,26 @@ namespace ImageCompare
                 _current_ = value;
                 _CurrentModified_ = true;
                 GetProfiles();
-                if (ValidCurrent) _current_.FilterType = FilterType.CubicSpline;
+                if (ValidCurrent)
+                {
+                    _current_.FilterType = FilterType.CubicSpline;
+                    if (ValidOriginal && !string.IsNullOrEmpty(FileName))
+                    {
+                        if (_original_.Endian == Endian.Undefined) _original_.Endian = DetectFileEndian(FileName);
+                        if (_current_.Endian == Endian.Undefined) _current_.Endian = _original_.Endian;
+                    }
+                    else
+                    {
+                        if (_current_.Endian == Endian.Undefined) _current_.Endian = BitConverter.IsLittleEndian ? Endian.LSB : Endian.MSB;
+                    }
+                }
             }
         }
         public Size CurrentSize { get { return (ValidCurrent ? new Size(Current.Width, Current.Height) : new Size(0, 0)); } }
-        public long CurrentRealMemoryUsage { get {
+        public long CurrentRealMemoryUsage
+        {
+            get
+            {
                 if (ValidCurrent)
                 {
 #if Q16HDRI
@@ -488,7 +504,7 @@ namespace ImageCompare
                     file = fn.ToLower().Contains(fm) ? Path.Combine(fd, $"{fn}.tiff") : Path.Combine(fd, $"{fn}{fm}.tiff");
 
                     using (var image = new MagickImage(Current) { BackgroundColor = MagickColors.Black, MatteColor = new MagickColor(MasklightColor.R, MasklightColor.G, MasklightColor.B) })
-                    {                        
+                    {
                         var threshold_color = new MagickColor(HighlightColor.R, HighlightColor.G, HighlightColor.B);
                         FixDPI(image, use_system: true);
                         if (OpMode == ImageOpMode.Compose)
@@ -617,7 +633,7 @@ namespace ImageCompare
             if (ValidOriginal)
             {
                 foreach (var profile in Original.ProfileNames) { if (Original.HasProfile(profile)) Profiles[profile] = Original.GetProfile(profile); }
-                foreach(var attr in Original.AttributeNames) { Attributes[attr] = Original.GetAttribute(attr); }
+                foreach (var attr in Original.AttributeNames) { Attributes[attr] = Original.GetAttribute(attr); }
             }
             else if (ValidCurrent)
             {
@@ -767,7 +783,7 @@ namespace ImageCompare
                 if (exif is CompactExifLib.ExifData)
                 {
                     if (exif.ByteOrder == CompactExifLib.ExifByteOrder.BigEndian) result = Endian.MSB;
-                    else if(exif.ByteOrder == CompactExifLib.ExifByteOrder.LittleEndian) result = Endian.LSB;
+                    else if (exif.ByteOrder == CompactExifLib.ExifByteOrder.LittleEndian) result = Endian.LSB;
                 }
             }
             return (result);
@@ -814,7 +830,7 @@ namespace ImageCompare
                     if (Current.BoundingBox != null)
                         tip.Add($"{"InfoTipBounding".T()} {Current.BoundingBox.Width:F0}x{Current.BoundingBox.Height:F0}");
                     tip.Add($"{"InfoTipResolution".T()} {DPI_TEXT}");
-                    
+
                     if (include_colorinfo) tip.Add(await GetTotalColors());
 
                     if (Current.AttributeNames != null)
@@ -825,6 +841,8 @@ namespace ImageCompare
                             if (Original.Endian == Endian.Undefined) Original.Endian = DetectFileEndian(fi.FullName);
                             if (Current.Endian == Endian.Undefined) Current.Endian = Original.Endian;
                         }
+                        else if (Type == ImageType.Result && Current.Endian == Endian.Undefined) 
+                            Current.Endian = BitConverter.IsLittleEndian ? Endian.LSB : Endian.MSB;
 
                         if (Current.ArtifactNames.Count() > 0)
                         {
@@ -909,7 +927,7 @@ namespace ImageCompare
                     tip.Add($"{"InfoTipMemoryMode".T()} {MemoryUsageMode}");
                     tip.Add($"{"InfoTipIdealMemoryUsage".T()} {(ValidOriginal ? OriginalIdealMemoryUsage.SmartFileSize() : CurrentIdealMemoryUsage.SmartFileSize())}");
                     tip.Add($"{"InfoTipMemoryUsage".T()} {(ValidOriginal ? OriginalRealMemoryUsage.SmartFileSize() : CurrentRealMemoryUsage.SmartFileSize())}");
-                    tip.Add($"{"InfoTipDisplayMemory".T()} {CurrentDisplayMemoryUsage.SmartFileSize()}");                    
+                    tip.Add($"{"InfoTipDisplayMemory".T()} {CurrentDisplayMemoryUsage.SmartFileSize()}");
                     if (!string.IsNullOrEmpty(FileName))
                     {
                         var FileSize = !string.IsNullOrEmpty(FileName) && File.Exists(FileName) ? new FileInfo(FileName).Length : -1;
@@ -976,7 +994,7 @@ namespace ImageCompare
 
         public bool Reset(int size = -1)
         {
-            return(Reload(size, reload: false, reset: true));
+            return (Reload(size, reload: false, reset: true));
         }
 
         public bool Reload(bool reload = false, bool reset = false)
