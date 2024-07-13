@@ -19,7 +19,7 @@ namespace ImageCompare.Properties {
     // 类通过类似于 ResGen 或 Visual Studio 的工具自动生成的。
     // 若要添加或移除成员，请编辑 .ResX 文件，然后重新运行 ResGen
     // (以 /str 作为命令选项)，或重新生成 VS 项目。
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Resources {
@@ -47,8 +47,8 @@ namespace ImageCompare.Properties {
         }
         
         /// <summary>
-        ///   使用此强类型资源类，为所有资源查找
-        ///   重写当前线程的 CurrentUICulture 属性。
+        ///   重写当前线程的 CurrentUICulture 属性，对
+        ///   使用此强类型资源类的所有资源查找执行重写。
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
         public static global::System.Globalization.CultureInfo Culture {
@@ -57,6 +57,186 @@ namespace ImageCompare.Properties {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 All Supported Image Files 的本地化字符串。
+        /// </summary>
+        public static string AllSupportedImageFiles {
+            get {
+                return ResourceManager.GetString("AllSupportedImageFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Auto Contrast 的本地化字符串。
+        /// </summary>
+        public static string AutoContrast_Header {
+            get {
+                return ResourceManager.GetString("AutoContrast.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Auto Enhance 的本地化字符串。
+        /// </summary>
+        public static string AutoEnhance_Header {
+            get {
+                return ResourceManager.GetString("AutoEnhance.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Auto Equalize 的本地化字符串。
+        /// </summary>
+        public static string AutoEqualize_Header {
+            get {
+                return ResourceManager.GetString("AutoEqualize.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Auto Gamma 的本地化字符串。
+        /// </summary>
+        public static string AutoGamma_Header {
+            get {
+                return ResourceManager.GetString("AutoGamma.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Auto Levels 的本地化字符串。
+        /// </summary>
+        public static string AutoLevel_Header {
+            get {
+                return ResourceManager.GetString("AutoLevel.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Automatic Match Image Size Before Image Compare/Composer 的本地化字符串。
+        /// </summary>
+        public static string AutoMatchSize_ToolTip {
+            get {
+                return ResourceManager.GetString("AutoMatchSize.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Auto Reduce Noise 的本地化字符串。
+        /// </summary>
+        public static string AutoReduceNoise_Header {
+            get {
+                return ResourceManager.GetString("AutoReduceNoise.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Auto Threshold 的本地化字符串。
+        /// </summary>
+        public static string AutoThreshold_Header {
+            get {
+                return ResourceManager.GetString("AutoThreshold.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Auto Vignette 的本地化字符串。
+        /// </summary>
+        public static string AutoVignette_Header {
+            get {
+                return ResourceManager.GetString("AutoVignette.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Auto White Balance 的本地化字符串。
+        /// </summary>
+        public static string AutoWhiteBalance_Header {
+            get {
+                return ResourceManager.GetString("AutoWhiteBalance.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Blend Ratio 的本地化字符串。
+        /// </summary>
+        public static string Blend {
+            get {
+                return ResourceManager.GetString("Blend", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Blue Shift (Moonlight Night) 的本地化字符串。
+        /// </summary>
+        public static string BlueShift_Header {
+            get {
+                return ResourceManager.GetString("BlueShift.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Statistical Color Information 的本地化字符串。
+        /// </summary>
+        public static string CalcImageColors_Header {
+            get {
+                return ResourceManager.GetString("CalcImageColors.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Charcoal 的本地化字符串。
+        /// </summary>
+        public static string Charcoal_Header {
+            get {
+                return ResourceManager.GetString("Charcoal.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Apply CLUT 的本地化字符串。
+        /// </summary>
+        public static string CLUT_Header {
+            get {
+                return ResourceManager.GetString("CLUT.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Compare 的本地化字符串。
+        /// </summary>
+        public static string Compare_Text {
+            get {
+                return ResourceManager.GetString("Compare.Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Compose 的本地化字符串。
+        /// </summary>
+        public static string Compose_Text {
+            get {
+                return ResourceManager.GetString("Compose.Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Copy Image From Result 的本地化字符串。
+        /// </summary>
+        public static string CopyFromResult_Header {
+            get {
+                return ResourceManager.GetString("CopyFromResult.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Copy Image 的本地化字符串。
+        /// </summary>
+        public static string CopyImage_Header {
+            get {
+                return ResourceManager.GetString("CopyImage.Header", resourceCulture);
             }
         }
         
@@ -70,11 +250,677 @@ namespace ImageCompare.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Copy Image Info 的本地化字符串。
+        /// </summary>
+        public static string CopyImageInfo_Header {
+            get {
+                return ResourceManager.GetString("CopyImageInfo.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Copy Image To Source 的本地化字符串。
+        /// </summary>
+        public static string CopyToSource_Header {
+            get {
+                return ResourceManager.GetString("CopyToSource.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Copy Image To Target 的本地化字符串。
+        /// </summary>
+        public static string CopyToTarget_Header {
+            get {
+                return ResourceManager.GetString("CopyToTarget.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Create Color Image 的本地化字符串。
+        /// </summary>
+        public static string CreateColorImage_Header {
+            get {
+                return ResourceManager.GetString("CreateColorImage.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Create Color Source Image 的本地化字符串。
+        /// </summary>
+        public static string CreateImageWithColorSource_Header {
+            get {
+                return ResourceManager.GetString("CreateImageWithColorSource.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Create Color Target Image 的本地化字符串。
+        /// </summary>
+        public static string CreateImageWithColorTarget_Header {
+            get {
+                return ResourceManager.GetString("CreateImageWithColorTarget.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Crop BoundingBox 的本地化字符串。
+        /// </summary>
+        public static string CropBoundingBox_Header {
+            get {
+                return ResourceManager.GetString("CropBoundingBox.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Crop Image Edge 的本地化字符串。
+        /// </summary>
+        public static string CropImageEdge_Header {
+            get {
+                return ResourceManager.GetString("CropImageEdge.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Edge Line 的本地化字符串。
+        /// </summary>
+        public static string Edge_Header {
+            get {
+                return ResourceManager.GetString("Edge.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Emboss 的本地化字符串。
+        /// </summary>
+        public static string Emboss_Header {
+            get {
+                return ResourceManager.GetString("Emboss.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 File 的本地化字符串。
+        /// </summary>
+        public static string File {
+            get {
+                return ResourceManager.GetString("File", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Fill BoundingBox 的本地化字符串。
+        /// </summary>
+        public static string FillBoundingBox_Header {
+            get {
+                return ResourceManager.GetString("FillBoundingBox.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Flip Horizontal 的本地化字符串。
+        /// </summary>
+        public static string FlipX_Header {
+            get {
+                return ResourceManager.GetString("FlipX.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Flip Vertical 的本地化字符串。
+        /// </summary>
+        public static string FlipY_Header {
+            get {
+                return ResourceManager.GetString("FlipY.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Gaussian Blur 的本地化字符串。
+        /// </summary>
+        public static string GaussianBlur {
+            get {
+                return ResourceManager.GetString("GaussianBlur", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Gaussian Blur 的本地化字符串。
         /// </summary>
         public static string GaussianBlur_Header {
             get {
                 return ResourceManager.GetString("GaussianBlur.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Grayscale 的本地化字符串。
+        /// </summary>
+        public static string Grayscale_Header {
+            get {
+                return ResourceManager.GetString("Grayscale.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Apply Hald CLUT 的本地化字符串。
+        /// </summary>
+        public static string HaldClut_Header {
+            get {
+                return ResourceManager.GetString("HaldClut.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Advanced 的本地化字符串。
+        /// </summary>
+        public static string HighlightColorPick_AdvancedTabHeader {
+            get {
+                return ResourceManager.GetString("HighlightColorPick.AdvancedTabHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Available Colors 的本地化字符串。
+        /// </summary>
+        public static string HighlightColorPick_AvailableColorsHeader {
+            get {
+                return ResourceManager.GetString("HighlightColorPick.AvailableColorsHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Recent Colors 的本地化字符串。
+        /// </summary>
+        public static string HighlightColorPick_RecentColorsHeader {
+            get {
+                return ResourceManager.GetString("HighlightColorPick.RecentColorsHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Standard Colors 的本地化字符串。
+        /// </summary>
+        public static string HighlightColorPick_StandardColorsHeader {
+            get {
+                return ResourceManager.GetString("HighlightColorPick.StandardColorsHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Standard 的本地化字符串。
+        /// </summary>
+        public static string HighlightColorPick_StandardTabHeader {
+            get {
+                return ResourceManager.GetString("HighlightColorPick.StandardTabHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Highlight Color 的本地化字符串。
+        /// </summary>
+        public static string HighlightColorPick_ToolTip {
+            get {
+                return ResourceManager.GetString("HighlightColorPick.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Clear Source and Target Pictures 的本地化字符串。
+        /// </summary>
+        public static string ImageClear_ToolTip {
+            get {
+                return ResourceManager.GetString("ImageClear.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 [F5] Compare Source and Target Picture\n[Shift+F5] Compare Mode Selector 的本地化字符串。
+        /// </summary>
+        public static string ImageCompare_ToolTip {
+            get {
+                return ResourceManager.GetString("ImageCompare.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 [F6] Compose Source and Target Picture 的本地化字符串。
+        /// </summary>
+        public static string ImageCompose_ToolTip {
+            get {
+                return ResourceManager.GetString("ImageCompose.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 [F7] Copy Result Picture 的本地化字符串。
+        /// </summary>
+        public static string ImageCopyResult_ToolTip {
+            get {
+                return ResourceManager.GetString("ImageCopyResult.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Denoise Result Picture 的本地化字符串。
+        /// </summary>
+        public static string ImageDenoiseResult_ToolTip {
+            get {
+                return ResourceManager.GetString("ImageDenoiseResult.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 [F10] Exchange Source and Target 的本地化字符串。
+        /// </summary>
+        public static string ImageExchange_ToolTip {
+            get {
+                return ResourceManager.GetString("ImageExchange.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Horizontal/Vertical Image Layout 的本地化字符串。
+        /// </summary>
+        public static string ImageLayout_ToolTip {
+            get {
+                return ResourceManager.GetString("ImageLayout.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Load Hald LUT File 的本地化字符串。
+        /// </summary>
+        public static string ImageLoadHaldLut_ToolTip {
+            get {
+                return ResourceManager.GetString("ImageLoadHaldLut.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 [F1] Open The Source Picture\n[Shift+F1] Load Prev Image File\n[Ctrl+F1] Load Next Image File\n[Alt+F1] Create Source Image With Masklight Color 的本地化字符串。
+        /// </summary>
+        public static string ImageOpenSource_ToolTip {
+            get {
+                return ResourceManager.GetString("ImageOpenSource.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 [F2] Open The Target Picture\n[Shift+F2] Load Prev Image File\n[Ctrl+F2] Load Next Image File\n[Alt+F2] Create Target Image With Masklight Color 的本地化字符串。
+        /// </summary>
+        public static string ImageOpenTarget_ToolTip {
+            get {
+                return ResourceManager.GetString("ImageOpenTarget.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 [F3] Paste The Source Picture 的本地化字符串。
+        /// </summary>
+        public static string ImagePasteSource_ToolTip {
+            get {
+                return ResourceManager.GetString("ImagePasteSource.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 [F4] Paste The Target Picture 的本地化字符串。
+        /// </summary>
+        public static string ImagePasteTarget_ToolTip {
+            get {
+                return ResourceManager.GetString("ImagePasteTarget.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 [F8] Save Result Picture 的本地化字符串。
+        /// </summary>
+        public static string ImageSaveResult_ToolTip {
+            get {
+                return ResourceManager.GetString("ImageSaveResult.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Yes 的本地化字符串。
+        /// </summary>
+        public static string Included {
+            get {
+                return ResourceManager.GetString("Included", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Artifacts 的本地化字符串。
+        /// </summary>
+        public static string InfoTipArtifacts {
+            get {
+                return ResourceManager.GetString("InfoTipArtifacts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Attributes 的本地化字符串。
+        /// </summary>
+        public static string InfoTipAttributes {
+            get {
+                return ResourceManager.GetString("InfoTipAttributes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Background Color   = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipBackgroundColor {
+            get {
+                return ResourceManager.GetString("InfoTipBackgroundColor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Original BG Color  = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipBackgroundColorOriginal {
+            get {
+                return ResourceManager.GetString("InfoTipBackgroundColorOriginal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Border Color       = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipBorderColor {
+            get {
+                return ResourceManager.GetString("InfoTipBorderColor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Original Border    = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipBorderColorOriginal {
+            get {
+                return ResourceManager.GetString("InfoTipBorderColorOriginal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Bounding Box       = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipBounding {
+            get {
+                return ResourceManager.GetString("InfoTipBounding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Color Channels     = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipColorChannelCount {
+            get {
+                return ResourceManager.GetString("InfoTipColorChannelCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 ColorMaps Size     = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipColorMapsSize {
+            get {
+                return ResourceManager.GetString("InfoTipColorMapsSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Colors             = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipColors {
+            get {
+                return ResourceManager.GetString("InfoTipColors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Original Colors    = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipColorsOriginal {
+            get {
+                return ResourceManager.GetString("InfoTipColorsOriginal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Color Space        = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipColorSpace {
+            get {
+                return ResourceManager.GetString("InfoTipColorSpace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Compression        = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipCompression {
+            get {
+                return ResourceManager.GetString("InfoTipCompression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Current Dimention  = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipDimention {
+            get {
+                return ResourceManager.GetString("InfoTipDimention", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Original Dimention = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipDimentionOriginal {
+            get {
+                return ResourceManager.GetString("InfoTipDimentionOriginal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Display Memory     = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipDisplayMemory {
+            get {
+                return ResourceManager.GetString("InfoTipDisplayMemory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 FileName           = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipFileName {
+            get {
+                return ResourceManager.GetString("InfoTipFileName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 FileSize           = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipFileSize {
+            get {
+                return ResourceManager.GetString("InfoTipFileSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Format Info        = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipFormatInfo {
+            get {
+                return ResourceManager.GetString("InfoTipFormatInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Has Alpha          = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipHasAlpha {
+            get {
+                return ResourceManager.GetString("InfoTipHasAlpha", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Ideal Memoy Usage  = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipIdealMemoryUsage {
+            get {
+                return ResourceManager.GetString("InfoTipIdealMemoryUsage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Matte Color        = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipMatteColor {
+            get {
+                return ResourceManager.GetString("InfoTipMatteColor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Original Matte     = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipMatteColorOriginal {
+            get {
+                return ResourceManager.GetString("InfoTipMatteColorOriginal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Memory Mode        = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipMemoryMode {
+            get {
+                return ResourceManager.GetString("InfoTipMemoryMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Memory Usage       = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipMemoryUsage {
+            get {
+                return ResourceManager.GetString("InfoTipMemoryUsage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Image Quality      = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipQuality {
+            get {
+                return ResourceManager.GetString("InfoTipQuality", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Resolution         = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipResolution {
+            get {
+                return ResourceManager.GetString("InfoTipResolution", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Invert 的本地化字符串。
+        /// </summary>
+        public static string Invert_Header {
+            get {
+                return ResourceManager.GetString("Invert.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 K-Means Cluster 的本地化字符串。
+        /// </summary>
+        public static string KmeansCluster_Header {
+            get {
+                return ResourceManager.GetString("KmeansCluster.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Load Next Image File 的本地化字符串。
+        /// </summary>
+        public static string LoadNextImageFile_Header {
+            get {
+                return ResourceManager.GetString("LoadNextImageFile.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Load Prev Image File 的本地化字符串。
+        /// </summary>
+        public static string LoadPrevImageFile_Header {
+            get {
+                return ResourceManager.GetString("LoadPrevImageFile.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Advanced 的本地化字符串。
+        /// </summary>
+        public static string LowlightColorPick_AdvancedTabHeader {
+            get {
+                return ResourceManager.GetString("LowlightColorPick.AdvancedTabHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Available Colors 的本地化字符串。
+        /// </summary>
+        public static string LowlightColorPick_AvailableColorsHeader {
+            get {
+                return ResourceManager.GetString("LowlightColorPick.AvailableColorsHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Recent Colors 的本地化字符串。
+        /// </summary>
+        public static string LowlightColorPick_RecentColorsHeader {
+            get {
+                return ResourceManager.GetString("LowlightColorPick.RecentColorsHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Standard Colors 的本地化字符串。
+        /// </summary>
+        public static string LowlightColorPick_StandardColorsHeader {
+            get {
+                return ResourceManager.GetString("LowlightColorPick.StandardColorsHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Standard 的本地化字符串。
+        /// </summary>
+        public static string LowlightColorPick_StandardTabHeader {
+            get {
+                return ResourceManager.GetString("LowlightColorPick.StandardTabHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Lowlight Color 的本地化字符串。
+        /// </summary>
+        public static string LowlightColorPick_ToolTip {
+            get {
+                return ResourceManager.GetString("LowlightColorPick.ToolTip", resourceCulture);
             }
         }
         
@@ -88,6 +934,447 @@ namespace ImageCompare.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Advanced 的本地化字符串。
+        /// </summary>
+        public static string MasklightColorPick_AdvancedTabHeader {
+            get {
+                return ResourceManager.GetString("MasklightColorPick.AdvancedTabHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Available Colors 的本地化字符串。
+        /// </summary>
+        public static string MasklightColorPick_AvailableColorsHeader {
+            get {
+                return ResourceManager.GetString("MasklightColorPick.AvailableColorsHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Recent Colors 的本地化字符串。
+        /// </summary>
+        public static string MasklightColorPick_RecentColorsHeader {
+            get {
+                return ResourceManager.GetString("MasklightColorPick.RecentColorsHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Standard Colors 的本地化字符串。
+        /// </summary>
+        public static string MasklightColorPick_StandardColorsHeader {
+            get {
+                return ResourceManager.GetString("MasklightColorPick.StandardColorsHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Standard 的本地化字符串。
+        /// </summary>
+        public static string MasklightColorPick_StandardTabHeader {
+            get {
+                return ResourceManager.GetString("MasklightColorPick.StandardTabHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Masklight Color 的本地化字符串。
+        /// </summary>
+        public static string MasklightColorPick_ToolTip {
+            get {
+                return ResourceManager.GetString("MasklightColorPick.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Align To Bottom Center 的本地化字符串。
+        /// </summary>
+        public static string MatchSizeAlignBC_Header {
+            get {
+                return ResourceManager.GetString("MatchSizeAlignBC.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Align To Bottom Left 的本地化字符串。
+        /// </summary>
+        public static string MatchSizeAlignBL_Header {
+            get {
+                return ResourceManager.GetString("MatchSizeAlignBL.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Align To Bottom Right 的本地化字符串。
+        /// </summary>
+        public static string MatchSizeAlignBR_Header {
+            get {
+                return ResourceManager.GetString("MatchSizeAlignBR.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Align To Center 的本地化字符串。
+        /// </summary>
+        public static string MatchSizeAlignCC_Header {
+            get {
+                return ResourceManager.GetString("MatchSizeAlignCC.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Align To Center Left 的本地化字符串。
+        /// </summary>
+        public static string MatchSizeAlignCL_Header {
+            get {
+                return ResourceManager.GetString("MatchSizeAlignCL.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Align To Center Right 的本地化字符串。
+        /// </summary>
+        public static string MatchSizeAlignCR_Header {
+            get {
+                return ResourceManager.GetString("MatchSizeAlignCR.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Align To Top Center 的本地化字符串。
+        /// </summary>
+        public static string MatchSizeAlignTC_Header {
+            get {
+                return ResourceManager.GetString("MatchSizeAlignTC.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Align To Top Left 的本地化字符串。
+        /// </summary>
+        public static string MatchSizeAlignTL_Header {
+            get {
+                return ResourceManager.GetString("MatchSizeAlignTL.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Align To Top Right 的本地化字符串。
+        /// </summary>
+        public static string MatchSizeAlignTR_Header {
+            get {
+                return ResourceManager.GetString("MatchSizeAlignTR.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Match Source Size 的本地化字符串。
+        /// </summary>
+        public static string MatchSourceSize_Header {
+            get {
+                return ResourceManager.GetString("MatchSourceSize.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Match Target Size 的本地化字符串。
+        /// </summary>
+        public static string MatchTargetSize_Header {
+            get {
+                return ResourceManager.GetString("MatchTargetSize.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Max Image Width and Height Size When Using Smaller Image 的本地化字符串。
+        /// </summary>
+        public static string MaxCompareSizeValue_ToolTip {
+            get {
+                return ResourceManager.GetString("MaxCompareSizeValue.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Mean Shift Cluster 的本地化字符串。
+        /// </summary>
+        public static string MeanShift_Header {
+            get {
+                return ResourceManager.GetString("MeanShift.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Median Filter 的本地化字符串。
+        /// </summary>
+        public static string MedianFilter_Header {
+            get {
+                return ResourceManager.GetString("MedianFilter.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Merge Horizontal 的本地化字符串。
+        /// </summary>
+        public static string MergeX_Header {
+            get {
+                return ResourceManager.GetString("MergeX.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Merge Vertical 的本地化字符串。
+        /// </summary>
+        public static string MergeY_Header {
+            get {
+                return ResourceManager.GetString("MergeY.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 More Effects 的本地化字符串。
+        /// </summary>
+        public static string MoreEffects_Header {
+            get {
+                return ResourceManager.GetString("MoreEffects.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Morphology 的本地化字符串。
+        /// </summary>
+        public static string Morphology_Header {
+            get {
+                return ResourceManager.GetString("Morphology.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 No 的本地化字符串。
+        /// </summary>
+        public static string NotIncluded {
+            get {
+                return ResourceManager.GetString("NotIncluded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Oil Paint 的本地化字符串。
+        /// </summary>
+        public static string OilPaint_Header {
+            get {
+                return ResourceManager.GetString("OilPaint.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Pencil Paint 的本地化字符串。
+        /// </summary>
+        public static string PencilPaint_Header {
+            get {
+                return ResourceManager.GetString("PencilPaint.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Polaroid 的本地化字符串。
+        /// </summary>
+        public static string Polaroid_Header {
+            get {
+                return ResourceManager.GetString("Polaroid.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Posterize 的本地化字符串。
+        /// </summary>
+        public static string Posterize_Header {
+            get {
+                return ResourceManager.GetString("Posterize.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Picture Processing Progress 的本地化字符串。
+        /// </summary>
+        public static string ProcessStatus_ToolTip {
+            get {
+                return ResourceManager.GetString("ProcessStatus.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Quantize 的本地化字符串。
+        /// </summary>
+        public static string Quantize_Header {
+            get {
+                return ResourceManager.GetString("Quantize.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Reload Image 的本地化字符串。
+        /// </summary>
+        public static string ReloadImage_Header {
+            get {
+                return ResourceManager.GetString("ReloadImage.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Re-Map Color 的本地化字符串。
+        /// </summary>
+        public static string ReMapColor_Header {
+            get {
+                return ResourceManager.GetString("ReMapColor.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Repeat Last Action 的本地化字符串。
+        /// </summary>
+        public static string RepeatLastAction_ToolTip {
+            get {
+                return ResourceManager.GetString("RepeatLastAction.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Reset Image 的本地化字符串。
+        /// </summary>
+        public static string ResetImage_Header {
+            get {
+                return ResourceManager.GetString("ResetImage.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Reset Transforms 的本地化字符串。
+        /// </summary>
+        public static string ResetTransforms_Header {
+            get {
+                return ResourceManager.GetString("ResetTransforms.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Difference : 的本地化字符串。
+        /// </summary>
+        public static string ResultTipDifference {
+            get {
+                return ResourceManager.GetString("ResultTipDifference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Elapsed    : 的本地化字符串。
+        /// </summary>
+        public static string ResultTipElapsed {
+            get {
+                return ResourceManager.GetString("ResultTipElapsed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Mode       : 的本地化字符串。
+        /// </summary>
+        public static string ResultTipMode {
+            get {
+                return ResourceManager.GetString("ResultTipMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Rotate +90 的本地化字符串。
+        /// </summary>
+        public static string Rotate090_Header {
+            get {
+                return ResourceManager.GetString("Rotate090.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Rotate 180 的本地化字符串。
+        /// </summary>
+        public static string Rotate180_Header {
+            get {
+                return ResourceManager.GetString("Rotate180.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Rotate -90 的本地化字符串。
+        /// </summary>
+        public static string Rotate270_Header {
+            get {
+                return ResourceManager.GetString("Rotate270.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Save Image As ... 的本地化字符串。
+        /// </summary>
+        public static string SaveAs_Header {
+            get {
+                return ResourceManager.GetString("SaveAs.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Segment 的本地化字符串。
+        /// </summary>
+        public static string Segment_Header {
+            get {
+                return ResourceManager.GetString("Segment.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Set Alpha To Color 的本地化字符串。
+        /// </summary>
+        public static string SetAlphaToColor_Header {
+            get {
+                return ResourceManager.GetString("SetAlphaToColor.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Set Color To Alpha 的本地化字符串。
+        /// </summary>
+        public static string SetColorToAlpha_Header {
+            get {
+                return ResourceManager.GetString("SetColorToAlpha.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Slicing Horizontal 的本地化字符串。
+        /// </summary>
+        public static string SlicingX_Header {
+            get {
+                return ResourceManager.GetString("SlicingX.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Slicing Vertical 的本地化字符串。
+        /// </summary>
+        public static string SlicingY_Header {
+            get {
+                return ResourceManager.GetString("SlicingY.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Solarize 的本地化字符串。
+        /// </summary>
+        public static string Solarize_Header {
+            get {
+                return ResourceManager.GetString("Solarize.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Source 的本地化字符串。
         /// </summary>
         public static string Source_Text {
@@ -97,11 +1384,200 @@ namespace ImageCompare.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Stereo (Fake 3D) 的本地化字符串。
+        /// </summary>
+        public static string Stereo3D_Header {
+            get {
+                return ResourceManager.GetString("Stereo3D.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Target 的本地化字符串。
         /// </summary>
         public static string Target_Text {
             get {
                 return ResourceManager.GetString("Target.Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Tolerances 的本地化字符串。
+        /// </summary>
+        public static string Tolerances {
+            get {
+                return ResourceManager.GetString("Tolerances", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 UI Language Selector 的本地化字符串。
+        /// </summary>
+        public static string UILanguage_ToolTip {
+            get {
+                return ResourceManager.GetString("UILanguage.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 简体中文 的本地化字符串。
+        /// </summary>
+        public static string UILanguageCn_Header {
+            get {
+                return ResourceManager.GetString("UILanguageCn.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 English 的本地化字符串。
+        /// </summary>
+        public static string UILanguageEn_Header {
+            get {
+                return ResourceManager.GetString("UILanguageEn.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 日本語 的本地化字符串。
+        /// </summary>
+        public static string UILanguageJa_Header {
+            get {
+                return ResourceManager.GetString("UILanguageJa.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 繁體中文 的本地化字符串。
+        /// </summary>
+        public static string UILanguageTw_Header {
+            get {
+                return ResourceManager.GetString("UILanguageTw.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Undefined 的本地化字符串。
+        /// </summary>
+        public static string Undefined {
+            get {
+                return ResourceManager.GetString("Undefined", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Force Using Color Image for Compare and Compose After Image Loaded 的本地化字符串。
+        /// </summary>
+        public static string UseColorImage_ToolTip {
+            get {
+                return ResourceManager.GetString("UseColorImage.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Picture Channels Selector 的本地化字符串。
+        /// </summary>
+        public static string UsedChannels_ToolTip {
+            get {
+                return ResourceManager.GetString("UsedChannels.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Using Smaller Image for Compare and Compose After Image Loaded 的本地化字符串。
+        /// </summary>
+        public static string UseSmallerImage_ToolTip {
+            get {
+                return ResourceManager.GetString("UseSmallerImage.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Low or High Intensity Blur 的本地化字符串。
+        /// </summary>
+        public static string UseWeakBlur_ToolTip {
+            get {
+                return ResourceManager.GetString("UseWeakBlur.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Low or High Intensity Effects 的本地化字符串。
+        /// </summary>
+        public static string UseWeakEffects_ToolTip {
+            get {
+                return ResourceManager.GetString("UseWeakEffects.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Low or High Intensity Sharp 的本地化字符串。
+        /// </summary>
+        public static string UseWeakSharp_ToolTip {
+            get {
+                return ResourceManager.GetString("UseWeakSharp.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Unsharp Mask 的本地化字符串。
+        /// </summary>
+        public static string UsmSharp_Header {
+            get {
+                return ResourceManager.GetString("UsmSharp.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Waiting ... 的本地化字符串。
+        /// </summary>
+        public static string Waiting {
+            get {
+                return ResourceManager.GetString("Waiting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Zoom Ratio 的本地化字符串。
+        /// </summary>
+        public static string Zoom_Ratio {
+            get {
+                return ResourceManager.GetString("Zoom Ratio", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 [F9] Picture Fit All 的本地化字符串。
+        /// </summary>
+        public static string ZoomFitAll_ToolTip {
+            get {
+                return ResourceManager.GetString("ZoomFitAll.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 [F9] Picture Fit Height 的本地化字符串。
+        /// </summary>
+        public static string ZoomFitHeight_ToolTip {
+            get {
+                return ResourceManager.GetString("ZoomFitHeight.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 [F9] Picture Fit None 的本地化字符串。
+        /// </summary>
+        public static string ZoomFitNone_ToolTip {
+            get {
+                return ResourceManager.GetString("ZoomFitNone.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 [F9] Picture Fit Width 的本地化字符串。
+        /// </summary>
+        public static string ZoomFitWidth_ToolTip {
+            get {
+                return ResourceManager.GetString("ZoomFitWidth.ToolTip", resourceCulture);
             }
         }
     }

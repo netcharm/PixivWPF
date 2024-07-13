@@ -204,7 +204,7 @@ namespace ImageCompare
                 else
                     action = ImageTarget.GetInformation().ResetTransform();
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -226,7 +226,7 @@ namespace ImageCompare
 
                 LastMatchedImage = ImageType.None;
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -248,7 +248,7 @@ namespace ImageCompare
 
                 LastMatchedImage = ImageType.None;
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -271,7 +271,7 @@ namespace ImageCompare
                     image.Rotated %= 360;
                     action = true;
                 }
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -294,7 +294,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -317,7 +317,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -335,7 +335,7 @@ namespace ImageCompare
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 if (image.ValidCurrent) { image.Current.Grayscale(GrayscaleMode); action = true; }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -359,7 +359,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -385,7 +385,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -408,7 +408,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -444,7 +444,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action && assign) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action && assign) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -490,7 +490,7 @@ namespace ImageCompare
                     }
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -559,7 +559,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -613,7 +613,61 @@ namespace ImageCompare
                     }
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="geomatry"></param>
+        /// <param name="source"></param>
+        private void LiquidScaleImage(MagickGeometry geomatry = null, bool? source = null)
+        {
+            try
+            {
+                var action = false;
+
+                var image_s = ImageSource.GetInformation();
+                var image_t = ImageTarget.GetInformation();
+                if (source == null)
+                {
+                    if (geomatry is MagickGeometry)
+                    {
+                        if (image_s.ValidCurrent) { image_s.Current.Resize(geomatry); image_s.Current.RePage(); action = true; }
+                        if (image_t.ValidCurrent) { image_t.Current.Resize(geomatry); image_t.Current.RePage(); action = true; }
+                    }
+                    else
+                    {
+                        action |= image_s.Reload();
+                        action |= image_t.Reload();
+                    }
+                }
+                else if (source ?? false)
+                {
+                    if (geomatry is MagickGeometry)
+                    {
+                        if (image_s.ValidCurrent) { image_s.Current.LiquidRescale(geomatry); image_s.Current.RePage(); action = true; }
+                    }
+                    else
+                    {
+                        action |= image_s.Reload();
+                    }
+                }
+                else
+                {
+                    if (geomatry is MagickGeometry)
+                    {
+                        if (image_t.ValidCurrent) { image_t.Current.LiquidRescale(geomatry); image_t.Current.RePage(); action = true; }
+                    }
+                    else
+                    {
+                        action |= image_t.Reload();
+                    }
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -644,7 +698,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -695,7 +749,7 @@ namespace ImageCompare
                     }
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -719,7 +773,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -745,7 +799,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -769,7 +823,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -795,7 +849,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -819,7 +873,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -843,7 +897,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -867,7 +921,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -890,7 +944,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -914,7 +968,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -937,7 +991,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -959,7 +1013,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -981,7 +1035,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1003,7 +1057,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1027,7 +1081,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1050,7 +1104,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1076,7 +1130,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1098,7 +1152,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1123,7 +1177,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1146,7 +1200,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1170,7 +1224,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1203,7 +1257,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1226,7 +1280,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1259,7 +1313,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1282,7 +1336,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1306,7 +1360,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1329,7 +1383,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1352,7 +1406,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1375,7 +1429,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1412,7 +1466,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1442,7 +1496,7 @@ namespace ImageCompare
                     }
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1468,7 +1522,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1498,7 +1552,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1564,8 +1618,18 @@ namespace ImageCompare
                             NormSize(source_x, max_w, max_h);
                             NormSize(target_x, max_w, max_h);
 
-                            target_x.Composite(source_x, DefaultMatchAlign, CompositeMode, CompareImageChannels);
+                            var blend = ImageCompositeBlend.Value;
+                            var args = $"{blend:F0},{100-blend:F0}";
+                            target_x.Composite(source_x, DefaultMatchAlign, CompositeMode, args, CompareImageChannels);
+
                             result = new MagickImage(target_x) { ColorFuzz = new Percentage(fuzzy) };
+                            //result.Comment = "NetCharm Created";
+                            //result.VirtualPixelMethod = VirtualPixelMethod.CheckerTile;
+                            result.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                            result.SetArtifact("composite:align", $"{DefaultMatchAlign}");
+                            result.SetArtifact("composite:channels", $"{CompareImageChannels}");
+                            result.SetArtifact("composite:mode", $"{CompositeMode}");
+                            result.SetArtifact("composite:args", $"{args}");
 
                             tip.Add($"{"ResultTipMode".T()} {CompositeMode.ToString()}");
                             await Task.Delay(1);
@@ -1582,29 +1646,23 @@ namespace ImageCompare
                                     LowlightColor = LowlightColor,
                                     MasklightColor = MasklightColor
                                 };
-                                var distance = double.NaN;
-                                if (CompareImageForceColor)
-                                {
-                                    var source_x = ToColor(source);
-                                    var target_x = ToColor(target);
 
-                                    NormSize(source_x, max_w, max_h);
-                                    NormSize(target_x, max_w, max_h);
+                                var source_x = CompareImageForceColor ? ToColor(source) : ToGray(source);
+                                var target_x = CompareImageForceColor ? ToColor(target) : ToGray(target);
 
-                                    distance = source_x.Compare(target_x, setting, diff, CompareImageChannels);
-                                }
-                                else
-                                {
-                                    var source_x = ToGray(source);
-                                    var target_x = ToGray(target);
+                                NormSize(source_x, max_w, max_h);
+                                NormSize(target_x, max_w, max_h);
 
-                                    NormSize(source_x, max_w, max_h);
-                                    NormSize(target_x, max_w, max_h);
+                                var distance = source_x.Compare(target_x, setting, diff, CompareImageChannels);
 
-                                    distance = source_x.Compare(target_x, setting, diff, CompareImageChannels);
-                                }
                                 result = new MagickImage(diff) { ColorFuzz = new Percentage(fuzzy) };
                                 //result.Comment = "NetCharm Created";
+                                //result.VirtualPixelMethod = VirtualPixelMethod.CheckerTile;
+                                result.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                                result.SetArtifact("compare:align", $"{DefaultMatchAlign}");
+                                result.SetArtifact("compare:channels", $"{CompareImageChannels}");
+                                result.SetArtifact("compare:mode", $"{ErrorMetricMode}");
+                                result.SetArtifact("compare:distance", $"{distance:F4}");
 
                                 tip.Add($"{"ResultTipMode".T()} {ErrorMetricMode.ToString()}");
                                 tip.Add($"{"ResultTipDifference".T()} {distance:F4}");

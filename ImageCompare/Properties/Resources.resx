@@ -618,4 +618,10 @@
   <data name="Solarize.Header" xml:space="preserve">
     <value>Solarize</value>
   </data>
+  <data name="InfoTipArtifacts" xml:space="preserve">
+    <value>Artifacts</value>
+  </data>
+  <data name="Blend" xml:space="preserve">
+    <value>Blend Ratio</value>
+  </data>
 </root>

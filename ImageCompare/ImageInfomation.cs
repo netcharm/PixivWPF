@@ -825,6 +825,21 @@ namespace ImageCompare
                             if (Original.Endian == Endian.Undefined) Original.Endian = DetectFileEndian(fi.FullName);
                             if (Current.Endian == Endian.Undefined) Current.Endian = Original.Endian;
                         }
+
+                        if (Current.ArtifactNames.Count() > 0)
+                        {
+                            tip.Add($"{"InfoTipArtifacts".T()}");
+                            var artifacts = new List<string>();
+                            foreach (var artifact in Current.ArtifactNames)
+                            {
+                                var label = artifact.PadRight(32, ' ');
+                                var value = Current.GetArtifact(artifact);
+                                if (string.IsNullOrEmpty(value)) continue;
+                                artifacts.Add($"  {label}= {TextPadding(value, label, 4)}");
+                            }
+                            tip.AddRange(artifacts.OrderBy(a => a));
+                        }
+
                         var exif = Current.HasProfile("exif") ? Current.GetExifProfile() : new ExifProfile();
                         tip.Add($"{"InfoTipAttributes".T()}");
                         var attrs = new List<string>();

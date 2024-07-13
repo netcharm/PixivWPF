@@ -114,6 +114,18 @@
                        HorizontalAlignment="Right" VerticalAlignment="Center"
                        Text="{Binding ElementName=ImageCompareFuzzy, Path=Value, StringFormat={}{0:F1}%}"
                        ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>
+            <Slider x:Name="ImageCompositeBlend" Width="112" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="2,0,0,0"
+                   Value="50" Minimum="0" Maximum="100" SmallChange="1" LargeChange="5"
+                   TickPlacement="None"
+                   IsSnapToTickEnabled="False" ValueChanged="ImageCompositeBlend_ValueChanged">
+                <Slider.ToolTip>
+                    <ToolTip x:Uid="ImageCompareFuzzyToolTip" Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}" ContentStringFormat="Blend: {0:F0}%" />
+                </Slider.ToolTip>
+            </Slider>
+            <TextBlock x:Name="ImageCompositeBlendValue" Width="Auto"
+                       HorizontalAlignment="Right" VerticalAlignment="Center"
+                       Text="{Binding ElementName=ImageCompositeBlend, Path=Value, StringFormat={}{0:F0}%}"
+                       ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>
             <ProgressBar x:Uid="ProcessStatus" x:Name="ProcessStatus" ToolTip="Picture Processing Progress" Margin="4,0,2,0" HorizontalAlignment="Right" Width="36" Height="20" />
             <Button x:Name="ImageDenoiseResult" x:Uid="ImageDenoiseResult" ToolTip="Denoise Result Picture" Click="ImageActions_Click">
                 <StackPanel x:Uid="ImageCopyResultPanel" Orientation="Horizontal" Margin="2">

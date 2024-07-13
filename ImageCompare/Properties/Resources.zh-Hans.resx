@@ -618,4 +618,10 @@
   <data name="Solarize.Header" xml:space="preserve">
     <value>肥皂泡效果</value>
   </data>
+  <data name="InfoTipArtifacts" xml:space="preserve">
+    <value>特性备注     =</value>
+  </data>
+  <data name="Blend" xml:space="preserve">
+    <value>混合比例</value>
+  </data>
 </root>
