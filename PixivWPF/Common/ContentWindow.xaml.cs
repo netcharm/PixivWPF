@@ -71,6 +71,14 @@ namespace PixivWPF.Common
             }
         }
 
+        public bool IsDropBox
+        {
+            get
+            {
+                return (Title.Equals(Application.Current.DropboxTitle()));
+            }
+        }
+
         private Storyboard PreftchingStateRing = null;
         public void SetPrefetchingProgress(double progress, string tooltip = "", TaskStatus state = TaskStatus.Created)
         {

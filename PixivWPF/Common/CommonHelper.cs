@@ -1137,61 +1137,73 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static IList<string> ParseDragContent(this DragEventArgs e)
+        public static IList<string> ParseDataObject(this IDataObject dp)
         {
-            List<string> links = new List<string>();
-
-            var fmts = new List<string>(e.Data.GetFormats(true));
-
-            var str = fmts.Contains("System.String") ? (string)e.Data.GetData("System.String") : string.Empty;
-            var text = fmts.Contains("Text") ? (string)e.Data.GetData("Text") : string.Empty;
-            var unicode = fmts.Contains("UnicodeText") ? (string)e.Data.GetData("UnicodeText") : string.Empty;
-
-            if (fmts.Contains("FileDrop"))
+            var result = new List<string>();
+            if (dp is IDataObject)
             {
-                var files = (string[])(e.Data.GetData("FileDrop"));
-                links = string.Join(Environment.NewLine, files).ParseLinks(false).ToList();
-            }
-            else if (fmts.Contains("text/html"))
-            {
-                using (var ms = (MemoryStream)e.Data.GetData("text/html"))
+                var fmts = new List<string>(dp.GetFormats(true));
+
+                var str = fmts.Contains("System.String") ? (string)dp.GetData("System.String") : string.Empty;
+                var text = fmts.Contains("Text") ? (string)dp.GetData("Text") : string.Empty;
+                var unicode = fmts.Contains("UnicodeText") ? (string)dp.GetData("UnicodeText") : string.Empty;
+
+                if (fmts.Contains("FileDrop"))
                 {
-                    var bytes = ms.ToArray();
-                    var IsUnicode = bytes.Length>=4 && bytes[1] == 0x00 && bytes[3] == 0x00;
-                    if (IsUnicode)
+                    var files = (string[])(dp.GetData("FileDrop"));
+                    result = string.Join(Environment.NewLine, files).ParseLinks(false).ToList();
+                }
+                else if (fmts.Contains("text/html"))
+                {
+                    using (var ms = (MemoryStream)dp.GetData("text/html"))
                     {
-                        var html = Encoding.Unicode.GetString(bytes).Trim().Trim('\0');
-                        links = html.ParseLinks(true).ToList();
-                    }
-                    else
-                    {
-                        var html = Encoding.Unicode.GetString(bytes).Trim().Trim('\0');
-                        if (!string.IsNullOrEmpty(text) && html.Contains(text))
-                            links = html.ParseLinks(true).ToList();
+                        var bytes = ms.ToArray();
+                        var IsUnicode = bytes.Length >= 4 && bytes[1] == 0x00 && bytes[3] == 0x00;
+                        if (IsUnicode)
+                        {
+                            var html = Encoding.Unicode.GetString(bytes).Trim().Trim('\0');
+                            result = html.ParseLinks(true).ToList();
+                        }
                         else
                         {
-                            html = Encoding.UTF8.GetString(ms.ToArray()).Trim().Trim('\0');
-                            links = html.ParseLinks(true).ToList();
+                            var html = Encoding.Unicode.GetString(bytes).Trim().Trim('\0');
+                            if (!string.IsNullOrEmpty(text) && html.Contains(text))
+                                result = html.ParseLinks(true).ToList();
+                            else
+                            {
+                                html = Encoding.UTF8.GetString(ms.ToArray()).Trim().Trim('\0');
+                                result = html.ParseLinks(true).ToList();
+                            }
                         }
                     }
                 }
+                else if (fmts.Contains("System.String"))
+                {
+                    var html = ((string)dp.GetData("System.String")).Trim().Trim('\0');
+                    result = html.ParseLinks(false).ToList();
+                }
+                else if (fmts.Contains("UnicodeText"))
+                {
+                    var html = ((string)dp.GetData("UnicodeText")).Trim().Trim('\0');
+                    result = html.ParseLinks(false).ToList();
+                }
+                else if (fmts.Contains("Text"))
+                {
+                    var html = ((string)dp.GetData("Text")).Trim().Trim('\0');
+                    result = html.ParseLinks(false).ToList();
+                }
             }
-            else if (fmts.Contains("System.String"))
-            {
-                var html = ((string)e.Data.GetData("System.String")).Trim().Trim('\0');
-                links = html.ParseLinks(false).ToList();
-            }
-            else if (fmts.Contains("UnicodeText"))
-            {
-                var html = ((string)e.Data.GetData("UnicodeText")).Trim().Trim('\0');
-                links = html.ParseLinks(false).ToList();
-            }
-            else if (fmts.Contains("Text"))
-            {
-                var html = ((string)e.Data.GetData("Text")).Trim().Trim('\0');
-                links = html.ParseLinks(false).ToList();
-            }
-            return (links);
+            return (result);
+        }
+
+        public static IList<string> ParseClipboard() => (IList<string>)Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            return (ParseDataObject(Clipboard.GetDataObject()));
+        });
+
+        public static IList<string> ParseDragContent(this DragEventArgs e)
+        {
+            return (e is DragEventArgs && e.Data is IDataObject ? ParseDataObject(e.Data).ToList() : new List<string>());
         }
 
         public static string ParseID(this string searchContent)

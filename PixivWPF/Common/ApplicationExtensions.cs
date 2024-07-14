@@ -1518,11 +1518,11 @@ namespace PixivWPF.Common
         #region Application DropBox
         private static void DropBox_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ChangedButton == MouseButton.Left)
+            if (sender is ContentWindow)
             {
-                var setting  = Application.Current.LoadSetting();
-                if (sender is ContentWindow)
+                if (e.ChangedButton == MouseButton.Left)
                 {
+                    var setting  = Application.Current.LoadSetting();
                     var window = sender as ContentWindow;
                     window.DragMove();
 
@@ -1534,14 +1534,22 @@ namespace PixivWPF.Common
                     setting.DropBoxPosition = new Point(window.Left, window.Top);
                     //setting.Save();
                 }
-            }
-            else if (e.ChangedButton == MouseButton.XButton1)
-            {
-                if (sender is ContentWindow)
+                else if (e.ChangedButton == MouseButton.XButton1)
                 {
                     //var window = sender as ContentWindow;
                     //window.Hide();
                     e.Handled = true;
+                    var links = Clipboard.GetDataObject().ParseDataObject();
+                    if (links.Count > 0 && Commands.ParallelExecutionConfirm(links))
+                    {
+                        Application.Current.Dispatcher.InvokeAsync(() =>
+                        {
+                            foreach (var link in links)
+                            {
+                                Commands.OpenSearch.Execute(link);
+                            }
+                        });
+                    }
                 }
             }
         }
