@@ -422,6 +422,22 @@ namespace PixivWPF.Common
             }
         }
 
+        public static IList<string> ProcessClipboard(this Application app)
+        {
+            var links = Clipboard.GetDataObject().ParseDataObject();
+            if (links.Count > 0 && Commands.ParallelExecutionConfirm(links))
+            {
+                Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    foreach (var link in links)
+                    {
+                        Commands.OpenSearch.Execute(link);
+                    }
+                });
+            }
+            return (links);
+        }
+
         public static Process GetCurrentProcess(this Application app)
         {
             return (CurrentProcess);
@@ -1539,17 +1555,7 @@ namespace PixivWPF.Common
                     //var window = sender as ContentWindow;
                     //window.Hide();
                     e.Handled = true;
-                    var links = Clipboard.GetDataObject().ParseDataObject();
-                    if (links.Count > 0 && Commands.ParallelExecutionConfirm(links))
-                    {
-                        Application.Current.Dispatcher.InvokeAsync(() =>
-                        {
-                            foreach (var link in links)
-                            {
-                                Commands.OpenSearch.Execute(link);
-                            }
-                        });
-                    }
+                    Application.Current.ProcessClipboard();
                 }
             }
         }

@@ -1150,12 +1150,12 @@ namespace PixivWPF.Common
 
                 if (fmts.Contains("FileDrop"))
                 {
-                    var files = (string[])(dp.GetData("FileDrop"));
+                    var files = (string[])(dp.GetData("FileDrop", true));
                     result = string.Join(Environment.NewLine, files).ParseLinks(false).ToList();
                 }
                 else if (fmts.Contains("text/html"))
                 {
-                    using (var ms = (MemoryStream)dp.GetData("text/html"))
+                    using (var ms = (MemoryStream)dp.GetData("text/html", true))
                     {
                         var bytes = ms.ToArray();
                         var IsUnicode = bytes.Length >= 4 && bytes[1] == 0x00 && bytes[3] == 0x00;
@@ -1179,17 +1179,17 @@ namespace PixivWPF.Common
                 }
                 else if (fmts.Contains("System.String"))
                 {
-                    var html = ((string)dp.GetData("System.String")).Trim().Trim('\0');
+                    var html = ((string)dp.GetData("System.String", true)).Trim().Trim('\0');
                     result = html.ParseLinks(false).ToList();
                 }
                 else if (fmts.Contains("UnicodeText"))
                 {
-                    var html = ((string)dp.GetData("UnicodeText")).Trim().Trim('\0');
+                    var html = ((string)dp.GetData("UnicodeText", true)).Trim().Trim('\0');
                     result = html.ParseLinks(false).ToList();
                 }
                 else if (fmts.Contains("Text"))
                 {
-                    var html = ((string)dp.GetData("Text")).Trim().Trim('\0');
+                    var html = ((string)dp.GetData("Text", true)).Trim().Trim('\0');
                     result = html.ParseLinks(false).ToList();
                 }
             }
