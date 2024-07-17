@@ -7,18 +7,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using CompactExifLib;
-
 namespace ImageApplets.Applets
 {
-    class IsPNG : Applet
+    class IsBMP : Applet
     {
         public override Applet GetApplet()
         {
-            return (new IsPNG());
+            return (new IsBMP());
         }
 
-        public IsPNG()
+        public IsBMP()
         {
             Category = AppletCategory.ImageType;
         }
@@ -34,15 +32,13 @@ namespace ImageApplets.Applets
                 {
                     var status = false;
                     if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
-                    //using (Image image = Image.FromStream(source))
-                    //{
-                    //    if (image is Image && image.RawFormat.Guid.Equals(ImageFormat.Png.Guid))
-                    //    {
-                    //        status = true;
-                    //    }
-                    //}
-                    var exif = new ExifData(source);
-                    if (exif is ExifData && exif.ImageType == CompactExifLib.ImageType.Png) status = true;
+                    using (Image image = Image.FromStream(source))
+                    {
+                        if (image is Image && image.RawFormat.Guid.Equals(ImageFormat.Bmp.Guid))
+                        {
+                            status = true;
+                        }
+                    }
 
                     ret = GetReturnValueByStatus(status);
                     result = (T)(object)status;

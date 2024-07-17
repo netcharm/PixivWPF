@@ -11,14 +11,14 @@ using CompactExifLib;
 
 namespace ImageApplets.Applets
 {
-    class IsJPG : Applet
+    class IsTIF : Applet
     {
         public override Applet GetApplet()
         {
-            return (new IsJPG());
+            return (new IsTIF());
         }
 
-        public IsJPG()
+        public IsTIF()
         {
             Category = AppletCategory.ImageType;
         }
@@ -36,13 +36,13 @@ namespace ImageApplets.Applets
                     if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
                     //using (Image image = Image.FromStream(source))
                     //{
-                    //    if (image is Image && image.RawFormat.Guid.Equals(ImageFormat.Jpeg.Guid))
+                    //    if (image is Image && image.RawFormat.Guid.Equals(ImageFormat.Tiff.Guid))
                     //    {
                     //        status = true;
                     //    }
                     //}
                     var exif = new ExifData(source);
-                    if (exif is ExifData && exif.ImageType == CompactExifLib.ImageType.Jpeg) status = true;
+                    if (exif is ExifData && exif.ImageType == CompactExifLib.ImageType.Tiff) status = true;
 
                     ret = GetReturnValueByStatus(status);
                     result = (T)(object)status;
@@ -54,14 +54,14 @@ namespace ImageApplets.Applets
         }
     }
 
-    class IsJPEG : Applet
+    class IsTIFF : Applet
     {
         public override Applet GetApplet()
         {
-            return (new IsJPEG());
+            return (new IsTIFF());
         }
 
-        public IsJPEG()
+        public IsTIFF()
         {
             Category = AppletCategory.ImageType;
         }
@@ -79,13 +79,13 @@ namespace ImageApplets.Applets
                     if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
                     //using (Image image = Image.FromStream(source))
                     //{
-                    //    if (image is Image && image.RawFormat.Guid.Equals(ImageFormat.Jpeg.Guid))
+                    //    if (image is Image && image.RawFormat.Guid.Equals(ImageFormat.Tiff.Guid))
                     //    {
                     //        status = true;
                     //    }
                     //}
                     var exif = new ExifData(source);
-                    if (exif is ExifData && exif.ImageType == CompactExifLib.ImageType.Jpeg) status = true;
+                    if (exif is ExifData && exif.ImageType == CompactExifLib.ImageType.Tiff) status = true;
 
                     ret = GetReturnValueByStatus(status);
                     result = (T)(object)status;
@@ -96,4 +96,4 @@ namespace ImageApplets.Applets
             return (ret);
         }
     }
-}
+ }

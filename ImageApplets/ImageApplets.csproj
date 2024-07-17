@@ -60,8 +60,10 @@
     <Compile Include="Applets\HasAlpha.cs" />
     <Compile Include="Applets\HasExif.cs" />
     <Compile Include="Applets\ImageAspectRatio.cs" />
+    <Compile Include="Applets\IsBMP.cs" />
     <Compile Include="Applets\IsJPG.cs" />
     <Compile Include="Applets\IsPNG.cs" />
+    <Compile Include="Applets\IsTIFF.cs" />
     <Compile Include="Applets\JpegQuality.cs" />
     <Compile Include="Applets\Move.cs" />
     <Compile Include="Applets\ImageType.cs" />
