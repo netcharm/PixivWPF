@@ -547,10 +547,9 @@ namespace ImageCompare
                             target.Resize(geo);
                     }
 
-                    var collection = new MagickImageCollection();
-                    collection.Add(image);
-                    collection.Add(target);
+                    var collection = new MagickImageCollection { image, target };
                     var result = vertical ? collection.AppendVertically() : collection.AppendHorizontally();
+                    result.RePage();
 
                     if (sendto)
                         t_image.Current = new MagickImage(result);
@@ -695,6 +694,7 @@ namespace ImageCompare
                         else
                             image.Current.Crop(box);
                     }
+                    image.Current.RePage();
                     action = true;
                 }
 
