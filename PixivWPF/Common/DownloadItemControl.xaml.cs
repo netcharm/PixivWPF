@@ -343,7 +343,7 @@ namespace PixivWPF.Common
             NotifyPropertyChanged("StateChanged");
         }
 
-        public async void RefreshThumbnail(bool overwrite = false)
+        public async void RefreshThumbnail(bool overwrite = false, bool force = false)
         {
             await new Action(async () =>
             {
@@ -355,6 +355,7 @@ namespace PixivWPF.Common
                     {
                         if (img.Source != null)
                         {
+                            if (force) Thumbnail = null;
                             Thumbnail = img.Source;
                             if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Hide();
                         }
@@ -378,7 +379,7 @@ namespace PixivWPF.Common
 
         public bool GetSaveAsJPEG()
         {
-            return(Instance is DownloadItem ? Instance.PART_SaveAsJPEG.IsOn : SaveAsJPEG);
+            return (Instance is DownloadItem ? Instance.PART_SaveAsJPEG.IsOn : SaveAsJPEG);
         }
 
         public void UpdateInfo(bool force = false)
@@ -1399,7 +1400,7 @@ namespace PixivWPF.Common
             if (File.Exists(FileName) && IsDownloading) await Cancel();
             CheckProperties();
 
-            if ((CanDownload || State == DownloadItemState.Finished) && Downloading is SemaphoreSlim && Downloading.CurrentCount <= 0) Downloading.Release();           
+            if ((CanDownload || State == DownloadItemState.Finished) && Downloading is SemaphoreSlim && Downloading.CurrentCount <= 0) Downloading.Release();
 
             var target_file = string.Empty;
             string fc = Url.GetImageCacheFile();
@@ -1516,7 +1517,7 @@ namespace PixivWPF.Common
 
             PART_SaveAsJPEG.IsOn = Info.SaveAsJPEG;
 
-            InitProgress();           
+            InitProgress();
 
             CheckProperties();
         }
@@ -1658,6 +1659,7 @@ namespace PixivWPF.Common
         private async void miActions_Click(object sender, RoutedEventArgs e)
         {
             setting = Application.Current.LoadSetting();
+            var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
             var multiple = Application.Current.DownloadManagerHasMultiSelected();
             var highlight_word = Info.State == DownloadItemState.Finished ? Info.IllustID.ToString() : null;
             if ((sender == miCopyIllustID || sender == PART_CopyIllustID) && !string.IsNullOrEmpty(Url))
@@ -1673,9 +1675,9 @@ namespace PixivWPF.Common
                 //if (Info is DownloadInfo) Info.RefreshThumbnail();
                 Action<DownloadInfo> action = (info) =>
                 {
-                    if (info is DownloadInfo) info.RefreshThumbnail();
+                    if (info is DownloadInfo) info.RefreshThumbnail(force: ctrl);
                 };
-                if (sender == PART_ThumbnailWait || !multiple) action.Invoke(Info); 
+                if (sender == PART_ThumbnailWait || !multiple) action.Invoke(Info);
                 else Commands.RunDownloadItemAction.Execute(action);
             }
             else if ((sender == miOpenIllust || sender == PART_OpenIllust) && !string.IsNullOrEmpty(Url))

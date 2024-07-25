@@ -256,9 +256,7 @@
     <Compile Include="Common\CacheClass.cs" />
     <Compile Include="Common\ClipboardHelper.cs" />
     <Compile Include="Common\Commands.cs" />
-    <Compile Include="Common\CommonHelper.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="Common\CommonHelper.cs" />
     <Compile Include="Common\DownloadItemControl.xaml.cs">
       <DependentUpon>DownloadItemControl.xaml</DependentUpon>
     </Compile>
@@ -293,6 +291,9 @@
     <Compile Include="Common\ThemeClass.cs" />
     <Compile Include="Common\UniformGridPanel.cs" />
     <Compile Include="Common\VirtualizingWrapPanel.cs" />
+    <Compile Include="Common\WebBrowserEx.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Common\WindowsFormsHostEx.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
