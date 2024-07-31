@@ -373,8 +373,14 @@ namespace PixivWPF.Common
             var fmts = new List<string>(e.Data.GetFormats(true));
             if (fmts.Contains("PixivItems"))
             {
-                var items = Clipboard.GetData("PixivItems") as IEnumerable<PixivItem>;
+                var items = e.Data.GetData("PixivItems") as IEnumerable<PixivItem>;
                 Commands.OpenItem.Execute(items);
+            }
+            else if (Content is BatchProcessPage && fmts.Contains("FileDrop"))
+            {
+                var files = (string[])e.Data.GetData("FileDrop", true);
+                var result = files.ToList().FirstOrDefault();
+                (Content as BatchProcessPage).SetStartFolder(result);
             }
             else
             {

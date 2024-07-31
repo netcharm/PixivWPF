@@ -5859,7 +5859,7 @@ namespace PixivWPF.Common
         }
 
         private static ConcurrentDictionary<string, long> LastTouch = new ConcurrentDictionary<string, long>();
-        public static void Touch(this FileInfo fileinfo, string url, bool local = false, bool meta = false, bool force = false)
+        public static void Touch(this FileInfo fileinfo, string url, bool local = false, bool meta = false, bool force = false, bool fix_name = true)
         {
             try
             {
@@ -5903,15 +5903,18 @@ namespace PixivWPF.Common
                                         if (fileinfo.LastWriteTime.Ticks != fdt.Ticks) fileinfo.LastWriteTime = fdt;
                                         if (fileinfo.LastAccessTime.Ticks != fdt.Ticks) fileinfo.LastAccessTime = fdt;
 
-                                        if (fileinfo.Extension.Equals(".png", StringComparison.CurrentCultureIgnoreCase) ||
-                                            fileinfo.Extension.Equals(".jpg", StringComparison.CurrentCultureIgnoreCase) ||
-                                            fileinfo.Extension.Equals(".webp", StringComparison.CurrentCultureIgnoreCase) ||
-                                            fileinfo.Extension.Equals(".gif", StringComparison.CurrentCultureIgnoreCase))
+                                        if (fix_name)
                                         {
-                                            int idx = -1;
-                                            var illust = await fileinfo.FullName.GetIllustId(out idx).GetIllust();
-                                            var fname = illust.GetOriginalUrl(idx).GetImageName((illust.PageCount ?? 0) <= 1);
-                                            if (!fileinfo.Name.Equals(fname)) fileinfo.MoveTo(Path.Combine(fileinfo.DirectoryName, fname));
+                                            if (fileinfo.Extension.Equals(".png", StringComparison.CurrentCultureIgnoreCase) ||
+                                                fileinfo.Extension.Equals(".jpg", StringComparison.CurrentCultureIgnoreCase) ||
+                                                fileinfo.Extension.Equals(".webp", StringComparison.CurrentCultureIgnoreCase) ||
+                                                fileinfo.Extension.Equals(".gif", StringComparison.CurrentCultureIgnoreCase))
+                                            {
+                                                int idx = -1;
+                                                var illust = await fileinfo.FullName.GetIllustId(out idx).GetIllust();
+                                                var fname = illust.GetOriginalUrl(idx).GetImageName((illust.PageCount ?? 0) <= 1);
+                                                if (!fileinfo.Name.Equals(fname)) fileinfo.MoveTo(Path.Combine(fileinfo.DirectoryName, fname));
+                                            }
                                         }
                                     }
                                 }

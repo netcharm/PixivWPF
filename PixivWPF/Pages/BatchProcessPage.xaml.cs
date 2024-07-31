@@ -44,6 +44,15 @@ namespace PixivWPF.Pages
         private CancellationTokenSource cancelSource = null;
         BackgroundWorker BatchProcessTask = null;
 
+        public void SetStartFolder(string folder)
+        {
+            folder = System.IO.Path.GetFullPath(folder);
+            if (!string.IsNullOrEmpty(folder) && Directory.Exists(folder))
+            {
+                InitBatchJob(folder);
+            }
+        }
+
         private void BatchProcessTask_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             new Action(() =>
@@ -69,7 +78,7 @@ namespace PixivWPF.Pages
                 var setting = Application.Current.LoadSetting();
                 var search_opt = Recursion ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
                 var folderinfo = new DirectoryInfo(Contents);
-                var files = folderinfo.GetFiles("*.*", search_opt);
+                var files = folderinfo.EnumerateFiles("*.*", search_opt);
                 var flist = files.Where(f => ext_imgs.Contains(f.Extension)).Distinct().NaturalSort().ToList();
                 var parallel = setting.PrefetchingDownloadParallel;
                 var rnd = new Random();
@@ -117,7 +126,7 @@ namespace PixivWPF.Pages
                                                 if (ReduceSize)
                                                     await f.FullName.ReduceImageFileSize("jpg", keep_name: true, quality: setting.DownloadRecudeJpegQuality);
                                                 else
-                                                    f.Touch(url, meta: true);
+                                                    f.Touch(url, meta: true, fix_name: false);
                                             }
                                             else if (Mode.Equals("attach", StringComparison.CurrentCultureIgnoreCase))
                                             {
