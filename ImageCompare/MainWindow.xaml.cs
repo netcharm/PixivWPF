@@ -1092,10 +1092,11 @@ namespace ImageCompare
 
         private void SaveImageAs(bool source)
         {
+            var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
             if (source)
-                ImageSource.GetInformation().Save();
+                ImageSource.GetInformation().Save(overwrite: ctrl);
             else
-                ImageTarget.GetInformation().Save();
+                ImageTarget.GetInformation().Save(overwrite: ctrl);
         }
         #endregion
 

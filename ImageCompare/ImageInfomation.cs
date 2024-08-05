@@ -540,45 +540,52 @@ namespace ImageCompare
             }
         }
 
-        public void Save()
+        public void Save(bool overwrite = false)
         {
             if (ValidCurrent)
             {
                 try
                 {
-                    var file_str = "File".T();
-                    var dlgSave = new Microsoft.Win32.SaveFileDialog() {  CheckPathExists = true, ValidateNames = true, DefaultExt = ".png" };
-                    dlgSave.Filter = $"PNG {file_str}| *.png|PNG8 {file_str}| *.png|JPEG {file_str}|*.jpg;*.jpeg|TIFF {file_str}|*.tif;*.tiff|BITMAP {file_str}|*.bmp|BITMAP With Alpha {file_str}|*.bmp|WEBP {file_str}|*.webp|Topaz Mask {file_str}|*.tiff";
-                    dlgSave.FilterIndex = 1;
-                    if (dlgSave.ShowDialog() ?? false)
+                    if (overwrite && ValidOriginal && !string.IsNullOrEmpty(FileName) && File.Exists(FileName))
                     {
-                        var file = dlgSave.FileName;
-                        var ext = Path.GetExtension(file);
-                        var filters = dlgSave.Filter.Split('|');
-                        var filter = filters[(dlgSave.FilterIndex - 1) * 2];
-                        if (string.IsNullOrEmpty(ext))
+                        Save(FileName, format: Original.Format);
+                    }
+                    else
+                    {
+                        var file_str = "File".T();
+                        var dlgSave = new Microsoft.Win32.SaveFileDialog() {  CheckPathExists = true, ValidateNames = true, DefaultExt = ".png" };
+                        dlgSave.Filter = $"PNG {file_str}| *.png|PNG8 {file_str}| *.png|JPEG {file_str}|*.jpg;*.jpeg|TIFF {file_str}|*.tif;*.tiff|BITMAP {file_str}|*.bmp|BITMAP With Alpha {file_str}|*.bmp|WEBP {file_str}|*.webp|Topaz Mask {file_str}|*.tiff";
+                        dlgSave.FilterIndex = 1;
+                        if (dlgSave.ShowDialog() ?? false)
                         {
-                            ext = filters[(dlgSave.FilterIndex - 1) * 2 + 1].Replace("*", "");
-                            file = $"{file}{ext}";
-                        }
+                            var file = dlgSave.FileName;
+                            var ext = Path.GetExtension(file);
+                            var filters = dlgSave.Filter.Split('|');
+                            var filter = filters[(dlgSave.FilterIndex - 1) * 2];
+                            if (string.IsNullOrEmpty(ext))
+                            {
+                                ext = filters[(dlgSave.FilterIndex - 1) * 2 + 1].Replace("*", "");
+                                file = $"{file}{ext}";
+                            }
 
-                        var fmt = MagickFormat.Unknown;
-                        if (filter.StartsWith("BITMAP With Alpha", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.Bmp;
-                        else if (filter.StartsWith("BITMAP", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.Bmp3;
-                        else if (filter.StartsWith("png8", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.Png8;
-                        else if (filter.StartsWith("png", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.Png;
-                        else if (filter.StartsWith("jpeg", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.Jpeg;
-                        else if (filter.StartsWith("tiff", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.Tiff;
-                        else if (filter.StartsWith("webp", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.WebP;
+                            var fmt = MagickFormat.Unknown;
+                            if (filter.StartsWith("BITMAP With Alpha", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.Bmp;
+                            else if (filter.StartsWith("BITMAP", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.Bmp3;
+                            else if (filter.StartsWith("png8", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.Png8;
+                            else if (filter.StartsWith("png", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.Png;
+                            else if (filter.StartsWith("jpeg", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.Jpeg;
+                            else if (filter.StartsWith("tiff", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.Tiff;
+                            else if (filter.StartsWith("webp", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.WebP;
 
-                        var topaz = filter.StartsWith("Topaz", StringComparison.CurrentCultureIgnoreCase) ? true : false;
-                        if (topaz)
-                        {
-                            SaveTopazMask(file);
-                        }
-                        else
-                        {
-                            Save(file, format: fmt);
+                            var topaz = filter.StartsWith("Topaz", StringComparison.CurrentCultureIgnoreCase) ? true : false;
+                            if (topaz)
+                            {
+                                SaveTopazMask(file);
+                            }
+                            else
+                            {
+                                Save(file, format: fmt);
+                            }
                         }
                     }
                 }
