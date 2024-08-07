@@ -1,0 +1,39 @@
+﻿<Window x:Class="ImageSearch.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ImageSearch"
+        mc:Ignorable="d"
+        Title="Image Search By Image" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto"/>
+        </Grid.ColumnDefinitions>
+        <TabControl Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" x:Name="Tabs" Margin="4" TabStripPlacement="Bottom">
+            <TabItem x:Name="TabGallery" Header="Gallery">
+                
+            </TabItem>
+            <TabItem x:Name="TabLog" Header="Log">
+                <TextBox x:Name="edResult" Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+            </TabItem>
+        </TabControl>
+        <TextBox Grid.Row="1" Grid.Column="1" x:Name="edImageFile" Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" TextAlignment="Center"/>
+        <StackPanel Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Orientation="Horizontal" FlowDirection="LeftToRight">
+            <Button x:Name="btnMakeDB" Click="btnMakeDB_Click" Width="72" Margin="4">Make DB</Button>
+            <Button x:Name="btnCleanDB" Click="btnCleanDB_Click" Width="72" Margin="4">Clean DB</Button>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Orientation="Horizontal" FlowDirection="RightToLeft">
+            <Button x:Name="btnQueryFile" Click="btnQuery_Click" Width="72" Margin="4" >Query</Button>
+            <Button x:Name="btnQueryClip" Click="btnQuery_Click" Width="72" Margin="4" >Clipboard</Button>
+        </StackPanel>
+        <ProgressBar Grid.Row="2" Grid.ColumnSpan="3" x:Name="progress" Height="2" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Value="100" />
+    </Grid>
+</Window>

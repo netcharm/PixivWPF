@@ -1,0 +1,48 @@
+﻿<Application x:Class="ImageSearch.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:local="clr-namespace:ImageSearch"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <FontFamily x:Key="NormalFamily">
+                霞骛文楷, LXGW WenKai, Sarasa Gothic J, 更纱黑体 SC, FontAwesome, Segoe UI Emoji, Segoe MDL2 Assets, Segoe UI Symbol, Segoe UI, Noto Color Emoji, Noto Emoji
+            </FontFamily>
+            <FontFamily x:Key="MonoSpaceFamily">
+                霞骛文楷等宽, LXGW WenKai Mono, Sarasa Mono J, 等距更纱黑体 SC, Iosevka, Consolas, FontAwesome, Segoe UI Emoji, Segoe UI Symbol, Segoe MDL2 Assets, Noto Color Emoji, Noto Emoji, 更纱黑体 SC, Segoe UI, Monospace
+            </FontFamily>
+            <FontFamily x:Key="SegoeIconFamily">
+                Segoe MDL2 Assets, Segoe UI Emoji, Segoe UI Symbol, 霞骛文楷, LXGW WenKai, Sarasa Gothic J, 更纱黑体 SC, Noto Color Emoji, Noto Emoji, Noto Color Emoji, FontAwesome, Segoe UI
+            </FontFamily>
+            <FontFamily x:Key="ExtraIconFamily">
+                Segoe UI Emoji, Segoe UI Symbol, Segoe MDL2 Assets, Noto Color Emoji, Noto Emoji, FontAwesome, 霞骛文楷, LXGW WenKai, Sarasa Gothic J, 更纱黑体 SC, Segoe UI
+            </FontFamily>
+            <sys:Double x:Key="MonoSpaceFontSize">14</sys:Double>
+            <sys:Double x:Key="NormalFontSize">14</sys:Double>
+            <sys:Double x:Key="IconFontSize">14</sys:Double>
+
+            <Style TargetType="{x:Type Window}">
+                <Setter Property="FontFamily" Value="{DynamicResource NormalFamily}" />
+            </Style>
+            
+            <!--xmlns:shell="clr-namespace:Microsoft.Windows.Shell;assembly=Microsoft.Windows.Shell"-->
+            <!--
+            <Style x:Key="GadgetStyle" TargetType="{x:Type local:MainWindow}">
+                <Setter Property="shell:WindowChrome.WindowChrome">
+                    <Setter.Value>
+                        <shell:WindowChrome GlassFrameThickness="-1" ResizeBorderThickness="4" CaptionHeight="36"/>
+                    </Setter.Value>
+                </Setter>
+            </Style>-->
+            
+            <Style TargetType="{x:Type TextBlock}">
+                <Setter Property="FontFamily" Value="{DynamicResource NormalFamily}"/>
+            </Style>
+
+            <Style TargetType="{x:Type TextBox}">
+                <Setter Property="FontFamily" Value="{DynamicResource NormalFamily}"/>
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
