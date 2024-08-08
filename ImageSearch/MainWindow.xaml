@@ -11,6 +11,7 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto"/>
@@ -18,22 +19,94 @@
             <ColumnDefinition Width="auto"/>
         </Grid.ColumnDefinitions>
         <TabControl Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" x:Name="Tabs" Margin="4" TabStripPlacement="Bottom">
-            <TabItem x:Name="TabGallery" Header="Gallery">
-                
+            <TabItem x:Name="TabSimilar" Header="Similar">
+                <Grid>
+                    <Grid.Background>
+                        <ImageBrush ImageSource="pack://application:,,,/ImageSearch;component/Resources/checkerboard.png" TileMode="Tile" Opacity="0.10" ViewportUnits="Absolute" Viewport="0,0,32,32"/>
+                    </Grid.Background>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Image Grid.Column="0" x:Name="imageSrc" Width="256" />
+                </Grid>
+            </TabItem>
+            <TabItem x:Name="TabCompare" Header="Compare">
+                <Grid>
+                    <Grid.Background>
+                        <ImageBrush ImageSource="pack://application:,,,/ImageSearch;component/Resources/checkerboard.png" TileMode="Tile" Opacity="0.10" ViewportUnits="Absolute" Viewport="0,0,32,32"/>
+                    </Grid.Background>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width=".5*"/>
+                        <ColumnDefinition Width=".5*"/>
+                    </Grid.ColumnDefinitions>
+                    <Viewbox Grid.Column="0" x:Name="CompareBoxL" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                        <Image x:Name="CompareL" x:Uid="Compare" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                            <Image.LayoutTransform>
+                                <TransformGroup>
+                                    <ScaleTransform x:Name="CompareScaleL" ScaleX="1" ScaleY="1"/>
+                                    <RotateTransform x:Name="CompareRotateL" Angle="0" />
+                                </TransformGroup>
+                            </Image.LayoutTransform>
+                        </Image>
+                        <Viewbox.LayoutTransform>
+                            <TransformGroup>
+                                <RotateTransform x:Name="CompreBoxRotateL" Angle="0" />
+                            </TransformGroup>
+                        </Viewbox.LayoutTransform>
+                    </Viewbox>
+                    <Viewbox Grid.Column="1" x:Name="CompareBoxR" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                        <Image x:Name="CompareR" x:Uid="Compare" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                            <Image.LayoutTransform>
+                                <TransformGroup>
+                                    <ScaleTransform x:Name="CompareScaleR" ScaleX="1" ScaleY="1"/>
+                                    <RotateTransform x:Name="CompareRotateR" Angle="0" />
+                                </TransformGroup>
+                            </Image.LayoutTransform>
+                        </Image>
+                        <Viewbox.LayoutTransform>
+                            <TransformGroup>
+                                <RotateTransform x:Name="CompreBoxRotateR" Angle="0" />
+                            </TransformGroup>
+                        </Viewbox.LayoutTransform>
+                    </Viewbox>
+                </Grid>
             </TabItem>
             <TabItem x:Name="TabLog" Header="Log">
                 <TextBox x:Name="edResult" Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
             </TabItem>
         </TabControl>
-        <TextBox Grid.Row="1" Grid.Column="1" x:Name="edImageFile" Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" TextAlignment="Center"/>
-        <StackPanel Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Orientation="Horizontal" FlowDirection="LeftToRight">
+        <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Orientation="Horizontal" FlowDirection="LeftToRight">
+            <RibbonCheckBox x:Name="AllFolders" Label="All Folders" IsChecked="True" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Stretch" VerticalContentAlignment="Center" />
+            <RibbonComboBox x:Name="FolderList" IsEditable="False" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" VerticalContentAlignment="Center" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+            <RibbonCheckBox x:Name="OpenInShell" Label="Open Result In Shell" IsChecked="True" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+            <RibbonComboBox x:Name="QueryResultLimiti" Label="Results:" SelectionBoxWidth="32" IsEditable="False" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <RibbonGallery SelectedValue="10" SelectedValuePath="Content" MaxColumnCount="1" ScrollViewer.VerticalScrollBarVisibility="Auto" >
+                    <RibbonGalleryCategory HorizontalContentAlignment="Center">
+                        <RibbonGalleryItem Content="5" />
+                        <RibbonGalleryItem Content="10" />
+                        <RibbonGalleryItem Content="15" />
+                        <RibbonGalleryItem Content="20" />
+                        <RibbonGalleryItem Content="25" />
+                        <RibbonGalleryItem Content="30" />
+                        <RibbonGalleryItem Content="35" />
+                        <RibbonGalleryItem Content="40" />
+                        <RibbonGalleryItem Content="45" />
+                        <RibbonGalleryItem Content="50" />
+                    </RibbonGalleryCategory>
+                </RibbonGallery>
+            </RibbonComboBox>
+        </StackPanel>
+        <StackPanel Grid.Row="2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Orientation="Horizontal" FlowDirection="LeftToRight">
             <Button x:Name="btnMakeDB" Click="btnMakeDB_Click" Width="72" Margin="4">Make DB</Button>
             <Button x:Name="btnCleanDB" Click="btnCleanDB_Click" Width="72" Margin="4">Clean DB</Button>
         </StackPanel>
-        <StackPanel Grid.Row="1" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Orientation="Horizontal" FlowDirection="RightToLeft">
+        <TextBox Grid.Row="2" Grid.Column="1" x:Name="edQueryFile" Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" TextAlignment="Center"/>
+        <StackPanel Grid.Row="2" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Orientation="Horizontal" FlowDirection="RightToLeft">
             <Button x:Name="btnQueryFile" Click="btnQuery_Click" Width="72" Margin="4" >Query</Button>
             <Button x:Name="btnQueryClip" Click="btnQuery_Click" Width="72" Margin="4" >Clipboard</Button>
         </StackPanel>
-        <ProgressBar Grid.Row="2" Grid.ColumnSpan="3" x:Name="progress" Height="2" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Value="100" />
+        <ProgressBar Grid.Row="3" Grid.ColumnSpan="3" x:Name="progress" Height="2" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Value="100" />
     </Grid>
 </Window>

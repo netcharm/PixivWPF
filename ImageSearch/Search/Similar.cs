@@ -27,6 +27,7 @@ using Microsoft.ML.Trainers;
 using Google.Protobuf.WellKnownTypes;
 using System.Windows.Documents;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Windows.Threading;
 
 
 namespace ImageSearch.Search
@@ -63,14 +64,14 @@ namespace ImageSearch.Search
         private static string[] exts = [ ".jpg", ".jpeg", ".bmp", ".png", ".tif", ".tiff", ".gif", ".webp" ];
 
 
-        public Action<string>? MessageReportAction;
+        public Action<string, TaskStatus>? MessageReportAction;
         
-        private void ReportMessage(string info)
+        private void ReportMessage(string info, TaskStatus state = TaskStatus.Created)
         {
-            if (MessageReportAction is Action<string> && !string.IsNullOrEmpty(info))
+            if (MessageReportAction is Action<string, TaskStatus> && !string.IsNullOrEmpty(info))
             {
-                //MessageReportAction.DynamicInvoke(info);
-                MessageReportAction.Invoke(info);
+                Application.Current.Dispatcher.Invoke(MessageReportAction, priority: DispatcherPriority.Render, info, state);
+                //MessageReportAction.Invoke(info, state);
             }
         }
 
@@ -245,6 +246,13 @@ namespace ImageSearch.Search
         }
         #endregion
 
+        private bool ModelLoaded = false;
+        private bool FeatureLoaded = false;
+        
+        private Mutex ModelLoadedState = new Mutex(false, "ModelLoaded");
+        private Mutex FeatureLoadedState = new Mutex(false, "FeatureLoaded");
+        private Mutex FeatureDBLoadedState = new Mutex(false, "FeatureLoaded");
+
         private class ModelInput
         {
             [VectorType(3 * 224 * 224)]
@@ -289,50 +297,57 @@ namespace ImageSearch.Search
             }
         }
 
-        public void LoadFeatureData(string? feature_db = null)
+        public async void LoadFeatureData(string? feature_db = null)
         {
             var file = GetAbsolutePath(feature_db ?? featureslLocation);
             if (File.Exists(file))
             {
                 try
                 {
-                    ReportMessage($"Loading Feature Data from {file}");
-
                     float[,] feats;
                     string[] names;
-                    (names, feats) = LoadFeature(file);
-                    _names_ = names;
-                    _feats_ = new NDArray(feats);
-
-                    ReportMessage($"Loaded Feature Data from {file}");             
+                    (names, feats) = await LoadFeature(file);
+                    if (names.Length > 0 && feats.Length > 0)
+                    {
+                        _names_ = names;
+                        _feats_ = new NDArray(feats);
+                        FeatureLoaded = true;
+                        ReportMessage($"Loaded Feature DataTable from {file}");
+                    }
+                    else { ReportMessage($"Loading Feature DataTable from {file} failed!"); }
                 }
-                finally
-                {
-                }
+                finally { }
             }
         }
 
-        public (string[], float[,]) LoadFeature(string feature_db)
+        public async Task<(string[], float[,])> LoadFeature(string feature_db)
         {
             float[,] feats;
             string[] names;
 
-            feature_db = GetAbsolutePath(feature_db);
-
-            //var h5_option = new H5ReadOptions(){ IncludeClassFields = true, IncludeClassProperties = true, IncludeStructFields = true, IncludeStructProperties = true };
-            ///var h5 =  H5File.Open(file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, h5_option);
-            var h5 = H5File.OpenRead(feature_db);
-            try
+            (names, feats) = await Task.Run<(string[], float[,])>(() =>
             {
-                var h5_feats = h5.Dataset("feats");
-                var h5_names = h5.Dataset("names");
+                float[,] feats = new float[0,0];
+                string[] names = [];
 
-                feats = h5_feats.Read<float[,]>();
-                names = h5_names.Read<string[]>();
+                ReportMessage($"Loading Feature Database from {feature_db}", TaskStatus.Running);
 
-                ReportMessage($"Loaded Feature Data from {feature_db}");
-            }
-            finally { h5.Dispose(); }
+                feature_db = GetAbsolutePath(feature_db);
+
+                //var h5_option = new H5ReadOptions(){ IncludeClassFields = true, IncludeClassProperties = true, IncludeStructFields = true, IncludeStructProperties = true };
+                ///var h5 =  H5File.Open(file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, h5_option);
+                var h5 = H5File.OpenRead(feature_db);
+                try
+                {
+                    var h5_feats = h5.Dataset("feats");
+                    var h5_names = h5.Dataset("names");
+
+                    feats = h5_feats.Read<float[,]>();
+                    names = h5_names.Read<string[]>();
+                }
+                finally { h5.Dispose(); ReportMessage($"Loaded Feature Database from {feature_db}"); }                    
+                return ((names, feats));
+            }).WaitAsync(TimeSpan.FromSeconds(30));
             return ((names, feats));
         }
 
@@ -352,37 +367,37 @@ namespace ImageSearch.Search
             var file = GetAbsolutePath(feature_db ?? featureslLocation);
             if (Directory.Exists(Path.GetDirectoryName(file)) && names is string[] && feats is Array)
             {
-                try
+                Task.Run(() =>
                 {
-                    ReportMessage($"Saving Feature Data from {file}");
-                    if (File.Exists(file)) File.Move(file, $"{file}.lastgood", true);
-                    var h5 = new H5File()
+                    try
                     {
-                        //["my-group"] = new H5Group()
-                        //{
-                        ["names"] = names,
-                        ["feats"] = feats,
-                        Attributes = new()
+                        ReportMessage($"Saving Feature Data from {file}", TaskStatus.Running);
+                        if (File.Exists(file)) File.Move(file, $"{file}.lastgood", true);
+                        var h5 = new H5File()
                         {
-                            ["folder"] = "",
-                            ["size"] = new int[] { 224, 224 }
-                        }
-                        //}
-                    };
-                    var option = new H5WriteOptions()
-                    {
-                        IncludeClassFields = true,
-                        IncludeClassProperties = true,
-                        IncludeStructFields = true,
-                        IncludeStructProperties = true
-                    };
-                    h5.Write(file, option);
-                    ReportMessage($"Saved Feature Data from {file}");
-                }
-                finally
-                {
-
-                }
+                            //["my-group"] = new H5Group()
+                            //{
+                            ["names"] = names,
+                            ["feats"] = feats,
+                            Attributes = new()
+                            {
+                                ["folder"] = "",
+                                ["size"] = new int[] { 224, 224 }
+                            }
+                            //}
+                        };
+                        var option = new H5WriteOptions()
+                        {
+                            IncludeClassFields = true,
+                            IncludeClassProperties = true,
+                            IncludeStructFields = true,
+                            IncludeStructProperties = true
+                        };
+                        h5.Write(file, option);
+                        ReportMessage($"Saved Feature Data from {file}");
+                    }
+                    finally { ReportMessage($"Saved Feature Data from {file}"); }
+                });
             }
         }
 
@@ -394,38 +409,37 @@ namespace ImageSearch.Search
             var file = GetAbsolutePath(feature_db);
             if (File.Exists(file))
             {
-                try
+                Task.Run(async () =>
                 {
-                    ReportMessage($"Changing Feature Data Folder from {old_folder} to {new_folder}");
+                    try
+                    {
+                        ReportMessage($"Changing Feature Data Folder from {old_folder} to {new_folder}", TaskStatus.Running);
 
-                    float[,] feats;
-                    string[] names;
+                        float[,] feats;
+                        string[] names;
 
-                    (names, feats) = LoadFeature(file);
-                    names = names.Select(n => n.Replace(old_folder, new_folder)).ToArray();
-                    SaveFeature(file, names, feats);
-
-                    ReportMessage($"Changed Feature Data Folder from {old_folder} to {new_folder}");
-                }
-                finally
-                {
-                }
+                        (names, feats) = await LoadFeature(file);
+                        names = names.Select(n => n.Replace(old_folder, new_folder)).ToArray();
+                        SaveFeature(file, names, feats);
+                    }
+                    finally { ReportMessage($"Changed Feature Data Folder from {old_folder} to {new_folder}"); }
+                });
             }
         }
 
-        public void ClesnImageFeature(string feature_db, string folder, bool recuice)
+        public async void CleanImageFeatureAsync(string feature_db, string folder, bool recuice)
         {
             var file = GetAbsolutePath(feature_db);
             if (File.Exists(file))
             {
                 try
                 {
-                    ReportMessage($"Clesning Feature Data from {file}");
+                    ReportMessage($"Clesning Feature Data from {file}", TaskStatus.Running);
 
                     float[,] feats;
                     string[] names;
 
-                    (names, feats) = LoadFeature(file);
+                    (names, feats) = await LoadFeature(file);
 
                     folder = Path.GetFullPath(folder);
                     var option = recuice ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
@@ -448,12 +462,8 @@ namespace ImageSearch.Search
                     }
 
                     SaveFeature(file, names_new, feats_new);
-
-                    ReportMessage($"Clesned Feature Data from {file}");
                 }
-                finally
-                {
-                }
+                finally { ReportMessage($"Clesned Feature Data from {file}"); }
             }
         }
 
@@ -472,19 +482,23 @@ namespace ImageSearch.Search
             var model_file = GetAbsolutePath(modelLocation);
             if (File.Exists(model_file))
             {
-                ReportMessage($"Loading Model from {model_file}");
+                ReportMessage($"Loading Model from {model_file}", TaskStatus.Running);
+                try
+                {
+                    // Create IDataView from empty list to obtain input data schema
+                    var data = mlContext.Data.LoadFromEnumerable(new List<ModelInput>());
 
-                // Create IDataView from empty list to obtain input data schema
-                var data = mlContext.Data.LoadFromEnumerable(new List<ModelInput>());
+                    var pipeline = mlContext.Transforms.ApplyOnnxModel(modelFile: model_file, outputColumnNames: ["resnetv24_dense0_fwd"], inputColumnNames: ["data"]);
 
-                var pipeline = mlContext.Transforms.ApplyOnnxModel(modelFile: model_file, outputColumnNames: ["resnetv24_dense0_fwd"], inputColumnNames: ["data"]);
+                    // Fit scoring pipeline
+                    _model_ = pipeline.Fit(data);
 
-                // Fit scoring pipeline
-                _model_ = pipeline.Fit(data);
+                    _predictionEngine_ = mlContext.Model.CreatePredictionEngine<ModelInput, Prediction>(_model_);
 
-                _predictionEngine_ = mlContext.Model.CreatePredictionEngine<ModelInput, Prediction>(_model_);
-
-                //mlContext.Transforms.CalculateFeatureContribution(_model_);
+                    //mlContext.Transforms.CalculateFeatureContribution(_model_);
+                    ModelLoaded = true;                    
+                }
+                finally { ReportMessage($"Loaded Model from {model_file}"); }
             }
             return _model_;
         }
@@ -567,68 +581,90 @@ namespace ImageSearch.Search
             float[]? result = null;
             if (image is SKBitmap)
             {
-                ReportMessage($"Extract Feature of Memory Image");
-                var size = new SKSizeI(IMG_SIZE.Width, IMG_SIZE.Height);
-
-                var bmp_thumb = image.Resize(size, SKFilterQuality.Medium);
-                using (var img = MLImage.CreateFromPixels(bmp_thumb.Width, bmp_thumb.Height, MLPixelFormat.Bgra32, bmp_thumb.Bytes))
+                ReportMessage($"Extracting Feature of Memory Image", TaskStatus.Running);
+                try
                 {
-                    var img_data = img.GetBGRPixels.Select(b => (float)b).ToArray();
-                    result = _predictionEngine_.Predict(new ModelInput { Data = img_data }).Feature;
+                    if (_model_ == null) LoadModel();
 
-                    //if (result != null) result = Norm(result, zscore: false).ToArray();
-                    if (result != null) result = la_norm(result);
+                    var size = new SKSizeI(IMG_SIZE.Width, IMG_SIZE.Height);
+
+                    var bmp_thumb = image.Resize(size, SKFilterQuality.Medium);
+                    using (var img = MLImage.CreateFromPixels(bmp_thumb.Width, bmp_thumb.Height, MLPixelFormat.Bgra32, bmp_thumb.Bytes))
+                    {
+                        var img_data = img.GetBGRPixels.Select(b => (float)b).ToArray();
+                        result = _predictionEngine_.Predict(new ModelInput { Data = img_data }).Feature;
+
+                        //if (result != null) result = Norm(result, zscore: false).ToArray();
+                        if (result != null) result = la_norm(result);
+                    }
                 }
+                finally { ReportMessage($"Extracted Feature of Memory Image"); }
             }
             return (result);
         }
 
         public List<KeyValuePair<string, double>> QueryImageScore(string file, int padding = 0)
         {
-            ReportMessage($"Query of {file}");
-            return (QueryImageScore(ExtractImaegFeature(file), padding));
+            if (ModelLoaded && FeatureLoaded)
+            {
+                ReportMessage($"Query of {file}");
+                return (QueryImageScore(ExtractImaegFeature(file), padding));
+            }
+            else return (new List<KeyValuePair<string, double>>());
         }
 
         public List<KeyValuePair<string, double>> QueryImageScore(SKBitmap image, int padding = 0)
         {
-            ReportMessage($"Query of Memory Image");
-            return (QueryImageScore(ExtractImaegFeature(image), padding));
+            if (ModelLoaded && FeatureLoaded)
+            {
+                ReportMessage($"Query of Memory Image");
+                return (QueryImageScore(ExtractImaegFeature(image), padding));
+            }
+            else return (new List<KeyValuePair<string, double>>());
         }
 
         public List<KeyValuePair<string, double>> QueryImageScore(float[]? feature, int padding = 0)
         {
             var result = new List<KeyValuePair<string, double>>();
             if (feature == null) return (result);
-            try
+
+            if (ModelLoaded && FeatureLoaded)
             {
-                if (!(_names_ is string[] && _names_.Length > 0) || !(_feats_ is NDArray && _feats_.shape[0] > 0)) LoadFeatureData();
-
-                ReportMessage($"Query of feature");
-
-                var pad = new float[padding];
-
-                var feat_ = padding <= 0 ? new NDArray(feature) : new NDArray(feature.Concat(pad).ToArray());
-
-                if (_feats_ is NDArray && feat_ is NDArray)
+                try
                 {
-                    var m_feat = np.zeros(1, feat_.shape[0]);
-                    m_feat[0] = feat_;
-                    var scores = np.dot(m_feat, _feats_.T)[0];
-                    var rank_ID = scores.argsort<float>(axis: 0)["::-1"];
-                    var rank_score = scores[rank_ID].ToArray<double>();
+                    //if (ModelLoadedState.CurrentCount == 0 && FeatureLoadedState.CurrentCount == 0)
 
-                    for (int i = 0; i < _names_.Length; i++)
+                    if (!(_names_ is string[] && _names_.Length > 0) || !(_feats_ is NDArray && _feats_.shape[0] > 0)) LoadFeatureData();
+
+                    ReportMessage($"Quering of feature", TaskStatus.Running);
+
+                    var pad = new float[padding];
+
+                    var feat_ = padding <= 0 ? new NDArray(feature) : new NDArray(feature.Concat(pad).ToArray());
+
+                    if (_feats_ is NDArray && feat_ is NDArray)
                     {
-                        var f_name = Path.GetFullPath(_names_[rank_ID[i]]);
-                        if (File.Exists(f_name))
+                        var m_feat = np.zeros(1, feat_.shape[0]);
+                        m_feat[0] = feat_;
+                        var scores = np.dot(m_feat, _feats_.T)[0];
+                        var rank_ID = scores.argsort<float>(axis: 0)["::-1"];
+                        var rank_score = scores[rank_ID].ToArray<double>();
+
+                        for (int i = 0; i < _names_.Length; i++)
                         {
-                            result.Add(new KeyValuePair<string, double>(f_name, rank_score[i]));
-                            if (result.Count >= 10) break;
+                            var f_name = Path.GetFullPath(_names_[rank_ID[i]]);
+                            if (File.Exists(f_name))
+                            {
+                                result.Add(new KeyValuePair<string, double>(f_name, rank_score[i]));
+                                if (result.Count >= 10) break;
+                            }
                         }
                     }
                 }
+                catch { }
+                finally { ReportMessage($"Queried of feature"); }
             }
-            catch { }
+            else ReportMessage("Model or Feature Database not loaded.");
             return (result);
         }
     }

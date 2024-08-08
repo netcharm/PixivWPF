@@ -21,6 +21,8 @@ namespace ImageSearch
     /// </summary>
     public partial class MainWindow : Window
     {
+        private List<string> _log_ = new();
+
         public static void Search(string query, IEnumerable<string?> folders)
         {
             if (!string.IsNullOrEmpty(query) && folders is IEnumerable<string>)
@@ -51,33 +53,52 @@ namespace ImageSearch
         {
             InitializeComponent();
             Style = (Style)FindResource(typeof(Window));
-            this.MinWidth = 1024;
-            this.MinHeight = 720;
+            MinWidth = 1024;
+            MinHeight = 720;
         }
 
         private Similar? similar = null;
+
+        private void BatchReport(BatchProgressInfo info)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (info is BatchProgressInfo)
+                {
+                    Cursor = info.State == TaskStatus.Running ? Cursors.Wait : Cursors.Arrow;
+
+                    _log_.Add($"{info.FileName}, {info.Percentage:P}");
+                    edResult.Text = _log_.Count > 1000 ? string.Join(Environment.NewLine, _log_.TakeLast(1000)) : string.Join(Environment.NewLine, _log_);
+                    edResult.ScrollToEnd();
+                }
+            });
+        }
+
+        private void MessageReport(string info, TaskStatus state = TaskStatus.Created)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (!string.IsNullOrEmpty(info))
+                {
+                    Cursor = state == TaskStatus.Running ? Cursors.Wait : Cursors.Arrow;
+
+                    _log_.Add($"{info}");
+                    edResult.Text = _log_.Count > 1000 ? string.Join(Environment.NewLine, _log_.TakeLast(1000)) : string.Join(Environment.NewLine, _log_);
+                    edResult.ScrollToEnd();
+                }
+            });
+        }
 
         private void InitSimilar()
         {
             if (similar == null)
             {
-                similar = new Similar() { progressbar = progress };
-
-                similar.BatchReportAction = new Action<BatchProgressInfo>(info =>
+                similar = new Similar
                 {
-                    if (info is BatchProgressInfo)
-                    {
-                        edResult.Text += $"{info.FileName}, {info.Percentage:P}{Environment.NewLine}";
-                    }
-                });
-
-                similar.MessageReportAction = new Action<string>(info =>
-                {
-                    if (info is string && !string.IsNullOrEmpty(info))
-                    {
-                        edResult.Text += $"{info}{Environment.NewLine}";
-                    }
-                });
+                    progressbar = progress,
+                    BatchReportAction = new Action<BatchProgressInfo>(BatchReport),
+                    MessageReportAction = new Action<string, TaskStatus>(MessageReport)
+                };
 
                 similar.LoadFeatureData(@"data\test_224x224_resnet50v2.h5");
             }
@@ -89,38 +110,43 @@ namespace ImageSearch
 
             var imlist = new List<KeyValuePair<string, double>>();
 
-            if (string.IsNullOrEmpty(edImageFile.Text))
+            if (sender == btnQueryClip && Clipboard.ContainsImage())
             {
-                if (Clipboard.ContainsImage())
+                var image = Clipboard.GetImage();
+                using (var ms = new MemoryStream())
                 {
-                    var image = Clipboard.GetImage();
-                    using (var ms = new MemoryStream())
+                    ////var stride = ((image.PixelWidth * image.Format.BitsPerPixel + 31) / 32) * 4;
+                    //var stride = ((image.PixelWidth * image.Format.BitsPerPixel + 31) >> 5) << 2;
+                    //byte[] buf = new byte[stride * (int)image.Height];
+                    //image.CopyPixels(buf, stride, 0);
+
+                    BitmapEncoder encoder = new PngBitmapEncoder();
+                    encoder.Frames.Add(BitmapFrame.Create(image));
+                    encoder.Save(ms);
+
+                    ms.Seek(0, SeekOrigin.Begin);
+                    using (var bmp = SKBitmap.Decode(ms))
                     {
-                        ////var stride = ((image.PixelWidth * image.Format.BitsPerPixel + 31) / 32) * 4;
-                        //var stride = ((image.PixelWidth * image.Format.BitsPerPixel + 31) >> 5) << 2;
-                        //byte[] buf = new byte[stride * (int)image.Height];
-                        //image.CopyPixels(buf, stride, 0);
-
-                        BitmapEncoder encoder = new PngBitmapEncoder();
-                        encoder.Frames.Add(BitmapFrame.Create(image));
-                        encoder.Save(ms);
-
-                        ms.Seek(0, SeekOrigin.Begin);
-                        using (var bmp = SKBitmap.Decode(ms))
+                        //imageSrc.Source = bmp.Resize()
+                        using (SKCanvas canvas = new(bmp))
                         {
-                            imlist = similar.QueryImageScore(bmp);
+                            //canvasSrc.
+                            //canvas.draw
+                            //canvasSrc.dr
                         }
-                    }                    
+                        imlist = similar.QueryImageScore(bmp);
+                    }
                 }
             }
-            else
+            else if (sender == btnQueryFile && !string.IsNullOrEmpty(edQueryFile.Text))
             {
-                imlist = similar.QueryImageScore($@"images\{edImageFile.Text.Trim()}");                
+                imlist = similar.QueryImageScore($@"images\{edQueryFile.Text.Trim()}");
             }
 
             if (imlist is List<KeyValuePair<string, double>> && imlist.Count() > 0)
             {
-                edResult.Text += string.Join(Environment.NewLine, imlist.Select(im => $"{im.Key}, {im.Value:F4}")) + Environment.NewLine;
+                MessageReport(string.Join(Environment.NewLine, imlist.Select(im => $"{im.Key}, {im.Value:F4}")));
+                //edResult.Text += string.Join(Environment.NewLine, imlist.Select(im => $"{im.Key}, {im.Value:F4}")) + Environment.NewLine;
 
                 var keys = imlist.Select(im => im.Key);
                 var folders = keys.Select(k => System.IO.Path.GetDirectoryName(k)).Distinct();
@@ -136,13 +162,15 @@ namespace ImageSearch
             InitSimilar();
 
             var folder = "images";
-            //similar.CreateFeatureData(folder, feature_db: @$"data\{folder}_224x224_resnet50v2.h5");
-            similar.ClesnImageFeature(feature_db: @$"data\{folder}_224x224_resnet50v2.h5", folder: folder, recuice: false);
+            similar.CreateFeatureData(feature_db: @$"data\{folder}_224x224_resnet50v2.h5", folder: folder);
         }
 
         private void btnCleanDB_Click(object sender, RoutedEventArgs e)
         {
+            InitSimilar();
 
+            var folder = "images";
+            similar.CleanImageFeatureAsync(feature_db: @$"data\{folder}_224x224_resnet50v2.h5", folder: folder, recuice: false);
         }
     }
 }
