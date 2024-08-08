@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 14 for Windows Desktop
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35122.118
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PixivWPF", "PixivWPF\PixivWPF.csproj", "{546DB938-0F20-4E48-BE36-ECC5E778DA7C}"
 EndProject
@@ -9,6 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pixeez", "Pixeez\Pixeez.csp
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E7DF88D4-B7F8-486D-9A00-4AEA4E224F49}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		PixivWPF\aes.cs = PixivWPF\aes.cs
 		LICENSE = LICENSE
 		MIT.txt = MIT.txt
@@ -22,6 +23,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageApplets", "ImageApplets\ImageApplets.csproj", "{E08DC45C-CD8E-4B72-B01B-3DB3498D9A17}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageAppletsCLI", "ImageAppletsCLI\ImageAppletsCLI.csproj", "{C81A5775-BB2C-4DDD-A1FA-27DC2658798F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageSearch", "ImageSearch\ImageSearch.csproj", "{3FC7F523-5E19-44FB-8564-5D783DED05D0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,8 +74,19 @@ Global
 		{C81A5775-BB2C-4DDD-A1FA-27DC2658798F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C81A5775-BB2C-4DDD-A1FA-27DC2658798F}.Release|x64.ActiveCfg = Release|Any CPU
 		{C81A5775-BB2C-4DDD-A1FA-27DC2658798F}.Release|x64.Build.0 = Release|Any CPU
+		{3FC7F523-5E19-44FB-8564-5D783DED05D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FC7F523-5E19-44FB-8564-5D783DED05D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FC7F523-5E19-44FB-8564-5D783DED05D0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3FC7F523-5E19-44FB-8564-5D783DED05D0}.Debug|x64.Build.0 = Debug|Any CPU
+		{3FC7F523-5E19-44FB-8564-5D783DED05D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FC7F523-5E19-44FB-8564-5D783DED05D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FC7F523-5E19-44FB-8564-5D783DED05D0}.Release|x64.ActiveCfg = Release|Any CPU
+		{3FC7F523-5E19-44FB-8564-5D783DED05D0}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6CC3D2D4-90B6-42C6-B865-B78FB0B084C5}
 	EndGlobalSection
 EndGlobal
