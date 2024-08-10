@@ -5,10 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ImageSearch"
         mc:Ignorable="d"
-        Title="Image Search By Image" Height="450" Width="800" Loaded="Window_Loaded">
+        Height="720" Width="1280" AllowDrop="True" Drop="Window_Drop" DragEnter="Window_DragEnter" DragLeave="Window_DragLeave" DragOver="Window_DragOver"
+        Title="Image Search By Image" 
+        Loaded="Window_Loaded">
     <Window.Resources>
         <DataTemplate x:Key="ImageViewer" DataType="local:ImageResultGallery" >
-            <Grid Width="240" Height="256" MaxWidth="240" MinHeight="256" ToolTip="{Binding Path=Tooltip, Mode=OneWay}">
+            <Grid Width="240" Height="256" MaxWidth="240" MinHeight="256" Margin="4" ToolTip="{Binding Path=Tooltip, Mode=OneWay}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="auto"/>
@@ -52,7 +54,7 @@
         </Grid.ColumnDefinitions>
         <TabControl Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" x:Name="Tabs" Margin="4" TabStripPlacement="Bottom">
             <TabItem x:Name="TabSimilar" Header="Similar">
-                <Grid>
+                <Grid x:Name="SimilarViewer">
                     <Grid.Background>
                         <ImageBrush ImageSource="pack://application:,,,/ImageSearch;component/Resources/checkerboard.png" TileMode="Tile" Opacity="0.10" ViewportUnits="Absolute" Viewport="0,0,32,32"/>
                     </Grid.Background>
@@ -60,25 +62,25 @@
                         <ColumnDefinition Width="auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Image Grid.Column="0" x:Name="imageSrc" Width="256" Margin="4" />
-                    <ListView Grid.Column="1" x:Name="ImageGallery" BorderThickness="0" Background="Transparent"
+                    <Image Grid.Column="0" x:Name="SimilarSrc" Width="256" Margin="4" />
+                    <ListView Grid.Column="1" x:Name="SimilarResultGallery" BorderThickness="0" Background="Transparent"
                               Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                               HorizontalContentAlignment="Left" VerticalContentAlignment="Top"
                               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                               Focusable="True" ClipToBounds="True" UseLayoutRounding="True" 
-                              ItemTemplate="{StaticResource ImageViewer}">
+                              ItemTemplate="{StaticResource ImageViewer}" MouseDoubleClick="ImageGallery_MouseDoubleClick">
                         <ListView.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Top" Orientation="Horizontal" 
-                               Grid.IsSharedSizeScope="True" UseLayoutRounding="True" 
-                               ScrollViewer.CanContentScroll="True" ClipToBounds="True" />
+                                   Grid.IsSharedSizeScope="True" UseLayoutRounding="True" 
+                                   ScrollViewer.CanContentScroll="True" ClipToBounds="True" />
                             </ItemsPanelTemplate>
                         </ListView.ItemsPanel>
                     </ListView>
                 </Grid>
             </TabItem>
             <TabItem x:Name="TabCompare" Header="Compare">
-                <Grid>
+                <Grid x:Name="CompareViewer">
                     <Grid.Background>
                         <ImageBrush ImageSource="pack://application:,,,/ImageSearch;component/Resources/checkerboard.png" TileMode="Tile" Opacity="0.10" ViewportUnits="Absolute" Viewport="0,0,32,32"/>
                     </Grid.Background>
@@ -151,7 +153,9 @@
         <StackPanel Grid.Row="2" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Orientation="Horizontal" FlowDirection="RightToLeft">
             <Button x:Name="btnQueryFile" Click="btnQuery_Click" Width="72" Margin="4" >Query</Button>
             <Button x:Name="btnQueryClip" Click="btnQuery_Click" Width="72" Margin="4" >Clipboard</Button>
+            <Separator Width="16"/>
+            <Button x:Name="btnCompareFile" Click="btnCompareFile_Click" Width="72" Margin="4" >Compare</Button>
         </StackPanel>
-        <ProgressBar Grid.Row="3" Grid.ColumnSpan="3" x:Name="progress" Height="2" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Value="100" />
+        <ProgressBar Grid.Row="3" Grid.ColumnSpan="3" x:Name="progress" Height="4" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Value="100" />
     </Grid>
 </Window>

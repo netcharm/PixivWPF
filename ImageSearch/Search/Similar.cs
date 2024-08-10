@@ -34,9 +34,6 @@ using Google.Protobuf.WellKnownTypes;
 using NumSharp;
 using PureHDF;
 using SkiaSharp;
-using Microsoft.ML.OnnxRuntime.Tensors;
-using System.Windows.Ink;
-
 
 namespace ImageSearch.Search
 {
@@ -85,6 +82,19 @@ namespace ImageSearch.Search
         private static string[] exts = [ ".jpg", ".jpeg", ".bmp", ".png", ".tif", ".tiff", ".gif", ".webp" ];
         private static string[] tiff_exts = [ ".tif", ".tiff" ];
 
+        private string GetAbsolutePath(string relativePath)
+        {
+            string fullPath = string.Empty;
+            //FileInfo _dataRoot = new FileInfo(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            FileInfo _dataRoot = new FileInfo(new Uri(System.Reflection.Assembly.GetExecutingAssembly().Location).LocalPath);
+            if (_dataRoot.Directory is DirectoryInfo)
+            {
+                string assemblyFolderPath = _dataRoot.Directory.FullName;
+
+                fullPath = Path.Combine(assemblyFolderPath, relativePath);
+            }
+            return fullPath;
+        }
 
         public Action<string, TaskStatus>? MessageReportAction;
         
@@ -364,20 +374,6 @@ namespace ImageSearch.Search
             //var ss0 = np.sqrt(np.power(array, 2).sum()).GetValue();
             var ss = (float)Math.Sqrt(array.Select(a => a * a).Sum());
             return (array.Select(a => a / ss).ToArray());
-        }
-
-        private string GetAbsolutePath(string relativePath)
-        {
-            string fullPath = string.Empty;
-            //FileInfo _dataRoot = new FileInfo(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            FileInfo _dataRoot = new FileInfo(new Uri(System.Reflection.Assembly.GetExecutingAssembly().Location).LocalPath);
-            if (_dataRoot.Directory is DirectoryInfo)
-            {
-                string assemblyFolderPath = _dataRoot.Directory.FullName;
-
-                fullPath = Path.Combine(assemblyFolderPath, relativePath);
-            }
-            return fullPath;
         }
 
         public SKBitmap? FromImageSource(ImageSource src)
@@ -848,7 +844,7 @@ namespace ImageSearch.Search
             return (result);
         }
 
-        public async Task<float[]?> ExtractImaegFeature(SKBitmap image)
+        public async Task<float[]?> ExtractImaegFeature(SKBitmap? image)
         {
             float[]? result = null;
             if (image is SKBitmap)
@@ -881,7 +877,7 @@ namespace ImageSearch.Search
             return (await QueryImageScore(await ExtractImaegFeature(file), feature_db, limit, padding));
         }
 
-        public async Task<List<KeyValuePair<string, double>>> QueryImageScore(SKBitmap image, string? feature_db = null, int limit = 10, int padding = 0)
+        public async Task<List<KeyValuePair<string, double>>> QueryImageScore(SKBitmap? image, string? feature_db = null, int limit = 10, int padding = 0)
         {
             ReportMessage($"Query of Memory Image");
             return (await QueryImageScore(await ExtractImaegFeature(image), feature_db, limit, padding));
@@ -898,6 +894,7 @@ namespace ImageSearch.Search
                 try
                 {
                     ReportMessage($"Quering of feature", TaskStatus.Running);
+
                     int count = 0;
                     limit = Math.Min(120, Math.Max(1, limit));
                     foreach (var feat_obj in string.IsNullOrEmpty(feature_db) ? _features_ : _features_.Where(f => f.FeatureDB.Equals(Path.GetFullPath(feature_db))).ToList())
@@ -939,6 +936,61 @@ namespace ImageSearch.Search
                     if (ModelLoadedState.CurrentCount == 0) ModelLoadedState.Release();
                     if (FeatureLoadedState.CurrentCount == 0) FeatureLoadedState.Release();
                     ReportMessage($"Queried of feature, Elapsed: {sw.Elapsed.TotalSeconds:F4}s");
+                }
+            }
+            else ReportMessage("Model or Feature Database not loaded.");
+            return (result);
+        }
+
+        public async Task<double> CompareImage(string file0, string file1, int padding = 0)
+        {
+            ReportMessage($"Comparing {file0}, {file1}");
+            return (await CompareImage(await ExtractImaegFeature(file0), await ExtractImaegFeature(file1), padding));
+        }
+
+        public async Task<double> CompareImage(SKBitmap? image0, SKBitmap? image1, int padding = 0)
+        {
+            if (image0 is SKBitmap && image1 is SKBitmap)
+            {
+                ReportMessage($"Comparing Memory Images");
+                return (await CompareImage(await ExtractImaegFeature(image0), await ExtractImaegFeature(image1), padding));
+            }
+            return (0);
+        }
+
+        public async Task<double> CompareImage(float[]? feature0, float[]? feature1, int padding = 0)
+        {
+            double result = 0;
+            if (feature0 == null || feature1 == null) return (result);
+
+            var sw = Stopwatch.StartNew();
+            if (await ModelLoadedState.WaitAsync(TimeSpan.FromSeconds(30)) && await FeatureLoadedState.WaitAsync(TimeSpan.FromSeconds(30)))
+            {
+                try
+                {
+                    ReportMessage($"Compareing of feature", TaskStatus.Running);
+
+                    var pad = new float[padding];
+
+                    var feat_0 = padding <= 0 ? new NDArray(feature0) : new NDArray(feature0.Concat(pad).ToArray());
+                    var feat_1= padding <= 0 ? new NDArray(feature1) : new NDArray(feature1.Concat(pad).ToArray());
+
+                    var m_feat0 = np.zeros(1, feat_0.shape[0]);
+                    m_feat0[0] = feat_0;
+                    var m_feat1 = np.zeros(1, feat_1.shape[0]);
+                    m_feat1[0] = feat_1;
+
+                    var scores = np.dot(m_feat0, m_feat1.T)[0];
+                    //result = scores.ToArray<double>()[0];// ["0"];
+                    result = scores["0"];
+                }
+                catch (Exception ex) { ReportMessage(ex.Message); }
+                finally
+                {
+                    sw.Stop();
+                    if (ModelLoadedState.CurrentCount == 0) ModelLoadedState.Release();
+                    if (FeatureLoadedState.CurrentCount == 0) FeatureLoadedState.Release();
+                    ReportMessage($"Compared of features : {result:F4}, Elapsed: {sw.Elapsed.TotalSeconds:F4}s");
                 }
             }
             else ReportMessage("Model or Feature Database not loaded.");

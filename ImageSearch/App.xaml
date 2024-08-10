@@ -25,17 +25,24 @@
             <Style TargetType="{x:Type Window}">
                 <Setter Property="FontFamily" Value="{DynamicResource NormalFamily}" />
             </Style>
-            
-            <!--xmlns:shell="clr-namespace:Microsoft.Windows.Shell;assembly=Microsoft.Windows.Shell"-->
-            <!--
-            <Style x:Key="GadgetStyle" TargetType="{x:Type local:MainWindow}">
-                <Setter Property="shell:WindowChrome.WindowChrome">
-                    <Setter.Value>
-                        <shell:WindowChrome GlassFrameThickness="-1" ResizeBorderThickness="4" CaptionHeight="36"/>
-                    </Setter.Value>
-                </Setter>
-            </Style>-->
-            
+
+            <Style x:Uid="ToolTipStyle" x:Key="{x:Type ToolTip}" TargetType="{x:Type ToolTip}">
+                <Setter Property="FontFamily" Value="{DynamicResource MonoSpaceFamily}"/>
+                <Setter Property="FontSize" Value="{DynamicResource MonoSpaceSize}"/>
+                <Setter Property="MaxWidth" Value="1024"/>
+                <Style.Resources>
+                    <Style TargetType="ContentPresenter">
+                        <Style.Resources>
+                            <Style TargetType="TextBlock">
+                                <!--<Setter Property="MaxLength" Value="500" />-->
+                                <Setter Property="TextWrapping" Value="Wrap" />
+                                <Setter  Property="TextTrimming" Value="WordEllipsis" />
+                            </Style>
+                        </Style.Resources>
+                    </Style>
+                </Style.Resources>
+            </Style>
+
             <Style TargetType="{x:Type TextBlock}">
                 <Setter Property="FontFamily" Value="{DynamicResource NormalFamily}"/>
             </Style>
