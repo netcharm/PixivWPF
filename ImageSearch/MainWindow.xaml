@@ -5,7 +5,39 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ImageSearch"
         mc:Ignorable="d"
-        Title="Image Search By Image" Height="450" Width="800">
+        Title="Image Search By Image" Height="450" Width="800" Loaded="Window_Loaded">
+    <Window.Resources>
+        <DataTemplate x:Key="ImageViewer" DataType="local:ImageResultGallery" >
+            <Grid Width="240" Height="256" MaxWidth="240" MinHeight="256" ToolTip="{Binding Path=Tooltip, Mode=OneWay}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Viewbox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" x:Name="PART_IMAGEBOX" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <Image x:Name="CompareL" x:Uid="PART_IMAGE" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5"
+                           Source="{Binding Path=Source, Mode=OneWay}">
+                        <Image.LayoutTransform>
+                            <TransformGroup>
+                                <ScaleTransform x:Name="PART_ImageScale" ScaleX="1" ScaleY="1"/>
+                                <RotateTransform x:Name="PART_ImageRotate" Angle="0" />
+                            </TransformGroup>
+                        </Image.LayoutTransform>
+                    </Image>
+                    <Viewbox.LayoutTransform>
+                        <TransformGroup>
+                            <RotateTransform x:Name="PART_ImageBoxRotate" Angle="0" />
+                        </TransformGroup>
+                    </Viewbox.LayoutTransform>
+                </Viewbox>
+                <TextBlock Grid.Row="1" Grid.Column="0" x:Name="PART_IMAGEFILE" Text="{Binding Path=FileName, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="1" Grid.Column="1" x:Name="PART_IMAGESIMILAR" Text="{Binding Path=Similar, Mode=OneWay}"  HorizontalAlignment="Right" VerticalAlignment="Center" />
+            </Grid>
+        </DataTemplate>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -26,10 +58,23 @@
                     </Grid.Background>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="auto"/>
-                        <ColumnDefinition Width="auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Image Grid.Column="0" x:Name="imageSrc" Width="256" />
+                    <Image Grid.Column="0" x:Name="imageSrc" Width="256" Margin="4" />
+                    <ListView Grid.Column="1" x:Name="ImageGallery" BorderThickness="0" Background="Transparent"
+                              Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                              HorizontalContentAlignment="Left" VerticalContentAlignment="Top"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              Focusable="True" ClipToBounds="True" UseLayoutRounding="True" 
+                              ItemTemplate="{StaticResource ImageViewer}">
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Top" Orientation="Horizontal" 
+                               Grid.IsSharedSizeScope="True" UseLayoutRounding="True" 
+                               ScrollViewer.CanContentScroll="True" ClipToBounds="True" />
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                    </ListView>
                 </Grid>
             </TabItem>
             <TabItem x:Name="TabCompare" Header="Compare">
@@ -78,9 +123,9 @@
             </TabItem>
         </TabControl>
         <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Orientation="Horizontal" FlowDirection="LeftToRight">
-            <RibbonCheckBox x:Name="AllFolders" Label="All Folders" IsChecked="True" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Stretch" VerticalContentAlignment="Center" />
-            <RibbonComboBox x:Name="FolderList" IsEditable="False" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" VerticalContentAlignment="Center" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
-            <RibbonCheckBox x:Name="OpenInShell" Label="Open Result In Shell" IsChecked="True" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+            <CheckBox x:Name="AllFolders" Content="All Folders" IsChecked="True" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Stretch" VerticalContentAlignment="Center" Checked="AllFolders_Checked" Unchecked="AllFolders_Checked" />
+            <ComboBox x:Name="FolderList" IsEditable="False" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" VerticalContentAlignment="Center" ScrollViewer.VerticalScrollBarVisibility="Auto" SelectionChanged="FolderList_SelectionChanged"/>
+            <CheckBox x:Name="OpenInShell" Content="Open Results In Shell" IsChecked="False" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
             <RibbonComboBox x:Name="QueryResultLimiti" Label="Results:" SelectionBoxWidth="32" IsEditable="False" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ScrollViewer.VerticalScrollBarVisibility="Auto">
                 <RibbonGallery SelectedValue="10" SelectedValuePath="Content" MaxColumnCount="1" ScrollViewer.VerticalScrollBarVisibility="Auto" >
                     <RibbonGalleryCategory HorizontalContentAlignment="Center">
