@@ -69,6 +69,7 @@ namespace ImageSearch
                     _log_.Add($"{info.FileName}, [{info.Current}/{info.Total}][{info.Percentage:P}]");
                     edResult.Text = _log_.Count > 1000 ? string.Join(Environment.NewLine, _log_.TakeLast(1000)) : string.Join(Environment.NewLine, _log_);
                     edResult.ScrollToEnd();
+                    edResult.SelectionStart = edResult.Text.Length;
                 }
             });
         }
@@ -85,6 +86,7 @@ namespace ImageSearch
                     _log_.Add($"{info}");
                     edResult.Text = _log_.Count > 1000 ? string.Join(Environment.NewLine, _log_.TakeLast(1000)) : string.Join(Environment.NewLine, _log_);
                     edResult.ScrollToEnd();
+                    edResult.SelectionStart = edResult.Text.Length;
                 }
             });
         }
@@ -306,11 +308,6 @@ namespace ImageSearch
                 AllFolders.IsChecked = settings.AllFolder;
                 //QueryResultLimiti.Text = $"{settings.ResultLimit}";
 
-#if DEBUG
-                _storages_.Add(new Storage() { Folder = @"images", DatabaseFile = @$"data\images_224x224_resnet50v2.h5", Recurice = false });
-                _storages_.Add(new Storage() { Folder = @"D:\MyImages\Pixiv", DatabaseFile = @$"data\pixiv_224x224_resnet50v2.h5", Recurice = false });
-                _storages_.Add(new Storage() { Folder = @"D:\Downloads\_firefox\mmd", DatabaseFile = @$"data\mmd_224x224_resnet50v2.h5", Recurice = false });
-#endif
                 if (_storages_ is List<Storage>)
                 {
                     foreach (var storage in _storages_)
@@ -403,7 +400,7 @@ namespace ImageSearch
                     file = System.IO.Path.Combine(folder, file);
                 }
 
-                (var bmp, var skb) = LoadImageFromFile(System.IO.Path.GetFullPath(file));
+                (var bmp, var skb) = LoadImageFromFile(GetAbsolutePath(file));
 
                 if (bmp is BitmapSource) SimilarSrc.Source = bmp.Clone();
                 if (skb is SKBitmap) SimilarSrc.Tag = skb;
@@ -462,10 +459,10 @@ namespace ImageSearch
                                         GalleryList.Add(new ImageResultGallery()
                                         {
                                             Source = bmp.Clone(),
-                                            FullName = System.IO.Path.GetFullPath(im.Key),
+                                            FullName = GetAbsolutePath(im.Key),
                                             FileName = System.IO.Path.GetFileName(im.Key),
                                             Similar = $"{im.Value:F4}",
-                                            Tooltip = $"FullName : {System.IO.Path.GetFullPath(im.Key)}{Environment.NewLine}FileSize : {fi.Length}{Environment.NewLine}FileData : {fi.LastWriteTime.ToString("yyyy/MM/dd HH:mm:ss zzz")}",
+                                            Tooltip = $"FullName : {GetAbsolutePath(im.Key)}{Environment.NewLine}FileSize : {fi.Length}{Environment.NewLine}FileData : {fi.LastWriteTime.ToString("yyyy/MM/dd HH:mm:ss zzz")}",
                                         });
                                     }
                                 }
@@ -519,7 +516,7 @@ namespace ImageSearch
             }
         }
 
-        private void btnMakeDB_Click(object sender, RoutedEventArgs e)
+        private async void btnMakeDB_Click(object sender, RoutedEventArgs e)
         {
             InitSimilar();
 
@@ -533,7 +530,7 @@ namespace ImageSearch
                 else if (FolderList.SelectedIndex >= 0)
                 {
                     var storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
-                    if (storage is Storage) similar.CreateFeatureData(storage);
+                    if (storage is Storage) await similar.CreateFeatureData(storage);
                 }
             }
         }
