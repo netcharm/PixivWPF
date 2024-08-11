@@ -19,9 +19,9 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.TextFormatting;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace ImageSearch
 {
@@ -33,6 +33,8 @@ namespace ImageSearch
         public ObservableCollection<ImageResultGallery> GalleryList = new ObservableCollection<ImageResultGallery>();
 
         private List<string> _log_ = new();
+
+        private Settings settings = new Settings();
 
         private Similar? similar = null;
 
@@ -87,6 +89,7 @@ namespace ImageSearch
                     edResult.Text = _log_.Count > 1000 ? string.Join(Environment.NewLine, _log_.TakeLast(1000)) : string.Join(Environment.NewLine, _log_);
                     edResult.ScrollToEnd();
                     edResult.SelectionStart = edResult.Text.Length;
+                    LatestMessage.Text = info.Split(Environment.NewLine).FirstOrDefault();
                 }
             });
         }
@@ -255,8 +258,9 @@ namespace ImageSearch
             {
                 similar = new Similar
                 {
-                    progressbar = progress,
+                    ModelLocation = settings.Model,
                     StorageList = _storages_,
+                    ReportProgressBar = progress,
                     BatchReportAction = new Action<BatchProgressInfo>(ReportBatch),
                     MessageReportAction = new Action<string, TaskStatus>(ReportMessage)
                 };
@@ -302,11 +306,10 @@ namespace ImageSearch
             var setting_file = GetAbsolutePath($"{GetAppName()}.settings");
             try
             {
-                var settings = Settings.Load(setting_file);
+                settings = Settings.Load(setting_file) ?? new Settings();
 
                 _storages_ = settings.StorageList;
                 AllFolders.IsChecked = settings.AllFolder;
-                //QueryResultLimiti.Text = $"{settings.ResultLimit}";
 
                 if (_storages_ is List<Storage>)
                 {
@@ -314,9 +317,17 @@ namespace ImageSearch
                     {
                         FolderList.Items.Add(new ComboBoxItem() { Content = storage.Folder, DataContext = storage });
                     }
-                    FolderList.SelectedIndex = 0;
+                    if (!string.IsNullOrEmpty(settings.LastImageFolder))
+                    {
+                        var idx = _storages_.Select(s => s.Folder).ToList().IndexOf(settings.LastImageFolder);
+                        if (idx >= 0) FolderList.SelectedIndex = idx;
+                    }
+                    else FolderList.SelectedIndex = 0;
                 }
                 if (!File.Exists(setting_file)) settings.Save(setting_file);
+
+                QueryResultLimit.ItemsSource = new int[] { 5, 10, 15, 20, 25, 30, 35, 40, 45, 50 };
+                QueryResultLimit.SelectedIndex = QueryResultLimit.Items.IndexOf(settings.ResultLimit);
             }
             catch (Exception ex) { ReportMessage(ex.Message); }
         }
@@ -513,6 +524,7 @@ namespace ImageSearch
                 var skb1 = CompareR.Tag as SKBitmap;
 
                 var score = await similar.CompareImage(skb0, skb1);
+                ToolTipService.SetToolTip(TabCompare, $"{score:F4}");
             }
         }
 
@@ -572,7 +584,6 @@ namespace ImageSearch
                 catch (Exception ex) { ReportMessage(ex.Message); }
             }
         }
-
     }
 
     public class ImageResultGallery

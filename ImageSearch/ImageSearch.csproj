@@ -7,6 +7,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>similar.ico</ApplicationIcon>
+     <Version>1.0.7777.0</Version>
+     <AssemblyVersion>1.0.8888.0</AssemblyVersion>
+     <FileVersion>1.0.9999.0</FileVersion>
+     <Company>NetCharm Studio!</Company>
+     <Authors>NetCharm</Authors>
+     <Product>Local Image Search By Image</Product>
+     <Description>Using ML.NET to create local image feature table, and using NumSharp to dot product matrix to calc simalrity.</Description>
+     <Copyright>Copyright © 2024</Copyright>
   </PropertyGroup>
 
   <ItemGroup>

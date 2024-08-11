@@ -38,10 +38,12 @@ namespace ImageSearch
             catch (Exception ex) { MessageBox.Show(ex.Message); }
         }
 
+        public string Model { get; set; } = @"models\resnet50-v2-7.onnx";
         public bool AllFolder { get; set; } = true;
-        
+
         public int ResultLimit { get; set; } = 10;
 
+        public string LastImageFolder { get; set;} = string.Empty;
         public List<Storage> StorageList { get; set; } = [];
     }
 }

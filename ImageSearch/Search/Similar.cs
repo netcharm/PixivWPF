@@ -97,18 +97,18 @@ namespace ImageSearch.Search
         }
 
         public Action<string, TaskStatus>? MessageReportAction;
-        
+
         private void ReportMessage(string info, TaskStatus state = TaskStatus.Created)
         {
             if (MessageReportAction is Action<string, TaskStatus> && !string.IsNullOrEmpty(info))
             {
-                Application.Current.Dispatcher.Invoke(MessageReportAction, priority: DispatcherPriority.Render, info, state);
+                Application.Current.Dispatcher.Invoke(MessageReportAction, priority: DispatcherPriority.Normal, info, state);
                 //MessageReportAction.Invoke(info, state);
             }
         }
 
         #region ProgressBar action
-        public ProgressBar? progressbar { get; set; }
+        public ProgressBar? ReportProgressBar { get; set; }
 
         //public Action<BatchProgressInfo> ProcessingAction;
         private IProgress<BatchProgressInfo>? progress;
@@ -138,9 +138,7 @@ namespace ImageSearch.Search
         private static int IMG_HEIGHT = 224;
         private System.Drawing.Size IMG_SIZE = new System.Drawing.Size(IMG_Width, IMG_HEIGHT);
 
-        private readonly string modelLocation = @"models\resnet50-v2-7.onnx";
-
-        private readonly string featureslLocation = @"data\pixiv_224x224_resnet50v2.h5";
+        public string ModelLocation { get; set; } = string.Empty;
 
         // Create MLContext
         private readonly MLContext mlContext = new MLContext(seed: 1)
@@ -188,11 +186,11 @@ namespace ImageSearch.Search
 
         private void BatchTask_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
         {
-            if (progressbar is ProgressBar)
+            if (ReportProgressBar is ProgressBar)
             {
-                progressbar.Dispatcher.Invoke(() =>
+                ReportProgressBar.Dispatcher.Invoke(() =>
                 {
-                    progressbar.Value = 100;
+                    ReportProgressBar.Value = 100;
                 });
             }
 
@@ -201,11 +199,11 @@ namespace ImageSearch.Search
 
         private void BatchTask_ProgressChanged(object? sender, ProgressChangedEventArgs e)
         {
-            if (progressbar is ProgressBar)
+            if (ReportProgressBar is ProgressBar)
             {
-                progressbar.Dispatcher.Invoke(() =>
+                ReportProgressBar.Dispatcher.Invoke(() =>
                 {
-                    progressbar.Value = e.ProgressPercentage;
+                    ReportProgressBar.Value = e.ProgressPercentage;
                 });
             }
         }
@@ -234,6 +232,7 @@ namespace ImageSearch.Search
                             var folder = GetAbsolutePath(storage.Folder);
                             var feats_db = GetAbsolutePath(storage.DatabaseFile);
                             var dir_name = Path.GetFileName(folder);
+                            var npz_file = $@"data\{dir_name}_checkpoint_latest.npz";
 
                             feats.Clear();
                             var feat_obj = _features_.Where(f => f.FeatureDB.Equals(feats_db)).FirstOrDefault();
@@ -251,6 +250,7 @@ namespace ImageSearch.Search
                                 }
                             }
 
+                            #region Loading latest feats dataset npz
                             ConcurrentDictionary<string, float[]> feats_list = new ConcurrentDictionary<string, float[]>();
                             var feats_a = feat_obj.Feats.ToMuliDimArray<float>() as float[,];
                             var names_a = feat_obj.Names;
@@ -266,11 +266,15 @@ namespace ImageSearch.Search
                             }
 
                             try
-                            {                                
-                                var checkpoint = np.Load_Npz<float[]>($@"data\{dir_name}_checkpoint_latest.npz");
-                                foreach (var kv in checkpoint) feats[kv.Key] = kv.Value;
+                            {
+                                using (var npz_fs = new FileStream(npz_file, FileMode.Open, FileAccess.Read))
+                                {
+                                    var checkpoint = np.Load_Npz<float[]>(npz_fs);
+                                    foreach (var kv in checkpoint) feats[kv.Key] = kv.Value;
+                                }
                             }
                             catch (Exception ex) { ReportMessage(ex.Message); }
+                            #endregion
 
                             var option = storage.Recurice ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
                             var files = Directory.GetFiles(folder, "*.*", option).Where(f => exts.Contains(Path.GetExtension(f).ToLower()));
@@ -280,41 +284,59 @@ namespace ImageSearch.Search
 
                             foreach (var file in diffs)
                             {
+                                if (BatchTask.CancellationPending) break;
+
                                 index++;
                                 if (string.IsNullOrEmpty(file)) continue;
-                                //if (!feat_obj.Names.Contains(file))
+
+                                #region Extracting image feature and store it to feats dataset
+                                var feat = await ExtractImaegFeature(file);
+                                if (!string.IsNullOrEmpty(file) && feat is float[]) feats[file] = feat;
+
+                                e.Result = (float)index / count;
+
+                                BatchTask.ReportProgress((int)Math.Ceiling((float)index / count * 100.0));
+                                #endregion
+
+                                if (BatchTask.CancellationPending) break;
+
+                                #region Save feats dataset for every CheckPoint
+                                var current = feats.Count();
+                                if (info.CheckPoint > 0 && current % (uint)info.CheckPoint == 0)
                                 {
-                                    if (BatchTask.CancellationPending) break;
-                                    var feat = await ExtractImaegFeature(file);
-                                    if (!string.IsNullOrEmpty(file) && feat is float[]) feats[file] = feat;
-
-                                    e.Result = (float)index / count;
-
-                                    BatchTask.ReportProgress((int)Math.Ceiling((float)index / count * 100.0));
-
-                                    var current = feats.Count();
-                                    if (info.CheckPoint > 0 && current % (uint)info.CheckPoint == 0)
+                                    try
                                     {
-                                        try
-                                        {
-                                            np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), $@"data\{dir_name}_checkpoint_{current}.npz");
-                                        }
-                                        catch (Exception ex) { ReportMessage(ex.Message); }
+                                        np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), $@"data\{dir_name}_checkpoint_{current}.npz");
                                     }
-
-                                    info.FileName = file;
-                                    info.Current = index;
-                                    info.Total = count;
-                                    ReportBatch(info);
+                                    catch (Exception ex) { ReportMessage(ex.Message); }
                                 }
+                                #endregion
+
+                                info.FileName = file;
+                                info.Current = index;
+                                info.Total = count;
+                                ReportBatch(info);
                             }
 
                             if (feats.Count() > 0 && feat_obj is FeatureData)
                             {
-                                np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), $@"data\{dir_name}_checkpoint_latest.npz");
-
+                                if (BatchTask.CancellationPending) return;
+                                
+                                #region Save feats dataset for current worker
+                                try
+                                {
+                                    if (File.Exists(npz_file)) File.Move(npz_file, $"{npz_file}.lastgood", true);
+                                    using (var npz_fs = new FileStream(npz_file, FileMode.CreateNew, FileAccess.Write))
+                                    {
+                                        np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), npz_fs);
+                                    }                                    
+                                }
+                                catch (Exception ex) { ReportMessage(ex.Message); }
+                                #endregion
+                                
                                 if (BatchTask.CancellationPending) return;
 
+                                #region Save feats to HDF5
                                 var feats_new = feats_list.UnionBy(feats, kv => kv.Key).ToDictionary();
 
                                 feat_obj.Names = feats_new.Keys.ToArray();
@@ -323,6 +345,7 @@ namespace ImageSearch.Search
 
                                 if (BatchTask.CancellationPending) return;
                                 await SaveFeatureData(feat_obj);
+                                #endregion
                             }
                         }
                         BatchTask.ReportProgress(100);
@@ -513,7 +536,13 @@ namespace ImageSearch.Search
 
         public async Task<ITransformer?> LoadModel(bool reload = false)
         {
-            var model_file = GetAbsolutePath(modelLocation);
+            if (string.IsNullOrEmpty(ModelLocation))
+            {
+                ReportMessage($"Machine Learning Model Not Specified!");
+                return (null);
+            }
+
+            var model_file = GetAbsolutePath(ModelLocation);
             if ((_model_ == null || reload) && File.Exists(model_file) && await ModelLoadedState.WaitAsync(TimeSpan.FromSeconds(30)))
             {
                 var sw = Stopwatch.StartNew();
@@ -596,8 +625,6 @@ namespace ImageSearch.Search
 
                 feature_db = GetAbsolutePath(feature_db);
 
-                //var h5_option = new H5ReadOptions(){ IncludeClassFields = true, IncludeClassProperties = true, IncludeStructFields = true, IncludeStructProperties = true };
-                ///var h5 =  H5File.Open(file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, h5_option);
                 var h5 = H5File.OpenRead(feature_db);
                 try
                 {
@@ -606,6 +633,7 @@ namespace ImageSearch.Search
 
                     feats = h5_feats.Read<float[,]>();
                     names = h5_names.Read<string[]>();
+                    //names = h5_names.Read<string[]>().Select(n => Path.GetFullPath(Path.Combine(image_folder, n))).ToArray();
                 }
                 finally { h5.Dispose(); sw.Stop(); ReportMessage($"Loaded Feature Database [{names.Length}, {feats.Length}] from {feature_db}, Elapsed: {sw.Elapsed.TotalSeconds:F4}s"); }
                 return ((names, feats));
@@ -696,9 +724,10 @@ namespace ImageSearch.Search
             }
         }
 
+        //public async Task SaveFeature(string feature_db, string[] names, Array feats, string image_folder)
         public async Task SaveFeature(string feature_db, string[] names, Array feats)
         {
-            var file = GetAbsolutePath(feature_db ?? featureslLocation);
+            var file = GetAbsolutePath(feature_db);
             if (Directory.Exists(Path.GetDirectoryName(file)) && names is string[] && feats is Array)
             {
                 await Task.Run(() =>
@@ -707,11 +736,13 @@ namespace ImageSearch.Search
                     try
                     {
                         ReportMessage($"Saving Feature Data to {file}", TaskStatus.Running);
+                        //image_folder = (!string.IsNullOrEmpty(image_folder) && Directory.Exists(System.IO.Path.GetFullPath(image_folder)) ? 
                         if (File.Exists(file)) File.Move(file, $"{file}.lastgood", true);
                         var h5 = new H5File()
                         {
                             //["my-group"] = new H5Group()
                             //{
+                            //["names"] = names.Select(n => n.Replace(image_folder, string.Empty)).ToArray(),
                             ["names"] = names,
                             ["feats"] = feats,
                             Attributes = new()
@@ -1046,7 +1077,7 @@ namespace ImageSearch.Search
                     sw.Stop();
                     if (ModelLoadedState.CurrentCount == 0) ModelLoadedState.Release();
                     if (FeatureLoadedState.CurrentCount == 0) FeatureLoadedState.Release();
-                    ReportMessage($"Compared of features : {result:F4}, Elapsed: {sw.Elapsed.TotalSeconds:F4}s");
+                    ReportMessage($"Compared Result of 2 features : {result:F4}, Elapsed: {sw.Elapsed.TotalSeconds:F4}s");
                 }
             }
             else ReportMessage("Model or Feature Database not loaded.");

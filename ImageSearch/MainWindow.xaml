@@ -124,27 +124,24 @@
                 <TextBox x:Name="edResult" Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
             </TabItem>
         </TabControl>
-        <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Orientation="Horizontal" FlowDirection="LeftToRight">
-            <CheckBox x:Name="AllFolders" Content="All Folders" IsChecked="True" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Stretch" VerticalContentAlignment="Center" Checked="AllFolders_Checked" Unchecked="AllFolders_Checked" />
-            <ComboBox x:Name="FolderList" IsEditable="False" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" VerticalContentAlignment="Center" ScrollViewer.VerticalScrollBarVisibility="Auto" SelectionChanged="FolderList_SelectionChanged"/>
-            <CheckBox x:Name="OpenInShell" Content="Open Results In Shell" IsChecked="False" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
-            <RibbonComboBox x:Name="QueryResultLimiti" Label="Results:" SelectionBoxWidth="32" IsEditable="False" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ScrollViewer.VerticalScrollBarVisibility="Auto">
-                <RibbonGallery SelectedValue="10" SelectedValuePath="Content" MaxColumnCount="1" ScrollViewer.VerticalScrollBarVisibility="Auto" >
-                    <RibbonGalleryCategory HorizontalContentAlignment="Center">
-                        <RibbonGalleryItem Content="5" />
-                        <RibbonGalleryItem Content="10" />
-                        <RibbonGalleryItem Content="15" />
-                        <RibbonGalleryItem Content="20" />
-                        <RibbonGalleryItem Content="25" />
-                        <RibbonGalleryItem Content="30" />
-                        <RibbonGalleryItem Content="35" />
-                        <RibbonGalleryItem Content="40" />
-                        <RibbonGalleryItem Content="45" />
-                        <RibbonGalleryItem Content="50" />
-                    </RibbonGalleryCategory>
-                </RibbonGallery>
-            </RibbonComboBox>
-        </StackPanel>
+        <DockPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" FlowDirection="LeftToRight">
+            <CheckBox x:Name="AllFolders" Content="All Folders" IsChecked="True" DockPanel.Dock="Left" 
+                      Margin="4" HorizontalAlignment="Left" VerticalAlignment="Stretch" VerticalContentAlignment="Center" 
+                      Checked="AllFolders_Checked" Unchecked="AllFolders_Checked" />
+            <ComboBox x:Name="FolderList" IsEditable="False" DockPanel.Dock="Left" 
+                      Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" VerticalContentAlignment="Center" 
+                      ScrollViewer.VerticalScrollBarVisibility="Auto" SelectionChanged="FolderList_SelectionChanged"/>
+            <CheckBox x:Name="OpenInShell" Content="Open Results In Shell" IsChecked="False" DockPanel.Dock="Left" 
+                      Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+            <TextBlock x:Name="QueryResultLimitLabel" Text="Results: " Margin="4" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            <ComboBox x:Name="QueryResultLimit" Text="10" IsEditable="False" DockPanel.Dock="Left" 
+                      Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" 
+                      ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+            <TextBlock x:Name="LatestMessage" Text=" " Width="auto" DockPanel.Dock="Right" 
+                       Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Center" 
+                       TextAlignment="Right" TextTrimming="WordEllipsis" TextWrapping="NoWrap" 
+                       ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+        </DockPanel>
         <StackPanel Grid.Row="2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Orientation="Horizontal" FlowDirection="LeftToRight">
             <Button x:Name="btnMakeDB" Click="btnMakeDB_Click" Width="72" Margin="4">Make DB</Button>
             <Button x:Name="btnCleanDB" Click="btnCleanDB_Click" Width="72" Margin="4">Clean DB</Button>
