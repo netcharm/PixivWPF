@@ -326,7 +326,7 @@ namespace ImageSearch
                 }
                 if (!File.Exists(setting_file)) settings.Save(setting_file);
 
-                QueryResultLimit.ItemsSource = new int[] { 5, 10, 15, 20, 25, 30, 35, 40, 45, 50 };
+                QueryResultLimit.ItemsSource = new int[] { 5, 10, 12, 15, 18, 20, 25, 30, 35, 40, 45, 50 };
                 QueryResultLimit.SelectedIndex = QueryResultLimit.Items.IndexOf(settings.ResultLimit);
             }
             catch (Exception ex) { ReportMessage(ex.Message); }
@@ -429,10 +429,12 @@ namespace ImageSearch
 
             if (SimilarSrc.Tag is SKBitmap)
             {
+                if (!int.TryParse(QueryResultLimit.Text, out int limit)) limit = 10;
+
                 await LoadFeatureDB();
 
                 var skb_src = SimilarSrc.Tag as SKBitmap;
-                imlist = await similar.QueryImageScore(skb_src, feature_db);
+                imlist = await similar.QueryImageScore(skb_src, feature_db, limit: limit);
 
                 if (imlist is List<KeyValuePair<string, double>> && imlist.Count() > 0)
                 {
