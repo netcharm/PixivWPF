@@ -68,11 +68,12 @@ namespace ImageSearch
                 if (info is BatchProgressInfo)
                 {
                     //Cursor = info.State == TaskStatus.Running ? Cursors.Wait : Cursors.Arrow;
-
-                    _log_.Add($"{info.FileName}, [{info.Current}/{info.Total}][{info.Percentage:P}]");
+                    var msg = $"{info.FileName}, [{info.Current}/{info.Total}][{info.Percentage:P}]";
+                    _log_.Add(msg);
                     edResult.Text = _log_.Count > 1000 ? string.Join(Environment.NewLine, _log_.TakeLast(1000)) : string.Join(Environment.NewLine, _log_);
                     edResult.ScrollToEnd();
                     edResult.SelectionStart = edResult.Text.Length;
+                    LatestMessage.Text = msg;
                 }
             });
         }
@@ -351,6 +352,8 @@ namespace ImageSearch
 
                 QueryResultLimit.ItemsSource = new int[] { 5, 10, 12, 15, 18, 20, 24, 25, 30, 35, 40, 45, 50, 60 };
                 QueryResultLimit.SelectedIndex = QueryResultLimit.Items.IndexOf(settings.ResultLimit);
+
+                
             }
             catch (Exception ex) { ReportMessage(ex.Message); }
         }
@@ -359,9 +362,11 @@ namespace ImageSearch
         {
             if (e.Data is DataObject)
             {
-                if (e.Source == TabSimilar || e.Source == SimilarViewer || e.Source == SimilarResultGallery || e.Source == SimilarResultGallery)
+                var similar_target = new object[]{ TabSimilar, SimilarViewer, SimilarResultGallery, SimilarResultGallery, SimilarSrc };
+                var compare_target = new object[]{ TabCompare, CompareViewer, CompareBoxL, CompareBoxR, CompareL, CompareR };
+                if (similar_target.Contains(e.Source))
                     btnQuery_Click(sender, e);
-                else if (e.Source == TabCompare || e.Source == CompareViewer || e.Source == CompareBoxL || e.Source == CompareBoxR || e.Source == CompareL || e.Source == CompareR)
+                else if (compare_target.Contains(compare_target))
                 {
                     btnCompareFile_Click(sender, e);
                 }

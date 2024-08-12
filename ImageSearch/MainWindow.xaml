@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ImageSearch"
         mc:Ignorable="d"
-        Height="720" Width="1280" AllowDrop="True" Drop="Window_Drop" DragEnter="Window_DragEnter" DragLeave="Window_DragLeave" DragOver="Window_DragOver"
+        Height="720" Width="1280" 
+        AllowDrop="True" Drop="Window_Drop" DragEnter="Window_DragEnter" DragLeave="Window_DragLeave" DragOver="Window_DragOver"
         Title="Image Search By Image" 
         Loaded="Window_Loaded">
     <Window.Resources>

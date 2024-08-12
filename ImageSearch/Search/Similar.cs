@@ -365,7 +365,7 @@ namespace ImageSearch.Search
                     finally
                     {
                         sw.Stop();
-                        ReportMessage($"Create feature datas finished, Elapsed: {sw.Elapsed.ToString()}", TaskStatus.RanToCompletion);
+                        ReportMessage($"Create feature datas finished, Elapsed: {sw.Elapsed.ToString(@"dd\.hh\:mm\:ss")}", TaskStatus.RanToCompletion);
                     }
                 }
             }
