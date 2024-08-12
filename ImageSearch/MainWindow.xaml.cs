@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Pipes;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
@@ -235,6 +236,7 @@ namespace ImageSearch
         {
             InitSimilar();
 
+            await Dispatcher.Invoke(async () => { 
             var storage = new Storage();
             var folder = string.Empty;
             var feature_db = string.Empty;
@@ -250,6 +252,7 @@ namespace ImageSearch
                 await similar.LoadFeatureData(similar.StorageList);
             else
                 await similar.LoadFeatureData(storage);
+            });
         }
 
         private void InitSimilar()
@@ -271,7 +274,7 @@ namespace ImageSearch
             }
         }
 
-        public static void ShellSearch(string query, IEnumerable<string?> folders)
+        private void ShellSearch(string query, IEnumerable<string?> folders)
         {
             if (!string.IsNullOrEmpty(query) && folders is IEnumerable<string>)
             {
@@ -293,6 +296,25 @@ namespace ImageSearch
                 else
                 {
 
+                }
+            }
+        }
+
+        private void ShellRun(string[] files)
+        {
+            if (files is string[] && files.Length > 0)
+            {
+                var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+                foreach (var file in files.Where(f => File.Exists(f)))
+                {
+                    try
+                    {
+                        if (shift)
+                            Process.Start("openwith.exe", file);
+                        else
+                            Process.Start("explorer.exe", file);
+                    }
+                    catch (Exception ex) { ReportMessage(ex.Message); }
                 }
             }
         }
@@ -327,7 +349,7 @@ namespace ImageSearch
                 }
                 if (!File.Exists(setting_file)) settings.Save(setting_file);
 
-                QueryResultLimit.ItemsSource = new int[] { 5, 10, 12, 15, 18, 20, 25, 30, 35, 40, 45, 50 };
+                QueryResultLimit.ItemsSource = new int[] { 5, 10, 12, 15, 18, 20, 24, 25, 30, 35, 40, 45, 50, 60 };
                 QueryResultLimit.SelectedIndex = QueryResultLimit.Items.IndexOf(settings.ResultLimit);
             }
             catch (Exception ex) { ReportMessage(ex.Message); }
@@ -381,8 +403,6 @@ namespace ImageSearch
         {
             InitSimilar();
 
-            var imlist = new List<KeyValuePair<string, double>>();
-
             var storage = new Storage();
             var folder = string.Empty;
             var feature_db = string.Empty;
@@ -395,12 +415,10 @@ namespace ImageSearch
                 feature_db = all_db ? string.Empty : storage.DatabaseFile;
             }
 
-            GalleryList.Clear();
-
             if (sender == btnQueryClip && Clipboard.ContainsImage())
             {
                 (var bmp, var skb) = await LoadImageFromClipboard();
-                if (bmp is BitmapSource) SimilarSrc.Source = bmp.Clone();
+                if (bmp is BitmapSource) SimilarSrc.Source = bmp;
                 if (skb is SKBitmap) SimilarSrc.Tag = skb;
             }
             else if (sender == btnQueryFile && !string.IsNullOrEmpty(edQueryFile.Text))
@@ -414,7 +432,7 @@ namespace ImageSearch
 
                 (var bmp, var skb) = LoadImageFromFile(GetAbsolutePath(file));
 
-                if (bmp is BitmapSource) SimilarSrc.Source = bmp.Clone();
+                if (bmp is BitmapSource) SimilarSrc.Source = bmp;
                 if (skb is SKBitmap) SimilarSrc.Tag = skb;
             }
             else if (e is DragEventArgs)
@@ -423,72 +441,89 @@ namespace ImageSearch
                 if (imgs.Count > 0)
                 {
                     (var bmp, var skb) = imgs.FirstOrDefault();
-                    if (bmp is BitmapSource) SimilarSrc.Source = bmp.Clone();
+                    if (bmp is BitmapSource) SimilarSrc.Source = bmp;
                     if (skb is SKBitmap) SimilarSrc.Tag = skb;
                 }
             }
 
+            GalleryList.Clear();
+
             if (SimilarSrc.Tag is SKBitmap)
             {
                 if (!int.TryParse(QueryResultLimit.Text, out int limit)) limit = 10;
+                var show_in_shell = OpenInShell.IsChecked ?? false;
 
-                await LoadFeatureDB();
-
-                var skb_src = SimilarSrc.Tag as SKBitmap;
-                imlist = await similar.QueryImageScore(skb_src, feature_db, limit: limit);
-
-                if (imlist is List<KeyValuePair<string, double>> && imlist.Count() > 0)
+                await Task.Run(async () =>
                 {
-                    ReportMessage(string.Join(Environment.NewLine, imlist.Select(im => $"{im.Key}, {im.Value:F4}")));
+                    await LoadFeatureDB();
 
-                    if (OpenInShell.IsChecked ?? false)
-                    {
-                        var keys = imlist.Select(im => im.Key);
-                        var folders = keys.Select(k => System.IO.Path.GetDirectoryName(k)).Distinct();
-                        var query_words = keys.Select(k => System.IO.Path.GetFileName(k)).Take(5);
-                        var query = $"({string.Join(" OR ", query_words.Select(w => $"\"{w}\""))})";
-                        Clipboard.SetText(query);
-                        ShellSearch(Uri.EscapeDataString(query), folders);
-                    }
+                    var skb_src = SimilarSrc.Dispatcher.Invoke(() => { return(SimilarSrc.Tag as SKBitmap); });
+                    var imlist = await similar.QueryImageScore(skb_src, feature_db, limit: limit);
 
-                    GalleryList.Clear();
-                    foreach (var im in imlist)
+                    if (imlist.Count > 0)
                     {
-                        using (var skb = similar.LoadImage(im.Key))
+                        ReportMessage(string.Join(Environment.NewLine, imlist.Select(im => $"{im.Key}, {im.Value:F4}")));
+
+                        Dispatcher.Invoke(() =>
                         {
-                            if (skb is SKBitmap)
+                            if (show_in_shell)
                             {
-                                var ratio = Math.Max(skb.Width, skb.Height) / 240.0;
+                                var keys = imlist.Select(im => im.Key);
+                                var folders = keys.Select(k => System.IO.Path.GetDirectoryName(k)).Distinct();
+                                var query_words = keys.Select(k => System.IO.Path.GetFileName(k)).Take(5);
+                                var query = $"({string.Join(" OR ", query_words.Select(w => $"\"{w}\""))})";
+                                Clipboard.SetText(query);
+                                ShellSearch(Uri.EscapeDataString(query), folders);
+                            }
+                        });
 
-                                using (var skb_thumb = skb.Resize(new SKSizeI((int)Math.Ceiling(skb.Width / ratio), (int)Math.Ceiling(skb.Height / ratio)), SKFilterQuality.High))
+                        SimilarResultGallery.Dispatcher.Invoke(() =>
+                        {
+                            GalleryList.Clear();
+                            foreach (var im in imlist)
+                            {
+                                using (var skb = similar.LoadImage(im.Key))
                                 {
-                                    using (var sk_data = skb_thumb.Encode(SKEncodedImageFormat.Png, 100))
+                                    if (skb is SKBitmap)
                                     {
-                                        using (var ms = new MemoryStream())
+                                        var ratio = Math.Max(skb.Width, skb.Height) / 240.0;
+
+                                        using (var skb_thumb = skb.Resize(new SKSizeI((int)Math.Ceiling(skb.Width / ratio), (int)Math.Ceiling(skb.Height / ratio)), SKFilterQuality.High))
                                         {
-                                            sk_data.SaveTo(ms);
-                                            ms.Seek(0, SeekOrigin.Begin);
-
-                                            (var bmp, _) = LoadImageFromStream(ms);
-
-                                            FileInfo fi = new FileInfo(im.Key);
-                                            GalleryList.Add(new ImageResultGallery()
+                                            using (var sk_data = skb_thumb.Encode(SKEncodedImageFormat.Png, 100))
                                             {
-                                                Source = bmp.Clone(),
-                                                FullName = GetAbsolutePath(im.Key),
-                                                FileName = System.IO.Path.GetFileName(im.Key),
-                                                Similar = $"{im.Value:F4}",
-                                                Tooltip = $"FullName : {GetAbsolutePath(im.Key)}{Environment.NewLine}FileSize : {fi.Length}{Environment.NewLine}FileData : {fi.LastWriteTime.ToString("yyyy/MM/dd HH:mm:ss zzz")}",
-                                            });
+                                                using (var ms = new MemoryStream())
+                                                {
+                                                    try
+                                                    {
+                                                        sk_data.SaveTo(ms);
+                                                        ms.Seek(0, SeekOrigin.Begin);
+
+                                                        (var bmp, _) = LoadImageFromStream(ms);
+
+                                                        FileInfo fi = new FileInfo(im.Key);
+                                                        GalleryList.Add(new ImageResultGallery()
+                                                        {
+                                                            Source = bmp,
+                                                            FullName = GetAbsolutePath(im.Key),
+                                                            FileName = System.IO.Path.GetFileName(im.Key),
+                                                            Similar = $"{im.Value:F4}",
+                                                            Tooltip = $"FullName : {GetAbsolutePath(im.Key)}{Environment.NewLine}FileSize : {fi.Length}{Environment.NewLine}FileData : {fi.LastWriteTime.ToString("yyyy/MM/dd HH:mm:ss zzz")}",
+                                                        });
+                                                    }
+                                                    catch (Exception ex) { ReportMessage(ex.Message); }
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
+                            SimilarResultGallery.ItemsSource = GalleryList;
+                            if (GalleryList.Count > 0) SimilarResultGallery.ScrollIntoView(GalleryList.First());
+                        });
                     }
-                    SimilarResultGallery.ItemsSource = GalleryList;
-                    if (GalleryList.Count > 0) SimilarResultGallery.ScrollIntoView(GalleryList.First());
-                }
+
+                });
             }
         }
 
@@ -572,23 +607,33 @@ namespace ImageSearch
             }
         }
 
-        private void ImageGallery_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private void SimilarResultGallery_KeyUp(object sender, KeyEventArgs e)
         {
-            var shift = Keyboard.Modifiers == ModifierKeys.Shift;
-            if (SimilarResultGallery.SelectedItems.Count > 0)
+            var shift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
+            var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+            var alt = Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
+            var win = Keyboard.Modifiers.HasFlag(ModifierKeys.Windows);
+
+            if (e.Key == Key.Enter)
             {
-                try
-                {
-                    var item = SimilarResultGallery.SelectedItem as ImageResultGallery;
-                    if (shift)
-                        Process.Start("openwith.exe", item.FullName);
-                    else
-                    {
-                        Process.Start("explorer.exe", item.FullName);
-                    }
-                }
-                catch (Exception ex) { ReportMessage(ex.Message); }
+                var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.FullName);
+                ShellRun(files.ToArray());
             }
+            else if (e.Key == Key.V && ctrl)
+            {
+                btnQuery_Click(btnQueryClip, e);
+            }
+            else if (e.Key == Key.C && ctrl)
+            {
+                var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.FullName);
+                if (files.Count() > 0) Clipboard.SetText(string.Join(Environment.NewLine, files));
+            }
+        }
+
+        private void SimilarResultGallery_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.FullName);
+            if (files.Count() > 0) ShellRun(files.ToArray());
         }
     }
 

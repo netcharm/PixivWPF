@@ -705,6 +705,8 @@ namespace ImageSearch.Search
                 var sw = Stopwatch.StartNew();
                 try
                 {
+                    ReportMessage($"Loading Feature DataTable from {file}", TaskStatus.Running);
+
                     float[,] feats;
                     string[] names;
                     (names, feats) = await LoadFeature(file);
@@ -740,6 +742,8 @@ namespace ImageSearch.Search
                 {
                     try
                     {
+                        ReportMessage($"Loading Feature DataTable from {file}", TaskStatus.Running);
+
                         var feat_obj =_features_.Where(f => GetAbsolutePath(f.FeatureDB).Equals(GetAbsolutePath(storage.DatabaseFile))).FirstOrDefault();
 
                         if (feat_obj == null || !feat_obj.Loaded || reload)
@@ -1021,13 +1025,13 @@ namespace ImageSearch.Search
 
         public async Task<List<KeyValuePair<string, double>>> QueryImageScore(string file, string? feature_db = null, int limit = 10, int padding = 0)
         {
-            ReportMessage($"Query of {file}");
+            ReportMessage($"Query of {file}", TaskStatus.Running);
             return (await QueryImageScore(await ExtractImaegFeature(file), feature_db, limit, padding));
         }
 
         public async Task<List<KeyValuePair<string, double>>> QueryImageScore(SKBitmap? image, string? feature_db = null, int limit = 10, int padding = 0)
         {
-            ReportMessage($"Query of Memory Image");
+            ReportMessage($"Query of Memory Image", TaskStatus.Running);
             return (await QueryImageScore(await ExtractImaegFeature(image), feature_db, limit, padding));
         }
 
@@ -1092,7 +1096,7 @@ namespace ImageSearch.Search
 
         public async Task<double> CompareImage(string file0, string file1, int padding = 0)
         {
-            ReportMessage($"Comparing {file0}, {file1}");
+            ReportMessage($"Comparing {file0}, {file1}", TaskStatus.Running);
             return (await CompareImage(await ExtractImaegFeature(file0), await ExtractImaegFeature(file1), padding));
         }
 
@@ -1100,7 +1104,7 @@ namespace ImageSearch.Search
         {
             if (image0 is SKBitmap && image1 is SKBitmap)
             {
-                ReportMessage($"Comparing Memory Images");
+                ReportMessage($"Comparing Memory Images", TaskStatus.Running);
                 return (await CompareImage(await ExtractImaegFeature(image0), await ExtractImaegFeature(image1), padding));
             }
             return (0);

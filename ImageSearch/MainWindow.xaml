@@ -68,7 +68,8 @@
                               HorizontalContentAlignment="Left" VerticalContentAlignment="Top"
                               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                               Focusable="True" ClipToBounds="True" UseLayoutRounding="True" 
-                              ItemTemplate="{StaticResource ImageViewer}" MouseDoubleClick="ImageGallery_MouseDoubleClick">
+                              ItemTemplate="{StaticResource ImageViewer}" 
+                              KeyUp="SimilarResultGallery_KeyUp" MouseDoubleClick="SimilarResultGallery_MouseDoubleClick">
                         <ListView.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Top" Orientation="Horizontal" 
