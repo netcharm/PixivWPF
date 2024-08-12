@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows;
 using ImageSearch.Search;
@@ -39,11 +40,14 @@ namespace ImageSearch
         }
 
         public string Model { get; set; } = @"models\resnet50-v2-7.onnx";
+        public string ModelInput { get; set; } = @"data";
+        public string ModelOutput { get; set; } = @"resnetv24_dense0_fwd";
+
         public bool AllFolder { get; set; } = true;
 
         public int ResultLimit { get; set; } = 10;
 
-        public string LastImageFolder { get; set;} = string.Empty;
+        public string LastImageFolder { get; set; } = string.Empty;
         public List<Storage> StorageList { get; set; } = [];
     }
 }

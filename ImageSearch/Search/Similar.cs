@@ -34,16 +34,21 @@ using Google.Protobuf.WellKnownTypes;
 using NumSharp;
 using PureHDF;
 using SkiaSharp;
+using Microsoft.ML.Transforms;
 
 namespace ImageSearch.Search
 {
     public class Storage
     {
         public string Description { get; set; } = string.Empty;
-        public string Folder { get; set; } = string.Empty;
+        public string ImageFolder { get; set; } = string.Empty;
         public bool Recurice { get; set; } = false;
         public string DatabaseFile { get; set; } = string.Empty;
         public string[] DatabaseFiles { get; set; } = [];
+        public string[] IccludeFiles { get; set; } = [];
+        public string[] ExcludeFiles { get; set; } = [];
+        public string[] IccludeFolders { get; set; } = [];
+        public string[] ExcludeFolders { get; set; } = [];
     }
 
     public class BatchProgressInfo
@@ -139,6 +144,8 @@ namespace ImageSearch.Search
         private System.Drawing.Size IMG_SIZE = new System.Drawing.Size(IMG_Width, IMG_HEIGHT);
 
         public string ModelLocation { get; set; } = string.Empty;
+        public string ModelInputColumnName { get; set; } = string.Empty;
+        public string ModelOutputColumnName { get; set; } = string.Empty;
 
         // Create MLContext
         private readonly MLContext mlContext = new MLContext(seed: 1)
@@ -172,16 +179,20 @@ namespace ImageSearch.Search
 
         private void InitBatchTask()
         {
-            if (BatchTask is BackgroundWorker)
+            try
             {
-                BatchTask.CancelAsync();
-                BatchTask.Dispose();
-            }
+                if (BatchTask is BackgroundWorker)
+                {
+                    BatchTask.CancelAsync();
+                    BatchTask.Dispose();
+                }
 
-            BatchTask = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
-            BatchTask.DoWork += BatchTask_DoWork;
-            BatchTask.ProgressChanged += BatchTask_ProgressChanged;
-            BatchTask.RunWorkerCompleted += BatchTask_RunWorkerCompleted;
+                BatchTask = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
+                BatchTask.DoWork += BatchTask_DoWork;
+                BatchTask.ProgressChanged += BatchTask_ProgressChanged;
+                BatchTask.RunWorkerCompleted += BatchTask_RunWorkerCompleted;
+            }
+            catch (Exception ex) { ReportMessage(ex.Message); }
         }
 
         private void BatchTask_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
@@ -223,13 +234,13 @@ namespace ImageSearch.Search
 
                         if (info.Folders is List<Storage> && info.Folders.Count() <= 0)
                         {
-                            info.Folders.Add(new Storage() { Folder = info.FolderName, Recurice = info.Recurise, DatabaseFile = info.DatabaseName });
+                            info.Folders.Add(new Storage() { ImageFolder = info.FolderName, Recurice = info.Recurise, DatabaseFile = info.DatabaseName });
                         }
-                        foreach (var storage in info.Folders.Where(d => Directory.Exists(d.Folder)))
+                        foreach (var storage in info.Folders.Where(d => Directory.Exists(d.ImageFolder)))
                         {
                             if (BatchTask.CancellationPending) break;
 
-                            var folder = GetAbsolutePath(storage.Folder);
+                            var folder = GetAbsolutePath(storage.ImageFolder);
                             var feats_db = GetAbsolutePath(storage.DatabaseFile);
                             var dir_name = Path.GetFileName(folder);
                             var npz_file = $@"data\{dir_name}_checkpoint_latest.npz";
@@ -321,7 +332,7 @@ namespace ImageSearch.Search
                             if (feats.Count() > 0 && feat_obj is FeatureData)
                             {
                                 if (BatchTask.CancellationPending) return;
-                                
+
                                 #region Save feats dataset for current worker
                                 try
                                 {
@@ -329,11 +340,11 @@ namespace ImageSearch.Search
                                     using (var npz_fs = new FileStream(npz_file, FileMode.CreateNew, FileAccess.Write))
                                     {
                                         np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), npz_fs);
-                                    }                                    
+                                    }
                                 }
                                 catch (Exception ex) { ReportMessage(ex.Message); }
                                 #endregion
-                                
+
                                 if (BatchTask.CancellationPending) return;
 
                                 #region Save feats to HDF5
@@ -368,14 +379,16 @@ namespace ImageSearch.Search
         private class ModelInput
         {
             [VectorType(3 * 224 * 224)]
-            [ColumnName("data")]
+            //[ColumnName("data")]
+            [ColumnName("ImageByteData")]
             public float[]? Data { get; set; }
         }
 
         private class Prediction
         {
             [VectorType(1000)]
-            [ColumnName("resnetv24_dense0_fwd")]
+            //[ColumnName("resnetv24_dense0_fwd")]
+            [ColumnName("PredictionFeature")]
             public float[]? Feature { get; set; }
         }
 
@@ -440,12 +453,16 @@ namespace ImageSearch.Search
             {
                 using (var ms = new MemoryStream())
                 {
-                    BitmapEncoder encoder = new PngBitmapEncoder();
-                    encoder.Frames.Add(BitmapFrame.Create(src as BitmapSource));
-                    encoder.Save(ms);
+                    try
+                    {
+                        BitmapEncoder encoder = new PngBitmapEncoder();
+                        encoder.Frames.Add(BitmapFrame.Create(src as BitmapSource));
+                        encoder.Save(ms);
 
-                    ms.Seek(0, SeekOrigin.Begin);
-                    result = SKBitmap.Decode(ms);
+                        ms.Seek(0, SeekOrigin.Begin);
+                        result = SKBitmap.Decode(ms);
+                    }
+                    catch (Exception ex) { ReportMessage(ex.Message); }
                 }
             }
             return (result);
@@ -458,17 +475,21 @@ namespace ImageSearch.Search
             {
                 using (var ms = new MemoryStream())
                 {
-                    ////var stride = ((image.PixelWidth * image.Format.BitsPerPixel + 31) / 32) * 4;
-                    //var stride = ((image.PixelWidth * image.Format.BitsPerPixel + 31) >> 5) << 2;
-                    //byte[] buf = new byte[stride * (int)image.Height];
-                    //image.CopyPixels(buf, stride, 0);
+                    try
+                    {
+                        ////var stride = ((image.PixelWidth * image.Format.BitsPerPixel + 31) / 32) * 4;
+                        //var stride = ((image.PixelWidth * image.Format.BitsPerPixel + 31) >> 5) << 2;
+                        //byte[] buf = new byte[stride * (int)image.Height];
+                        //image.CopyPixels(buf, stride, 0);
 
-                    BitmapEncoder encoder = new PngBitmapEncoder();
-                    encoder.Frames.Add(BitmapFrame.Create(src));
-                    encoder.Save(ms);
+                        BitmapEncoder encoder = new PngBitmapEncoder();
+                        encoder.Frames.Add(BitmapFrame.Create(src));
+                        encoder.Save(ms);
 
-                    ms.Seek(0, SeekOrigin.Begin);
-                    result = SKBitmap.Decode(ms);
+                        ms.Seek(0, SeekOrigin.Begin);
+                        result = SKBitmap.Decode(ms);
+                    }
+                    catch (Exception ex) { ReportMessage(ex.Message); }
                 }
             }
             return (result);
@@ -483,30 +504,34 @@ namespace ImageSearch.Search
                 {
                     using (var ms = new MemoryStream())
                     {
-                        sk_data.SaveTo(ms);
-                        ms.Seek(0, SeekOrigin.Begin);
+                        try
+                        {
+                            sk_data.SaveTo(ms);
+                            ms.Seek(0, SeekOrigin.Begin);
 
-                        //var frame = BitmapFrame.Create(ms);
-                        //frame.Freeze();
+                            //var frame = BitmapFrame.Create(ms);
+                            //frame.Freeze();
 
-                        var bmp = new BitmapImage();
-                        bmp.BeginInit();
-                        bmp.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
-                        bmp.CacheOption = BitmapCacheOption.OnLoad;
-                        bmp.DecodePixelWidth = src.Width;
-                        bmp.DecodePixelHeight = src.Height;
-                        bmp.StreamSource = ms;
-                        bmp.EndInit();
-                        bmp.Freeze();
-                        
-                        result = bmp.Clone();
+                            var bmp = new BitmapImage();
+                            bmp.BeginInit();
+                            bmp.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
+                            bmp.CacheOption = BitmapCacheOption.OnLoad;
+                            bmp.DecodePixelWidth = src.Width;
+                            bmp.DecodePixelHeight = src.Height;
+                            bmp.StreamSource = ms;
+                            bmp.EndInit();
+                            bmp.Freeze();
+
+                            result = bmp.Clone();
+                        }
+                        catch (Exception ex) { ReportMessage(ex.Message); }
                     }
                 }
             }
             return (result);
         }
 
-        public SKBitmap LoadImage(string file)
+        public SKBitmap? LoadImage(string file)
         {
             SKBitmap? result = null;
             if (tiff_exts.Contains(Path.GetExtension(file).ToLower()))
@@ -516,14 +541,18 @@ namespace ImageSearch.Search
                 {
                     using (var mso = new MemoryStream())
                     {
-                        msi.Seek(0, SeekOrigin.Begin);
+                        try
+                        {
+                            msi.Seek(0, SeekOrigin.Begin);
 
-                        BitmapEncoder encoder = new PngBitmapEncoder();
-                        encoder.Frames.Add(BitmapFrame.Create(msi));
-                        encoder.Save(mso);
+                            BitmapEncoder encoder = new PngBitmapEncoder();
+                            encoder.Frames.Add(BitmapFrame.Create(msi));
+                            encoder.Save(mso);
 
-                        mso.Seek(0, SeekOrigin.Begin);
-                        result = SKBitmap.Decode(mso);
+                            mso.Seek(0, SeekOrigin.Begin);
+                            result = SKBitmap.Decode(mso);
+                        }
+                        catch (Exception ex) { ReportMessage(ex.Message); }
                     }
                 }
             }
@@ -536,14 +565,27 @@ namespace ImageSearch.Search
 
         public async Task<ITransformer?> LoadModel(bool reload = false)
         {
-            if (string.IsNullOrEmpty(ModelLocation))
+            var model_file = GetAbsolutePath(ModelLocation);
+            var model_in = ModelInputColumnName;
+            var model_out = ModelOutputColumnName;
+
+            if (string.IsNullOrEmpty(ModelLocation) || !File.Exists(model_file))
             {
-                ReportMessage($"Machine Learning Model Not Specified!");
+                ReportMessage($"Machine Learning model not specified or model file not exists!");
+                return (null);
+            }
+            else if (string.IsNullOrEmpty(ModelInputColumnName))
+            {
+                ReportMessage($"Machine Learning model input name not specified!");
+                return (null);
+            }
+            else if (string.IsNullOrEmpty(ModelOutputColumnName))
+            {
+                ReportMessage($"Machine Learning model output name not specified!");
                 return (null);
             }
 
-            var model_file = GetAbsolutePath(ModelLocation);
-            if ((_model_ == null || reload) && File.Exists(model_file) && await ModelLoadedState.WaitAsync(TimeSpan.FromSeconds(30)))
+            if ((_model_ == null || reload) && await ModelLoadedState.WaitAsync(TimeSpan.FromSeconds(30)))
             {
                 var sw = Stopwatch.StartNew();
                 ReportMessage($"Loading Model from {model_file}", TaskStatus.Running);
@@ -552,7 +594,11 @@ namespace ImageSearch.Search
                     // Create IDataView from empty list to obtain input data schema
                     var data = mlContext.Data.LoadFromEnumerable(new List<ModelInput>());
 
-                    var pipeline = mlContext.Transforms.ApplyOnnxModel(modelFile: model_file, outputColumnNames: ["resnetv24_dense0_fwd"], inputColumnNames: ["data"]);
+                    //var pipeline = mlContext.Transforms.ApplyOnnxModel(modelFile: model_file, outputColumnNames: [model_out], inputColumnNames: [model_in]);
+
+                    var pipeline = mlContext.Transforms.CopyColumns(ModelInputColumnName, "ImageByteData")
+                        .Append(mlContext.Transforms.ApplyOnnxModel(modelFile: model_file, outputColumnNames: [model_out], inputColumnNames: [model_in]))
+                        .Append(mlContext.Transforms.CopyColumns("PredictionFeature", ModelOutputColumnName));
 
                     // Fit scoring pipeline
                     _model_ = pipeline.Fit(data);
@@ -561,6 +607,7 @@ namespace ImageSearch.Search
 
                     //mlContext.Transforms.CalculateFeatureContribution(_model_);
                 }
+                catch (Exception ex) { ReportMessage(ex.Message); }
                 finally { if (ModelLoadedState.CurrentCount == 0) ModelLoadedState.Release(); sw.Stop(); ReportMessage($"Loaded Model from {model_file}, Elapsed: {sw.Elapsed.TotalSeconds:F4}s"); }
             }
             return _model_;
@@ -635,9 +682,16 @@ namespace ImageSearch.Search
                     names = h5_names.Read<string[]>();
                     //names = h5_names.Read<string[]>().Select(n => Path.GetFullPath(Path.Combine(image_folder, n))).ToArray();
                 }
-                finally { h5.Dispose(); sw.Stop(); ReportMessage($"Loaded Feature Database [{names.Length}, {feats.Length}] from {feature_db}, Elapsed: {sw.Elapsed.TotalSeconds:F4}s"); }
+                catch (Exception ex) { ReportMessage(ex.Message); }
+                finally
+                {
+                    h5.Dispose();
+                    sw.Stop();
+                    ReportMessage($"Loaded Feature Database [{names.Length}, {feats.Length}] from {feature_db}, Elapsed: {sw.Elapsed.TotalSeconds:F4}s");
+                }
                 return ((names, feats));
             }).WaitAsync(TimeSpan.FromSeconds(30));
+
             return ((names, feats));
         }
 
@@ -671,6 +725,7 @@ namespace ImageSearch.Search
                     }
                     else { ReportMessage($"Loading Feature DataTable from {file} failed!"); }
                 }
+                catch (Exception ex) { ReportMessage(ex.Message); }
                 finally { sw.Stop(); }
             }
         }
@@ -708,6 +763,7 @@ namespace ImageSearch.Search
                             else { ReportMessage($"Loading Feature DataTable from {file} failed!"); }
                         }
                     }
+                    catch (Exception ex) { ReportMessage(ex.Message); }
                     finally { sw.Stop(); }
                 }
             }
@@ -763,6 +819,7 @@ namespace ImageSearch.Search
                         h5.Write(file, option);
                         ReportMessage($"Saved Feature Data to {file}");
                     }
+                    catch (Exception ex) { ReportMessage(ex.Message); }
                     finally { sw.Stop(); ReportMessage($"Saved Feature Data to {file}, Elapsed: {sw.Elapsed.TotalSeconds:F4}s"); }
                 });
             }
@@ -804,11 +861,12 @@ namespace ImageSearch.Search
                         names = names.Select(n => n.Replace(old_folder, new_folder)).ToArray();
                         await SaveFeature(file, names, feats);
                     }
+                    catch (Exception ex) { ReportMessage(ex.Message); }
                     finally { sw.Stop(); ReportMessage($"Changed Feature Data Folder from {old_folder} to {new_folder}, Elapsed: {sw.Elapsed.TotalSeconds:F4}s"); }
                 });
             }
         }
-        
+
         public async Task CleanImageFeature()
         {
             if (StorageList is List<Storage>)
@@ -824,7 +882,7 @@ namespace ImageSearch.Search
         {
             if (storage is Storage)
             {
-                var folder = storage.Folder;
+                var folder = storage.ImageFolder;
                 var db = storage.DatabaseFile;
                 await CleanImageFeature(feature_db: db, folder: folder, recuice: storage.Recurice);
             }
@@ -894,7 +952,7 @@ namespace ImageSearch.Search
                         }
                     }
                     catch (Exception ex) { ReportMessage(ex.Message); }
-                    finally { sw.Stop(); ReportMessage($"Cleaned Feature Data from {file}, Elapsed: {sw.Elapsed.TotalSeconds:F4}s"); }
+                    finally { sw.Stop(); ReportMessage($"Cleaned Feature Data {file}, Elapsed: {sw.Elapsed.TotalSeconds:F4}s"); }
                 });
             }
         }
@@ -910,13 +968,16 @@ namespace ImageSearch.Search
             {
                 try
                 {
-                    using (SKBitmap bmp_src = LoadImage(file))
+                    using (SKBitmap? bmp_src = LoadImage(file))
                     {
-                        ReportMessage($"Extract Feature of {file}");
-                        result = await ExtractImaegFeature(bmp_src);
+                        if (bmp_src is SKBitmap)
+                        {
+                            ReportMessage($"Extract Feature of {file}");
+                            result = await ExtractImaegFeature(bmp_src);
+                        }
                     }
                 }
-                catch { }
+                catch (Exception ex) { ReportMessage(ex.Message); }
             }
 
             return (result);
@@ -934,7 +995,7 @@ namespace ImageSearch.Search
 
                     var size = new SKSizeI(IMG_SIZE.Width, IMG_SIZE.Height);
 
-                    SKBitmap bmp_thumb;                      
+                    SKBitmap bmp_thumb;
                     if (image.BytesPerPixel == 1)
                     {
                         var bmp_palete = image.Resize(size, SKFilterQuality.Medium);
@@ -943,12 +1004,12 @@ namespace ImageSearch.Search
                         bmp_canvas.DrawImage(SKImage.FromBitmap(bmp_palete), 0f, 0f);
                     }
                     else bmp_thumb = image.Resize(size, SKFilterQuality.Medium);
+
                     using (var img = MLImage.CreateFromPixels(bmp_thumb.Width, bmp_thumb.Height, MLPixelFormat.Bgra32, bmp_thumb.Bytes))
                     {
                         var img_data = img.GetBGRPixels.Select(b => (float)b).ToArray();
                         result = _predictionEngine_.Predict(new ModelInput { Data = img_data }).Feature;
 
-                        //if (result != null) result = Norm(result, zscore: false).ToArray();
                         if (result != null) result = la_norm(result);
                     }
                 }
@@ -1004,7 +1065,7 @@ namespace ImageSearch.Search
                             for (int i = 0; i < feat_obj.Names.Length; i++)
                             {
                                 var f_name = feat_obj.Names[rank_ID[i]];
-                                if(string.IsNullOrEmpty(f_name)) continue;
+                                if (string.IsNullOrEmpty(f_name)) continue;
                                 f_name = GetAbsolutePath(f_name);
                                 if (File.Exists(f_name))
                                 {

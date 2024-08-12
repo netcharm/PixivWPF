@@ -186,7 +186,7 @@ namespace ImageSearch
                             else if (fmt.Equals("Text"))
                             {
                                 var file = dataPackage.GetData(fmt, true) as string;
-                                if (!string.IsNullOrEmpty(file)) 
+                                if (!string.IsNullOrEmpty(file))
                                 {
                                     var uri = new Uri(file);
                                     if (file.StartsWith("http"))
@@ -242,7 +242,7 @@ namespace ImageSearch
             if (FolderList.SelectedIndex >= 0)
             {
                 storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
-                folder = storage.Folder;
+                folder = storage.ImageFolder;
                 feature_db = storage.DatabaseFile;
             }
 
@@ -259,7 +259,11 @@ namespace ImageSearch
                 similar = new Similar
                 {
                     ModelLocation = settings.Model,
+                    ModelInputColumnName = settings.ModelInput,
+                    ModelOutputColumnName = settings.ModelOutput,
+
                     StorageList = _storages_,
+
                     ReportProgressBar = progress,
                     BatchReportAction = new Action<BatchProgressInfo>(ReportBatch),
                     MessageReportAction = new Action<string, TaskStatus>(ReportMessage)
@@ -288,7 +292,7 @@ namespace ImageSearch
                 }
                 else
                 {
-                    
+
                 }
             }
         }
@@ -300,7 +304,7 @@ namespace ImageSearch
             MinWidth = 1024;
             MinHeight = 720;
         }
-      
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             var setting_file = GetAbsolutePath($"{GetAppName()}.settings");
@@ -313,13 +317,10 @@ namespace ImageSearch
 
                 if (_storages_ is List<Storage>)
                 {
-                    foreach (var storage in _storages_)
-                    {
-                        FolderList.Items.Add(new ComboBoxItem() { Content = storage.Folder, DataContext = storage });
-                    }
+                    FolderList.ItemsSource = _storages_.Select(s => new ComboBoxItem() { Content = s.ImageFolder, DataContext = s });
                     if (!string.IsNullOrEmpty(settings.LastImageFolder))
                     {
-                        var idx = _storages_.Select(s => s.Folder).ToList().IndexOf(settings.LastImageFolder);
+                        var idx = _storages_.Select(s => s.ImageFolder).ToList().IndexOf(settings.LastImageFolder);
                         if (idx >= 0) FolderList.SelectedIndex = idx;
                     }
                     else FolderList.SelectedIndex = 0;
@@ -390,7 +391,7 @@ namespace ImageSearch
             if (FolderList.SelectedIndex >= 0)
             {
                 storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
-                folder = storage.Folder;
+                folder = storage.ImageFolder;
                 feature_db = all_db ? string.Empty : storage.DatabaseFile;
             }
 
@@ -455,28 +456,31 @@ namespace ImageSearch
                     {
                         using (var skb = similar.LoadImage(im.Key))
                         {
-                            var ratio = Math.Max(skb.Width, skb.Height) / 240.0;
-
-                            using (var skb_thumb = skb.Resize(new SKSizeI((int)Math.Ceiling(skb.Width / ratio), (int)Math.Ceiling(skb.Height / ratio)), SKFilterQuality.High))
+                            if (skb is SKBitmap)
                             {
-                                using (var sk_data = skb_thumb.Encode(SKEncodedImageFormat.Png, 100))
+                                var ratio = Math.Max(skb.Width, skb.Height) / 240.0;
+
+                                using (var skb_thumb = skb.Resize(new SKSizeI((int)Math.Ceiling(skb.Width / ratio), (int)Math.Ceiling(skb.Height / ratio)), SKFilterQuality.High))
                                 {
-                                    using (var ms = new MemoryStream())
+                                    using (var sk_data = skb_thumb.Encode(SKEncodedImageFormat.Png, 100))
                                     {
-                                        sk_data.SaveTo(ms);
-                                        ms.Seek(0, SeekOrigin.Begin);
-
-                                        (var bmp, _) = LoadImageFromStream(ms);
-
-                                        FileInfo fi = new FileInfo(im.Key);
-                                        GalleryList.Add(new ImageResultGallery()
+                                        using (var ms = new MemoryStream())
                                         {
-                                            Source = bmp.Clone(),
-                                            FullName = GetAbsolutePath(im.Key),
-                                            FileName = System.IO.Path.GetFileName(im.Key),
-                                            Similar = $"{im.Value:F4}",
-                                            Tooltip = $"FullName : {GetAbsolutePath(im.Key)}{Environment.NewLine}FileSize : {fi.Length}{Environment.NewLine}FileData : {fi.LastWriteTime.ToString("yyyy/MM/dd HH:mm:ss zzz")}",
-                                        });
+                                            sk_data.SaveTo(ms);
+                                            ms.Seek(0, SeekOrigin.Begin);
+
+                                            (var bmp, _) = LoadImageFromStream(ms);
+
+                                            FileInfo fi = new FileInfo(im.Key);
+                                            GalleryList.Add(new ImageResultGallery()
+                                            {
+                                                Source = bmp.Clone(),
+                                                FullName = GetAbsolutePath(im.Key),
+                                                FileName = System.IO.Path.GetFileName(im.Key),
+                                                Similar = $"{im.Value:F4}",
+                                                Tooltip = $"FullName : {GetAbsolutePath(im.Key)}{Environment.NewLine}FileSize : {fi.Length}{Environment.NewLine}FileData : {fi.LastWriteTime.ToString("yyyy/MM/dd HH:mm:ss zzz")}",
+                                            });
+                                        }
                                     }
                                 }
                             }
