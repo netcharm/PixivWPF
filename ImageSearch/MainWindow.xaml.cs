@@ -303,15 +303,30 @@ namespace ImageSearch
         {
             if (files is not null && files.Length > 0)
             {
+                files = files.Where(f => File.Exists(f)).Select(f => $"{f}").ToArray();
+
                 var shift = Keyboard.Modifiers == ModifierKeys.Shift;
-                foreach (var file in files.Where(f => File.Exists(f)))
+                var alt = Keyboard.Modifiers == ModifierKeys.Alt;
+
+                foreach (var file in files)
                 {
                     try
                     {
-                        if (shift)
-                            Process.Start("openwith.exe", file);
+                        if (shift) Process.Start("openwith.exe", file);
+                        else if (alt)
+                        {
+                            if (string.IsNullOrEmpty(settings.ImageInfoViewerCmd) || !File.Exists(settings.ImageInfoViewerCmd))
+                                Process.Start("explorer.exe", file);
+                            else
+                                Process.Start(settings.ImageInfoViewerCmd, [settings.ImageInfoViewerOpt, file]);
+                        }
                         else
-                            Process.Start("explorer.exe", file);
+                        {
+                            if (string.IsNullOrEmpty(settings.ImageViewerCmd) || !File.Exists(settings.ImageViewerCmd))
+                                Process.Start("explorer.exe", file);
+                            else
+                                Process.Start(settings.ImageViewerCmd, [settings.ImageViewerOpt, file]);
+                        }
                     }
                     catch (Exception ex) { ReportMessage(ex.Message); }
                 }

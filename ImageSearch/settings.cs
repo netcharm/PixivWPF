@@ -43,6 +43,12 @@ namespace ImageSearch
         public string ModelInput { get; set; } = @"data";
         public string ModelOutput { get; set; } = @"resnetv24_dense0_fwd";
 
+        public string ImageViewerCmd { get; set; } = string.Empty;
+        public string ImageViewerOpt { get; set; } = string.Empty;
+
+        public string ImageInfoViewerCmd { get; set; } = string.Empty;
+        public string ImageInfoViewerOpt { get; set; } = string.Empty;
+
         public bool AllFolder { get; set; } = true;
 
         public int ResultLimit { get; set; } = 10;
