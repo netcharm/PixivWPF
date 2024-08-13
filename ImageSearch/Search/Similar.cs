@@ -40,8 +40,8 @@ namespace ImageSearch.Search
 {
     public class Storage
     {
-        public string Description { get; set; } = string.Empty;
         public string ImageFolder { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
         public bool Recurice { get; set; } = false;
         public string DatabaseFile { get; set; } = string.Empty;
         public string[] DatabaseFiles { get; set; } = [];
@@ -58,7 +58,7 @@ namespace ImageSearch.Search
         public ulong CheckPoint { get; set; } = 5000;
         public string DatabaseName { get; set; } = string.Empty;
         public string FolderName { get; set; } = string.Empty;
-        public List<Storage> Folders { get; set; } = new List<Storage>();
+        public List<Storage> Folders { get; set; } = [];
         public string FileName { get; set; } = string.Empty;
         public string DisplayText { get; set; } = string.Empty;
         public string Result { get; set; } = string.Empty;
@@ -78,21 +78,21 @@ namespace ImageSearch.Search
         public Storage FeatureStore { get; set; } = new Storage();
         public string FeatureDB { get; set; } = string.Empty;
         public NDArray Feats { get; set; } = np.zeros(0);
-        public string[] Names { get; set; } = Array.Empty<string>();
+        public string[] Names { get; set; } = [];
         public bool Loaded { get; set; } = false;
     }
 
     internal class Similar
     {
-        private static string[] exts = [ ".jpg", ".jpeg", ".bmp", ".png", ".tif", ".tiff", ".gif", ".webp" ];
-        private static string[] tiff_exts = [ ".tif", ".tiff" ];
+        private static readonly string[] exts = [ ".jpg", ".jpeg", ".bmp", ".png", ".tif", ".tiff", ".gif", ".webp" ];
+        private static readonly string[] tiff_exts = [ ".tif", ".tiff" ];
 
-        private string GetAbsolutePath(string relativePath)
+        private static string GetAbsolutePath(string relativePath)
         {
             string fullPath = string.Empty;
             //FileInfo _dataRoot = new FileInfo(System.Reflection.Assembly.GetExecutingAssembly().Location);
             FileInfo _dataRoot = new FileInfo(new Uri(System.Reflection.Assembly.GetExecutingAssembly().Location).LocalPath);
-            if (_dataRoot.Directory is DirectoryInfo)
+            if (_dataRoot.Directory is not null)
             {
                 string assemblyFolderPath = _dataRoot.Directory.FullName;
 
@@ -105,7 +105,7 @@ namespace ImageSearch.Search
 
         private void ReportMessage(string info, TaskStatus state = TaskStatus.Created)
         {
-            if (MessageReportAction is Action<string, TaskStatus> && !string.IsNullOrEmpty(info))
+            if (MessageReportAction is not null && !string.IsNullOrEmpty(info))
             {
                 Application.Current.Dispatcher.Invoke(MessageReportAction, priority: DispatcherPriority.Normal, info, state);
                 //MessageReportAction.Invoke(info, state);
@@ -114,41 +114,18 @@ namespace ImageSearch.Search
 
         #region ProgressBar action
         public ProgressBar? ReportProgressBar { get; set; }
-
-        //public Action<BatchProgressInfo> ProcessingAction;
-        private IProgress<BatchProgressInfo>? progress;
-
-        private void InitProgressBar()
-        {
-            progress = new Progress<BatchProgressInfo>(info =>
-            {
-                try
-                {
-                    var index = info.Current >= 0 ? info.Current : 0;
-                    var total = info.Total >= 0 ? info.Total : 0;
-                    var total_s = total.ToString();
-                    var index_s = index.ToString().PadLeft(total_s.Length, '0');
-                }
-                catch { }
-            });
-
-            BatchReportAction = (info) =>
-            {
-                if (progress is IProgress<BatchProgressInfo>) progress.Report(info);
-            };
-        }
         #endregion
 
-        private static int IMG_Width = 224;
-        private static int IMG_HEIGHT = 224;
-        private System.Drawing.Size IMG_SIZE = new System.Drawing.Size(IMG_Width, IMG_HEIGHT);
+        private static readonly int IMG_Width = 224;
+        private static readonly int IMG_HEIGHT = 224;
+        private System.Drawing.Size IMG_SIZE = new(IMG_Width, IMG_HEIGHT);
 
         public string ModelLocation { get; set; } = string.Empty;
         public string ModelInputColumnName { get; set; } = string.Empty;
         public string ModelOutputColumnName { get; set; } = string.Empty;
 
         // Create MLContext
-        private readonly MLContext mlContext = new MLContext(seed: 1)
+        private readonly MLContext mlContext = new(seed: 1)
         {
             FallbackToCpu = true,
             GpuDeviceId = null//0
@@ -158,19 +135,18 @@ namespace ImageSearch.Search
 
         private PredictionEngine<ModelInput, Prediction>? _predictionEngine_;
 
-        private List<FeatureData> _features_ = new List<FeatureData>();
+        private readonly List<FeatureData> _features_ = [];
 
-        public List<Storage> StorageList { get; set; } = new List<Storage>();
+        public List<Storage> StorageList { get; set; } = [];
 
         #region background work thread
-        //private CancellationTokenSource cancelSource;
         BackgroundWorker? BatchTask;
 
         public Action<BatchProgressInfo>? BatchReportAction;
 
         private void ReportBatch(BatchProgressInfo info)
         {
-            if (BatchReportAction is Action<BatchProgressInfo> && info is BatchProgressInfo)
+            if (BatchReportAction is not null && info is not null)
             {
                 //BatchReportAction.DynamicInvoke(info);
                 BatchReportAction.Invoke(info);
@@ -181,7 +157,7 @@ namespace ImageSearch.Search
         {
             try
             {
-                if (BatchTask is BackgroundWorker)
+                if (BatchTask is not null)
                 {
                     BatchTask.CancelAsync();
                     BatchTask.Dispose();
@@ -197,26 +173,20 @@ namespace ImageSearch.Search
 
         private void BatchTask_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
         {
-            if (ReportProgressBar is ProgressBar)
+            ReportProgressBar?.Dispatcher.Invoke(() =>
             {
-                ReportProgressBar.Dispatcher.Invoke(() =>
-                {
-                    ReportProgressBar.Value = 100;
-                });
-            }
+                ReportProgressBar.Value = 100;
+            });
 
             ReportMessage("Batch work finished!");
         }
 
         private void BatchTask_ProgressChanged(object? sender, ProgressChangedEventArgs e)
         {
-            if (ReportProgressBar is ProgressBar)
+            ReportProgressBar?.Dispatcher.Invoke(() =>
             {
-                ReportProgressBar.Dispatcher.Invoke(() =>
-                {
-                    ReportProgressBar.Value = e.ProgressPercentage;
-                });
-            }
+                ReportProgressBar.Value = e.ProgressPercentage;
+            });
         }
 
         private async void BatchTask_DoWork(object? sender, DoWorkEventArgs e)
@@ -225,138 +195,140 @@ namespace ImageSearch.Search
             {
                 var sw = Stopwatch.StartNew();
                 var info = e.Argument as BatchProgressInfo;
-                if (info.Folders.Count() > 0 || Directory.Exists(GetAbsolutePath(info.FolderName)))
+                if (info.Folders.Count > 0 || Directory.Exists(GetAbsolutePath(info.FolderName)))
                 {
                     BatchTask.ReportProgress(0);
                     try
                     {
-                        ConcurrentDictionary<string, float[]> feats = new ConcurrentDictionary<string, float[]>();
+                        ConcurrentDictionary<string, float[]> feats = new();
 
-                        if (info.Folders is List<Storage> && info.Folders.Count() <= 0)
+                        if (info.Folders is not null)
                         {
-                            info.Folders.Add(new Storage() { ImageFolder = info.FolderName, Recurice = info.Recurise, DatabaseFile = info.DatabaseName });
-                        }
-                        foreach (var storage in info.Folders.Where(d => Directory.Exists(d.ImageFolder)))
-                        {
-                            if (BatchTask.CancellationPending) break;
+                            if (info.Folders.Count <= 0)
+                                info.Folders.Add(new Storage() { ImageFolder = info.FolderName, Recurice = info.Recurise, DatabaseFile = info.DatabaseName });
 
-                            var folder = GetAbsolutePath(storage.ImageFolder);
-                            var feats_db = GetAbsolutePath(storage.DatabaseFile);
-                            var dir_name = Path.GetFileName(folder);
-                            var npz_file = $@"data\{dir_name}_checkpoint_latest.npz";
-
-                            feats.Clear();
-                            var feat_obj = _features_.Where(f => f.FeatureDB.Equals(feats_db)).FirstOrDefault();
-                            if (feat_obj == null)
-                            {
-                                if (File.Exists(storage.DatabaseFile))
-                                {
-                                    await LoadFeatureData(storage);
-                                    feat_obj = _features_.Where(f => f.FeatureDB.Equals(feats_db)).FirstOrDefault();
-                                }
-                                else
-                                {
-                                    feat_obj = new FeatureData() { FeatureDB = storage.DatabaseFile };
-                                    _features_.Add(feat_obj);
-                                }
-                            }
-
-                            #region Loading latest feats dataset npz
-                            ConcurrentDictionary<string, float[]> feats_list = new ConcurrentDictionary<string, float[]>();
-                            var feats_a = feat_obj.Feats.ToMuliDimArray<float>() as float[,];
-                            var names_a = feat_obj.Names;
-                            for (var i = 0; i < feats_a.GetLength(0); i++)
-                            {
-                                if (string.IsNullOrEmpty(names_a[i])) continue;
-                                var row = new List<float>();
-                                for (var j = 0; j < feats_a.GetLength(1); j++)
-                                {
-                                    row.Add(feats_a[i, j]);
-                                }
-                                feats_list[names_a[i]] = row.ToArray();
-                            }
-
-                            try
-                            {
-                                using (var npz_fs = new FileStream(npz_file, FileMode.Open, FileAccess.Read))
-                                {
-                                    var checkpoint = np.Load_Npz<float[]>(npz_fs);
-                                    foreach (var kv in checkpoint) feats[kv.Key] = kv.Value;
-                                }
-                            }
-                            catch (Exception ex) { ReportMessage(ex.Message); }
-                            #endregion
-
-                            var option = storage.Recurice ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-                            var files = Directory.GetFiles(folder, "*.*", option).Where(f => exts.Contains(Path.GetExtension(f).ToLower()));
-                            var diffs = files.Except(feats_list.Keys).Except(feats.Keys).ToArray();
-                            int count = diffs.Count();
-                            uint index = 0;
-
-                            foreach (var file in diffs)
+                            foreach (var storage in info.Folders.Where(d => Directory.Exists(d.ImageFolder)))
                             {
                                 if (BatchTask.CancellationPending) break;
 
-                                index++;
-                                if (string.IsNullOrEmpty(file)) continue;
+                                var folder = GetAbsolutePath(storage.ImageFolder);
+                                var feats_db = GetAbsolutePath(storage.DatabaseFile);
+                                var dir_name = Path.GetFileName(folder);
+                                var npz_file = $@"data\{dir_name}_checkpoint_latest.npz";
 
-                                #region Extracting image feature and store it to feats dataset
-                                var feat = await ExtractImaegFeature(file);
-                                if (!string.IsNullOrEmpty(file) && feat is float[]) feats[file] = feat;
-
-                                e.Result = (float)index / count;
-
-                                BatchTask.ReportProgress((int)Math.Ceiling((float)index / count * 100.0));
-                                #endregion
-
-                                if (BatchTask.CancellationPending) break;
-
-                                #region Save feats dataset for every CheckPoint
-                                var current = feats.Count();
-                                if (info.CheckPoint > 0 && current % (uint)info.CheckPoint == 0)
+                                feats.Clear();
+                                var feat_obj = _features_.Where(f => f.FeatureDB.Equals(feats_db)).FirstOrDefault();
+                                if (feat_obj == null)
                                 {
-                                    try
+                                    if (File.Exists(storage.DatabaseFile))
                                     {
-                                        np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), $@"data\{dir_name}_checkpoint_{current}.npz");
+                                        await LoadFeatureData(storage);
+                                        feat_obj = _features_.Where(f => f.FeatureDB.Equals(feats_db)).FirstOrDefault();
                                     }
-                                    catch (Exception ex) { ReportMessage(ex.Message); }
+                                    else
+                                    {
+                                        feat_obj = new FeatureData() { FeatureDB = storage.DatabaseFile };
+                                        _features_.Add(feat_obj);
+                                    }
                                 }
-                                #endregion
 
-                                info.FileName = file;
-                                info.Current = index;
-                                info.Total = count;
-                                ReportBatch(info);
-                            }
+                                #region Loading latest feats dataset npz
+                                ConcurrentDictionary<string, float[]> feats_list = new();
+                                var feats_a = feat_obj.Feats.ToMuliDimArray<float>() as float[,];
+                                var names_a = feat_obj.Names;
+                                for (var i = 0; i < feats_a.GetLength(0); i++)
+                                {
+                                    if (string.IsNullOrEmpty(names_a[i])) continue;
+                                    var row = new List<float>();
+                                    for (var j = 0; j < feats_a.GetLength(1); j++)
+                                    {
+                                        row.Add(feats_a[i, j]);
+                                    }
+                                    feats_list[names_a[i]] = row.ToArray();
+                                }
 
-                            if (feats.Count() > 0 && feat_obj is FeatureData)
-                            {
-                                if (BatchTask.CancellationPending) return;
-
-                                #region Save feats dataset for current worker
                                 try
                                 {
-                                    if (File.Exists(npz_file)) File.Move(npz_file, $"{npz_file}.lastgood", true);
-                                    using (var npz_fs = new FileStream(npz_file, FileMode.CreateNew, FileAccess.Write))
+                                    using (var npz_fs = new FileStream(npz_file, FileMode.Open, FileAccess.Read))
                                     {
-                                        np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), npz_fs);
+                                        var checkpoint = np.Load_Npz<float[]>(npz_fs);
+                                        foreach (var kv in checkpoint) feats[kv.Key] = kv.Value;
                                     }
                                 }
                                 catch (Exception ex) { ReportMessage(ex.Message); }
                                 #endregion
 
-                                if (BatchTask.CancellationPending) return;
+                                var option = storage.Recurice ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+                                var files = Directory.GetFiles(folder, "*.*", option).Where(f => exts.Contains(Path.GetExtension(f).ToLower()));
+                                var diffs = files.Except(feats_list.Keys).Except(feats.Keys).ToArray();
+                                int count = diffs.Length;
+                                uint index = 0;
 
-                                #region Save feats to HDF5
-                                var feats_new = feats_list.UnionBy(feats, kv => kv.Key).ToDictionary();
+                                foreach (var file in diffs)
+                                {
+                                    if (BatchTask.CancellationPending) break;
 
-                                feat_obj.Names = feats_new.Keys.ToArray();
+                                    index++;
+                                    if (string.IsNullOrEmpty(file)) continue;
 
-                                feat_obj.Feats = new NDArray(feats_new.Values.ToArray());
+                                    #region Extracting image feature and store it to feats dataset
+                                    var feat = await ExtractImaegFeature(file);
+                                    if (!string.IsNullOrEmpty(file) && feat is not null) feats[file] = feat;
 
-                                if (BatchTask.CancellationPending) return;
-                                await SaveFeatureData(feat_obj);
-                                #endregion
+                                    e.Result = (float)index / count;
+
+                                    BatchTask.ReportProgress((int)Math.Ceiling((float)index / count * 100.0));
+                                    #endregion
+
+                                    if (BatchTask.CancellationPending) break;
+
+                                    #region Save feats dataset for every CheckPoint
+                                    var current = feats.Count;
+                                    if (info.CheckPoint > 0 && current % (uint)info.CheckPoint == 0)
+                                    {
+                                        try
+                                        {
+                                            np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), $@"data\{dir_name}_checkpoint_{current}.npz");
+                                        }
+                                        catch (Exception ex) { ReportMessage(ex.Message); }
+                                    }
+                                    #endregion
+
+                                    info.FileName = file;
+                                    info.Current = index;
+                                    info.Total = count;
+                                    ReportBatch(info);
+                                }
+
+                                if (!feats.IsEmpty && feat_obj is not null)
+                                {
+                                    if (BatchTask.CancellationPending) return;
+
+                                    #region Save feats dataset for current worker
+                                    try
+                                    {
+                                        if (File.Exists(npz_file)) File.Move(npz_file, $"{npz_file}.lastgood", true);
+                                        using (var npz_fs = new FileStream(npz_file, FileMode.CreateNew, FileAccess.Write))
+                                        {
+                                            np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), npz_fs);
+                                        }
+                                    }
+                                    catch (Exception ex) { ReportMessage(ex.Message); }
+                                    #endregion
+
+                                    if (BatchTask.CancellationPending) return;
+
+                                    #region Save feats to HDF5
+                                    var feats_new = feats_list.UnionBy(feats, kv => kv.Key).ToDictionary();
+
+                                    feat_obj.Names = feats_new.Keys.ToArray();
+
+                                    feat_obj.Feats = new NDArray(feats_new.Values.ToArray());
+
+                                    if (BatchTask.CancellationPending) return;
+                                    await SaveFeatureData(feat_obj);
+                                    #endregion
+                                }
                             }
                         }
                         BatchTask.ReportProgress(100);
@@ -365,21 +337,19 @@ namespace ImageSearch.Search
                     finally
                     {
                         sw.Stop();
-                        ReportMessage($"Create feature datas finished, Elapsed: {sw.Elapsed.ToString(@"dd\.hh\:mm\:ss")}", TaskStatus.RanToCompletion);
+                        ReportMessage($"Create feature datas finished, Elapsed: {sw.Elapsed:dd\\.hh\\:mm\\:ss}", TaskStatus.RanToCompletion);
                     }
                 }
             }
         }
         #endregion
 
-        private SemaphoreSlim ModelLoadedState = new SemaphoreSlim(1, 1);
-        private SemaphoreSlim FeatureLoadedState = new SemaphoreSlim(1, 1);
-        private SemaphoreSlim FeatureDBLoadedState = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim ModelLoadedState = new(1, 1);
+        private readonly SemaphoreSlim FeatureLoadedState = new(1, 1);
 
         private class ModelInput
         {
             [VectorType(3 * 224 * 224)]
-            //[ColumnName("data")]
             [ColumnName("ImageByteData")]
             public float[]? Data { get; set; }
         }
@@ -387,7 +357,6 @@ namespace ImageSearch.Search
         private class Prediction
         {
             [VectorType(1000)]
-            //[ColumnName("resnetv24_dense0_fwd")]
             [ColumnName("PredictionFeature")]
             public float[]? Feature { get; set; }
         }
@@ -397,7 +366,7 @@ namespace ImageSearch.Search
             InitBatchTask();
         }
 
-        private IEnumerable<double> Norm(IEnumerable<double> array, bool zscore = false)
+        private static double[] Norm(IEnumerable<double> array, bool zscore = false)
         {
             if (array == null) return (Array.Empty<double>());
             if (zscore)
@@ -415,7 +384,7 @@ namespace ImageSearch.Search
             }
         }
 
-        private IEnumerable<float> Norm(IEnumerable<float> array, bool zscore = false)
+        private static float[] Norm(IEnumerable<float> array, bool zscore = false)
         {
             if (array == null) return (Array.Empty<float>());
             if (zscore)
@@ -433,13 +402,13 @@ namespace ImageSearch.Search
             }
         }
 
-        private double[] la_norm(double[] array)
+        private static double[] LA_Norm(double[] array)
         {
             var ss = Math.Sqrt(array.Select(a => a * a).Sum());
             return (array.Select(a => a / ss).ToArray());
         }
 
-        private float[] la_norm(float[] array)
+        private static float[] LA_Norm(float[] array)
         {
             //var ss0 = np.sqrt(np.power(array, 2).sum()).GetValue();
             var ss = (float)Math.Sqrt(array.Select(a => a * a).Sum());
@@ -449,7 +418,7 @@ namespace ImageSearch.Search
         public SKBitmap? FromImageSource(ImageSource src)
         {
             SKBitmap? result = null;
-            if (src is ImageSource)
+            if (src is not null)
             {
                 using (var ms = new MemoryStream())
                 {
@@ -471,7 +440,7 @@ namespace ImageSearch.Search
         public SKBitmap? FromImageSource(BitmapSource src)
         {
             SKBitmap? result = null;
-            if (src is BitmapSource)
+            if (src is not null)
             {
                 using (var ms = new MemoryStream())
                 {
@@ -498,7 +467,7 @@ namespace ImageSearch.Search
         public BitmapSource? ToBitmapSource(SKBitmap src)
         {
             BitmapSource? result = null;
-            if (src is SKBitmap)
+            if (src is not null)
             {
                 using (var sk_data = src.Encode(SKEncodedImageFormat.Png, 100))
                 {
@@ -534,32 +503,42 @@ namespace ImageSearch.Search
         public SKBitmap? LoadImage(string file)
         {
             SKBitmap? result = null;
-            if (tiff_exts.Contains(Path.GetExtension(file).ToLower()))
+#if DEBUG
+            var sw = Stopwatch.StartNew();
+#endif
+            try
             {
-                var bytes = File.ReadAllBytes(file);
-                using (var msi = new MemoryStream(bytes))
+                if (tiff_exts.Contains(Path.GetExtension(file).ToLower()))
                 {
-                    using (var mso = new MemoryStream())
+                    var bytes = File.ReadAllBytes(file);
+                    using (var msi = new MemoryStream(bytes))
                     {
-                        try
+                        using (var mso = new MemoryStream())
                         {
-                            msi.Seek(0, SeekOrigin.Begin);
+                            try
+                            {
+                                msi.Seek(0, SeekOrigin.Begin);
 
-                            BitmapEncoder encoder = new PngBitmapEncoder();
-                            encoder.Frames.Add(BitmapFrame.Create(msi));
-                            encoder.Save(mso);
+                                BitmapEncoder encoder = new PngBitmapEncoder();
+                                encoder.Frames.Add(BitmapFrame.Create(msi));
+                                encoder.Save(mso);
 
-                            mso.Seek(0, SeekOrigin.Begin);
-                            result = SKBitmap.Decode(mso);
+                                mso.Seek(0, SeekOrigin.Begin);
+                                result = SKBitmap.Decode(mso);
+                            }
+                            catch (Exception ex) { ReportMessage(ex.Message); }
                         }
-                        catch (Exception ex) { ReportMessage(ex.Message); }
                     }
                 }
+                else
+                {
+                    result = SKBitmap.Decode(file);
+                }
             }
-            else
-            {
-                result = SKBitmap.Decode(file);
-            }
+            catch (Exception ex) { ReportMessage(ex.Message); }
+#if DEBUG
+            ReportMessage($"Loaded image file {file}, Elapsed: {sw.Elapsed.TotalSeconds:F4}s");
+#endif
             return (result);
         }
 
@@ -608,14 +587,19 @@ namespace ImageSearch.Search
                     //mlContext.Transforms.CalculateFeatureContribution(_model_);
                 }
                 catch (Exception ex) { ReportMessage(ex.Message); }
-                finally { if (ModelLoadedState.CurrentCount == 0) ModelLoadedState.Release(); sw.Stop(); ReportMessage($"Loaded Model from {model_file}, Elapsed: {sw.Elapsed.TotalSeconds:F4}s"); }
+                finally
+                {
+                    sw.Stop();
+                    if (ModelLoadedState.CurrentCount == 0) ModelLoadedState.Release();
+                    ReportMessage($"Loaded Model from {model_file}, Elapsed: {sw.Elapsed.TotalSeconds:F4}s");
+                }
             }
             return _model_;
         }
 
         public async Task CreateFeatureData(Storage storage)
         {
-            if (BatchTask is BackgroundWorker && !BatchTask.IsBusy)
+            if (BatchTask is not null && !BatchTask.IsBusy)
             {
                 var feat_obj = _features_.Where(f => f.FeatureDB.Equals(GetAbsolutePath(storage.DatabaseFile))).FirstOrDefault();
                 if (feat_obj == null && File.Exists(storage.DatabaseFile))
@@ -623,14 +607,14 @@ namespace ImageSearch.Search
                     await LoadFeatureData(storage);
                 }
 
-                var info = new BatchProgressInfo() { Folders = new List<Storage>(){ storage } };
+                var info = new BatchProgressInfo() { Folders = [storage] };
                 BatchTask.RunWorkerAsync(info);
             }
         }
 
         public async Task CreateFeatureData(string folder, string feature_db, bool recurise = false)
         {
-            if (BatchTask is BackgroundWorker && !BatchTask.IsBusy)
+            if (BatchTask is not null && !BatchTask.IsBusy)
             {
                 var feat_obj = _features_.Where(f => f.FeatureDB.Equals(GetAbsolutePath(feature_db))).FirstOrDefault();
                 if (feat_obj == null && File.Exists(GetAbsolutePath(feature_db)))
@@ -645,7 +629,7 @@ namespace ImageSearch.Search
 
         public void CreateFeatureData(List<Storage> storage)
         {
-            if (BatchTask is BackgroundWorker && !BatchTask.IsBusy)
+            if (BatchTask is not null && !BatchTask.IsBusy)
             {
                 var info = new BatchProgressInfo() { Folders = storage, MergeAllFeats = true };
                 BatchTask.RunWorkerAsync(info);
@@ -654,7 +638,7 @@ namespace ImageSearch.Search
 
         public void CancelCreateFeatureData()
         {
-            if (BatchTask is BackgroundWorker && BatchTask.IsBusy) BatchTask.CancelAsync();
+            if (BatchTask is not null && BatchTask.IsBusy) BatchTask.CancelAsync();
         }
 
         public async Task<(string[], float[,])> LoadFeature(string feature_db)
@@ -705,27 +689,27 @@ namespace ImageSearch.Search
                 var sw = Stopwatch.StartNew();
                 try
                 {
-                    ReportMessage($"Loading Feature DataTable from {file}", TaskStatus.Running);
-
-                    float[,] feats;
-                    string[] names;
-                    (names, feats) = await LoadFeature(file);
-                    if (names.Length > 0 && feats.Length > 0)
+                    var feat_obj = _features_.Where(f => f.FeatureDB.Equals(feature_db)).FirstOrDefault();
+                    if (feat_obj == null || reload)
                     {
-                        var feat_obj = _features_.Where(f => f.FeatureDB.Equals(feature_db)).FirstOrDefault();
-                        if (feat_obj == null)
+                        ReportMessage($"Loading Feature DataTable from {file}", TaskStatus.Running);
+
+                        feat_obj = new FeatureData() { FeatureDB = feature_db };
+                        _features_.Add(feat_obj);
+
+                        float[,] feats;
+                        string[] names;
+                        (names, feats) = await LoadFeature(file);
+                        if (names.Length > 0 && feats.Length > 0)
                         {
-                            feat_obj = new FeatureData() { FeatureDB = feature_db };
-                            _features_.Add(feat_obj);
+                            feat_obj.Names = names;
+                            feat_obj.Feats = new NDArray(feats);
+                            feat_obj.Loaded = true;
+
+                            ReportMessage($"Loaded Feature DataTable from {file}, {sw.Elapsed.TotalSeconds:F4}s");
                         }
-
-                        feat_obj.Names = names;
-                        feat_obj.Feats = new NDArray(feats);
-                        feat_obj.Loaded = true;
-
-                        ReportMessage($"Loaded Feature DataTable from {file}, {sw.Elapsed.TotalSeconds:F4}s");
+                        else { ReportMessage($"Loading Feature DataTable from {file} failed!"); }
                     }
-                    else { ReportMessage($"Loading Feature DataTable from {file} failed!"); }
                 }
                 catch (Exception ex) { ReportMessage(ex.Message); }
                 finally { sw.Stop(); }
@@ -734,7 +718,7 @@ namespace ImageSearch.Search
 
         public async Task LoadFeatureData(Storage storage, bool reload = false)
         {
-            if (storage is Storage)
+            if (storage is not null)
             {
                 var sw = Stopwatch.StartNew();
                 var file = GetAbsolutePath(storage.DatabaseFile);
@@ -775,7 +759,7 @@ namespace ImageSearch.Search
 
         public async Task LoadFeatureData(List<Storage> storages, bool reload = false)
         {
-            if (storages is List<Storage> && storages.Count() > 0)
+            if (storages is not null && storages.Count > 0)
             {
                 foreach (var storage in storages)
                 {
@@ -784,11 +768,10 @@ namespace ImageSearch.Search
             }
         }
 
-        //public async Task SaveFeature(string feature_db, string[] names, Array feats, string image_folder)
         public async Task SaveFeature(string feature_db, string[] names, Array feats)
         {
             var file = GetAbsolutePath(feature_db);
-            if (Directory.Exists(Path.GetDirectoryName(file)) && names is string[] && feats is Array)
+            if (Directory.Exists(Path.GetDirectoryName(file)) && names is not null && feats is not null)
             {
                 await Task.Run(() =>
                 {
@@ -808,7 +791,7 @@ namespace ImageSearch.Search
                             Attributes = new()
                             {
                                 ["folder"] = $"{feature_db}",
-                                ["size"] = new int[] { 224, 224 }
+                                ["size"] = new int[] { IMG_Width, IMG_HEIGHT }
                             }
                             //}
                         };
@@ -831,7 +814,7 @@ namespace ImageSearch.Search
 
         public async Task SaveFeatureData(FeatureData featuredata)
         {
-            if (featuredata is FeatureData)
+            if (featuredata is not null)
             {
                 var file = GetAbsolutePath(featuredata.FeatureDB);
                 if (Directory.Exists(Path.GetDirectoryName(file)))
@@ -873,7 +856,7 @@ namespace ImageSearch.Search
 
         public async Task CleanImageFeature()
         {
-            if (StorageList is List<Storage>)
+            if (StorageList is not null)
             {
                 foreach (var storage in StorageList)
                 {
@@ -884,7 +867,7 @@ namespace ImageSearch.Search
 
         public async Task CleanImageFeature(Storage? storage)
         {
-            if (storage is Storage)
+            if (storage is not null)
             {
                 var folder = storage.ImageFolder;
                 var db = storage.DatabaseFile;
@@ -914,7 +897,7 @@ namespace ImageSearch.Search
                         var option = recuice ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
                         var files = Directory.GetFiles(folder, "*.*", option).Where(f => exts.Contains(Path.GetExtension(f).ToLower()));
                         var diffs = names.Except(files).ToList(); //.Where(f => !string.IsNullOrEmpty(f)).ToList();
-                        if (diffs.Count() > 0)
+                        if (diffs.Count > 0)
                         {
                             var feat_list = new Dictionary<string, float[]>();
                             for (var i = 0; i < feats.GetLength(0); i++)
@@ -945,7 +928,7 @@ namespace ImageSearch.Search
 
                             await SaveFeature(file, names_new, feats_new);
 
-                            if (feat_obj is FeatureData && names_new.Length > 0 && feats_new.Length > 0)
+                            if (feat_obj is not null && names_new.Length > 0 && feats_new.Length > 0)
                             {
                                 feat_obj.Names = names_new;
                                 feat_obj.Feats = new NDArray(feats_new);
@@ -968,13 +951,13 @@ namespace ImageSearch.Search
             if (_model_ == null) await LoadModel();
 
             file = GetAbsolutePath(file);
-            if (File.Exists(file) && _model_ is ITransformer && _predictionEngine_ != null)
+            if (File.Exists(file) && _model_ is not null && _predictionEngine_ != null)
             {
                 try
                 {
                     using (SKBitmap? bmp_src = LoadImage(file))
                     {
-                        if (bmp_src is SKBitmap)
+                        if (bmp_src is not null)
                         {
                             ReportMessage($"Extract Feature of {file}");
                             result = await ExtractImaegFeature(bmp_src);
@@ -990,8 +973,9 @@ namespace ImageSearch.Search
         public async Task<float[]?> ExtractImaegFeature(SKBitmap? image)
         {
             float[]? result = null;
-            if (image is SKBitmap)
+            if (image is not null)
             {
+                var sw = Stopwatch.StartNew();
                 ReportMessage($"Extracting Feature of Memory Image", TaskStatus.Running);
                 try
                 {
@@ -1014,83 +998,16 @@ namespace ImageSearch.Search
                         var img_data = img.GetBGRPixels.Select(b => (float)b).ToArray();
                         result = _predictionEngine_.Predict(new ModelInput { Data = img_data }).Feature;
 
-                        if (result != null) result = la_norm(result);
+                        if (result != null) result = LA_Norm(result);
                     }
-                }
-                catch (Exception ex) { ReportMessage(ex.Message); }
-                finally { ReportMessage($"Extracted Feature of Memory Image"); }
-            }
-            return (result);
-        }
-
-        public async Task<List<KeyValuePair<string, double>>> QueryImageScore(string file, string? feature_db = null, int limit = 10, int padding = 0)
-        {
-            ReportMessage($"Query of {file}", TaskStatus.Running);
-            return (await QueryImageScore(await ExtractImaegFeature(file), feature_db, limit, padding));
-        }
-
-        public async Task<List<KeyValuePair<string, double>>> QueryImageScore(SKBitmap? image, string? feature_db = null, int limit = 10, int padding = 0)
-        {
-            ReportMessage($"Query of Memory Image", TaskStatus.Running);
-            return (await QueryImageScore(await ExtractImaegFeature(image), feature_db, limit, padding));
-        }
-
-        public async Task<List<KeyValuePair<string, double>>> QueryImageScore(float[]? feature, string? feature_db = null, int limit = 10, int padding = 0)
-        {
-            var result = new List<KeyValuePair<string, double>>();
-            if (feature == null) return (result);
-
-            var sw = Stopwatch.StartNew();
-            if (await ModelLoadedState.WaitAsync(TimeSpan.FromSeconds(30)) && await FeatureLoadedState.WaitAsync(TimeSpan.FromSeconds(30)))
-            {
-                try
-                {
-                    ReportMessage($"Quering of feature", TaskStatus.Running);
-
-                    int count = 0;
-                    limit = Math.Min(120, Math.Max(1, limit));
-                    foreach (var feat_obj in string.IsNullOrEmpty(feature_db) ? _features_ : _features_.Where(f => f.FeatureDB.Equals(GetAbsolutePath(feature_db))).ToList())
-                    {
-                        if (!(feat_obj.Names is string[] && feat_obj.Names.Length > 0) || !(feat_obj.Feats is NDArray && feat_obj.Feats.shape[0] > 0)) await LoadFeatureData(feat_obj.FeatureDB);
-
-                        count += limit;
-                        var pad = new float[padding];
-
-                        var feat_ = padding <= 0 ? new NDArray(feature) : new NDArray(feature.Concat(pad).ToArray());
-
-                        if (feat_obj.Feats is NDArray && feat_ is NDArray)
-                        {
-                            var m_feat = np.zeros(1, feat_.shape[0]);
-                            m_feat[0] = feat_;
-                            var scores = np.dot(m_feat, feat_obj.Feats.T)[0];
-                            var rank_ID = scores.argsort<float>(axis: 0)["::-1"];
-                            var rank_score = scores[rank_ID].ToArray<double>();
-
-                            for (int i = 0; i < feat_obj.Names.Length; i++)
-                            {
-                                var f_name = feat_obj.Names[rank_ID[i]];
-                                if (string.IsNullOrEmpty(f_name)) continue;
-                                f_name = GetAbsolutePath(f_name);
-                                if (File.Exists(f_name))
-                                {
-                                    result.Add(new KeyValuePair<string, double>(f_name, rank_score[i]));
-                                    if (result.Count >= count) break;
-                                }
-                            }
-                        }
-                    }
-                    result = result.OrderByDescending(r => r.Value).Take(limit).ToList();
                 }
                 catch (Exception ex) { ReportMessage(ex.Message); }
                 finally
                 {
                     sw.Stop();
-                    if (ModelLoadedState.CurrentCount == 0) ModelLoadedState.Release();
-                    if (FeatureLoadedState.CurrentCount == 0) FeatureLoadedState.Release();
-                    ReportMessage($"Queried of feature, Elapsed: {sw.Elapsed.TotalSeconds:F4}s");
+                    ReportMessage($"Extracted Feature of Memory Image, Elapsed: {sw.Elapsed.TotalSeconds:F4}s");
                 }
             }
-            else ReportMessage("Model or Feature Database not loaded.");
             return (result);
         }
 
@@ -1102,7 +1019,7 @@ namespace ImageSearch.Search
 
         public async Task<double> CompareImage(SKBitmap? image0, SKBitmap? image1, int padding = 0)
         {
-            if (image0 is SKBitmap && image1 is SKBitmap)
+            if (image0 is not null && image1 is not null)
             {
                 ReportMessage($"Comparing Memory Images", TaskStatus.Running);
                 return (await CompareImage(await ExtractImaegFeature(image0), await ExtractImaegFeature(image1), padding));
@@ -1148,5 +1065,77 @@ namespace ImageSearch.Search
             else ReportMessage("Model or Feature Database not loaded.");
             return (result);
         }
+
+        public async Task<List<KeyValuePair<string, double>>> QueryImageScore(string file, string? feature_db = null, int limit = 10, int padding = 0)
+        {
+            ReportMessage($"Query of {file}", TaskStatus.Running);
+            return (await QueryImageScore(await ExtractImaegFeature(file), feature_db, limit, padding));
+        }
+
+        public async Task<List<KeyValuePair<string, double>>> QueryImageScore(SKBitmap? image, string? feature_db = null, int limit = 10, int padding = 0)
+        {
+            ReportMessage($"Query of Memory Image", TaskStatus.Running);
+            return (await QueryImageScore(await ExtractImaegFeature(image), feature_db, limit, padding));
+        }
+
+        public async Task<List<KeyValuePair<string, double>>> QueryImageScore(float[]? feature, string? feature_db = null, int limit = 10, int padding = 0)
+        {
+            var result = new List<KeyValuePair<string, double>>();
+            if (feature == null) return (result);
+
+            var sw = Stopwatch.StartNew();
+            if (await ModelLoadedState.WaitAsync(TimeSpan.FromSeconds(30)) && await FeatureLoadedState.WaitAsync(TimeSpan.FromSeconds(30)))
+            {
+                try
+                {
+                    ReportMessage($"Quering of feature", TaskStatus.Running);
+
+                    int count = 0;
+                    limit = Math.Min(120, Math.Max(1, limit));
+                    foreach (var feat_obj in string.IsNullOrEmpty(feature_db) ? _features_ : _features_.Where(f => f.FeatureDB.Equals(GetAbsolutePath(feature_db))).ToList())
+                    {
+                        if (!(feat_obj.Names is not null && feat_obj.Names.Length > 0) || !(feat_obj.Feats is not null && feat_obj.Feats.shape[0] > 0)) await LoadFeatureData(feat_obj.FeatureDB);
+
+                        count += limit;
+                        var pad = new float[padding];
+
+                        var feat_ = padding <= 0 ? new NDArray(feature) : new NDArray(feature.Concat(pad).ToArray());
+
+                        if (feat_obj.Feats is not null && feat_ is not null)
+                        {
+                            var m_feat = np.zeros(1, feat_.shape[0]);
+                            m_feat[0] = feat_;
+                            var scores = np.dot(m_feat, feat_obj.Feats.T)[0];
+                            var rank_ID = scores.argsort<float>(axis: 0)["::-1"];
+                            var rank_score = scores[rank_ID].ToArray<double>();
+
+                            for (int i = 0; i < feat_obj.Names.Length; i++)
+                            {
+                                var f_name = feat_obj.Names[rank_ID[i]];
+                                if (string.IsNullOrEmpty(f_name)) continue;
+                                f_name = GetAbsolutePath(f_name);
+                                if (File.Exists(f_name))
+                                {
+                                    result.Add(new KeyValuePair<string, double>(f_name, rank_score[i]));
+                                    if (result.Count >= count) break;
+                                }
+                            }
+                        }
+                    }
+                    result = result.OrderByDescending(r => r.Value).Take(limit).ToList();
+                }
+                catch (Exception ex) { ReportMessage(ex.Message); }
+                finally
+                {
+                    sw.Stop();
+                    if (ModelLoadedState.CurrentCount == 0) ModelLoadedState.Release();
+                    if (FeatureLoadedState.CurrentCount == 0) FeatureLoadedState.Release();
+                    ReportMessage($"Queried of feature, Elapsed: {sw.Elapsed.TotalSeconds:F4}s");
+                }
+            }
+            else ReportMessage("Model or Feature Database not loaded.");
+            return (result);
+        }
+
     }
 }
