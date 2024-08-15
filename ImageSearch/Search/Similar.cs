@@ -23,26 +23,32 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using System.Xml.Linq;
 
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Image;
 using Microsoft.ML.Transforms.Onnx;
-using Google.Protobuf.WellKnownTypes;
 
 using NumSharp;
 using PureHDF;
+using PureHDF.Filters;
 using SkiaSharp;
-using Microsoft.ML.Transforms;
 
 namespace ImageSearch.Search
 {
+#pragma warning disable IDE0063
+
     public class Storage
     {
         public string ImageFolder { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public bool Recurice { get; set; } = false;
+        public string Model { get; set; } = string.Empty;
+        public string ModelInput { get; set; } = string.Empty;
+        public string ModelOutput { get; set; } = string.Empty;
         public string DatabaseFile { get; set; } = string.Empty;
         public string[] DatabaseFiles { get; set; } = [];
         public string[] IccludeFiles { get; set; } = [];
@@ -91,7 +97,7 @@ namespace ImageSearch.Search
         {
             string fullPath = string.Empty;
             //FileInfo _dataRoot = new FileInfo(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            FileInfo _dataRoot = new FileInfo(new Uri(System.Reflection.Assembly.GetExecutingAssembly().Location).LocalPath);
+            FileInfo _dataRoot = new (new Uri(System.Reflection.Assembly.GetExecutingAssembly().Location).LocalPath);
             if (_dataRoot.Directory is not null)
             {
                 string assemblyFolderPath = _dataRoot.Directory.FullName;
@@ -234,28 +240,34 @@ namespace ImageSearch.Search
 
                                 #region Loading latest feats dataset npz
                                 ConcurrentDictionary<string, float[]> feats_list = new();
-                                var feats_a = feat_obj.Feats.ToMuliDimArray<float>() as float[,];
-                                var names_a = feat_obj.Names;
-                                for (var i = 0; i < feats_a.GetLength(0); i++)
+                                if (np.size(feat_obj.Feats) > 0)
                                 {
-                                    if (string.IsNullOrEmpty(names_a[i])) continue;
-                                    var row = new List<float>();
-                                    for (var j = 0; j < feats_a.GetLength(1); j++)
+                                    var feats_a = feat_obj.Feats.ToMuliDimArray<float>() as float[,];
+                                    var names_a = feat_obj.Names;
+                                    for (var i = 0; i < feats_a.GetLength(0); i++)
                                     {
-                                        row.Add(feats_a[i, j]);
+                                        if (string.IsNullOrEmpty(names_a[i])) continue;
+                                        var row = new List<float>();
+                                        for (var j = 0; j < feats_a.GetLength(1); j++)
+                                        {
+                                            row.Add(feats_a[i, j]);
+                                        }
+                                        feats_list[names_a[i]] = row.ToArray();
                                     }
-                                    feats_list[names_a[i]] = row.ToArray();
                                 }
 
-                                try
+                                if (File.Exists(npz_file))
                                 {
-                                    using (var npz_fs = new FileStream(npz_file, FileMode.Open, FileAccess.Read))
+                                    try
                                     {
-                                        var checkpoint = np.Load_Npz<float[]>(npz_fs);
-                                        foreach (var kv in checkpoint) feats[kv.Key] = kv.Value;
+                                        using (var npz_fs = new FileStream(npz_file, FileMode.Open, FileAccess.Read))
+                                        {
+                                            var checkpoint = np.Load_Npz<float[]>(npz_fs);
+                                            foreach (var kv in checkpoint) feats[kv.Key] = kv.Value;
+                                        }
                                     }
+                                    catch (Exception ex) { ReportMessage(ex.Message); }
                                 }
-                                catch (Exception ex) { ReportMessage(ex.Message); }
                                 #endregion
 
                                 var option = storage.Recurice ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
@@ -331,7 +343,6 @@ namespace ImageSearch.Search
                                 }
                             }
                         }
-                        BatchTask.ReportProgress(100);
                     }
                     catch (Exception ex) { ReportMessage(ex.Message); }
                     finally
@@ -364,6 +375,7 @@ namespace ImageSearch.Search
         public Similar()
         {
             InitBatchTask();
+            H5Filter.Register(new Blosc2Filter());
         }
 
         private static double[] Norm(IEnumerable<double> array, bool zscore = false)
@@ -656,7 +668,15 @@ namespace ImageSearch.Search
 
                 feature_db = GetAbsolutePath(feature_db);
 
-                var h5 = H5File.OpenRead(feature_db);
+                var options = new H5ReadOptions()
+                {
+                    IncludeClassFields = true,
+                    IncludeClassProperties = true,
+                    IncludeStructFields = true,
+                    IncludeStructProperties = true
+                };
+
+                var h5 = H5File.OpenRead(feature_db, options);
                 try
                 {
                     var h5_feats = h5.Dataset("feats");
@@ -665,13 +685,14 @@ namespace ImageSearch.Search
                     feats = h5_feats.Read<float[,]>();
                     names = h5_names.Read<string[]>();
                     //names = h5_names.Read<string[]>().Select(n => Path.GetFullPath(Path.Combine(image_folder, n))).ToArray();
+
+                    ReportMessage($"Loaded Feature Database [{names.Length}, {feats.Length}] from {feature_db}, Elapsed: {sw.Elapsed.TotalSeconds:F4}s");
                 }
-                catch (Exception ex) { ReportMessage(ex.Message); }
+                catch (Exception ex) { ReportMessage(ex.Message + $", Elapsed: {sw.Elapsed.TotalSeconds:F4}s"); }
                 finally
                 {
-                    h5.Dispose();
                     sw.Stop();
-                    ReportMessage($"Loaded Feature Database [{names.Length}, {feats.Length}] from {feature_db}, Elapsed: {sw.Elapsed.TotalSeconds:F4}s");
+                    h5?.Dispose();
                 }
                 return ((names, feats));
             }).WaitAsync(TimeSpan.FromSeconds(30));
@@ -726,12 +747,12 @@ namespace ImageSearch.Search
                 {
                     try
                     {
-                        ReportMessage($"Loading Feature DataTable from {file}", TaskStatus.Running);
-
                         var feat_obj =_features_.Where(f => GetAbsolutePath(f.FeatureDB).Equals(GetAbsolutePath(storage.DatabaseFile))).FirstOrDefault();
 
                         if (feat_obj == null || !feat_obj.Loaded || reload)
                         {
+                            ReportMessage($"Loading Feature DataTable from {file}", TaskStatus.Running);
+
                             float[,] feats;
                             string[] names;
                             (names, feats) = await LoadFeature(file);
@@ -801,13 +822,20 @@ namespace ImageSearch.Search
                             IncludeClassFields = true,
                             IncludeClassProperties = true,
                             IncludeStructFields = true,
-                            IncludeStructProperties = true
+                            IncludeStructProperties = true,
+                            Filters = [ 
+                                //Blosc2Filter.Id, 
+                                new H5Filter(Id: Blosc2Filter.Id, Options: new(){
+                                    [Blosc2Filter.COMPRESSION_LEVEL] = 9,
+                                    [Blosc2Filter.COMPRESSOR_CODE] = "blosclz", // blosclz, lz4, lz4hc, zlib or zstd
+                                }),
+                            ]
                         };
                         h5.Write(file, option);
-                        ReportMessage($"Saved Feature Data to {file}");
+                        ReportMessage($"Saved Feature Data to {file}, Elapsed: {sw.Elapsed.TotalSeconds:F4}s");
                     }
-                    catch (Exception ex) { ReportMessage(ex.Message); }
-                    finally { sw.Stop(); ReportMessage($"Saved Feature Data to {file}, Elapsed: {sw.Elapsed.TotalSeconds:F4}s"); }
+                    catch (Exception ex) { ReportMessage(ex.Message + $", Elapsed: {sw.Elapsed.TotalSeconds:F4}s"); }
+                    finally { sw.Stop(); }
                 });
             }
         }

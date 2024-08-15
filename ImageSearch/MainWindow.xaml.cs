@@ -1,4 +1,5 @@
-﻿using ImageSearch.Search;
+﻿using CompactExifLib;
+using ImageSearch.Search;
 using SkiaSharp;
 using System;
 using System.Collections.ObjectModel;
@@ -27,6 +28,8 @@ using System.Windows.Shapes;
 
 namespace ImageSearch
 {
+#pragma warning disable IDE0063
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -45,7 +48,7 @@ namespace ImageSearch
         private static string GetAbsolutePath(string relativePath)
         {
             string fullPath = string.Empty;
-            FileInfo _root_ = new FileInfo(new Uri(System.Reflection.Assembly.GetExecutingAssembly().Location).LocalPath);
+            FileInfo _root_ = new (new Uri(System.Reflection.Assembly.GetExecutingAssembly().Location).LocalPath);
             if (_root_.Directory is not null)
             {
                 string assemblyFolderPath = _root_.Directory.FullName;
@@ -136,7 +139,7 @@ namespace ImageSearch
             BitmapSource? bmp = null;
             SKBitmap? skb = null;
 
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = new())
             {
                 using (HttpResponseMessage response = await client.GetAsync(uri))
                 {
@@ -299,14 +302,11 @@ namespace ImageSearch
             }
         }
 
-        private void ShellRun(string[] files)
+        private void ShellRun(string[] files, bool shift = false, bool ctrl = false, bool alt = false, bool win = false)
         {
             if (files is not null && files.Length > 0)
             {
                 files = files.Where(f => File.Exists(f)).Select(f => $"{f}").ToArray();
-
-                var shift = Keyboard.Modifiers == ModifierKeys.Shift;
-                var alt = Keyboard.Modifiers == ModifierKeys.Alt;
 
                 foreach (var file in files)
                 {
@@ -365,7 +365,7 @@ namespace ImageSearch
 
                 if (_storages_ is not null)
                 {
-                    FolderList.ItemsSource = _storages_.Select(s => new ComboBoxItem() { Content = s.ImageFolder, DataContext = s });
+                    FolderList.ItemsSource = _storages_.Select(s => new ComboBoxItem() { Content = s.ImageFolder, DataContext = s, ToolTip = s.Description });
                     if (!string.IsNullOrEmpty(settings.LastImageFolder))
                     {
                         var idx = _storages_.Select(s => s.ImageFolder).ToList().IndexOf(settings.LastImageFolder);
@@ -383,44 +383,75 @@ namespace ImageSearch
             catch (Exception ex) { ReportMessage(ex.Message); }
         }
 
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+            if (ctrl)
+            {
+                try
+                {
+                    var setting_file = GetAbsolutePath($"{GetAppName()}.settings");
+                    settings.AllFolder = AllFolders.IsChecked ?? false;
+                    if (int.TryParse(QueryResultLimit.Text, out int limit)) settings.ResultLimit = limit;
+                    settings.LastImageFolder = FolderList.Text;
+
+                    settings.Save(setting_file);
+                }
+                catch (Exception ex) { e.Cancel = true; ReportMessage(ex.Message); }
+            }
+        }
+
         private void Window_PreviewKeyUp(object sender, KeyEventArgs e)
         {
             var shift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
             var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
             var alt = Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
             var win = Keyboard.Modifiers.HasFlag(ModifierKeys.Windows);
-
-            if (e.Key == Key.Enter)
+            try
             {
-                if (Tabs.SelectedItem == TabSimilar)
+                if (e.Key == Key.Enter)
                 {
-                    e.Handled = true;
-                    var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.FullName);
-                    ShellRun(files.ToArray());
+                    if (Tabs.SelectedItem == TabSimilar)
+                    {
+                        e.Handled = true;
+                        var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.FullName);
+                        ShellRun(files.ToArray(), shift: shift, alt: ctrl);
+                    }
+                }
+                else if (e.Key == Key.V && ctrl)
+                {
+                    if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
+                    {
+                        e.Handled = true;
+                        QueryImage_Click(QueryClip, e);
+                    }
+                    else if (e.Source == TabCompare || Tabs.SelectedItem == TabCompare)
+                    {
+                        e.Handled = true;
+                        CompareImage_Click(CompareImage, e);
+                    }
+                }
+                else if (e.Key == Key.C && shift)
+                {
+                    if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
+                    {
+                        e.Handled = true;
+                        string sep = $"{Environment.NewLine}================================================================================{Environment.NewLine}";
+                        var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.Tooltip);
+                        if (files.Any()) Clipboard.SetText((sep + string.Join(sep, files) + sep).Trim());
+                    }
+                }
+                else if (e.Key == Key.C && ctrl)
+                {
+                    if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
+                    {
+                        e.Handled = true;
+                        var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.FullName);
+                        if (files.Any()) Clipboard.SetText(string.Join(Environment.NewLine, files));
+                    }
                 }
             }
-            else if (e.Key == Key.V && ctrl)
-            {
-                if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
-                {
-                    e.Handled = true;
-                    QueryImage_Click(QueryClip, e);
-                }
-                else if (e.Source == TabCompare || Tabs.SelectedItem == TabCompare)
-                {
-                    e.Handled = true;
-                    CompareImage_Click(CompareImage, e);
-                }
-            }
-            else if (e.Key == Key.C && ctrl)
-            {
-                if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
-                {
-                    e.Handled = true;
-                    var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.FullName);
-                    if (files.Any()) System.Windows.Clipboard.SetText(string.Join(Environment.NewLine, files));
-                }
-            }
+            catch (Exception ex) { ReportMessage(ex.Message); }
         }
 
         private void Window_DragEnter(object sender, DragEventArgs e)
@@ -540,7 +571,7 @@ namespace ImageSearch
                 var imgs = await LoadImageFromDataObject((e as DragEventArgs).Data);
                 if (imgs.Count > 0)
                 {
-                    (var bmp, var skb) = imgs.FirstOrDefault<(BitmapSource, SKBitmap)>();
+                    (var bmp, var skb) = imgs.FirstOrDefault();
                     if (bmp is not null) SimilarSrc.Source = bmp;
                     if (skb is not null) SimilarSrc.Tag = skb;
                 }
@@ -621,18 +652,45 @@ namespace ImageSearch
 
                                                         (var bmp, _) = LoadImageFromStream(ms);
 
-                                                        FileInfo fi = new FileInfo(im.Key);
+                                                        var tooltips = new List<string>();
+
+                                                        FileInfo fi = new (im.Key);
+                                                        tooltips.Add($"Full Name  : {GetAbsolutePath(im.Key)}");
+                                                        tooltips.Add($"File Size  : {fi.Length:N0} Bytes");
+                                                        tooltips.Add($"File Date  : {fi.LastWriteTime:yyyy/MM/dd HH:mm:ss zzz}");
+
+                                                        try
+                                                        {
+                                                            var exif = new ExifData(im.Key);
+                                                            if (exif != null)
+                                                            {
+                                                                exif.GetDateDigitized(out var date_digital);
+                                                                exif.GetDateTaken(out var date_taken);
+                                                                exif.GetTagValue(ExifTag.XpAuthor, out string author, StrCoding.Utf16Le_Byte);
+                                                                exif.GetTagValue(ExifTag.XpSubject, out string subject, StrCoding.Utf16Le_Byte);
+                                                                exif.GetTagValue(ExifTag.XpTitle, out string title, StrCoding.Utf16Le_Byte);
+                                                                exif.GetTagValue(ExifTag.XpKeywords, out string tags, StrCoding.Utf16Le_Byte);
+                                                                exif.GetTagValue(ExifTag.XpComment, out string comments, StrCoding.Utf16Le_Byte);
+                                                                exif.GetTagValue(ExifTag.Copyright, out string copyrights, StrCoding.Utf8);
+
+                                                                tooltips.Add($"Taken Date : {date_taken:yyyy/MM/dd HH:mm:ss zzz}");
+                                                                tooltips.Add($"Title      : {title.Trim()}");
+                                                                tooltips.Add($"Subject    : {subject.Trim()}");
+                                                                tooltips.Add($"Authors    : {author.Trim().TrimEnd(';') + ';'}");
+                                                                tooltips.Add($"Copyrights : {copyrights.Trim().TrimEnd(';') + ';'}");
+                                                                tooltips.Add($"Tags       : {string.Join(" ", tags.Split(';').Select(t => $"#{t.Trim()}"))}");
+                                                                //tooltips.Add($"Commants   : {comments}");
+                                                            }
+                                                        }
+                                                        catch (Exception ex) { ReportMessage(ex.Message); }
+
                                                         GalleryList.Add(new ImageResultGallery()
                                                         {
                                                             Source = bmp,
                                                             FullName = GetAbsolutePath(im.Key),
                                                             FileName = System.IO.Path.GetFileName(im.Key),
                                                             Similar = $"{im.Value:F4}",
-                                                            Tooltip = string.Join(Environment.NewLine, new List<string>() {
-                                                                $"FullName : {GetAbsolutePath(im.Key)}",
-                                                                $"FileSize : {fi.Length}",
-                                                                $"FileData : {fi.LastWriteTime:yyyy/MM/dd HH:mm:ss zzz}",
-                                                            }),
+                                                            Tooltip = string.Join(Environment.NewLine, tooltips),
                                                         });
                                                     }
                                                     catch (Exception ex) { ReportMessage(ex.Message); }
@@ -713,8 +771,11 @@ namespace ImageSearch
 
         private void SimilarResultGallery_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+            var alt = Keyboard.Modifiers == ModifierKeys.Alt;
+
             var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.FullName);
-            if (files.Any()) ShellRun(files.ToArray());
+            if (files.Any()) ShellRun(files.ToArray(), shift: shift, alt: alt || e.ChangedButton == MouseButton.Right);
         }
 
     }

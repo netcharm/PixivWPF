@@ -8,7 +8,7 @@
         Height="720" Width="1280" 
         AllowDrop="True" Drop="Window_Drop" DragEnter="Window_DragEnter" DragLeave="Window_DragLeave" DragOver="Window_DragOver"
         Title="Image Search By Image" 
-        Loaded="Window_Loaded" PreviewKeyUp="Window_PreviewKeyUp">
+        Loaded="Window_Loaded" Closing="Window_Closing" PreviewKeyUp="Window_PreviewKeyUp">
     <Window.Resources>
         <DataTemplate x:Key="ImageViewer" DataType="local:ImageResultGallery" >
             <Grid Width="240" Height="256" MaxWidth="240" MinHeight="256" Margin="4" ToolTip="{Binding Path=Tooltip, Mode=OneWay}">

@@ -28,8 +28,8 @@
 
             <Style x:Uid="ToolTipStyle" x:Key="{x:Type ToolTip}" TargetType="{x:Type ToolTip}">
                 <Setter Property="FontFamily" Value="{DynamicResource MonoSpaceFamily}"/>
-                <Setter Property="FontSize" Value="{DynamicResource MonoSpaceSize}"/>
-                <Setter Property="MaxWidth" Value="1024"/>
+                <Setter Property="FontSize" Value="{DynamicResource MonoSpaceFontSize}"/>
+                <!--<Setter Property="MaxWidth" Value="1024"/>-->
                 <Style.Resources>
                     <Style TargetType="ContentPresenter">
                         <Style.Resources>

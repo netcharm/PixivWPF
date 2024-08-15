@@ -15,7 +15,7 @@ namespace ImageSearch
     {
         public static Settings? Load(string setting_file)
         {
-            Settings? result = new Settings();
+            Settings? result = new ();
             if (System.IO.File.Exists(setting_file))
             {
                 try
@@ -33,6 +33,9 @@ namespace ImageSearch
         {
             try
             {
+                if (System.IO.File.Exists(setting_file))
+                    System.IO.File.Move(setting_file, $"{setting_file}.lastgood", true);
+
                 var text = JsonConvert.SerializeObject(this, Formatting.Indented);
                 System.IO.File.WriteAllText(setting_file, text);
             }
