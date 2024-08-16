@@ -412,7 +412,7 @@ namespace ImageSearch
             }
         }
 
-        private void ShellOpen(string[] files, bool shift = false, bool ctrl = false, bool alt = false, bool win = false)
+        private void ShellOpen(string[] files, bool openwith = false, bool viewinfo = false)
         {
             if (files is not null && files.Length > 0)
             {
@@ -422,8 +422,8 @@ namespace ImageSearch
                 {
                     try
                     {
-                        if (shift) Process.Start("openwith.exe", file);
-                        else if (alt)
+                        if (openwith) Process.Start("openwith.exe", file);
+                        else if (viewinfo)
                         {
                             if (string.IsNullOrEmpty(settings.ImageInfoViewerCmd) || !File.Exists(settings.ImageInfoViewerCmd))
                                 Process.Start("explorer.exe", file);
@@ -470,7 +470,11 @@ namespace ImageSearch
             {
                 settings = Settings.Load(setting_file) ?? new Settings();
 
-                if (settings.DarkBackground) ChangeTheme(settings.DarkBackground);
+                if (settings.DarkBackground)
+                {
+                    DarkBG.IsChecked = settings.DarkBackground;
+                    ChangeTheme(settings.DarkBackground);
+                }
 
                 _storages_ = settings.StorageList;
                 AllFolders.IsChecked = settings.AllFolder;
@@ -527,7 +531,7 @@ namespace ImageSearch
                     {
                         e.Handled = true;
                         var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.FullName);
-                        ShellOpen(files.ToArray(), shift: shift, alt: ctrl);
+                        ShellOpen(files.ToArray(), openwith: shift, viewinfo: ctrl);
                     }
                 }
                 else if (e.Key == Key.V && ctrl)
@@ -593,6 +597,15 @@ namespace ImageSearch
                 {
                     CompareImage_Click(sender, e);
                 }
+            }
+        }
+
+        private void DarkBG_Click(object sender, RoutedEventArgs e)
+        {
+            if (settings is Settings)
+            {
+                settings.DarkBackground = DarkBG.IsChecked ?? false;
+                ChangeTheme(settings.DarkBackground);
             }
         }
 
@@ -895,7 +908,7 @@ namespace ImageSearch
             var alt = Keyboard.Modifiers == ModifierKeys.Alt;
 
             var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.FullName);
-            if (files.Any()) ShellOpen(files.ToArray(), shift: shift, alt: alt || e.ChangedButton == MouseButton.Right);
+            if (files.Any()) ShellOpen(files.ToArray(), openwith: shift, viewinfo: alt || e.ChangedButton == MouseButton.Right);
         }
 
     }

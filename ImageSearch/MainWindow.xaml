@@ -157,6 +157,11 @@
                        Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Center" 
                        TextAlignment="Right" TextTrimming="WordEllipsis" TextWrapping="NoWrap" 
                        ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+            <ToggleButton x:Name="DarkBG" Margin="4" Width="24" IsChecked="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Click="DarkBG_Click">
+                <ToggleButton.Content>
+                    <TextBlock x:Uid="AutoSaveOptionsIcon" Text="&#xE793;" Style="{DynamicResource MenuItemIcon}" Foreground="Gray"/>
+                </ToggleButton.Content>
+            </ToggleButton>
         </DockPanel>
         <StackPanel Grid.Row="2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Orientation="Horizontal" FlowDirection="LeftToRight">
             <Button x:Name="btnMakeDB" Click="BtnMakeDB_Click" Width="72" Margin="4">Make DB</Button>
