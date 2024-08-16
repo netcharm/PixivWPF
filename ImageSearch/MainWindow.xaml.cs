@@ -44,6 +44,8 @@ namespace ImageSearch
 
         private Similar? similar = null;
 
+        //private System.Windows.Media.Brush? DefaultTextBrush { get; set; } = null;
+
         private List<Storage> _storages_ = [];
 
         private static string GetAbsolutePath(string relativePath)
@@ -109,6 +111,7 @@ namespace ImageSearch
                 if (sri is not null && sri.ContentType.Equals("image/png") && sri.Stream is not null && sri.Stream.CanRead && sri.Stream.Length > 0)
                 {
                     var opacity = 0.1;
+                    var text_brush = Foreground;
                     using (var skb = SKBitmap.Decode(sri.Stream))
                     {
                         if (dark)
@@ -124,17 +127,16 @@ namespace ImageSearch
                                     }
                                 }
                             }
-                            //pattern.Negate(Channels.RGB);
-                            //pattern.Opaque(MagickColors.Black, new MagickColor("#202020"));
-                            //pattern.Opaque(MagickColors.White, new MagickColor("#303030"));
                             opacity = 1.0;
+                            text_brush = new SolidColorBrush(Colors.Silver);
                         }
                         var checkerboard = new ImageBrush(ToBitmapSource(skb)) { TileMode = TileMode.Tile, Opacity = opacity, ViewportUnits = BrushMappingMode.Absolute, Viewport = new Rect(0, 0, 32, 32) };
                         SimilarViewer.Background = checkerboard;
                         SimilarViewer.InvalidateVisual();
                         CompareViewer.Background = checkerboard;
                         CompareViewer.InvalidateVisual();
-                        SimilarResultGallery.Foreground = new SolidColorBrush(Colors.Silver);
+
+                        SimilarResultGallery.Foreground = text_brush;
                     }
                 }
             }
@@ -404,11 +406,14 @@ namespace ImageSearch
 
         private void ShellCompare(string[] files)
         {
-            if (files is not null && files.Length > 1)
+            if (files is not null && files.Length > 0)
             {
                 files = files.Where(f => File.Exists(f)).Select(f => $"{f}").Take(2).ToArray();
                 if (!string.IsNullOrEmpty(settings.ImageCompareCmd) && File.Exists(settings.ImageCompareCmd))
-                    Process.Start(settings.ImageCompareCmd, [settings.ImageCompareOpt, files.First(), files.Last()]);
+                {
+                    if (files.Length > 1) Process.Start(settings.ImageCompareCmd, [settings.ImageCompareOpt, files[0], files[1]]);
+                    else if (files.Length > 0) Process.Start(settings.ImageCompareCmd, [settings.ImageCompareOpt, files[0]]);
+                }
             }
         }
 
@@ -469,6 +474,8 @@ namespace ImageSearch
             try
             {
                 settings = Settings.Load(setting_file) ?? new Settings();
+
+                //DefaultTextBrush = Foreground;
 
                 if (settings.DarkBackground)
                 {
@@ -602,7 +609,7 @@ namespace ImageSearch
 
         private void DarkBG_Click(object sender, RoutedEventArgs e)
         {
-            if (settings is Settings)
+            if (settings is not null)
             {
                 settings.DarkBackground = DarkBG.IsChecked ?? false;
                 ChangeTheme(settings.DarkBackground);
