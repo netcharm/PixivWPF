@@ -42,7 +42,9 @@ namespace ImageSearch
             catch (Exception ex) { MessageBox.Show(ex.Message); }
         }
 
-        public string Model { get; set; } = @"models\resnet50-v2-7.onnx";
+        public bool DarkBackground { get; set; } = false;
+
+        public string ModelFile { get; set; } = @"models\resnet50-v2-7.onnx";
         public string ModelInput { get; set; } = @"data";
         public string ModelOutput { get; set; } = @"resnetv24_dense0_fwd";
 
@@ -51,6 +53,9 @@ namespace ImageSearch
 
         public string ImageInfoViewerCmd { get; set; } = string.Empty;
         public string ImageInfoViewerOpt { get; set; } = string.Empty;
+
+        public string ImageCompareCmd { get; set; } = string.Empty;
+        public string ImageCompareOpt { get; set; } = string.Empty;
 
         public bool AllFolder { get; set; } = true;
 

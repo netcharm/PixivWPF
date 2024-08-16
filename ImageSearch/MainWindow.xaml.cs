@@ -22,6 +22,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Media3D;
 using System.Windows.Media.TextFormatting;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
@@ -35,9 +36,9 @@ namespace ImageSearch
     /// </summary>
     public partial class MainWindow : Window
     {
-        public ObservableCollection<ImageResultGallery> GalleryList = [];
-
         private readonly List<string> _log_ = [];
+
+        private readonly ObservableCollection<ImageResultGallery> GalleryList = [];
 
         private Settings settings = new();
 
@@ -97,6 +98,105 @@ namespace ImageSearch
                     LatestMessage.Text = info.Split(Environment.NewLine).FirstOrDefault();
                 }
             });
+        }
+
+        public void ChangeTheme(bool dark = false)
+        {
+            try
+            {
+                var source = new Uri(@"pack://application:,,,/ImageSearch;component/Resources/checkerboard.png", UriKind.RelativeOrAbsolute);
+                var sri = Application.GetResourceStream(source);
+                if (sri is not null && sri.ContentType.Equals("image/png") && sri.Stream is not null && sri.Stream.CanRead && sri.Stream.Length > 0)
+                {
+                    var opacity = 0.1;
+                    using (var skb = SKBitmap.Decode(sri.Stream))
+                    {
+                        if (dark)
+                        {
+                            using (var skcf = SKColorFilter.CreateBlendMode(new SKColor(0x20, 0x20, 0x20), SKBlendMode.Multiply))
+                            {
+                                using (var canvas = new SKCanvas(skb))
+                                {
+                                    using (var paint = new SKPaint())
+                                    {
+                                        paint.ColorFilter = skcf;
+                                        canvas.DrawBitmap(skb, 0, 0, paint);
+                                    }
+                                }
+                            }
+                            //pattern.Negate(Channels.RGB);
+                            //pattern.Opaque(MagickColors.Black, new MagickColor("#202020"));
+                            //pattern.Opaque(MagickColors.White, new MagickColor("#303030"));
+                            opacity = 1.0;
+                        }
+                        var checkerboard = new ImageBrush(ToBitmapSource(skb)) { TileMode = TileMode.Tile, Opacity = opacity, ViewportUnits = BrushMappingMode.Absolute, Viewport = new Rect(0, 0, 32, 32) };
+                        SimilarViewer.Background = checkerboard;
+                        SimilarViewer.InvalidateVisual();
+                        CompareViewer.Background = checkerboard;
+                        CompareViewer.InvalidateVisual();
+                        SimilarResultGallery.Foreground = new SolidColorBrush(Colors.Silver);
+                    }
+                }
+            }
+            catch (Exception ex) { ReportMessage(ex.Message); }
+        }
+
+        public SKBitmap? FromImageSource(ImageSource src)
+        {
+            SKBitmap? result = null;
+            if (src is not null)
+            {
+                using (var ms = new MemoryStream())
+                {
+                    try
+                    {
+                        BitmapEncoder encoder = new PngBitmapEncoder();
+                        encoder.Frames.Add(BitmapFrame.Create(src as BitmapSource));
+                        encoder.Save(ms);
+
+                        ms.Seek(0, SeekOrigin.Begin);
+                        result = SKBitmap.Decode(ms);
+                    }
+                    catch (Exception ex) { ReportMessage(ex.Message); }
+                }
+            }
+            return (result);
+        }
+
+        public BitmapSource? ToBitmapSource(SKBitmap src)
+        {
+            BitmapSource? result = null;
+            if (src is not null)
+            {
+                using (var sk_data = src.Encode(SKEncodedImageFormat.Png, 100))
+                {
+                    using (var ms = new MemoryStream())
+                    {
+                        try
+                        {
+                            sk_data.SaveTo(ms);
+                            ms.Seek(0, SeekOrigin.Begin);
+
+                            //var frame = BitmapFrame.Create(ms);
+                            //frame.Freeze();
+
+                            var bmp = new BitmapImage();
+                            bmp.BeginInit();
+                            bmp.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
+                            bmp.CacheOption = BitmapCacheOption.OnLoad;
+                            bmp.DecodePixelWidth = src.Width;
+                            bmp.DecodePixelHeight = src.Height;
+                            bmp.StreamSource = ms;
+                            bmp.EndInit();
+                            bmp.Freeze();
+
+                            result = bmp.Clone();
+                        }
+                        catch (Exception ex) { ReportMessage(ex.Message); }
+                    }
+                }
+            }
+            return (result);
         }
 
         private static (BitmapSource?, SKBitmap?) LoadImageFromStream(Stream? stream)
@@ -264,7 +364,7 @@ namespace ImageSearch
         {
             similar ??= new Similar
             {
-                ModelLocation = settings.Model,
+                ModelLocation = settings.ModelFile,
                 ModelInputColumnName = settings.ModelInput,
                 ModelOutputColumnName = settings.ModelOutput,
 
@@ -302,7 +402,17 @@ namespace ImageSearch
             }
         }
 
-        private void ShellRun(string[] files, bool shift = false, bool ctrl = false, bool alt = false, bool win = false)
+        private void ShellCompare(string[] files)
+        {
+            if (files is not null && files.Length > 1)
+            {
+                files = files.Where(f => File.Exists(f)).Select(f => $"{f}").Take(2).ToArray();
+                if (!string.IsNullOrEmpty(settings.ImageCompareCmd) && File.Exists(settings.ImageCompareCmd))
+                    Process.Start(settings.ImageCompareCmd, [settings.ImageCompareOpt, files.First(), files.Last()]);
+            }
+        }
+
+        private void ShellOpen(string[] files, bool shift = false, bool ctrl = false, bool alt = false, bool win = false)
         {
             if (files is not null && files.Length > 0)
             {
@@ -360,6 +470,8 @@ namespace ImageSearch
             {
                 settings = Settings.Load(setting_file) ?? new Settings();
 
+                if (settings.DarkBackground) ChangeTheme(settings.DarkBackground);
+
                 _storages_ = settings.StorageList;
                 AllFolders.IsChecked = settings.AllFolder;
 
@@ -415,7 +527,7 @@ namespace ImageSearch
                     {
                         e.Handled = true;
                         var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.FullName);
-                        ShellRun(files.ToArray(), shift: shift, alt: ctrl);
+                        ShellOpen(files.ToArray(), shift: shift, alt: ctrl);
                     }
                 }
                 else if (e.Key == Key.V && ctrl)
@@ -713,59 +825,67 @@ namespace ImageSearch
         {
             InitSimilar();
 
-            if (e is DragEventArgs)
+            if (Tabs.SelectedItem == TabSimilar)
             {
-                var imgs = await LoadImageFromDataObject((e as DragEventArgs).Data);
-                if (imgs.Count > 1)
-                {
-                    (var bmp0, var skb0) = imgs[0];
-                    (var bmp1, var skb1) = imgs[1];
-                    CompareL.Source = bmp0;
-                    CompareL.Tag = skb0;
-                    CompareR.Source = bmp1;
-                    CompareR.Tag = skb1;
-                }
-                else if (imgs.Count > 0)
-                {
-                    (var bmp, var skb) = imgs[0];
-                    if (e.Source == CompareL || CompareL.IsMouseOver)
-                    {
-                        CompareL.Source = bmp;
-                        CompareL.Tag = skb;
-                    }
-                    else if (e.Source == CompareR || CompareR.IsMouseOver)
-                    {
-                        CompareR.Source = bmp;
-                        CompareR.Tag = skb;
-                    }
-                }
+                var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.FullName);
+                if (files.Any()) ShellCompare(files.ToArray());
             }
-            else if (Clipboard.ContainsImage())
+            else if (Tabs.SelectedItem == TabCompare)
             {
-                var imgs = await LoadImageFromDataObject(Clipboard.GetDataObject());
-                if (imgs.Count > 0)
+                if (e is DragEventArgs)
                 {
-                    (var bmp, var skb) = imgs[0];
-                    if (CompareL.Source is null || CompareL.IsMouseOver)
+                    var imgs = await LoadImageFromDataObject((e as DragEventArgs).Data);
+                    if (imgs.Count > 1)
                     {
-                        CompareL.Source = bmp;
-                        CompareL.Tag = skb;
+                        (var bmp0, var skb0) = imgs[0];
+                        (var bmp1, var skb1) = imgs[1];
+                        CompareL.Source = bmp0;
+                        CompareL.Tag = skb0;
+                        CompareR.Source = bmp1;
+                        CompareR.Tag = skb1;
                     }
-                    else if (CompareR.Source is null || CompareR.IsMouseOver)
+                    else if (imgs.Count > 0)
                     {
-                        CompareR.Source = bmp;
-                        CompareR.Tag = skb;
+                        (var bmp, var skb) = imgs[0];
+                        if (e.Source == CompareL || CompareL.IsMouseOver)
+                        {
+                            CompareL.Source = bmp;
+                            CompareL.Tag = skb;
+                        }
+                        else if (e.Source == CompareR || CompareR.IsMouseOver)
+                        {
+                            CompareR.Source = bmp;
+                            CompareR.Tag = skb;
+                        }
                     }
                 }
-            }
+                else if (Clipboard.ContainsImage())
+                {
+                    var imgs = await LoadImageFromDataObject(Clipboard.GetDataObject());
+                    if (imgs.Count > 0)
+                    {
+                        (var bmp, var skb) = imgs[0];
+                        if (CompareL.Source is null || CompareL.IsMouseOver)
+                        {
+                            CompareL.Source = bmp;
+                            CompareL.Tag = skb;
+                        }
+                        else if (CompareR.Source is null || CompareR.IsMouseOver)
+                        {
+                            CompareR.Source = bmp;
+                            CompareR.Tag = skb;
+                        }
+                    }
+                }
 
-            if (CompareL.Source != null && CompareL.Tag is SKBitmap && CompareR.Source != null && CompareR.Tag is SKBitmap)
-            {
-                var skb0 = CompareL.Tag as SKBitmap;
-                var skb1 = CompareR.Tag as SKBitmap;
+                if (CompareL.Source != null && CompareL.Tag is SKBitmap && CompareR.Source != null && CompareR.Tag is SKBitmap)
+                {
+                    var skb0 = CompareL.Tag as SKBitmap;
+                    var skb1 = CompareR.Tag as SKBitmap;
 
-                var score = await similar.CompareImage(skb0, skb1);
-                ToolTipService.SetToolTip(TabCompare, $"{score:F4}");
+                    var score = await similar.CompareImage(skb0, skb1);
+                    ToolTipService.SetToolTip(TabCompare, $"{score:F4}");
+                }
             }
         }
 
@@ -775,7 +895,7 @@ namespace ImageSearch
             var alt = Keyboard.Modifiers == ModifierKeys.Alt;
 
             var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.FullName);
-            if (files.Any()) ShellRun(files.ToArray(), shift: shift, alt: alt || e.ChangedButton == MouseButton.Right);
+            if (files.Any()) ShellOpen(files.ToArray(), shift: shift, alt: alt || e.ChangedButton == MouseButton.Right);
         }
 
     }

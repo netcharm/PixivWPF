@@ -43,10 +43,12 @@ namespace ImageSearch.Search
 
     public class Storage
     {
+        private ITransformer? Model { get; set; } = null;
+
         public string ImageFolder { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public bool Recurice { get; set; } = false;
-        public string Model { get; set; } = string.Empty;
+        public string ModelFile { get; set; } = string.Empty;
         public string ModelInput { get; set; } = string.Empty;
         public string ModelOutput { get; set; } = string.Empty;
         public string DatabaseFile { get; set; } = string.Empty;

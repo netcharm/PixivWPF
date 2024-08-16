@@ -10,7 +10,7 @@
         Title="Image Search By Image" 
         Loaded="Window_Loaded" Closing="Window_Closing" PreviewKeyUp="Window_PreviewKeyUp">
     <Window.Resources>
-        <DataTemplate x:Key="ImageViewer" DataType="local:ImageResultGallery" >
+        <DataTemplate x:Key="ImageTile" DataType="local:ImageResultGallery" >
             <Grid Width="240" Height="256" MaxWidth="240" MinHeight="256" Margin="4" ToolTip="{Binding Path=Tooltip, Mode=OneWay}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -20,7 +20,7 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
-                <Viewbox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" x:Name="PART_IMAGEBOX" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <Viewbox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" x:Name="PART_IMAGEBOX" MaxWidth="240" MaxHeight="240" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                     <Image x:Name="CompareL" x:Uid="PART_IMAGE" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5"
                            Source="{Binding Path=Source, Mode=OneWay}">
                         <Image.LayoutTransform>
@@ -83,7 +83,7 @@
                               HorizontalContentAlignment="Left" VerticalContentAlignment="Top"
                               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                               Focusable="True" ClipToBounds="True" UseLayoutRounding="True" 
-                              ItemTemplate="{StaticResource ImageViewer}" 
+                              ItemTemplate="{StaticResource ImageTile}" 
                               MouseDoubleClick="SimilarResultGallery_MouseDoubleClick">
                         <ListView.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -166,7 +166,7 @@
         <StackPanel Grid.Row="2" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Orientation="Horizontal" FlowDirection="RightToLeft">
             <Button x:Name="QueryImage" Click="QueryImage_Click" Width="72" Margin="4" >Query</Button>
             <Button x:Name="QueryClip" Click="ClipImage_Click" Width="72" Margin="4" >Clipboard</Button>
-            <Separator Width="16"/>
+            <Separator Width="16" Opacity="0" Foreground="Transparent"/>
             <Button x:Name="CompareImage" Click="CompareImage_Click" Width="72" Margin="4" >Compare</Button>
         </StackPanel>
         <ProgressBar Grid.Row="3" Grid.ColumnSpan="3" x:Name="progress" Height="4" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Value="100" />
