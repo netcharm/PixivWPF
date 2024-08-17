@@ -11,7 +11,7 @@
         Loaded="Window_Loaded" Closing="Window_Closing" PreviewKeyUp="Window_PreviewKeyUp">
     <Window.Resources>
         <DataTemplate x:Key="ImageTile" DataType="local:ImageResultGallery" >
-            <Grid Width="240" Height="256" MaxWidth="240" MinHeight="256" Margin="4" ToolTip="{Binding Path=Tooltip, Mode=OneWay}">
+            <Grid Width="240" Height="256" x:Name="PART_IMAGEGRID" MaxWidth="240" MinHeight="256" Margin="4" ToolTip="{Binding Path=Tooltip, Mode=OneWay}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="auto"/>
@@ -21,7 +21,7 @@
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
                 <Viewbox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" x:Name="PART_IMAGEBOX" MaxWidth="240" MaxHeight="240" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                    <Image x:Name="CompareL" x:Uid="PART_IMAGE" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5"
+                    <Image x:Name="PART_IMAGE" x:Uid="PART_IMAGE" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5"
                            Source="{Binding Path=Source, Mode=OneWay}">
                         <Image.LayoutTransform>
                             <TransformGroup>

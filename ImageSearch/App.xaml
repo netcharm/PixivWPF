@@ -43,6 +43,9 @@
                 </Style.Resources>
             </Style>
 
+            <sys:Double x:Key="{x:Static SystemParameters.VerticalScrollBarWidthKey}">4</sys:Double>
+            <sys:Double x:Key="{x:Static SystemParameters.HorizontalScrollBarHeightKey}">4</sys:Double>
+            
             <Style TargetType="{x:Type TextBlock}">
                 <Setter Property="FontFamily" Value="{DynamicResource NormalFamily}"/>
             </Style>

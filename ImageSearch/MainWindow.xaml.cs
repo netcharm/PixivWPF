@@ -911,11 +911,16 @@ namespace ImageSearch
 
         private void SimilarResultGallery_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            var shift = Keyboard.Modifiers == ModifierKeys.Shift;
-            var alt = Keyboard.Modifiers == ModifierKeys.Alt;
+            List<string> names = [ "PART_IMAGEGRID", "PART_IMAGEBOX", "PART_IMAGE", "PART_IMAGEFILE", "PART_IMAGESIMILAR", "PART_", "Bd" ];
+            if (e.Source is ListView && names.Contains((e.OriginalSource as FrameworkElement).Name))
+            {
+                var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+                var alt = Keyboard.Modifiers == ModifierKeys.Alt;
 
-            var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.FullName);
-            if (files.Any()) ShellOpen(files.ToArray(), openwith: shift, viewinfo: alt || e.ChangedButton == MouseButton.Right);
+                var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.FullName);
+                if (files.Any()) ShellOpen(files.ToArray(), openwith: shift, viewinfo: alt || e.ChangedButton == MouseButton.Right);
+            }
+            e.Handled = true;
         }
 
     }
