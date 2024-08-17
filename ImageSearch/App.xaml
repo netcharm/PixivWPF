@@ -68,6 +68,17 @@
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
 
+            <!--<ControlTemplate x:Key="ComboBoxStyle" TargetType="{x:Type ComboBox}">
+
+                --><!--Define the ControlTemplate here.--><!--
+                <Path x:Name="Arrow" Grid.Column="1" Width="4" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M 0 0 L 4 4 L 8 0 Z" >
+                    <Path.Fill>
+                        <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ControlColorKey}}"/>
+                    </Path.Fill>
+                </Path>
+
+            </ControlTemplate>-->
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -102,6 +102,14 @@ namespace ImageSearch
             });
         }
 
+        private void ReportMessage(Exception ex, TaskStatus state = TaskStatus.Created)
+        {
+            if (ex is not null)
+            {
+                ReportMessage($"{ex.Source} : {ex.Message}", state);
+            }
+        }
+
         public void ChangeTheme(bool dark = false)
         {
             try
@@ -140,7 +148,7 @@ namespace ImageSearch
                     }
                 }
             }
-            catch (Exception ex) { ReportMessage(ex.Message); }
+            catch (Exception ex) { ReportMessage(ex); }
         }
 
         public SKBitmap? FromImageSource(ImageSource src)
@@ -159,7 +167,7 @@ namespace ImageSearch
                         ms.Seek(0, SeekOrigin.Begin);
                         result = SKBitmap.Decode(ms);
                     }
-                    catch (Exception ex) { ReportMessage(ex.Message); }
+                    catch (Exception ex) { ReportMessage(ex); }
                 }
             }
             return (result);
@@ -194,7 +202,7 @@ namespace ImageSearch
 
                             result = bmp.Clone();
                         }
-                        catch (Exception ex) { ReportMessage(ex.Message); }
+                        catch (Exception ex) { ReportMessage(ex); }
                     }
                 }
             }
@@ -255,7 +263,7 @@ namespace ImageSearch
                             }
                         }
                     }
-                    catch (Exception ex) { ReportMessage(ex.Message); }
+                    catch (Exception ex) { ReportMessage(ex); }
                 }
             }
             return ((bmp, skb));
@@ -330,11 +338,11 @@ namespace ImageSearch
             SKBitmap? skb = null;
             try
             {
-                IDataObject dataPackage = System.Windows.Clipboard.GetDataObject();
+                IDataObject dataPackage = Clipboard.GetDataObject();
                 var imgs = await LoadImageFromDataObject(dataPackage);
                 if (imgs.Count > 0) (bmp, skb) = imgs.FirstOrDefault();
             }
-            catch (Exception ex) { ReportMessage($"{ex.Message}"); }
+            catch (Exception ex) { ReportMessage(ex); }
             return ((bmp, skb));
         }
 
@@ -443,7 +451,7 @@ namespace ImageSearch
                                 Process.Start(settings.ImageViewerCmd, [settings.ImageViewerOpt, file]);
                         }
                     }
-                    catch (Exception ex) { ReportMessage(ex.Message); }
+                    catch (Exception ex) { ReportMessage(ex); }
                 }
             }
         }
@@ -456,7 +464,7 @@ namespace ImageSearch
                 {
                     System.Windows.Clipboard.SetText(text);
                 }
-                catch (Exception ex) { ReportMessage(ex.Message); };
+                catch (Exception ex) { ReportMessage(ex); };
             });
         }
 
@@ -501,9 +509,15 @@ namespace ImageSearch
                 QueryResultLimit.ItemsSource = new int[] { 5, 10, 12, 15, 18, 20, 24, 25, 30, 35, 40, 45, 50, 60 };
                 QueryResultLimit.SelectedIndex = QueryResultLimit.Items.IndexOf(settings.ResultLimit);
 
-
+                var args = Environment.GetCommandLineArgs();
+                if (args.Length > 1 && File.Exists(args[1]))
+                {
+                    (var bmp, var skb) = LoadImageFromFile(args[1]);
+                    if (bmp is not null) SimilarSrc.Source = bmp;
+                    if (skb is not null) SimilarSrc.Tag = skb;
+                }
             }
-            catch (Exception ex) { ReportMessage(ex.Message); }
+            catch (Exception ex) { ReportMessage(ex); }
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)
@@ -520,7 +534,7 @@ namespace ImageSearch
 
                     settings.Save(setting_file);
                 }
-                catch (Exception ex) { e.Cancel = true; ReportMessage(ex.Message); }
+                catch (Exception ex) { e.Cancel = true; ReportMessage(ex); }
             }
         }
 
@@ -574,7 +588,7 @@ namespace ImageSearch
                     }
                 }
             }
-            catch (Exception ex) { ReportMessage(ex.Message); }
+            catch (Exception ex) { ReportMessage(ex); }
         }
 
         private void Window_DragEnter(object sender, DragEventArgs e)
@@ -805,16 +819,23 @@ namespace ImageSearch
                                                                 exif.GetTagValue(ExifTag.XpComment, out string comments, StrCoding.Utf16Le_Byte);
                                                                 exif.GetTagValue(ExifTag.Copyright, out string copyrights, StrCoding.Utf8);
 
-                                                                tooltips.Add($"Taken Date : {date_taken:yyyy/MM/dd HH:mm:ss zzz}");
-                                                                tooltips.Add($"Title      : {title.Trim()}");
-                                                                tooltips.Add($"Subject    : {subject.Trim()}");
-                                                                tooltips.Add($"Authors    : {author.Trim().TrimEnd(';') + ';'}");
-                                                                tooltips.Add($"Copyrights : {copyrights.Trim().TrimEnd(';') + ';'}");
-                                                                tooltips.Add($"Tags       : {string.Join(" ", tags.Split(';').Select(t => $"#{t.Trim()}"))}");
-                                                                //tooltips.Add($"Commants   : {comments}");
+                                                                if (date_taken.Ticks > 0)
+                                                                    tooltips.Add($"Taken Date : {date_taken:yyyy/MM/dd HH:mm:ss zzz}");
+                                                                if (!string.IsNullOrEmpty(title))
+                                                                    tooltips.Add($"Title      : {title.Trim()}");
+                                                                if (!string.IsNullOrEmpty(subject))
+                                                                    tooltips.Add($"Subject    : {subject.Trim()}");
+                                                                if (!string.IsNullOrEmpty(author))
+                                                                    tooltips.Add($"Authors    : {author.Trim().TrimEnd(';') + ';'}");
+                                                                if (!string.IsNullOrEmpty(copyrights))
+                                                                    tooltips.Add($"Copyrights : {copyrights.Trim().TrimEnd(';') + ';'}");
+                                                                if (!string.IsNullOrEmpty(tags))
+                                                                    tooltips.Add($"Tags       : {string.Join(" ", tags.Split(';').Select(t => $"#{t.Trim()}"))}");
+                                                                if (!string.IsNullOrEmpty(comments))
+                                                                    tooltips.Add($"Commants   : {comments}");
                                                             }
                                                         }
-                                                        catch (Exception ex) { ReportMessage(ex.Message); }
+                                                        catch (Exception ex) { ReportMessage(ex); }
 
                                                         GalleryList.Add(new ImageResultGallery()
                                                         {
@@ -825,7 +846,7 @@ namespace ImageSearch
                                                             Tooltip = string.Join(Environment.NewLine, tooltips),
                                                         });
                                                     }
-                                                    catch (Exception ex) { ReportMessage(ex.Message); }
+                                                    catch (Exception ex) { ReportMessage(ex); }
                                                 }
                                             }
                                         }
