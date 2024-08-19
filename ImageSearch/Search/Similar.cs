@@ -61,7 +61,7 @@ namespace ImageSearch.Search
 
     public class BatchProgressInfo
     {
-        public bool MergeAllFeats { get; set; } = true;
+        public bool MergeAllFeats { get; set; } = false;
         public bool Recurise { get; set; } = false;
         public ulong CheckPoint { get; set; } = 5000;
         public string DatabaseName { get; set; } = string.Empty;
@@ -208,14 +208,14 @@ namespace ImageSearch.Search
                     BatchTask.ReportProgress(0);
                     try
                     {
-                        ConcurrentDictionary<string, float[]> feats = new();
-
                         if (info.Folders is not null)
                         {
-                            if (info.Folders.Count <= 0)
+                            ConcurrentDictionary<string, float[]> feats = new();
+
+                            if (info.Folders.Count <= 0 && !string.IsNullOrEmpty(info.FolderName) && !string.IsNullOrEmpty(info.DatabaseName))
                                 info.Folders.Add(new Storage() { ImageFolder = info.FolderName, Recurice = info.Recurise, DatabaseFile = info.DatabaseName });
 
-                            foreach (var storage in info.Folders.Where(d => Directory.Exists(d.ImageFolder)))
+                            foreach (var storage in info.Folders.Where(d => !string.IsNullOrEmpty(d.ImageFolder) && Directory.Exists(d.ImageFolder) && !string.IsNullOrEmpty(d.DatabaseFile)))
                             {
                                 if (BatchTask.CancellationPending) break;
 
@@ -636,7 +636,7 @@ namespace ImageSearch.Search
                     await LoadFeatureData(feature_db);
                 }
 
-                var info = new BatchProgressInfo() { DatabaseName = feature_db ?? string.Empty, FolderName = folder, Recurise = recurise, MergeAllFeats = false };
+                var info = new BatchProgressInfo() { DatabaseName = feature_db ?? string.Empty, FolderName = folder, Recurise = recurise };
                 BatchTask.RunWorkerAsync(info);
             }
         }
@@ -645,7 +645,7 @@ namespace ImageSearch.Search
         {
             if (BatchTask is not null && !BatchTask.IsBusy)
             {
-                var info = new BatchProgressInfo() { Folders = storage, MergeAllFeats = true };
+                var info = new BatchProgressInfo() { Folders = storage };
                 BatchTask.RunWorkerAsync(info);
             }
         }
@@ -753,25 +753,27 @@ namespace ImageSearch.Search
 
                         if (feat_obj == null || !feat_obj.Loaded || reload)
                         {
-                            ReportMessage($"Loading Feature DataTable from {file}", TaskStatus.Running);
-
                             float[,] feats;
                             string[] names;
                             (names, feats) = await LoadFeature(file);
-                            if (names.Length > 0 && feats.Length > 0)
+                            await Task.Run(() =>
                             {
-                                if (feat_obj == null)
+                                ReportMessage($"Loading Feature DataTable from {file}", TaskStatus.Running);
+                                if (names.Length > 0 && feats.Length > 0)
                                 {
-                                    _features_.Add(new FeatureData() { FeatureDB = file, Names = names, Feats = new NDArray(feats), Loaded = true });
+                                    if (feat_obj == null)
+                                    {
+                                        _features_.Add(new FeatureData() { FeatureDB = file, Names = names, Feats = new NDArray(feats), Loaded = true });
+                                    }
+                                    else
+                                    {
+                                        feat_obj.Names = names;
+                                        feat_obj.Feats = new NDArray(feats);
+                                    }
+                                    ReportMessage($"Loaded Feature DataTable from {file}, {sw.Elapsed.TotalSeconds:F4}s");
                                 }
-                                else
-                                {
-                                    feat_obj.Names = names;
-                                    feat_obj.Feats = new NDArray(feats);
-                                }
-                                ReportMessage($"Loaded Feature DataTable from {file}, {sw.Elapsed.TotalSeconds:F4}s");
-                            }
-                            else { ReportMessage($"Loading Feature DataTable from {file} failed!"); }
+                                else { ReportMessage($"Loading Feature DataTable from {file} failed!"); }
+                            });
                         }
                     }
                     catch (Exception ex) { ReportMessage(ex.Message); }
