@@ -89,10 +89,10 @@ namespace ImageSearch
             {
                 if (!string.IsNullOrEmpty(info))
                 {
-                    if (progress.Value == 100)
+                    if (progress.Value <= 0 || progress.Value >= 100)
                     {
                         var state_old = progress.IsIndeterminate;
-                        var state_new = state == TaskStatus.Running;
+                        var state_new = state == TaskStatus.Running || state == TaskStatus.WaitingForActivation;
                         if (state_new != state_old) progress.IsIndeterminate = state_new;
                     }
 
