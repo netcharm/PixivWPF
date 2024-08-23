@@ -89,6 +89,19 @@ namespace PixivWPF.Common
 
     public enum AutoExpandMode { OFF = 0, ON, AUTO, SINGLEPAGE };
 
+    public enum WindowAlignment { None, Fill, Top, Left, Bottom, Right, Fill_H, Fill_V, TopLeft, TopCenter, TopRight, CenterLeft, Center, CenterRight, BottomLeft, BottomCenter, BottomRight };
+        
+    public class WindowLocation
+    {
+        public Window Win { get; set; }
+        public double Top { get; set; }
+        public double Left { get; set; }
+        public double Width { get; set; }
+        public double Height { get; set; }
+        public HorizontalAlignment? AlignX { get; set; } = null;
+        public VerticalAlignment? AlignY { get; set; } = null;
+    }
+
     public class HtmlTextData
     {
         public string Html { get; set; } = string.Empty;

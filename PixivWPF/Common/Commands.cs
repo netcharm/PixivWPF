@@ -319,6 +319,57 @@ namespace PixivWPF.Common
             }).InvokeAsync(true);
         });
 
+        public static ICommand AlignWindow { get; } = new DelegateCommand<WindowLocation>(obj =>
+        {
+            if (obj is WindowLocation && obj.Win is Window)
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    var wloc = obj;
+
+                    var x = wloc.Win.Left;
+                    var y = wloc.Win.Top;
+                    var w = wloc.Win.Width;
+                    var h = wloc.Win.Height;
+
+                    var dwa = System.Windows.Forms.Screen.GetWorkingArea(new System.Drawing.Point((int)wloc.Win.Left, (int)wloc.Win.Top));
+                    var dwa_x = dwa.Left;
+                    var dwa_y = dwa.Top;
+                    var dwa_w = dwa.Width;
+                    var dwa_h = dwa.Height;
+
+                    if (wloc.AlignX.HasValue)
+                    {
+                        switch (wloc.AlignX)
+                        {
+                            case HorizontalAlignment.Left: x = dwa_x; break;
+                            case HorizontalAlignment.Right: x = dwa_x + dwa_w - w; break;
+                            case HorizontalAlignment.Center: x = dwa_x + (dwa_w - w) / 2.0; break;
+                            case HorizontalAlignment.Stretch: x = dwa_x; w = dwa_w; break;
+                            default: break;
+                        }
+                    }
+
+                    if (wloc.AlignY.HasValue)
+                    {
+                        switch (wloc.AlignY)
+                        {
+                            case VerticalAlignment.Top: y = dwa_y + dwa_y; break;
+                            case VerticalAlignment.Bottom: y = dwa_y + dwa_h - h; break;
+                            case VerticalAlignment.Center: y = dwa_y + (dwa_h - h) / 2.0; break;
+                            case VerticalAlignment.Stretch: y = dwa_y; h = dwa_h; break;
+                            default: break;
+                        }
+                    }
+
+                    wloc.Win.Left = x;
+                    wloc.Win.Top = y;
+                    wloc.Win.Width = w;
+                    wloc.Win.Height = h;
+                });
+            }
+        });
+
         public static ICommand Login { get; } = new DelegateCommand(() =>
         {
             var setting = Application.Current.LoadSetting();

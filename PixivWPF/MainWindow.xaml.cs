@@ -916,6 +916,28 @@ namespace PixivWPF
             }
         }
 
+        private void CommandAlignWin_Click(object sender, RoutedEventArgs e)
+        {
+            HorizontalAlignment? align_x = null;
+            VerticalAlignment? align_y = null;
+            if (sender == CommandAlignWinTL) { align_y = VerticalAlignment.Top; align_x = HorizontalAlignment.Left; }
+            if (sender == CommandAlignWinTC) { align_y = VerticalAlignment.Top; align_x = HorizontalAlignment.Center; }
+            if (sender == CommandAlignWinTR) { align_y = VerticalAlignment.Top; align_x = HorizontalAlignment.Right; }
+
+            if (sender == CommandAlignWinCL) { align_y = VerticalAlignment.Center; align_x = HorizontalAlignment.Left; }
+            if (sender == CommandAlignWinCC) { align_y = VerticalAlignment.Center; align_x = HorizontalAlignment.Center; }
+            if (sender == CommandAlignWinCR) { align_y = VerticalAlignment.Center; align_x = HorizontalAlignment.Right; }
+
+            if (sender == CommandAlignWinBL) { align_y = VerticalAlignment.Bottom; align_x = HorizontalAlignment.Left; }
+            if (sender == CommandAlignWinBC) { align_y = VerticalAlignment.Bottom; align_x = HorizontalAlignment.Center; }
+            if (sender == CommandAlignWinBR) { align_y = VerticalAlignment.Bottom; align_x = HorizontalAlignment.Right; }
+
+            if (sender == CommandAlignWinXX) { align_x = HorizontalAlignment.Stretch; }
+            if (sender == CommandAlignWinYY) { align_y = VerticalAlignment.Stretch; }
+
+            Commands.AlignWindow.Execute(new WindowLocation() { Win = this, AlignX = align_x, AlignY = align_y });
+        }
+
         private void LiveFilter_ToolTipOpening(object sender, ToolTipEventArgs e)
         {
             if (Contents is Pages.TilesPage)

@@ -17,7 +17,7 @@
                  RenderOptions.CachingHint="Cache"
                  RenderOptions.ClearTypeHint="Enabled"
                  RenderOptions.EdgeMode="Aliased"
-                 TextOptions.TextFormattingMode="Display" VisualTextRenderingMode="Auto"
+                 TextOptions.TextFormattingMode="Display"
                  PreviewDragOver="MetroWindow_DragOver" PreviewDrop="MetroWindow_Drop"
                  MouseDown="MetroWindow_MouseDown"
                  StateChanged="MetroWindow_StateChanged" Activated="MetroWindow_Activated" Deactivated="MetroWindow_Deactivated"
@@ -227,6 +227,27 @@
                           Click="CommandDropbox_Click" MouseRightButtonDown="CommandDropbox_MouseRightButtonDown">
                 <TextBlock Text="&#xE167;" Style="{DynamicResource CommandButtonIcon}"/>
             </ToggleButton>
+            <mah:DropDownButton x:Name="CommandAlignWin" ToolTip="Aligning Window">
+                <mah:DropDownButton.Icon>
+                    <TextBlock Text="&#xF57A;" Style="{DynamicResource CommandButtonIcon}"/>
+                </mah:DropDownButton.Icon>
+                <mah:DropDownButton.Items>
+                    <MenuItem x:Name="CommandAlignWinTL" Header="Top Left" Click="CommandAlignWin_Click" />
+                    <MenuItem x:Name="CommandAlignWinTC" Header="Top Center" Click="CommandAlignWin_Click" />
+                    <MenuItem x:Name="CommandAlignWinTR" Header="Top Right" Click="CommandAlignWin_Click" />
+                    <Separator/>
+                    <MenuItem x:Name="CommandAlignWinCL" Header="Center Left" Click="CommandAlignWin_Click" />
+                    <MenuItem x:Name="CommandAlignWinCC" Header="Center" Click="CommandAlignWin_Click" />
+                    <MenuItem x:Name="CommandAlignWinCR" Header="Center Right" Click="CommandAlignWin_Click" />
+                    <Separator/>
+                    <MenuItem x:Name="CommandAlignWinBL" Header="Bottom Left" Click="CommandAlignWin_Click" />
+                    <MenuItem x:Name="CommandAlignWinBC" Header="Bottom Center" Click="CommandAlignWin_Click" />
+                    <MenuItem x:Name="CommandAlignWinBR" Header="Bottom Right" Click="CommandAlignWin_Click" />
+                    <Separator/>
+                    <MenuItem x:Name="CommandAlignWinXX" Header="Fill Width" Click="CommandAlignWin_Click" />
+                    <MenuItem x:Name="CommandAlignWinYY" Header="Fill Height" Click="CommandAlignWin_Click" />
+                </mah:DropDownButton.Items>
+            </mah:DropDownButton>
             <Button Click="CommandLogin_Click"
                     ToolTip="Open Login Dialog">
                 <TextBlock Text="&#xE77B;" Style="{DynamicResource CommandButtonIcon}"/>
