@@ -38,7 +38,9 @@ namespace ImageCompare
                 DenoiseCount = 0;
                 DenoiseLevel = 0;
                 if (ValidOriginal) _original_.FilterType = FilterType.CubicSpline;
-                if (_OriginalModified_) Reload();
+                //if (_OriginalModified_) Dispatcher.CurrentDispatcher.InvokeAsync(async () => { await Reload(); });
+                if (_OriginalModified_) Dispatcher.CurrentDispatcher.Invoke(async () => { await Reload(); });
+                //if (_OriginalModified_) Reload();
             }
         }
         public Size OriginalSize { get { return (ValidOriginal ? new Size(Original.Width, Original.Height) : new Size(0, 0)); } }
@@ -324,7 +326,7 @@ namespace ImageCompare
         public async Task<bool> LoadImageFromPrevFile()
         {
             var result = false;
-            result = await Application.Current.Dispatcher.InvokeAsync(() =>
+            result = await Application.Current.Dispatcher.Invoke(async () =>
             {
                 bool ret = false;
                 try
@@ -337,7 +339,7 @@ namespace ImageCompare
                         {
                             var file_n = files.Where(f => f.EndsWith(file, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
                             var idx = files.IndexOf(file_n);
-                            if (idx > 0) ret = LoadImageFromFile(files[idx - 1]);
+                            if (idx > 0) ret = await LoadImageFromFile(files[idx - 1]);
                         }
                     }
                 }
@@ -350,7 +352,7 @@ namespace ImageCompare
         public async Task<bool> LoadImageFromNextFile()
         {
             var result = false;
-            result = await Application.Current.Dispatcher.InvokeAsync(() =>
+            result = await Application.Current.Dispatcher.Invoke(async () =>
             {
                 var ret = false;
                 try
@@ -363,7 +365,7 @@ namespace ImageCompare
                         {
                             var file_n = files.Where(f => f.EndsWith(file, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
                             var idx = files.IndexOf(file_n);
-                            if (idx < files.Count - 1) ret = LoadImageFromFile(files[idx + 1]);
+                            if (idx < files.Count - 1) ret = await LoadImageFromFile(files[idx + 1]);
                         }
                     }
                 }
@@ -373,12 +375,12 @@ namespace ImageCompare
             return (result);
         }
 
-        public bool LoadImageFromFile(string file, bool update = false)
+        public async Task<bool> LoadImageFromFile(string file, bool update = false)
         {
             var result = false;
             if (File.Exists(file))
             {
-                result = Application.Current.MainWindow.Dispatcher.Invoke(() =>
+                result = await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     var ret = false;
                     try
@@ -401,6 +403,7 @@ namespace ImageCompare
                                     Original = new MagickImage(fs, MagickFormat.Unknown);
                                 }
                             }
+
                             if (update && Tagetment is Image && ValidCurrent)
                                 (Tagetment as Image).Source = Source;
 
@@ -414,19 +417,25 @@ namespace ImageCompare
             return (result);
         }
 
-        public bool LoadImageFromFile()
+        public async Task<bool> LoadImageFromFile()
         {
             var result = false;
             try
             {
                 var file_str = "AllSupportedImageFiles".T();
-                var dlgOpen = new Microsoft.Win32.OpenFileDialog() { Multiselect = true, CheckFileExists = true, CheckPathExists = true, ValidateNames = true };
-                //dlgOpen.Filter = $"{file_str}|{AllSupportedFiles}|{AllSupportedFilters}";
-                dlgOpen.Filter = $"{file_str}|{Extensions.AllSupportedFiles}";
+                var dlgOpen = new Microsoft.Win32.OpenFileDialog
+                {
+                    Multiselect = true,
+                    CheckFileExists = true,
+                    CheckPathExists = true,
+                    ValidateNames = true,                 
+                    //Filter = $"{file_str}|{AllSupportedFiles}|{AllSupportedFilters}";
+                    Filter = $"{file_str}|{Extensions.AllSupportedFiles}"
+                };
                 if (dlgOpen.ShowDialog() ?? false)
                 {
                     var file = dlgOpen.FileName;
-                    result = new Func<bool>(() => { return (LoadImageFromFile(file)); }).Invoke();
+                    result = await LoadImageFromFile(file);
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -553,9 +562,14 @@ namespace ImageCompare
                     else
                     {
                         var file_str = "File".T();
-                        var dlgSave = new Microsoft.Win32.SaveFileDialog() {  CheckPathExists = true, ValidateNames = true, DefaultExt = ".png" };
-                        dlgSave.Filter = $"PNG {file_str}| *.png|PNG8 {file_str}| *.png|JPEG {file_str}|*.jpg;*.jpeg|TIFF {file_str}|*.tif;*.tiff|BITMAP {file_str}|*.bmp|BITMAP With Alpha {file_str}|*.bmp|WEBP {file_str}|*.webp|Topaz Mask {file_str}|*.tiff";
-                        dlgSave.FilterIndex = 1;
+                        var dlgSave = new Microsoft.Win32.SaveFileDialog
+                        {
+                            CheckPathExists = true,
+                            ValidateNames = true,
+                            DefaultExt = ".png",
+                            Filter = $"PNG {file_str}| *.png|PNG8 {file_str}| *.png|JPEG {file_str}|*.jpg;*.jpeg|TIFF {file_str}|*.tif;*.tiff|BITMAP {file_str}|*.bmp|BITMAP With Alpha {file_str}|*.bmp|WEBP {file_str}|*.webp|Topaz Mask {file_str}|*.tiff",
+                            FilterIndex = 1
+                        };
                         if (dlgSave.ShowDialog() ?? false)
                         {
                             var file = dlgSave.FileName;
@@ -577,7 +591,7 @@ namespace ImageCompare
                             else if (filter.StartsWith("tiff", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.Tiff;
                             else if (filter.StartsWith("webp", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.WebP;
 
-                            var topaz = filter.StartsWith("Topaz", StringComparison.CurrentCultureIgnoreCase) ? true : false;
+                            var topaz = filter.StartsWith("Topaz", StringComparison.CurrentCultureIgnoreCase);
                             if (topaz)
                             {
                                 SaveTopazMask(file);
@@ -831,9 +845,11 @@ namespace ImageCompare
                     else if (Current.ColorType == ColorType.ColorSeparation) depth = 24;
                     else if (Current.ColorType == ColorType.ColorSeparationAlpha) depth = 32;
 
-                    var tip = new List<string>();
-                    tip.Add($"{"InfoTipDimentionOriginal".T()} {OriginalSize.Width:F0}x{OriginalSize.Height:F0}x{depth:F0}, {(long)OriginalSize.Width * OriginalSize.Height / 1000000:F2}MP");
-                    tip.Add($"{"InfoTipDimention".T()} {CurrentSize.Width:F0}x{CurrentSize.Height:F0}x{depth:F0}, {(long)CurrentSize.Width * CurrentSize.Height / 1000000:F2}MP");
+                    var tip = new List<string>
+                    {
+                        $"{"InfoTipDimentionOriginal".T()} {OriginalSize.Width:F0}x{OriginalSize.Height:F0}x{depth:F0}, {(long)OriginalSize.Width * OriginalSize.Height / 1000000:F2}MP",
+                        $"{"InfoTipDimention".T()} {CurrentSize.Width:F0}x{CurrentSize.Height:F0}x{depth:F0}, {(long)CurrentSize.Width * CurrentSize.Height / 1000000:F2}MP"
+                    };
                     if (Current.BoundingBox != null)
                         tip.Add($"{"InfoTipBounding".T()} {Current.BoundingBox.Width:F0}x{Current.BoundingBox.Height:F0}");
                     tip.Add($"{"InfoTipResolution".T()} {DPI_TEXT}");
@@ -923,12 +939,12 @@ namespace ImageCompare
                         }
                         tip.AddRange(attrs.OrderBy(a => a));
                     }
-                    tip.Add($"{"InfoTipColorSpace".T()} {Current.ColorSpace.ToString()}");
+                    tip.Add($"{"InfoTipColorSpace".T()} {Current.ColorSpace}");
                     if (CurrentFormatInfo != null)
-                        tip.Add($"{"InfoTipFormatInfo".T()} {CurrentFormatInfo.Format.ToString()} ({CurrentFormatInfo.Description}), mime:{CurrentFormatInfo.MimeType}");
+                        tip.Add($"{"InfoTipFormatInfo".T()} {CurrentFormatInfo.Format} ({CurrentFormatInfo.Description}), mime:{CurrentFormatInfo.MimeType}");
                     tip.Add($"{"InfoTipHasAlpha".T()} {(Current.HasAlpha ? "Included" : "NotIncluded").T()}");
-                    tip.Add($"{"InfoTipColorMapsSize".T()} {Current.ColormapSize.ToString()}");
-                    tip.Add($"{"InfoTipCompression".T()} {Current.Compression.ToString()}");
+                    tip.Add($"{"InfoTipColorMapsSize".T()} {Current.ColormapSize}");
+                    tip.Add($"{"InfoTipCompression".T()} {Current.Compression}");
                     tip.Add($"{"InfoTipQuality".T()} {Current.Quality}");
                     tip.Add($"{"InfoTipColorChannelCount".T()} {ChannelCount}");
                     tip.Add($"{"InfoTipMemoryMode".T()} {MemoryUsageMode}");
@@ -999,19 +1015,19 @@ namespace ImageCompare
             return (CurrentModified);
         }
 
-        public bool Reset(int size = -1)
+        public async Task<bool> Reset(int size = -1)
         {
-            return (Reload(size, reload: false, reset: true));
+            return (await Reload(size, reload: false, reset: true));
         }
 
-        public bool Reload(bool reload = false, bool reset = false)
+        public async Task<bool> Reload(bool reload = false, bool reset = false)
         {
             var result = false;
             try
             {
                 if (ValidOriginal)
                 {
-                    if (reload && !string.IsNullOrEmpty(LastFileName)) LoadImageFromFile(LastFileName, update: false);
+                    if (reload && !string.IsNullOrEmpty(LastFileName)) await LoadImageFromFile(LastFileName, update: false);
                     if (OriginalModified || (ValidOriginal && !ValidCurrent) || (reset && ValidOriginal))
                     {
                         if (ValidCurrent) { Current.Dispose(); Current = null; }
@@ -1033,14 +1049,14 @@ namespace ImageCompare
             return (result);
         }
 
-        public bool Reload(MagickGeometry geo, bool reload = false, bool reset = false)
+        public async Task<bool> Reload(MagickGeometry geo, bool reload = false, bool reset = false)
         {
             var result = false;
             try
             {
                 if (ValidOriginal && geo is MagickGeometry)
                 {
-                    if (reload && !string.IsNullOrEmpty(LastFileName)) LoadImageFromFile(LastFileName, update: false);
+                    if (reload && !string.IsNullOrEmpty(LastFileName)) await LoadImageFromFile(LastFileName, update: false);
                     if (OriginalModified || (ValidOriginal && !ValidCurrent) || (reset && ValidOriginal))
                     {
                         if (ValidCurrent) { Current.Dispose(); Current = null; }
@@ -1064,10 +1080,10 @@ namespace ImageCompare
             return (result);
         }
 
-        public bool Reload(int size, bool reload = false, bool reset = false)
+        public async Task<bool> Reload(int size, bool reload = false, bool reset = false)
         {
-            if (size <= 0) return (Reload(reload, reset));
-            else return (Reload(new MagickGeometry($"{size}x{size}>"), reload, reset));
+            if (size <= 0) return (await Reload(reload, reset));
+            else return (await Reload(new MagickGeometry($"{size}x{size}>"), reload, reset));
         }
 
         public void Dispose()

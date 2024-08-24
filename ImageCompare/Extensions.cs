@@ -1016,8 +1016,11 @@ namespace ImageCompare
             var result = new ImageInformation() { Tagetment = element };
             if (element is FrameworkElement)
             {
-                if (element.Tag is ImageInformation) result = element.Tag as ImageInformation;
-                else element.Tag = result;
+                element.Dispatcher.Invoke(() => {
+                    if (element.Tag is ImageInformation) result = element.Tag as ImageInformation;
+                    else element.Tag = result;
+                });
+
             }
             return (result);
         }

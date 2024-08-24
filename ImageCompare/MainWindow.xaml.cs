@@ -35,25 +35,25 @@ namespace ImageCompare
     public partial class MainWindow : Window, IDisposable
     {
         #region Application Infomations
-        private static string AppExec = Application.ResourceAssembly.CodeBase.ToString().Replace("file:///", "").Replace("/", "\\");
-        private static string AppPath = Path.GetDirectoryName(AppExec);
-        private static string AppName = Path.GetFileNameWithoutExtension(AppPath);
+        private static readonly string AppExec = Application.ResourceAssembly.CodeBase.ToString().Replace("file:///", "").Replace("/", "\\");
+        private static readonly string AppPath = Path.GetDirectoryName(AppExec);
+        private static readonly string AppName = Path.GetFileNameWithoutExtension(AppPath);
         private static string CachePath =  "cache";
 
-        private bool AutoSaveConfig 
-        { 
-            get { return (AutoSaveOptions.IsChecked ?? true); }
-            set { AutoSaveOptions.IsChecked = value; }
+        private bool AutoSaveConfig
+        {
+            get { return (AutoSaveOptions.Dispatcher.Invoke(() => AutoSaveOptions.IsChecked ?? true)); }
+            set { AutoSaveOptions.Dispatcher.Invoke(() => AutoSaveOptions.IsChecked = value); }
         }
 
         private bool DarkTheme
         {
-            get { return (DarkBackground.IsChecked ?? true); }
-            set { DarkBackground.IsChecked = value; }
+            get { return (DarkBackground.Dispatcher.Invoke(() => DarkBackground.IsChecked ?? true)); }
+            set { DarkBackground.Dispatcher.Invoke(() => DarkBackground.IsChecked = value); }
         }
 
-        private FontFamily CustomMonoFontFamily = new FontFamily();
-        private FontFamily CustomIconFontFamily = new FontFamily();
+        private readonly FontFamily CustomMonoFontFamily = new FontFamily();
+        private readonly FontFamily CustomIconFontFamily = new FontFamily();
 
         private string DefaultWindowTitle = string.Empty;
         private string DefaultCompareToolTip = string.Empty;
@@ -64,9 +64,9 @@ namespace ImageCompare
         {
             get
             {
-                if (IsLoaded)
+                if (Dispatcher.Invoke(() => IsLoaded))
                 {
-                    var value = Math.Min(Math.Max(ImageCompareFuzzy.Minimum, ImageCompareFuzzy.Value), ImageCompareFuzzy.Maximum);
+                    var value = ImageCompareFuzzy.Dispatcher.Invoke(() => Math.Min(Math.Max(ImageCompareFuzzy.Minimum, ImageCompareFuzzy.Value), ImageCompareFuzzy.Maximum));
                     return (new Percentage(value));
                 }
                 else return (new Percentage());
@@ -94,12 +94,14 @@ namespace ImageCompare
         //private double LastCompositeBlendRatio = 50;
 
         private Channels CompareImageChannels = Channels.All;
-        private bool CompareImageAutoMatchSize { get { return (AutoMatchSize.IsChecked ?? false); } }
-        private bool CompareImageForceScale { get { return (UseSmallerImage.IsChecked ?? false); } }
-        private bool CompareImageForceColor { get { return (UseColorImage.IsChecked ?? false); } }
+        private bool CompareImageAutoMatchSize { get { return (AutoMatchSize.Dispatcher.Invoke(() => AutoMatchSize.IsChecked ?? false)); } }
+        private bool CompareImageForceScale { get { return (UseSmallerImage.Dispatcher.Invoke(()=>UseSmallerImage.IsChecked ?? false)); } }
+        private bool CompareImageForceColor { get { return (UseColorImage.Dispatcher.Invoke(() => UseColorImage.IsChecked ?? false)); } }
         private ErrorMetric ErrorMetricMode = ErrorMetric.Fuzz;
         private CompositeOperator CompositeMode = CompositeOperator.Difference;
         private PixelIntensityMethod GrayscaleMode = PixelIntensityMethod.Undefined;
+
+        private bool UseSmallImage { get { return (UseSmallerImage.Dispatcher.Invoke(() => UseSmallerImage.IsChecked ?? false)); } }
 
 #if Q16HDRI
         private IMagickColor<float> HighlightColor = MagickColors.Red;
@@ -114,9 +116,9 @@ namespace ImageCompare
         private string LastHaldFolder { get; set; } = string.Empty;
         private string LastHaldFile { get; set; } = string.Empty;
 
-        private bool WeakBlur { get { return (UseWeakBlur.IsChecked ?? false); } }
-        private bool WeakSharp { get { return (UseWeakSharp.IsChecked ?? false); } }
-        private bool WeakEffects { get { return (UseWeakEffects.IsChecked ?? false); } }
+        private bool WeakBlur { get { return (UseWeakBlur.Dispatcher.Invoke(() => UseWeakBlur.IsChecked ?? false)); } }
+        private bool WeakSharp { get { return (UseWeakSharp.Dispatcher.Invoke(() => UseWeakSharp.IsChecked ?? false)); } }
+        private bool WeakEffects { get { return (UseWeakEffects.Dispatcher.Invoke(() => UseWeakEffects.IsChecked ?? false)); } }
         #endregion
 
         //private bool ExchangeSourceTarget { get { return (ImageExchange.IsChecked ?? false); } }
@@ -125,8 +127,8 @@ namespace ImageCompare
         private ContextMenu cm_compose_mode = null;
         private ContextMenu cm_grayscale_mode = null;
 
-        private List<FrameworkElement> cm_image_source = new List<FrameworkElement>();
-        private List<FrameworkElement> cm_image_target = new List<FrameworkElement>();
+        private readonly List<FrameworkElement> cm_image_source = new List<FrameworkElement>();
+        private readonly List<FrameworkElement> cm_image_target = new List<FrameworkElement>();
 
         #region DoEvent Helper
         private static object ExitFrame(object state)
@@ -135,7 +137,7 @@ namespace ImageCompare
             return null;
         }
 
-        private static SemaphoreSlim CanDoEvents = new SemaphoreSlim(1, 1);
+        private static readonly SemaphoreSlim CanDoEvents = new SemaphoreSlim(1, 1);
         public static async void DoEvents()
         {
             if (await CanDoEvents.WaitAsync(0))
@@ -195,8 +197,7 @@ namespace ImageCompare
             if (parentObject == null) return null;
 
             //check if the parent matches the type we're looking for
-            T parent = parentObject as T;
-            if (parent != null)
+            if (parentObject is T parent)
                 return parent;
             else
                 return FindParent<T>(parentObject);
@@ -243,31 +244,36 @@ namespace ImageCompare
                 RenderWorker = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
                 RenderWorker.ProgressChanged += (o, e) => { ProcessStatus.IsIndeterminate = true; };
                 RenderWorker.RunWorkerCompleted += (o, e) => { ProcessStatus.IsIndeterminate = false; ProcessStatus.Value = 100; };
-                RenderWorker.DoWork += (o, e) =>
+                RenderWorker.DoWork += async (o, e) =>
                 {
                     if (e.Argument is Action)
                     {
-                        var action = e.Argument as Action;
-                        Dispatcher.Invoke(async () =>
+                        await ProcessStatus.Dispatcher.InvokeAsync(() =>
                         {
                             ProcessStatus.Value = 0;
                             ProcessStatus.IsIndeterminate = true;
-                            await Task.Delay(1);
-                            DoEvents();
-                            action.Invoke();
-                            LastAction = action;
-                        });
+                        }, DispatcherPriority.Normal);
+                        var action = e.Argument as Action;
+                        await Dispatcher.InvokeAsync(action, DispatcherPriority.Background);
+                        LastAction = action;
                     }
                 };
             }
         }
 
-        private void RenderRun(Action action)
+        private async void RenderRun(Action action)
         {
             InitRenderWorker();
             if (RenderWorker is BackgroundWorker && !RenderWorker.IsBusy && action is Action)
             {
-                RenderWorker.RunWorkerAsync(action);
+                //RenderWorker.RunWorkerAsync(action);
+                await ProcessStatus.Dispatcher.InvokeAsync(() =>
+                {
+                    ProcessStatus.Value = 0;
+                    ProcessStatus.IsIndeterminate = true;
+                }, DispatcherPriority.Normal);
+                await Task.Run(action);
+                LastAction = action;
             }
         }
         #endregion
@@ -327,8 +333,8 @@ namespace ImageCompare
                 });
             }
         }
-        private SemaphoreSlim _CanUpdate_ = new SemaphoreSlim(1, 1);
-        private Dictionary<Color, string> ColorNames = new Dictionary<Color, string>();
+        private readonly SemaphoreSlim _CanUpdate_ = new SemaphoreSlim(1, 1);
+        private readonly Dictionary<Color, string> ColorNames = new Dictionary<Color, string>();
         private Point mouse_start;
         private Point mouse_origin;
         private double ZoomMin = 0.1;
@@ -390,7 +396,7 @@ namespace ImageCompare
 
         private void GetColorNames()
         {
-            var cpl = (typeof(Colors) as Type).GetProperties();
+            typeof(Colors).GetProperties();
         }
 
         private Point GetSystemDPI()
@@ -520,7 +526,6 @@ namespace ImageCompare
 
         private Point CalcScrollOffset(FrameworkElement sender, MouseEventArgs e)
         {
-            var result = new Point(0, 0);
             double offset_x = -1, offset_y = -1;
             if (sender == ImageSourceBox || sender == ImageSourceScroll)
             {
@@ -578,87 +583,90 @@ namespace ImageCompare
         {
             try
             {
-                #region Re-Calc Scroll Viewer Size
-                ViewerPanel.MaxWidth = ImageCanvas.ActualWidth;
-                ViewerPanel.MaxHeight = ImageCanvas.ActualHeight - ImageToolBar.ActualHeight;
-                ViewerPanel.MinWidth = ImageCanvas.ActualWidth;
-                ViewerPanel.MinHeight = ImageCanvas.ActualHeight - ImageToolBar.ActualHeight;
-                ViewerPanel.RenderSize = new Size(ViewerPanel.MaxWidth, ViewerPanel.MaxHeight);
-
-                var w = ViewerPanel.ActualWidth;
-                var h = ViewerPanel.ActualHeight;
-                if (ViewerPanel.Orientation == Orientation.Horizontal)
+                Dispatcher.InvokeAsync(() =>
                 {
-                    w = ViewerPanel.ActualWidth / 3.0;
-                }
-                else if (ViewerPanel.Orientation == Orientation.Vertical)
-                {
-                    h = ViewerPanel.ActualHeight / 3.0;
-                }
-                ImageSourceScroll.RenderSize = new Size(w, h);
-                ImageTargetScroll.RenderSize = new Size(w, h);
-                ImageResultScroll.RenderSize = new Size(w, h);
+                    #region Re-Calc Scroll Viewer Size
+                    ViewerPanel.MaxWidth = ImageCanvas.ActualWidth;
+                    ViewerPanel.MaxHeight = ImageCanvas.ActualHeight - ImageToolBar.ActualHeight;
+                    ViewerPanel.MinWidth = ImageCanvas.ActualWidth;
+                    ViewerPanel.MinHeight = ImageCanvas.ActualHeight - ImageToolBar.ActualHeight;
+                    ViewerPanel.RenderSize = new Size(ViewerPanel.MaxWidth, ViewerPanel.MaxHeight);
 
-                ImageSourceScroll.MinWidth = w;
-                ImageSourceScroll.MinHeight = h;
-                ImageTargetScroll.MinWidth = w;
-                ImageTargetScroll.MinHeight = h;
-                ImageResultScroll.MinWidth = w;
-                ImageResultScroll.MinHeight = h;
-
-                ImageSourceScroll.MaxWidth = w;
-                ImageSourceScroll.MaxHeight = h;
-                ImageTargetScroll.MaxWidth = w;
-                ImageTargetScroll.MaxHeight = h;
-                ImageResultScroll.MaxWidth = w;
-                ImageResultScroll.MaxHeight = h;
-                #endregion
-
-                if (ZoomFitAll.IsChecked ?? false)
-                {
-                    ImageSourceBox.Width = ImageSourceScroll.ActualWidth;
-                    ImageSourceBox.Height = ImageSourceScroll.ActualHeight;
-
-                    ImageTargetBox.Width = ImageTargetScroll.ActualWidth;
-                    ImageTargetBox.Height = ImageTargetScroll.ActualHeight;
-
-                    ImageResultBox.Width = ImageResultScroll.ActualWidth;
-                    ImageResultBox.Height = ImageResultScroll.ActualHeight;
-
-                    if (set_ratio)
+                    var w = ViewerPanel.ActualWidth;
+                    var h = ViewerPanel.ActualHeight;
+                    if (ViewerPanel.Orientation == Orientation.Horizontal)
                     {
-                        LastZoomRatio = ZoomRatio.Value;
-                        ZoomRatio.Value = 1;
+                        w = ViewerPanel.ActualWidth / 3.0;
                     }
-                }
-                else
-                {
-                    var image_s = ImageSource.GetInformation();
-                    var image_t = ImageTarget.GetInformation();
-                    var image_r = ImageResult.GetInformation();
-                    if (image_s.ValidCurrent)
+                    else if (ViewerPanel.Orientation == Orientation.Vertical)
                     {
-                        ImageSourceBox.Width = image_s.Current.Width;
-                        ImageSourceBox.Height = image_s.Current.Height;
+                        h = ViewerPanel.ActualHeight / 3.0;
                     }
-                    if (image_t.ValidCurrent)
-                    {
-                        ImageTargetBox.Width = image_t.Current.Width;
-                        ImageTargetBox.Height = image_t.Current.Height;
-                    }
-                    if (image_r.ValidCurrent)
-                    {
-                        ImageResultBox.Width = image_r.Current.Width;
-                        ImageResultBox.Height = image_r.Current.Height;
-                    }
-                    ZoomRatio.Value = LastZoomRatio;
-                }
+                    ImageSourceScroll.RenderSize = new Size(w, h);
+                    ImageTargetScroll.RenderSize = new Size(w, h);
+                    ImageResultScroll.RenderSize = new Size(w, h);
 
-                if (ZoomFitNone.IsChecked ?? false) ZoomRatio.IsEnabled = true;
-                else ZoomRatio.IsEnabled = false;
-                ZoomRatioValue.IsEnabled = ZoomRatio.IsEnabled;
+                    ImageSourceScroll.MinWidth = w;
+                    ImageSourceScroll.MinHeight = h;
+                    ImageTargetScroll.MinWidth = w;
+                    ImageTargetScroll.MinHeight = h;
+                    ImageResultScroll.MinWidth = w;
+                    ImageResultScroll.MinHeight = h;
 
-                CalcZoomRatio();
+                    ImageSourceScroll.MaxWidth = w;
+                    ImageSourceScroll.MaxHeight = h;
+                    ImageTargetScroll.MaxWidth = w;
+                    ImageTargetScroll.MaxHeight = h;
+                    ImageResultScroll.MaxWidth = w;
+                    ImageResultScroll.MaxHeight = h;
+                    #endregion
+
+                    if (ZoomFitAll.IsChecked ?? false)
+                    {
+                        ImageSourceBox.Width = ImageSourceScroll.ActualWidth;
+                        ImageSourceBox.Height = ImageSourceScroll.ActualHeight;
+
+                        ImageTargetBox.Width = ImageTargetScroll.ActualWidth;
+                        ImageTargetBox.Height = ImageTargetScroll.ActualHeight;
+
+                        ImageResultBox.Width = ImageResultScroll.ActualWidth;
+                        ImageResultBox.Height = ImageResultScroll.ActualHeight;
+
+                        if (set_ratio)
+                        {
+                            LastZoomRatio = ZoomRatio.Value;
+                            ZoomRatio.Value = 1;
+                        }
+                    }
+                    else
+                    {
+                        var image_s = ImageSource.GetInformation();
+                        var image_t = ImageTarget.GetInformation();
+                        var image_r = ImageResult.GetInformation();
+                        if (image_s.ValidCurrent)
+                        {
+                            ImageSourceBox.Width = image_s.Current.Width;
+                            ImageSourceBox.Height = image_s.Current.Height;
+                        }
+                        if (image_t.ValidCurrent)
+                        {
+                            ImageTargetBox.Width = image_t.Current.Width;
+                            ImageTargetBox.Height = image_t.Current.Height;
+                        }
+                        if (image_r.ValidCurrent)
+                        {
+                            ImageResultBox.Width = image_r.Current.Width;
+                            ImageResultBox.Height = image_r.Current.Height;
+                        }
+                        ZoomRatio.Value = LastZoomRatio;
+                    }
+
+                    if (ZoomFitNone.IsChecked ?? false) ZoomRatio.IsEnabled = true;
+                    else ZoomRatio.IsEnabled = false;
+                    ZoomRatioValue.IsEnabled = ZoomRatio.IsEnabled;
+
+                    CalcZoomRatio();
+                });
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -798,94 +806,98 @@ namespace ImageCompare
 
         private async void UpdateImageViewer(bool compose = false, bool assign = false, bool reload = true, ImageType reload_type = ImageType.All)
         {
-            if (IsLoaded && await _CanUpdate_.WaitAsync(TimeSpan.FromMilliseconds(200)))
+            var loaded = await Dispatcher.InvokeAsync(() => IsLoaded);
+            if (loaded && await _CanUpdate_.WaitAsync(TimeSpan.FromMilliseconds(200)))
             {
-                await Dispatcher.InvokeAsync(async () =>
+                try
                 {
-                    try
-                    {
 #if DEBUG
-                        Debug.WriteLine("---> UpdateImageViewer <---");
+                    Debug.WriteLine("---> UpdateImageViewer <---");
 #endif
+                    ImageInformation image_s = ImageSource.GetInformation();
+                    ImageInformation image_t = ImageTarget.GetInformation();
+                    ImageInformation image_r = ImageResult.GetInformation();
+                    bool? source = null;
+                    bool? target = null;
+
+                    await Dispatcher.InvokeAsync(() =>
+                    {
                         ProcessStatus.IsIndeterminate = true;
-                        await Task.Delay(1);
-                        DoEvents();
 
-                        var image_s = ImageSource.GetInformation();
-                        var image_t = ImageTarget.GetInformation();
-                        var image_r = ImageResult.GetInformation();
+                        source = ImageSource.Source == null;
+                        target = ImageTarget.Source == null;
+                    }, DispatcherPriority.Normal);
 
-                        if (assign || ImageSource.Source == null || ImageTarget.Source == null)
+                    if (assign || (source ?? false) || (target ?? false))
+                    {
+                        try
                         {
-                            try
+                            if (reload)
                             {
-                                if (reload)
+                                if (CompareImageForceScale)
                                 {
-                                    if (CompareImageForceScale)
+                                    if (reload_type == ImageType.All || reload_type == ImageType.Source)
                                     {
-                                        if (reload_type == ImageType.All || reload_type == ImageType.Source)
-                                        {
-                                            if (image_s.OriginalSize.Width > MaxCompareSize || image_s.OriginalSize.Height > MaxCompareSize)
-                                                image_s.Reload(CompareResizeGeometry, reset: true);
-                                            else image_s.Reload(reload: image_s.CurrentSize.Width != image_s.OriginalSize.Width || image_s.CurrentSize.Height != image_s.OriginalSize.Height);
-                                        }
-                                        if (reload_type == ImageType.All || reload_type == ImageType.Target)
-                                        {
-                                            if (image_t.OriginalSize.Width > MaxCompareSize || image_t.OriginalSize.Height > MaxCompareSize)
-                                                image_t.Reload(CompareResizeGeometry, reset: true);
-                                            else image_t.Reload(reload: image_t.CurrentSize.Width != image_t.OriginalSize.Width || image_t.CurrentSize.Height != image_t.OriginalSize.Height);
-                                        }
+                                        if (image_s.OriginalSize.Width > MaxCompareSize || image_s.OriginalSize.Height > MaxCompareSize)
+                                            await image_s.Reload(CompareResizeGeometry, reset: true);
+                                        else await image_s.Reload(reload: image_s.CurrentSize.Width != image_s.OriginalSize.Width || image_s.CurrentSize.Height != image_s.OriginalSize.Height);
                                     }
-                                    else
+                                    if (reload_type == ImageType.All || reload_type == ImageType.Target)
                                     {
-                                        if (reload_type == ImageType.All || reload_type == ImageType.Source)
-                                        {
-                                            if (image_s.CurrentSize.Width != image_s.OriginalSize.Width || image_s.CurrentSize.Height != image_s.OriginalSize.Height)
-                                                image_s.Reload(reset: true);
-                                        }
-                                        if (reload_type == ImageType.All || reload_type == ImageType.Target)
-                                        {
-                                            if (image_t.CurrentSize.Width != image_t.OriginalSize.Width || image_t.CurrentSize.Height != image_t.OriginalSize.Height)
-                                                image_t.Reload(reset: true);
-                                        }
+                                        if (image_t.OriginalSize.Width > MaxCompareSize || image_t.OriginalSize.Height > MaxCompareSize)
+                                            await image_t.Reload(CompareResizeGeometry, reset: true);
+                                        else await image_t.Reload(reload: image_t.CurrentSize.Width != image_t.OriginalSize.Width || image_t.CurrentSize.Height != image_t.OriginalSize.Height);
                                     }
-
-                                    //DoEvents();
-
-                                    if (CompareImageAutoMatchSize)
+                                }
+                                else
+                                {
+                                    if (reload_type == ImageType.All || reload_type == ImageType.Source)
                                     {
-                                        MatchImageSize(image_s, image_t, DefaultMatchAlign);
+                                        if (image_s.CurrentSize.Width != image_s.OriginalSize.Width || image_s.CurrentSize.Height != image_s.OriginalSize.Height)
+                                            await image_s.Reload(reset: true);
                                     }
-                                    else
+                                    if (reload_type == ImageType.All || reload_type == ImageType.Target)
                                     {
-                                        if (image_s.ValidCurrent && image_t.ValidCurrent)
-                                        {
-                                            var offset = new PointD(image_s.BaseSize.Width - image_t.BaseSize.Width, image_s.BaseSize.Height - image_t.BaseSize.Height);
-                                            if (offset.X != 0 || offset.Y != 0)
-                                            {
-                                                image_s.Current.Crop((int)image_s.BaseSize.Width, (int)image_s.BaseSize.Height, DefaultMatchAlign);
-                                                image_t.Current.Crop((int)image_t.BaseSize.Width, (int)image_t.BaseSize.Height, DefaultMatchAlign);
-
-                                                image_s.Current.RePage();
-                                                image_t.Current.RePage();
-                                            }
-                                        }
+                                        if (image_t.CurrentSize.Width != image_t.OriginalSize.Width || image_t.CurrentSize.Height != image_t.OriginalSize.Height)
+                                            await image_t.Reload(reset: true);
                                     }
                                 }
 
+                                if (CompareImageAutoMatchSize)
+                                {
+                                    MatchImageSize(image_s, image_t, DefaultMatchAlign);
+                                }
+                                else
+                                {
+                                    if (image_s.ValidCurrent && image_t.ValidCurrent)
+                                    {
+                                        var offset = new PointD(image_s.BaseSize.Width - image_t.BaseSize.Width, image_s.BaseSize.Height - image_t.BaseSize.Height);
+                                        if (offset.X != 0 || offset.Y != 0)
+                                        {
+                                            image_s.Current.Crop((int)image_s.BaseSize.Width, (int)image_s.BaseSize.Height, DefaultMatchAlign);
+                                            image_t.Current.Crop((int)image_t.BaseSize.Width, (int)image_t.BaseSize.Height, DefaultMatchAlign);
+
+                                            image_s.Current.RePage();
+                                            image_t.Current.RePage();
+                                        }
+                                    }
+                                }
+                            }
+
+                            await Dispatcher.InvokeAsync(() =>
+                            {
                                 ImageSource.Source = image_s.Source;
                                 ImageTarget.Source = image_t.Source;
 
-                                await Task.Delay(1);
-                                DoEvents();
                                 GC.Collect();
-                                GC.WaitForPendingFinalizers();
-                                await Task.Delay(1);
-                                DoEvents();
-                            }
-                            catch (Exception ex) { ex.ShowMessage(); }
+                                //GC.WaitForPendingFinalizers();
+                            }, DispatcherPriority.Normal);
                         }
+                        catch (Exception ex) { ex.ShowMessage(); }
+                    }
 
+                    await Dispatcher.InvokeAsync(() =>
+                    {
                         if (image_s.ValidCurrent)
                             ImageSource.ToolTip = "Waiting".T();
                         else
@@ -897,43 +909,33 @@ namespace ImageCompare
                             ImageTarget.ToolTip = null;
 
                         ImageResult.Source = null;
-                        if (image_r.ValidCurrent)
-                        {
-                            image_r.Dispose();
-                            await Task.Delay(1);
-                            DoEvents();
-                        }
-                        //image_s.ChangeColorSpace(CompareImageForceColor);
-                        //image_t.ChangeColorSpace(CompareImageForceColor);
+                        if (image_r.ValidCurrent) image_r.Dispose();
+                    }, DispatcherPriority.Normal);
 
-                        //image_r.Current = await Compare(image_s.Current, image_t.Current, compose: compose);
-                        image_r.Original = await Compare(image_s.Current, image_t.Current, compose: compose);
-                        image_r.OpMode = LastOpIsComposite ? ImageOpMode.Compose : ImageOpMode.Compare;
-                        image_r.ColorFuzzy = DefaultColorFuzzy;
+                    image_r.Original = await Compare(image_s.Current, image_t.Current, compose: compose);
+                    image_r.OpMode = LastOpIsComposite ? ImageOpMode.Compose : ImageOpMode.Compare;
+                    image_r.ColorFuzzy = DefaultColorFuzzy;
 
-                        await Task.Delay(1);
-                        DoEvents();
+                    await Dispatcher.InvokeAsync(() =>
+                    {
                         ImageResult.Source = image_r.Source;
-                        await Task.Delay(1);
-                        DoEvents();
-
-                        //ImageResult.ToolTip = "Waiting".T();
                         if (image_r.ValidCurrent)
                             ImageResult.ToolTip = "Waiting".T();
                         else
                             ImageResult.ToolTip = null;
+                    }, DispatcherPriority.Normal);
 
-                        CalcDisplay(set_ratio: false);
-                    }
-                    catch (Exception ex) { ex.ShowMessage(); }
-                    finally
+                    CalcDisplay(set_ratio: false);
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
+                finally
+                {
+                    await Dispatcher.InvokeAsync(() =>
                     {
                         ProcessStatus.IsIndeterminate = false;
-                        await Task.Delay(1);
-                        DoEvents();
-                        if (_CanUpdate_ is SemaphoreSlim && _CanUpdate_.CurrentCount < 1) _CanUpdate_.Release();
-                    }
-                }, DispatcherPriority.Render);
+                    }, DispatcherPriority.Normal);
+                    if (_CanUpdate_ is SemaphoreSlim && _CanUpdate_.CurrentCount < 1) _CanUpdate_.Release();
+                }
             }
         }
         #endregion
@@ -946,9 +948,15 @@ namespace ImageCompare
                 try
                 {
                     var file_str = "AllSupportedImageFiles".T();
-                    var dlgOpen = new Microsoft.Win32.OpenFileDialog() { Multiselect = true, CheckFileExists = true, CheckPathExists = true, ValidateNames = true };
-                    //dlgOpen.Filter = $"{file_str}|{AllSupportedFiles}|{AllSupportedFilters}";
-                    dlgOpen.Filter = $"{file_str}|{Extensions.AllSupportedFiles}";
+                    var dlgOpen = new Microsoft.Win32.OpenFileDialog
+                    {
+                        Multiselect = true,
+                        CheckFileExists = true,
+                        CheckPathExists = true,
+                        ValidateNames = true,                     
+                        //Filter = $"{file_str}|{AllSupportedFiles}|{AllSupportedFilters}",
+                        Filter = $"{file_str}|{Extensions.AllSupportedFiles}"
+                    };
                     if (Directory.Exists(LastHaldFolder)) dlgOpen.InitialDirectory = LastHaldFolder;
                     if (dlgOpen.ShowDialog() ?? false) hald = dlgOpen.FileName;
                 }
@@ -1049,7 +1057,7 @@ namespace ImageCompare
             LoadImageFromFiles(files.ToArray(), source);
         }
 
-        private void LoadImageFromFiles(string[] files, bool source = true)
+        private async void LoadImageFromFiles(string[] files, bool source = true)
         {
             try
             {
@@ -1070,15 +1078,15 @@ namespace ImageCompare
                         file_s = files.First();
                         file_t = files.Skip(1).First();
 
-                        action |= image_s.LoadImageFromFile(file_s, false);
-                        action |= image_t.LoadImageFromFile(file_t, false);
+                        action |= await image_s.LoadImageFromFile(file_s, false);
+                        action |= await image_t.LoadImageFromFile(file_t, false);
                         load_type = ImageType.All;
                     }
                     else
                     {
                         var image  = source ? image_s : image_t;
                         file_s = files.First();
-                        action |= image.LoadImageFromFile(file_s, false);
+                        action |= await image.LoadImageFromFile(file_s, false);
                         load_type = source ? ImageType.Source : ImageType.Target;
                     }
                     if (action) RenderRun(new Action(() =>
@@ -1507,12 +1515,14 @@ namespace ImageCompare
         private void CreateImageOpMenu(FrameworkElement target)
         {
             //bool source = target == ImageSource ? true : false;
-            bool source = target == ImageSourceScroll ? true : false;
+            bool source = target == ImageSourceScroll;
             var effect_blur = new System.Windows.Media.Effects.BlurEffect() { Radius = 2, KernelType = System.Windows.Media.Effects.KernelType.Gaussian };
 
             var items = source ? cm_image_source : cm_image_target;
             if (items != null) items.Clear();
             else items = new List<FrameworkElement>();
+
+            Func<object, bool> MenuHost = (obj) => Dispatcher.Invoke(() => (bool)(obj as MenuItem).Tag);
 
             if (items.Count <= 0)
             {
@@ -1730,61 +1740,61 @@ namespace ImageCompare
                 };
                 #endregion
                 #region Create MenuItem Click event handles
-                item_fh.Click += (obj, evt) => { RenderRun(() => { FlopImage((bool)(obj as MenuItem).Tag); }); };
-                item_fv.Click += (obj, evt) => { RenderRun(() => { FlipImage((bool)(obj as MenuItem).Tag); }); };
-                item_r090.Click += (obj, evt) => { RenderRun(() => { RotateImage((bool)(obj as MenuItem).Tag, 90); }); };
-                item_r180.Click += (obj, evt) => { RenderRun(() => { RotateImage((bool)(obj as MenuItem).Tag, 180); }); };
-                item_r270.Click += (obj, evt) => { RenderRun(() => { RotateImage((bool)(obj as MenuItem).Tag, 270); }); };
-                item_reset_transform.Click += (obj, evt) => { RenderRun(() => { ResetImageTransform((bool)(obj as MenuItem).Tag); }); };
+                item_fh.Click += (obj, evt) => { RenderRun(() => { FlopImage(MenuHost(obj)); }); };
+                item_fv.Click += (obj, evt) => { RenderRun(() => { FlipImage(MenuHost(obj)); }); };
+                item_r090.Click += (obj, evt) => { RenderRun(() => { RotateImage(MenuHost(obj), 90); }); };
+                item_r180.Click += (obj, evt) => { RenderRun(() => { RotateImage(MenuHost(obj), 180); }); };
+                item_r270.Click += (obj, evt) => { RenderRun(() => { RotateImage(MenuHost(obj), 270); }); };
+                item_reset_transform.Click += (obj, evt) => { RenderRun(() => { ResetImageTransform(MenuHost(obj)); }); };
 
-                item_gray.Click += (obj, evt) => { RenderRun(() => { GrayscaleImage((bool)(obj as MenuItem).Tag); }); };
-                item_blur.Click += (obj, evt) => { RenderRun(() => { BlurImage((bool)(obj as MenuItem).Tag); }); };
-                item_sharp.Click += (obj, evt) => { RenderRun(() => { SharpImage((bool)(obj as MenuItem).Tag); }); };
+                item_gray.Click += (obj, evt) => { RenderRun(() => { GrayscaleImage(MenuHost(obj)); }); };
+                item_blur.Click += (obj, evt) => { RenderRun(() => { BlurImage(MenuHost(obj)); }); };
+                item_sharp.Click += (obj, evt) => { RenderRun(() => { SharpImage(MenuHost(obj)); }); };
 
-                item_size_crop.Click += (obj, evt) => { RenderRun(() => { CropImage((bool)(obj as MenuItem).Tag); }); };
-                item_size_cropedge.Click += (obj, evt) => { RenderRun(() => { CropImageEdge((bool)(obj as MenuItem).Tag, 1, 1, DefaultMatchAlign); }); };
+                item_size_crop.Click += (obj, evt) => { RenderRun(() => { CropImage(MenuHost(obj)); }); };
+                item_size_cropedge.Click += (obj, evt) => { RenderRun(() => { CropImageEdge(MenuHost(obj), 1, 1, DefaultMatchAlign); }); };
                 item_size_to_source.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(false, reset: false, align: DefaultMatchAlign); }); };
                 item_size_to_target.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(true, reset: false, align: DefaultMatchAlign); }); };
 
                 item_slice_h.Click += (obj, evt) =>
                 {
                     var sendto = Keyboard.Modifiers == ModifierKeys.None;
-                    var first = Keyboard.Modifiers == ModifierKeys.Shift ? true : (Keyboard.Modifiers == ModifierKeys.Control ? false : true);
-                    RenderRun(() => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: false, sendto: sendto, first: first); });
+                    var first = Keyboard.Modifiers == ModifierKeys.Shift || (Keyboard.Modifiers != ModifierKeys.Control);
+                    RenderRun(() => { SlicingImage(MenuHost(obj), vertical: false, sendto: sendto, first: first); });
                 };
                 item_slice_v.Click += (obj, evt) =>
                 {
                     var sendto = Keyboard.Modifiers == ModifierKeys.None;
-                    var first = Keyboard.Modifiers == ModifierKeys.Shift ? true : (Keyboard.Modifiers == ModifierKeys.Control ? false : true);
-                    RenderRun(() => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: true, sendto: sendto, first: first); });
+                    var first = Keyboard.Modifiers == ModifierKeys.Shift || (Keyboard.Modifiers != ModifierKeys.Control);
+                    RenderRun(() => { SlicingImage(MenuHost(obj), vertical: true, sendto: sendto, first: first); });
                 };
                 item_merge_h.Click += (obj, evt) =>
                 {
                     var sendto = Keyboard.Modifiers == ModifierKeys.Shift;
-                    var first = Keyboard.Modifiers == ModifierKeys.Shift ? true : (Keyboard.Modifiers == ModifierKeys.Control ? false : true);
-                    RenderRun(() => { MergeImage((bool)(obj as MenuItem).Tag, vertical: false, sendto: sendto, first: first); });
+                    var first = Keyboard.Modifiers == ModifierKeys.Shift || (Keyboard.Modifiers != ModifierKeys.Control);
+                    RenderRun(() => { MergeImage(MenuHost(obj), vertical: false, sendto: sendto, first: first); });
                 };
                 item_merge_v.Click += (obj, evt) =>
                 {
                     var sendto = Keyboard.Modifiers == ModifierKeys.Shift;
-                    var first = Keyboard.Modifiers == ModifierKeys.Shift ? true : (Keyboard.Modifiers == ModifierKeys.Control ? false : true);
-                    RenderRun(() => { MergeImage((bool)(obj as MenuItem).Tag, vertical: true, sendto: sendto, first: first); });
+                    var first = Keyboard.Modifiers == ModifierKeys.Shift || (Keyboard.Modifiers != ModifierKeys.Control);
+                    RenderRun(() => { MergeImage(MenuHost(obj), vertical: true, sendto: sendto, first: first); });
                 };
 
                 item_copyfrom_result.Click += (obj, evt) => { RenderRun(() => { CopyImageFromResult(source); }); };
                 item_copyto_source.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(source); }); };
                 item_copyto_target.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(source); }); };
 
-                item_load_prev.Click += (obj, evt) => { RenderRun(() => { LoadImageFromPrevFile((bool)(obj as MenuItem).Tag); }); };
-                item_load_next.Click += (obj, evt) => { RenderRun(() => { LoadImageFromNextFile((bool)(obj as MenuItem).Tag); }); };
+                item_load_prev.Click += (obj, evt) => { RenderRun(() => { LoadImageFromPrevFile(MenuHost(obj)); }); };
+                item_load_next.Click += (obj, evt) => { RenderRun(() => { LoadImageFromNextFile(MenuHost(obj)); }); };
 
-                item_reset_image.Click += (obj, evt) => { RenderRun(() => { ResetImage((bool)(obj as MenuItem).Tag); }); };
-                item_reload.Click += (obj, evt) => { RenderRun(() => { ReloadImage((bool)(obj as MenuItem).Tag); }); };
+                item_reset_image.Click += (obj, evt) => { RenderRun(() => { ResetImage(MenuHost(obj)); }); };
+                item_reload.Click += (obj, evt) => { RenderRun(() => { ReloadImage(MenuHost(obj)); }); };
 
-                item_colorcalc.Click += (obj, evt) => { RenderRun(() => { CalcImageColors((bool)(obj as MenuItem).Tag); }); };
-                item_copyinfo.Click += (obj, evt) => { RenderRun(() => { CopyImageInfo((bool)(obj as MenuItem).Tag); }); };
-                item_copyimage.Click += (obj, evt) => { RenderRun(() => { CopyImage((bool)(obj as MenuItem).Tag); }); };
-                item_saveas.Click += (obj, evt) => { SaveImageAs((bool)(obj as MenuItem).Tag); };
+                item_colorcalc.Click += (obj, evt) => { RenderRun(() => { CalcImageColors(MenuHost(obj)); }); };
+                item_copyinfo.Click += (obj, evt) => { RenderRun(() => { CopyImageInfo(MenuHost(obj)); }); };
+                item_copyimage.Click += (obj, evt) => { RenderRun(() => { CopyImage(MenuHost(obj)); }); };
+                item_saveas.Click += (obj, evt) => { SaveImageAs(MenuHost(obj)); };
                 #endregion
                 #region Add MenuItems to ContextMenu
                 items.Add(item_fh);
@@ -2030,44 +2040,44 @@ namespace ImageCompare
                 };
                 #endregion
                 #region MoreEffects MenuItem Click event handles
-                item_more_oil.Click += (obj, evt) => { RenderRun(() => { OilImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_charcoal.Click += (obj, evt) => { RenderRun(() => { CharcoalImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_pencil.Click += (obj, evt) => { RenderRun(() => { PencilImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_edge.Click += (obj, evt) => { RenderRun(() => { EdgeImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_emboss.Click += (obj, evt) => { RenderRun(() => { EmbossImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_morph.Click += (obj, evt) => { RenderRun(() => { MorphologyImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_oil.Click += (obj, evt) => { RenderRun(() => { OilImage(MenuHost(obj)); }); };
+                item_more_charcoal.Click += (obj, evt) => { RenderRun(() => { CharcoalImage(MenuHost(obj)); }); };
+                item_more_pencil.Click += (obj, evt) => { RenderRun(() => { PencilImage(MenuHost(obj)); }); };
+                item_more_edge.Click += (obj, evt) => { RenderRun(() => { EdgeImage(MenuHost(obj)); }); };
+                item_more_emboss.Click += (obj, evt) => { RenderRun(() => { EmbossImage(MenuHost(obj)); }); };
+                item_more_morph.Click += (obj, evt) => { RenderRun(() => { MorphologyImage(MenuHost(obj)); }); };
 
-                item_more_autoequalize.Click += (obj, evt) => { RenderRun(() => { AutoEqualizeImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_autoreducenoise.Click += (obj, evt) => { RenderRun(() => { ReduceNoiseImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_autoenhance.Click += (obj, evt) => { RenderRun(() => { AutoEnhanceImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_autolevel.Click += (obj, evt) => { RenderRun(() => { AutoLevelImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_autocontrast.Click += (obj, evt) => { RenderRun(() => { AutoContrastImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_autowhitebalance.Click += (obj, evt) => { RenderRun(() => { AutoWhiteBalanceImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_autogamma.Click += (obj, evt) => { RenderRun(() => { AutoGammaImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_autoequalize.Click += (obj, evt) => { RenderRun(() => { AutoEqualizeImage(MenuHost(obj)); }); };
+                item_more_autoreducenoise.Click += (obj, evt) => { RenderRun(() => { ReduceNoiseImage(MenuHost(obj)); }); };
+                item_more_autoenhance.Click += (obj, evt) => { RenderRun(() => { AutoEnhanceImage(MenuHost(obj)); }); };
+                item_more_autolevel.Click += (obj, evt) => { RenderRun(() => { AutoLevelImage(MenuHost(obj)); }); };
+                item_more_autocontrast.Click += (obj, evt) => { RenderRun(() => { AutoContrastImage(MenuHost(obj)); }); };
+                item_more_autowhitebalance.Click += (obj, evt) => { RenderRun(() => { AutoWhiteBalanceImage(MenuHost(obj)); }); };
+                item_more_autogamma.Click += (obj, evt) => { RenderRun(() => { AutoGammaImage(MenuHost(obj)); }); };
 
-                item_more_autovignette.Click += (obj, evt) => { RenderRun(() => { AutoVignetteImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_invert.Click += (obj, evt) => { RenderRun(() => { InvertImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_solarize.Click += (obj, evt) => { RenderRun(() => { SolarizeImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_polaroid.Click += (obj, evt) => { RenderRun(() => { PolaroidImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_posterize.Click += (obj, evt) => { RenderRun(() => { PosterizeImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_medianfilter.Click += (obj, evt) => { RenderRun(() => { MedianFilterImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_autovignette.Click += (obj, evt) => { RenderRun(() => { AutoVignetteImage(MenuHost(obj)); }); };
+                item_more_invert.Click += (obj, evt) => { RenderRun(() => { InvertImage(MenuHost(obj)); }); };
+                item_more_solarize.Click += (obj, evt) => { RenderRun(() => { SolarizeImage(MenuHost(obj)); }); };
+                item_more_polaroid.Click += (obj, evt) => { RenderRun(() => { PolaroidImage(MenuHost(obj)); }); };
+                item_more_posterize.Click += (obj, evt) => { RenderRun(() => { PosterizeImage(MenuHost(obj)); }); };
+                item_more_medianfilter.Click += (obj, evt) => { RenderRun(() => { MedianFilterImage(MenuHost(obj)); }); };
 
-                item_more_stereo.Click += (obj, evt) => { RenderRun(() => { StereoImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_blueshift.Click += (obj, evt) => { RenderRun(() => { BlueShiftImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_autothreshold.Click += (obj, evt) => { RenderRun(() => { AutoThresholdImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_remap.Click += (obj, evt) => { RenderRun(() => { RemapImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_clut.Click += (obj, evt) => { RenderRun(() => { ClutImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_haldclut.Click += (obj, evt) => { RenderRun(() => { HaldClutImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_stereo.Click += (obj, evt) => { RenderRun(() => { StereoImage(MenuHost(obj)); }); };
+                item_more_blueshift.Click += (obj, evt) => { RenderRun(() => { BlueShiftImage(MenuHost(obj)); }); };
+                item_more_autothreshold.Click += (obj, evt) => { RenderRun(() => { AutoThresholdImage(MenuHost(obj)); }); };
+                item_more_remap.Click += (obj, evt) => { RenderRun(() => { RemapImage(MenuHost(obj)); }); };
+                item_more_clut.Click += (obj, evt) => { RenderRun(() => { ClutImage(MenuHost(obj)); }); };
+                item_more_haldclut.Click += (obj, evt) => { RenderRun(() => { HaldClutImage(MenuHost(obj)); }); };
 
-                item_more_meanshift.Click += (obj, evt) => { RenderRun(() => { MeanShiftImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_kmeans.Click += (obj, evt) => { RenderRun(() => { KmeansImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_segment.Click += (obj, evt) => { RenderRun(() => { SegmentImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_quantize.Click += (obj, evt) => { RenderRun(() => { QuantizeImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_meanshift.Click += (obj, evt) => { RenderRun(() => { MeanShiftImage(MenuHost(obj)); }); };
+                item_more_kmeans.Click += (obj, evt) => { RenderRun(() => { KmeansImage(MenuHost(obj)); }); };
+                item_more_segment.Click += (obj, evt) => { RenderRun(() => { SegmentImage(MenuHost(obj)); }); };
+                item_more_quantize.Click += (obj, evt) => { RenderRun(() => { QuantizeImage(MenuHost(obj)); }); };
 
-                item_more_fillflood.Click += (obj, evt) => { RenderRun(() => { FillOutBoundBoxImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_setalphatocolor.Click += (obj, evt) => { RenderRun(() => { SetAlphaToColorImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_setcolortoalpha.Click += (obj, evt) => { RenderRun(() => { SetColorToAlphaImage((bool)(obj as MenuItem).Tag); }); };
-                item_more_createcolorimage.Click += (obj, evt) => { RenderRun(() => { CreateColorImage((bool)(obj as MenuItem).Tag, Keyboard.Modifiers == ModifierKeys.Shift); }); };
+                item_more_fillflood.Click += (obj, evt) => { RenderRun(() => { FillOutBoundBoxImage(MenuHost(obj)); }); };
+                item_more_setalphatocolor.Click += (obj, evt) => { RenderRun(() => { SetAlphaToColorImage(MenuHost(obj)); }); };
+                item_more_setcolortoalpha.Click += (obj, evt) => { RenderRun(() => { SetColorToAlphaImage(MenuHost(obj)); }); };
+                item_more_createcolorimage.Click += (obj, evt) => { RenderRun(() => { CreateColorImage(MenuHost(obj), Keyboard.Modifiers == ModifierKeys.Shift); }); };
                 #endregion
                 #region Add MoreEffects MenuItems to MoreEffects
                 item_more.Items.Add(item_more_autoenhance);
@@ -2294,7 +2304,7 @@ namespace ImageCompare
                 {
                     Header = v.ToString(),
                     Tag = v,
-                    IsChecked = ((ErrorMetric)v == ErrorMetricMode ? true : false)
+                    IsChecked = (ErrorMetric)v == ErrorMetricMode
                 };
                 item.Click += (obj, evt) =>
                 {
@@ -2318,7 +2328,7 @@ namespace ImageCompare
                 {
                     Header = v.ToString(),
                     Tag = v,
-                    IsChecked = ((CompositeOperator)v == CompositeMode ? true : false)
+                    IsChecked = (CompositeOperator)v == CompositeMode
                 };
                 item.Click += (obj, evt) =>
                 {
@@ -2351,7 +2361,7 @@ namespace ImageCompare
                         {
                             Header = v,
                             Tag = v.Equals("-") ? null : Enum.Parse(typeof(Channels), v, true),
-                            IsChecked = (v.Equals("Default") ? true : false),
+                            IsChecked = v.Equals("Default"),
                         };
                         (item as MenuItem).Click += (obj, evt) =>
                         {
@@ -2387,7 +2397,7 @@ namespace ImageCompare
                 {
                     Header = v.ToString(),
                     Tag = v,
-                    IsChecked = ((PixelIntensityMethod)v == GrayscaleMode ? true : false)
+                    IsChecked = (PixelIntensityMethod)v == GrayscaleMode
                 };
                 item.Click += (obj, evt) =>
                 {
@@ -2490,7 +2500,7 @@ namespace ImageCompare
                     if (sender == ImageLoadHaldLut)
                         LoadHaldLutFile((files as IEnumerable<string>).Where(f => File.Exists(f)).First());
                     else
-                        LoadImageFromFiles((files as IEnumerable<string>).ToArray(), e.Source == ImageSourceScroll || e.Source == ImageSource ? true : false);
+                        LoadImageFromFiles((files as IEnumerable<string>).ToArray(), e.Source == ImageSourceScroll || e.Source == ImageSource);
                 }
             }
             else if (e.Data.GetDataPresent("Text"))
@@ -2499,9 +2509,9 @@ namespace ImageCompare
                 if (files is IEnumerable<string>)
                 {
                     if (sender == ImageLoadHaldLut)
-                        LoadHaldLutFile((files as IEnumerable<string>).Where(f => File.Exists(f)).First());
+                        LoadHaldLutFile(files.Where(f => File.Exists(f)).First());
                     else
-                        LoadImageFromFiles(files as IEnumerable<string>, e.Source == ImageSourceScroll || e.Source == ImageSource ? true : false);
+                        LoadImageFromFiles(files as IEnumerable<string>, e.Source == ImageSourceScroll || e.Source == ImageSource);
                 }
             }
             e.Handled = true;
@@ -2884,17 +2894,17 @@ namespace ImageCompare
 
             else if (sender == ImageOpenSource)
             {
-                RenderRun(new Action(() =>
+                RenderRun(new Action(async () =>
                 {
-                    var action = ImageSource.GetInformation().LoadImageFromFile();
+                    var action = await ImageSource.GetInformation().LoadImageFromFile();
                     if (action) UpdateImageViewer(assign: true, compose: LastOpIsComposite);
                 }));
             }
             else if (sender == ImageOpenTarget)
             {
-                RenderRun(new Action(() =>
+                RenderRun(new Action(async () =>
                 {
-                    var action = ImageTarget.GetInformation().LoadImageFromFile();
+                    var action = await ImageTarget.GetInformation().LoadImageFromFile();
                     if (action) UpdateImageViewer(assign: true, compose: LastOpIsComposite);
                 }));
             }
