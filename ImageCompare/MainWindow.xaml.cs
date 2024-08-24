@@ -255,25 +255,26 @@ namespace ImageCompare
                         }, DispatcherPriority.Normal);
                         var action = e.Argument as Action;
                         await Dispatcher.InvokeAsync(action, DispatcherPriority.Background);
+                        //Dispatcher.Invoke(action, DispatcherPriority.Background);
                         LastAction = action;
                     }
                 };
             }
         }
 
-        private async void RenderRun(Action action)
+        private void RenderRun(Action action)
         {
             InitRenderWorker();
             if (RenderWorker is BackgroundWorker && !RenderWorker.IsBusy && action is Action)
             {
-                //RenderWorker.RunWorkerAsync(action);
-                await ProcessStatus.Dispatcher.InvokeAsync(() =>
-                {
-                    ProcessStatus.Value = 0;
-                    ProcessStatus.IsIndeterminate = true;
-                }, DispatcherPriority.Normal);
-                await Task.Run(action);
-                LastAction = action;
+                RenderWorker.RunWorkerAsync(action);
+                //await ProcessStatus.Dispatcher.InvokeAsync(() =>
+                //{
+                //    ProcessStatus.Value = 0;
+                //    ProcessStatus.IsIndeterminate = true;
+                //}, DispatcherPriority.Normal);
+                //await Task.Run(action);
+                //LastAction = action;
             }
         }
         #endregion
@@ -2361,7 +2362,7 @@ namespace ImageCompare
                         {
                             Header = v,
                             Tag = v.Equals("-") ? null : Enum.Parse(typeof(Channels), v, true),
-                            IsChecked = v.Equals("Default"),
+                            IsChecked = v.Equals("All"),
                         };
                         (item as MenuItem).Click += (obj, evt) =>
                         {

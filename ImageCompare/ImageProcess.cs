@@ -731,11 +731,11 @@ namespace ImageCompare
                         case Gravity.West: height = 0; break;
                         default: break;
                     }
-                    if (image_t.ValidCurrent && align == Gravity.Center)
-                    {
-                        if (image_t.Current.Width == image_s.Current.Width) width = 0;
-                        if (image_t.Current.Height == image_s.Current.Height) height = 0;
-                    }
+                    //if (image_t.ValidCurrent && align == Gravity.Center)
+                    //{
+                    //    if (image_t.Current.Width == image_s.Current.Width) width = 0;
+                    //    if (image_t.Current.Height == image_s.Current.Height) height = 0;
+                    //}
                     var box = new MagickGeometry(image_s.Current.Width, image_s.Current.Height)
                     {
                         IgnoreAspectRatio = true,
