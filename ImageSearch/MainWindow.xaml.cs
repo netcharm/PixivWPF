@@ -1,7 +1,5 @@
-﻿using CompactExifLib;
-using ImageSearch.Search;
-using SkiaSharp;
-using System;
+﻿using System;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -11,9 +9,6 @@ using System.IO.Pipes;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
-using System.Runtime.Intrinsics.X86;
-using System.Security.Policy;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -25,7 +20,11 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using System.Windows.Media.TextFormatting;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
+
+using CompactExifLib;
+using SkiaSharp;
+using ImageSearch.Search;
+using NumSharp.Utilities;
 
 namespace ImageSearch
 {
@@ -74,7 +73,7 @@ namespace ImageSearch
                 if (info is not null)
                 {
                     var msg = $"{info.FileName}, [{info.Current}/{info.Total}, {info.Percentage:P}]";
-                    _log_.Add($"[{DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.fff")}] {msg}");
+                    _log_.Add($"[{DateTime.Now:yyyy/MM/dd HH:mm:ss.fff}] {msg}");
                     edResult.Text = _log_.Count > 1000 ? string.Join(Environment.NewLine, _log_.TakeLast(1000)) : string.Join(Environment.NewLine, _log_);
                     edResult.ScrollToEnd();
                     edResult.SelectionStart = edResult.Text.Length;
@@ -97,7 +96,7 @@ namespace ImageSearch
                     }
 
                     var lines = info.Split(Environment.NewLine);
-                    foreach(var line in lines) _log_.Add($"[{DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.fff")}] {line}");
+                    foreach (var line in lines) _log_.Add($"[{DateTime.Now:yyyy/MM/dd HH:mm:ss.fff}] {line}");
                     edResult.Text = _log_.Count > 1000 ? string.Join(Environment.NewLine, _log_.TakeLast(1000)) : string.Join(Environment.NewLine, _log_);
                     edResult.ScrollToEnd();
                     edResult.SelectionStart = edResult.Text.Length;
@@ -213,7 +212,7 @@ namespace ImageSearch
             return (result);
         }
 
-        private static (BitmapSource?, SKBitmap?) LoadImageFromStream(Stream? stream)
+        private (BitmapSource?, SKBitmap?, string?) LoadImageFromStream(Stream? stream)
         {
             BitmapImage? bmp = null;
             SKBitmap? skb = null;
@@ -230,11 +229,14 @@ namespace ImageSearch
 
                 stream.Seek(0, SeekOrigin.Begin);
                 skb = SKBitmap.Decode(stream);
+
+                if (bmp is not null && skb is null) skb = FromImageSource(bmp);
+                if (bmp is null && skb is not null) bmp = (BitmapImage?)ToBitmapSource(skb);
             }
-            return ((bmp, skb));
+            return ((bmp, skb, null));
         }
 
-        private static (BitmapSource?, SKBitmap?) LoadImageFromFile(string file)
+        private (BitmapSource?, SKBitmap?, string?) LoadImageFromFile(string file)
         {
             BitmapSource? bmp = null;
             SKBitmap? skb = null;
@@ -242,13 +244,13 @@ namespace ImageSearch
             {
                 using (var ms = new MemoryStream(File.ReadAllBytes(file)))
                 {
-                    (bmp, skb) = LoadImageFromStream(ms);
+                    (bmp, skb, _) = LoadImageFromStream(ms);
                 }
             }
-            return ((bmp, skb));
+            return ((bmp, skb, file));
         }
 
-        private async Task<(BitmapSource?, SKBitmap?)> LoadImageFromWeb(Uri uri)
+        private async Task<(BitmapSource?, SKBitmap?, string?)> LoadImageFromWeb(Uri uri)
         {
             BitmapSource? bmp = null;
             SKBitmap? skb = null;
@@ -263,22 +265,22 @@ namespace ImageSearch
                         {
                             using (var ms = await response.Content.ReadAsStreamAsync())
                             {
-                                (bmp, skb) = LoadImageFromStream(ms);
+                                (bmp, skb, _) = LoadImageFromStream(ms);
                             }
                         }
                     }
                     catch (Exception ex) { ReportMessage(ex); }
                 }
             }
-            return ((bmp, skb));
+            return ((bmp, skb, uri.AbsolutePath));
         }
 
-        private async Task<List<(BitmapSource?, SKBitmap?)>> LoadImageFromDataObject(IDataObject dataPackage)
+        private async Task<List<(BitmapSource?, SKBitmap?, string?)>> LoadImageFromDataObject(IDataObject dataPackage)
         {
-            List<(BitmapSource?, SKBitmap?)> imgs = [];
+            List<(BitmapSource?, SKBitmap?, string?)> imgs = [];
             if (dataPackage is DataObject)
             {
-                var supported_fmts = new string[] { "PNG", "image/png", "image/tif", "image/tiff", "image/webp", "image/xpm", "image/ico", "image/cur", "image/jpg", "image/jpeg", "img/jfif", "image/bmp", "DeviceIndependentBitmap", "image/wbmp", "FileDrop", "Text" };
+                var supported_fmts = new string[] { "PNG", "image/png", "image/tif", "image/tiff", "image/webp", "image/xpm", "image/ico", "image/cur", "image/jpg", "image/jpeg", "img/jfif", "image/bmp", "DeviceIndependentBitmap", "Format17", "image/wbmp", "FileDrop", "Text" };
                 var fmts = dataPackage.GetFormats(true);
                 foreach (var fmt in supported_fmts)
                 {
@@ -291,6 +293,7 @@ namespace ImageSearch
                                 var files = dataPackage.GetData(fmt, true) as string[];
                                 if (files is not null)
                                 {
+                                    files = files.Where(f => File.Exists(f)).ToArray();
                                     if (files.Length > 1)
                                     {
                                         imgs.Add(LoadImageFromFile(files[0]));
@@ -318,6 +321,39 @@ namespace ImageSearch
                                     }
                                 }
                             }
+                            else if (fmt.Equals("DeviceIndependentBitmap") || fmt.Equals("Format17"))
+                            {
+                                //
+                                // https://en.wikipedia.org/wiki/BMP_file_format
+                                //
+                                var obj = dataPackage.GetData(fmt, true);
+                                if (obj is MemoryStream)
+                                {
+                                    var dib = (obj as MemoryStream).ToArray();
+                                    byte[] bh = [
+                                        0x42, 0x4D,
+                                        0x00, 0x00, 0x00, 0x00,
+                                        0x00, 0x00,
+                                        0x00, 0x00,
+                                        0x36, 0x00, 0x00, 0x00, //0x28
+                                    ];
+                                    var bs = (uint)dib.Length + bh.Length;
+                                    var bsb = BitConverter.GetBytes(bs);
+                                    bh[2] = bsb[0];
+                                    bh[3] = bsb[1];
+                                    bh[4] = bsb[2];
+                                    bh[5] = bsb[3];
+                                    //if (fmt.Equals("Format17")) bh[13] = 0x28;
+                                    using (var s = new MemoryStream())
+                                    {
+                                        s.Write(bh, 0, bh.Length);
+                                        s.Write(dib, 0, dib.Length);
+                                        imgs.Add(LoadImageFromStream(s));
+                                    }
+                                    break;
+                                }
+
+                            }
                             else
                             {
                                 var obj = dataPackage.GetData(fmt, true);
@@ -344,7 +380,7 @@ namespace ImageSearch
             {
                 IDataObject dataPackage = Clipboard.GetDataObject();
                 var imgs = await LoadImageFromDataObject(dataPackage);
-                if (imgs.Count > 0) (bmp, skb) = imgs.FirstOrDefault();
+                if (imgs.Count > 0) (bmp, skb, _) = imgs.FirstOrDefault();
             }
             catch (Exception ex) { ReportMessage(ex); }
             return ((bmp, skb));
@@ -476,6 +512,79 @@ namespace ImageSearch
             });
         }
 
+        private string GetImageInfo(string? img_file)
+        {
+            var infos = new List<string>();
+            if (img_file is not null && !string.IsNullOrEmpty(img_file) && File.Exists(img_file))
+            {
+                #region Add File info to tooltip
+                FileInfo fi = new (img_file);
+                infos.Add($"Full Name  : {GetAbsolutePath(img_file)}");
+                infos.Add($"File Size  : {fi.Length:N0} Bytes");
+                infos.Add($"File Date  : {fi.LastWriteTime:yyyy/MM/dd HH:mm:ss zzz}");
+                #endregion
+
+                #region Add EXIF info to tooltip
+                try
+                {
+                    var exif = new ExifData(img_file);
+                    if (exif != null)
+                    {
+                        exif.GetDateDigitized(out var date_digital);
+                        exif.GetDateTaken(out var date_taken);
+                        exif.GetTagValue(ExifTag.XpAuthor, out string author, StrCoding.Utf16Le_Byte);
+                        exif.GetTagValue(ExifTag.XpSubject, out string subject, StrCoding.Utf16Le_Byte);
+                        exif.GetTagValue(ExifTag.XpTitle, out string title, StrCoding.Utf16Le_Byte);
+                        exif.GetTagValue(ExifTag.XpKeywords, out string tags, StrCoding.Utf16Le_Byte);
+                        exif.GetTagValue(ExifTag.XpComment, out string comments, StrCoding.Utf16Le_Byte);
+                        exif.GetTagValue(ExifTag.Copyright, out string copyrights, StrCoding.Utf8);
+                        exif.GetTagValue(ExifTag.Rating, out int ranking);
+                        exif.GetTagValue(ExifTag.RatingPercent, out int rating);
+
+                        if (date_taken.Ticks > 0)
+                            infos.Add($"Taken Date : {date_taken:yyyy/MM/dd HH:mm:ss zzz}");
+
+                        var quality = exif.ImageType == ImageType.Jpeg && exif.JpegQuality > 0 ? exif.JpegQuality : -1;
+                        var endian = exif.ByteOrder == ExifByteOrder.BigEndian ? "Big Endian" : "Little Endian";
+                        var fmomat = exif.PixelFormat.ToString().Replace("Format", "");
+                        infos.Add($"Image Info : {exif.ImageType}, {exif.ImageMime}, {exif.ByteOrder}, Q={(quality > 0 ? quality : "???")}, Rank={ranking}");
+                        infos.Add($"Image Size : {exif.Width}x{exif.Height}x{exif.ColorDepth} ({exif.Width * exif.Height / 1000.0 / 1000.0:0.##} MP), {fmomat}, DPI={exif.ResolutionX}x{exif.ResolutionY}");
+
+                        //exif.GetTagValue(ExifTag.GpsAltitudeRef, out int gpsAltRef);
+                        //exif.GetTagValue(ExifTag.GpsLatitudeRef, out int gpsLatRef);
+                        //exif.GetTagValue(ExifTag.GpsLongitudeRef, out int gpsLonRef);
+                        //exif.GetTagValue(ExifTag.GpsAltitude, out int gpsAlt);
+                        //exif.GetTagValue(ExifTag.GpsLatitude, out int gpsLat);
+                        //exif.GetTagValue(ExifTag.GpsLongitude, out int gpsLon);
+                        exif.GetGpsLongitude(out GeoCoordinate gpsLon);
+                        exif.GetGpsLatitude(out GeoCoordinate gpsLat);
+                        exif.GetGpsAltitude(out decimal gpsAlt);
+                        var glon = $"{gpsLon.CardinalPoint} {gpsLon.Degree}.{gpsLon.Minute}'{gpsLon.Second}\"".Trim(['\0', ' ', '\n', '\r', '\t']);
+                        var glat = $"{gpsLat.CardinalPoint} {gpsLat.Degree}.{gpsLat.Minute}'{gpsLat.Second}\"".Trim(['\0', ' ', '\n', '\r', '\t']);
+                        var galt = $"{gpsAlt:0.##} m".Trim(['\0', ' ', '\n', '\r', '\t']);
+                        var gps = $"{glon}, {glat}, {galt}";
+                        infos.Add($"GPS        : {gps}");
+
+                        if (!string.IsNullOrEmpty(title))
+                            infos.Add($"Title      : {title.Trim()}");
+                        if (!string.IsNullOrEmpty(subject))
+                            infos.Add($"Subject    : {subject.Trim()}");
+                        if (!string.IsNullOrEmpty(author))
+                            infos.Add($"Authors    : {author.Trim().TrimEnd(';') + ';'}");
+                        if (!string.IsNullOrEmpty(copyrights))
+                            infos.Add($"Copyrights : {copyrights.Trim().TrimEnd(';') + ';'}");
+                        if (!string.IsNullOrEmpty(tags))
+                            infos.Add($"Tags       : {string.Join(" ", tags.Split(';').Select(t => $"#{t.Trim()}"))}");
+                        if (!string.IsNullOrEmpty(comments))
+                            infos.Add($"Commants   : {comments}");
+                    }
+                }
+                catch (Exception ex) { ReportMessage(ex); }
+                #endregion
+            }
+            return (string.Join(Environment.NewLine, infos).Trim());
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -522,9 +631,10 @@ namespace ImageSearch
                 var args = Environment.GetCommandLineArgs();
                 if (args.Length > 1 && File.Exists(args[1]))
                 {
-                    (var bmp, var skb) = LoadImageFromFile(args[1]);
+                    (var bmp, var skb, var file) = LoadImageFromFile(args[1]);
                     if (bmp is not null) SimilarSrc.Source = bmp;
                     if (skb is not null) SimilarSrc.Tag = skb;
+                    ToolTipService.SetToolTip(SimilarSrcBox, GetImageInfo(file));
                 }
             }
             catch (Exception ex) { ReportMessage(ex); }
@@ -624,8 +734,8 @@ namespace ImageSearch
                 var compare_target = new object[]{ TabCompare, CompareViewer, CompareBoxL, CompareBoxR, CompareL, CompareR };
                 if (similar_target.Contains(e.Source))
                     QueryImage_Click(sender, e);
-                else if (compare_target.Contains(compare_target))
-                    CompareImage_Click(sender, e);                
+                else if (compare_target.Contains(e.Source))
+                    CompareImage_Click(sender, e);
             }
         }
 
@@ -708,6 +818,9 @@ namespace ImageSearch
         {
             InitSimilar();
 
+            var compare_l_target = new object[]{ CompareBoxL, CompareL };
+            var compare_r_target = new object[]{ CompareBoxR, CompareR };
+
             if (Tabs.SelectedItem == TabSimilar)
             {
                 var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.FullName);
@@ -720,23 +833,31 @@ namespace ImageSearch
                     var imgs = await LoadImageFromDataObject((e as DragEventArgs).Data);
                     if (imgs.Count > 1)
                     {
-                        (var bmp0, var skb0) = imgs[0];
-                        (var bmp1, var skb1) = imgs[1];
+                        (var bmp0, var skb0, var file0) = imgs[0];
+                        (var bmp1, var skb1, var file1) = imgs[1];
+                        ToolTipService.SetToolTip(CompareBoxL, GetImageInfo(file0));
                         CompareL.Source = bmp0;
                         CompareL.Tag = skb0;
+                        ToolTipService.SetToolTip(CompareBoxR, GetImageInfo(file1));
                         CompareR.Source = bmp1;
                         CompareR.Tag = skb1;
                     }
                     else if (imgs.Count > 0)
                     {
-                        (var bmp, var skb) = imgs[0];
-                        if (e.Source == CompareL || CompareL.IsMouseOver)
+                        var pt = (e as DragEventArgs).GetPosition(CompareViewer);
+                        var in_compare_l = pt.X < CompareViewer.ActualWidth / 2.0;
+                        var in_compare_r = pt.X > CompareViewer.ActualWidth / 2.0;
+
+                        (var bmp, var skb, var file) = imgs[0];
+                        if (compare_l_target.Contains(e.Source) || in_compare_l || CompareBoxL.IsMouseOver)
                         {
+                            ToolTipService.SetToolTip(CompareBoxL, GetImageInfo(file));
                             CompareL.Source = bmp;
                             CompareL.Tag = skb;
                         }
-                        else if (e.Source == CompareR || CompareR.IsMouseOver)
+                        else if (compare_r_target.Contains(e.Source) || in_compare_r || CompareBoxR.IsMouseOver)
                         {
+                            ToolTipService.SetToolTip(CompareBoxR, GetImageInfo(file));
                             CompareR.Source = bmp;
                             CompareR.Tag = skb;
                         }
@@ -747,7 +868,7 @@ namespace ImageSearch
                     var imgs = await LoadImageFromDataObject(Clipboard.GetDataObject());
                     if (imgs.Count > 0)
                     {
-                        (var bmp, var skb) = imgs[0];
+                        (var bmp, var skb, _) = imgs[0];
                         if (CompareL.Source is null || CompareL.IsMouseOver)
                         {
                             CompareL.Source = bmp;
@@ -794,9 +915,10 @@ namespace ImageSearch
                 var imgs = await LoadImageFromDataObject((e as DragEventArgs).Data);
                 if (imgs.Count > 0)
                 {
-                    (var bmp, var skb) = imgs.FirstOrDefault();
+                    (var bmp, var skb, var file) = imgs.FirstOrDefault();
                     if (bmp is not null) SimilarSrc.Source = bmp;
                     if (skb is not null) SimilarSrc.Tag = skb;
+                    ToolTipService.SetToolTip(SimilarSrcBox, GetImageInfo(file));
                 }
             }
             else if (Clipboard.ContainsImage())
@@ -814,10 +936,11 @@ namespace ImageSearch
                     file = System.IO.Path.Combine(folder, file);
                 }
 
-                (var bmp, var skb) = LoadImageFromFile(GetAbsolutePath(file));
+                (var bmp, var skb, _) = LoadImageFromFile(GetAbsolutePath(file));
 
                 if (bmp is not null) SimilarSrc.Source = bmp;
                 if (skb is not null) SimilarSrc.Tag = skb;
+                ToolTipService.SetToolTip(SimilarSrcBox, GetImageInfo(file));
             }
             #endregion
 
@@ -870,74 +993,9 @@ namespace ImageSearch
                                                 sk_data.SaveTo(ms);
                                                 ms.Seek(0, SeekOrigin.Begin);
 
-                                                (var bmp, _) = LoadImageFromStream(ms);
+                                                (var bmp, _, _) = LoadImageFromStream(ms);
 
-                                                var tooltips = new List<string>();
-
-                                                #region Add File info to tooltip
-                                                FileInfo fi = new (im.Key);
-                                                tooltips.Add($"Full Name  : {GetAbsolutePath(im.Key)}");
-                                                tooltips.Add($"File Size  : {fi.Length:N0} Bytes");
-                                                tooltips.Add($"File Date  : {fi.LastWriteTime:yyyy/MM/dd HH:mm:ss zzz}");
-                                                #endregion
-
-                                                #region Add EXIF info to tooltip
-                                                try
-                                                {
-                                                    var exif = new ExifData(im.Key);
-                                                    if (exif != null)
-                                                    {
-                                                        exif.GetDateDigitized(out var date_digital);
-                                                        exif.GetDateTaken(out var date_taken);
-                                                        exif.GetTagValue(ExifTag.XpAuthor, out string author, StrCoding.Utf16Le_Byte);
-                                                        exif.GetTagValue(ExifTag.XpSubject, out string subject, StrCoding.Utf16Le_Byte);
-                                                        exif.GetTagValue(ExifTag.XpTitle, out string title, StrCoding.Utf16Le_Byte);
-                                                        exif.GetTagValue(ExifTag.XpKeywords, out string tags, StrCoding.Utf16Le_Byte);
-                                                        exif.GetTagValue(ExifTag.XpComment, out string comments, StrCoding.Utf16Le_Byte);
-                                                        exif.GetTagValue(ExifTag.Copyright, out string copyrights, StrCoding.Utf8);
-                                                        exif.GetTagValue(ExifTag.Rating, out int ranking);
-                                                        exif.GetTagValue(ExifTag.RatingPercent, out int rating);
-                                                        
-                                                        if (date_taken.Ticks > 0)
-                                                            tooltips.Add($"Taken Date : {date_taken:yyyy/MM/dd HH:mm:ss zzz}");
-
-                                                        var quality = exif.ImageType == ImageType.Jpeg && exif.JpegQuality > 0 ? exif.JpegQuality : -1;
-                                                        var endian = exif.ByteOrder == ExifByteOrder.BigEndian ? "Big Endian" : "Little Endian";
-                                                        var fmomat = exif.PixelFormat.ToString().Replace("Format", "");
-                                                        tooltips.Add($"Image Info : {exif.ImageType}, {exif.ImageMime}, {exif.ByteOrder}, Q={(quality > 0 ? quality : "???")}, Rank={ranking}");
-                                                        tooltips.Add($"Image Size : {exif.Width}x{exif.Height}x{exif.ColorDepth} ({exif.Width * exif.Height / 1000.0 / 1000.0:0.##} MP), {fmomat}, DPI={exif.ResolutionX}x{exif.ResolutionY}");
-
-                                                        //exif.GetTagValue(ExifTag.GpsAltitudeRef, out int gpsAltRef);
-                                                        //exif.GetTagValue(ExifTag.GpsLatitudeRef, out int gpsLatRef);
-                                                        //exif.GetTagValue(ExifTag.GpsLongitudeRef, out int gpsLonRef);
-                                                        //exif.GetTagValue(ExifTag.GpsAltitude, out int gpsAlt);
-                                                        //exif.GetTagValue(ExifTag.GpsLatitude, out int gpsLat);
-                                                        //exif.GetTagValue(ExifTag.GpsLongitude, out int gpsLon);
-                                                        exif.GetGpsLongitude(out GeoCoordinate gpsLon);
-                                                        exif.GetGpsLatitude(out GeoCoordinate gpsLat);
-                                                        exif.GetGpsAltitude(out decimal gpsAlt);
-                                                        var glon = $"{gpsLon.CardinalPoint} {gpsLon.Degree}.{gpsLon.Minute}'{gpsLon.Second}\"";
-                                                        var glat = $"{gpsLat.CardinalPoint} {gpsLat.Degree}.{gpsLat.Minute}'{gpsLat.Second}\"";
-                                                        var galt = $"{gpsAlt.ToString("0.##")} m";
-                                                        var gps = $"{glon}, {glat}, {galt}";
-                                                        tooltips.Add($"GPS        : {gps}");
-
-                                                        if (!string.IsNullOrEmpty(title))
-                                                            tooltips.Add($"Title      : {title.Trim()}");
-                                                        if (!string.IsNullOrEmpty(subject))
-                                                            tooltips.Add($"Subject    : {subject.Trim()}");
-                                                        if (!string.IsNullOrEmpty(author))
-                                                            tooltips.Add($"Authors    : {author.Trim().TrimEnd(';') + ';'}");
-                                                        if (!string.IsNullOrEmpty(copyrights))
-                                                            tooltips.Add($"Copyrights : {copyrights.Trim().TrimEnd(';') + ';'}");
-                                                        if (!string.IsNullOrEmpty(tags))
-                                                            tooltips.Add($"Tags       : {string.Join(" ", tags.Split(';').Select(t => $"#{t.Trim()}"))}");
-                                                        if (!string.IsNullOrEmpty(comments))
-                                                            tooltips.Add($"Commants   : {comments}");
-                                                    }
-                                                }
-                                                catch (Exception ex) { ReportMessage(ex); }
-                                                #endregion
+                                                var tooltip = GetImageInfo(im.Key);
 
                                                 #region Add result item to Gallery
                                                 await SimilarResultGallery.Dispatcher.InvokeAsync(() =>
@@ -946,9 +1004,9 @@ namespace ImageSearch
                                                     {
                                                         Source = bmp,
                                                         FullName = GetAbsolutePath(im.Key),
-                                                        FileName = System.IO.Path.GetFileName(im.Key),
+                                                        FileName = Path.GetFileName(im.Key),
                                                         Similar = $"{im.Value:F4}",
-                                                        Tooltip = string.Join(Environment.NewLine, tooltips),
+                                                        Tooltip = tooltip,
                                                     });
                                                 }, System.Windows.Threading.DispatcherPriority.Normal);
                                                 #endregion
@@ -962,7 +1020,7 @@ namespace ImageSearch
 
                         await SimilarResultGallery.Dispatcher.InvokeAsync(() =>
                         {
-                            if (SimilarResultGallery.ItemsSource == null) SimilarResultGallery.ItemsSource = GalleryList;
+                            SimilarResultGallery.ItemsSource ??= GalleryList;
                             if (GalleryList.Count > 0) SimilarResultGallery.ScrollIntoView(GalleryList.First());
                         }, System.Windows.Threading.DispatcherPriority.Normal);
                         #endregion
