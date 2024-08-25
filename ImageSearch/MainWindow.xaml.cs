@@ -895,9 +895,33 @@ namespace ImageSearch
                                                         exif.GetTagValue(ExifTag.XpKeywords, out string tags, StrCoding.Utf16Le_Byte);
                                                         exif.GetTagValue(ExifTag.XpComment, out string comments, StrCoding.Utf16Le_Byte);
                                                         exif.GetTagValue(ExifTag.Copyright, out string copyrights, StrCoding.Utf8);
-
+                                                        exif.GetTagValue(ExifTag.Rating, out int ranking);
+                                                        exif.GetTagValue(ExifTag.RatingPercent, out int rating);
+                                                        
                                                         if (date_taken.Ticks > 0)
                                                             tooltips.Add($"Taken Date : {date_taken:yyyy/MM/dd HH:mm:ss zzz}");
+
+                                                        var quality = exif.ImageType == ImageType.Jpeg && exif.JpegQuality > 0 ? exif.JpegQuality : -1;
+                                                        var endian = exif.ByteOrder == ExifByteOrder.BigEndian ? "Big Endian" : "Little Endian";
+                                                        var fmomat = exif.PixelFormat.ToString().Replace("Format", "");
+                                                        tooltips.Add($"Image Info : {exif.ImageType}, {exif.ImageMime}, {exif.ByteOrder}, Q={(quality > 0 ? quality : "???")}, Rank={ranking}");
+                                                        tooltips.Add($"Image Size : {exif.Width}x{exif.Height}x{exif.ColorDepth} ({exif.Width * exif.Height / 1000.0 / 1000.0:0.##} MP), {fmomat}, DPI={exif.ResolutionX}x{exif.ResolutionY}");
+
+                                                        //exif.GetTagValue(ExifTag.GpsAltitudeRef, out int gpsAltRef);
+                                                        //exif.GetTagValue(ExifTag.GpsLatitudeRef, out int gpsLatRef);
+                                                        //exif.GetTagValue(ExifTag.GpsLongitudeRef, out int gpsLonRef);
+                                                        //exif.GetTagValue(ExifTag.GpsAltitude, out int gpsAlt);
+                                                        //exif.GetTagValue(ExifTag.GpsLatitude, out int gpsLat);
+                                                        //exif.GetTagValue(ExifTag.GpsLongitude, out int gpsLon);
+                                                        exif.GetGpsLongitude(out GeoCoordinate gpsLon);
+                                                        exif.GetGpsLatitude(out GeoCoordinate gpsLat);
+                                                        exif.GetGpsAltitude(out decimal gpsAlt);
+                                                        var glon = $"{gpsLon.CardinalPoint} {gpsLon.Degree}.{gpsLon.Minute}'{gpsLon.Second}\"";
+                                                        var glat = $"{gpsLat.CardinalPoint} {gpsLat.Degree}.{gpsLat.Minute}'{gpsLat.Second}\"";
+                                                        var galt = $"{gpsAlt.ToString("0.##")} m";
+                                                        var gps = $"{glon}, {glat}, {galt}";
+                                                        tooltips.Add($"GPS        : {gps}");
+
                                                         if (!string.IsNullOrEmpty(title))
                                                             tooltips.Add($"Title      : {title.Trim()}");
                                                         if (!string.IsNullOrEmpty(subject))

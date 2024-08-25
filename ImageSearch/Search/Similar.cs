@@ -48,6 +48,7 @@ namespace ImageSearch.Search
         public string ImageFolder { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public bool Recurice { get; set; } = false;
+        public string ModelName { get; set; } = string.Empty;
         public string ModelFile { get; set; } = string.Empty;
         public string ModelInput { get; set; } = string.Empty;
         public string ModelOutput { get; set; } = string.Empty;
@@ -221,7 +222,7 @@ namespace ImageSearch.Search
                 ConcurrentDictionary<string, float[]> feats = new();
                 try
                 {
-                    if (info.Folders is null) info.Folders = [];
+                    info.Folders ??= [];
                     if (info.Folders.Count <= 0 &&
                         !string.IsNullOrEmpty(info.DatabaseName) &&
                         !string.IsNullOrEmpty(info.FolderName) && Directory.Exists(info.FolderName))
@@ -400,7 +401,7 @@ namespace ImageSearch.Search
 
         private static double[] Norm(IEnumerable<double> array, bool zscore = false)
         {
-            if (array == null) return (Array.Empty<double>());
+            if (array == null) return ([]);
             if (zscore)
             {
                 var mean = array.Average();
@@ -418,7 +419,7 @@ namespace ImageSearch.Search
 
         private static float[] Norm(IEnumerable<float> array, bool zscore = false)
         {
-            if (array == null) return (Array.Empty<float>());
+            if (array == null) return ([]);
             if (zscore)
             {
                 var mean = array.Average();
