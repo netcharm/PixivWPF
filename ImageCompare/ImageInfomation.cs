@@ -951,7 +951,27 @@ namespace ImageCompare
                                         }
                                     }
                                 }
-                                else if (tags.ContainsKey(attr) && (tags[attr].DataType == ExifDataType.Rational || tags[attr].DataType == ExifDataType.SignedRational))
+                                else if (attr.Equals("exif:59932")) { value = "Padding"; continue; }
+                                else if (value != null && string.IsNullOrEmpty(value.Trim('.')) && tags.ContainsKey(attr) && !attr.StartsWith("exif:XP") && !attr.StartsWith("exif:XMP"))
+                                {
+                                    var tag = tags[attr];
+                                    if (tag.DataType == ExifDataType.Short)
+                                    {
+                                        if (tag.IsArray) value = string.Join(", ", ((short[])tag.GetValue()).Select(s => $"{s}"));
+                                        else value = $"{(short)tag.GetValue()}";
+                                    }
+                                    else if (tag.DataType == ExifDataType.Undefined)
+                                    {
+                                        if (tag.IsArray)
+                                        {
+                                            var v = (byte[])tag.GetValue();
+                                            value = string.Join(",", v);
+                                        }
+                                        else value = $"{(byte)tag.GetValue()}";
+                                    }
+                                    else value = tag.ToString();
+                                }
+                                else if (tags.ContainsKey(attr) && value == null)
                                 {
                                     var tag = tags[attr];
                                     if (tag.IsArray)
@@ -973,6 +993,22 @@ namespace ImageCompare
                                             }
                                             if (rv.Count > 0) value = string.Join(", ", rv);
                                         }
+                                        else if (tag.DataType == ExifDataType.Short)
+                                        {
+                                            foreach (var v in (ushort[])tag.GetValue())
+                                            {
+                                                rv.Add(v);
+                                            }
+                                            if (rv.Count > 0) value = string.Join(", ", rv);
+                                        }
+                                        else if (tag.DataType == ExifDataType.SignedShort)
+                                        {
+                                            foreach (var v in (short[])tag.GetValue())
+                                            {
+                                                rv.Add(v);
+                                            }
+                                            if (rv.Count > 0) value = string.Join(", ", rv);
+                                        }
                                     }
                                     else
                                     {
@@ -986,27 +1022,15 @@ namespace ImageCompare
                                             var rv = (SignedRational)tag.GetValue();
                                             value = $"{rv.Numerator / (double)rv.Denominator}";
                                         }
-                                    }
-                                }
-                                else if (attr.Equals("exif:59932")) { value = "Padding"; continue; }
-                                else if (value != null && string.IsNullOrEmpty(value.Trim('.')) && tags.ContainsKey(attr) && !attr.StartsWith("exif:XP") && !attr.StartsWith("exif:XMP"))
-                                {
-                                    var tag = tags[attr];
-                                    if (tag.DataType == ExifDataType.Short)
-                                    {
-                                        if (tag.IsArray) value = string.Join(", ", ((short[])tag.GetValue()).Select(s => $"{s}"));
-                                        else value = $"{(short)tag.GetValue()}";
-                                    }
-                                    else if (tag.DataType == ExifDataType.Undefined)
-                                    {
-                                        if (tag.IsArray)
+                                        else if (tag.DataType == ExifDataType.Short)
                                         {
-                                            var v = (byte[])tag.GetValue();
-                                            value = string.Join(",", v);
+                                            value = $"{(ushort)tag.GetValue()}";
                                         }
-                                        else value = $"{(byte)tag.GetValue()}";
+                                        else if (tag.DataType == ExifDataType.SignedShort)
+                                        {
+                                            value = $"{(short)tag.GetValue()}";
+                                        }
                                     }
-                                    else value = tag.ToString();
                                 }
                                 if (string.IsNullOrEmpty(value)) continue;
                                 if (attr.EndsWith("Keywords") || attr.EndsWith("Author") || attr.EndsWith("Artist") || attr.EndsWith("Copyright") || attr.EndsWith("Copyrights"))
