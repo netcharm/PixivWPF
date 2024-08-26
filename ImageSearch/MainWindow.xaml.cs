@@ -512,77 +512,114 @@ namespace ImageSearch
             });
         }
 
-        private string GetImageInfo(string? img_file)
+        private async Task<string> GetImageInfo(string? img_file)
         {
-            var infos = new List<string>();
+            var result = new List<string>();
             if (img_file is not null && !string.IsNullOrEmpty(img_file) && File.Exists(img_file))
             {
-                #region Add File info to tooltip
-                FileInfo fi = new (img_file);
-                infos.Add($"Full Name  : {GetAbsolutePath(img_file)}");
-                infos.Add($"File Size  : {fi.Length:N0} Bytes");
-                infos.Add($"File Date  : {fi.LastWriteTime:yyyy/MM/dd HH:mm:ss zzz}");
-                #endregion
-
-                #region Add EXIF info to tooltip
-                try
+                result = await Task.Run(() =>
                 {
-                    var exif = new ExifData(img_file);
-                    if (exif != null)
+                    var infos = new List<string>();
+
+                    #region Add File info to tooltip
+                    FileInfo fi = new (img_file);
+                    infos.Add($"Full Name   : {GetAbsolutePath(img_file)}");
+                    infos.Add($"File Size   : {fi.Length:N0} Bytes");
+                    infos.Add($"File Date   : {fi.LastWriteTime:yyyy/MM/dd HH:mm:ss zzz}");
+                    #endregion
+
+                    #region Add EXIF info to tooltip
+                    try
                     {
-                        exif.GetDateDigitized(out var date_digital);
-                        exif.GetDateTaken(out var date_taken);
-                        exif.GetTagValue(ExifTag.XpAuthor, out string author, StrCoding.Utf16Le_Byte);
-                        exif.GetTagValue(ExifTag.XpSubject, out string subject, StrCoding.Utf16Le_Byte);
-                        exif.GetTagValue(ExifTag.XpTitle, out string title, StrCoding.Utf16Le_Byte);
-                        exif.GetTagValue(ExifTag.XpKeywords, out string tags, StrCoding.Utf16Le_Byte);
-                        exif.GetTagValue(ExifTag.XpComment, out string comments, StrCoding.Utf16Le_Byte);
-                        exif.GetTagValue(ExifTag.Copyright, out string copyrights, StrCoding.Utf8);
-                        exif.GetTagValue(ExifTag.Rating, out int ranking);
-                        exif.GetTagValue(ExifTag.RatingPercent, out int rating);
+                        var exif = new ExifData(img_file);
+                        if (exif != null)
+                        {
+                            #region Get Taken date
+                            exif.GetDateDigitized(out var date_digital);
+                            exif.GetDateTaken(out var date_taken);
 
-                        if (date_taken.Ticks > 0)
-                            infos.Add($"Taken Date : {date_taken:yyyy/MM/dd HH:mm:ss zzz}");
+                            if (date_taken.Ticks > 0)
+                                infos.Add($"Taken Date  : {date_taken:yyyy/MM/dd HH:mm:ss zzz}");
+                            #endregion
 
-                        var quality = exif.ImageType == ImageType.Jpeg && exif.JpegQuality > 0 ? exif.JpegQuality : -1;
-                        var endian = exif.ByteOrder == ExifByteOrder.BigEndian ? "Big Endian" : "Little Endian";
-                        var fmomat = exif.PixelFormat.ToString().Replace("Format", "");
-                        infos.Add($"Image Info : {exif.ImageType}, {exif.ImageMime}, {exif.ByteOrder}, Q={(quality > 0 ? quality : "???")}, Rank={ranking}");
-                        infos.Add($"Image Size : {exif.Width}x{exif.Height}x{exif.ColorDepth} ({exif.Width * exif.Height / 1000.0 / 1000.0:0.##} MP), {fmomat}, DPI={exif.ResolutionX}x{exif.ResolutionY}");
+                            #region Image Info
+                            exif.GetTagValue(ExifTag.Rating, out int ranking);
+                            exif.GetTagValue(ExifTag.RatingPercent, out int rating);
 
-                        //exif.GetTagValue(ExifTag.GpsAltitudeRef, out int gpsAltRef);
-                        //exif.GetTagValue(ExifTag.GpsLatitudeRef, out int gpsLatRef);
-                        //exif.GetTagValue(ExifTag.GpsLongitudeRef, out int gpsLonRef);
-                        //exif.GetTagValue(ExifTag.GpsAltitude, out int gpsAlt);
-                        //exif.GetTagValue(ExifTag.GpsLatitude, out int gpsLat);
-                        //exif.GetTagValue(ExifTag.GpsLongitude, out int gpsLon);
-                        exif.GetGpsLongitude(out GeoCoordinate gpsLon);
-                        exif.GetGpsLatitude(out GeoCoordinate gpsLat);
-                        exif.GetGpsAltitude(out decimal gpsAlt);
-                        var glon = $"{gpsLon.CardinalPoint} {gpsLon.Degree}.{gpsLon.Minute}'{gpsLon.Second}\"".Trim(['\0', ' ', '\n', '\r', '\t']);
-                        var glat = $"{gpsLat.CardinalPoint} {gpsLat.Degree}.{gpsLat.Minute}'{gpsLat.Second}\"".Trim(['\0', ' ', '\n', '\r', '\t']);
-                        var galt = $"{gpsAlt:0.##} m".Trim(['\0', ' ', '\n', '\r', '\t']);
-                        var gps = $"{glon}, {glat}, {galt}";
-                        infos.Add($"GPS        : {gps}");
+                            var quality = exif.ImageType == ImageType.Jpeg && exif.JpegQuality > 0 ? exif.JpegQuality : -1;
+                            var endian = exif.ByteOrder == ExifByteOrder.BigEndian ? "Big Endian" : "Little Endian";
+                            var fmomat = exif.PixelFormat.ToString().Replace("Format", "");
+                            infos.Add($"Image Info  : {exif.ImageType}, {exif.ImageMime}, {exif.ByteOrder}, Q={(quality > 0 ? quality : "???")}, Rank={ranking}");
+                            infos.Add($"Image Size  : {exif.Width}x{exif.Height}x{exif.ColorDepth} ({exif.Width * exif.Height / 1000.0 / 1000.0:0.##} MP), {fmomat}, DPI={exif.ResolutionX}x{exif.ResolutionY}");
+                            #endregion
 
-                        if (!string.IsNullOrEmpty(title))
-                            infos.Add($"Title      : {title.Trim()}");
-                        if (!string.IsNullOrEmpty(subject))
-                            infos.Add($"Subject    : {subject.Trim()}");
-                        if (!string.IsNullOrEmpty(author))
-                            infos.Add($"Authors    : {author.Trim().TrimEnd(';') + ';'}");
-                        if (!string.IsNullOrEmpty(copyrights))
-                            infos.Add($"Copyrights : {copyrights.Trim().TrimEnd(';') + ';'}");
-                        if (!string.IsNullOrEmpty(tags))
-                            infos.Add($"Tags       : {string.Join(" ", tags.Split(';').Select(t => $"#{t.Trim()}"))}");
-                        if (!string.IsNullOrEmpty(comments))
-                            infos.Add($"Commants   : {comments}");
+                            #region Get Camera Info
+                            exif.GetTagValue(ExifTag.Make, out string maker, StrCoding.Utf8);
+                            exif.GetTagValue(ExifTag.Model, out string model, StrCoding.Utf8);
+                            exif.GetTagValue(ExifTag.FNumber, out ExifRational fNumber);
+                            exif.GetTagValue(ExifTag.FocalLength, out ExifRational focalLength);
+                            exif.GetTagValue(ExifTag.FocalLengthIn35mmFilm, out ExifRational focalLength35);
+                            exif.GetTagValue(ExifTag.ApertureValue, out ExifRational aperture);
+                            exif.GetTagValue(ExifTag.IsoSpeed, out ExifRational isoSpeed);
+                            exif.GetTagValue(ExifTag.IsoSpeedRatings, out int isoSpeedRating);
+                            exif.GetTagValue(ExifTag.ExposureTime, out ExifRational exposureTime);
+                            exif.GetTagValue(ExifTag.ExposureBiasValue, out ExifRational exposureBias);
+                            exif.GetTagValue(ExifTag.ShutterSpeedValue, out ExifRational shutterSpeed);
+                            exif.GetTagValue(ExifTag.PhotographicSensitivity, out int photoSens);
+
+                            var camera = new List<string>();
+                            if (!string.IsNullOrEmpty(maker)) camera.Add($"{maker.Trim()}");
+                            if (!string.IsNullOrEmpty(model)) camera.Add($"{model.Replace(maker, "").Trim()}");
+                            if (isoSpeedRating > 0) camera.Add($"ISO{isoSpeedRating}");
+                            if (fNumber.Denom != 0) camera.Add($"f/{fNumber.Numer / (double)fNumber.Denom:F1}");
+                            if (exposureTime.Denom != 0) camera.Add($"{(exposureTime.Numer < exposureTime.Denom ? $"1/{exposureTime.Denom / exposureTime.Numer:F0}" : $"{exposureTime.Numer / (double)exposureTime.Denom:0.####}")}s");
+                            if (exposureBias.Denom != 0 && exposureBias.Numer != 0) camera.Add($"{(exposureBias.Sign ? '+' : '-')}{exposureBias.Numer / (double)exposureBias.Denom:0.#}");
+                            if (exposureBias.Denom != 0) camera.Add($"{focalLength.Numer / (double)focalLength.Denom:F0}mm");
+                            if (camera.Count > 0) infos.Add($"Camera Info : {string.Join(", ", camera)}");
+                            #endregion
+
+                            #region Get GPS Geo Info
+                            var gps = new List<string>();
+                            if(exif.GetGpsLongitude(out GeoCoordinate gpsLon)) 
+                                gps.Add($"{gpsLon.CardinalPoint} {gpsLon.Degree}.{gpsLon.Minute}'{gpsLon.Second}\"".Trim(['\0', ' ', '\n', '\r', '\t']));
+                            if (exif.GetGpsLatitude(out GeoCoordinate gpsLat))
+                                gps.Add($"{gpsLat.CardinalPoint} {gpsLat.Degree}.{gpsLat.Minute}'{gpsLat.Second}\"".Trim(['\0', ' ', '\n', '\r', '\t']));
+                            if (exif.GetGpsAltitude(out decimal gpsAlt))
+                                gps.Add($"{gpsAlt:0.##} m".Trim(['\0', ' ', '\n', '\r', '\t']));
+                            if (exif.GetGpsDateTimeStamp(out DateTime gdts))
+                                gps.Add($"{gdts:yyyy/MM/ddTHH:mm:dd.fffzzz}");
+                            if (gps.Count > 0) infos.Add($"GPS         : {string.Join(", ", gps)}");
+                            #endregion
+
+                            #region Get Windows Image Info
+                            exif.GetTagValue(ExifTag.XpAuthor, out string author, StrCoding.Utf16Le_Byte);
+                            exif.GetTagValue(ExifTag.XpSubject, out string subject, StrCoding.Utf16Le_Byte);
+                            exif.GetTagValue(ExifTag.XpTitle, out string title, StrCoding.Utf16Le_Byte);
+                            exif.GetTagValue(ExifTag.XpKeywords, out string tags, StrCoding.Utf16Le_Byte);
+                            exif.GetTagValue(ExifTag.XpComment, out string comments, StrCoding.Utf16Le_Byte);
+                            exif.GetTagValue(ExifTag.Copyright, out string copyrights, StrCoding.Utf8);
+
+                            if (!string.IsNullOrEmpty(title))
+                                infos.Add($"Title       : {title.Trim()}");
+                            if (!string.IsNullOrEmpty(subject))
+                                infos.Add($"Subject     : {subject.Trim()}");
+                            if (!string.IsNullOrEmpty(author))
+                                infos.Add($"Authors     : {author.Trim().TrimEnd(';') + ';'}");
+                            if (!string.IsNullOrEmpty(copyrights))
+                                infos.Add($"Copyrights  : {copyrights.Trim().TrimEnd(';') + ';'}");
+                            if (!string.IsNullOrEmpty(tags))
+                                infos.Add($"Tags        : {string.Join(" ", tags.Split(';').Select(t => $"#{t.Trim()}"))}");
+                            if (!string.IsNullOrEmpty(comments))
+                                infos.Add($"Commants    : {comments}");
+                            #endregion
+                        }
                     }
-                }
-                catch (Exception ex) { ReportMessage(ex); }
-                #endregion
+                    catch (Exception ex) { ReportMessage(ex); }
+                    #endregion
+                    return (infos);
+                });
             }
-            return (string.Join(Environment.NewLine, infos).Trim());
+            return (string.Join(Environment.NewLine, result).Trim());
         }
 
         public MainWindow()
@@ -593,7 +630,7 @@ namespace ImageSearch
             MinHeight = 720;
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             var setting_file = GetAbsolutePath($"{GetAppName()}.settings");
             try
@@ -634,7 +671,7 @@ namespace ImageSearch
                     (var bmp, var skb, var file) = LoadImageFromFile(args[1]);
                     if (bmp is not null) SimilarSrc.Source = bmp;
                     if (skb is not null) SimilarSrc.Tag = skb;
-                    ToolTipService.SetToolTip(SimilarSrcBox, GetImageInfo(file));
+                    ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(file));
                 }
             }
             catch (Exception ex) { ReportMessage(ex); }
@@ -835,10 +872,10 @@ namespace ImageSearch
                     {
                         (var bmp0, var skb0, var file0) = imgs[0];
                         (var bmp1, var skb1, var file1) = imgs[1];
-                        ToolTipService.SetToolTip(CompareBoxL, GetImageInfo(file0));
+                        ToolTipService.SetToolTip(CompareBoxL, await GetImageInfo(file0));
                         CompareL.Source = bmp0;
                         CompareL.Tag = skb0;
-                        ToolTipService.SetToolTip(CompareBoxR, GetImageInfo(file1));
+                        ToolTipService.SetToolTip(CompareBoxR, await GetImageInfo(file1));
                         CompareR.Source = bmp1;
                         CompareR.Tag = skb1;
                     }
@@ -851,13 +888,13 @@ namespace ImageSearch
                         (var bmp, var skb, var file) = imgs[0];
                         if (compare_l_target.Contains(e.Source) || in_compare_l || CompareBoxL.IsMouseOver)
                         {
-                            ToolTipService.SetToolTip(CompareBoxL, GetImageInfo(file));
+                            ToolTipService.SetToolTip(CompareBoxL, await GetImageInfo(file));
                             CompareL.Source = bmp;
                             CompareL.Tag = skb;
                         }
                         else if (compare_r_target.Contains(e.Source) || in_compare_r || CompareBoxR.IsMouseOver)
                         {
-                            ToolTipService.SetToolTip(CompareBoxR, GetImageInfo(file));
+                            ToolTipService.SetToolTip(CompareBoxR, await GetImageInfo(file));
                             CompareR.Source = bmp;
                             CompareR.Tag = skb;
                         }
@@ -918,7 +955,7 @@ namespace ImageSearch
                     (var bmp, var skb, var file) = imgs.FirstOrDefault();
                     if (bmp is not null) SimilarSrc.Source = bmp;
                     if (skb is not null) SimilarSrc.Tag = skb;
-                    ToolTipService.SetToolTip(SimilarSrcBox, GetImageInfo(file));
+                    ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(file));
                 }
             }
             else if (Clipboard.ContainsImage())
@@ -940,7 +977,7 @@ namespace ImageSearch
 
                 if (bmp is not null) SimilarSrc.Source = bmp;
                 if (skb is not null) SimilarSrc.Tag = skb;
-                ToolTipService.SetToolTip(SimilarSrcBox, GetImageInfo(file));
+                ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(file));
             }
             #endregion
 
@@ -995,7 +1032,7 @@ namespace ImageSearch
 
                                                 (var bmp, _, _) = LoadImageFromStream(ms);
 
-                                                var tooltip = GetImageInfo(im.Key);
+                                                var tooltip = await GetImageInfo(im.Key);
 
                                                 #region Add result item to Gallery
                                                 await SimilarResultGallery.Dispatcher.InvokeAsync(() =>
