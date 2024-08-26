@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -864,7 +865,7 @@ namespace ImageCompare
                             if (Original.Endian == Endian.Undefined) Original.Endian = DetectFileEndian(fi.FullName);
                             if (Current.Endian == Endian.Undefined) Current.Endian = Original.Endian;
                         }
-                        else if (Type == ImageType.Result && Current.Endian == Endian.Undefined) 
+                        else if (Type == ImageType.Result && Current.Endian == Endian.Undefined)
                             Current.Endian = BitConverter.IsLittleEndian ? Endian.LSB : Endian.MSB;
 
                         if (Current.ArtifactNames.Count() > 0)
@@ -884,13 +885,18 @@ namespace ImageCompare
                         var exif = Current.HasProfile("exif") ? Current.GetExifProfile() : new ExifProfile();
                         tip.Add($"{"InfoTipAttributes".T()}");
                         var attrs = new List<string>();
-                        foreach (var attr in Current.AttributeNames.Union(new string[] { "exif:Rating", "exif:RatingPercent" }))
+                        var tags = new Dictionary<string, IExifValue>();
+                        foreach (var tv in exif.Values)
+                        {
+                            tags[$"exif:{tv.Tag.ToString()}"] = tv;
+                        }
+                        foreach (var attr in Current.AttributeNames.Union(new string[] { "exif:Rating", "exif:RatingPercent" }).Union(tags.Keys))
                         {
                             try
                             {
                                 var label = attr.PadRight(32, ' ');
                                 var value = Current.GetAttribute(attr);
-                                if (string.IsNullOrEmpty(value) && !attr.Contains("Rating")) continue;
+                                if (string.IsNullOrEmpty(value) && !attr.Contains("Rating") && !tags.Keys.Contains(attr)) continue;
                                 if (attr.Contains("WinXP")) value = Current.GetAttributes(attr);
                                 else if (attr.StartsWith("date:", StringComparison.CurrentCultureIgnoreCase))
                                 {
@@ -924,6 +930,83 @@ namespace ImageCompare
                                 else if (attr.Equals("exif:RatingPercent"))
                                 {
                                     foreach (var tag in exif.Values.Where(v => v.Tag.Equals(ExifTag.RatingPercent))) { value = tag.GetValue().ToString(); }
+                                }
+                                else if (attr.StartsWith("exif:GPSVersionID") && tags.ContainsKey(attr))
+                                {
+                                    var tag = tags[attr];
+                                    var v = (byte[])tag.GetValue();
+                                    value = string.Join("", v.Select(b => $"{b}"));
+                                }
+                                else if (attr.StartsWith("exif:GPS") && attr.Contains("itude"))
+                                {
+                                    var tag = exif.Values.Where(v => v.Tag.ToString().Equals(attr.Substring(5))).FirstOrDefault();
+                                    if (tag is IExifValue)
+                                    {
+                                        if (attr.EndsWith("Ref"))
+                                            value = tag.GetValue().ToString().Trim('\0');
+                                        else
+                                        {
+                                            var arv = tag.GetValue() as Rational[];
+                                            value = $"{arv[0].Numerator / arv[0].Denominator:F0}.{arv[1].Numerator / arv[1].Denominator:F0}'{arv[2].Numerator / (double)arv[2].Denominator}\"";
+                                        }
+                                    }
+                                }
+                                else if (tags.ContainsKey(attr) && (tags[attr].DataType == ExifDataType.Rational || tags[attr].DataType == ExifDataType.SignedRational))
+                                {
+                                    var tag = tags[attr];
+                                    if (tag.IsArray)
+                                    {
+                                        var rv = new List<double>();
+                                        if (tag.DataType == ExifDataType.Rational)
+                                        {
+                                            foreach (var v in (Rational[])tag.GetValue())
+                                            {
+                                                rv.Add(v.Numerator / (double)v.Denominator);
+                                            }
+                                            if (rv.Count > 0) value = string.Join(", ", rv);
+                                        }
+                                        else if (tag.DataType == ExifDataType.SignedRational)
+                                        {
+                                            foreach (var v in (SignedRational[])tag.GetValue())
+                                            {
+                                                rv.Add(v.Numerator / (double)v.Denominator);
+                                            }
+                                            if (rv.Count > 0) value = string.Join(", ", rv);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (tag.DataType == ExifDataType.Rational)
+                                        {
+                                            var rv = (Rational)tag.GetValue();
+                                            value = $"{rv.Numerator / (double)rv.Denominator}";
+                                        }
+                                        else if (tag.DataType == ExifDataType.SignedRational)
+                                        {
+                                            var rv = (SignedRational)tag.GetValue();
+                                            value = $"{rv.Numerator / (double)rv.Denominator}";
+                                        }
+                                    }
+                                }
+                                else if (attr.Equals("exif:59932")) { value = "Padding"; continue; }
+                                else if (value != null && string.IsNullOrEmpty(value.Trim('.')) && tags.ContainsKey(attr) && !attr.StartsWith("exif:XP") && !attr.StartsWith("exif:XMP"))
+                                {
+                                    var tag = tags[attr];
+                                    if (tag.DataType == ExifDataType.Short)
+                                    {
+                                        if (tag.IsArray) value = string.Join(", ", ((short[])tag.GetValue()).Select(s => $"{s}"));
+                                        else value = $"{(short)tag.GetValue()}";
+                                    }
+                                    else if (tag.DataType == ExifDataType.Undefined)
+                                    {
+                                        if (tag.IsArray)
+                                        {
+                                            var v = (byte[])tag.GetValue();
+                                            value = string.Join(",", v);
+                                        }
+                                        else value = $"{(byte)tag.GetValue()}";
+                                    }
+                                    else value = tag.ToString();
                                 }
                                 if (string.IsNullOrEmpty(value)) continue;
                                 if (attr.EndsWith("Keywords") || attr.EndsWith("Author") || attr.EndsWith("Artist") || attr.EndsWith("Copyright") || attr.EndsWith("Copyrights"))
