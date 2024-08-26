@@ -282,7 +282,8 @@ namespace ImageCompare
                             ProcessStatus.IsIndeterminate = true;
                         }, DispatcherPriority.Normal);
                         var action = e.Argument as Action;
-                        await Dispatcher.InvokeAsync(action, DispatcherPriority.Background);
+                        //await Dispatcher.InvokeAsync(action, DispatcherPriority.Background);
+                        await Task.Run(action);
                         //Dispatcher.Invoke(action, DispatcherPriority.Background);
                         LastAction = action;
                     }
@@ -3029,9 +3030,10 @@ namespace ImageCompare
             }
             else if (sender == ImageDenoiseResult)
             {
+                var shift = Keyboard.Modifiers == ModifierKeys.Shift;
                 RenderRun(new Action(() =>
                 {
-                    ImageResult.GetInformation().Denoise(WeakEffects ? 3 : 5);
+                    ImageResult.GetInformation().Denoise(WeakEffects ? 3 : 5, more: shift);
                     ImageResult.GetInformation().DenoiseCount++;
                 }));
             }

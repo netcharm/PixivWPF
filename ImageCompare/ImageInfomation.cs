@@ -691,11 +691,10 @@ namespace ImageCompare
             }
         }
 
-        public async void Denoise(int? order = null)
+        public async void Denoise(int? order = null, bool more = false)
         {
             if (ValidCurrent)
             {
-                var shift = Keyboard.Modifiers == ModifierKeys.Shift;
                 var value = order ?? 0;
 
                 var factor = DenoiseLevel <= 0 ? 1 : DenoiseLevel;
@@ -707,7 +706,7 @@ namespace ImageCompare
                     else if (DenoiseCount > 100) factor = 16;
                 }
 
-                Current.MedianFilter((value > 0 ? value : 3) * (shift ? factor * 4 : factor));
+                Current.MedianFilter((value > 0 ? value : 3) * (more ? factor * 4 : factor));
                 await SetImage();
             }
         }
@@ -716,7 +715,7 @@ namespace ImageCompare
         {
             if (ValidCurrent)
             {
-                await Application.Current.Dispatcher.InvokeAsync(async () =>
+                await Task.Run(async () => 
                 {
                     try
                     {
@@ -755,17 +754,21 @@ namespace ImageCompare
                             }
                         }
                         #endregion
-                        Clipboard.SetDataObject(dataPackage, true);
+                        await Application.Current.Dispatcher.InvokeAsync(() =>
+                        {
+                            Clipboard.SetDataObject(dataPackage, true);
+                        });
                     }
                     catch (Exception ex) { ex.ShowMessage(); }
                 });
+
             }
         }
 
         public async Task<bool> SetImage()
         {
             var result = false;
-            result = await Application.Current.Dispatcher.InvokeAsync<bool>(() =>
+            result = await Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 var ret = false;
                 try
