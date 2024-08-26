@@ -95,7 +95,7 @@ namespace ImageCompare
 
         private Channels CompareImageChannels = Channels.All;
         private bool CompareImageAutoMatchSize { get { return (AutoMatchSize.Dispatcher.Invoke(() => AutoMatchSize.IsChecked ?? false)); } }
-        private bool CompareImageForceScale { get { return (UseSmallerImage.Dispatcher.Invoke(()=>UseSmallerImage.IsChecked ?? false)); } }
+        private bool CompareImageForceScale { get { return (UseSmallerImage.Dispatcher.Invoke(() => UseSmallerImage.IsChecked ?? false)); } }
         private bool CompareImageForceColor { get { return (UseColorImage.Dispatcher.Invoke(() => UseColorImage.IsChecked ?? false)); } }
         private ErrorMetric ErrorMetricMode = ErrorMetric.Fuzz;
         private CompositeOperator CompositeMode = CompositeOperator.Difference;
@@ -242,13 +242,41 @@ namespace ImageCompare
             if (RenderWorker == null)
             {
                 RenderWorker = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
-                RenderWorker.ProgressChanged += (o, e) => { ProcessStatus.IsIndeterminate = true; };
-                RenderWorker.RunWorkerCompleted += (o, e) => { ProcessStatus.IsIndeterminate = false; ProcessStatus.Value = 100; };
+                //RenderWorker.ProgressChanged += async (o, e) => 
+                //{
+                //    await ProcessStatus.Dispatcher.InvokeAsync(() =>
+                //    {
+                //        ProcessStatus.IsIndeterminate = true;
+                //    }, DispatcherPriority.Normal);
+                //};
+                //RenderWorker.RunWorkerCompleted += async (o, e) => 
+                //{
+                //    await ProcessStatus.Dispatcher.InvokeAsync(() =>
+                //    {
+                //        ProcessStatus.IsIndeterminate = false;
+                //        ProcessStatus.Value = 100;
+                //    }, DispatcherPriority.Normal);
+                //};
+                RenderWorker.ProgressChanged += (o, e) =>
+                {
+                    ProcessStatus.Dispatcher.InvokeAsync(() =>
+                    {
+                        ProcessStatus.IsIndeterminate = true;
+                    }, DispatcherPriority.Normal);
+                };
+                RenderWorker.RunWorkerCompleted += (o, e) =>
+                {
+                    ProcessStatus.Dispatcher.InvokeAsync(() =>
+                    {
+                        ProcessStatus.IsIndeterminate = false;
+                        ProcessStatus.Value = 100;
+                    }, DispatcherPriority.Normal);
+                };
                 RenderWorker.DoWork += async (o, e) =>
                 {
                     if (e.Argument is Action)
                     {
-                        await ProcessStatus.Dispatcher.InvokeAsync(() =>
+                        ProcessStatus.Dispatcher.Invoke(() =>
                         {
                             ProcessStatus.Value = 0;
                             ProcessStatus.IsIndeterminate = true;
@@ -646,18 +674,18 @@ namespace ImageCompare
                         var image_r = ImageResult.GetInformation();
                         if (image_s.ValidCurrent)
                         {
-                            ImageSourceBox.Width = image_s.Current.Width;
-                            ImageSourceBox.Height = image_s.Current.Height;
+                            ImageSourceBox.Width = ImageSource.Source.Width;
+                            ImageSourceBox.Height = ImageSource.Source.Height;
                         }
                         if (image_t.ValidCurrent)
                         {
-                            ImageTargetBox.Width = image_t.Current.Width;
-                            ImageTargetBox.Height = image_t.Current.Height;
+                            ImageTargetBox.Width = ImageTarget.Source.Width;
+                            ImageTargetBox.Height = ImageTarget.Source.Height;
                         }
                         if (image_r.ValidCurrent)
                         {
-                            ImageResultBox.Width = image_r.Current.Width;
-                            ImageResultBox.Height = image_r.Current.Height;
+                            ImageResultBox.Width = ImageResult.Source.Width;
+                            ImageResultBox.Height = ImageResult.Source.Height;
                         }
                         ZoomRatio.Value = LastZoomRatio;
                     }
@@ -829,6 +857,8 @@ namespace ImageCompare
                         target = ImageTarget.Source == null;
                     }, DispatcherPriority.Normal);
 
+                    var ShowGeometry = new MagickGeometry();
+
                     if (assign || (source ?? false) || (target ?? false))
                     {
                         try
@@ -885,8 +915,24 @@ namespace ImageCompare
                                 }
                             }
 
+                            if (image_s.ValidCurrent && image_t.ValidCurrent)
+                            {
+                                ShowGeometry = new MagickGeometry()
+                                {
+                                    Width = Math.Max(image_s.Current.Width, image_t.Current.Width),
+                                    Height = Math.Max(image_s.Current.Height, image_t.Current.Height),
+                                    FillArea = true,
+                                };
+                            }
+
                             await Dispatcher.InvokeAsync(() =>
                             {
+                                foreach (var image in new ImageInformation[] { image_s, image_t })
+                                {
+                                    image.SourceParams.Geometry = ShowGeometry;
+                                    image.SourceParams.Align = DefaultMatchAlign;
+                                    image.SourceParams.FillColor = MasklightColor;
+                                }
                                 ImageSource.Source = image_s.Source;
                                 ImageTarget.Source = image_t.Source;
 
@@ -916,6 +962,10 @@ namespace ImageCompare
                     image_r.Original = await Compare(image_s.Current, image_t.Current, compose: compose);
                     image_r.OpMode = LastOpIsComposite ? ImageOpMode.Compose : ImageOpMode.Compare;
                     image_r.ColorFuzzy = DefaultColorFuzzy;
+
+                    image_r.SourceParams.Geometry = ShowGeometry;
+                    image_r.SourceParams.Align = DefaultMatchAlign;
+                    image_r.SourceParams.FillColor = MasklightColor;
 
                     await Dispatcher.InvokeAsync(() =>
                     {
@@ -1079,15 +1129,15 @@ namespace ImageCompare
                         file_s = files.First();
                         file_t = files.Skip(1).First();
 
-                        action |= await image_s.LoadImageFromFile(file_s, false);
-                        action |= await image_t.LoadImageFromFile(file_t, false);
+                        action |= await image_s.LoadImageFromFile(file_s);
+                        action |= await image_t.LoadImageFromFile(file_t);
                         load_type = ImageType.All;
                     }
                     else
                     {
                         var image  = source ? image_s : image_t;
                         file_s = files.First();
-                        action |= await image.LoadImageFromFile(file_s, false);
+                        action |= await image.LoadImageFromFile(file_s);
                         load_type = source ? ImageType.Source : ImageType.Target;
                     }
                     if (action) RenderRun(new Action(() =>

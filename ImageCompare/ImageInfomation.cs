@@ -22,6 +22,18 @@ using ImageMagick;
 namespace ImageCompare
 {
     public enum ImageTarget { None, Source, Target, Result, All };
+
+    public class SourceParam
+    {
+        public MagickGeometry Geometry { get; set; } = null;
+        public Gravity Align { get; set; } = Gravity.Undefined;
+#if Q16HDRI
+        public IMagickColor<float> FillColor { get; set; } = MagickColors.Transparent;
+#else
+        public IMagickColor<byte> FillColor { get; set; } = MagickColors.Transparent;
+#endif
+    }
+
     public class ImageInformation
     {
         public ImageType Type { get; set; } = ImageType.None;
@@ -185,8 +197,23 @@ namespace ImageCompare
 
         private ColorSpace _last_colorspace_ = ColorSpace.Undefined;
 
-        public ImageSource Source { get { return (ValidCurrent ? Current.ToBitmapSource() : null); } }
-        //public ImageSource Source { get { return (ValidCurrent ? Current.ToBitmapSourceWithDensity() : null); } }
+        public SourceParam SourceParams { get; set; } = new SourceParam();
+        public ImageSource Source
+        {
+            get
+            {
+                ImageSource result = null;
+                if (ValidCurrent)
+                {
+                    var image = new MagickImage(Current);
+                    image.Extent(SourceParams.Geometry, SourceParams.Align, MagickColors.Transparent);
+                    image.RePage();
+                    result = image.ToBitmapSource();
+                }
+                return (result);
+            }
+        }
+
 
         public bool ValidCurrent { get { return (Current is MagickImage); } }
         public bool ValidOriginal { get { return (Original is MagickImage); } }
@@ -376,7 +403,7 @@ namespace ImageCompare
             return (result);
         }
 
-        public async Task<bool> LoadImageFromFile(string file, bool update = false)
+        public async Task<bool> LoadImageFromFile(string file)
         {
             var result = false;
             if (File.Exists(file))
@@ -405,8 +432,8 @@ namespace ImageCompare
                                 }
                             }
 
-                            if (update && Tagetment is Image && ValidCurrent)
-                                (Tagetment as Image).Source = Source;
+                            //if (update && Tagetment is Image && ValidCurrent)
+                            //    (Tagetment as Image).Source = Source;
 
                             ret = true;
                         }
@@ -888,7 +915,7 @@ namespace ImageCompare
                         var tags = new Dictionary<string, IExifValue>();
                         foreach (var tv in exif.Values)
                         {
-                            tags[$"exif:{tv.Tag.ToString()}"] = tv;
+                            tags[$"exif:{tv.Tag}"] = tv;
                         }
                         foreach (var attr in Current.AttributeNames.Union(new string[] { "exif:Rating", "exif:RatingPercent" }).Union(tags.Keys))
                         {
@@ -1134,7 +1161,7 @@ namespace ImageCompare
             {
                 if (ValidOriginal)
                 {
-                    if (reload && !string.IsNullOrEmpty(LastFileName)) await LoadImageFromFile(LastFileName, update: false);
+                    if (reload && !string.IsNullOrEmpty(LastFileName)) await LoadImageFromFile(LastFileName);
                     if (OriginalModified || (ValidOriginal && !ValidCurrent) || (reset && ValidOriginal))
                     {
                         if (ValidCurrent) { Current.Dispose(); Current = null; }
@@ -1163,7 +1190,7 @@ namespace ImageCompare
             {
                 if (ValidOriginal && geo is MagickGeometry)
                 {
-                    if (reload && !string.IsNullOrEmpty(LastFileName)) await LoadImageFromFile(LastFileName, update: false);
+                    if (reload && !string.IsNullOrEmpty(LastFileName)) await LoadImageFromFile(LastFileName);
                     if (OriginalModified || (ValidOriginal && !ValidCurrent) || (reset && ValidOriginal))
                     {
                         if (ValidCurrent) { Current.Dispose(); Current = null; }
