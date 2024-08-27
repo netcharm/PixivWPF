@@ -717,7 +717,7 @@ namespace ImageCompare
             try
             {
                 var action = false;
-
+                var factor = WeakEffects ? 1 : 5;
                 var image_s = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 var image_t = source ? ImageTarget.GetInformation() : ImageSource.GetInformation();
                 if (image_s.ValidCurrent)
@@ -731,17 +731,12 @@ namespace ImageCompare
                         case Gravity.West: height = 0; break;
                         default: break;
                     }
-                    //if (image_t.ValidCurrent && align == Gravity.Center)
-                    //{
-                    //    if (image_t.Current.Width == image_s.Current.Width) width = 0;
-                    //    if (image_t.Current.Height == image_s.Current.Height) height = 0;
-                    //}
                     var box = new MagickGeometry(image_s.Current.Width, image_s.Current.Height)
                     {
                         IgnoreAspectRatio = true,
                         LimitPixels = true,
-                        Width = Math.Max(1, Math.Min(image_s.Current.Width, image_s.Current.Width - width)),
-                        Height = Math.Max(1, Math.Min(image_s.Current.Height, image_s.Current.Height - height)),
+                        Width = Math.Max(1, Math.Min(image_s.Current.Width, image_s.Current.Width - width * factor)),
+                        Height = Math.Max(1, Math.Min(image_s.Current.Height, image_s.Current.Height - height * factor)),
                     };
                     if (width > 0 || height > 0)
                     {
@@ -917,9 +912,11 @@ namespace ImageCompare
 
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 var target = source ? ImageTarget.GetInformation() : ImageSource.GetInformation();
-                if (image.ValidCurrent)
+                if (image.ValidCurrent && target.ValidCurrent)
                 {
-                    image.Current.Stereo(target.Current);
+                    var image_ref = new MagickImage(target.Current);
+                    image_ref.Extent(image.Current.Width, image.Current.Height);
+                    image.Current.Stereo(image_ref);
                     action = true;
                 }
 

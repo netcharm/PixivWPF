@@ -320,27 +320,36 @@ namespace ImageCompare
 
         public static void ShowMessage(this string text, string prefix = "")
         {
-            try
+            Application.Current.Dispatcher.Invoke(() =>
             {
-                if (string.IsNullOrEmpty(prefix))
-                    Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text);
-                else
-                    Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text, prefix);
-            }
-            catch(Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message); }
+                try
+                {
+
+                    if (string.IsNullOrEmpty(prefix))
+                        Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text);
+                    else
+                        Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text, prefix);
+                }
+                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message); }
+            });
         }
 
         public static void ShowMessage(this Exception exception, string prefix = "")
         {
-            try
+            Application.Current.Dispatcher.Invoke(() =>
             {
-                var contents = $"{exception.Message}{Environment.NewLine}{exception.StackTrace}";
-                if (string.IsNullOrEmpty(prefix))
-                    Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, contents);
-                else
-                    Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, contents, prefix);
-            }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message); }
+                try
+                {
+
+                    var contents = $"{exception.Message}{Environment.NewLine}{exception.StackTrace}";
+                    if (string.IsNullOrEmpty(prefix))
+                        Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, contents);
+                    else
+                        Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, contents, prefix);
+
+                }
+                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message); }
+            });
         }
 
         private static object ExitFrame(object state)
