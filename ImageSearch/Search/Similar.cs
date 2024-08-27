@@ -60,7 +60,7 @@ namespace ImageSearch.Search
         public string[] ExcludeFolders { get; set; } = [];
     }
 
-    public class BatchProgressInfo
+    public class BatchTaskInfo
     {
         public bool MergeAllFeats { get; set; } = false;
         public bool Recurise { get; set; } = false;
@@ -159,17 +159,17 @@ namespace ImageSearch.Search
         public List<Storage> StorageList { get; set; } = [];
 
         #region background work thread
-        BackgroundWorker? BatchTask;
-        public TaskStatus RunningStatue { get { return (BatchTask is not null && BatchTask.IsBusy ? TaskStatus.WaitingForActivation : TaskStatus.Running); } }
+        private readonly SemaphoreSlim BatchTaskIdle = new(1,1);
+        private CancellationTokenSource BatchCancel = new();
+        public TaskStatus RunningStatue { get { return (BatchTaskIdle?.CurrentCount > 0 ? TaskStatus.WaitingForActivation : TaskStatus.Running); } }
 
-        public Action<BatchProgressInfo>? BatchReportAction;
+        public Action<BatchTaskInfo>? BatchReportAction;
 
-        private void ReportBatch(BatchProgressInfo info)
+        private void ReportBatch(BatchTaskInfo info)
         {
-            if (BatchReportAction is not null && info is not null)
+            if (info is not null)
             {
-                //BatchReportAction.DynamicInvoke(info);
-                BatchReportAction.Invoke(info);
+                BatchReportAction?.Invoke(info);
             }
         }
 
@@ -177,48 +177,25 @@ namespace ImageSearch.Search
         {
             try
             {
-                if (BatchTask is not null)
-                {
-                    BatchTask.CancelAsync();
-                    BatchTask.Dispose();
-                }
-
-                BatchTask = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
-                BatchTask.DoWork += BatchTask_DoWork;
-                BatchTask.ProgressChanged += BatchTask_ProgressChanged;
-                BatchTask.RunWorkerCompleted += BatchTask_RunWorkerCompleted;
             }
             catch (Exception ex) { ReportMessage(ex); }
         }
 
-        private void BatchTask_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
+        private void ReportProgress(double percentage)
         {
             ReportProgressBar?.Dispatcher.Invoke(() =>
             {
-                ReportProgressBar.Value = 100;
-            });
-
-            if (e.Cancelled)
-                ReportMessage("Batch work canceled!");
-            else
-                ReportMessage("Batch work finished!");
-        }
-
-        private void BatchTask_ProgressChanged(object? sender, ProgressChangedEventArgs e)
-        {
-            ReportProgressBar?.Dispatcher.Invoke(() =>
-            {
-                ReportProgressBar.Value = e.ProgressPercentage;
+                ReportProgressBar.Value = (int)percentage;
             });
         }
 
-        private async void BatchTask_DoWork(object? sender, DoWorkEventArgs e)
+        private async Task<bool> CreateFeatureDataAsync(BatchTaskInfo info, CancellationToken cancel)
         {
-            if (e.Argument is BatchProgressInfo)
+            var result = true;
+
+            if (info is not null && BatchTaskIdle?.CurrentCount <= 0)
             {
                 var sw = Stopwatch.StartNew();
-                var info = e.Argument as BatchProgressInfo;
-
                 ConcurrentDictionary<string, float[]> feats = new();
                 try
                 {
@@ -232,9 +209,9 @@ namespace ImageSearch.Search
 
                     foreach (var storage in info.Folders)
                     {
-                        if (BatchTask.CancellationPending) break;
+                        if (cancel.IsCancellationRequested) { result = false; break; }
 
-                        BatchTask.ReportProgress(0);
+                        ReportProgress(0);
 
                         var folder = GetAbsolutePath(storage.ImageFolder);
                         var feats_db = GetAbsolutePath(storage.DatabaseFile);
@@ -258,6 +235,8 @@ namespace ImageSearch.Search
                         }
 
                         #region Loading latest feats dataset npz
+                        if (cancel.IsCancellationRequested) { result = false; break; }
+
                         ConcurrentDictionary<string, float[]> feats_list = new();
                         if (np.size(feat_obj.Feats) > 0)
                         {
@@ -275,6 +254,8 @@ namespace ImageSearch.Search
                             }
                         }
 
+                        if (cancel.IsCancellationRequested) { result = false; break; }
+
                         if (File.Exists(npz_file))
                         {
                             try
@@ -289,6 +270,8 @@ namespace ImageSearch.Search
                         }
                         #endregion
 
+                        if (cancel.IsCancellationRequested) { result = false; break; }
+
                         var option = storage.Recurice ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
                         var files = Directory.GetFiles(folder, "*.*", option).Where(f => exts.Contains(Path.GetExtension(f).ToLower()));
                         var diffs = files.Except(feats_list.Keys).Except(feats.Keys).ToArray();
@@ -297,7 +280,7 @@ namespace ImageSearch.Search
 
                         foreach (var file in diffs)
                         {
-                            if (BatchTask.CancellationPending) { e.Cancel = true; break; }
+                            if (cancel.IsCancellationRequested) { result = false; break; }
 
                             index++;
                             if (string.IsNullOrEmpty(file)) continue;
@@ -306,12 +289,11 @@ namespace ImageSearch.Search
                             var feat = await ExtractImaegFeature(file);
                             if (!string.IsNullOrEmpty(file) && feat is not null) feats[file] = feat;
 
-                            e.Result = (float)index / count;
-
-                            BatchTask.ReportProgress((int)Math.Ceiling((float)index / count * 100.0));
+                            var percent = (int)Math.Ceiling((float)index / count * 100.0);
+                            ReportProgress(percent);
                             #endregion
 
-                            if (BatchTask.CancellationPending) { e.Cancel = true; break; }
+                            if (cancel.IsCancellationRequested) { result = false; break; }
 
                             #region Save feats dataset for every CheckPoint
                             var current = feats.Count;
@@ -331,9 +313,9 @@ namespace ImageSearch.Search
                             ReportBatch(info);
                         }
 
-                        if (!feats.IsEmpty && feat_obj is not null)
+                        if (count > 0 && !feats.IsEmpty && feat_obj is not null)
                         {
-                            if (BatchTask.CancellationPending) { e.Cancel = true; break; }
+                            if (cancel.IsCancellationRequested) { result = false; break; }
 
                             #region Save feats dataset for current worker
                             try
@@ -347,7 +329,7 @@ namespace ImageSearch.Search
                             catch (Exception ex) { ReportMessage(ex); }
                             #endregion
 
-                            if (BatchTask.CancellationPending) { e.Cancel = true; break; }
+                            if (cancel.IsCancellationRequested) { result = false; break; }
 
                             #region Save feats to HDF5
                             var feats_new = feats_list.UnionBy(feats, kv => kv.Key).ToDictionary();
@@ -359,7 +341,7 @@ namespace ImageSearch.Search
                             feats_new?.Clear();
                             feats_list?.Clear();
 
-                            if (BatchTask.CancellationPending) { e.Cancel = true; break; }
+                            if (cancel.IsCancellationRequested) { result = false; break; }
                             await SaveFeatureData(feat_obj);
                             #endregion
                         }
@@ -369,10 +351,13 @@ namespace ImageSearch.Search
                 finally
                 {
                     feats?.Clear();
+                    BatchCancel.TryReset();
                     sw?.Stop();
-                    ReportMessage($"Create feature datas finished, Elapsed: {sw?.Elapsed:dd\\.hh\\:mm\\:ss}", TaskStatus.RanToCompletion);
+                    if (BatchTaskIdle?.CurrentCount <= 0) BatchTaskIdle?.Release();
+                    ReportMessage($"Create feature datas finished, Elapsed: {sw?.Elapsed:dd\\.hh\\:mm\\:ss}", result ? TaskStatus.RanToCompletion : TaskStatus.Canceled);
                 }
             }
+            return (result);
         }
         #endregion
 
@@ -632,46 +617,82 @@ namespace ImageSearch.Search
 
         public async Task CreateFeatureData(Storage storage)
         {
-            if (BatchTask is not null && !BatchTask.IsBusy)
+            if (await BatchTaskIdle?.WaitAsync(0))
             {
-                var feat_obj = _features_.Where(f => f.FeatureDB.Equals(GetAbsolutePath(storage.DatabaseFile))).FirstOrDefault();
-                if (feat_obj == null && File.Exists(storage.DatabaseFile))
-                {
-                    await LoadFeatureData(storage);
-                }
+                if (!BatchCancel.TryReset() && BatchCancel.IsCancellationRequested) BatchCancel = new CancellationTokenSource();
 
-                var info = new BatchProgressInfo() { Folders = [storage] };
-                BatchTask.RunWorkerAsync(info);
+                var info = new BatchTaskInfo() { Folders = [storage] };
+                var result = await Task.Run(async () =>
+                {
+                    return(await CreateFeatureDataAsync(info, BatchCancel.Token));
+                }, BatchCancel.Token);
+
+                if (result)
+                {
+                    ReportProgress(100);
+                    ReportMessage("Batch work finished!");
+                }
+                else
+                {
+                    ReportProgress(100);
+                    ReportMessage("Batch work canceled!");
+                }
             }
         }
 
         public async Task CreateFeatureData(string folder, string feature_db, bool recurise = false)
         {
-            if (BatchTask is not null && !BatchTask.IsBusy)
+            if (await BatchTaskIdle?.WaitAsync(0))
             {
-                var feat_obj = _features_.Where(f => f.FeatureDB.Equals(GetAbsolutePath(feature_db))).FirstOrDefault();
-                if (feat_obj == null && File.Exists(GetAbsolutePath(feature_db)))
-                {
-                    await LoadFeatureData(feature_db);
-                }
+                var info = new BatchTaskInfo() { DatabaseName = feature_db ?? string.Empty, FolderName = folder, Recurise = recurise };
 
-                var info = new BatchProgressInfo() { DatabaseName = feature_db ?? string.Empty, FolderName = folder, Recurise = recurise };
-                BatchTask.RunWorkerAsync(info);
+                if (!BatchCancel.TryReset() && BatchCancel.IsCancellationRequested) BatchCancel = new CancellationTokenSource();
+                var result = await Task.Run(async ()=>
+                {
+                    return(await CreateFeatureDataAsync(info, BatchCancel.Token));
+                }, BatchCancel.Token);
+
+                if (result)
+                {
+                    ReportProgress(100);
+                    ReportMessage("Batch work finished!");
+                }
+                else
+                {
+                    ReportProgress(100);
+                    ReportMessage("Batch work canceled!");
+                }
             }
         }
 
-        public void CreateFeatureData(List<Storage> storage)
+        public async Task CreateFeatureData(List<Storage> storage)
         {
-            if (BatchTask is not null && !BatchTask.IsBusy)
+            if (await BatchTaskIdle?.WaitAsync(0))
             {
-                var info = new BatchProgressInfo() { Folders = storage };
-                BatchTask.RunWorkerAsync(info);
+                var info = new BatchTaskInfo() { Folders = storage };
+
+                if (!BatchCancel.TryReset() && BatchCancel.IsCancellationRequested) BatchCancel = new CancellationTokenSource();
+                var result = await Task.Run(async ()=>
+                {
+                    return(await CreateFeatureDataAsync(info, BatchCancel.Token));
+                }, BatchCancel.Token);
+
+                if (result)
+                {
+                    ReportProgress(100);
+                    ReportMessage("Batch work finished!");
+                }
+                else
+                {
+                    ReportProgress(100);
+                    ReportMessage("Batch work canceled!");
+                }
             }
         }
 
         public void CancelCreateFeatureData()
         {
-            if (BatchTask is not null && BatchTask.IsBusy) BatchTask.CancelAsync();
+            BatchCancel?.CancelAsync();
         }
 
         public async Task<(string[], float[,])> LoadFeature(string feature_db)
@@ -716,7 +737,7 @@ namespace ImageSearch.Search
                     h5?.Dispose();
                 }
                 return ((names, feats));
-            }).WaitAsync(TimeSpan.FromSeconds(30));
+            }).WaitAsync(TimeSpan.FromSeconds(60));
 
             return ((names, feats));
         }
@@ -933,64 +954,72 @@ namespace ImageSearch.Search
             {
                 await Task.Run(async () =>
                 {
-                    var sw = Stopwatch.StartNew();
-                    try
+                    if (await BatchTaskIdle.WaitAsync(0))
                     {
-                        ReportMessage($"Cleaning Feature Data from {file}", RunningStatue);
-
-                        float[,] feats;
-                        string[] names;
-
-                        var feat_obj = _features_.Where(f => f.FeatureDB.Equals(GetAbsolutePath(feature_db))).FirstOrDefault();
-
-                        (names, feats) = await LoadFeature(file);
-                        folder = GetAbsolutePath(folder);
-                        var option = recuice ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-                        var files = Directory.GetFiles(folder, "*.*", option).Where(f => exts.Contains(Path.GetExtension(f).ToLower()));
-                        var diffs = names.Except(files).ToList(); //.Where(f => !string.IsNullOrEmpty(f)).ToList();
-                        if (diffs.Count > 0)
+                        var sw = Stopwatch.StartNew();
+                        try
                         {
-                            var feat_list = new Dictionary<string, float[]>();
-                            for (var i = 0; i < feats.GetLength(0); i++)
+                            ReportMessage($"Cleaning Feature Data from {file}", RunningStatue);
+
+                            float[,] feats;
+                            string[] names;
+
+                            var feat_obj = _features_.Where(f => f.FeatureDB.Equals(GetAbsolutePath(feature_db))).FirstOrDefault();
+
+                            (names, feats) = await LoadFeature(file);
+                            folder = GetAbsolutePath(folder);
+                            var option = recuice ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+                            var files = Directory.GetFiles(folder, "*.*", option).Where(f => exts.Contains(Path.GetExtension(f).ToLower()));
+                            var diffs = names.Except(files).ToList(); //.Where(f => !string.IsNullOrEmpty(f)).ToList();
+                            if (diffs.Count > 0)
                             {
-                                if (string.IsNullOrEmpty(names[i])) continue;
-                                var row = new List<float>();
-                                for (var j = 0; j < feats.GetLength(1); j++)
+                                var feat_list = new Dictionary<string, float[]>();
+                                for (var i = 0; i < feats.GetLength(0); i++)
                                 {
-                                    row.Add(feats[i, j]);
+                                    if (string.IsNullOrEmpty(names[i])) continue;
+                                    var row = new List<float>();
+                                    for (var j = 0; j < feats.GetLength(1); j++)
+                                    {
+                                        row.Add(feats[i, j]);
+                                    }
+                                    feat_list.Add(names[i], row.ToArray());
                                 }
-                                feat_list.Add(names[i], row.ToArray());
-                            }
 
-                            diffs = diffs.Where(f => !string.IsNullOrEmpty(f)).ToList();
-                            var feats_dict = feat_list.Where(kv => string.IsNullOrEmpty(kv.Key) || !diffs.Contains(kv.Key)).ToDictionary();
+                                diffs = diffs.Where(f => !string.IsNullOrEmpty(f)).ToList();
+                                var feats_dict = feat_list.Where(kv => string.IsNullOrEmpty(kv.Key) || !diffs.Contains(kv.Key)).ToDictionary();
 
-                            var names_new = feats_dict.Select(kv => kv.Key).ToArray();
-                            var values = feats_dict.Select(kv => kv.Value).ToArray();
+                                var names_new = feats_dict.Select(kv => kv.Key).ToArray();
+                                var values = feats_dict.Select(kv => kv.Value).ToArray();
 
-                            float[,] feats_new = new float[values.GetLength(0), feats.GetLength(1)];
-                            for (var i = 0; i < feats_new.GetLength(0); i++)
-                            {
-                                for (var j = 0; j < feats_new.GetLength(1); j++)
+                                float[,] feats_new = new float[values.GetLength(0), feats.GetLength(1)];
+                                for (var i = 0; i < feats_new.GetLength(0); i++)
                                 {
-                                    feats_new[i, j] = values[i][j];
+                                    for (var j = 0; j < feats_new.GetLength(1); j++)
+                                    {
+                                        feats_new[i, j] = values[i][j];
+                                    }
                                 }
-                            }
 
-                            await SaveFeature(file, names_new, feats_new);
+                                await SaveFeature(file, names_new, feats_new);
 
-                            if (feat_obj is not null && names_new.Length > 0 && feats_new.Length > 0)
-                            {
-                                feat_obj.Names = names_new;
-                                feat_obj.Feats = new NDArray(feats_new);
-                                feat_obj.Loaded = true;
+                                if (feat_obj is not null && names_new.Length > 0 && feats_new.Length > 0)
+                                {
+                                    feat_obj.Names = names_new;
+                                    feat_obj.Feats = new NDArray(feats_new);
+                                    feat_obj.Loaded = true;
 
-                                ReportMessage($"Updated Feature DataTable to {file}, {sw?.Elapsed.TotalSeconds:F4}s");
+                                    ReportMessage($"Updated Feature DataTable to {file}, {sw?.Elapsed.TotalSeconds:F4}s");
+                                }
                             }
                         }
+                        catch (Exception ex) { ReportMessage(ex); }
+                        finally
+                        {
+                            if (BatchTaskIdle?.CurrentCount <= 0) BatchTaskIdle?.Release();
+                            sw?.Stop();
+                            ReportMessage($"Cleaned Feature Data {file}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
+                        }
                     }
-                    catch (Exception ex) { ReportMessage(ex); }
-                    finally { sw?.Stop(); ReportMessage($"Cleaned Feature Data {file}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s"); }
                 });
             }
         }

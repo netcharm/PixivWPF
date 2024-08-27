@@ -66,7 +66,7 @@ namespace ImageSearch
             return (System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetExecutingAssembly().Location));
         }
 
-        private void ReportBatch(BatchProgressInfo info)
+        private void ReportBatch(BatchTaskInfo info)
         {
             Dispatcher.InvokeAsync(() =>
             {
@@ -91,7 +91,7 @@ namespace ImageSearch
                     if (progress.Value <= 0 || progress.Value >= 100)
                     {
                         var state_old = progress.IsIndeterminate;
-                        var state_new = state == TaskStatus.Running || state == TaskStatus.WaitingForActivation;
+                        var state_new = state == TaskStatus.Running || state == TaskStatus.WaitingForActivation || state == TaskStatus.Canceled;
                         if (state_new != state_old) progress.IsIndeterminate = state_new;
                     }
 
@@ -423,7 +423,7 @@ namespace ImageSearch
                 StorageList = _storages_,
 
                 ReportProgressBar = progress,
-                BatchReportAction = new Action<BatchProgressInfo>(ReportBatch),
+                BatchReportAction = new Action<BatchTaskInfo>(ReportBatch),
                 MessageReportAction = new Action<string, TaskStatus>(ReportMessage)
             };
         }
@@ -805,12 +805,18 @@ namespace ImageSearch
         {
             InitSimilar();
 
-            if (Keyboard.Modifiers == ModifierKeys.Alt) similar.CancelCreateFeatureData();
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                e.Handled = true;
+                similar.CancelCreateFeatureData();
+                return;
+            }
+
             if (_storages_ is not null && _storages_.Count > 0)
             {
                 if (AllFolders.IsChecked ?? false)
                 {
-                    similar.CreateFeatureData(_storages_);
+                    await similar.CreateFeatureData(_storages_);
                 }
                 else if (FolderList.SelectedIndex >= 0)
                 {
