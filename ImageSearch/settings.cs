@@ -57,6 +57,13 @@ namespace ImageSearch
         public string ImageCompareCmd { get; set; } = string.Empty;
         public string ImageCompareOpt { get; set; } = string.Empty;
 
+        public BatchRunningMode ParallelMode { get; set; } = BatchRunningMode.ForLoop;
+        public int ParallelLimit { get; set; } = 5;
+        public int ParallelTimeOut { get; set; } = 5;
+        public ulong ParallelCheckPoint { get; set; } = 1000;
+
+        public int LogLines { get; set; } = 500;
+
         public bool AllFolder { get; set; } = true;
 
         public int ResultLimit { get; set; } = 10;

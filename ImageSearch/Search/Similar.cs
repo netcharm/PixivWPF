@@ -8,22 +8,15 @@ using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Printing;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics.X86;
-using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Input;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using System.Xml.Linq;
 
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.OnnxRuntime;
@@ -40,10 +33,12 @@ using SkiaSharp;
 namespace ImageSearch.Search
 {
 #pragma warning disable IDE0063
+#pragma warning disable IDE0305
+#pragma warning disable SYSLIB1045
 
     public class Storage
     {
-        private ITransformer? Model { get; set; } = null;
+        public ITransformer? Model { get; set; } = null;
 
         public string ImageFolder { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
@@ -60,11 +55,18 @@ namespace ImageSearch.Search
         public string[] ExcludeFolders { get; set; } = [];
     }
 
+    public enum BatchRunningMode { Parallel, ParallelAsync, MultiTask, ForLoop };
+
     public class BatchTaskInfo
     {
+        public BatchRunningMode ParallelMode { get; set; } = BatchRunningMode.ForLoop;
+        public int ParallelLimit { get; set; } = 5;
+        public TimeSpan ParallelTimeOut { get; set; } = TimeSpan.FromSeconds(5);
+        public ulong CheckPoint { get; set; } = 1000;
+        public CancellationToken? CancelToken { get; set; } = new CancellationToken();
+
         public bool MergeAllFeats { get; set; } = false;
         public bool Recurise { get; set; } = false;
-        public ulong CheckPoint { get; set; } = 5000;
         public string DatabaseName { get; set; } = string.Empty;
         public string FolderName { get; set; } = string.Empty;
         public List<Storage> Folders { get; set; } = [];
@@ -96,6 +98,8 @@ namespace ImageSearch.Search
     {
         private static readonly string[] exts = [ ".jpg", ".jpeg", ".bmp", ".png", ".tif", ".tiff", ".gif", ".webp" ];
         private static readonly string[] tiff_exts = [ ".tif", ".tiff" ];
+
+        public Settings? Setting { get; set; } = null;
 
         private static string GetAbsolutePath(string relativePath)
         {
@@ -189,7 +193,7 @@ namespace ImageSearch.Search
             });
         }
 
-        private async Task<bool> CreateFeatureDataAsync(BatchTaskInfo info, CancellationToken cancel)
+        private async Task<bool> CreateFeatureDataAsync(BatchTaskInfo info, CancellationToken? cancelToken = null)
         {
             var result = true;
 
@@ -199,6 +203,8 @@ namespace ImageSearch.Search
                 ConcurrentDictionary<string, float[]> feats = new();
                 try
                 {
+                    var cancel = cancelToken ?? info.CancelToken ?? new CancellationToken();
+
                     info.Folders ??= [];
                     if (info.Folders.Count <= 0 &&
                         !string.IsNullOrEmpty(info.DatabaseName) &&
@@ -278,42 +284,198 @@ namespace ImageSearch.Search
                         int count = diffs.Length;
                         uint index = 0;
 
-                        foreach (var file in diffs)
+                        SemaphoreSlim MultiTask = new(info.ParallelLimit, info.ParallelLimit);
+                        var opt = new ParallelOptions
                         {
-                            if (cancel.IsCancellationRequested) { result = false; break; }
+                            MaxDegreeOfParallelism = info.ParallelLimit,
+                            CancellationToken = cancel
+                        };
 
-                            index++;
-                            if (string.IsNullOrEmpty(file)) continue;
-
-                            #region Extracting image feature and store it to feats dataset
-                            var feat = await ExtractImaegFeature(file);
-                            if (!string.IsNullOrEmpty(file) && feat is not null) feats[file] = feat;
-
-                            var percent = (int)Math.Ceiling((float)index / count * 100.0);
-                            ReportProgress(percent);
-                            #endregion
-
-                            if (cancel.IsCancellationRequested) { result = false; break; }
-
-                            #region Save feats dataset for every CheckPoint
-                            var current = feats.Count;
-                            if (info.CheckPoint > 0 && current % (uint)info.CheckPoint == 0)
+                        if (info.ParallelMode == BatchRunningMode.Parallel)
+                        {
+                            var ret = Parallel.ForEach(diffs, opt, (file, loopstate, elementIndex) =>
                             {
                                 try
                                 {
-                                    np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), $@"data\{dir_name}_checkpoint_{current}.npz");
+                                    if (cancel.IsCancellationRequested) { result = false; loopstate.Stop(); return; }
+
+                                    index++;
+                                    if (string.IsNullOrEmpty(file)) return;
+
+                                    #region Extracting image feature and store it to feats dataset
+                                    //var feat = await ExtractImaegFeature(file);
+                                    var feat = ExtractImaegFeature(file).GetAwaiter().GetResult();
+                                    if (feat is not null) feats[file] = feat;
+
+                                    var percent = (int)Math.Ceiling((float)index / count * 100.0);
+                                    ReportProgress(percent);
+                                    #endregion
+
+                                    if (cancel.IsCancellationRequested) { result = false; loopstate.Stop(); return; }
+
+                                    #region Save feats dataset for every CheckPoint
+                                    var current = feats.Count;
+                                    if (info.CheckPoint > 0 && current % (uint)info.CheckPoint == 0)
+                                    {
+                                        try
+                                        {
+                                            var cp_npz_file = $@"data\{dir_name}_checkpoint_{current:00000000}.npz";
+                                            np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), cp_npz_file);
+                                            ReportMessage($"{cp_npz_file} saved!");
+                                        }
+                                        catch (Exception ex) { ReportMessage(ex); }
+                                    }
+                                    #endregion
+
+                                    info.FileName = file;
+                                    info.Current = index;
+                                    info.Total = count;
+                                    ReportBatch(info);
                                 }
                                 catch (Exception ex) { ReportMessage(ex); }
-                            }
-                            #endregion
+                            });
+                        }
+                        else if (info.ParallelMode == BatchRunningMode.ParallelAsync)
+                        {
+                            await Parallel.ForEachAsync(diffs, opt, async (file, cancel) =>
+                            {
+                                try
+                                {
+                                    if (cancel.IsCancellationRequested) { result = false; return; }
 
-                            info.FileName = file;
-                            info.Current = index;
-                            info.Total = count;
-                            ReportBatch(info);
+                                    index++;
+                                    if (string.IsNullOrEmpty(file)) return;
+
+                                    #region Extracting image feature and store it to feats dataset
+                                    var feat = await ExtractImaegFeature(file);
+                                    if (feat is not null) feats[file] = feat;
+
+                                    var percent = (int)Math.Ceiling((float)index / count * 100.0);
+                                    ReportProgress(percent);
+                                    #endregion
+
+                                    if (cancel.IsCancellationRequested) { result = false; return; }
+
+                                    #region Save feats dataset for every CheckPoint
+                                    var current = feats.Count;
+                                    if (info.CheckPoint > 0 && current % (uint)info.CheckPoint == 0)
+                                    {
+                                        try
+                                        {
+                                            var cp_npz_file = $@"data\{dir_name}_checkpoint_{current:00000000}.npz";
+                                            np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), cp_npz_file);
+                                            ReportMessage($"{cp_npz_file} saved!");
+                                        }
+                                        catch (Exception ex) { ReportMessage(ex); }
+                                    }
+                                    #endregion
+
+                                    info.FileName = file;
+                                    info.Current = index;
+                                    info.Total = count;
+                                    ReportBatch(info);
+                                }
+                                catch (Exception ex) { ReportMessage(ex); }
+                            });
+                        }
+                        else if (info.ParallelMode == BatchRunningMode.MultiTask)
+                        {
+                            var tasks = diffs.Select(async file =>
+                            {
+                                if (await MultiTask.WaitAsync(info.ParallelTimeOut, cancel))
+                                {
+                                    try
+                                    {
+                                        if (cancel.IsCancellationRequested) { result = false; return; }
+
+                                        index++;
+                                        if (string.IsNullOrEmpty(file)) return;
+
+                                        #region Extracting image feature and store it to feats dataset
+                                        var feat = await ExtractImaegFeature(file);
+                                        if (!string.IsNullOrEmpty(file) && feat is not null) feats[file] = feat;
+
+                                        var percent = (int)Math.Ceiling((float)index / count * 100.0);
+                                        ReportProgress(percent);
+                                        #endregion
+
+                                        if (cancel.IsCancellationRequested) { result = false; return; }
+
+                                        #region Save feats dataset for every CheckPoint
+                                        var current = feats.Count;
+                                        if (info.CheckPoint > 0 && current % (uint)info.CheckPoint == 0)
+                                        {
+                                            try
+                                            {
+                                                var cp_npz_file = $@"data\{dir_name}_checkpoint_{current:00000000}.npz";
+                                                np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), cp_npz_file);
+                                                ReportMessage($"{cp_npz_file} saved!");
+                                            }
+                                            catch (Exception ex) { ReportMessage(ex); }
+                                        }
+                                        #endregion
+
+                                        info.FileName = file;
+                                        info.Current = index;
+                                        info.Total = count;
+                                        ReportBatch(info);
+                                    }
+                                    catch (Exception ex) { ReportMessage(ex); }
+                                    finally { MultiTask?.Release(); }
+                                }
+                            });
+                            await Task.WhenAll(tasks);
+                        }
+                        else if (info.ParallelMode == BatchRunningMode.ForLoop)
+                        {
+                            foreach (var file in diffs)
+                            {
+                                if (cancel.IsCancellationRequested) { result = false; break; }
+                                if (await MultiTask?.WaitAsync(info.ParallelTimeOut, cancel))
+                                {
+                                    try
+                                    {
+                                        if (cancel.IsCancellationRequested) { result = false; break; }
+
+                                        index++;
+                                        if (string.IsNullOrEmpty(file)) break;
+
+                                        #region Extracting image feature and store it to feats dataset
+                                        var feat = await ExtractImaegFeature(file);
+                                        if (!string.IsNullOrEmpty(file) && feat is not null) feats[file] = feat;
+
+                                        var percent = (int)Math.Ceiling((float)index / count * 100.0);
+                                        ReportProgress(percent);
+                                        #endregion
+
+                                        if (cancel.IsCancellationRequested) { result = false; break; }
+
+                                        #region Save feats dataset for every CheckPoint
+                                        var current = feats.Count;
+                                        if (info.CheckPoint > 0 && current % (uint)info.CheckPoint == 0)
+                                        {
+                                            try
+                                            {
+                                                var cp_npz_file = $@"data\{dir_name}_checkpoint_{current:00000000}.npz";
+                                                np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), cp_npz_file);
+                                                ReportMessage($"{cp_npz_file} saved!");
+                                            }
+                                            catch (Exception ex) { ReportMessage(ex); }
+                                        }
+                                        #endregion
+
+                                        info.FileName = file;
+                                        info.Current = index;
+                                        info.Total = count;
+                                        ReportBatch(info);
+                                    }
+                                    catch (Exception ex) { ReportMessage(ex); }
+                                    finally { MultiTask?.Release(); }
+                                }
+                            }
                         }
 
-                        if (count > 0 && !feats.IsEmpty && feat_obj is not null)
+                        if (count > 0 && !feats.IsEmpty && feats?.Count == count && feat_obj is not null)
                         {
                             if (cancel.IsCancellationRequested) { result = false; break; }
 
@@ -324,7 +486,10 @@ namespace ImageSearch.Search
                                 using (var npz_fs = new FileStream(npz_file, FileMode.CreateNew, FileAccess.Write))
                                 {
                                     np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), npz_fs);
+                                    ReportMessage($"{npz_file} saved!");
                                 }
+                                var cp_npz_files = Directory.GetFiles("data", $@"{dir_name}_checkpoint_*.npz", SearchOption.TopDirectoryOnly);
+                                foreach (var npz in cp_npz_files.Where(f => Regex.IsMatch(f, @"checkpoint_\d+\.npz", RegexOptions.IgnoreCase))) File.Delete(npz);
                             }
                             catch (Exception ex) { ReportMessage(ex); }
                             #endregion
@@ -383,7 +548,7 @@ namespace ImageSearch.Search
             InitBatchTask();
             H5Filter.Register(new Blosc2Filter());
         }
-
+#if DEBUG
         private static double[] Norm(IEnumerable<double> array, bool zscore = false)
         {
             if (array == null) return ([]);
@@ -425,7 +590,7 @@ namespace ImageSearch.Search
             var ss = Math.Sqrt(array.Select(a => a * a).Sum());
             return (array.Select(a => a / ss).ToArray());
         }
-
+#endif
         private static float[] LA_Norm(float[] array)
         {
             //var ss0 = np.sqrt(np.power(array, 2).sum()).GetValue();
@@ -621,7 +786,16 @@ namespace ImageSearch.Search
             {
                 if (!BatchCancel.TryReset() && BatchCancel.IsCancellationRequested) BatchCancel = new CancellationTokenSource();
 
-                var info = new BatchTaskInfo() { Folders = [storage] };
+                var info = new BatchTaskInfo()
+                {
+                    Folders = [storage],
+
+                    CancelToken = BatchCancel.Token,
+                    ParallelMode = Setting.ParallelMode,
+                    ParallelLimit = Setting.ResultLimit,
+                    ParallelTimeOut = TimeSpan.FromSeconds(Setting.ParallelTimeOut),
+                    CheckPoint = Setting.ParallelCheckPoint
+                };
                 var result = await Task.Run(async () =>
                 {
                     return(await CreateFeatureDataAsync(info, BatchCancel.Token));
@@ -644,7 +818,18 @@ namespace ImageSearch.Search
         {
             if (await BatchTaskIdle?.WaitAsync(0))
             {
-                var info = new BatchTaskInfo() { DatabaseName = feature_db ?? string.Empty, FolderName = folder, Recurise = recurise };
+                var info = new BatchTaskInfo()
+                {
+                    DatabaseName = feature_db ?? string.Empty,
+                    FolderName = folder,
+                    Recurise = recurise,
+
+                    CancelToken = BatchCancel.Token,
+                    ParallelMode = Setting.ParallelMode,
+                    ParallelLimit = Setting.ResultLimit,
+                    ParallelTimeOut = TimeSpan.FromSeconds(Setting.ParallelTimeOut),
+                    CheckPoint = Setting.ParallelCheckPoint
+                };
 
                 if (!BatchCancel.TryReset() && BatchCancel.IsCancellationRequested) BatchCancel = new CancellationTokenSource();
                 var result = await Task.Run(async ()=>
@@ -669,7 +854,16 @@ namespace ImageSearch.Search
         {
             if (await BatchTaskIdle?.WaitAsync(0))
             {
-                var info = new BatchTaskInfo() { Folders = storage };
+                var info = new BatchTaskInfo()
+                {
+                    Folders = storage,
+
+                    CancelToken = BatchCancel.Token,
+                    ParallelMode = Setting.ParallelMode,
+                    ParallelLimit = Setting.ResultLimit,
+                    ParallelTimeOut = TimeSpan.FromSeconds(Setting.ParallelTimeOut),
+                    CheckPoint = Setting.ParallelCheckPoint
+                };
 
                 if (!BatchCancel.TryReset() && BatchCancel.IsCancellationRequested) BatchCancel = new CancellationTokenSource();
                 var result = await Task.Run(async ()=>

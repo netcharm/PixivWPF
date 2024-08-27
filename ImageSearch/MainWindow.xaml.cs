@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -15,16 +16,17 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using System.Windows.Media.TextFormatting;
 using System.Windows.Navigation;
+using System.Windows.Threading;
 
 using CompactExifLib;
 using SkiaSharp;
 using ImageSearch.Search;
-using NumSharp.Utilities;
 
 namespace ImageSearch
 {
@@ -66,27 +68,80 @@ namespace ImageSearch
             return (System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetExecutingAssembly().Location));
         }
 
+        private static readonly SemaphoreSlim CanDoEvents = new(1, 1);
+
+        private static object? ExitFrame(object state)
+        {
+            ((DispatcherFrame)state).Continue = false;
+            return null;
+        }
+
+        public static async void DoEvents()
+        {
+            if (Application.Current is not null && await CanDoEvents.WaitAsync(0))
+            {
+                try
+                {
+                    if (Application.Current.Dispatcher.CheckAccess())
+                    {
+                        await Dispatcher.Yield(DispatcherPriority.Render);
+                    }
+                }
+                catch (Exception)
+                {
+                    try
+                    {
+                        if (Application.Current.Dispatcher.CheckAccess())
+                        {
+                            DispatcherFrame frame = new();
+                            await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
+                            Dispatcher.PushFrame(frame);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        await Task.Delay(1);
+                    }
+                }
+                finally
+                {
+                    if (CanDoEvents?.CurrentCount <= 0) CanDoEvents?.Release();
+                }
+            }
+        }
+
+        private void ShowLog(IEnumerable<string> lines)
+        {
+            edResult?.Dispatcher.Invoke(() =>
+            {
+                if (edResult.LineCount >= settings.LogLines)
+                    edResult.Text = string.Join(Environment.NewLine, lines);
+                else
+                    edResult.AppendText($"{lines.First()}{Environment.NewLine}");
+                edResult.ScrollToEnd();
+                edResult.SelectionStart = edResult.Text.Length;
+                LatestMessage.Text = lines.First();
+                DoEvents();
+            }, DispatcherPriority.Normal);
+        }
+
         private void ReportBatch(BatchTaskInfo info)
         {
-            Dispatcher.InvokeAsync(() =>
+            if (info is not null)
             {
-                if (info is not null)
-                {
-                    var msg = $"{info.FileName}, [{info.Current}/{info.Total}, {info.Percentage:P}]";
-                    _log_.Add($"[{DateTime.Now:yyyy/MM/dd HH:mm:ss.fff}] {msg}");
-                    edResult.Text = _log_.Count > 1000 ? string.Join(Environment.NewLine, _log_.TakeLast(1000)) : string.Join(Environment.NewLine, _log_);
-                    edResult.ScrollToEnd();
-                    edResult.SelectionStart = edResult.Text.Length;
-                    LatestMessage.Text = msg;
-                }
-            }, System.Windows.Threading.DispatcherPriority.Normal);
+                var msg = $"{info.FileName}, [{info.Current}/{info.Total}, {info.Percentage:P}]";
+                _log_.Add($"[{DateTime.Now:yyyy/MM/dd HH:mm:ss.fff}] {msg}");
+                var log = _log_.Count > settings.LogLines ? _log_.TakeLast(settings.LogLines) : [msg];
+                ShowLog(log);
+                DoEvents();
+            }
         }
 
         private void ReportMessage(string info, TaskStatus state = TaskStatus.Created)
         {
-            Dispatcher.InvokeAsync(() =>
+            if (!string.IsNullOrEmpty(info))
             {
-                if (!string.IsNullOrEmpty(info))
+                progress?.Dispatcher.Invoke(() =>
                 {
                     if (progress.Value <= 0 || progress.Value >= 100)
                     {
@@ -94,15 +149,14 @@ namespace ImageSearch
                         var state_new = state == TaskStatus.Running || state == TaskStatus.WaitingForActivation || state == TaskStatus.Canceled;
                         if (state_new != state_old) progress.IsIndeterminate = state_new;
                     }
+                }, DispatcherPriority.Normal);
 
-                    var lines = info.Split(Environment.NewLine);
-                    foreach (var line in lines) _log_.Add($"[{DateTime.Now:yyyy/MM/dd HH:mm:ss.fff}] {line}");
-                    edResult.Text = _log_.Count > 1000 ? string.Join(Environment.NewLine, _log_.TakeLast(1000)) : string.Join(Environment.NewLine, _log_);
-                    edResult.ScrollToEnd();
-                    edResult.SelectionStart = edResult.Text.Length;
-                    LatestMessage.Text = lines.FirstOrDefault();
-                }
-            }, System.Windows.Threading.DispatcherPriority.Normal);
+                var lines = info.Split(Environment.NewLine);
+                foreach (var line in lines) _log_.Add($"[{DateTime.Now:yyyy/MM/dd HH:mm:ss.fff}] {line}");
+                var log = _log_.Count > settings.LogLines ? _log_.TakeLast(settings.LogLines) : lines;
+                ShowLog(log);
+                DoEvents();
+            }
         }
 
         private void ReportMessage(Exception ex, TaskStatus state = TaskStatus.Created)
@@ -416,6 +470,8 @@ namespace ImageSearch
         {
             similar ??= new Similar
             {
+                Setting = settings,
+
                 ModelLocation = settings.ModelFile,
                 ModelInputColumnName = settings.ModelInput,
                 ModelOutputColumnName = settings.ModelOutput,
@@ -580,7 +636,7 @@ namespace ImageSearch
 
                             #region Get GPS Geo Info
                             var gps = new List<string>();
-                            if(exif.GetGpsLongitude(out GeoCoordinate gpsLon)) 
+                            if (exif.GetGpsLongitude(out GeoCoordinate gpsLon))
                                 gps.Add($"{gpsLon.CardinalPoint} {gpsLon.Degree}.{gpsLon.Minute}'{gpsLon.Second}\"".Trim(['\0', ' ', '\n', '\r', '\t']));
                             if (exif.GetGpsLatitude(out GeoCoordinate gpsLat))
                                 gps.Add($"{gpsLat.CardinalPoint} {gpsLat.Degree}.{gpsLat.Minute}'{gpsLat.Second}\"".Trim(['\0', ' ', '\n', '\r', '\t']));
@@ -665,6 +721,8 @@ namespace ImageSearch
 
                 SimilarResultGallery.ItemsSource = GalleryList;
 
+                edResult.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+
                 var args = Environment.GetCommandLineArgs();
                 if (args.Length > 1 && File.Exists(args[1]))
                 {
@@ -693,6 +751,7 @@ namespace ImageSearch
                 }
                 catch (Exception ex) { e.Cancel = true; ReportMessage(ex); }
             }
+            else similar?.CancelCreateFeatureData();
         }
 
         private void Window_PreviewKeyUp(object sender, KeyEventArgs e)
