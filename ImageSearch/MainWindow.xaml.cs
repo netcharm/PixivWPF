@@ -534,7 +534,7 @@ namespace ImageSearch
             }
         }
 
-        private void ShellOpen(string[] files, bool openwith = false, bool viewinfo = false)
+        private void ShellOpen(string[] files, bool system = false, bool openwith = false, bool viewinfo = false)
         {
             if (files is not null && files.Length > 0)
             {
@@ -556,7 +556,7 @@ namespace ImageSearch
                             }
                             else
                             {
-                                if (string.IsNullOrEmpty(settings.ImageViewerCmd) || !File.Exists(settings.ImageViewerCmd))
+                                if (system || string.IsNullOrEmpty(settings.ImageViewerCmd) || !File.Exists(settings.ImageViewerCmd))
                                     Process.Start("explorer.exe", file);
                                 else
                                     Process.Start(settings.ImageViewerCmd, [settings.ImageViewerOpt, file]);
@@ -704,6 +704,7 @@ namespace ImageSearch
             try
             {
                 settings = Settings.Load(setting_file) ?? new Settings();
+                settings.SettingFile = setting_file;
 
                 //DefaultTextBrush = Foreground;
 
@@ -788,7 +789,7 @@ namespace ImageSearch
                     if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
                     {
                         e.Handled = true;
-                        QueryImage_Click(QueryClip, e);
+                        QueryImage_Click(QueryImage, e);
                     }
                     else if (e.Source == TabCompare || Tabs.SelectedItem == TabCompare)
                     {
@@ -872,59 +873,68 @@ namespace ImageSearch
             }
         }
 
-        private async void BtnMakeDB_Click(object sender, RoutedEventArgs e)
+        private async void DBTools_Click(object sender, RoutedEventArgs e)
         {
-            InitSimilar();
-
-            if (Keyboard.Modifiers == ModifierKeys.Control)
+            if (sender == OpenConfig)
             {
-                e.Handled = true;
-                similar.CancelCreateFeatureData();
-                return;
-            }
-
-            if (_storages_ is not null && _storages_.Count > 0)
-            {
-                if (AllFolders.IsChecked ?? false)
+                if (!string.IsNullOrEmpty(settings?.SettingFile))
                 {
-                    await similar.CreateFeatureData(_storages_);
-                }
-                else if (FolderList.SelectedIndex >= 0)
-                {
-                    var storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
-                    if (storage is not null) await similar.CreateFeatureData(storage);
+                    ShellOpen([settings.SettingFile], system: true);
                 }
             }
-        }
-
-        private async void BtnCleanDB_Click(object sender, RoutedEventArgs e)
-        {
-            if (MessageBox.Show("Will clean features database records", "Caution!", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            else if (sender == DBMake)
             {
                 InitSimilar();
 
-                var all_db = AllFolders.IsChecked ?? false;
-                if (all_db) await similar.CleanImageFeature();
-                else
+                if (Keyboard.Modifiers == ModifierKeys.Control)
                 {
-                    if (FolderList.SelectedIndex >= 0)
+                    e.Handled = true;
+                    similar.CancelCreateFeatureData();
+                    return;
+                }
+
+                if (_storages_ is not null && _storages_.Count > 0)
+                {
+                    if (AllFolders.IsChecked ?? false)
+                    {
+                        await similar.CreateFeatureData(_storages_);
+                    }
+                    else if (FolderList.SelectedIndex >= 0)
                     {
                         var storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
-                        await similar.CleanImageFeature(storage);
+                        if (storage is not null) await similar.CreateFeatureData(storage);
                     }
                 }
             }
-        }
+            else if (sender == DBClean)
+            {
+                if (MessageBox.Show("Will clean features database records", "Caution!", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                {
+                    InitSimilar();
 
-        private void ClipImage_Click(object sender, RoutedEventArgs e)
-        {
-            if (Tabs.SelectedItem == TabSimilar)
-            {
-                QueryImage_Click(QueryImage, e);
+                    var all_db = AllFolders.IsChecked ?? false;
+                    if (all_db) await similar.CleanImageFeature();
+                    else
+                    {
+                        if (FolderList.SelectedIndex >= 0)
+                        {
+                            var storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
+                            await similar.CleanImageFeature(storage);
+                        }
+                    }
+                }
             }
-            else if (Tabs.SelectedItem == TabCompare)
+            else if (sender == DBChangePath)
             {
-                CompareImage_Click(CompareImage, e);
+
+            }
+            else if (sender == DBRemove)
+            {
+
+            }
+            else if (sender == DBAdd)
+            {
+
             }
         }
 
@@ -1009,6 +1019,8 @@ namespace ImageSearch
 
         private async void QueryImage_Click(object sender, RoutedEventArgs e)
         {
+            if (Tabs.SelectedItem != TabSimilar) Tabs.SelectedItem = TabSimilar;
+
             InitSimilar();
 
             var storage = new Storage();

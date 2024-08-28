@@ -164,13 +164,22 @@
                        ScrollViewer.VerticalScrollBarVisibility="Auto"/>
         </DockPanel>
         <StackPanel Grid.Row="2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Orientation="Horizontal" FlowDirection="LeftToRight">
-            <Button x:Name="btnMakeDB" Click="BtnMakeDB_Click" Width="72" Margin="4">Make DB</Button>
-            <Button x:Name="btnCleanDB" Click="BtnCleanDB_Click" Width="72" Margin="4">Clean DB</Button>
+            <Button x:Name="DBMake" Width="72" Margin="4" Content="Make DB" Click="DBTools_Click">
+                <Button.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem x:Name="DBClean" Header="Clean DB" Click="DBTools_Click"/>
+                        <MenuItem x:Name="DBChangePath" Header="Change DB Path" Click="DBTools_Click"/>
+                        <MenuItem x:Name="DBRemove" Header="Remove DB" Click="DBTools_Click" Visibility="Collapsed"/>
+                        <MenuItem x:Name="DBAdd" Header="Add New DB" Click="DBTools_Click" Visibility="Collapsed"/>
+                        <Separator/>
+                        <MenuItem x:Name="OpenConfig" Header="Open Config File" Click="DBTools_Click"/>
+                    </ContextMenu>
+                </Button.ContextMenu>
+            </Button>
         </StackPanel>
         <TextBox Grid.Row="2" Grid.Column="1" x:Name="EditQueryFile" Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" TextAlignment="Center"/>
         <StackPanel Grid.Row="2" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Orientation="Horizontal" FlowDirection="RightToLeft">
             <Button x:Name="QueryImage" Click="QueryImage_Click" Width="72" Margin="4" >Query</Button>
-            <Button x:Name="QueryClip" Click="ClipImage_Click" Width="72" Margin="4" >Clipboard</Button>
             <Separator Width="16" Opacity="0" Foreground="Transparent"/>
             <Button x:Name="CompareImage" Click="CompareImage_Click" Width="72" Margin="4" >Compare</Button>
         </StackPanel>

@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows;
+
 using ImageSearch.Search;
 using Newtonsoft.Json;
 
@@ -13,6 +14,9 @@ namespace ImageSearch
 {
     public class Settings
     {
+        [Newtonsoft.Json.JsonIgnore]
+        internal protected string SettingFile { get; set; } = string.Empty;
+
         public static Settings? Load(string setting_file)
         {
             Settings? result = new ();
