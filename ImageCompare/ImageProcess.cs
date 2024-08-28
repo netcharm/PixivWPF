@@ -725,10 +725,14 @@ namespace ImageCompare
                     switch (align)
                     {
                         case Gravity.Center: width *= 2; height *= 2; break;
-                        case Gravity.North: width = 0; break;
-                        case Gravity.South: width = 0; break;
-                        case Gravity.East: height = 0; break;
-                        case Gravity.West: height = 0; break;
+                        case Gravity.North: width = 0; align = Gravity.South; break;
+                        case Gravity.South: width = 0; align = Gravity.North; break;
+                        case Gravity.East: height = 0; align = Gravity.West; break;
+                        case Gravity.West: height = 0; align = Gravity.East; break;
+                        case Gravity.Northeast: align = Gravity.Southwest; break;
+                        case Gravity.Northwest: align = Gravity.Southeast; break;
+                        case Gravity.Southeast: align = Gravity.Northwest; break;
+                        case Gravity.Southwest: align = Gravity.Northeast; break;
                         default: break;
                     }
                     var box = new MagickGeometry(image_s.Current.Width, image_s.Current.Height)
