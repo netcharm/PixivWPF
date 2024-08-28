@@ -110,17 +110,18 @@ namespace ImageSearch
             }
         }
 
-        private void ShowLog(IEnumerable<string> lines)
+        private void ShowLog()
         {
             edResult?.Dispatcher.Invoke(() =>
             {
-                if (edResult.LineCount >= settings.LogLines)
-                    edResult.Text = string.Join(Environment.NewLine, lines);
-                else
-                    edResult.AppendText($"{lines.First()}{Environment.NewLine}");
+                //if (edResult.LineCount >= settings.LogLines)
+                //    edResult.Text = string.Join(Environment.NewLine, _log_.TakeLast(settings.LogLines));
+                //else
+                //    edResult.AppendText($"{_log_.Last()}{Environment.NewLine}");
+                edResult.Text = string.Join(Environment.NewLine, _log_.TakeLast(settings.LogLines));
                 edResult.ScrollToEnd();
                 edResult.SelectionStart = edResult.Text.Length;
-                LatestMessage.Text = lines.First();
+                LatestMessage.Text = _log_.Last();
                 DoEvents();
             }, DispatcherPriority.Normal);
         }
@@ -131,10 +132,20 @@ namespace ImageSearch
             {
                 var msg = $"{info.FileName}, [{info.Current}/{info.Total}, {info.Percentage:P}]";
                 _log_.Add($"[{DateTime.Now:yyyy/MM/dd HH:mm:ss.fff}] {msg}");
-                var log = _log_.Count > settings.LogLines ? _log_.TakeLast(settings.LogLines) : [msg];
-                ShowLog(log);
+                //var log = _log_.Count > settings.LogLines ? _log_.TakeLast(settings.LogLines) : [msg];
+                ShowLog();
                 DoEvents();
             }
+        }
+
+        private void ReportProgress(double percentage)
+        {
+            progress?.Dispatcher.Invoke(() =>
+            {
+                percentage = double.IsNaN(percentage) ? 0 : percentage;
+                progress.Value = (int)Math.Min(100, Math.Min(0, percentage));
+                DoEvents();
+            }, DispatcherPriority.Normal);
         }
 
         private void ReportMessage(string info, TaskStatus state = TaskStatus.Created)
@@ -151,10 +162,10 @@ namespace ImageSearch
                     }
                 }, DispatcherPriority.Normal);
 
-                var lines = info.Split(Environment.NewLine);
-                foreach (var line in lines) _log_.Add($"[{DateTime.Now:yyyy/MM/dd HH:mm:ss.fff}] {line}");
-                var log = _log_.Count > settings.LogLines ? _log_.TakeLast(settings.LogLines) : lines;
-                ShowLog(log);
+                var lines = info.Split(Environment.NewLine).Select(l => $"[{DateTime.Now:yyyy/MM/dd HH:mm:ss.fff}] {l}");
+                _log_.AddRange(lines);
+                //var log = _log_.Count > settings.LogLines ? _log_.TakeLast(settings.LogLines) : lines;
+                ShowLog();
                 DoEvents();
             }
         }
@@ -163,7 +174,7 @@ namespace ImageSearch
         {
             if (ex is not null)
             {
-                ReportMessage($"{ex.StackTrace?.Split().LastOrDefault()} : {ex.Message}", state);
+                ReportMessage($"{ex?.StackTrace?.Split().LastOrDefault()} : {ex.Message}", state);
             }
         }
 
@@ -478,9 +489,10 @@ namespace ImageSearch
 
                 StorageList = _storages_,
 
-                ReportProgressBar = progress,
-                BatchReportAction = new Action<BatchTaskInfo>(ReportBatch),
-                MessageReportAction = new Action<string, TaskStatus>(ReportMessage)
+                ReportProgressAction = new Action<double>(ReportProgress),
+                ReportBatchTaskAction = new Action<BatchTaskInfo>(ReportBatch),
+                ReportMessageAction = new Action<string, TaskStatus>(ReportMessage),
+                ReportExceptionAction = new Action<Exception, TaskStatus>(ReportMessage),
             };
         }
 

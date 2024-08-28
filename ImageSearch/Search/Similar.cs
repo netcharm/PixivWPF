@@ -115,28 +115,37 @@ namespace ImageSearch.Search
             return fullPath;
         }
 
-        public Action<string, TaskStatus>? MessageReportAction;
+        #region Report Action & Helper
+        public Action<string, TaskStatus>? ReportMessageAction;
 
         private void ReportMessage(string info, TaskStatus state = TaskStatus.Created)
         {
-            if (MessageReportAction is not null && !string.IsNullOrEmpty(info))
-            {
-                Application.Current.Dispatcher.Invoke(MessageReportAction, priority: DispatcherPriority.Normal, info, state);
-                //MessageReportAction.Invoke(info, state);
-            }
+            ReportMessageAction?.Invoke(info, state);
         }
+
+        public Action<Exception, TaskStatus>? ReportExceptionAction;
 
         private void ReportMessage(Exception ex, TaskStatus state = TaskStatus.Created)
         {
-            if (MessageReportAction is not null && ex is not null)
+            ReportExceptionAction?.Invoke(ex, state);
+        }
+
+        public Action<BatchTaskInfo>? ReportBatchTaskAction;
+
+        private void ReportBatchTask(BatchTaskInfo info)
+        {
+            if (info is not null)
             {
-                Application.Current.Dispatcher.Invoke(MessageReportAction, priority: DispatcherPriority.Normal, $"{ex.StackTrace?.Split().LastOrDefault()} : {ex.Message}", state);
-                //MessageReportAction.Invoke(info, state);
+                ReportBatchTaskAction?.Invoke(info);
             }
         }
 
-        #region ProgressBar action
-        public ProgressBar? ReportProgressBar { get; set; }
+        public Action<double>? ReportProgressAction;
+
+        private void ReportProgress(double percentage)
+        {
+            ReportProgressAction?.Invoke(percentage);
+        }
         #endregion
 
         private static readonly int IMG_Width = 224;
@@ -167,30 +176,12 @@ namespace ImageSearch.Search
         private CancellationTokenSource BatchCancel = new();
         public TaskStatus RunningStatue { get { return (BatchTaskIdle?.CurrentCount > 0 ? TaskStatus.WaitingForActivation : TaskStatus.Running); } }
 
-        public Action<BatchTaskInfo>? BatchReportAction;
-
-        private void ReportBatch(BatchTaskInfo info)
-        {
-            if (info is not null)
-            {
-                BatchReportAction?.Invoke(info);
-            }
-        }
-
         private void InitBatchTask()
         {
             try
             {
             }
             catch (Exception ex) { ReportMessage(ex); }
-        }
-
-        private void ReportProgress(double percentage)
-        {
-            ReportProgressBar?.Dispatcher.Invoke(() =>
-            {
-                ReportProgressBar.Value = (int)percentage;
-            });
         }
 
         private async Task<bool> CreateFeatureDataAsync(BatchTaskInfo info, CancellationToken? cancelToken = null)
@@ -330,7 +321,7 @@ namespace ImageSearch.Search
                                     info.FileName = file;
                                     info.Current = index;
                                     info.Total = count;
-                                    ReportBatch(info);
+                                    ReportBatchTask(info);
                                 }
                                 catch (Exception ex) { ReportMessage(ex); }
                             });
@@ -373,7 +364,7 @@ namespace ImageSearch.Search
                                     info.FileName = file;
                                     info.Current = index;
                                     info.Total = count;
-                                    ReportBatch(info);
+                                    ReportBatchTask(info);
                                 }
                                 catch (Exception ex) { ReportMessage(ex); }
                             });
@@ -418,7 +409,7 @@ namespace ImageSearch.Search
                                         info.FileName = file;
                                         info.Current = index;
                                         info.Total = count;
-                                        ReportBatch(info);
+                                        ReportBatchTask(info);
                                     }
                                     catch (Exception ex) { ReportMessage(ex); }
                                     finally { MultiTask?.Release(); }
@@ -467,7 +458,7 @@ namespace ImageSearch.Search
                                         info.FileName = file;
                                         info.Current = index;
                                         info.Total = count;
-                                        ReportBatch(info);
+                                        ReportBatchTask(info);
                                     }
                                     catch (Exception ex) { ReportMessage(ex); }
                                     finally { MultiTask?.Release(); }
@@ -510,6 +501,7 @@ namespace ImageSearch.Search
                             await SaveFeatureData(feat_obj);
                             #endregion
                         }
+                        GC.Collect();
                     }
                 }
                 catch (Exception ex) { ReportMessage(ex); }
@@ -520,6 +512,7 @@ namespace ImageSearch.Search
                     sw?.Stop();
                     if (BatchTaskIdle?.CurrentCount <= 0) BatchTaskIdle?.Release();
                     ReportMessage($"Create feature datas finished, Elapsed: {sw?.Elapsed:dd\\.hh\\:mm\\:ss}", result ? TaskStatus.RanToCompletion : TaskStatus.Canceled);
+                    GC.Collect();
                 }
             }
             return (result);
@@ -894,9 +887,10 @@ namespace ImageSearch.Search
             float[,] feats;
             string[] names;
 
-            var sw = Stopwatch.StartNew();
             (names, feats) = await Task.Run<(string[], float[,])>(() =>
             {
+                var sw = Stopwatch.StartNew();
+
                 float[,] feats = new float[0,0];
                 string[] names = [];
 
@@ -929,6 +923,7 @@ namespace ImageSearch.Search
                 {
                     sw?.Stop();
                     h5?.Dispose();
+                    GC.Collect();
                 }
                 return ((names, feats));
             }).WaitAsync(TimeSpan.FromSeconds(60));
@@ -1233,7 +1228,7 @@ namespace ImageSearch.Search
                     {
                         if (bmp_src is not null)
                         {
-                            ReportMessage($"Extract Feature of {file}");
+                            ReportMessage($"Extracting Feature from {file}");
                             result = await ExtractImaegFeature(bmp_src);
                         }
                     }
@@ -1249,21 +1244,25 @@ namespace ImageSearch.Search
             float[]? result = null;
             if (image is not null)
             {
+                if (_model_ == null) await LoadModel();
+
                 var sw = Stopwatch.StartNew();
-                ReportMessage($"Extracting Feature of Memory Image", RunningStatue);
+                ReportMessage($"Extracting Feature from Memory Image", RunningStatue);
                 try
                 {
-                    if (_model_ == null) await LoadModel();
-
                     var size = new SKSizeI(IMG_SIZE.Width, IMG_SIZE.Height);
 
                     SKBitmap bmp_thumb;
                     if (image.BytesPerPixel == 1)
                     {
-                        var bmp_palete = image.Resize(size, SKFilterQuality.Medium);
-                        bmp_thumb = new SKBitmap(bmp_palete.Width, bmp_palete.Height);
-                        using var bmp_canvas = new SKCanvas(bmp_thumb);
-                        bmp_canvas.DrawImage(SKImage.FromBitmap(bmp_palete), 0f, 0f);
+                        using (var bmp_palete = image.Resize(size, SKFilterQuality.Medium))
+                        {
+                            bmp_thumb = new SKBitmap(bmp_palete.Width, bmp_palete.Height);
+                            using (var bmp_canvas = new SKCanvas(bmp_thumb))
+                            {
+                                bmp_canvas.DrawImage(SKImage.FromBitmap(bmp_palete), 0f, 0f);
+                            }
+                        }
                     }
                     else bmp_thumb = image.Resize(size, SKFilterQuality.Medium);
 
@@ -1273,13 +1272,15 @@ namespace ImageSearch.Search
                         result = _predictionEngine_.Predict(new ModelInput { Data = img_data }).Feature;
 
                         if (result != null) result = LA_Norm(result);
+                        img_data = Array.Empty<float>();
                     }
+                    bmp_thumb?.Dispose();
                 }
                 catch (Exception ex) { ReportMessage(ex); }
                 finally
                 {
                     sw?.Stop();
-                    ReportMessage($"Extracted Feature of Memory Image, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
+                    ReportMessage($"Extracted Feature from Memory Image, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
                 }
             }
             return (result);
@@ -1311,7 +1312,7 @@ namespace ImageSearch.Search
             {
                 try
                 {
-                    ReportMessage($"Compareing of feature", RunningStatue);
+                    ReportMessage($"Compareing feature", RunningStatue);
 
                     var pad = new float[padding];
 
@@ -1342,13 +1343,13 @@ namespace ImageSearch.Search
 
         public async Task<List<KeyValuePair<string, double>>> QueryImageScore(string file, string? feature_db = null, int limit = 10, int padding = 0)
         {
-            ReportMessage($"Query of {file}", RunningStatue);
+            ReportMessage($"Quering {file}", RunningStatue);
             return (await QueryImageScore(await ExtractImaegFeature(file), feature_db, limit, padding));
         }
 
         public async Task<List<KeyValuePair<string, double>>> QueryImageScore(SKBitmap? image, string? feature_db = null, int limit = 10, int padding = 0)
         {
-            ReportMessage($"Query of Memory Image", RunningStatue);
+            ReportMessage($"Quering Memory Image", RunningStatue);
             return (await QueryImageScore(await ExtractImaegFeature(image), feature_db, limit, padding));
         }
 
@@ -1362,7 +1363,7 @@ namespace ImageSearch.Search
             {
                 try
                 {
-                    ReportMessage($"Quering of feature", RunningStatue);
+                    ReportMessage($"Quering feature", RunningStatue);
 
                     int count = 0;
                     limit = Math.Min(120, Math.Max(1, limit));
@@ -1404,7 +1405,8 @@ namespace ImageSearch.Search
                     sw?.Stop();
                     if (ModelLoadedState.CurrentCount == 0) ModelLoadedState.Release();
                     if (FeatureLoadedState.CurrentCount == 0) FeatureLoadedState.Release();
-                    ReportMessage($"Queried of feature, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
+                    ReportMessage($"Queried feature, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
+                    GC.Collect();
                 }
             }
             else ReportMessage("Model or Feature Database not loaded.");
