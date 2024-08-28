@@ -269,6 +269,8 @@ namespace ImageCompare
         public int DenoiseCount { get; set; } = 0;
         public int DenoiseLevel { get; set; } = 0;
 
+        public MagickGeometry CurrentGeometry { get; internal set; }
+
         public void FixDPI(MagickImage image = null, bool use_system = false)
         {
             if (image == null) image = Current;
@@ -408,7 +410,8 @@ namespace ImageCompare
             var result = false;
             if (File.Exists(file))
             {
-                result = await Application.Current.Dispatcher.InvokeAsync(() =>
+                //result = await Application.Current.Dispatcher.InvokeAsync(() =>
+                result = await Task.Run(() =>
                 {
                     var ret = false;
                     try
@@ -431,9 +434,6 @@ namespace ImageCompare
                                     Original = new MagickImage(fs, MagickFormat.Unknown);
                                 }
                             }
-
-                            //if (update && Tagetment is Image && ValidCurrent)
-                            //    (Tagetment as Image).Source = Source;
 
                             ret = true;
                         }
@@ -1176,6 +1176,11 @@ namespace ImageCompare
                         FlipY = false;
                         Rotated = 0;
                         ResetTransform();
+                        if (CurrentGeometry is MagickGeometry)
+                        {
+                            Current.Resize(CurrentGeometry);
+                            Current.RePage();
+                        }
                         _basesize_ = new Size(Current.Width, Current.Height);
                         _last_colorspace_ = Current.ColorSpace;
                     }
@@ -1191,7 +1196,7 @@ namespace ImageCompare
             var result = false;
             try
             {
-                if (ValidOriginal && geo is MagickGeometry)
+                if (ValidOriginal)
                 {
                     if (reload && !string.IsNullOrEmpty(LastFileName)) await LoadImageFromFile(LastFileName);
                     if (OriginalModified || (ValidOriginal && !ValidCurrent) || (reset && ValidOriginal))
@@ -1205,8 +1210,11 @@ namespace ImageCompare
                         FlipY = false;
                         Rotated = 0;
                         ResetTransform();
-                        Current.Resize(geo);
-                        Current.RePage();
+                        if (geo is MagickGeometry)
+                        {
+                            Current.Resize(geo);
+                            Current.RePage();
+                        }
                         _basesize_ = new Size(Current.Width, Current.Height);
                         _last_colorspace_ = Current.ColorSpace;
                     }

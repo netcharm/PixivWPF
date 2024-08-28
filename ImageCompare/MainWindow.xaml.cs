@@ -851,6 +851,9 @@ namespace ImageCompare
                         {
                             if (reload)
                             {
+                                image_s.CurrentGeometry = CompareImageForceScale ? CompareResizeGeometry : null;
+                                image_t.CurrentGeometry = CompareImageForceScale ? CompareResizeGeometry : null;
+
                                 if (CompareImageForceScale)
                                 {
                                     if (reload_type == ImageType.All || reload_type == ImageType.Source)
@@ -911,19 +914,17 @@ namespace ImageCompare
                                 };
                             }
 
+                            foreach (var image in new ImageInformation[] { image_s, image_t })
+                            {
+                                image.SourceParams.Geometry = ShowGeometry;
+                                image.SourceParams.Align = DefaultMatchAlign;
+                                image.SourceParams.FillColor = MasklightColor;
+                            }
+
                             await Dispatcher.InvokeAsync(() =>
                             {
-                                foreach (var image in new ImageInformation[] { image_s, image_t })
-                                {
-                                    image.SourceParams.Geometry = ShowGeometry;
-                                    image.SourceParams.Align = DefaultMatchAlign;
-                                    image.SourceParams.FillColor = MasklightColor;
-                                }
                                 ImageSource.Source = image_s.Source;
                                 ImageTarget.Source = image_t.Source;
-
-                                GC.Collect();
-                                //GC.WaitForPendingFinalizers();
                             }, DispatcherPriority.Normal);
                         }
                         catch (Exception ex) { ex.ShowMessage(); }
@@ -931,24 +932,15 @@ namespace ImageCompare
 
                     await Dispatcher.InvokeAsync(() =>
                     {
-                        if (image_s.ValidCurrent)
-                            ImageSource.ToolTip = "Waiting".T();
-                        else
-                            ImageSource.ToolTip = null;
-
-                        if (image_t.ValidCurrent)
-                            ImageTarget.ToolTip = "Waiting".T();
-                        else
-                            ImageTarget.ToolTip = null;
-
+                        ImageSource.ToolTip = image_s.ValidCurrent ? "Waiting".T() : null;
+                        ImageTarget.ToolTip = image_t.ValidCurrent ? "Waiting".T() : null;
                         ImageResult.Source = null;
-                        if (image_r.ValidCurrent) image_r.Dispose();
                     }, DispatcherPriority.Normal);
+                    if (image_r.ValidCurrent) image_r.Dispose();
 
                     image_r.Original = await Compare(image_s.Current, image_t.Current, compose: compose);
                     image_r.OpMode = LastOpIsComposite ? ImageOpMode.Compose : ImageOpMode.Compare;
                     image_r.ColorFuzzy = DefaultColorFuzzy;
-
                     image_r.SourceParams.Geometry = ShowGeometry;
                     image_r.SourceParams.Align = DefaultMatchAlign;
                     image_r.SourceParams.FillColor = MasklightColor;
@@ -956,10 +948,7 @@ namespace ImageCompare
                     await Dispatcher.InvokeAsync(() =>
                     {
                         ImageResult.Source = image_r.Source;
-                        if (image_r.ValidCurrent)
-                            ImageResult.ToolTip = "Waiting".T();
-                        else
-                            ImageResult.ToolTip = null;
+                        ImageResult.ToolTip = image_r.ValidCurrent ? "Waiting".T() : null;
                     }, DispatcherPriority.Normal);
 
                     CalcDisplay(set_ratio: false);
@@ -967,6 +956,9 @@ namespace ImageCompare
                 catch (Exception ex) { ex.ShowMessage(); }
                 finally
                 {
+                    GC.Collect();
+                    //GC.WaitForPendingFinalizers();
+
                     await Dispatcher.InvokeAsync(() =>
                     {
                         ProcessStatus.IsIndeterminate = false;
@@ -3161,6 +3153,10 @@ namespace ImageCompare
                 {
                     MaxCompareSize = Math.Max(0, Math.Min(2048, value));
                     CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
+                    var image_s = ImageSource.GetInformation();
+                    var image_t = ImageTarget.GetInformation();
+                    image_s.CurrentGeometry = CompareResizeGeometry;
+                    image_t.CurrentGeometry = CompareResizeGeometry;
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
