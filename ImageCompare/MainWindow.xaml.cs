@@ -1060,7 +1060,7 @@ namespace ImageCompare
             {
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 ret = await image.LoadImageFromPrevFile();
-                if (ret) UpdateImageViewer(assign: true, reload: true, reload_type: source ? ImageType.Source : ImageType.Target);
+                if (ret) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: source ? ImageType.Source : ImageType.Target);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1072,7 +1072,7 @@ namespace ImageCompare
             {
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 ret = await image.LoadImageFromNextFile();
-                if (ret) UpdateImageViewer(assign: true, reload: true, reload_type: source ? ImageType.Source : ImageType.Target);
+                if (ret) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: source ? ImageType.Source : ImageType.Target);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -2703,7 +2703,7 @@ namespace ImageCompare
                 else if (reload_type == ImageType.Target)
                     action |= await ImageTarget.GetInformation().LoadImageFromNextFile();
 
-                if (action) UpdateImageViewer(assign: true, reload_type: reload_type);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload_type: reload_type);
             }
             else if (e.ChangedButton == MouseButton.XButton2)
             {
@@ -2715,7 +2715,7 @@ namespace ImageCompare
                 else if (reload_type == ImageType.Target)
                     action |= await ImageTarget.GetInformation().LoadImageFromPrevFile();
 
-                if (action) UpdateImageViewer(assign: true, reload_type: reload_type);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload_type: reload_type);
             }
             else ImageBox_MouseDown(sender, e);
         }
@@ -2922,7 +2922,7 @@ namespace ImageCompare
                 RenderRun(new Action(async () =>
                 {
                     var action = await ImageSource.GetInformation().LoadImageFromFile();
-                    if (action) UpdateImageViewer(assign: true, compose: LastOpIsComposite);
+                    if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true);
                 }));
             }
             else if (sender == ImageOpenTarget)
@@ -2930,7 +2930,7 @@ namespace ImageCompare
                 RenderRun(new Action(async () =>
                 {
                     var action = await ImageTarget.GetInformation().LoadImageFromFile();
-                    if (action) UpdateImageViewer(assign: true, compose: LastOpIsComposite);
+                    if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true);
                 }));
             }
             else if (sender == CreateImageWithColorSource)
@@ -2938,7 +2938,7 @@ namespace ImageCompare
                 RenderRun(new Action(() =>
                 {
                     CreateColorImage(true);
-                    UpdateImageViewer(assign: true, compose: LastOpIsComposite);
+                    UpdateImageViewer(compose: LastOpIsComposite, assign: true);
                 }));
             }
             else if (sender == CreateImageWithColorTarget)
@@ -2946,7 +2946,7 @@ namespace ImageCompare
                 RenderRun(new Action(() =>
                 {
                     CreateColorImage(false);
-                    UpdateImageViewer(assign: true, compose: LastOpIsComposite);
+                    UpdateImageViewer(compose: LastOpIsComposite, assign: true);
                 }));
             }
 
@@ -2955,7 +2955,7 @@ namespace ImageCompare
                 RenderRun(new Action(async () =>
                 {
                     var action = await ImageSource.GetInformation().LoadImageFromClipboard();
-                    if (action) UpdateImageViewer(assign: true, compose: LastOpIsComposite);
+                    if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true);
                 }));
             }
             else if (sender == ImagePasteTarget)
@@ -2963,7 +2963,7 @@ namespace ImageCompare
                 RenderRun(new Action(async () =>
                 {
                     var action = await ImageTarget.GetInformation().LoadImageFromClipboard();
-                    if (action) UpdateImageViewer(assign: true, compose: LastOpIsComposite);
+                    if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true);
                 }));
             }
             else if (sender == ImageClear)
@@ -2979,7 +2979,7 @@ namespace ImageCompare
                 var tt = ImageTarget.Tag;
                 ImageSource.Tag = tt;
                 ImageTarget.Tag = st;
-                UpdateImageViewer(assign: true, compose: LastOpIsComposite);
+                UpdateImageViewer(compose: LastOpIsComposite, assign: true);
             }
             else if (sender == RepeatLastAction)
             {
@@ -2998,7 +2998,7 @@ namespace ImageCompare
                 RenderRun(new Action(() =>
                 {
                     LastOpIsComposite = false;
-                    UpdateImageViewer();
+                    UpdateImageViewer(compose: false);
                 }));
             }
             else if (sender == ImageDenoiseResult)
