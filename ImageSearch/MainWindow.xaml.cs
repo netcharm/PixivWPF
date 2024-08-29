@@ -143,7 +143,7 @@ namespace ImageSearch
             progress?.Dispatcher.Invoke(() =>
             {
                 percentage = double.IsNaN(percentage) ? 0 : percentage;
-                progress.Value = (int)Math.Min(100, Math.Min(0, percentage));
+                progress.Value = (int)Math.Min(100, Math.Max(0, percentage));
                 DoEvents();
             }, DispatcherPriority.Normal);
         }
