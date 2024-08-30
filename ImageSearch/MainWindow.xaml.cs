@@ -27,6 +27,7 @@ using System.Windows.Threading;
 using CompactExifLib;
 using SkiaSharp;
 using ImageSearch.Search;
+using NumSharp.Utilities;
 
 namespace ImageSearch
 {
@@ -37,6 +38,7 @@ namespace ImageSearch
     /// </summary>
     public partial class MainWindow : Window
     {
+        private WindowState LastWinState = WindowState.Normal;
         private readonly List<string> _log_ = [];
 
         private readonly ObservableCollection<ImageResultGallery> GalleryList = [];
@@ -118,10 +120,13 @@ namespace ImageSearch
                 //    edResult.Text = string.Join(Environment.NewLine, _log_.TakeLast(settings.LogLines));
                 //else
                 //    edResult.AppendText($"{_log_.Last()}{Environment.NewLine}");
-                edResult.Text = string.Join(Environment.NewLine, _log_.TakeLast(settings.LogLines));
-                edResult.ScrollToEnd();
-                edResult.SelectionStart = edResult.Text.Length;
-                LatestMessage.Text = _log_.Last();
+                if (WindowState != WindowState.Minimized && _log_.Count > 0)
+                {
+                    edResult.Text = string.Join(Environment.NewLine, _log_.TakeLast(settings.LogLines));
+                    edResult.ScrollToEnd();
+                    edResult.SelectionStart = edResult.Text.Length;
+                }
+                LatestMessage.Text = _log_.LastOrDefault();
                 DoEvents();
             }, DispatcherPriority.Normal);
         }
@@ -767,6 +772,12 @@ namespace ImageSearch
             else similar?.CancelCreateFeatureData();
         }
 
+        private void Window_StateChanged(object sender, EventArgs e)
+        {
+            if (IsLoaded && WindowState != WindowState.Minimized && LastWinState == WindowState.Minimized) ShowLog();
+            LastWinState = WindowState;
+        }
+
         private void Window_PreviewKeyUp(object sender, KeyEventArgs e)
         {
             var shift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
@@ -1052,6 +1063,7 @@ namespace ImageSearch
                 (var bmp, var skb) = await LoadImageFromClipboard();
                 if (bmp is not null) SimilarSrc.Source = bmp;
                 if (skb is not null) SimilarSrc.Tag = skb;
+                ToolTipService.SetToolTip(SimilarSrcBox, null);
             }
             else if (!string.IsNullOrEmpty(EditQueryFile.Text))
             {
@@ -1081,10 +1093,34 @@ namespace ImageSearch
                 {
                     await LoadFeatureDB();
 
-                    var imlist = await similar.QueryImageScore(skb_src, feature_db, limit: limit);
-
-                    if (imlist.Count > 0)
+                    var queries = await similar.QueryImageScore(skb_src, feature_db, limit: limit, labels: true, confidence: 0.33);
+                    var imlist = queries?.Results;
+                    var labels = queries?.Labels;
+                    if (labels is not null)
                     {
+                        var similar_tips = string.Join(Environment.NewLine, labels.Select(x => $"Confidence of \"{x.Label}\" : {x.Confidence}"));
+                        if (!string.IsNullOrEmpty(similar_tips))
+                        {
+                            ReportMessage(similar_tips);
+                            SimilarSrcBox.Dispatcher.Invoke(() =>
+                            {
+                                object? tips = null;
+                                var tips_old = SimilarSrcBox.ToolTip is string && !string.IsNullOrEmpty(SimilarSrcBox.ToolTip as string) ? SimilarSrcBox.ToolTip as string : string.Empty;
+                                if (string.IsNullOrEmpty(tips_old)) tips = similar_tips;
+                                else if (tips_old.StartsWith("Confidence of")) tips = similar_tips;
+                                else
+                                {
+                                    var tips_lines = tips_old.Split(["\n\r", "\r\n", "\n", "\r"], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+                                    if (tips_lines.LastOrDefault().StartsWith("Confidence of")) tips_lines = tips_lines.RemoveAt(tips_lines.Length - 1);
+                                    tips = string.Join(Environment.NewLine, tips_lines.Append(similar_tips));
+                                }
+                                ToolTipService.SetToolTip(SimilarSrcBox, tips);
+                            });
+                        }
+                    }
+
+                    if (imlist?.Count > 0)
+                    {                        
                         ReportMessage(string.Join(Environment.NewLine, imlist.Select(im => $"{im.Key}, {im.Value:F4}")));
 
                         #region Open result in explorer by using search-ms protocol

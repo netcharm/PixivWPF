@@ -38,16 +38,20 @@ namespace ImageSearch.Search
 
     public class Storage
     {
-        public ITransformer? Model { get; set; } = null;
-
+        internal protected ITransformer? Model { get; set; } = null;
         public string ImageFolder { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public bool Recurice { get; set; } = false;
+
         public string ModelName { get; set; } = string.Empty;
         public string ModelFile { get; set; } = string.Empty;
         public string ModelInput { get; set; } = string.Empty;
         public string ModelOutput { get; set; } = string.Empty;
+
+        public bool Recurice { get; set; } = false;
+        public bool UseFullPath { get; set; } = true;
+
         public string DatabaseFile { get; set; } = string.Empty;
+
         public string[] DatabaseFiles { get; set; } = [];
         public string[] IccludeFiles { get; set; } = [];
         public string[] ExcludeFiles { get; set; } = [];
@@ -94,24 +98,49 @@ namespace ImageSearch.Search
         public bool Loaded { get; set; } = false;
     }
 
+    public class ModelInput
+    {
+        [VectorType(3 * 224 * 224)]
+        [ColumnName("ImageByteData")]
+        public float[]? Data { get; set; }
+    }
+
+    public class Prediction
+    {
+        [VectorType(1000)]
+        [ColumnName("PredictionFeature")]
+        public float[]? Feature { get; set; }
+    }
+
+    public class LabeledObject
+    {
+        public string? Label { get; set; }
+        public float? Confidence { get; set; }
+    }
+
+    public class SimilarResult
+    {
+        public List<KeyValuePair<string, double>>? Results { get; set; } = null;
+        public LabeledObject[]? Labels { get; set; } = null;
+    }
+
     internal class Similar
     {
         private static readonly string[] exts = [ ".jpg", ".jpeg", ".bmp", ".png", ".tif", ".tiff", ".gif", ".webp" ];
         private static readonly string[] tiff_exts = [ ".tif", ".tiff" ];
-
+        private static string AppPath = string.Empty;
         public Settings? Setting { get; set; } = null;
 
         private static string GetAbsolutePath(string relativePath)
         {
             string fullPath = string.Empty;
-            //FileInfo _dataRoot = new FileInfo(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            FileInfo _dataRoot = new (new Uri(System.Reflection.Assembly.GetExecutingAssembly().Location).LocalPath);
-            if (_dataRoot.Directory is not null)
+            if (string.IsNullOrEmpty(AppPath))
             {
-                string assemblyFolderPath = _dataRoot.Directory.FullName;
-
-                fullPath = Path.Combine(assemblyFolderPath, relativePath);
+                //FileInfo _dataRoot = new FileInfo(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                FileInfo _dataRoot = new (new Uri(System.Reflection.Assembly.GetExecutingAssembly().Location).LocalPath);
+                if (_dataRoot.Directory is not null) AppPath = _dataRoot.Directory.FullName;
             }
+            fullPath = Path.IsPathRooted(relativePath) ? relativePath : Path.Combine(AppPath, relativePath);
             return fullPath;
         }
 
@@ -244,7 +273,7 @@ namespace ImageSearch.Search
                             var names_a = feat_obj.Names;
                             for (var i = 0; i < feats_a.GetLength(0); i++)
                             {
-                                if (string.IsNullOrEmpty(names_a[i])) continue;
+                                if (string.IsNullOrEmpty(names_a[i]) || !File.Exists(names_a[i])) continue;
                                 var row = new List<float>();
                                 for (var j = 0; j < feats_a.GetLength(1); j++)
                                 {
@@ -302,8 +331,9 @@ namespace ImageSearch.Search
 
                                     #region Extracting image feature and store it to feats dataset
                                     //var feat = await ExtractImaegFeature(file);
-                                    var feat = ExtractImaegFeature(file).GetAwaiter().GetResult();
+                                    (var feat, _) = ExtractImaegFeature(file).GetAwaiter().GetResult();
                                     if (feat is not null) feats[file] = feat;
+                                    //if (feat is not null) feats[Path.GetRelativePath(folder, file)] = feat;
 
                                     var percent = (int)Math.Ceiling((float)index / count * 100.0);
                                     ReportProgress(percent);
@@ -345,8 +375,9 @@ namespace ImageSearch.Search
                                     if (string.IsNullOrEmpty(file)) return;
 
                                     #region Extracting image feature and store it to feats dataset
-                                    var feat = await ExtractImaegFeature(file);
+                                    (var feat, _) = await ExtractImaegFeature(file);
                                     if (feat is not null) feats[file] = feat;
+                                    //if (feat is not null) feats[Path.GetRelativePath(folder, file)] = feat;
 
                                     var percent = (int)Math.Ceiling((float)index / count * 100.0);
                                     ReportProgress(percent);
@@ -390,7 +421,7 @@ namespace ImageSearch.Search
                                         if (string.IsNullOrEmpty(file)) return;
 
                                         #region Extracting image feature and store it to feats dataset
-                                        var feat = await ExtractImaegFeature(file);
+                                        (var feat, _) = await ExtractImaegFeature(file);
                                         if (!string.IsNullOrEmpty(file) && feat is not null) feats[file] = feat;
 
                                         var percent = (int)Math.Ceiling((float)index / count * 100.0);
@@ -439,7 +470,7 @@ namespace ImageSearch.Search
                                         if (string.IsNullOrEmpty(file)) break;
 
                                         #region Extracting image feature and store it to feats dataset
-                                        var feat = await ExtractImaegFeature(file);
+                                        (var feat, _) = await ExtractImaegFeature(file);
                                         if (!string.IsNullOrEmpty(file) && feat is not null) feats[file] = feat;
 
                                         var percent = (int)Math.Ceiling((float)index / count * 100.0);
@@ -477,7 +508,7 @@ namespace ImageSearch.Search
                         }
 
                         //if (count > 0 && !feats.IsEmpty && feats?.Count == (total + count) && feat_obj is not null)
-                        if (count > 0 && !feats.IsEmpty && feats?.Count <= (total + count) && feat_obj is not null)
+                        if ((!File.Exists(feat_obj.FeatureDB) || count > 0) && !feats.IsEmpty && feats?.Count <= (total + count) && feat_obj is not null)
                         {
                             if (cancel.IsCancellationRequested) { result = false; break; }
 
@@ -508,6 +539,8 @@ namespace ImageSearch.Search
                             #region Save feats to HDF5
                             ReportMessage($"Post-Processing feature list");
                             var feats_new = feats_list.UnionBy(feats, kv => kv.Key).ToDictionary();
+
+                            feat_obj.FeatureStore = storage;
 
                             feat_obj.Names = feats_new.Keys.ToArray();
 
@@ -541,20 +574,6 @@ namespace ImageSearch.Search
 
         private readonly SemaphoreSlim ModelLoadedState = new(1, 1);
         private readonly SemaphoreSlim FeatureLoadedState = new(1, 1);
-
-        private class ModelInput
-        {
-            [VectorType(3 * 224 * 224)]
-            [ColumnName("ImageByteData")]
-            public float[]? Data { get; set; }
-        }
-
-        private class Prediction
-        {
-            [VectorType(1000)]
-            [ColumnName("PredictionFeature")]
-            public float[]? Feature { get; set; }
-        }
 
         public Similar()
         {
@@ -604,11 +623,72 @@ namespace ImageSearch.Search
             return (array.Select(a => a / ss).ToArray());
         }
 #endif
-        private static float[] LA_Norm(float[] array)
+        private static float[]? SoftMax(float[]? array)
         {
-            //var ss0 = np.sqrt(np.power(array, 2).sum()).GetValue();
+            if (array is null) return (null);
+            var exp = array.Select(x => (float)Math.Exp(x));
+            float sum = exp.Sum();
+            return (exp.Select(x => x / sum).ToArray());
+        }
+
+        private static float[]? LA_Norm(float[]? array)
+        {
+            if (array is null) return (null);
             var ss = (float)Math.Sqrt(array.Select(a => a * a).Sum());
             return (array.Select(a => a / ss).ToArray());
+        }
+
+        private float[]? MeanStd(float[]? array)
+        {
+            if (array is null) return(null);
+#if DEBUG
+            var sw = Stopwatch.StartNew();
+#endif
+            var mean = new[] { 0.485f, 0.456f, 0.406f };
+            var stddev = new[] { 0.229f, 0.224f, 0.225f };
+
+            //for (var i = 0; i < array.Length; i += 3)
+            //{
+            //    var b = (array[i + 0] / 255f - mean[2]) / stddev[2];
+            //    var g = (array[i + 1] / 255f - mean[1]) / stddev[1];
+            //    var r = (array[i + 2] / 255f - mean[0]) / stddev[0];
+            //    array[i + 0] = r;
+            //    array[i + 1] = g;
+            //    array[i + 2] = b;
+            //}
+            //
+            //var k = 0;
+            //var rgb = new float[3, 224,224];
+            //for (int y = 0; y < 224; y++)
+            //{
+            //    for (int x = 0; x < 224; x++)
+            //    {
+            //        rgb[0, y, x] = array[k++];
+            //        rgb[1, y, x] = array[k++];
+            //        rgb[2, y, x] = array[k++];
+            //    }
+            //}
+
+            var bgr = new float[224, 224, 3];
+            Buffer.BlockCopy(array, 0, bgr, 0, array.Length * sizeof(float));
+
+            var rgb = new float[3, 224,224];
+            for (int y = 0; y < 224; y++)
+            {
+                for (int x = 0; x < 224; x++)
+                {
+                    rgb[0, y, x] = (bgr[y, x, 2] / 255f - mean[0]) / stddev[0];
+                    rgb[1, y, x] = (bgr[y, x, 1] / 255f - mean[1]) / stddev[1];
+                    rgb[2, y, x] = (bgr[y, x, 0] / 255f - mean[2]) / stddev[2];
+                }
+            }
+
+            var result = new float[array.Length];
+            Buffer.BlockCopy(rgb, 0, result, 0, result.Length * sizeof(float));
+#if DEBUG
+            ReportMessage($"Convert BGR Array to RGB plan array, Elapsed : {sw?.Elapsed.TotalSeconds:F4}s");
+#endif
+            return (result);
         }
 
         public SKBitmap? FromImageSource(ImageSource src)
@@ -902,7 +982,7 @@ namespace ImageSearch.Search
             BatchCancel?.CancelAsync();
         }
 
-        public async Task<(string[], float[,])> LoadFeature(string feature_db)
+        public async Task<(string[], float[,])> LoadFeatureFile(string feature_db)
         {
             float[,] feats;
             string[] names;
@@ -934,7 +1014,6 @@ namespace ImageSearch.Search
 
                     feats = h5_feats.Read<float[,]>();
                     names = h5_names.Read<string[]>();
-                    //names = h5_names.Read<string[]>().Select(n => Path.GetFullPath(Path.Combine(image_folder, n))).ToArray();
 
                     ReportMessage($"Loaded Feature Database [{names.Length}, {feats.Length}] from {feature_db}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
                 }
@@ -951,7 +1030,7 @@ namespace ImageSearch.Search
             return ((names, feats));
         }
 
-        public async Task<bool> LoadFeatureData(string feature_db, bool reload = false)
+        private async Task<bool> LoadFeatureData(string feature_db, bool reload = false)
         {
             var result = false;
             if (string.IsNullOrEmpty(feature_db)) return(result);
@@ -962,7 +1041,7 @@ namespace ImageSearch.Search
                 var sw = Stopwatch.StartNew();
                 try
                 {
-                    var feat_obj = _features_.Where(f => f.FeatureDB.Equals(feature_db)).FirstOrDefault();
+                    var feat_obj = _features_.Where(f => f.FeatureDB.Equals(feature_db) || f.FeatureDB.Equals(GetAbsolutePath(feature_db))).FirstOrDefault();
                     if (feat_obj == null || reload)
                     {
                         ReportMessage($"Loading Feature DataTable from {file}", RunningStatue);
@@ -972,7 +1051,7 @@ namespace ImageSearch.Search
 
                         float[,] feats;
                         string[] names;
-                        (names, feats) = await LoadFeature(file);
+                        (names, feats) = await LoadFeatureFile(file);
                         if (names.Length > 0 && feats.Length > 0)
                         {
                             feat_obj.Names = names;
@@ -1008,7 +1087,7 @@ namespace ImageSearch.Search
                         {
                             float[,] feats;
                             string[] names;
-                            (names, feats) = await LoadFeature(file);
+                            (names, feats) = await LoadFeatureFile(file);
                             result = await Task.Run(() =>
                             {
                                 var ret = false;
@@ -1017,11 +1096,19 @@ namespace ImageSearch.Search
                                 {
                                     if (feat_obj == null)
                                     {
-                                        _features_.Add(new FeatureData() { FeatureDB = file, Names = names, Feats = new NDArray(feats), Loaded = true });
+                                        _features_.Add(new FeatureData() 
+                                        {
+                                            FeatureStore = storage,
+                                            FeatureDB = file, 
+                                            Names = names.Select(x => Path.Combine(GetAbsolutePath(storage.ImageFolder), x)).ToArray(), 
+                                            Feats = new NDArray(feats), 
+                                            Loaded = true
+                                        });
                                     }
                                     else
                                     {
-                                        feat_obj.Names = names;
+                                        feat_obj.FeatureStore = storage;
+                                        feat_obj.Names = names.Select(x => Path.Combine(GetAbsolutePath(storage.ImageFolder), x)).ToArray();
                                         feat_obj.Feats = new NDArray(feats);
                                     }
                                     ReportMessage($"Loaded Feature DataTable from {file}, {sw?.Elapsed.TotalSeconds:F4}s");
@@ -1052,7 +1139,7 @@ namespace ImageSearch.Search
             return(result);
         }
 
-        public async Task<bool> SaveFeature(string feature_db, string[] names, Array feats)
+        public async Task<bool> SaveFeatureFile(string feature_db, string[] names, Array feats, string imagefolder, bool fullpath = false)
         {
             var result = false;
             var file = GetAbsolutePath(feature_db);
@@ -1064,14 +1151,16 @@ namespace ImageSearch.Search
                     try
                     {
                         ReportMessage($"Saving Feature Data to {file}", RunningStatue);
-                        //image_folder = (!string.IsNullOrEmpty(image_folder) && Directory.Exists(System.IO.Path.GetFullPath(image_folder)) ? 
+
+                        fullpath = fullpath && !string.IsNullOrEmpty(imagefolder) && Directory.Exists(imagefolder);
+
                         if (File.Exists(file)) File.Move(file, $"{file}.lastgood", true);
                         var h5 = new H5File()
                         {
                             //["my-group"] = new H5Group()
                             //{
                             //["names"] = names.Select(n => n.Replace(image_folder, string.Empty)).ToArray(),
-                            ["names"] = names,
+                            ["names"] = fullpath ? names : names.Select(x => x.Replace(GetAbsolutePath(imagefolder), "").TrimStart(['\\', '/', ' ', '\0'])).ToArray(),
                             ["feats"] = feats,
                             Attributes = new()
                             {
@@ -1096,6 +1185,7 @@ namespace ImageSearch.Search
                             ]
                         };
                         h5?.Write(file, option);
+                        h5?.Clear();
                         ReportMessage($"Saved Feature Data to {file}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
                         result = true;
                     }
@@ -1116,7 +1206,7 @@ namespace ImageSearch.Search
                 {
                     if (File.Exists(file)) File.Move(file, $"{file}.lastgood", true);
 
-                    result = await SaveFeature(file, featuredata.Names, featuredata.Feats.ToMuliDimArray<float>());
+                    result = await SaveFeatureFile(file, featuredata.Names, featuredata.Feats.ToMuliDimArray<float>(), featuredata.FeatureStore.ImageFolder, featuredata.FeatureStore.UseFullPath);
                 }
             }
             return (result);
@@ -1140,9 +1230,9 @@ namespace ImageSearch.Search
                         float[,] feats;
                         string[] names;
 
-                        (names, feats) = await LoadFeature(file);
+                        (names, feats) = await LoadFeatureFile(file);
                         names = names.Select(n => n.Replace(old_folder, new_folder)).ToArray();
-                        await SaveFeature(file, names, feats);
+                        await SaveFeatureFile(file, names, feats, new_folder, true);
                     }
                     catch (Exception ex) { ReportMessage(ex); }
                     finally { sw?.Stop(); ReportMessage($"Changed Feature Data Folder from {old_folder} to {new_folder}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s"); }
@@ -1178,20 +1268,20 @@ namespace ImageSearch.Search
             {
                 await Task.Run(async () =>
                 {
-                    if (await BatchTaskIdle.WaitAsync(0))
+                if (await BatchTaskIdle.WaitAsync(0))
+                {
+                    var sw = Stopwatch.StartNew();
+                    try
                     {
-                        var sw = Stopwatch.StartNew();
-                        try
-                        {
-                            ReportMessage($"Cleaning Feature Data from {file}", RunningStatue);
+                        ReportMessage($"Cleaning Feature Data from {file}", RunningStatue);
 
-                            float[,] feats;
-                            string[] names;
+                        float[,] feats;
+                        string[] names;
 
-                            var feat_obj = _features_.Where(f => f.FeatureDB.Equals(GetAbsolutePath(feature_db))).FirstOrDefault();
+                        var feat_obj = _features_.Where(f => f.FeatureDB.Equals(feature_db) || f.FeatureDB.Equals(GetAbsolutePath(feature_db))).FirstOrDefault();
 
-                            (names, feats) = await LoadFeature(file);
-                            folder = GetAbsolutePath(folder);
+                            (names, feats) = await LoadFeatureFile(file);
+                            folder = Path.GetFullPath(folder);
                             var option = recuice ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
                             var files = Directory.GetFiles(folder, "*.*", option).Where(f => exts.Contains(Path.GetExtension(f).ToLower()));
                             var diffs = names.Except(files).ToList(); //.Where(f => !string.IsNullOrEmpty(f)).ToList();
@@ -1224,7 +1314,7 @@ namespace ImageSearch.Search
                                     }
                                 }
 
-                                await SaveFeature(file, names_new, feats_new);
+                                await SaveFeatureFile(file, names_new, feats_new, folder, feat_obj.FeatureStore.UseFullPath);
 
                                 if (feat_obj is not null && names_new.Length > 0 && feats_new.Length > 0)
                                 {
@@ -1248,9 +1338,10 @@ namespace ImageSearch.Search
             }
         }
 
-        public async Task<float[]?> ExtractImaegFeature(string file)
+        public async Task<(float[]?, LabeledObject[]?)> ExtractImaegFeature(string file, bool labels = false)
         {
-            float[]? result = null;
+            float[]? feature = null;
+            LabeledObject[]? label = null;
 
             if (_model_ == null) await LoadModel();
 
@@ -1264,19 +1355,21 @@ namespace ImageSearch.Search
                         if (bmp_src is not null)
                         {
                             ReportMessage($"Extracting Feature from {file}");
-                            result = await ExtractImaegFeature(bmp_src);
+                            (feature, label) = await ExtractImaegFeature(bmp_src, labels);
                         }
                     }
                 }
                 catch (Exception ex) { ReportMessage(ex); }
             }
 
-            return (result);
+            return (feature, label);
         }
 
-        public async Task<float[]?> ExtractImaegFeature(SKBitmap? image)
+        public async Task<(float[]?, LabeledObject[]?)> ExtractImaegFeature(SKBitmap? image, bool labels = false)
         {
-            float[]? result = null;
+            float[]? feature = null;
+            LabeledObject[]? label = null;
+
             if (image is not null)
             {
                 if (_model_ == null) await LoadModel();
@@ -1303,10 +1396,15 @@ namespace ImageSearch.Search
 
                     using (var img = MLImage.CreateFromPixels(bmp_thumb.Width, bmp_thumb.Height, MLPixelFormat.Bgra32, bmp_thumb.Bytes))
                     {
-                        var img_data = img.GetBGRPixels.Select(b => (float)b).ToArray();
-                        result = _predictionEngine_.Predict(new ModelInput { Data = img_data }).Feature;
+                        var img_data = MeanStd(img.GetBGRPixels.Select(b => (float)b).ToArray());
+                        feature = _predictionEngine_.Predict(new ModelInput { Data = img_data }).Feature;
+                        if (labels)
+                        {
+                            //var _feat_ = _predictionEngine_.Predict(new ModelInput { Data = MeanStd(img_data) }).Feature;
+                            label = SoftMax(feature)?.Select((x, i) => new LabeledObject() { Label = LabelMap.Labels[i], Confidence = x }).OrderByDescending(x => x.Confidence).ToArray();
+                        }
+                        if (feature != null) feature = LA_Norm(feature);
 
-                        if (result != null) result = LA_Norm(result);
                         img_data = Array.Empty<float>();
                     }
                     bmp_thumb?.Dispose();
@@ -1318,13 +1416,13 @@ namespace ImageSearch.Search
                     ReportMessage($"Extracted Feature from Memory Image, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
                 }
             }
-            return (result);
+            return (feature, label);
         }
 
         public async Task<double> CompareImage(string file0, string file1, int padding = 0)
         {
             ReportMessage($"Comparing {file0}, {file1}", RunningStatue);
-            return (await CompareImage(await ExtractImaegFeature(file0), await ExtractImaegFeature(file1), padding));
+            return (await CompareImage((await ExtractImaegFeature(file0)).Item1, (await ExtractImaegFeature(file1)).Item1, padding));
         }
 
         public async Task<double> CompareImage(SKBitmap? image0, SKBitmap? image1, int padding = 0)
@@ -1332,7 +1430,7 @@ namespace ImageSearch.Search
             if (image0 is not null && image1 is not null)
             {
                 ReportMessage($"Comparing Memory Images", RunningStatue);
-                return (await CompareImage(await ExtractImaegFeature(image0), await ExtractImaegFeature(image1), padding));
+                return (await CompareImage((await ExtractImaegFeature(image0)).Item1, (await ExtractImaegFeature(image1)).Item1, padding));
             }
             return (0);
         }
@@ -1376,16 +1474,20 @@ namespace ImageSearch.Search
             return (result);
         }
 
-        public async Task<List<KeyValuePair<string, double>>> QueryImageScore(string file, string? feature_db = null, int limit = 10, int padding = 0)
+        public async Task<SimilarResult> QueryImageScore(string file, string? feature_db = null, int limit = 10, int padding = 0, bool labels = false, double confidence = 0.75)
         {
             ReportMessage($"Quering {file}", RunningStatue);
-            return (await QueryImageScore(await ExtractImaegFeature(file), feature_db, limit, padding));
+            var features = await ExtractImaegFeature(file, labels);
+            var result = new SimilarResult(){ Labels = features.Item2?.Where(x => x.Confidence >= confidence).ToArray(), Results = await QueryImageScore(features.Item1, feature_db, limit, padding) };
+            return (result);
         }
 
-        public async Task<List<KeyValuePair<string, double>>> QueryImageScore(SKBitmap? image, string? feature_db = null, int limit = 10, int padding = 0)
+        public async Task<SimilarResult> QueryImageScore(SKBitmap? image, string? feature_db = null, int limit = 10, int padding = 0, bool labels = false, double confidence = 0.75)
         {
             ReportMessage($"Quering Memory Image", RunningStatue);
-            return (await QueryImageScore(await ExtractImaegFeature(image), feature_db, limit, padding));
+            var features = await ExtractImaegFeature(image, labels);
+            var result = new SimilarResult(){ Labels = features.Item2?.Where(x => x.Confidence >= confidence).ToArray(), Results = await QueryImageScore(features.Item1, feature_db, limit, padding) };
+            return (result);
         }
 
         public async Task<List<KeyValuePair<string, double>>> QueryImageScore(float[]? feature, string? feature_db = null, int limit = 10, int padding = 0)
@@ -1402,9 +1504,9 @@ namespace ImageSearch.Search
 
                     int count = 0;
                     limit = Math.Min(120, Math.Max(1, limit));
-                    foreach (var feat_obj in string.IsNullOrEmpty(feature_db) ? _features_ : _features_.Where(f => f.FeatureDB.Equals(GetAbsolutePath(feature_db))).ToList())
+                    foreach (var feat_obj in string.IsNullOrEmpty(feature_db) ? _features_ : _features_.Where(f => f.FeatureDB.Equals(feature_db) || f.FeatureDB.Equals(GetAbsolutePath(feature_db))).ToList())
                     {
-                        if (!(feat_obj.Names is not null && feat_obj.Names.Length > 0) || !(feat_obj.Feats is not null && feat_obj.Feats.shape[0] > 0)) await LoadFeatureData(feat_obj.FeatureDB);
+                        if (!(feat_obj.Names is not null && feat_obj.Names.Length > 0) || !(feat_obj.Feats is not null && feat_obj.Feats.shape[0] > 0)) await LoadFeatureData(feat_obj.FeatureStore);
 
                         count += limit;
                         var pad = new float[padding];
