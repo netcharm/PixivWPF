@@ -9,6 +9,7 @@ using System.Windows;
 
 using ImageSearch.Search;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace ImageSearch
 {
@@ -61,6 +62,7 @@ namespace ImageSearch
         public string ImageCompareCmd { get; set; } = string.Empty;
         public string ImageCompareOpt { get; set; } = string.Empty;
 
+        [Newtonsoft.Json.JsonConverter(typeof(StringEnumConverter))]
         public BatchRunningMode ParallelMode { get; set; } = BatchRunningMode.ForLoop;
         public int ParallelLimit { get; set; } = 5;
         public int ParallelTimeOut { get; set; } = 5;
@@ -71,6 +73,7 @@ namespace ImageSearch
         public bool AllFolder { get; set; } = true;
 
         public int ResultLimit { get; set; } = 10;
+        public double ResultConfidence { get; set; } = 0.25;
 
         public string LastImageFolder { get; set; } = string.Empty;
         public List<Storage> StorageList { get; set; } = [];

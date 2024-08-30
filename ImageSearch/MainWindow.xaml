@@ -168,6 +168,7 @@
                 <Button.ContextMenu>
                     <ContextMenu>
                         <MenuItem x:Name="DBClean" Header="Clean DB" Click="DBTools_Click"/>
+                        <MenuItem x:Name="DBMerge" Header="Merge DB" Click="DBTools_Click"/>
                         <MenuItem x:Name="DBChangePath" Header="Change DB Path" Click="DBTools_Click"/>
                         <MenuItem x:Name="DBRemove" Header="Remove DB" Click="DBTools_Click" Visibility="Collapsed"/>
                         <MenuItem x:Name="DBAdd" Header="Add New DB" Click="DBTools_Click" Visibility="Collapsed"/>

@@ -135,7 +135,7 @@ namespace ImageSearch
         {
             if (info is not null)
             {
-                var msg = $"{info.FileName}, [{info.Current}/{info.Total}, {info.Percentage:P}]";
+                var msg = $"{info.FileName}, [{info.Current}/{info.Total}, {info.Percentage:P}], Remaining ≈ {info.RemainingTime:HH:mm:ss}";
                 _log_.Add($"[{DateTime.Now:yyyy/MM/dd HH:mm:ss.fff}] {msg}");
                 //var log = _log_.Count > settings.LogLines ? _log_.TakeLast(settings.LogLines) : [msg];
                 ShowLog();
@@ -148,6 +148,7 @@ namespace ImageSearch
             progress?.Dispatcher.Invoke(() =>
             {
                 percentage = double.IsNaN(percentage) ? 0 : percentage;
+                if (progress.IsIndeterminate && percentage > 0 && percentage < 100) progress.IsIndeterminate = false;
                 progress.Value = (int)Math.Min(100, Math.Max(0, percentage));
                 DoEvents();
             }, DispatcherPriority.Normal);
@@ -260,9 +261,6 @@ namespace ImageSearch
                             sk_data.SaveTo(ms);
                             ms.Seek(0, SeekOrigin.Begin);
 
-                            //var frame = BitmapFrame.Create(ms);
-                            //frame.Freeze();
-
                             var bmp = new BitmapImage();
                             bmp.BeginInit();
                             bmp.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
@@ -373,6 +371,7 @@ namespace ImageSearch
                                     {
                                         imgs.Add(LoadImageFromFile(files[0]));
                                     }
+                                    break;
                                 }
                             }
                             else if (fmt.Equals("Text"))
@@ -389,6 +388,7 @@ namespace ImageSearch
                                     {
                                         imgs.Add(LoadImageFromFile(file));
                                     }
+                                    break;
                                 }
                             }
                             else if (fmt.Equals("DeviceIndependentBitmap") || fmt.Equals("Format17"))
@@ -420,6 +420,8 @@ namespace ImageSearch
                                         s.Write(dib, 0, dib.Length);
                                         imgs.Add(LoadImageFromStream(s));
                                     }
+                                    bh = [];
+                                    dib = [];
                                     break;
                                 }
 
@@ -585,6 +587,13 @@ namespace ImageSearch
             });
         }
 
+        private static string PaddingLines(string text, int padding)
+        {
+            if (string.IsNullOrEmpty(text)) return (text);
+            var lines = text.Split(["\n\r", "\r\n", "\n", "\r"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            return (string.Join(Environment.NewLine, lines.Select(l => $"{"".PadLeft(padding)}{l}")).Trim());
+        }
+
         private async Task<string> GetImageInfo(string? img_file)
         {
             var result = new List<string>();
@@ -683,7 +692,7 @@ namespace ImageSearch
                             if (!string.IsNullOrEmpty(tags))
                                 infos.Add($"Tags        : {string.Join(" ", tags.Split(';').Select(t => $"#{t.Trim()}"))}");
                             if (!string.IsNullOrEmpty(comments))
-                                infos.Add($"Commants    : {comments}");
+                                infos.Add($"Commants    : {PaddingLines(comments, 14)}");
                             #endregion
                         }
                     }
@@ -939,6 +948,10 @@ namespace ImageSearch
             {
 
             }
+            else if (sender == DBMerge)
+            {
+
+            }
             else if (sender == DBRemove)
             {
 
@@ -1026,6 +1039,7 @@ namespace ImageSearch
                     ToolTipService.SetToolTip(TabCompare, $"{score:F4}");
                 }
             }
+            GC.Collect();
         }
 
         private async void QueryImage_Click(object sender, RoutedEventArgs e)
@@ -1093,12 +1107,12 @@ namespace ImageSearch
                 {
                     await LoadFeatureDB();
 
-                    var queries = await similar.QueryImageScore(skb_src, feature_db, limit: limit, labels: true, confidence: 0.33);
+                    var queries = await similar.QueryImageScore(skb_src, feature_db, limit: limit, labels: true, confidence: settings.ResultConfidence);
                     var imlist = queries?.Results;
                     var labels = queries?.Labels;
                     if (labels is not null)
                     {
-                        var similar_tips = string.Join(Environment.NewLine, labels.Select(x => $"Confidence of \"{x.Label}\" : {x.Confidence}"));
+                        var similar_tips = string.Join(Environment.NewLine, labels.Select(x => $"Confidence  : \"{x.Label}\" ≈ {x.Confidence}"));
                         if (!string.IsNullOrEmpty(similar_tips))
                         {
                             ReportMessage(similar_tips);
@@ -1107,11 +1121,11 @@ namespace ImageSearch
                                 object? tips = null;
                                 var tips_old = SimilarSrcBox.ToolTip is string && !string.IsNullOrEmpty(SimilarSrcBox.ToolTip as string) ? SimilarSrcBox.ToolTip as string : string.Empty;
                                 if (string.IsNullOrEmpty(tips_old)) tips = similar_tips;
-                                else if (tips_old.StartsWith("Confidence of")) tips = similar_tips;
+                                else if (tips_old.StartsWith("Confidence  :")) tips = similar_tips;
                                 else
                                 {
                                     var tips_lines = tips_old.Split(["\n\r", "\r\n", "\n", "\r"], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-                                    if (tips_lines.LastOrDefault().StartsWith("Confidence of")) tips_lines = tips_lines.RemoveAt(tips_lines.Length - 1);
+                                    if (tips_lines.LastOrDefault().StartsWith("Confidence  :")) tips_lines = tips_lines.RemoveAt(tips_lines.Length - 1);
                                     tips = string.Join(Environment.NewLine, tips_lines.Append(similar_tips));
                                 }
                                 ToolTipService.SetToolTip(SimilarSrcBox, tips);
@@ -1146,36 +1160,24 @@ namespace ImageSearch
 
                                 using (var skb_thumb = skb.Resize(new SKSizeI((int)Math.Ceiling(skb.Width / ratio), (int)Math.Ceiling(skb.Height / ratio)), SKFilterQuality.High))
                                 {
-                                    using (var sk_data = skb_thumb.Encode(SKEncodedImageFormat.Png, 100))
+                                    try
                                     {
-                                        using (var ms = new MemoryStream())
+                                        var tooltip = await GetImageInfo(im.Key);
+                                        #region Add result item to Gallery
+                                        await SimilarResultGallery.Dispatcher.InvokeAsync(() =>
                                         {
-                                            try
+                                            GalleryList.Add(new ImageResultGallery()
                                             {
-                                                sk_data.SaveTo(ms);
-                                                ms.Seek(0, SeekOrigin.Begin);
-
-                                                (var bmp, _, _) = LoadImageFromStream(ms);
-
-                                                var tooltip = await GetImageInfo(im.Key);
-
-                                                #region Add result item to Gallery
-                                                await SimilarResultGallery.Dispatcher.InvokeAsync(() =>
-                                                {
-                                                    GalleryList.Add(new ImageResultGallery()
-                                                    {
-                                                        Source = bmp,
-                                                        FullName = GetAbsolutePath(im.Key),
-                                                        FileName = Path.GetFileName(im.Key),
-                                                        Similar = $"{im.Value:F4}",
-                                                        Tooltip = tooltip,
-                                                    });
-                                                }, System.Windows.Threading.DispatcherPriority.Normal);
-                                                #endregion
-                                            }
-                                            catch (Exception ex) { ReportMessage(ex); }
-                                        }
+                                                Source = ToBitmapSource(skb_thumb),
+                                                FullName = GetAbsolutePath(im.Key),
+                                                FileName = Path.GetFileName(im.Key),
+                                                Similar = $"{im.Value:F4}",
+                                                Tooltip = tooltip,
+                                            });
+                                        }, System.Windows.Threading.DispatcherPriority.Normal);
+                                        #endregion
                                     }
+                                    catch (Exception ex) { ReportMessage(ex); }
                                 }
                             }
                         }
@@ -1184,10 +1186,12 @@ namespace ImageSearch
                         {
                             SimilarResultGallery.ItemsSource ??= GalleryList;
                             if (GalleryList.Count > 0) SimilarResultGallery.ScrollIntoView(GalleryList.First());
+                            System.Media.SystemSounds.Beep.Play();
                         }, System.Windows.Threading.DispatcherPriority.Normal);
                         #endregion
                     }
                 });
+                GC.Collect();
             }
         }
 
