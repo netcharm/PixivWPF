@@ -38,11 +38,11 @@
                 </Viewbox>
                 <TextBlock Grid.Row="1" Grid.Column="0" x:Name="PART_IMAGEFILE" Text="{Binding Path=FileName, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Center" />
                 <TextBlock Grid.Row="1" Grid.Column="1" x:Name="PART_IMAGESIMILAR" Text="{Binding Path=Similar, Mode=OneWay}"  HorizontalAlignment="Right" VerticalAlignment="Center" />
-                <TextBlock Grid.Row="0" Grid.Column="1" x:Name="PART_TAGED" Width="24" Height="24" 
+                <TextBlock Grid.Row="0" Grid.Column="1" x:Name="PART_TAGED"
                            Text="&#xE8EC;" FontFamily="{StaticResource SegoeIconFamily}" 
                            HorizontalAlignment="Right" VerticalAlignment="Top" 
                            Visibility="{Binding HasExifTag, Mode=OneWay}"/>
-                <TextBlock Grid.Row="0" Grid.Column="1" x:Name="PART_FAVED" Width="24" Height="24" 
+                <TextBlock Grid.Row="0" Grid.Column="1" x:Name="PART_FAVED"
                            Text="&#xEB51;" FontFamily="{StaticResource SegoeIconFamily}" 
                            HorizontalAlignment="Right" VerticalAlignment="Bottom" 
                            Visibility="{Binding Favoriteed, Mode=OneWay}"/>
