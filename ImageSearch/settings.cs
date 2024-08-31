@@ -72,7 +72,7 @@ namespace ImageSearch
 
         public bool AllFolder { get; set; } = true;
 
-        public int ResultLimit { get; set; } = 10;
+        public double ResultLimit { get; set; } = 10;
         public double ResultConfidence { get; set; } = 0.25;
 
         public string LastImageFolder { get; set; } = string.Empty;

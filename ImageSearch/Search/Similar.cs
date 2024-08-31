@@ -911,8 +911,9 @@ namespace ImageSearch.Search
             return _model_;
         }
 
-        public async Task CreateFeatureData(Storage storage)
+        public async Task<bool> CreateFeatureData(Storage storage)
         {
+            var result = false;
             if (await BatchTaskIdle?.WaitAsync(0))
             {
                 var info = new BatchTaskInfo()
@@ -921,13 +922,13 @@ namespace ImageSearch.Search
 
                     CancelToken = BatchCancel.Token,
                     ParallelMode = Setting.ParallelMode,
-                    ParallelLimit = Setting.ResultLimit,
+                    ParallelLimit = Setting.ParallelLimit,
                     ParallelTimeOut = TimeSpan.FromSeconds(Setting.ParallelTimeOut),
                     CheckPoint = Setting.ParallelCheckPoint
                 };
 
                 if (!BatchCancel.TryReset() && BatchCancel.IsCancellationRequested) BatchCancel = new CancellationTokenSource();
-                var result = await Task.Run(async () =>
+                result = await Task.Run(async () =>
                 {
                     return(await CreateFeatureDataAsync(info, BatchCancel.Token));
                 }, BatchCancel.Token);
@@ -943,10 +944,12 @@ namespace ImageSearch.Search
                     ReportMessage("Batch work canceled!");
                 }
             }
+            return (result);
         }
 
-        public async Task CreateFeatureData(string folder, string feature_db, bool recurise = false)
+        public async Task<bool> CreateFeatureData(string folder, string feature_db, bool recurise = false)
         {
+            var result = false;
             if (await BatchTaskIdle?.WaitAsync(0))
             {
                 var info = new BatchTaskInfo()
@@ -957,13 +960,13 @@ namespace ImageSearch.Search
 
                     CancelToken = BatchCancel.Token,
                     ParallelMode = Setting.ParallelMode,
-                    ParallelLimit = Setting.ResultLimit,
+                    ParallelLimit = Setting.ParallelLimit,
                     ParallelTimeOut = TimeSpan.FromSeconds(Setting.ParallelTimeOut),
                     CheckPoint = Setting.ParallelCheckPoint
                 };
 
                 if (!BatchCancel.TryReset() && BatchCancel.IsCancellationRequested) BatchCancel = new CancellationTokenSource();
-                var result = await Task.Run(async ()=>
+                result = await Task.Run(async ()=>
                 {
                     return(await CreateFeatureDataAsync(info, BatchCancel.Token));
                 }, BatchCancel.Token);
@@ -979,10 +982,12 @@ namespace ImageSearch.Search
                     ReportMessage("Batch work canceled!");
                 }
             }
+            return (result);
         }
 
-        public async Task CreateFeatureData(List<Storage> storage)
+        public async Task<bool> CreateFeatureData(List<Storage> storage)
         {
+            var result = false;
             if (await BatchTaskIdle?.WaitAsync(0))
             {
                 var info = new BatchTaskInfo()
@@ -991,13 +996,13 @@ namespace ImageSearch.Search
 
                     CancelToken = BatchCancel.Token,
                     ParallelMode = Setting.ParallelMode,
-                    ParallelLimit = Setting.ResultLimit,
+                    ParallelLimit = Setting.ParallelLimit,
                     ParallelTimeOut = TimeSpan.FromSeconds(Setting.ParallelTimeOut),
                     CheckPoint = Setting.ParallelCheckPoint
                 };
 
                 if (!BatchCancel.TryReset() && BatchCancel.IsCancellationRequested) BatchCancel = new CancellationTokenSource();
-                var result = await Task.Run(async ()=>
+                result = await Task.Run(async ()=>
                 {
                     return(await CreateFeatureDataAsync(info, BatchCancel.Token));
                 }, BatchCancel.Token);
@@ -1013,6 +1018,7 @@ namespace ImageSearch.Search
                     ReportMessage("Batch work canceled!");
                 }
             }
+            return (result);
         }
 
         public void CancelCreateFeatureData()
@@ -1211,16 +1217,18 @@ namespace ImageSearch.Search
             return (result);
         }
 
-        public async Task ChangeImageFolder(string feature_db, string old_folder, string new_folder)
+        public async Task<bool> ChangeImageFolder(string feature_db, string old_folder, string new_folder)
         {
+            var result = false;
             old_folder = GetAbsolutePath(old_folder);
             new_folder = GetAbsolutePath(new_folder);
 
             var file = GetAbsolutePath(feature_db);
             if (File.Exists(file))
             {
-                await Task.Run(async () =>
+                result = await Task.Run(async () =>
                 {
+                    var ret = false;
                     var sw = Stopwatch.StartNew();
                     try
                     {
@@ -1232,22 +1240,27 @@ namespace ImageSearch.Search
                         (names, feats) = await LoadFeatureFile(file);
                         names = names.Select(n => n.Replace(old_folder, new_folder)).ToArray();
                         await SaveFeatureFile(file, names, feats, new_folder, true);
+                        ret = true;
                     }
                     catch (Exception ex) { ReportMessage(ex); }
                     finally { sw?.Stop(); ReportMessage($"Changed Feature Data Folder from {old_folder} to {new_folder}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s"); }
+                    return (ret);
                 });
             }
+            return (result);
         }
 
-        public async Task CleanImageFeature()
+        public async Task<bool> CleanImageFeature()
         {
+            var result = false;
             if (StorageList is not null)
             {
                 foreach (var storage in StorageList)
                 {
-                    await CleanImageFeature(storage);
+                    result &= await CleanImageFeature(storage);
                 }
             }
+            return (result);
         }
 
         public async Task<bool> CleanImageFeature(Storage? storage)
@@ -1597,7 +1610,7 @@ namespace ImageSearch.Search
             return (result);
         }
 
-        public async Task<SimilarResult> QueryImageScore(string file, string? feature_db = null, int limit = 10, int padding = 0, bool labels = false, double confidence = 0.75)
+        public async Task<SimilarResult> QueryImageScore(string file, string? feature_db = null, double limit = 10, int padding = 0, bool labels = false, double confidence = 0.75)
         {
             ReportMessage($"Quering {file}", RunningStatue);
             var features = await ExtractImaegFeature(file, labels);
@@ -1605,7 +1618,7 @@ namespace ImageSearch.Search
             return (result);
         }
 
-        public async Task<SimilarResult> QueryImageScore(SKBitmap? image, string? feature_db = null, int limit = 10, int padding = 0, bool labels = false, double confidence = 0.75)
+        public async Task<SimilarResult> QueryImageScore(SKBitmap? image, string? feature_db = null, double limit = 10, int padding = 0, bool labels = false, double confidence = 0.75)
         {
             ReportMessage($"Quering Memory Image", RunningStatue);
             var features = await ExtractImaegFeature(image, labels);
@@ -1613,7 +1626,7 @@ namespace ImageSearch.Search
             return (result);
         }
 
-        public async Task<List<KeyValuePair<string, double>>> QueryImageScore(float[]? feature, string? feature_db = null, int limit = 10, int padding = 0)
+        public async Task<List<KeyValuePair<string, double>>> QueryImageScore(float[]? feature, string? feature_db = null, double limit = 10, int padding = 0)
         {
             var result = new List<KeyValuePair<string, double>>();
             if (feature == null) return (result);
@@ -1625,12 +1638,15 @@ namespace ImageSearch.Search
                 {
                     ReportMessage($"Quering feature", RunningStatue);
 
-                    int count = 0;
-                    limit = Math.Min(120, Math.Max(1, limit));
+                    int result_limit = 1000;
+                    int result_count = 0;
+                    limit = limit >= 1 ? Math.Ceiling(Math.Min(120, Math.Max(1, limit))) : Math.Max(0.1, limit);
+                    double count = 0;
                     foreach (var feat_obj in string.IsNullOrEmpty(feature_db) ? _features_ : _features_.Where(f => f.FeatureDB.Equals(feature_db) || f.FeatureDB.Equals(GetAbsolutePath(feature_db))).ToList())
                     {
                         if (!(feat_obj.Names is not null && feat_obj.Names.Length > 0) || !(feat_obj.Feats is not null && feat_obj.Feats.shape[0] > 0)) await LoadFeatureData(feat_obj.FeatureStore);
 
+                        result_count += result_limit;
                         count += limit;
                         var pad = new float[padding];
 
@@ -1646,18 +1662,21 @@ namespace ImageSearch.Search
 
                             for (int i = 0; i < feat_obj.Names.Length; i++)
                             {
+                                if (limit < 1 && rank_score[i] < limit) continue;
+                                else if (result.Count > result_count) break;
+
                                 var f_name = feat_obj.Names[rank_ID[i]];
                                 if (string.IsNullOrEmpty(f_name)) continue;
                                 f_name = GetAbsolutePath(f_name);
                                 if (File.Exists(f_name))
                                 {
                                     result.Add(new KeyValuePair<string, double>(f_name, rank_score[i]));
-                                    if (result.Count >= count) break;
+                                    if (limit > 1 && result.Count >= count) break;
                                 }
                             }
                         }
                     }
-                    result = result.OrderByDescending(r => r.Value).Take(limit).ToList();
+                    result = result.OrderByDescending(r => r.Value).Take(limit > 1 ?(int)limit : result_limit).ToList();
                 }
                 catch (Exception ex) { ReportMessage(ex); }
                 finally
@@ -1665,7 +1684,7 @@ namespace ImageSearch.Search
                     sw?.Stop();
                     if (ModelLoadedState.CurrentCount == 0) ModelLoadedState.Release();
                     if (FeatureLoadedState.CurrentCount == 0) FeatureLoadedState.Release();
-                    ReportMessage($"Queried feature, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
+                    ReportMessage($"Queried feature, result count: {result?.Count}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
                     GC.Collect();
                 }
             }

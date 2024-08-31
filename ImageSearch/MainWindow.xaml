@@ -11,7 +11,7 @@
         Loaded="Window_Loaded" Closing="Window_Closing" StateChanged="Window_StateChanged" PreviewKeyUp="Window_PreviewKeyUp">
     <Window.Resources>
         <DataTemplate x:Key="ImageTile" DataType="local:ImageResultGallery" >
-            <Grid Width="240" Height="256" x:Name="PART_IMAGEGRID" MaxWidth="240" MinHeight="256" Margin="4" ToolTip="{Binding Path=Tooltip, Mode=OneWay}">
+            <Grid x:Name="PART_IMAGEGRID" Width="240" Height="256" MaxWidth="240" MinHeight="256" Margin="4" ToolTip="{Binding Path=Tooltip, Mode=OneWay}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="auto"/>
@@ -37,15 +37,16 @@
                     </Viewbox.LayoutTransform>
                 </Viewbox>
                 <TextBlock Grid.Row="1" Grid.Column="0" x:Name="PART_IMAGEFILE" Text="{Binding Path=FileName, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                <StackPanel Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                    <StackPanel.Effect>
+                        <DropShadowEffect BlurRadius="1" ShadowDepth="0" Direction="315" Color="{DynamicResource {x:Static SystemColors.HighlightColorKey}}" Opacity="1.0"/>
+                    </StackPanel.Effect>
+                    <TextBlock x:Name="PART_IMAGETAGED" Text="&#xE8EC;" FontFamily="{StaticResource SegoeIconFamily}" 
+                           Margin="1" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="{Binding HasExifTag, Mode=OneWay}"/>
+                    <TextBlock x:Name="PART_IMAGEFAVED" Text="&#xEB51;" FontFamily="{StaticResource SegoeIconFamily}" 
+                           Margin="1" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="{Binding Favoriteed, Mode=OneWay}"/>
+                </StackPanel>
                 <TextBlock Grid.Row="1" Grid.Column="1" x:Name="PART_IMAGESIMILAR" Text="{Binding Path=Similar, Mode=OneWay}"  HorizontalAlignment="Right" VerticalAlignment="Center" />
-                <TextBlock Grid.Row="0" Grid.Column="1" x:Name="PART_TAGED"
-                           Text="&#xE8EC;" FontFamily="{StaticResource SegoeIconFamily}" 
-                           HorizontalAlignment="Right" VerticalAlignment="Top" 
-                           Visibility="{Binding HasExifTag, Mode=OneWay}"/>
-                <TextBlock Grid.Row="0" Grid.Column="1" x:Name="PART_FAVED"
-                           Text="&#xEB51;" FontFamily="{StaticResource SegoeIconFamily}" 
-                           HorizontalAlignment="Right" VerticalAlignment="Bottom" 
-                           Visibility="{Binding Favoriteed, Mode=OneWay}"/>
             </Grid>
         </DataTemplate>
     </Window.Resources>
@@ -92,6 +93,7 @@
                               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                               Focusable="True" ClipToBounds="True" UseLayoutRounding="True" 
                               ItemTemplate="{StaticResource ImageTile}" 
+                              SelectionChanged="SimilarResultGallery_SelectionChanged"
                               MouseMove="SimilarResultGallery_MouseMove"
                               MouseDoubleClick="SimilarResultGallery_MouseDoubleClick">
                         <ListView.ItemsPanel>
@@ -167,6 +169,9 @@
                     <TextBlock x:Uid="AutoSaveOptionsIcon" Text="&#xE793;" Margin="1,1,0,0" Style="{DynamicResource MenuItemIcon}" Foreground="Gray" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </ToggleButton.Content>
             </ToggleButton>
+            <TextBlock x:Uid="ResultFilterLabel" Text="Filter:" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" />
+            <TextBox x:Name="ResultFilter" Margin="4" MinWidth="160" TextChanged="ResultFilter_TextChanged"
+                     HorizontalAlignment="Left" VerticalAlignment="Stretch" TextAlignment="Center" VerticalContentAlignment="Center"/>
             <TextBlock x:Name="LatestMessage" Text=" " Width="auto" DockPanel.Dock="Right" 
                        Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Center" 
                        TextAlignment="Right" TextTrimming="WordEllipsis" TextWrapping="NoWrap" 

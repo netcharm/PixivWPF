@@ -176,7 +176,7 @@ namespace ImageSearch
         {
             if (ex is not null)
             {
-                ReportMessage($"{ex?.StackTrace?.Split().LastOrDefault()} : {ex.Message}", state);
+                ReportMessage($"{ex?.StackTrace?.Split().TakeLast(3)} : {ex.Message}", state);
             }
         }
 
@@ -700,6 +700,32 @@ namespace ImageSearch
             return (string.Join(Environment.NewLine, result).Trim());
         }
 
+        public static Predicate<object>? GetFilter(string filter)
+        {
+            Predicate<object>? result = null;
+            if (!string.IsNullOrEmpty(filter))
+            {
+                var action = new Func<object, bool>(obj =>
+                {
+                    var ret = true;
+                    if(obj is ImageResultGalleryItem)
+                    {
+                        var item = obj as ImageResultGalleryItem;
+                        if (item is not null && item.Tooltip is not null && !string.IsNullOrEmpty(item.Tooltip))
+                        {
+                            if(filter.StartsWith('!'))
+                                ret = !item.Tooltip.Contains(filter[1..], StringComparison.CurrentCultureIgnoreCase);
+                            else
+                                ret = item.Tooltip.Contains(filter, StringComparison.CurrentCultureIgnoreCase);
+                        }
+                    }
+                    return (ret);
+                });
+                result = new Predicate<object>(action);
+            }
+            return (result);
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -708,7 +734,7 @@ namespace ImageSearch
             MinHeight = 720;
         }
 
-        private async void Window_Loaded(object sender, RoutedEventArgs e)
+        private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             var setting_file = GetAbsolutePath($"{GetAppName()}.settings");
             try
@@ -739,7 +765,7 @@ namespace ImageSearch
                 }
                 if (!File.Exists(setting_file)) settings.Save(setting_file);
 
-                QueryResultLimit.ItemsSource = new int[] { 5, 10, 12, 15, 18, 20, 24, 25, 30, 35, 40, 45, 50, 60 };
+                QueryResultLimit.ItemsSource = new double[] { 5, 10, 12, 15, 18, 20, 24, 25, 30, 35, 40, 45, 50, 60, 80, 120, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4 };
                 QueryResultLimit.SelectedIndex = QueryResultLimit.Items.IndexOf(settings.ResultLimit);
 
                 SimilarResultGallery.ItemsSource = GalleryList;
@@ -749,10 +775,16 @@ namespace ImageSearch
                 var args = Environment.GetCommandLineArgs();
                 if (args.Length > 1 && File.Exists(args[1]))
                 {
-                    (var bmp, var skb, var file) = LoadImageFromFile(args[1]);
-                    if (bmp is not null) SimilarSrc.Source = bmp;
-                    if (skb is not null) SimilarSrc.Tag = skb;
-                    ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(file));
+                    Task.Run(async () =>
+                    {
+                        (var bmp, var skb, var file) = LoadImageFromFile(args[1]);
+                        await SimilarSrc.Dispatcher.InvokeAsync(async () =>
+                        {
+                            if (bmp is not null) SimilarSrc.Source = bmp;
+                            if (skb is not null) SimilarSrc.Tag = skb;
+                            ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(file));
+                        });
+                    });
                 }
             }
             catch (Exception ex) { ReportMessage(ex); }
@@ -891,7 +923,7 @@ namespace ImageSearch
             }
         }
 
-        private async void DBTools_Click(object sender, RoutedEventArgs e)
+        private void DBTools_Click(object sender, RoutedEventArgs e)
         {
             if (sender == OpenConfig)
             {
@@ -910,37 +942,34 @@ namespace ImageSearch
                     similar.CancelCreateFeatureData();
                     return;
                 }
-                if (MessageBox.Show("Will update/create features database", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                if (_storages_?.Count > 0)
                 {
-                    if (_storages_ is not null && _storages_.Count > 0)
+                    if (MessageBox.Show($"Will update/create current features database, continue it?", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                     {
                         if (AllFolders.IsChecked ?? false)
                         {
-                            await similar.CreateFeatureData(_storages_);
+                            Task.Run(async () => { await similar.CreateFeatureData(_storages_); });
                         }
                         else if (FolderList.SelectedIndex >= 0)
                         {
                             var storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
-                            if (storage is not null) await similar.CreateFeatureData(storage);
+                            if (storage is not null) Task.Run(async () => { await similar.CreateFeatureData(storage); });
                         }
                     }
                 }
             }
             else if (sender == DBClean)
             {
-                if (MessageBox.Show("Will clean features database records", "Caution!", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                if (MessageBox.Show("Will clean features database records, continue it?", "Caution!", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
                 {
                     InitSimilar();
 
                     var all_db = AllFolders.IsChecked ?? false;
-                    if (all_db) await similar.CleanImageFeature();
-                    else
+                    if (all_db) Task.Run(async () => { await similar.CleanImageFeature(); });
+                    else if (FolderList.SelectedIndex >= 0)
                     {
-                        if (FolderList.SelectedIndex >= 0)
-                        {
-                            var storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
-                            await similar.CleanImageFeature(storage);
-                        }
+                        var storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
+                        Task.Run(async () => { await similar.CleanImageFeature(storage); });
                     }
                 }
             }
@@ -1098,7 +1127,7 @@ namespace ImageSearch
 
             if (SimilarSrc.Tag is SKBitmap)
             {
-                if (!int.TryParse(QueryResultLimit.Text, out int limit)) limit = 10;
+                if (!double.TryParse(QueryResultLimit.Text, out double limit)) limit = 10;
                 var show_in_shell = OpenInShell.IsChecked ?? false;
                 var skb_src = SimilarSrc.Tag as SKBitmap;
 
@@ -1187,7 +1216,17 @@ namespace ImageSearch
                         await SimilarResultGallery.Dispatcher.InvokeAsync(() =>
                         {
                             SimilarResultGallery.ItemsSource ??= GalleryList;
-                            if (GalleryList.Count > 0) SimilarResultGallery.ScrollIntoView(GalleryList.First());
+                            if (GalleryList.Count > 0) 
+                                SimilarResultGallery.ScrollIntoView(GalleryList.First());
+                            //if (SimilarResultGallery.Items.Filter is null) 
+                                SimilarResultGallery.Items.Filter = GetFilter(ResultFilter.Text);
+                            var info_items = new List<string>
+                            {
+                                $"Displayed : {$"{SimilarResultGallery.Items?.Count}",6}",
+                                $"Selected  : {$"{SimilarResultGallery.SelectedItems?.Count}", 6}",
+                                $"Total     : {$"{GalleryList?.Count}", 6}",
+                            };
+                            TabSimilar.ToolTip = string.Join(Environment.NewLine, info_items);
                             System.Media.SystemSounds.Beep.Play();
                         }, System.Windows.Threading.DispatcherPriority.Normal);
                         #endregion
@@ -1248,6 +1287,28 @@ namespace ImageSearch
                 if (files.Any()) ShellOpen(files.ToArray(), openwith: shift, viewinfo: alt || e.ChangedButton == MouseButton.Right);
             }
             e.Handled = true;
+        }
+
+        private void SimilarResultGallery_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            SimilarResultGallery.Dispatcher.InvokeAsync(() =>
+            {
+                var info_items = new List<string>
+                {
+                    $"Displayed : {$"{SimilarResultGallery.Items?.Count}", 6}",
+                    $"Selected  : {$"{SimilarResultGallery.SelectedItems?.Count}", 6}",
+                    $"Total     : {$"{GalleryList?.Count}", 6}",
+                };
+                TabSimilar.ToolTip = string.Join(Environment.NewLine, info_items);
+            });
+        }
+
+        private void ResultFilter_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            SimilarResultGallery.Dispatcher.InvokeAsync(() =>
+            {
+                SimilarResultGallery.Items.Filter = GetFilter(ResultFilter.Text);
+            });
         }
 
     }

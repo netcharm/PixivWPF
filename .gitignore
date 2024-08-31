@@ -254,3 +254,4 @@ ModelManifest.xml
 *.snapshot
 *.xlsx
 /*.zip
+/ImageSearch/Properties/launchSettings.json
