@@ -523,7 +523,9 @@ namespace ImageSearch.Search
                                         info.Current = index;
                                         info.Total = count;
                                         info.ElapsedTime = sw.Elapsed;
-                                        info.RemainingTime = TimeSpan.FromSeconds(Math.Ceiling(sw.Elapsed.TotalSeconds / (100 - percent)));
+                                        if (percent <= 0) info.RemainingTime = TimeSpan.FromSeconds(count * 10);
+                                        else if (percent >= 100) info.RemainingTime = TimeSpan.FromSeconds(0);
+                                        else  info.RemainingTime = TimeSpan.FromSeconds((100 - percent) * Math.Ceiling(sw.Elapsed.TotalSeconds / percent));
                                         ReportBatchTask(info);
                                     }
                                     catch (Exception ex) { ReportMessage(ex); }

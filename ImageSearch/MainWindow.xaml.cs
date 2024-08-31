@@ -117,10 +117,6 @@ namespace ImageSearch
         {
             edResult?.Dispatcher.Invoke(() =>
             {
-                //if (edResult.LineCount >= settings.LogLines)
-                //    edResult.Text = string.Join(Environment.NewLine, _log_.TakeLast(settings.LogLines));
-                //else
-                //    edResult.AppendText($"{_log_.Last()}{Environment.NewLine}");
                 if (WindowState != WindowState.Minimized && _log_.Count > 0)
                 {
                     edResult.Text = string.Join(Environment.NewLine, _log_.TakeLast(settings.LogLines));
@@ -136,9 +132,8 @@ namespace ImageSearch
         {
             if (info is not null)
             {
-                var msg = $"{info.FileName}, [{info.Current}/{info.Total}, {info.Percentage:P}], Remaining ≈ {info.RemainingTime:HH:mm:ss}";
+                var msg = $"{info.FileName}, [{info.Current}/{info.Total}, {info.Percentage:P}], Remaining≈{info.RemainingTime}";
                 _log_.Add($"[{DateTime.Now:yyyy/MM/dd HH:mm:ss.fff}] {msg}");
-                //var log = _log_.Count > settings.LogLines ? _log_.TakeLast(settings.LogLines) : [msg];
                 ShowLog();
                 DoEvents();
             }
@@ -915,17 +910,19 @@ namespace ImageSearch
                     similar.CancelCreateFeatureData();
                     return;
                 }
-
-                if (_storages_ is not null && _storages_.Count > 0)
+                if (MessageBox.Show("Will update/create features database", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
-                    if (AllFolders.IsChecked ?? false)
+                    if (_storages_ is not null && _storages_.Count > 0)
                     {
-                        await similar.CreateFeatureData(_storages_);
-                    }
-                    else if (FolderList.SelectedIndex >= 0)
-                    {
-                        var storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
-                        if (storage is not null) await similar.CreateFeatureData(storage);
+                        if (AllFolders.IsChecked ?? false)
+                        {
+                            await similar.CreateFeatureData(_storages_);
+                        }
+                        else if (FolderList.SelectedIndex >= 0)
+                        {
+                            var storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
+                            if (storage is not null) await similar.CreateFeatureData(storage);
+                        }
                     }
                 }
             }
