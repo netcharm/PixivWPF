@@ -2,6 +2,7 @@
 using System.Configuration;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
@@ -41,7 +42,7 @@ namespace ImageSearch
         private WindowState LastWinState = WindowState.Normal;
         private readonly List<string> _log_ = [];
 
-        private readonly ObservableCollection<ImageResultGallery> GalleryList = [];
+        private readonly ObservableCollection<ImageResultGalleryItem> GalleryList = [];
 
         private Settings settings = new();
 
@@ -800,7 +801,7 @@ namespace ImageSearch
                     if (Tabs.SelectedItem == TabSimilar)
                     {
                         e.Handled = true;
-                        var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.FullName);
+                        var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGalleryItem>().Select(item => item.FullName);
                         ShellOpen(files.ToArray(), openwith: shift, viewinfo: ctrl);
                     }
                 }
@@ -823,7 +824,7 @@ namespace ImageSearch
                     {
                         e.Handled = true;
                         string sep = $"{Environment.NewLine}================================================================================{Environment.NewLine}";
-                        var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.Tooltip);
+                        var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGalleryItem>().Select(item => item.Tooltip);
                         if (files.Any()) Clipboard.SetText((sep + string.Join(sep, files) + sep).Trim());
                     }
                 }
@@ -832,7 +833,7 @@ namespace ImageSearch
                     if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
                     {
                         e.Handled = true;
-                        var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.FullName);
+                        var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGalleryItem>().Select(item => item.FullName);
                         if (files.Any()) Clipboard.SetText(string.Join(Environment.NewLine, files));
                     }
                 }
@@ -859,6 +860,8 @@ namespace ImageSearch
         {
             if (e.Data is DataObject)
             {
+                if (InDrop && MessageBox.Show("Query will be replaced?", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No) return;
+
                 var similar_target = new object[]{ TabSimilar, SimilarViewer, SimilarResultGallery, SimilarResultGallery, SimilarSrc };
                 var compare_target = new object[]{ TabCompare, CompareViewer, CompareBoxL, CompareBoxR, CompareL, CompareR };
                 if (similar_target.Contains(e.Source))
@@ -971,7 +974,7 @@ namespace ImageSearch
 
             if (Tabs.SelectedItem == TabSimilar)
             {
-                var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.FullName);
+                var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGalleryItem>().Select(item => item.FullName);
                 if (files.Any()) ShellCompare(files.ToArray());
             }
             else if (Tabs.SelectedItem == TabCompare)
@@ -1134,7 +1137,7 @@ namespace ImageSearch
                     }
 
                     if (imlist?.Count > 0)
-                    {                        
+                    {
                         ReportMessage(string.Join(Environment.NewLine, imlist.Select(im => $"{im.Key}, {im.Value:F4}")));
 
                         #region Open result in explorer by using search-ms protocol
@@ -1166,13 +1169,15 @@ namespace ImageSearch
                                         #region Add result item to Gallery
                                         await SimilarResultGallery.Dispatcher.InvokeAsync(() =>
                                         {
-                                            GalleryList.Add(new ImageResultGallery()
+                                            GalleryList.Add(new ImageResultGalleryItem()
                                             {
                                                 Source = ToBitmapSource(skb_thumb),
                                                 FullName = GetAbsolutePath(im.Key),
                                                 FileName = Path.GetFileName(im.Key),
                                                 Similar = $"{im.Value:F4}",
                                                 Tooltip = tooltip,
+                                                HasExifTag = tooltip.Contains("Tags        :"),
+                                                Favoriteed = tooltip.Contains("Rank=4"),
                                             });
                                         }, System.Windows.Threading.DispatcherPriority.Normal);
                                         #endregion
@@ -1195,15 +1200,54 @@ namespace ImageSearch
             }
         }
 
+        private bool InDrop = false;
+        private void SimilarResultGallery_MouseMove(object sender, MouseEventArgs e)
+        {
+            try
+            {
+                if (e.MiddleButton == MouseButtonState.Pressed || e.XButton1 == MouseButtonState.Pressed)
+                {
+                    var files = new StringCollection();
+                    foreach (var item in SimilarResultGallery.SelectedItems)
+                    {
+                        if (item is ImageResultGalleryItem)
+                        {
+                            var image_result = item as ImageResultGalleryItem;
+                            files.Add(image_result.FullName);
+                        }
+                    }
+                    if (files.Count > 0)
+                    {
+                        InDrop = true;
+                        var dp = new DataObject();
+                        dp.SetFileDropList(files);
+                        dp.SetData("text/uri-list", files);
+                        //dp.SetData("text/plain", file);
+                        //dp.SetData("text/html", file);
+                        //dp.SetData("Text", file);
+                        dp.SetData("FileName", files[0]);
+                        dp.SetData("FileNameW", files[0]);
+                        dp.SetData("UsingDefaultDragImage", true);
+                        //dp.SetData("DragImageBits", null);
+                        //dp.SetData("DragContext", null);
+                        DragDrop.DoDragDrop(SimilarResultGallery, dp, DragDropEffects.Copy);
+                    }
+                }
+            }
+            catch (Exception ex) { ReportMessage(ex); }
+            finally { InDrop = false; }
+        }
+
         private void SimilarResultGallery_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             List<string> names = [ "PART_IMAGEGRID", "PART_IMAGEBOX", "PART_IMAGE", "PART_IMAGEFILE", "PART_IMAGESIMILAR", "PART_", "Bd" ];
             if (e.Source is ListView && names.Contains((e.OriginalSource as FrameworkElement).Name))
             {
+                if (e.ChangedButton == MouseButton.XButton1) { }
                 var shift = Keyboard.Modifiers == ModifierKeys.Shift;
                 var alt = Keyboard.Modifiers == ModifierKeys.Alt;
 
-                var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGallery>().Select(item => item.FullName);
+                var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGalleryItem>().Select(item => item.FullName);
                 if (files.Any()) ShellOpen(files.ToArray(), openwith: shift, viewinfo: alt || e.ChangedButton == MouseButton.Right);
             }
             e.Handled = true;
@@ -1211,13 +1255,16 @@ namespace ImageSearch
 
     }
 
-    public class ImageResultGallery
+    public class ImageResultGalleryItem
     {
         public ImageSource? Source { get; set; }
         public string FullName { get; set; } = string.Empty;
         public string FileName { get; set; } = string.Empty;
         public string Similar { get; set; } = string.Empty;
         public string Tooltip { get; set; } = string.Empty;
+        public bool HasExifTag { get; set; } = false;
+        public bool Favoriteed { get; set; } = false;
+        public bool Deleteed { get; set; } = false;
     }
 
 }
