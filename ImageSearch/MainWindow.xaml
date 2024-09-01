@@ -8,7 +8,8 @@
         Height="720" Width="1280" 
         AllowDrop="True" Drop="Window_Drop" DragEnter="Window_DragEnter" DragLeave="Window_DragLeave" DragOver="Window_DragOver"
         Title="Image Search By Image" 
-        Loaded="Window_Loaded" Closing="Window_Closing" StateChanged="Window_StateChanged" PreviewKeyUp="Window_PreviewKeyUp">
+        Loaded="Window_Loaded" Closing="Window_Closing" StateChanged="Window_StateChanged" 
+        PreviewKeyUp="Window_PreviewKeyUp" PreviewMouseUp="Window_PreviewMouseUp">
     <Window.Resources>
         <DataTemplate x:Key="ImageTile" DataType="local:ImageResultGallery" >
             <Grid x:Name="PART_IMAGEGRID" Width="240" Height="256" MaxWidth="240" MinHeight="256" Margin="4" ToolTip="{Binding Path=Tooltip, Mode=OneWay}">
@@ -39,7 +40,7 @@
                 <TextBlock Grid.Row="1" Grid.Column="0" x:Name="PART_IMAGEFILE" Text="{Binding Path=FileName, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Center" />
                 <StackPanel Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom">
                     <StackPanel.Effect>
-                        <DropShadowEffect BlurRadius="1" ShadowDepth="0" Direction="315" Color="{DynamicResource {x:Static SystemColors.HighlightColorKey}}" Opacity="1.0"/>
+                        <DropShadowEffect BlurRadius="1" ShadowDepth="0" Direction="315" Color="{DynamicResource {x:Static SystemColors.HighlightColorKey}}" Opacity="0.75"/>
                     </StackPanel.Effect>
                     <TextBlock x:Name="PART_IMAGETAGED" Text="&#xE8EC;" FontFamily="{StaticResource SegoeIconFamily}" 
                            Margin="1" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="{Binding HasExifTag, Mode=OneWay}"/>
@@ -187,6 +188,8 @@
                         <MenuItem x:Name="DBRemove" Header="Remove DB" Click="DBTools_Click" Visibility="Collapsed"/>
                         <MenuItem x:Name="DBAdd" Header="Add New DB" Click="DBTools_Click" Visibility="Collapsed"/>
                         <Separator/>
+                        <MenuItem x:Name="ClearLog" Header="Clear Logs" Click="DBTools_Click"/>
+                        <Separator/>
                         <MenuItem x:Name="OpenConfig" Header="Open Config File" Click="DBTools_Click"/>
                     </ContextMenu>
                 </Button.ContextMenu>
@@ -194,9 +197,9 @@
         </StackPanel>
         <TextBox Grid.Row="2" Grid.Column="1" x:Name="EditQueryFile" Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" TextAlignment="Center"/>
         <StackPanel Grid.Row="2" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Orientation="Horizontal" FlowDirection="RightToLeft">
-            <Button x:Name="QueryImage" Click="QueryImage_Click" Width="72" Margin="4" >Query</Button>
-            <Separator Width="16" Opacity="0" Foreground="Transparent"/>
-            <Button x:Name="CompareImage" Click="CompareImage_Click" Width="72" Margin="4" >Compare</Button>
+            <Button x:Name="QueryImage" Click="QueryImage_Click" Width="72" Margin="4" Content="Query" ToolTip="Query Images By Image"  />
+            <Button x:Name="QueryImageLabel" Click="QueryImageLabel_Click" Width="72" Margin="4" Content="Labels" ToolTip="Query Image Labels" />
+            <Button x:Name="CompareImage" Click="CompareImage_Click" Width="72" Margin="4" Content="Compare" ToolTip="Compare Images" />
         </StackPanel>
         <ProgressBar Grid.Row="3" Grid.ColumnSpan="3" x:Name="progress" Height="4" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Value="100" />
     </Grid>

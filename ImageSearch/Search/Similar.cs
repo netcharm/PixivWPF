@@ -46,6 +46,7 @@ namespace ImageSearch.Search
         public string ModelFile { get; set; } = string.Empty;
         public string ModelInput { get; set; } = string.Empty;
         public string ModelOutput { get; set; } = string.Empty;
+        public bool ModelHasSoftMax { get; set; } = false;
 
         public bool Recurice { get; set; } = false;
         public bool UseFullPath { get; set; } = true;
@@ -132,6 +133,8 @@ namespace ImageSearch.Search
         private static string AppPath = string.Empty;
         public Settings? Setting { get; set; } = null;
 
+        public bool ModelHasSoftMax { get; set; } = false;
+
         private static string GetAbsolutePath(string relativePath)
         {
             if (string.IsNullOrEmpty(AppPath))
@@ -179,11 +182,13 @@ namespace ImageSearch.Search
 
         private static readonly int IMG_Width = 224;
         private static readonly int IMG_HEIGHT = 224;
-        private System.Drawing.Size IMG_SIZE = new(IMG_Width, IMG_HEIGHT);
+        private SKSizeI IMG_SIZE = new(IMG_Width, IMG_HEIGHT);
 
         public string ModelLocation { get; set; } = string.Empty;
         public string ModelInputColumnName { get; set; } = string.Empty;
         public string ModelOutputColumnName { get; set; } = string.Empty;
+
+        public int ResultMax { get; set; } = 1000;
 
         // Create MLContext
         private readonly MLContext mlContext = new(seed: 1)
@@ -1475,6 +1480,97 @@ namespace ImageSearch.Search
             return (result);
         }
 
+        public async Task<LabeledObject[]?> GetImageLabel(string file)
+        {
+            LabeledObject[]? label = null;
+
+            if (_model_ == null) await LoadModel();
+
+            file = GetAbsolutePath(file);
+            if (File.Exists(file) && _model_ is not null && _predictionEngine_ != null)
+            {
+                try
+                {
+                    using (SKBitmap? bmp_src = LoadImage(file))
+                    {
+                        if (bmp_src is not null)
+                        {
+                            ReportMessage($"Quering Label from {file}");
+                            label = await GetImageLabel(bmp_src);
+                        }
+                    }
+                }
+                catch (Exception ex) { ReportMessage(ex); }
+            }
+            return (label);
+        }
+
+        public async Task<LabeledObject[]?> GetImageLabel(SKBitmap? image)
+        {
+            LabeledObject[]? label = null;
+
+            if (image is not null)
+            {
+                if (_model_ == null) await LoadModel();
+
+                var sw = Stopwatch.StartNew();
+                ReportMessage($"Quering Label for Memory Image", RunningStatue);
+                try
+                {
+                    SKBitmap bmp_thumb;
+                    if (image.BytesPerPixel < 3)
+                    {
+                        using (var bmp_palete = image.Resize(IMG_SIZE, SKFilterQuality.Medium))
+                        {
+                            bmp_thumb = new SKBitmap(bmp_palete.Width, bmp_palete.Height);
+                            using (var bmp_canvas = new SKCanvas(bmp_thumb))
+                            {
+                                bmp_canvas.DrawImage(SKImage.FromBitmap(bmp_palete), 0f, 0f);
+                            }
+                        }
+                    }
+                    else bmp_thumb = image.Resize(IMG_SIZE, SKFilterQuality.Medium);
+
+                    using (var img = MLImage.CreateFromPixels(bmp_thumb.Width, bmp_thumb.Height, MLPixelFormat.Bgra32, bmp_thumb.Bytes))
+                    {
+                        var img_data = MeanStd(img.GetBGRPixels.Select(b => (float)b).ToArray());
+                        var feature = _predictionEngine_?.Predict(new ModelInput { Data = img_data }).Feature;
+                        label = await GetImageLabel(feature);
+                        img_data = [];
+                    }
+                    bmp_thumb?.Dispose();
+                }
+                catch (Exception ex) { ReportMessage(ex); }
+                finally
+                {
+                    sw?.Stop();
+                    ReportMessage($"Quered Label for Memory Image, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
+                }
+            }
+            return (label);
+        }
+
+        public async Task<LabeledObject[]?> GetImageLabel(NDArray? feat)
+        {
+            return (await GetImageLabel(feat?.ToArray<float>()));
+        }
+
+        public async Task<LabeledObject[]?> GetImageLabel(float[]? feat)
+        {
+            var result = await Task.Run(() => 
+            {
+                try
+                {
+                    if(ModelHasSoftMax)
+                        return(feat?.Select((x, i) => new LabeledObject() { Label = LabelMap.Labels[i], Confidence = x }).OrderByDescending(x => x.Confidence).ToArray());
+                    else
+                        return (SoftMax(feat)?.Select((x, i) => new LabeledObject() { Label = LabelMap.Labels[i], Confidence = x }).OrderByDescending(x => x.Confidence).ToArray());
+                }
+                catch(Exception ex) { ReportMessage(ex); return []; }
+            });
+            return result;
+        }
+
         public async Task<(float[]?, LabeledObject[]?)> ExtractImaegFeature(string file, bool labels = false)
         {
             float[]? feature = null;
@@ -1515,12 +1611,10 @@ namespace ImageSearch.Search
                 ReportMessage($"Extracting Feature from Memory Image", RunningStatue);
                 try
                 {
-                    var size = new SKSizeI(IMG_SIZE.Width, IMG_SIZE.Height);
-
                     SKBitmap bmp_thumb;
                     if (image.BytesPerPixel < 3)
                     {
-                        using (var bmp_palete = image.Resize(size, SKFilterQuality.Medium))
+                        using (var bmp_palete = image.Resize(IMG_SIZE, SKFilterQuality.Medium))
                         {
                             bmp_thumb = new SKBitmap(bmp_palete.Width, bmp_palete.Height);
                             using (var bmp_canvas = new SKCanvas(bmp_thumb))
@@ -1529,17 +1623,13 @@ namespace ImageSearch.Search
                             }
                         }
                     }
-                    else bmp_thumb = image.Resize(size, SKFilterQuality.Medium);
+                    else bmp_thumb = image.Resize(IMG_SIZE, SKFilterQuality.Medium);
 
                     using (var img = MLImage.CreateFromPixels(bmp_thumb.Width, bmp_thumb.Height, MLPixelFormat.Bgra32, bmp_thumb.Bytes))
                     {
                         var img_data = MeanStd(img.GetBGRPixels.Select(b => (float)b).ToArray());
                         feature = _predictionEngine_?.Predict(new ModelInput { Data = img_data }).Feature;
-                        if (labels)
-                        {
-                            //var _feat_ = _predictionEngine_.Predict(new ModelInput { Data = MeanStd(img_data) }).Feature;
-                            label = SoftMax(feature)?.Select((x, i) => new LabeledObject() { Label = LabelMap.Labels[i], Confidence = x }).OrderByDescending(x => x.Confidence).ToArray();
-                        }
+                        if (labels) label = await GetImageLabel(feature);
                         if (feature != null) feature = LA_Norm(feature);
                         img_data = [];
                     }
@@ -1638,7 +1728,6 @@ namespace ImageSearch.Search
                 {
                     ReportMessage($"Quering feature", RunningStatue);
 
-                    int result_limit = 1000;
                     int result_count = 0;
                     limit = limit >= 1 ? Math.Ceiling(Math.Min(120, Math.Max(1, limit))) : Math.Max(0.1, limit);
                     double count = 0;
@@ -1646,7 +1735,7 @@ namespace ImageSearch.Search
                     {
                         if (!(feat_obj.Names is not null && feat_obj.Names.Length > 0) || !(feat_obj.Feats is not null && feat_obj.Feats.shape[0] > 0)) await LoadFeatureData(feat_obj.FeatureStore);
 
-                        result_count += result_limit;
+                        result_count += ResultMax;
                         count += limit;
                         var pad = new float[padding];
 
@@ -1665,6 +1754,7 @@ namespace ImageSearch.Search
                                 if (limit < 1 && rank_score[i] < limit) continue;
                                 else if (result.Count > result_count) break;
 
+                                //var label = await GetImageLabel(feat_obj.Feats[rank_ID[i]]);
                                 var f_name = feat_obj.Names[rank_ID[i]];
                                 if (string.IsNullOrEmpty(f_name)) continue;
                                 f_name = GetAbsolutePath(f_name);
@@ -1676,7 +1766,7 @@ namespace ImageSearch.Search
                             }
                         }
                     }
-                    result = result.OrderByDescending(r => r.Value).Take(limit > 1 ?(int)limit : result_limit).ToList();
+                    result = result.OrderByDescending(r => r.Value).Take(limit > 1 ?(int)limit : ResultMax).ToList();
                 }
                 catch (Exception ex) { ReportMessage(ex); }
                 finally

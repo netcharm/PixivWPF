@@ -72,6 +72,8 @@ namespace ImageSearch
 
         public bool AllFolder { get; set; } = true;
 
+        public int ResultLimitMax { get; set; } = 1000;
+        public double[] ResultLimitList = [5, 10, 12, 15, 18, 20, 24, 25, 30, 35, 40, 45, 50, 60, 80, 120, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4];
         public double ResultLimit { get; set; } = 10;
         public double ResultConfidence { get; set; } = 0.25;
 

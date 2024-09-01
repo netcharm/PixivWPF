@@ -29,6 +29,7 @@ using CompactExifLib;
 using SkiaSharp;
 using ImageSearch.Search;
 using NumSharp.Utilities;
+using System.Runtime.CompilerServices;
 
 namespace ImageSearch
 {
@@ -123,6 +124,7 @@ namespace ImageSearch
                     edResult.ScrollToEnd();
                     edResult.SelectionStart = edResult.Text.Length;
                 }
+                else if (_log_.Count == 0) edResult.Text = string.Empty;
                 LatestMessage.Text = _log_.LastOrDefault();
                 DoEvents();
             }, DispatcherPriority.Normal);
@@ -492,6 +494,8 @@ namespace ImageSearch
 
                 StorageList = _storages_,
 
+                ResultMax = settings.ResultLimitMax,
+
                 ReportProgressAction = new Action<double>(ReportProgress),
                 ReportBatchTaskAction = new Action<BatchTaskInfo>(ReportBatch),
                 ReportMessageAction = new Action<string, TaskStatus>(ReportMessage),
@@ -765,12 +769,14 @@ namespace ImageSearch
                 }
                 if (!File.Exists(setting_file)) settings.Save(setting_file);
 
-                QueryResultLimit.ItemsSource = new double[] { 5, 10, 12, 15, 18, 20, 24, 25, 30, 35, 40, 45, 50, 60, 80, 120, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4 };
-                QueryResultLimit.SelectedIndex = QueryResultLimit.Items.IndexOf(settings.ResultLimit);
-
                 SimilarResultGallery.ItemsSource = GalleryList;
 
+                edResult.IsReadOnly = true;
                 edResult.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+
+                QueryResultLimit.ItemsSource = settings.ResultLimitList;
+                QueryResultLimit.SelectedIndex = QueryResultLimit.Items.IndexOf(settings.ResultLimit);
+                if (!double.TryParse(QueryResultLimit.Text, out double _)) { QueryResultLimit.Items.IndexOf(settings.ResultLimitList.FirstOrDefault()); };
 
                 var args = Environment.GetCommandLineArgs();
                 if (args.Length > 1 && File.Exists(args[1]))
@@ -867,6 +873,14 @@ namespace ImageSearch
             }
             catch (Exception ex) { ReportMessage(ex); }
         }
+        
+        private void Window_PreviewMouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Middle) //e.MiddleButton == MouseButtonState.Released)
+            {
+                WindowState = WindowState.Minimized;
+            }
+        }
 
         private void Window_DragEnter(object sender, DragEventArgs e)
         {
@@ -931,6 +945,11 @@ namespace ImageSearch
                 {
                     ShellOpen([settings.SettingFile], system: true);
                 }
+            }
+            else if(sender == ClearLog)
+            {
+                _log_.Clear();
+                ShowLog();
             }
             else if (sender == DBMake)
             {
@@ -1216,10 +1235,11 @@ namespace ImageSearch
                         await SimilarResultGallery.Dispatcher.InvokeAsync(() =>
                         {
                             SimilarResultGallery.ItemsSource ??= GalleryList;
-                            if (GalleryList.Count > 0) 
-                                SimilarResultGallery.ScrollIntoView(GalleryList.First());
-                            //if (SimilarResultGallery.Items.Filter is null) 
-                                SimilarResultGallery.Items.Filter = GetFilter(ResultFilter.Text);
+                            if (SimilarResultGallery.Items?.Count > 0)
+                            {
+                                SimilarResultGallery.ScrollIntoView(SimilarResultGallery.Items?[0]);
+                            }
+
                             var info_items = new List<string>
                             {
                                 $"Displayed : {$"{SimilarResultGallery.Items?.Count}",6}",
@@ -1227,6 +1247,7 @@ namespace ImageSearch
                                 $"Total     : {$"{GalleryList?.Count}", 6}",
                             };
                             TabSimilar.ToolTip = string.Join(Environment.NewLine, info_items);
+
                             System.Media.SystemSounds.Beep.Play();
                         }, System.Windows.Threading.DispatcherPriority.Normal);
                         #endregion
@@ -1234,6 +1255,71 @@ namespace ImageSearch
                 });
                 GC.Collect();
             }
+        }
+
+        private void QueryImageLabel_Click(object sender, RoutedEventArgs e)
+        {
+            InitSimilar();
+
+            if (Tabs.SelectedItem == TabSimilar)
+            {
+                var items = SimilarResultGallery.SelectedItems.OfType<ImageResultGalleryItem>();
+                Task.Run(async () =>
+                {
+                    if (items.Any())
+                    {
+                        foreach (var item in items)
+                        {
+                            if (item.Labels is null)
+                            {
+                                item.Labels = await similar.GetImageLabel(item.FullName);
+                                if (item.Labels?.Length > 0)
+                                {
+                                    item.Tooltip += Environment.NewLine + string.Join(Environment.NewLine, item.Labels.Select(x => $"Confidence  : \"{x.Label}\" ≈ {x.Confidence}").Take(10));
+                                    item.UpdateToolTip();
+                                }
+                            }
+                        }
+                    }
+                    GC.Collect();
+                });
+            }
+            else if (Tabs.SelectedItem == TabCompare)
+            {
+                var items = new Dictionary<System.Windows.Controls.Image, Viewbox>{ { CompareL, CompareBoxL }, { CompareR, CompareBoxR } };
+                Task.Run(() =>
+                {
+                    foreach (var item in items)
+                    {
+                        item.Key?.Dispatcher.InvokeAsync(async () =>
+                        {
+                            if (item.Key?.Tag is SKBitmap)
+                            {
+                                var value = ToolTipService.GetToolTip(item.Value);
+                                var tooltip = value is string ? value as string : string.Empty;
+                                if (string.IsNullOrEmpty(tooltip) || !tooltip.Contains("Confidence  :"))
+                                {
+                                    var Labels = await similar.GetImageLabel(item.Key?.Tag as SKBitmap);
+                                    if (Labels?.Length > 0)
+                                    {
+                                        tooltip += Environment.NewLine + string.Join(Environment.NewLine, Labels.Select(x => $"Confidence  : \"{x.Label}\" ≈ {x.Confidence}").Take(10));
+                                        ToolTipService.SetToolTip(item.Value, tooltip);
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+                GC.Collect();
+            }
+        }
+
+        private void ResultFilter_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            SimilarResultGallery.Dispatcher.InvokeAsync(() =>
+            {
+                SimilarResultGallery.Items.Filter = GetFilter(ResultFilter.Text);
+            });
         }
 
         private bool InDrop = false;
@@ -1303,17 +1389,9 @@ namespace ImageSearch
             });
         }
 
-        private void ResultFilter_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            SimilarResultGallery.Dispatcher.InvokeAsync(() =>
-            {
-                SimilarResultGallery.Items.Filter = GetFilter(ResultFilter.Text);
-            });
-        }
-
     }
 
-    public class ImageResultGalleryItem
+    public class ImageResultGalleryItem : INotifyPropertyChanged, IDisposable
     {
         public ImageSource? Source { get; set; }
         public string FullName { get; set; } = string.Empty;
@@ -1323,6 +1401,27 @@ namespace ImageSearch
         public bool HasExifTag { get; set; } = false;
         public bool Favoriteed { get; set; } = false;
         public bool Deleteed { get; set; } = false;
+        public LabeledObject[]? Labels { get; set; } = null;
+
+        public void UpdateToolTip()
+        {
+            NotifyPropertyChanged(nameof(Tooltip));
+        }
+
+        #region Dispose Helper
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+        }
+        #endregion
+
+        #region Properties Handler
+        public event PropertyChangedEventHandler? PropertyChanged;
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
     }
 
 }
