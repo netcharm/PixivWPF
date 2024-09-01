@@ -1033,48 +1033,52 @@ namespace ImageSearch.Search
 
         public async Task<(string[], float[,])> LoadFeatureFile(string feature_db)
         {
-            float[,] feats;
-            string[] names;
+            float[,] feats = new float[0,0];
+            string[] names = [];
 
-            (names, feats) = await Task.Run<(string[], float[,])>(() =>
+            if (await FeatureLoadedState.WaitAsync(TimeSpan.FromSeconds(30)))
             {
-                var sw = Stopwatch.StartNew();
-
-                float[,] feats = new float[0,0];
-                string[] names = [];
-
-                ReportMessage($"Loading Feature Database from {feature_db}", RunningStatue);
-
-                feature_db = GetAbsolutePath(feature_db);
-
-                var options = new H5ReadOptions()
+                (names, feats) = await Task.Run<(string[], float[,])>(() =>
                 {
-                    IncludeClassFields = true,
-                    IncludeClassProperties = true,
-                    IncludeStructFields = true,
-                    IncludeStructProperties = true
-                };
+                    var sw = Stopwatch.StartNew();
 
-                var h5 = H5File.OpenRead(feature_db, options);
-                try
-                {
-                    var h5_feats = h5.Dataset("feats");
-                    var h5_names = h5.Dataset("names");
+                    float[,] feats = new float[0,0];
+                    string[] names = [];
 
-                    feats = h5_feats.Read<float[,]>();
-                    names = h5_names.Read<string[]>();
+                    ReportMessage($"Loading Feature Database from {feature_db}", RunningStatue);
 
-                    ReportMessage($"Loaded Feature Database [{names.Length}, {feats.Length}] from {feature_db}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
-                }
-                catch (Exception ex) { ReportMessage($"{ex.StackTrace?.Split().LastOrDefault()} : {ex.Message}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s"); }
-                finally
-                {
-                    sw?.Stop();
-                    h5?.Dispose();
-                    GC.Collect();
-                }
-                return ((names, feats));
-            }).WaitAsync(TimeSpan.FromSeconds(60));
+                    feature_db = GetAbsolutePath(feature_db);
+
+                    var options = new H5ReadOptions()
+                    {
+                        IncludeClassFields = true,
+                        IncludeClassProperties = true,
+                        IncludeStructFields = true,
+                        IncludeStructProperties = true
+                    };
+
+                    var h5 = H5File.OpenRead(feature_db, options);
+                    try
+                    {
+                        var h5_feats = h5.Dataset("feats");
+                        var h5_names = h5.Dataset("names");
+
+                        feats = h5_feats.Read<float[,]>();
+                        names = h5_names.Read<string[]>();
+
+                        ReportMessage($"Loaded Feature Database [{names.Length}, {feats.Length}] from {feature_db}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
+                    }
+                    catch (Exception ex) { ReportMessage($"{ex.StackTrace?.Split().LastOrDefault()} : {ex.Message}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s"); }
+                    finally
+                    {
+                        if (FeatureLoadedState?.CurrentCount == 0) FeatureLoadedState?.Release();
+                        sw?.Stop();
+                        h5?.Dispose();
+                        GC.Collect();
+                    }
+                    return ((names, feats));
+                }).WaitAsync(TimeSpan.FromSeconds(60));
+            }
 
             return ((names, feats));
         }
@@ -1667,7 +1671,7 @@ namespace ImageSearch.Search
             if (feature0 == null || feature1 == null) return (result);
 
             var sw = Stopwatch.StartNew();
-            if (await ModelLoadedState.WaitAsync(TimeSpan.FromSeconds(30)) && await FeatureLoadedState.WaitAsync(TimeSpan.FromSeconds(30)))
+            if (await ModelLoadedState?.WaitAsync(TimeSpan.FromSeconds(30)) && await FeatureLoadedState?.WaitAsync(TimeSpan.FromSeconds(30)))
             {
                 try
                 {
@@ -1691,8 +1695,8 @@ namespace ImageSearch.Search
                 finally
                 {
                     sw?.Stop();
-                    if (ModelLoadedState.CurrentCount == 0) ModelLoadedState.Release();
-                    if (FeatureLoadedState.CurrentCount == 0) FeatureLoadedState.Release();
+                    if (ModelLoadedState?.CurrentCount == 0) ModelLoadedState?.Release();
+                    if (FeatureLoadedState?.CurrentCount == 0) FeatureLoadedState?.Release();
                     ReportMessage($"Compared Result of 2 features : {result:F4}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
                 }
             }
@@ -1722,7 +1726,7 @@ namespace ImageSearch.Search
             if (feature == null) return (result);
 
             var sw = Stopwatch.StartNew();
-            if (await ModelLoadedState.WaitAsync(TimeSpan.FromSeconds(30)) && await FeatureLoadedState.WaitAsync(TimeSpan.FromSeconds(30)))
+            if (await ModelLoadedState?.WaitAsync(TimeSpan.FromSeconds(30)) && await FeatureLoadedState?.WaitAsync(TimeSpan.FromSeconds(30)))
             {
                 try
                 {
@@ -1772,8 +1776,8 @@ namespace ImageSearch.Search
                 finally
                 {
                     sw?.Stop();
-                    if (ModelLoadedState.CurrentCount == 0) ModelLoadedState.Release();
-                    if (FeatureLoadedState.CurrentCount == 0) FeatureLoadedState.Release();
+                    if (ModelLoadedState?.CurrentCount == 0) ModelLoadedState?.Release();
+                    if (FeatureLoadedState?.CurrentCount == 0) FeatureLoadedState?.Release();
                     ReportMessage($"Queried feature, result count: {result?.Count}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
                     GC.Collect();
                 }

@@ -463,9 +463,8 @@ namespace ImageSearch
             var storage = new Storage();
             var folder = string.Empty;
             var feature_db = string.Empty;
-            var all = false;
 
-            await Dispatcher.InvokeAsync(() =>
+            var all = await Dispatcher.InvokeAsync(() =>
             {
                 if (FolderList.SelectedIndex >= 0)
                 {
@@ -473,13 +472,14 @@ namespace ImageSearch
                     folder = storage.ImageFolder;
                     feature_db = storage.DatabaseFile;
                 }
-                all = AllFolders.IsChecked ?? false;
-            }, System.Windows.Threading.DispatcherPriority.Normal);
+                return (AllFolders.IsChecked ?? false);
+            }, DispatcherPriority.Normal);
 
+            await similar?.LoadModel();
             if (all)
-                await similar.LoadFeatureData(similar.StorageList);
+                await similar?.LoadFeatureData(similar.StorageList);
             else
-                await similar.LoadFeatureData(storage);
+                await similar?.LoadFeatureData(storage);
         }
 
         private void InitSimilar()
@@ -1252,8 +1252,9 @@ namespace ImageSearch
                         }, System.Windows.Threading.DispatcherPriority.Normal);
                         #endregion
                     }
+
+                    GC.Collect();
                 });
-                GC.Collect();
             }
         }
 
