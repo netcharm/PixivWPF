@@ -37,7 +37,6 @@
                         </TransformGroup>
                     </Viewbox.LayoutTransform>
                 </Viewbox>
-                <TextBlock Grid.Row="1" Grid.Column="0" x:Name="PART_IMAGEFILE" Text="{Binding Path=FileName, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Center" />
                 <StackPanel Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom">
                     <StackPanel.Effect>
                         <DropShadowEffect BlurRadius="1" ShadowDepth="0" Direction="315" Color="{DynamicResource {x:Static SystemColors.HighlightColorKey}}" Opacity="0.75"/>
@@ -47,7 +46,8 @@
                     <TextBlock x:Name="PART_IMAGEFAVED" Text="&#xEB51;" FontFamily="{StaticResource SegoeIconFamily}" 
                            Margin="1" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="{Binding Favoriteed, Mode=OneWay}"/>
                 </StackPanel>
-                <TextBlock Grid.Row="1" Grid.Column="1" x:Name="PART_IMAGESIMILAR" Text="{Binding Path=Similar, Mode=OneWay}"  HorizontalAlignment="Right" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="1" Grid.Column="0" x:Name="PART_IMAGEFILE" Text="{Binding Path=FileName, Mode=OneWay}" Margin="0,0,1,0" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="1" Grid.Column="1" x:Name="PART_IMAGESIMILAR" Text="{Binding Path=Similar, Mode=OneWay}" Margin="1,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Center" />
             </Grid>
         </DataTemplate>
     </Window.Resources>
@@ -182,15 +182,19 @@
             <Button x:Name="DBMake" Width="72" Margin="4" Content="Make DB" Click="DBTools_Click">
                 <Button.ContextMenu>
                     <ContextMenu>
-                        <MenuItem x:Name="DBClean" Header="Clean DB" Click="DBTools_Click"/>
-                        <MenuItem x:Name="DBMerge" Header="Merge DB" Click="DBTools_Click"/>
-                        <MenuItem x:Name="DBChangePath" Header="Change DB Path" Click="DBTools_Click"/>
-                        <MenuItem x:Name="DBRemove" Header="Remove DB" Click="DBTools_Click" Visibility="Collapsed"/>
-                        <MenuItem x:Name="DBAdd" Header="Add New DB" Click="DBTools_Click" Visibility="Collapsed"/>
+                        <MenuItem x:Name="DBLoad" Header="Load Feature Database" Click="DBTools_Click"/>
+                        <Separator/>
+                        <MenuItem x:Name="DBClean" Header="Clean Feature Database" Click="DBTools_Click"/>
+                        <MenuItem x:Name="DBMerge" Header="Merge Feature Database" Click="DBTools_Click"/>
+                        <MenuItem x:Name="DBChangePath" Header="Change Feature Database Path" Click="DBTools_Click"/>
+                        <MenuItem x:Name="DBRemove" Header="Remove Feature Database" Click="DBTools_Click" Visibility="Collapsed"/>
+                        <MenuItem x:Name="DBAdd" Header="Add New Feature Database" Click="DBTools_Click" Visibility="Collapsed"/>
                         <Separator/>
                         <MenuItem x:Name="ClearLog" Header="Clear Logs" Click="DBTools_Click"/>
                         <Separator/>
                         <MenuItem x:Name="OpenConfig" Header="Open Config File" Click="DBTools_Click"/>
+                        <MenuItem x:Name="LoadConfig" Header="Load Config File" Click="DBTools_Click"/>
+                        <MenuItem x:Name="SaveConfig" Header="Save Config File" Click="DBTools_Click"/>
                     </ContextMenu>
                 </Button.ContextMenu>
             </Button>

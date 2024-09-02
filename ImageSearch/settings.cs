@@ -18,10 +18,10 @@ namespace ImageSearch
         [Newtonsoft.Json.JsonIgnore]
         internal protected string SettingFile { get; set; } = string.Empty;
 
-        public static Settings? Load(string setting_file)
+        public static Settings? Load(string? setting_file)
         {
             Settings? result = new ();
-            if (System.IO.File.Exists(setting_file))
+            if (setting_file is not null && !string.IsNullOrEmpty(setting_file) && System.IO.File.Exists(setting_file))
             {
                 try
                 {

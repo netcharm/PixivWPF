@@ -456,7 +456,7 @@ namespace ImageSearch
             return ((bmp, skb));
         }
 
-        private async Task LoadFeatureDB()
+        private async Task LoadFeatureDB(bool reload = false)
         {
             InitSimilar();
 
@@ -477,9 +477,9 @@ namespace ImageSearch
 
             await similar?.LoadModel();
             if (all)
-                await similar?.LoadFeatureData(similar.StorageList);
+                await similar?.LoadFeatureData(similar.StorageList, reload: reload);
             else
-                await similar?.LoadFeatureData(storage);
+                await similar?.LoadFeatureData(storage, reload: reload);
         }
 
         private void InitSimilar()
@@ -614,7 +614,7 @@ namespace ImageSearch
                     try
                     {
                         var exif = new ExifData(img_file);
-                        if (exif != null)
+                        if (exif != null && exif.ImageType != ImageType.Unknown)
                         {
                             #region Get Taken date
                             exif.GetDateDigitized(out var date_digital);
@@ -730,6 +730,46 @@ namespace ImageSearch
             return (result);
         }
 
+        public void LoadSetting()
+        {
+            var setting_file = GetAbsolutePath($"{GetAppName()}.settings");
+            settings = Settings.Load(setting_file) ?? new Settings();
+            settings.SettingFile = setting_file;
+
+            if (settings.DarkBackground)
+            {
+                DarkBG.IsChecked = settings.DarkBackground;
+                ChangeTheme(settings.DarkBackground);
+            }
+
+            _storages_ = settings.StorageList;
+            AllFolders.IsChecked = settings.AllFolder;
+
+            if (_storages_ is not null)
+            {
+                FolderList.ItemsSource = _storages_.Select(s => new ComboBoxItem() { Content = s.ImageFolder, DataContext = s, ToolTip = s.Description });
+                if (!string.IsNullOrEmpty(settings.LastImageFolder))
+                {
+                    var idx = _storages_.Select(s => s.ImageFolder).ToList().IndexOf(settings.LastImageFolder);
+                    if (idx >= 0) FolderList.SelectedIndex = idx;
+                }
+                else FolderList.SelectedIndex = 0;
+            }
+            if (!File.Exists(setting_file)) settings.Save(setting_file);
+
+            QueryResultLimit.ItemsSource = settings.ResultLimitList;
+            QueryResultLimit.SelectedIndex = QueryResultLimit.Items.IndexOf(settings.ResultLimit);
+            if (!double.TryParse(QueryResultLimit.Text, out double _)) { QueryResultLimit.Items.IndexOf(settings.ResultLimitList.FirstOrDefault()); };
+        }
+
+        public void SaveSetting()
+        {
+            if (!string.IsNullOrEmpty(settings?.SettingFile))
+            {
+                settings.Save(settings.SettingFile);
+            }
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -740,43 +780,19 @@ namespace ImageSearch
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            var setting_file = GetAbsolutePath($"{GetAppName()}.settings");
             try
             {
-                settings = Settings.Load(setting_file) ?? new Settings();
-                settings.SettingFile = setting_file;
+                LoadSetting();
 
-                //DefaultTextBrush = Foreground;
-
-                if (settings.DarkBackground)
-                {
-                    DarkBG.IsChecked = settings.DarkBackground;
-                    ChangeTheme(settings.DarkBackground);
-                }
-
-                _storages_ = settings.StorageList;
-                AllFolders.IsChecked = settings.AllFolder;
-
-                if (_storages_ is not null)
-                {
-                    FolderList.ItemsSource = _storages_.Select(s => new ComboBoxItem() { Content = s.ImageFolder, DataContext = s, ToolTip = s.Description });
-                    if (!string.IsNullOrEmpty(settings.LastImageFolder))
-                    {
-                        var idx = _storages_.Select(s => s.ImageFolder).ToList().IndexOf(settings.LastImageFolder);
-                        if (idx >= 0) FolderList.SelectedIndex = idx;
-                    }
-                    else FolderList.SelectedIndex = 0;
-                }
-                if (!File.Exists(setting_file)) settings.Save(setting_file);
+                var ww = SystemParameters.PrimaryScreenWidth;
+                var wh = SystemParameters.PrimaryScreenHeight;
+                var ratio = Width / ww;
+                Height = wh * ratio;
 
                 SimilarResultGallery.ItemsSource = GalleryList;
 
                 edResult.IsReadOnly = true;
                 edResult.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
-
-                QueryResultLimit.ItemsSource = settings.ResultLimitList;
-                QueryResultLimit.SelectedIndex = QueryResultLimit.Items.IndexOf(settings.ResultLimit);
-                if (!double.TryParse(QueryResultLimit.Text, out double _)) { QueryResultLimit.Items.IndexOf(settings.ResultLimitList.FirstOrDefault()); };
 
                 var args = Environment.GetCommandLineArgs();
                 if (args.Length > 1 && File.Exists(args[1]))
@@ -946,10 +962,24 @@ namespace ImageSearch
                     ShellOpen([settings.SettingFile], system: true);
                 }
             }
-            else if(sender == ClearLog)
+            else if (sender == LoadConfig)
+            {
+                LoadSetting();
+            }
+            else if (sender == SaveConfig)
+            {
+                SaveSetting();
+            }
+            else if (sender == ClearLog)
             {
                 _log_.Clear();
                 ShowLog();
+            }
+            else if (sender == DBLoad)
+            {
+                var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+                InitSimilar();
+                Task.Run(async () => { await LoadFeatureDB(reload: ctrl); });
             }
             else if (sender == DBMake)
             {
@@ -1150,6 +1180,8 @@ namespace ImageSearch
                 var show_in_shell = OpenInShell.IsChecked ?? false;
                 var skb_src = SimilarSrc.Tag as SKBitmap;
 
+                //QueryImage.IsEnabled = false;
+
                 GalleryList.Clear();
                 await Task.Run(async () =>
                 {
@@ -1248,6 +1280,8 @@ namespace ImageSearch
                             };
                             TabSimilar.ToolTip = string.Join(Environment.NewLine, info_items);
 
+                            QueryImage.IsEnabled = true;
+
                             System.Media.SystemSounds.Beep.Play();
                         }, System.Windows.Threading.DispatcherPriority.Normal);
                         #endregion
@@ -1255,6 +1289,7 @@ namespace ImageSearch
 
                     GC.Collect();
                 });
+                
             }
         }
 
@@ -1310,8 +1345,8 @@ namespace ImageSearch
                             }
                         });
                     }
+                    GC.Collect();
                 });
-                GC.Collect();
             }
         }
 

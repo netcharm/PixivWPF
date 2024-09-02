@@ -1064,7 +1064,10 @@ namespace ImageSearch.Search
                         var h5_names = h5.Dataset("names");
 
                         feats = h5_feats.Read<float[,]>();
-                        names = h5_names.Read<string[]>();
+                        if(h5_names.Type.Class == H5DataTypeClass.String)
+                            names = h5_names.Read<string[]>();
+                        else if(h5_names.Type.Class == H5DataTypeClass.VariableLength)
+                            names = h5_names.Read<byte[][]>().Select(x => Encoding.UTF8.GetString(x)).ToArray();
 
                         ReportMessage($"Loaded Feature Database [{names.Length}, {feats.Length}] from {feature_db}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
                     }
@@ -1122,9 +1125,9 @@ namespace ImageSearch.Search
                                     {
                                         feat_obj.FeatureStore = storage;
                                         feat_obj.Names = names.Select(x => Path.Combine(GetAbsolutePath(storage.ImageFolder), x)).ToArray();
-                                        feat_obj.Feats = null;
                                         feat_obj.Feats = new NDArray(feats);
                                     }
+                                    GC.Collect();
                                     ReportMessage($"Loaded Feature DataTable from {file}, {sw?.Elapsed.TotalSeconds:F4}s");
                                     ret = true;
                                 }
@@ -1134,7 +1137,7 @@ namespace ImageSearch.Search
                         }
                     }
                     catch (Exception ex) { ReportMessage(ex); }
-                    finally { sw?.Stop(); }
+                    finally { sw?.Stop(); GC.Collect(); }
                 }
             }
             return (result);
@@ -1169,12 +1172,12 @@ namespace ImageSearch.Search
                         fullpath = fullpath && !string.IsNullOrEmpty(imagefolder) && Directory.Exists(imagefolder);
 
                         if (File.Exists(file)) File.Move(file, $"{file}.lastgood", true);
+                        names = fullpath ? names : names.Select(x => x.Replace(GetAbsolutePath(imagefolder), "").TrimStart(['\\', '/', ' ', '\0'])).ToArray();
                         var h5 = new H5File()
                         {
                             //["my-group"] = new H5Group()
                             //{
-                            //["names"] = names.Select(n => n.Replace(image_folder, string.Empty)).ToArray(),
-                            ["names"] = fullpath ? names : names.Select(x => x.Replace(GetAbsolutePath(imagefolder), "").TrimStart(['\\', '/', ' ', '\0'])).ToArray(),
+                            ["names"] = names.Select(x => Encoding.UTF8.GetBytes(x)).ToArray(),
                             ["feats"] = feats,
                             Attributes = new()
                             {
@@ -1182,7 +1185,7 @@ namespace ImageSearch.Search
                                 ["size"] = new int[] { IMG_Width, IMG_HEIGHT }
                             }
                             //}
-                        };
+                        };                        
                         var option = new H5WriteOptions()
                         {
                             DefaultStringLength = 1024,
@@ -1190,8 +1193,8 @@ namespace ImageSearch.Search
                             IncludeClassProperties = true,
                             IncludeStructFields = true,
                             IncludeStructProperties = true,
-                            Filters = [ 
-                                //Blosc2Filter.Id, 
+                            Filters = [
+                                //Blosc2Filter.Id,
                                 new H5Filter(Id: Blosc2Filter.Id, Options: new(){
                                     [Blosc2Filter.COMPRESSION_LEVEL] = 9,
                                     [Blosc2Filter.COMPRESSOR_CODE] = "blosclz", // blosclz, lz4, lz4hc, zlib or zstd
@@ -1342,10 +1345,9 @@ namespace ImageSearch.Search
                                 if (feat_obj is not null && names_new.Length > 0 && feats_new.Length > 0)
                                 {
                                     feat_obj.Names = names_new;
-                                    feat_obj.Feats = null;
                                     feat_obj.Feats = new NDArray(feats_new);
                                     feat_obj.Loaded = true;
-
+                                    GC.Collect();
                                     ReportMessage($"Updated Feature DataTable to {file}, {sw?.Elapsed.TotalSeconds:F4}s");
                                 }
                                 ret &= true;
@@ -1356,6 +1358,7 @@ namespace ImageSearch.Search
                         {
                             if (BatchTaskIdle?.CurrentCount <= 0) BatchTaskIdle?.Release();
                             sw?.Stop();
+                            GC.Collect();
                             ReportMessage($"Cleaned Feature Data {file}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
                         }
                     }
@@ -1461,9 +1464,9 @@ namespace ImageSearch.Search
                             ReportMessage($"Updating Feature DataTable from {feature_src.DatabaseFile} to {feature_dst.DatabaseFile}", RunningStatue);
 
                             feat_obj_dst.Names = names_new;
-                            feat_obj_dst.Feats = null;
                             feat_obj_dst.Feats = new NDArray(feats_new);
                             feat_obj_dst.Loaded = true;
+                            GC.Collect();
 
                             ReportMessage($"Updated Feature DataTable from {feature_src.DatabaseFile} to {feature_dst.DatabaseFile}, {sw?.Elapsed.TotalSeconds:F4}s");
                         }
@@ -1475,6 +1478,7 @@ namespace ImageSearch.Search
                     {
                         if (BatchTaskIdle?.CurrentCount <= 0) BatchTaskIdle?.Release();
                         sw?.Stop();
+                        GC.Collect();
                         ReportMessage($"Merged Feature Data from {feature_src.DatabaseFile} to {feature_dst.DatabaseFile}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
                     }
                 }
