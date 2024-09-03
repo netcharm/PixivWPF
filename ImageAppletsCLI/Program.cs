@@ -47,7 +47,7 @@ namespace ImageAppletsCLI
                 if (applet is ImageApplets.Applet)
                 {
                     var extras = applet.ParseOptions(args.Skip(1));
-                    if ((extras.Count == 0 && string.IsNullOrEmpty(applet.InputFile)) && !Console.IsInputRedirected && !Console.IsOutputRedirected)
+                    if (args.Length == 1 || ((extras.Count == 0 && applet.Category != ImageApplets.AppletCategory.ImageGeneration && string.IsNullOrEmpty(applet.InputFile)) && !Console.IsInputRedirected && !Console.IsOutputRedirected))
                     {
                         #region Output applet help information
                         Console.Out.WriteLine(ShowHelp(applet.Name));
@@ -155,6 +155,10 @@ namespace ImageAppletsCLI
                                 files = ImageApplets.Applet.NaturalSort(files, padding: applet.SortZero, descending: applet.Descending).ToList();
                             RunApplet(files, applet, max_len, extras.ToArray());
                         }
+                        else if(applet.Category == ImageApplets.AppletCategory.ImageGeneration || applet.Category == ImageApplets.AppletCategory.None)
+                        {
+                            RunApplet(applet, max_len, extras.ToArray());
+                        }
                         #endregion
 
                         #region Out result footer
@@ -186,6 +190,48 @@ namespace ImageAppletsCLI
                     #endregion
                 }
             }
+        }
+        
+        private static void RunApplet(ImageApplets.Applet applet, int padding, params string[] extras)
+        {
+            try
+            {
+                dynamic result = null;
+                if (applet is ImageApplets.Applet)
+                {
+                    applet.ValuePaddingLeft = Math.Max(padding + 3, 4);
+                    var ret = applet.Execute(out result, extras.Skip(1));
+                    if (ret)
+                    {
+                        var is_contents = result is string && (result as string).StartsWith($"{ImageApplets.Applet.ContentMark}");
+                        if (is_contents) result = (result as string).Substring(1).Trim();
+                        if (!Console.IsOutputRedirected || applet.Verbose)
+                        {
+                            if (is_contents)
+                                Console.Out.WriteLine($"{"".PadRightCJK(Math.Max(padding, 1))} : {$"{result}"}");
+                            else
+                                Console.Out.WriteLine($"{"".PadRightCJK(Math.Max(padding, 1))} : {($"{result}").PadLeft(5)}");
+                        }
+
+                        if (is_contents)
+                            _log_.Add($"{"".PadRightCJK(Math.Max(padding, 1))} : {$"{result}"}");
+                        else
+                            _log_.Add($"{"".PadRightCJK(Math.Max(padding, 1))} : {($"{result}").PadLeft(5)}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex is CompactExifLib.ExifException)
+                {
+                    switch ((ex as CompactExifLib.ExifException).ErrorCode)
+                    {
+                        case CompactExifLib.ExifErrCode.ImageTypeIsNotSupported: break;
+                        default: break;
+                    }
+                }
+            }
+
         }
 
         private static void RunApplet(string file, ImageApplets.Applet applet, int padding, params string[] extras)
