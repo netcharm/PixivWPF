@@ -20,7 +20,7 @@ namespace ImageApplets
     public enum DateCompareMode { IS, NOT, IN, OUT, BEFORE, PREV, TODAY, CURRENT, NEXT, AFTER };
     public enum DateUnit { DAY, WEEK, MONTH, SEASON, QUATER, YEAR };
 
-    public enum AppletCategory { FileOP, ImageType, ImageContent, ImageAttribure, Other, Unknown, None }
+    public enum AppletCategory { FileOP, ImageType, ImageContent, ImageGeneration, ImageAttribure, Other, Unknown, None }
     public enum STATUS { All, Yes, No, None };
     [Flags]
     public enum ClipboardMode { NONE, IN, OUT, RESULT, INOUT, INRESULT, OUTRESULT, ALL };
@@ -889,7 +889,7 @@ namespace ImageApplets
         public static char[] RegexTrimChar = new char[] { 'i', '/' };
         public static string IsRegexPattern = @"^/(.+?)/i?$";
 
-        private static bool show_help = false;
+        //private static bool show_help = false;
         protected static STATUS Status { get; set; } = STATUS.All;
 
         private static List<dynamic> _range_value_ = new List<dynamic>();
@@ -931,7 +931,7 @@ namespace ImageApplets
         public bool Recursion { get { return (_recursion_); } }
 
         static private bool _sorting_ = true;
-        public bool Sorting { get { return (_sorting_); } }
+        public virtual bool Sorting { get { return (_sorting_); } }
 
         static private int _sortzero_ = 16;
         public int SortZero { get { return (_sortzero_); } }
@@ -1570,6 +1570,33 @@ namespace ImageApplets
                     return (list is IEnumerable<FileInfo> ? list.OrderBy(x => NormalizationFileName(x.FullName, padding)) : list);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message); return (list); }
+        }
+
+        public virtual bool Execute<T>(out T result, params object[] args)
+        {
+            bool ret = false;
+            result = default(T);
+            Result.Reset();
+            try
+            {
+                ret = true;
+            }
+            catch (ExifException ex)
+            {
+                if (ex is ExifException)
+                {
+                    ret = false;
+                    switch ((ex as ExifException).ErrorCode)
+                    {
+                        case ExifErrCode.ImageTypeIsNotSupported: break;
+                        default: MessageBox.Show(ex.Message); break;
+                    }
+                }
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            
+            Result.Set(string.Empty, OutputFile, ret, result);
+            return (ret);
         }
 
         public virtual bool Execute<T>(string file, out T result, params object[] args)
