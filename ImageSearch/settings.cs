@@ -53,6 +53,9 @@ namespace ImageSearch
         public string ModelInput { get; set; } = @"data";
         public string ModelOutput { get; set; } = @"resnetv24_dense0_fwd";
 
+        public bool ModelUseGpu { get; set; } = false;
+        public int ModelGpuDeviceId { get; set; } = 0;
+
         public string ImageViewerCmd { get; set; } = string.Empty;
         public string ImageViewerOpt { get; set; } = string.Empty;
 

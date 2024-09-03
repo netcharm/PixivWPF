@@ -492,6 +492,9 @@ namespace ImageSearch
                 ModelInputColumnName = settings.ModelInput,
                 ModelOutputColumnName = settings.ModelOutput,
 
+                ModelUseGpu = settings.ModelUseGpu,
+                ModelGpuDeviceId = settings.ModelGpuDeviceId,
+
                 StorageList = _storages_,
 
                 ResultMax = settings.ResultLimitMax,
@@ -1304,6 +1307,8 @@ namespace ImageSearch
                 {
                     if (items.Any())
                     {
+                        var sw = Stopwatch.StartNew();
+                        ReportMessage("Quering Image Labels", TaskStatus.Running);
                         foreach (var item in items)
                         {
                             if (item.Labels is null)
@@ -1316,6 +1321,8 @@ namespace ImageSearch
                                 }
                             }
                         }
+                        sw?.Stop();
+                        ReportMessage($"Quered Image Labels. Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
                     }
                     GC.Collect();
                 });

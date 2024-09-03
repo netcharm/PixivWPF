@@ -188,14 +188,13 @@ namespace ImageSearch.Search
         public string ModelInputColumnName { get; set; } = string.Empty;
         public string ModelOutputColumnName { get; set; } = string.Empty;
 
+        public bool ModelUseGpu { get; set; } = false;
+        public int ModelGpuDeviceId { get; set; } = 0;
+
         public int ResultMax { get; set; } = 1000;
 
         // Create MLContext
-        private readonly MLContext mlContext = new(seed: 1)
-        {
-            FallbackToCpu = true,
-            GpuDeviceId = null//0
-        };
+        private readonly MLContext mlContext = new(seed: 1) { FallbackToCpu = true, GpuDeviceId = null };
 
         private ITransformer? _model_;
 
@@ -619,7 +618,10 @@ namespace ImageSearch.Search
         {
             InitBatchTask();
             H5Filter.Register(new Blosc2Filter());
+            mlContext.GpuDeviceId = ModelUseGpu ? 0 : null;
         }
+
+        #region norm/softmax/meanstd function
 #if DEBUG
         private static double[] Norm(IEnumerable<double> array, bool zscore = false)
         {
@@ -733,7 +735,9 @@ namespace ImageSearch.Search
 #endif
             return (result);
         }
+        #endregion
 
+        #region Image data format convertor
         public SKBitmap? FromImageSource(ImageSource src)
         {
             SKBitmap? result = null;
@@ -818,7 +822,8 @@ namespace ImageSearch.Search
             }
             return (result);
         }
-
+        #endregion
+ 
         public SKBitmap? LoadImage(string file)
         {
             SKBitmap? result = null;
@@ -915,7 +920,8 @@ namespace ImageSearch.Search
             }
             return _model_;
         }
-
+ 
+        #region Create Feature Database
         public async Task<bool> CreateFeatureData(Storage storage)
         {
             var result = false;
@@ -1025,12 +1031,14 @@ namespace ImageSearch.Search
             }
             return (result);
         }
+        #endregion
 
         public void CancelCreateFeatureData()
         {
             BatchCancel?.CancelAsync();
         }
 
+        #region Load Feature Database
         public async Task<(string[], float[,])> LoadFeatureFile(string feature_db)
         {
             float[,] feats = new float[0,0];
@@ -1127,6 +1135,8 @@ namespace ImageSearch.Search
                                         feat_obj.Names = names.Select(x => Path.Combine(GetAbsolutePath(storage.ImageFolder), x)).ToArray();
                                         feat_obj.Feats = new NDArray(feats);
                                     }
+                                    feats = new float[0,0];
+                                    names = [];
                                     GC.Collect();
                                     ReportMessage($"Loaded Feature DataTable from {file}, {sw?.Elapsed.TotalSeconds:F4}s");
                                     ret = true;
@@ -1155,7 +1165,9 @@ namespace ImageSearch.Search
             }
             return (result);
         }
+        #endregion
 
+        #region Save Feature Database
         public async Task<bool> SaveFeatureFile(string feature_db, string[] names, Array feats, string imagefolder, bool fullpath = false)
         {
             var result = false;
@@ -1228,6 +1240,7 @@ namespace ImageSearch.Search
             }
             return (result);
         }
+        #endregion
 
         public async Task<bool> ChangeImageFolder(string feature_db, string old_folder, string new_folder)
         {
@@ -1262,6 +1275,7 @@ namespace ImageSearch.Search
             return (result);
         }
 
+        #region Clean Feature Database
         public async Task<bool> CleanImageFeature()
         {
             var result = false;
@@ -1367,7 +1381,8 @@ namespace ImageSearch.Search
             }
             return (result);
         }
-
+        #endregion
+ 
         public async Task<bool> MergeImageFeature(Storage feature_src, Storage feature_dst)
         {
             var result = false;
@@ -1487,7 +1502,8 @@ namespace ImageSearch.Search
 
             return (result);
         }
-
+ 
+        #region Get Guessed Image Label
         public async Task<LabeledObject[]?> GetImageLabel(string file)
         {
             LabeledObject[]? label = null;
@@ -1503,7 +1519,7 @@ namespace ImageSearch.Search
                     {
                         if (bmp_src is not null)
                         {
-                            ReportMessage($"Quering Label from {file}");
+                            ReportMessage($"Quering Label from {file}", RunningStatue);
                             label = await GetImageLabel(bmp_src);
                         }
                     }
@@ -1578,7 +1594,9 @@ namespace ImageSearch.Search
             });
             return result;
         }
+        #endregion
 
+        #region Extract Image Feature
         public async Task<(float[]?, LabeledObject[]?)> ExtractImaegFeature(string file, bool labels = false)
         {
             float[]? feature = null;
@@ -1652,7 +1670,9 @@ namespace ImageSearch.Search
             }
             return (feature, label);
         }
-
+        #endregion
+ 
+        #region Comparing the similarity of two images
         public async Task<double> CompareImage(string file0, string file1, int padding = 0)
         {
             ReportMessage($"Comparing {file0}, {file1}", RunningStatue);
@@ -1707,7 +1727,9 @@ namespace ImageSearch.Search
             else ReportMessage("Model or Feature Database not loaded.");
             return (result);
         }
+        #endregion
 
+        #region Query Image Score for Similarity
         public async Task<SimilarResult> QueryImageScore(string file, string? feature_db = null, double limit = 10, int padding = 0, bool labels = false, double confidence = 0.75)
         {
             ReportMessage($"Quering {file}", RunningStatue);
@@ -1762,7 +1784,6 @@ namespace ImageSearch.Search
                                 if (limit < 1 && rank_score[i] < limit) continue;
                                 else if (result.Count > result_count) break;
 
-                                //var label = await GetImageLabel(feat_obj.Feats[rank_ID[i]]);
                                 var f_name = feat_obj.Names[rank_ID[i]];
                                 if (string.IsNullOrEmpty(f_name)) continue;
                                 f_name = GetAbsolutePath(f_name);
@@ -1772,9 +1793,10 @@ namespace ImageSearch.Search
                                     if (limit > 1 && result.Count >= count) break;
                                 }
                             }
+                            GC.Collect();
                         }
                     }
-                    result = result.OrderByDescending(r => r.Value).Take(limit > 1 ?(int)limit : ResultMax).ToList();
+                    result = result.OrderByDescending(r => r.Value).Take(limit > 1 ? (int)limit : ResultMax).ToList();
                 }
                 catch (Exception ex) { ReportMessage(ex); }
                 finally
@@ -1789,6 +1811,6 @@ namespace ImageSearch.Search
             else ReportMessage("Model or Feature Database not loaded.");
             return (result);
         }
-
+        #endregion
     }
 }
