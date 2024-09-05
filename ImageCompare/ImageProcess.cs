@@ -1452,7 +1452,7 @@ namespace ImageCompare
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 if (image.ValidCurrent)
                 {
-                    if (image.Current.ColorFuzz.ToDouble() != ImageCompareFuzzy.Value) image.Current.ColorFuzz = new Percentage(ImageCompareFuzzy.Value);
+                    if (image.Current.ColorFuzz != DefaultColorFuzzy) image.Current.ColorFuzz = DefaultColorFuzzy;
                     image.Current.BackgroundColor = MasklightColor ?? MagickColors.Transparent;
                     if (image.LastClickPos == null)
                     {
@@ -1489,7 +1489,7 @@ namespace ImageCompare
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 if (image.ValidCurrent)
                 {
-                    if (image.Current.ColorFuzz.ToDouble() != ImageCompareFuzzy.Value) image.Current.ColorFuzz = new Percentage(ImageCompareFuzzy.Value);
+                    if (image.Current.ColorFuzz != DefaultColorFuzzy) image.Current.ColorFuzz = DefaultColorFuzzy;
                     if (image.Current.HasAlpha)
                     {
                         image.Current.ColorAlpha(MasklightColor ?? image.Current.BackgroundColor);
@@ -1519,7 +1519,7 @@ namespace ImageCompare
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 if (image.ValidCurrent)
                 {
-                    if (image.Current.ColorFuzz.ToDouble() != ImageCompareFuzzy.Value) image.Current.ColorFuzz = new Percentage(ImageCompareFuzzy.Value);
+                    if (image.Current.ColorFuzz != DefaultColorFuzzy) image.Current.ColorFuzz = DefaultColorFuzzy;
                     var alpha = new MagickImage(MasklightColor ?? image.Current.BackgroundColor, image.Current.Width, image.Current.Height);
                     image.Current.Composite(alpha, CompositeOperator.ChangeMask);
                     action = true;
@@ -1545,7 +1545,7 @@ namespace ImageCompare
                 var image_t = source ? ImageTarget.GetInformation() : ImageSource.GetInformation();
                 if (image_s.ValidCurrent)
                 {
-                    if (image_s.Current.ColorFuzz.ToDouble() != ImageCompareFuzzy.Value) image_s.Current.ColorFuzz = new Percentage(ImageCompareFuzzy.Value);
+                    if (image_s.Current.ColorFuzz != DefaultColorFuzzy) image_s.Current.ColorFuzz = DefaultColorFuzzy;
                     if (sendto)
                         image_t.Current = new MagickImage(MasklightColor ?? image_s.Current.MatteColor ?? image_s.Current.BackgroundColor,
                                                           image_s.Current.Width, image_s.Current.Height);
@@ -1604,9 +1604,9 @@ namespace ImageCompare
 
                 if (source is MagickImage && target is MagickImage)
                 {
-                    var fuzzy = ImageCompareFuzzy.Dispatcher.Invoke(() => Math.Min(Math.Max(ImageCompareFuzzy.Minimum, ImageCompareFuzzy.Value), ImageCompareFuzzy.Maximum));
-                    if (source.ColorFuzz.ToDouble() != fuzzy) source.ColorFuzz = new Percentage(fuzzy);
-                    if (target.ColorFuzz.ToDouble() != fuzzy) target.ColorFuzz = new Percentage(fuzzy);
+                    var fuzzy = DefaultColorFuzzy;
+                    if (source.ColorFuzz != fuzzy) source.ColorFuzz = fuzzy;
+                    if (target.ColorFuzz != fuzzy) target.ColorFuzz = fuzzy;
 
                     var max_w = Math.Max(source.Width, target.Width);
                     var max_h = Math.Max(source.Height, target.Height);
@@ -1625,7 +1625,7 @@ namespace ImageCompare
 
                         result = new MagickImage(target_x)
                         {
-                            ColorFuzz = new Percentage(fuzzy),
+                            ColorFuzz = fuzzy,
                             //Comment = "NetCharm Created",
                             //VirtualPixelMethod = VirtualPixelMethod.CheckerTile,
                             VirtualPixelMethod = VirtualPixelMethod.Transparent
@@ -1661,7 +1661,7 @@ namespace ImageCompare
 
                             result = new MagickImage(diff)
                             {
-                                ColorFuzz = new Percentage(fuzzy),
+                                ColorFuzz = fuzzy,
                                 //Comment = "NetCharm Created",
                                 //VirtualPixelMethod = VirtualPixelMethod.CheckerTile,
                                 VirtualPixelMethod = VirtualPixelMethod.Transparent

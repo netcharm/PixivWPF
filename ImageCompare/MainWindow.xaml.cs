@@ -60,6 +60,7 @@ namespace ImageCompare
         private string DefaultComposeToolTip = string.Empty;
         private string DefaultFuzzySliderToolTip = string.Empty;
 
+
         private Percentage DefaultColorFuzzy
         {
             get
@@ -2094,7 +2095,7 @@ namespace ImageCompare
                 item_more_fillflood.Click += (obj, evt) => { RenderRun(() => { FillOutBoundBoxImage(MenuHost(obj)); }); };
                 item_more_setalphatocolor.Click += (obj, evt) => { RenderRun(() => { SetAlphaToColorImage(MenuHost(obj)); }); };
                 item_more_setcolortoalpha.Click += (obj, evt) => { RenderRun(() => { SetColorToAlphaImage(MenuHost(obj)); }); };
-                item_more_createcolorimage.Click += (obj, evt) => { RenderRun(() => { CreateColorImage(MenuHost(obj), Keyboard.Modifiers == ModifierKeys.Shift); }); };
+                item_more_createcolorimage.Click += (obj, evt) => { var shift = Keyboard.Modifiers == ModifierKeys.Shift;  RenderRun(() => { CreateColorImage(MenuHost(obj), shift); }); };
                 #endregion
                 #region Add MoreEffects MenuItems to MoreEffects
                 item_more.Items.Add(item_more_autoenhance);
