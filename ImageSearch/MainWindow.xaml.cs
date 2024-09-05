@@ -892,7 +892,7 @@ namespace ImageSearch
             }
             catch (Exception ex) { ReportMessage(ex); }
         }
-        
+
         private void Window_PreviewMouseUp(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Middle) //e.MiddleButton == MouseButtonState.Released)
@@ -996,7 +996,7 @@ namespace ImageSearch
                 }
                 if (_storages_?.Count > 0)
                 {
-                    if (MessageBox.Show($"Will update/create current features database, continue it?", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                    if (MessageBox.Show($"Will update/create features database, continue it?", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                     {
                         if (AllFolders.IsChecked ?? false)
                         {
@@ -1009,6 +1009,32 @@ namespace ImageSearch
                         }
                     }
                 }
+            }
+            else if (sender == DBUpdate)
+            {
+                InitSimilar();
+                var items = SimilarResultGallery.SelectedItems.OfType<ImageResultGalleryItem>();
+                var files = items.Select(x => x.FullName).ToArray();
+                if (_storages_?.Count > 0 && files.Length > 0)
+                {
+                    if (MessageBox.Show($"Will update features of selected image(s) in database, continue it?", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                    {
+                        if (AllFolders.IsChecked ?? false)
+                        {
+                            Task.Run(async () => { await similar.UpdateImageFeature(_storages_, files); });
+                        }
+                        else if (FolderList.SelectedIndex >= 0)
+                        {
+                            var storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
+                            if (storage is not null) Task.Run(async () => { await similar.UpdateImageFeature(storage, files); });
+                        }
+                    }
+                }
+            }
+            else if (sender == DBCancel)
+            {
+                InitSimilar();
+                similar.CancelCreateFeatureData();
             }
             else if (sender == DBClean)
             {
@@ -1097,14 +1123,20 @@ namespace ImageSearch
                     var imgs = await LoadImageFromDataObject(Clipboard.GetDataObject());
                     if (imgs.Count > 0)
                     {
+                        var pt = Mouse.GetPosition(CompareViewer);
+                        var in_compare_l = pt.X < CompareViewer.ActualWidth / 2.0;
+                        var in_compare_r = pt.X > CompareViewer.ActualWidth / 2.0;
+
                         (var bmp, var skb, _) = imgs[0];
-                        if (CompareL.Source is null || CompareL.IsMouseOver)
+                        if (CompareL.Source is null || in_compare_l || CompareL.IsMouseOver)
                         {
+                            ToolTipService.SetToolTip(CompareBoxL, null);
                             CompareL.Source = bmp;
                             CompareL.Tag = skb;
                         }
-                        else if (CompareR.Source is null || CompareR.IsMouseOver)
+                        else if (CompareR.Source is null || in_compare_r || CompareR.IsMouseOver)
                         {
+                            ToolTipService.SetToolTip(CompareBoxR, null);
                             CompareR.Source = bmp;
                             CompareR.Tag = skb;
                         }
@@ -1190,26 +1222,25 @@ namespace ImageSearch
                 {
                     await LoadFeatureDB();
 
-                    var queries = await similar.QueryImageScore(skb_src, feature_db, limit: limit, labels: true, confidence: settings.ResultConfidence);
+                    var queries = await similar.QueryImageScore(skb_src, feature_db, limit: limit, labels: true);
                     var imlist = queries?.Results;
                     var labels = queries?.Labels;
                     if (labels is not null)
                     {
-                        var similar_tips = string.Join(Environment.NewLine, labels.Select(x => $"Confidence  : \"{x.Label}\" ≈ {x.Confidence}"));
+                        var padding = labels.Select(x => x.Label.Length).Max();
+                        var similar_tips = string.Join(Environment.NewLine, labels.Select(x => $"Confidence  : {x.Label.PadRight(padding)} ≈ {x.Confidence:F6}"));
                         if (!string.IsNullOrEmpty(similar_tips))
                         {
                             ReportMessage(similar_tips);
                             SimilarSrcBox.Dispatcher.Invoke(() =>
                             {
-                                object? tips = null;
+                                string? tips = null;
                                 var tips_old = SimilarSrcBox.ToolTip is string && !string.IsNullOrEmpty(SimilarSrcBox.ToolTip as string) ? SimilarSrcBox.ToolTip as string : string.Empty;
                                 if (string.IsNullOrEmpty(tips_old)) tips = similar_tips;
-                                else if (tips_old.StartsWith("Confidence  :")) tips = similar_tips;
                                 else
                                 {
                                     var tips_lines = tips_old.Split(["\n\r", "\r\n", "\n", "\r"], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-                                    if (tips_lines.LastOrDefault().StartsWith("Confidence  :")) tips_lines = tips_lines.RemoveAt(tips_lines.Length - 1);
-                                    tips = string.Join(Environment.NewLine, tips_lines.Append(similar_tips));
+                                    tips = string.Join(Environment.NewLine, tips_lines.Where(l => !l.StartsWith("Confidence  :")).Append(similar_tips));
                                 }
                                 ToolTipService.SetToolTip(SimilarSrcBox, tips);
                             });
@@ -1292,7 +1323,7 @@ namespace ImageSearch
 
                     GC.Collect();
                 });
-                
+
             }
         }
 
@@ -1303,9 +1334,9 @@ namespace ImageSearch
             if (Tabs.SelectedItem == TabSimilar)
             {
                 var items = SimilarResultGallery.SelectedItems.OfType<ImageResultGalleryItem>();
-                Task.Run(async () =>
+                if (items.Any())
                 {
-                    if (items.Any())
+                    Task.Run(async () =>
                     {
                         var sw = Stopwatch.StartNew();
                         ReportMessage("Quering Image Labels", TaskStatus.Running);
@@ -1316,16 +1347,17 @@ namespace ImageSearch
                                 item.Labels = await similar.GetImageLabel(item.FullName);
                                 if (item.Labels?.Length > 0)
                                 {
-                                    item.Tooltip += Environment.NewLine + string.Join(Environment.NewLine, item.Labels.Select(x => $"Confidence  : \"{x.Label}\" ≈ {x.Confidence}").Take(10));
+                                    var padding = item.Labels.Select(x => x.Label.Length).Max();
+                                    item.Tooltip += Environment.NewLine + string.Join(Environment.NewLine, item.Labels.Select(x => $"Confidence  : {x.Label.PadRight(padding)} ≈ {x.Confidence:F6}"));
                                     item.UpdateToolTip();
                                 }
                             }
                         }
                         sw?.Stop();
                         ReportMessage($"Quered Image Labels. Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
-                    }
-                    GC.Collect();
-                });
+                        GC.Collect();
+                    });
+                }
             }
             else if (Tabs.SelectedItem == TabCompare)
             {
@@ -1346,7 +1378,7 @@ namespace ImageSearch
                                     if (Labels?.Length > 0)
                                     {
                                         tooltip += Environment.NewLine + string.Join(Environment.NewLine, Labels.Select(x => $"Confidence  : \"{x.Label}\" ≈ {x.Confidence}").Take(10));
-                                        ToolTipService.SetToolTip(item.Value, tooltip);
+                                        ToolTipService.SetToolTip(item.Value, tooltip.Trim());
                                     }
                                 }
                             }

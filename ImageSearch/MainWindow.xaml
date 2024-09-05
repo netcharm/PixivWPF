@@ -159,7 +159,7 @@
             <ComboBox x:Name="FolderList" IsEditable="False" DockPanel.Dock="Left" MinWidth="22"
                       Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" VerticalContentAlignment="Center" 
                       ScrollViewer.VerticalScrollBarVisibility="Auto" SelectionChanged="FolderList_SelectionChanged"/>
-            <CheckBox x:Name="OpenInShell" Content="Open Results In Shell" IsChecked="False" DockPanel.Dock="Left" 
+            <CheckBox x:Name="OpenInShell" Content="Open Results In Shell" IsChecked="False" DockPanel.Dock="Left" Visibility="Collapsed"
                       Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
             <TextBlock x:Name="QueryResultLimitLabel" Text="Results: " Margin="4" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center"/>
             <ComboBox x:Name="QueryResultLimit" Text="10" IsEditable="False" DockPanel.Dock="Left" MinWidth="22"
@@ -183,6 +183,10 @@
                 <Button.ContextMenu>
                     <ContextMenu>
                         <MenuItem x:Name="DBLoad" Header="Load Feature Database" Click="DBTools_Click"/>
+                        <Separator/>
+                        <MenuItem x:Name="DBCancel" Header="Cancel Make Feature Database" Click="DBTools_Click"/>
+                        <Separator/>
+                        <MenuItem x:Name="DBUpdate" Header="Update Feature Database for Selected Image" Click="DBTools_Click"/>
                         <Separator/>
                         <MenuItem x:Name="DBClean" Header="Clean Feature Database" Click="DBTools_Click"/>
                         <MenuItem x:Name="DBMerge" Header="Merge Feature Database" Click="DBTools_Click"/>
