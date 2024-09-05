@@ -707,6 +707,17 @@ namespace ImageSearch
             return (string.Join(Environment.NewLine, result).Trim());
         }
 
+        private static string GetLabelString(LabeledObject[] items)
+        {
+            var result = string.Empty;
+            if (items is not null && items.Length > 0)
+            {
+                var padding = items.Select(x => x.Label.Length).Max();
+                result = string.Join(Environment.NewLine, items.Select(x => $"Confidence  : {x.Label.PadRight(padding)} ≈ {x.Confidence:F6}"));
+            }
+            return (result);
+        }
+
         public static Predicate<object>? GetFilter(string filter)
         {
             Predicate<object>? result = null;
@@ -1227,8 +1238,7 @@ namespace ImageSearch
                     var labels = queries?.Labels;
                     if (labels is not null)
                     {
-                        var padding = labels.Select(x => x.Label.Length).Max();
-                        var similar_tips = string.Join(Environment.NewLine, labels.Select(x => $"Confidence  : {x.Label.PadRight(padding)} ≈ {x.Confidence:F6}"));
+                        var similar_tips = GetLabelString(labels);
                         if (!string.IsNullOrEmpty(similar_tips))
                         {
                             ReportMessage(similar_tips);
@@ -1347,8 +1357,7 @@ namespace ImageSearch
                                 item.Labels = await similar.GetImageLabel(item.FullName);
                                 if (item.Labels?.Length > 0)
                                 {
-                                    var padding = item.Labels.Select(x => x.Label.Length).Max();
-                                    item.Tooltip += Environment.NewLine + string.Join(Environment.NewLine, item.Labels.Select(x => $"Confidence  : {x.Label.PadRight(padding)} ≈ {x.Confidence:F6}"));
+                                    item.Tooltip += Environment.NewLine + GetLabelString(item.Labels);
                                     item.UpdateToolTip();
                                 }
                             }
@@ -1377,7 +1386,7 @@ namespace ImageSearch
                                     var Labels = await similar.GetImageLabel(item.Key?.Tag as SKBitmap);
                                     if (Labels?.Length > 0)
                                     {
-                                        tooltip += Environment.NewLine + string.Join(Environment.NewLine, Labels.Select(x => $"Confidence  : \"{x.Label}\" ≈ {x.Confidence}").Take(10));
+                                        tooltip += Environment.NewLine + GetLabelString(Labels);
                                         ToolTipService.SetToolTip(item.Value, tooltip.Trim());
                                     }
                                 }
