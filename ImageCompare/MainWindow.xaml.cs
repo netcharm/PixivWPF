@@ -940,6 +940,7 @@ namespace ImageCompare
                     if (image_r.ValidCurrent) image_r.Dispose();
 
                     image_r.Original = await Compare(image_s.Current, image_t.Current, compose: compose);
+                    image_r.Type = ImageType.Result;
                     image_r.OpMode = LastOpIsComposite ? ImageOpMode.Compose : ImageOpMode.Compare;
                     image_r.ColorFuzzy = DefaultColorFuzzy;
                     image_r.SourceParams.Geometry = ShowGeometry;
@@ -2968,11 +2969,12 @@ namespace ImageCompare
             }
             else if (sender == ImageExchange)
             {
-                var st = ImageSource.Tag;
-                var tt = ImageTarget.Tag;
-                ImageSource.Tag = tt;
-                ImageTarget.Tag = st;
-                UpdateImageViewer(compose: LastOpIsComposite, assign: true);
+                var st = ImageSource.GetInformation();
+                var tt = ImageTarget.GetInformation();
+                (st.Current, tt.Current) = (new MagickImage(tt.Current), new MagickImage(st.Current));
+                //ImageSource.Tag = tt;
+                //ImageTarget.Tag = st;
+                UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             else if (sender == RepeatLastAction)
             {
