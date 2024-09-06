@@ -22,6 +22,8 @@
             <sys:Double x:Key="NormalFontSize">14</sys:Double>
             <sys:Double x:Key="IconFontSize">14</sys:Double>
 
+            <BooleanToVisibilityConverter x:Key="BoolToVis" />
+            
             <Style TargetType="{x:Type Window}">
                 <Setter Property="FontFamily" Value="{DynamicResource NormalFamily}" />
             </Style>

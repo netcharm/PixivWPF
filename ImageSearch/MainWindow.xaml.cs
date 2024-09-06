@@ -868,6 +868,21 @@ namespace ImageSearch
                         ShellOpen(files.ToArray(), openwith: shift, viewinfo: ctrl);
                     }
                 }
+                else if (e.Key == Key.Delete)
+                {
+                    if (Tabs.SelectedItem == TabSimilar)
+                    {
+                    }
+                    else if (Tabs.SelectedItem == TabCompare)
+                    {
+                        foreach (var compare in new System.Windows.Controls.Image[] { CompareL, CompareR })
+                        {
+                            if (compare.Source is not null) { compare.Source = null; }
+                            if (compare.Tag is SKBitmap) (compare.Tag as SKBitmap).Dispose();
+                            if (compare.ToolTip is not null) ToolTipService.SetToolTip(compare, null);
+                        }
+                    }
+                }
                 else if (e.Key == Key.V && ctrl)
                 {
                     if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
@@ -1298,7 +1313,7 @@ namespace ImageSearch
                                                 Similar = $"{im.Value:F4}",
                                                 Tooltip = tooltip,
                                                 HasExifTag = tooltip.Contains("Tags        :"),
-                                                Favoriteed = tooltip.Contains("Rank=4"),
+                                                Favoriteed = tooltip.Contains("Rank=4") || tooltip.Contains("Rank=5"),
                                             });
                                         }, System.Windows.Threading.DispatcherPriority.Normal);
                                         #endregion

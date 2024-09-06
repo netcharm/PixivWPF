@@ -589,13 +589,13 @@ namespace ImageSearch.Search
                             feat_obj.FeatureStore = storage;
 
                             feat_obj.Names = feats_new.Keys.ToArray();
-
+                            ///feat_obj.Feats = np.concatenate([feat_obj.Feats, new NDArray(feats.Values.ToArray())]);
                             feat_obj.Feats = null;
                             feat_obj.Feats = new NDArray(feats_new.Values.ToArray());
 
                             feats_new?.Clear();
                             feats_new = null;
-
+                            GC.Collect();
                             ReportMessage($"Post-Processed feature list");
 
                             if (cancel.IsCancellationRequested) { result = false; break; }

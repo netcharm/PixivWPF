@@ -42,9 +42,9 @@
                         <DropShadowEffect BlurRadius="1" ShadowDepth="0" Direction="315" Color="{DynamicResource {x:Static SystemColors.HighlightColorKey}}" Opacity="0.75"/>
                     </StackPanel.Effect>
                     <TextBlock x:Name="PART_IMAGETAGED" Text="&#xE8EC;" FontFamily="{StaticResource SegoeIconFamily}" 
-                           Margin="1" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="{Binding HasExifTag, Mode=OneWay}"/>
+                           Margin="1" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="{Binding HasExifTag, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
                     <TextBlock x:Name="PART_IMAGEFAVED" Text="&#xEB51;" FontFamily="{StaticResource SegoeIconFamily}" 
-                           Margin="1" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="{Binding Favoriteed, Mode=OneWay}"/>
+                           Margin="1" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="{Binding Favoriteed, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
                 </StackPanel>
                 <TextBlock Grid.Row="1" Grid.Column="0" x:Name="PART_IMAGEFILE" Text="{Binding Path=FileName, Mode=OneWay}" Margin="0,0,1,0" HorizontalAlignment="Left" VerticalAlignment="Center" />
                 <TextBlock Grid.Row="1" Grid.Column="1" x:Name="PART_IMAGESIMILAR" Text="{Binding Path=Similar, Mode=OneWay}" Margin="1,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Center" />
