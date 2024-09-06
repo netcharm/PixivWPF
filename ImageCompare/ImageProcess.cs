@@ -1242,19 +1242,21 @@ namespace ImageCompare
             {
                 var action = false;
                 var colors = WeakEffects ? 32768 : 65536;
-                var dither = WeakEffects ? DitherMethod.No :  DitherMethod.Riemersma;
+                var dither = WeakEffects ? DitherMethod.FloydSteinberg :  DitherMethod.Riemersma;
                 var depth = WeakEffects ? 3 : 7;
 
                 var image_s = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 var image_t = source ? ImageTarget.GetInformation() : ImageSource.GetInformation();
                 if (image_s.ValidCurrent && image_t.ValidCurrent)
                 {
-                    var err = image_s.Current.Map(image_t.Current, new QuantizeSettings()
+                    var ref_img = new MagickImage(image_t.Current);
+                    ref_img.Quantize(new QuantizeSettings() { Colors = colors, ColorSpace = ColorSpace.sRGB, DitherMethod = dither, MeasureErrors = true, TreeDepth = depth });
+                    var err = image_s.Current.Map(ref_img, new QuantizeSettings()
                     {
-                        MeasureErrors = true,
                         Colors = colors,
                         ColorSpace = ColorSpace.sRGB,
                         DitherMethod = dither,
+                        MeasureErrors = true,
                         TreeDepth = depth
                     });
                     action = true;
@@ -1292,19 +1294,18 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
-        private void HaldClutImage(bool source)
+        private void HaldClutImage(bool source, bool opposite)
         {
             try
             {
                 var action = false;
-                var shift = Keyboard.Modifiers == ModifierKeys.Shift;
                 var exists = File.Exists(LastHaldFile);
 
                 var image_s = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 var image_t = source ? ImageTarget.GetInformation() : ImageSource.GetInformation();
                 if (image_s.ValidCurrent && image_t.ValidCurrent)
                 {
-                    if (shift || !exists)
+                    if (opposite || !exists)
                         image_s.Current.HaldClut(image_t.Current);
                     else if (exists)
                         image_s.Current.HaldClut(new MagickImage(LastHaldFile));

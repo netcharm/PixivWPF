@@ -2086,7 +2086,7 @@ namespace ImageCompare
                 item_more_autothreshold.Click += (obj, evt) => { RenderRun(() => { AutoThresholdImage(MenuHost(obj)); }); };
                 item_more_remap.Click += (obj, evt) => { RenderRun(() => { RemapImage(MenuHost(obj)); }); };
                 item_more_clut.Click += (obj, evt) => { RenderRun(() => { ClutImage(MenuHost(obj)); }); };
-                item_more_haldclut.Click += (obj, evt) => { RenderRun(() => { HaldClutImage(MenuHost(obj)); }); };
+                item_more_haldclut.Click += (obj, evt) => { var shift = Keyboard.Modifiers == ModifierKeys.Shift; RenderRun(() => { HaldClutImage(MenuHost(obj), shift); }); };
 
                 item_more_meanshift.Click += (obj, evt) => { RenderRun(() => { MeanShiftImage(MenuHost(obj)); }); };
                 item_more_kmeans.Click += (obj, evt) => { RenderRun(() => { KmeansImage(MenuHost(obj)); }); };
