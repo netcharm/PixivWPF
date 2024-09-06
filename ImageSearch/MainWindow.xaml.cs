@@ -1174,7 +1174,7 @@ namespace ImageSearch
                     var skb0 = CompareL.Tag as SKBitmap;
                     var skb1 = CompareR.Tag as SKBitmap;
 
-                    var score = await similar.CompareImage(skb0, skb1);
+                    var score = await Task.Run(async () => { return(await similar.CompareImage(skb0, skb1)); });
                     ToolTipService.SetToolTip(TabCompare, $"{score:F4}");
                 }
             }

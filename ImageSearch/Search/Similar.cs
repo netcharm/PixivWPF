@@ -239,6 +239,8 @@ namespace ImageSearch.Search
             {
                 if (_model_ == null) await LoadModel();
 
+                SemaphoreSlim MultiTask = new(info.ParallelLimit, info.ParallelLimit);
+
                 var sw = Stopwatch.StartNew();
                 try
                 {
@@ -338,7 +340,6 @@ namespace ImageSearch.Search
                         int total = feats.Count;
                         uint index = 0;
 
-                        SemaphoreSlim MultiTask = new(info.ParallelLimit, info.ParallelLimit);
                         var opt = new ParallelOptions
                         {
                             MaxDegreeOfParallelism = info.ParallelLimit,
@@ -389,7 +390,9 @@ namespace ImageSearch.Search
                                     info.Current = index;
                                     info.Total = count;
                                     info.ElapsedTime = sw.Elapsed;
-                                    info.RemainingTime = TimeSpan.FromSeconds(Math.Ceiling(sw.Elapsed.TotalSeconds / (100 - percent)));
+                                    if (percent <= 0) info.RemainingTime = TimeSpan.FromSeconds(count * 10);
+                                    else if (percent >= 100) info.RemainingTime = TimeSpan.FromSeconds(0);
+                                    else info.RemainingTime = TimeSpan.FromSeconds((100 - percent) * Math.Ceiling(sw.Elapsed.TotalSeconds / percent));
                                     ReportBatchTask(info);
                                 }
                                 catch (Exception ex) { ReportMessage(ex); }
@@ -438,7 +441,9 @@ namespace ImageSearch.Search
                                     info.Current = index;
                                     info.Total = count;
                                     info.ElapsedTime = sw.Elapsed;
-                                    info.RemainingTime = TimeSpan.FromSeconds(Math.Ceiling(sw.Elapsed.TotalSeconds / (100 - percent)));
+                                    if (percent <= 0) info.RemainingTime = TimeSpan.FromSeconds(count * 10);
+                                    else if (percent >= 100) info.RemainingTime = TimeSpan.FromSeconds(0);
+                                    else info.RemainingTime = TimeSpan.FromSeconds((100 - percent) * Math.Ceiling(sw.Elapsed.TotalSeconds / percent));
                                     ReportBatchTask(info);
                                 }
                                 catch (Exception ex) { ReportMessage(ex); }
@@ -446,55 +451,63 @@ namespace ImageSearch.Search
                         }
                         else if (info.ParallelMode == BatchRunningMode.MultiTask)
                         {
-                            var tasks = diffs.Select(async file =>
+                            List<Task> tasks = [];
+                            foreach (var file in diffs)
                             {
-                                if (await MultiTask.WaitAsync(info.ParallelTimeOut, cancel))
+                                if (await MultiTask?.WaitAsync(info.ParallelTimeOut, cancel))
                                 {
-                                    try
+                                    tasks.Add(Task.Run(async () =>
                                     {
-                                        if (cancel.IsCancellationRequested) { result = false; return; }
-
-                                        index++;
-                                        if (string.IsNullOrEmpty(file)) return;
-
-                                        #region Extracting image feature and store it to feats dataset
-                                        (var feat, _) = await ExtractImaegFeature(file);
-                                        if (!string.IsNullOrEmpty(file) && feat is not null) feats[file] = feat;
-
-                                        var percent = (int)Math.Ceiling((float)index / count * 100.0);
-                                        ReportProgress(percent);
-                                        #endregion
-
-                                        if (cancel.IsCancellationRequested) { result = false; return; }
-
-                                        #region Save feats dataset for every CheckPoint
-                                        var current = feats.Count;
-                                        if (info.CheckPoint > 0 && (ulong)current % (uint)info.CheckPoint == 0)
+                                        try
                                         {
-                                            try
-                                            {
-                                                ReportMessage($"Saving checkpoint file to {npz_file}");
-                                                var last_checkpoint = (ulong)current - info.CheckPoint;
-                                                var cp_npz_file = $@"data\{dir_name}_checkpoint_{last_checkpoint:00000000}.npz";
-                                                if (File.Exists(npz_file)) File.Move(npz_file, cp_npz_file, true);
-                                                np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), npz_file);
-                                                ReportMessage($"Saved checkpoint file to {npz_file}, {sw?.Elapsed:dd\\.hh\\:mm\\:ss}");
-                                            }
-                                            catch (Exception ex) { ReportMessage(ex); }
-                                        }
-                                        #endregion
+                                            if (cancel.IsCancellationRequested) { result = false; return; }
 
-                                        info.FileName = file;
-                                        info.Current = index;
-                                        info.Total = count;
-                                        info.ElapsedTime = sw.Elapsed;
-                                        info.RemainingTime = TimeSpan.FromSeconds(Math.Ceiling(sw.Elapsed.TotalSeconds / (100 - percent)));
-                                        ReportBatchTask(info);
-                                    }
-                                    catch (Exception ex) { ReportMessage(ex); }
-                                    finally { MultiTask?.Release(); }
+                                            index++;
+                                            if (string.IsNullOrEmpty(file)) return;
+
+                                            #region Extracting image feature and store it to feats dataset
+                                            (var feat, _) = await ExtractImaegFeature(file);
+                                            if (!string.IsNullOrEmpty(file) && feat is not null) feats[file] = feat;
+
+                                            var percent = (int)Math.Ceiling((float)index / count * 100.0);
+                                            ReportProgress(percent);
+                                            #endregion
+
+                                            if (cancel.IsCancellationRequested) { result = false; return; }
+
+                                            #region Save feats dataset for every CheckPoint
+                                            var current = feats.Count;
+                                            if (info.CheckPoint > 0 && (ulong)current % (uint)info.CheckPoint == 0)
+                                            {
+                                                try
+                                                {
+                                                    ReportMessage($"Saving checkpoint file to {npz_file}");
+                                                    var last_checkpoint = (ulong)current - info.CheckPoint;
+                                                    var cp_npz_file = $@"data\{dir_name}_checkpoint_{last_checkpoint:00000000}.npz";
+                                                    if (File.Exists(npz_file)) File.Move(npz_file, cp_npz_file, true);
+                                                    np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), npz_file);
+                                                    ReportMessage($"Saved checkpoint file to {npz_file}, {sw?.Elapsed:dd\\.hh\\:mm\\:ss}");
+                                                }
+                                                catch (Exception ex) { ReportMessage(ex); }
+                                            }
+                                            #endregion
+
+                                            info.FileName = file;
+                                            info.Current = index;
+                                            info.Total = count;
+                                            info.ElapsedTime = sw.Elapsed;
+                                            if (percent <= 0) info.RemainingTime = TimeSpan.FromSeconds(count * 10);
+                                            else if (percent >= 100) info.RemainingTime = TimeSpan.FromSeconds(0);
+                                            else info.RemainingTime = TimeSpan.FromSeconds((100 - percent) * Math.Ceiling(sw.Elapsed.TotalSeconds / percent));
+                                            ReportBatchTask(info);
+                                        }
+                                        catch (Exception ex) { ReportMessage(ex); }
+                                        finally { MultiTask?.Release(); tasks.RemoveAll(t => t.Status == TaskStatus.RanToCompletion); }
+                                    }, cancel));
+                                    await Task.Delay(20);
                                 }
-                            });
+                            }
+                            Task.WaitAll(tasks.ToArray(), cancel);
                             await Task.WhenAll(tasks);
                         }
                         else if (info.ParallelMode == BatchRunningMode.ForLoop)
@@ -608,17 +621,24 @@ namespace ImageSearch.Search
 
                         feats?.Clear();
                         feats = null;
+
+                        in_npz = null;
+                        diffs = null;
+
+                        files = null;
+
                         GC.Collect();
                     }
                 }
                 catch (Exception ex) { ReportMessage(ex); }
                 finally
                 {
+                    MultiTask?.Dispose();
                     BatchCancel.TryReset();
-                    sw?.Stop();
                     if (BatchTaskIdle?.CurrentCount <= 0) BatchTaskIdle?.Release();
-                    ReportMessage($"Create feature datas finished, Elapsed: {sw?.Elapsed:dd\\.hh\\:mm\\:ss}", result ? TaskStatus.RanToCompletion : TaskStatus.Canceled);
+                    sw?.Stop();
                     System.Media.SystemSounds.Beep.Play();
+                    ReportMessage($"Create feature datas finished, Elapsed: {sw?.Elapsed:dd\\.hh\\:mm\\:ss}", result ? TaskStatus.RanToCompletion : TaskStatus.Canceled);
                     GC.Collect();
                 }
             }
@@ -689,6 +709,14 @@ namespace ImageSearch.Search
             return (exp.Select(x => x / sum).ToArray());
         }
 
+        private static float[]? InvSoftMax(float[]? array)
+        {
+            if (array is null) return (null);
+            float c = (float)Math.Log(array.Length);
+            var log = array.Select(x => (float)Math.Log(x) + c);
+            return log.ToArray();
+        }
+
         private static float[]? LA_Norm(float[]? array)
         {
             if (array is null) return (null);
@@ -707,28 +735,6 @@ namespace ImageSearch.Search
 #endif
             var mean = new[] { 0.485f, 0.456f, 0.406f };
             var stddev = new[] { 0.229f, 0.224f, 0.225f };
-
-            //for (var i = 0; i < array.Length; i += 3)
-            //{
-            //    var b = (array[i + 0] / 255f - mean[2]) / stddev[2];
-            //    var g = (array[i + 1] / 255f - mean[1]) / stddev[1];
-            //    var r = (array[i + 2] / 255f - mean[0]) / stddev[0];
-            //    array[i + 0] = r;
-            //    array[i + 1] = g;
-            //    array[i + 2] = b;
-            //}
-            //
-            //var k = 0;
-            //var rgb = new float[3, 224,224];
-            //for (int y = 0; y < 224; y++)
-            //{
-            //    for (int x = 0; x < 224; x++)
-            //    {
-            //        rgb[0, y, x] = array[k++];
-            //        rgb[1, y, x] = array[k++];
-            //        rgb[2, y, x] = array[k++];
-            //    }
-            //}
 
             var bgr = new float[224, 224, 3];
             Buffer.BlockCopy(array, 0, bgr, 0, array.Length * sizeof(float));
@@ -1730,8 +1736,9 @@ namespace ImageSearch.Search
                         feature = _predictionEngine_?.Predict(new ModelInput { Data = img_data }).Feature;
                         if (feature != null)
                         {
-                            if (!ModelHasSoftMax) feature = SoftMax(feature);
-                            if (labels) label = await GetImageLabel(feature);
+                            if (labels) label = await GetImageLabel(feature, !ModelHasSoftMax);
+                            //if (!ModelHasSoftMax) feature = SoftMax(feature);
+                            if (ModelHasSoftMax) feature = InvSoftMax(feature);
                             feature = LA_Norm(feature);
                         }
                         img_data = [];
@@ -1831,7 +1838,7 @@ namespace ImageSearch.Search
             if (feature == null) return (result);
 
             var sw = Stopwatch.StartNew();
-            if (await ModelLoadedState?.WaitAsync(TimeSpan.FromSeconds(30)) && await FeatureLoadedState?.WaitAsync(TimeSpan.FromSeconds(30)))
+            if (_features_.Count > 0 && await ModelLoadedState?.WaitAsync(TimeSpan.FromSeconds(30)) && await FeatureLoadedState?.WaitAsync(TimeSpan.FromSeconds(30)))
             {
                 try
                 {
