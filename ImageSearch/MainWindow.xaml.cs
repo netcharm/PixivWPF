@@ -11,6 +11,7 @@ using System.IO.Pipes;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -29,7 +30,7 @@ using CompactExifLib;
 using SkiaSharp;
 using ImageSearch.Search;
 using NumSharp.Utilities;
-using System.Runtime.CompilerServices;
+
 
 namespace ImageSearch
 {
@@ -174,7 +175,7 @@ namespace ImageSearch
             }
         }
 
-        private void ReportMessage(Exception ex, TaskStatus state = TaskStatus.Created)
+        public void ReportMessage(Exception ex, TaskStatus state = TaskStatus.Created)
         {
             if (ex is not null)
             {
@@ -314,6 +315,29 @@ namespace ImageSearch
                 }
             }
             return ((bmp, skb, file));
+        }
+
+        public void LoadImageFromFiles(string[]? files, bool query = false, bool scope_all = false)
+        {
+            files = files?.Where(f => File.Exists(f)).Take(2).ToArray();
+            if (files.Length > 0)
+            {
+                Task.Run(async () =>
+                {
+                    (var bmp, var skb, var file) = LoadImageFromFile(files[0]);
+                    await SimilarSrc.Dispatcher.InvokeAsync(async () =>
+                    {
+                        if (bmp is not null) SimilarSrc.Source = bmp;
+                        if (skb is not null) SimilarSrc.Tag = skb;
+                        ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(file));
+                        if (query && !IsQuering)
+                        {
+                            AllFolders.IsChecked = scope_all;
+                            QueryImage_Click(QueryImage, new RoutedEventArgs());
+                        }
+                    });
+                });
+            }
         }
 
         private async Task<(BitmapSource?, SKBitmap?, string?)> LoadImageFromWeb(Uri uri)
@@ -593,7 +617,7 @@ namespace ImageSearch
         private static string PaddingLines(string text, int padding)
         {
             if (string.IsNullOrEmpty(text)) return (text);
-            var lines = text.Split(["\n\r", "\r\n", "\n", "\r"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var lines = text.Split(["\n\r", "\r\n", "\n", "\r"], StringSplitOptions.RemoveEmptyEntries);
             return (string.Join(Environment.NewLine, lines.Select(l => $"{"".PadLeft(padding)}{l}")).Trim());
         }
 
@@ -811,16 +835,7 @@ namespace ImageSearch
                 var args = Environment.GetCommandLineArgs();
                 if (args.Length > 1 && File.Exists(args[1]))
                 {
-                    Task.Run(async () =>
-                    {
-                        (var bmp, var skb, var file) = LoadImageFromFile(args[1]);
-                        await SimilarSrc.Dispatcher.InvokeAsync(async () =>
-                        {
-                            if (bmp is not null) SimilarSrc.Source = bmp;
-                            if (skb is not null) SimilarSrc.Tag = skb;
-                            ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(file));
-                        });
-                    });
+                    LoadImageFromFiles(args.Skip(1).ToArray());
                 }
             }
             catch (Exception ex) { ReportMessage(ex); }
@@ -1181,6 +1196,7 @@ namespace ImageSearch
             GC.Collect();
         }
 
+        private bool IsQuering = false;
         private async void QueryImage_Click(object sender, RoutedEventArgs e)
         {
             if (Tabs.SelectedItem != TabSimilar) Tabs.SelectedItem = TabSimilar;
@@ -1246,6 +1262,7 @@ namespace ImageSearch
                 GalleryList.Clear();
                 await Task.Run(async () =>
                 {
+                    IsQuering = true;
                     await LoadFeatureDB();
 
                     var queries = await similar.QueryImageScore(skb_src, feature_db, limit: limit, labels: true);
@@ -1264,7 +1281,7 @@ namespace ImageSearch
                                 if (string.IsNullOrEmpty(tips_old)) tips = similar_tips;
                                 else
                                 {
-                                    var tips_lines = tips_old.Split(["\n\r", "\r\n", "\n", "\r"], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+                                    var tips_lines = tips_old.Split(["\n\r", "\r\n", "\n", "\r"], StringSplitOptions.RemoveEmptyEntries);
                                     tips = string.Join(Environment.NewLine, tips_lines.Where(l => !l.StartsWith("Confidence  :")).Append(similar_tips));
                                 }
                                 ToolTipService.SetToolTip(SimilarSrcBox, tips);
@@ -1341,6 +1358,7 @@ namespace ImageSearch
 
                             QueryImage.IsEnabled = true;
 
+                            IsQuering = false;
                             System.Media.SystemSounds.Beep.Play();
                         }, System.Windows.Threading.DispatcherPriority.Normal);
                         #endregion
