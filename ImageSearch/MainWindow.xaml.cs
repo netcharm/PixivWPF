@@ -658,8 +658,10 @@ namespace ImageSearch
                             var quality = exif.ImageType == ImageType.Jpeg && exif.JpegQuality > 0 ? exif.JpegQuality : -1;
                             var endian = exif.ByteOrder == ExifByteOrder.BigEndian ? "Big Endian" : "Little Endian";
                             var fmomat = exif.PixelFormat.ToString().Replace("Format", "");
+                            var aspect = exif.Width == 0 || exif.Height == 0 ? 0 : (double)exif.Width / (double)exif.Height;
+                            var direction = aspect == 0 ? "Unknown" : (aspect > 1.05 ? "Landscape" : (aspect < 0.95 ? "Portrait" : "Square"));
                             infos.Add($"Image Info  : {exif.ImageType}, {exif.ImageMime}, {exif.ByteOrder}, Q={(quality > 0 ? quality : "???")}, Rank={ranking}");
-                            infos.Add($"Image Size  : {exif.Width}x{exif.Height}x{exif.ColorDepth} ({exif.Width * exif.Height / 1000.0 / 1000.0:0.##} MP), {fmomat}, DPI={exif.ResolutionX}x{exif.ResolutionY}");
+                            infos.Add($"Image Size  : {exif.Width}x{exif.Height}x{exif.ColorDepth} ({exif.Width * exif.Height / 1000.0 / 1000.0:0.##} MP), {fmomat}, DPI={exif.ResolutionX}x{exif.ResolutionY}, Aspect~{aspect:F4}[{direction}]");
                             #endregion
 
                             #region Get Camera Info
@@ -1014,6 +1016,18 @@ namespace ImageSearch
             {
                 SaveSetting();
             }
+            else if (sender == ShellSearchWin)
+            {
+                var query = string.IsNullOrEmpty(ResultFilter.Text) ? "🔎💬" : ResultFilter.Text;
+                var folder = string.Empty;
+                if (FolderList.SelectedIndex >= 0)
+                {
+                    var storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
+                    folder = Similar.GetAbsolutePath(storage.ImageFolder);
+                }
+                var folders = AllFolders.IsChecked ?? false ? _storages_.Select(x => Similar.GetAbsolutePath(x.ImageFolder)).ToArray(): [folder];
+                ShellSearch(query, folders);
+            }    
             else if (sender == ClearLog)
             {
                 _log_.Clear();

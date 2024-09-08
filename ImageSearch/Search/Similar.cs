@@ -135,7 +135,7 @@ namespace ImageSearch.Search
 
         public bool ModelHasSoftMax { get; set; } = false;
 
-        private static string GetAbsolutePath(string relativePath)
+        public static string GetAbsolutePath(string relativePath)
         {
             if (string.IsNullOrEmpty(AppPath))
             {

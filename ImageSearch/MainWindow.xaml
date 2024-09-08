@@ -196,6 +196,8 @@
                         <Separator/>
                         <MenuItem x:Name="ClearLog" Header="Clear Logs" Click="DBTools_Click"/>
                         <Separator/>
+                        <MenuItem x:Name="ShellSearchWin" Header="Shell Search Window" Click="DBTools_Click"/>
+                        <Separator/>
                         <MenuItem x:Name="OpenConfig" Header="Open Config File" Click="DBTools_Click"/>
                         <MenuItem x:Name="LoadConfig" Header="Load Config File" Click="DBTools_Click"/>
                         <MenuItem x:Name="SaveConfig" Header="Save Config File" Click="DBTools_Click"/>
