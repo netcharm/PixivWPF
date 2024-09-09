@@ -339,6 +339,10 @@
           <source>Memory Usage       =</source>
           <target state="new">メモリ使用         =</target>
         </trans-unit>
+        <trans-unit id="InfoTipOrientation" translate="yes" xml:space="preserve">
+          <source>Orientation        =</source>
+          <target state="new">画像の向き         =</target>
+        </trans-unit>
         <trans-unit id="InfoTipQuality" translate="yes" xml:space="preserve">
           <source>Image Quality      =</source>
           <target state="new">画像品質           =</target>

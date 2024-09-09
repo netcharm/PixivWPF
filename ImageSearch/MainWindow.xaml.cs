@@ -660,8 +660,8 @@ namespace ImageSearch
                             var fmomat = exif.PixelFormat.ToString().Replace("Format", "");
                             var aspect = exif.Width == 0 || exif.Height == 0 ? 0 : (double)exif.Width / (double)exif.Height;
                             var direction = aspect == 0 ? "Unknown" : (aspect > 1.05 ? "Landscape" : (aspect < 0.95 ? "Portrait" : "Square"));
-                            infos.Add($"Image Info  : {exif.ImageType}, {exif.ImageMime}, {exif.ByteOrder}, Q={(quality > 0 ? quality : "???")}, Rank={ranking}");
-                            infos.Add($"Image Size  : {exif.Width}x{exif.Height}x{exif.ColorDepth} ({exif.Width * exif.Height / 1000.0 / 1000.0:0.##} MP), {fmomat}, DPI={exif.ResolutionX}x{exif.ResolutionY}, Aspect~{aspect:F4}[{direction}]");
+                            infos.Add($"Image Info  : {exif.ImageType}, {exif.ImageMime}, {exif.ByteOrder}, Q≈{(quality > 0 ? quality : "???")}, Rank={ranking}");
+                            infos.Add($"Image Size  : {exif.Width}x{exif.Height}x{exif.ColorDepth} ({exif.Width * exif.Height / 1000.0 / 1000.0:0.##} MP), {fmomat}, DPI={exif.ResolutionX}x{exif.ResolutionY}, Aspect≈{aspect:F4}[{direction}]");
                             #endregion
 
                             #region Get Camera Info

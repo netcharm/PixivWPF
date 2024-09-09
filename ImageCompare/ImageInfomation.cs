@@ -841,6 +841,25 @@ namespace ImageCompare
             return (result);
         }
 
+        public int CalcColorDepth(MagickImage image)
+        {
+            var result = 0;
+            if (image is MagickImage)
+            {
+                result = image.Depth * image.ChannelCount;
+                if (image.ColorType == ColorType.Bilevel) result = 2;
+                else if (image.ColorType == ColorType.Grayscale) result = 8;
+                else if (image.ColorType == ColorType.GrayscaleAlpha) result = 8 + 8;
+                else if (image.ColorType == ColorType.Palette) result = (int)Math.Ceiling(Math.Log(image.ColormapSize, 2));
+                else if (image.ColorType == ColorType.PaletteAlpha) result = (int)Math.Ceiling(Math.Log(image.ColormapSize, 2)) + 8;
+                else if (image.ColorType == ColorType.TrueColor) result = 24;
+                else if (image.ColorType == ColorType.TrueColorAlpha) result = 32;
+                else if (image.ColorType == ColorType.ColorSeparation) result = 24;
+                else if (image.ColorType == ColorType.ColorSeparationAlpha) result = 32;
+            }
+            return (result);
+        }
+
         public async Task<string> GetImageInfo(bool include_colorinfo = false)
         {
             string result = string.Empty;
@@ -865,24 +884,16 @@ namespace ImageCompare
                         DPI_TEXT = $"{DPI_TEXT} [{dpi_text}]";
                     }
 
-                    var depth = Current.Depth * Current.ChannelCount;
-                    if (Current.ColorType == ColorType.Bilevel) depth = 2;
-                    else if (Current.ColorType == ColorType.Grayscale) depth = 8;
-                    else if (Current.ColorType == ColorType.GrayscaleAlpha) depth = 8 + 8;
-                    else if (Current.ColorType == ColorType.Palette) depth = (int)Math.Ceiling(Math.Log(Current.ColormapSize, 2));
-                    else if (Current.ColorType == ColorType.PaletteAlpha) depth = (int)Math.Ceiling(Math.Log(Current.ColormapSize, 2)) + 8;
-                    else if (Current.ColorType == ColorType.TrueColor) depth = 24;
-                    else if (Current.ColorType == ColorType.TrueColorAlpha) depth = 32;
-                    else if (Current.ColorType == ColorType.ColorSeparation) depth = 24;
-                    else if (Current.ColorType == ColorType.ColorSeparationAlpha) depth = 32;
+                    var original_depth = CalcColorDepth(Original);
+                    var current_depth = CalcColorDepth(Current);
 
                     var tip = new List<string>
                     {
-                        $"{"InfoTipDimentionOriginal".T()} {OriginalSize.Width:F0}x{OriginalSize.Height:F0}x{depth:F0}, {(long)OriginalSize.Width * OriginalSize.Height / 1000000:F2}MP",
-                        $"{"InfoTipDimention".T()} {CurrentSize.Width:F0}x{CurrentSize.Height:F0}x{depth:F0}, {(long)CurrentSize.Width * CurrentSize.Height / 1000000:F2}MP"
+                        $"{"InfoTipDimentionOriginal".T()} {OriginalSize.Width:F0}x{OriginalSize.Height:F0}x{original_depth:F0}, {(long)OriginalSize.Width * OriginalSize.Height / 1000000:F2}MP",
+                        $"{"InfoTipDimention".T()} {CurrentSize.Width:F0}x{CurrentSize.Height:F0}x{current_depth:F0}, {(long)CurrentSize.Width * CurrentSize.Height / 1000000:F2}MP"
                     };
-                    if (Current.BoundingBox != null)
-                        tip.Add($"{"InfoTipBounding".T()} {Current.BoundingBox.Width:F0}x{Current.BoundingBox.Height:F0}");
+                    if (Current.BoundingBox != null) tip.Add($"{"InfoTipBounding".T()} {Current.BoundingBox.Width:F0}x{Current.BoundingBox.Height:F0}");
+                    tip.Add($"{"InfoTipOrientation".T()} {Original.Orientation}");
                     tip.Add($"{"InfoTipResolution".T()} {DPI_TEXT}");
 
                     if (include_colorinfo) tip.Add(await GetTotalColors());
@@ -1076,14 +1087,16 @@ namespace ImageCompare
                         }
                         tip.AddRange(attrs.OrderBy(a => a));
                     }
-                    tip.Add($"{"InfoTipColorSpace".T()} {Current.ColorSpace}");
-                    if (CurrentFormatInfo != null)
+                    if (OriginalFormatInfo != null)
+                        tip.Add($"{"InfoTipFormatInfo".T()} {OriginalFormatInfo.Format} ({OriginalFormatInfo.Description}), mime:{OriginalFormatInfo.MimeType}");
+                    else if (CurrentFormatInfo != null)
                         tip.Add($"{"InfoTipFormatInfo".T()} {CurrentFormatInfo.Format} ({CurrentFormatInfo.Description}), mime:{CurrentFormatInfo.MimeType}");
-                    tip.Add($"{"InfoTipHasAlpha".T()} {(Current.HasAlpha ? "Included" : "NotIncluded").T()}");
-                    tip.Add($"{"InfoTipColorMapsSize".T()} {Current.ColormapSize}");
-                    tip.Add($"{"InfoTipCompression".T()} {Current.Compression}");
-                    tip.Add($"{"InfoTipQuality".T()} {Current.Quality}");
+                    tip.Add($"{"InfoTipColorSpace".T()} {Original.ColorSpace}");
                     tip.Add($"{"InfoTipColorChannelCount".T()} {ChannelCount}");
+                    tip.Add($"{"InfoTipHasAlpha".T()} {(Original.HasAlpha ? "Included" : "NotIncluded").T()}");
+                    if (Original.ColormapSize > 0) tip.Add($"{"InfoTipColorMapsSize".T()} {Original.ColormapSize}");
+                    tip.Add($"{"InfoTipCompression".T()} {Original.Compression}");
+                    tip.Add($"{"InfoTipQuality".T()} {(Original.Compression == CompressionMethod.JPEG || Original.Quality > 0 ? $"{Original.Quality}" : "Unknown")}");
                     tip.Add($"{"InfoTipMemoryMode".T()} {MemoryUsageMode}");
                     tip.Add($"{"InfoTipIdealMemoryUsage".T()} {(ValidOriginal ? OriginalIdealMemoryUsage.SmartFileSize() : CurrentIdealMemoryUsage.SmartFileSize())}");
                     tip.Add($"{"InfoTipMemoryUsage".T()} {(ValidOriginal ? OriginalRealMemoryUsage.SmartFileSize() : CurrentRealMemoryUsage.SmartFileSize())}");

@@ -624,4 +624,7 @@
   <data name="Blend" xml:space="preserve">
     <value>Blend Ratio</value>
   </data>
+  <data name="InfoTipOrientation" xml:space="preserve">
+    <value>Orientation        =</value>
+  </data>
 </root>

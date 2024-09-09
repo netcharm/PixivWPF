@@ -817,6 +817,15 @@ namespace ImageCompare.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Orientation        = 的本地化字符串。
+        /// </summary>
+        public static string InfoTipOrientation {
+            get {
+                return ResourceManager.GetString("InfoTipOrientation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Image Quality      = 的本地化字符串。
         /// </summary>
         public static string InfoTipQuality {

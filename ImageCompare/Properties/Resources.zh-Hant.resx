@@ -624,4 +624,7 @@
   <data name="Blend" xml:space="preserve">
     <value>混合比例</value>
   </data>
+  <data name="InfoTipOrientation" xml:space="preserve">
+    <value>圖像方向       =</value>
+  </data>
 </root>
