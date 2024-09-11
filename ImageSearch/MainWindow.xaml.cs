@@ -757,8 +757,10 @@ namespace ImageSearch
                         var item = obj as ImageResultGalleryItem;
                         if (item is not null && item.Tooltip is not null && !string.IsNullOrEmpty(item.Tooltip))
                         {
-                            if(filter.StartsWith('!'))
+                            if (filter.StartsWith('!'))
                                 ret = !item.Tooltip.Contains(filter[1..], StringComparison.CurrentCultureIgnoreCase);
+                            else if (filter.StartsWith('='))
+                                ret = !item.Tooltip.Equals(filter[1..], StringComparison.CurrentCultureIgnoreCase);
                             else
                                 ret = item.Tooltip.Contains(filter, StringComparison.CurrentCultureIgnoreCase);
                         }

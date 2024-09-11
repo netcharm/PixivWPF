@@ -292,18 +292,21 @@ namespace ImageSearch.Search
                         if (np.size(feat_obj?.Feats) > 0)
                         {
                             ReportMessage($"Pre-Processing feature list");
-                            var feats_a = feat_obj.Feats.ToMuliDimArray<float>() as float[,];
+                            var feats_a = feat_obj.Feats.ToJaggedArray<float>() as float[][];
+                            //var feats_a = feat_obj.Feats.ToMuliDimArray<float>() as float[,];                           
                             var names_a = feat_obj.Names;
                             var losts = names_a.Except(files).ToArray();
-                            for (var i = 0; i < feats_a.GetLength(0); i++)
+                            for (var i = 0; i < feats_a?.GetLength(0); i++)
                             {
+                                if (cancel.IsCancellationRequested) { result = false; break; }
                                 if (string.IsNullOrEmpty(names_a[i]) || losts.Contains(names_a[i])) continue;
-                                var row = new List<float>();
-                                for (var j = 0; j < feats_a.GetLength(1); j++)
-                                {
-                                    row.Add(feats_a[i, j]);
-                                }
-                                feats_list[names_a[i]] = row.ToArray();
+                                feats_list[names_a[i]] = feats_a[i];
+                                //var row = new List<float>();
+                                //for (var j = 0; j < feats_a.GetLength(1); j++)
+                                //{
+                                //    row.Add(feats_a[i, j]);
+                                //}
+                                //feats_list[names_a[i]] = row.ToArray();
                             }
                             ReportMessage($"Pre-Processed feature list");
                         }
@@ -1351,12 +1354,15 @@ namespace ImageSearch.Search
                                 for (var i = 0; i < feats.GetLength(0); i++)
                                 {
                                     if (string.IsNullOrEmpty(names[i])) continue;
-                                    var row = new List<float>();
+                                    //var row = new List<float>();
+                                    var row = new float[feats.GetLength(1)];
                                     for (var j = 0; j < feats.GetLength(1); j++)
                                     {
-                                        row.Add(feats[i, j]);
+                                        //    row.Add(feats[i, j]);
+                                        row[j] = feats[i, j];
                                     }
-                                    feat_list.Add(names[i], row.ToArray());
+                                    //feat_list.Add(names[i], row.ToArray());
+                                    feat_list.Add(names[i], row);
                                 }
 
                                 diffs = diffs.Where(f => !string.IsNullOrEmpty(f)).ToList();
