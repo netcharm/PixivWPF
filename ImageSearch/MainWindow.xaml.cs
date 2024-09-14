@@ -752,7 +752,7 @@ namespace ImageSearch
                 var action = new Func<object, bool>(obj =>
                 {
                     var ret = true;
-                    if(obj is ImageResultGalleryItem)
+                    if (obj is ImageResultGalleryItem)
                     {
                         var item = obj as ImageResultGalleryItem;
                         if (item is not null && item.Tooltip is not null && !string.IsNullOrEmpty(item.Tooltip))
@@ -764,12 +764,51 @@ namespace ImageSearch
                             else
                                 ret = item.Tooltip.Contains(filter, StringComparison.CurrentCultureIgnoreCase);
                         }
+                        if (double.TryParse(item.Similar, out double sv))
+                        {
+                            double fv = 0;
+                            if (filter.StartsWith('!') && double.TryParse(filter.AsSpan(1), out fv))
+                                ret |= sv != fv;
+                            else if (filter.StartsWith('=') && double.TryParse(filter.AsSpan(1), out fv))
+                                ret |= sv == fv;
+                            else if (filter.StartsWith(">=") && double.TryParse(filter.AsSpan(2), out fv))
+                                ret |= sv >= fv;
+                            else if (filter.StartsWith("<=") && double.TryParse(filter.AsSpan(2), out fv))
+                                ret |= sv <= fv;
+                            else if (filter.StartsWith('>') && double.TryParse(filter.AsSpan(1), out fv))
+                                ret |= sv > fv;
+                            else if (filter.StartsWith('<') && double.TryParse(filter.AsSpan(1), out fv))
+                                ret |= sv < fv;
+                            else if (filter.StartsWith('~') && double.TryParse(filter.AsSpan(1), out fv))
+                                ret |= item.Similar.StartsWith(filter.Substring(1));
+                            else if (double.TryParse(filter, out fv))
+                                ret |= item.Similar.StartsWith(filter);
+                        }
                     }
                     return (ret);
                 });
                 result = new Predicate<object>(action);
             }
             return (result);
+        }
+
+        public async void UpdateTabSimilarTooltip()
+        {
+            await SimilarResultGallery.Dispatcher.InvokeAsync(() =>
+            {
+                try
+                {
+                    SimilarResultGallery.ItemsSource ??= GalleryList;
+                    var info_items = new List<string>
+                    {
+                        $"Displayed : {$"{SimilarResultGallery.Items?.Count}", 6}",
+                        $"Selected  : {$"{SimilarResultGallery.SelectedItems?.Count}", 6}",
+                        $"Total     : {$"{GalleryList?.Count}", 6}",
+                    };
+                    TabSimilar.ToolTip = string.Join(Environment.NewLine, info_items);
+                }
+                catch (Exception ex) { ReportMessage(ex); }
+            }, System.Windows.Threading.DispatcherPriority.Normal);
         }
 
         public void LoadSetting()
@@ -1276,6 +1315,9 @@ namespace ImageSearch
                 //QueryImage.IsEnabled = false;
 
                 GalleryList.Clear();
+
+                UpdateTabSimilarTooltip();
+
                 await Task.Run(async () =>
                 {
                     IsQuering = true;
@@ -1356,6 +1398,8 @@ namespace ImageSearch
                             }
                         }
 
+                        UpdateTabSimilarTooltip();
+
                         await SimilarResultGallery.Dispatcher.InvokeAsync(() =>
                         {
                             SimilarResultGallery.ItemsSource ??= GalleryList;
@@ -1364,14 +1408,6 @@ namespace ImageSearch
                                 SimilarResultGallery.ScrollIntoView(SimilarResultGallery.Items?[0]);
                             }
 
-                            var info_items = new List<string>
-                            {
-                                $"Displayed : {$"{SimilarResultGallery.Items?.Count}",6}",
-                                $"Selected  : {$"{SimilarResultGallery.SelectedItems?.Count}", 6}",
-                                $"Total     : {$"{GalleryList?.Count}", 6}",
-                            };
-                            TabSimilar.ToolTip = string.Join(Environment.NewLine, info_items);
-
                             QueryImage.IsEnabled = true;
 
                             IsQuering = false;
@@ -1379,7 +1415,6 @@ namespace ImageSearch
                         }, System.Windows.Threading.DispatcherPriority.Normal);
                         #endregion
                     }
-
                     GC.Collect();
                 });
 
@@ -1453,6 +1488,7 @@ namespace ImageSearch
             {
                 SimilarResultGallery.Items.Filter = GetFilter(ResultFilter.Text);
             });
+            UpdateTabSimilarTooltip();
         }
 
         private bool InDrop = false;
@@ -1510,16 +1546,7 @@ namespace ImageSearch
 
         private void SimilarResultGallery_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            SimilarResultGallery.Dispatcher.InvokeAsync(() =>
-            {
-                var info_items = new List<string>
-                {
-                    $"Displayed : {$"{SimilarResultGallery.Items?.Count}", 6}",
-                    $"Selected  : {$"{SimilarResultGallery.SelectedItems?.Count}", 6}",
-                    $"Total     : {$"{GalleryList?.Count}", 6}",
-                };
-                TabSimilar.ToolTip = string.Join(Environment.NewLine, info_items);
-            });
+            UpdateTabSimilarTooltip();
         }
 
     }

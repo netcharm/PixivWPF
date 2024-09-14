@@ -36,30 +36,6 @@ namespace ImageSearch.Search
 #pragma warning disable IDE0305
 #pragma warning disable SYSLIB1045
 
-    public class Storage
-    {
-        internal protected ITransformer? Model { get; set; } = null;
-        public string ImageFolder { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-
-        public string ModelName { get; set; } = string.Empty;
-        public string ModelFile { get; set; } = string.Empty;
-        public string ModelInput { get; set; } = string.Empty;
-        public string ModelOutput { get; set; } = string.Empty;
-        public bool ModelHasSoftMax { get; set; } = false;
-
-        public bool Recurice { get; set; } = false;
-        public bool UseFullPath { get; set; } = true;
-
-        public string DatabaseFile { get; set; } = string.Empty;
-
-        public string[] DatabaseFiles { get; set; } = [];
-        public string[] IccludeFiles { get; set; } = [];
-        public string[] ExcludeFiles { get; set; } = [];
-        public string[] IccludeFolders { get; set; } = [];
-        public string[] ExcludeFolders { get; set; } = [];
-    }
-
     public enum BatchRunningMode { Parallel, ParallelAsync, MultiTask, ForLoop };
 
     public class BatchTaskInfo
@@ -91,13 +67,55 @@ namespace ImageSearch.Search
         public TimeSpan EstimateTime { get { return (ElapsedTime + RemainingTime); } }
     }
 
-    public class FeatureData
+    public class ExtraStorage
     {
-        public Storage FeatureStore { get; set; } = new Storage();
+        public string ImageFolder { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string DatabaseFile { get; set; } = string.Empty;
+    }
+
+    public class Storage
+    {
+        internal protected ITransformer? Model { get; set; } = null;
+        public string ImageFolder { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+
+        public string ModelName { get; set; } = string.Empty;
+        public string ModelFile { get; set; } = string.Empty;
+        public string ModelInput { get; set; } = string.Empty;
+        public string ModelOutput { get; set; } = string.Empty;
+        public bool ModelHasSoftMax { get; set; } = false;
+
+        public bool Recurice { get; set; } = false;
+        public bool UseFullPath { get; set; } = true;
+
+        public string DatabaseFile { get; set; } = string.Empty;
+
+        public List<ExtraStorage> ExtraStorages { get; set; } = [];
+
+        public string[] IccludeFiles { get; set; } = [];
+        public string[] ExcludeFiles { get; set; } = [];
+        public string[] IccludeFolders { get; set; } = [];
+        public string[] ExcludeFolders { get; set; } = [];
+    }
+
+    public class ExtraFeatureData
+    {
+        public bool Loaded { get; set; } = false;
+        public ExtraStorage FeatureStore { get; set; } = new();
         public string FeatureDB { get; set; } = string.Empty;
         public NDArray? Feats { get; set; } = np.zeros(0);
         public string[] Names { get; set; } = [];
+    }
+
+    public class FeatureData
+    {
         public bool Loaded { get; set; } = false;
+        public Storage FeatureStore { get; set; } = new();
+        public string FeatureDB { get; set; } = string.Empty;
+        public NDArray? Feats { get; set; } = np.zeros(0);
+        public string[] Names { get; set; } = [];
+        public List<ExtraFeatureData> ExtraFeatureDatas { get; set; } = [];
     }
 
     public class ModelInput
@@ -947,14 +965,17 @@ namespace ImageSearch.Search
         }
 
         #region Create Feature Database
-        public async Task<bool> CreateFeatureData(Storage storage)
+#if DEBUG
+        private async Task<bool> CreateFeatureData(string folder, string feature_db, bool recurise = false)
         {
             var result = false;
             if (await BatchTaskIdle?.WaitAsync(0))
             {
                 var info = new BatchTaskInfo()
                 {
-                    Folders = [storage],
+                    DatabaseName = feature_db ?? string.Empty,
+                    FolderName = folder,
+                    Recurise = recurise,
 
                     CancelToken = BatchCancel.Token,
                     ParallelMode = Setting.ParallelMode,
@@ -982,17 +1003,15 @@ namespace ImageSearch.Search
             }
             return (result);
         }
-
-        public async Task<bool> CreateFeatureData(string folder, string feature_db, bool recurise = false)
+#endif
+        public async Task<bool> CreateFeatureData(Storage storage)
         {
             var result = false;
             if (await BatchTaskIdle?.WaitAsync(0))
             {
                 var info = new BatchTaskInfo()
                 {
-                    DatabaseName = feature_db ?? string.Empty,
-                    FolderName = folder,
-                    Recurise = recurise,
+                    Folders = [storage],
 
                     CancelToken = BatchCancel.Token,
                     ParallelMode = Setting.ParallelMode,
@@ -1064,7 +1083,7 @@ namespace ImageSearch.Search
         }
 
         #region Load Feature Database
-        public async Task<(string[], float[,])> LoadFeatureFile(string feature_db)
+        private async Task<(string[], float[,])> LoadFeatureFile(string feature_db, ulong start = 0, ulong count = 0)
         {
             float[,] feats = new float[0,0];
             string[] names = [];
@@ -1096,11 +1115,12 @@ namespace ImageSearch.Search
                         var h5_feats = h5.Dataset("feats");
                         var h5_names = h5.Dataset("names");
 
-                        feats = h5_feats.Read<float[,]>();
+                        PureHDF.Selections.Selection selection = start >= 0 && count > 0 ? new PureHDF.Selections.HyperslabSelection(start, count) : new PureHDF.Selections.AllSelection();
+                        feats = h5_feats.Read<float[,]>(fileSelection: selection);
                         if (h5_names.Type.Class == H5DataTypeClass.String)
-                            names = h5_names.Read<string[]>();
+                            names = h5_names.Read<string[]>(fileSelection: selection);
                         else if (h5_names.Type.Class == H5DataTypeClass.VariableLength)
-                            names = h5_names.Read<byte[][]>().Select(x => Encoding.UTF8.GetString(x)).ToArray();
+                            names = h5_names.Read<byte[][]>(fileSelection: selection).Select(x => Encoding.UTF8.GetString(x)).ToArray();
 
                         ReportMessage($"Loaded Feature Database [{names.Length}, {feats.Length}] from {feature_db}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
                     }
@@ -1117,6 +1137,64 @@ namespace ImageSearch.Search
             }
 
             return ((names, feats));
+        }
+
+        private async Task<bool> LoadExtraFeatureData(ExtraStorage storage, FeatureData feats_obj, bool reload = false)
+        {
+            var result = false;
+            if (storage is not null)
+            {
+                var sw = Stopwatch.StartNew();
+                var file = GetAbsolutePath(storage.DatabaseFile);
+                if (File.Exists(file))
+                {
+                    try
+                    {
+                        var feat_obj = feats_obj.ExtraFeatureDatas.Where(x => x.Equals(storage.DatabaseFile)).FirstOrDefault();
+                        if (feat_obj == null || !feat_obj.Loaded || reload)
+                        {
+                            float[,] feats;
+                            string[] names;
+                            (names, feats) = await LoadFeatureFile(file);
+                            result = await Task.Run(() =>
+                            {
+                                var ret = false;
+                                ReportMessage($"Loading Extra Feature DataTable from {file}", RunningStatue);
+                                if (names.Length > 0 && feats.Length > 0)
+                                {
+                                    if (feat_obj == null)
+                                    {
+                                        feats_obj.ExtraFeatureDatas.Add(new ExtraFeatureData()
+                                        {
+                                            FeatureStore = storage,
+                                            FeatureDB = file,
+                                            Names = names.Select(x => Path.Combine(GetAbsolutePath(storage.ImageFolder), x)).ToArray(),
+                                            Feats = new NDArray(feats),
+                                            Loaded = true
+                                        });
+                                    }
+                                    else
+                                    {
+                                        feat_obj.FeatureStore = storage;
+                                        feat_obj.Names = names.Select(x => Path.Combine(GetAbsolutePath(storage.ImageFolder), x)).ToArray();
+                                        feat_obj.Feats = new NDArray(feats);
+                                    }
+                                    feats = new float[0, 0];
+                                    names = [];
+                                    GC.Collect();
+                                    ReportMessage($"Loaded Extra Feature DataTable from {file}, {sw?.Elapsed.TotalSeconds:F4}s");
+                                    ret = true;
+                                }
+                                else { ReportMessage($"Loading Extra Feature DataTable from {file} failed!"); }
+                                return (ret);
+                            });
+                        }
+                    }
+                    catch (Exception ex) { ReportMessage(ex); }
+                    finally { sw?.Stop(); GC.Collect(); }
+                }
+            }
+            return (result);
         }
 
         public async Task<bool> LoadFeatureData(Storage storage, bool reload = false)
@@ -1193,7 +1271,7 @@ namespace ImageSearch.Search
         #endregion
 
         #region Save Feature Database
-        public async Task<bool> SaveFeatureFile(string feature_db, string[] names, Array feats, string imagefolder, bool fullpath = false)
+        private async Task<bool> SaveFeatureFile(string feature_db, string[] names, Array feats, string imagefolder, bool fullpath = false)
         {
             var result = false;
             var file = GetAbsolutePath(feature_db);
@@ -1250,7 +1328,7 @@ namespace ImageSearch.Search
             return (result);
         }
 
-        public async Task<bool> SaveFeatureData(FeatureData featuredata)
+        private async Task<bool> SaveFeatureData(FeatureData featuredata)
         {
             var result = false;
             if (featuredata is not null)
@@ -1265,7 +1343,7 @@ namespace ImageSearch.Search
         }
         #endregion
 
-        public async Task<bool> ChangeImageFolder(string feature_db, string old_folder, string new_folder)
+        private async Task<bool> ChangeImageFolder(string feature_db, string old_folder, string new_folder)
         {
             var result = false;
             old_folder = GetAbsolutePath(old_folder);
@@ -1299,30 +1377,7 @@ namespace ImageSearch.Search
         }
 
         #region Clean Feature Database
-        public async Task<bool> CleanImageFeature()
-        {
-            var result = false;
-            if (StorageList is not null)
-            {
-                foreach (var storage in StorageList)
-                {
-                    result &= await CleanImageFeature(storage);
-                }
-            }
-            return (result);
-        }
-
-        public async Task<bool> CleanImageFeature(Storage? storage)
-        {
-            var result = false;
-            if (storage is not null)
-            {
-                result = await CleanImageFeature(feature_db: storage.DatabaseFile, folder: storage.ImageFolder, recuice: storage.Recurice);
-            }
-            return (result);
-        }
-
-        public async Task<bool> CleanImageFeature(string feature_db, string folder, bool recuice)
+        private async Task<bool> CleanImageFeature(string feature_db, string folder, bool recuice)
         {
             var result = false;
             var file = GetAbsolutePath(feature_db);
@@ -1404,6 +1459,29 @@ namespace ImageSearch.Search
                     }
                     return (ret);
                 });
+            }
+            return (result);
+        }
+
+        public async Task<bool> CleanImageFeature(Storage? storage)
+        {
+            var result = false;
+            if (storage is not null)
+            {
+                result = await CleanImageFeature(feature_db: storage.DatabaseFile, folder: storage.ImageFolder, recuice: storage.Recurice);
+            }
+            return (result);
+        }
+
+        public async Task<bool> CleanImageFeature()
+        {
+            var result = false;
+            if (StorageList is not null)
+            {
+                foreach (var storage in StorageList)
+                {
+                    result &= await CleanImageFeature(storage);
+                }
             }
             return (result);
         }
@@ -1610,29 +1688,25 @@ namespace ImageSearch.Search
         #endregion
 
         #region Get Guessed Image Label
-        public async Task<LabeledObject[]?> GetImageLabel(string file)
+        private async Task<LabeledObject[]?> GetImageLabel(NDArray? feat, bool softmax = false)
         {
-            LabeledObject[]? label = null;
+            return (await GetImageLabel(feat?.ToArray<float>(), softmax));
+        }
 
-            if (_model_ == null) await LoadModel();
-
-            file = GetAbsolutePath(file);
-            if (File.Exists(file) && _model_ is not null && _predictionEngine_ != null)
+        private async Task<LabeledObject[]?> GetImageLabel(float[]? feat, bool softmax = false)
+        {
+            var result = await Task.Run(() =>
             {
                 try
                 {
-                    using (SKBitmap? bmp_src = LoadImage(file))
-                    {
-                        if (bmp_src is not null)
-                        {
-                            ReportMessage($"Quering Label from {file}", RunningStatue);
-                            label = await GetImageLabel(bmp_src);
-                        }
-                    }
+                    if(softmax)
+                        return (SoftMax(feat)?.Select((x, i) => new LabeledObject() { Label = LabelMap.Labels[i], Confidence = x }).OrderByDescending(x => x.Confidence).Take(10).ToArray());
+                    else
+                        return (feat?.Select((x, i) => new LabeledObject() { Label = LabelMap.Labels[i], Confidence = x }).OrderByDescending(x => x.Confidence).Take(10).ToArray());
                 }
-                catch (Exception ex) { ReportMessage(ex); }
-            }
-            return (label);
+                catch(Exception ex) { ReportMessage(ex); return []; }
+            });
+            return result;
         }
 
         public async Task<LabeledObject[]?> GetImageLabel(SKBitmap? image)
@@ -1659,25 +1733,29 @@ namespace ImageSearch.Search
             return (label?.Take(10).ToArray());
         }
 
-        public async Task<LabeledObject[]?> GetImageLabel(NDArray? feat, bool softmax = false)
+        public async Task<LabeledObject[]?> GetImageLabel(string file)
         {
-            return (await GetImageLabel(feat?.ToArray<float>(), softmax));
-        }
+            LabeledObject[]? label = null;
 
-        public async Task<LabeledObject[]?> GetImageLabel(float[]? feat, bool softmax = false)
-        {
-            var result = await Task.Run(() =>
+            if (_model_ == null) await LoadModel();
+
+            file = GetAbsolutePath(file);
+            if (File.Exists(file) && _model_ is not null && _predictionEngine_ != null)
             {
                 try
                 {
-                    if(softmax)
-                        return (SoftMax(feat)?.Select((x, i) => new LabeledObject() { Label = LabelMap.Labels[i], Confidence = x }).OrderByDescending(x => x.Confidence).Take(10).ToArray());
-                    else
-                        return (feat?.Select((x, i) => new LabeledObject() { Label = LabelMap.Labels[i], Confidence = x }).OrderByDescending(x => x.Confidence).Take(10).ToArray());
+                    using (SKBitmap? bmp_src = LoadImage(file))
+                    {
+                        if (bmp_src is not null)
+                        {
+                            ReportMessage($"Quering Label from {file}", RunningStatue);
+                            label = await GetImageLabel(bmp_src);
+                        }
+                    }
                 }
-                catch(Exception ex) { ReportMessage(ex); return []; }
-            });
-            return result;
+                catch (Exception ex) { ReportMessage(ex); }
+            }
+            return (label);
         }
         #endregion
 
@@ -1763,23 +1841,7 @@ namespace ImageSearch.Search
         #endregion
 
         #region Comparing the similarity of two images
-        public async Task<double> CompareImage(string file0, string file1, int padding = 0)
-        {
-            ReportMessage($"Comparing {file0}, {file1}", RunningStatue);
-            return (await CompareImage((await ExtractImaegFeature(file0)).Item1, (await ExtractImaegFeature(file1)).Item1, padding));
-        }
-
-        public async Task<double> CompareImage(SKBitmap? image0, SKBitmap? image1, int padding = 0)
-        {
-            if (image0 is not null && image1 is not null)
-            {
-                ReportMessage($"Comparing Memory Images", RunningStatue);
-                return (await CompareImage((await ExtractImaegFeature(image0)).Item1, (await ExtractImaegFeature(image1)).Item1, padding));
-            }
-            return (0);
-        }
-
-        public async Task<double> CompareImage(float[]? feature0, float[]? feature1, int padding = 0)
+        private async Task<double> CompareImage(float[]? feature0, float[]? feature1, int padding = 0)
         {
             double result = 0;
             if (feature0 == null || feature1 == null) return (result);
@@ -1817,28 +1879,87 @@ namespace ImageSearch.Search
             else ReportMessage("Model or Feature Database not loaded.");
             return (result);
         }
+
+        public async Task<double> CompareImage(SKBitmap? image0, SKBitmap? image1, int padding = 0)
+        {
+            if (image0 is not null && image1 is not null)
+            {
+                ReportMessage($"Comparing Memory Images", RunningStatue);
+                return (await CompareImage((await ExtractImaegFeature(image0)).Item1, (await ExtractImaegFeature(image1)).Item1, padding));
+            }
+            return (0);
+        }
+
+        public async Task<double> CompareImage(string file0, string file1, int padding = 0)
+        {
+            ReportMessage($"Comparing {file0}, {file1}", RunningStatue);
+            return (await CompareImage((await ExtractImaegFeature(file0)).Item1, (await ExtractImaegFeature(file1)).Item1, padding));
+        }
         #endregion
 
         #region Query Image Score for Similarity
-        public async Task<SimilarResult> QueryImageScore(string file, string? feature_db = null, double limit = 10, int padding = 0, bool labels = false)
+        private static List<KeyValuePair<string, double>> GetNeareatImages(NDArray? feat, NDArray? feats, string[]? names, double limit, int result_max = 500)
         {
-            ReportMessage($"Quering {file}", RunningStatue);
-            var features = await ExtractImaegFeature(file, labels);
-            //var result = new SimilarResult(){ Labels = features.Item2?.Where(x => x.Confidence >= confidence).ToArray(), Results = await QueryImageScore(features.Item1, feature_db, limit, padding) };
-            var result = new SimilarResult(){ Labels = features.Item2?.Take(10).ToArray(), Results = await QueryImageScore(features.Item1, feature_db, limit, padding) };
+            var result = new List<KeyValuePair<string, double>>();
+            if (feat is not null && feats is not null && names is not null && double.IsNormal(limit))
+            {
+                var m_feat = np.zeros(1, feat.shape[0]);
+                m_feat[0] = feat;
+
+                var scores = np.dot(m_feat, feats.T)[0];
+                var rank_ID = scores.argsort<float>(axis: 0)["::-1"];
+                var rank_score = scores[rank_ID].ToArray<double>();
+
+                for (int i = 0; i < rank_score.Length; i++)
+                {
+                    if (limit < 1 && rank_score[i] < limit) continue;
+                    else if (result.Count > result_max) break;
+
+                    var f_name = names[rank_ID[i]];
+                    if (string.IsNullOrEmpty(f_name)) continue;
+                    f_name = GetAbsolutePath(f_name);
+                    if (File.Exists(f_name))
+                    {
+                        result.Add(new KeyValuePair<string, double>(f_name, rank_score[i]));
+                        if (limit > 1 && result.Count >= limit) break;
+                    }
+                }
+            }
             return (result);
         }
-
-        public async Task<SimilarResult> QueryImageScore(SKBitmap? image, string? feature_db = null, double limit = 10, int padding = 0, bool labels = false)
+#if DEBUG
+        private readonly Func<NDArray?, NDArray?, string[]?, double, int, List<KeyValuePair<string, double>>> GetNeareatImagesFunc = static (feat, feats, names, limit, result_max) =>
         {
-            ReportMessage($"Quering Memory Image", RunningStatue);
-            var features = await ExtractImaegFeature(image, labels);
-            //var result = new SimilarResult(){ Labels = features.Item2?.Where(x => x.Confidence >= confidence).ToArray(), Results = await QueryImageScore(features.Item1, feature_db, limit, padding) };
-            var result = new SimilarResult(){ Labels = features.Item2?.Take(10).ToArray(), Results = await QueryImageScore(features.Item1, feature_db, limit, padding) };
-            return (result);
-        }
+            var result = new List<KeyValuePair<string, double>>();
+            if(feat is not null && feats is not null && names is not null && double.IsNormal(limit))
+            {
+                var m_feat = np.zeros(1, feat.shape[0]);
+                m_feat[0] = feat;
 
-        public async Task<List<KeyValuePair<string, double>>> QueryImageScore(float[]? feature, string? feature_db = null, double limit = 10, int padding = 0)
+                var scores = np.dot(m_feat, feats.T)[0];
+                var rank_ID = scores.argsort<float>(axis: 0)["::-1"];
+                var rank_score = scores[rank_ID].ToArray<double>();
+
+                for (int i = 0; i < rank_score.Length; i++)
+                {
+                    if (limit < 1 && rank_score[i] < limit) continue;
+                    else if (result.Count > result_max) break;
+
+                    var f_name = names[rank_ID[i]];
+                    if (string.IsNullOrEmpty(f_name)) continue;
+                    f_name = GetAbsolutePath(f_name);
+                    if (File.Exists(f_name))
+                    {
+                        result.Add(new KeyValuePair<string, double>(f_name, rank_score[i]));
+                        if (limit > 1 && result.Count >= limit) break;
+                    }
+                }
+            }
+            return(result);
+        };
+#endif
+
+        private async Task<List<KeyValuePair<string, double>>> QueryImageScore(float[]? feature, string? feature_db = null, double limit = 10, int padding = 0)
         {
             var result = new List<KeyValuePair<string, double>>();
             if (feature == null) return (result);
@@ -1850,42 +1971,28 @@ namespace ImageSearch.Search
                 {
                     ReportMessage($"Quering feature", RunningStatue);
 
-                    int result_count = 0;
                     limit = limit >= 1 ? Math.Ceiling(Math.Min(120, Math.Max(1, limit))) : Math.Max(0.1, limit);
-                    double count = 0;
+
+                    var pad = new float[padding];
+                    var feat_ = padding <= 0 ? new NDArray(feature) : new NDArray(feature.Concat(pad).ToArray());
+
                     foreach (var feat_obj in string.IsNullOrEmpty(feature_db) ? _features_ : [GetFeatureData(feature_db)])
                     {
                         if (!(feat_obj.Names is not null && feat_obj.Names.Length > 0) || !(feat_obj.Feats is not null && feat_obj.Feats.shape[0] > 0)) await LoadFeatureData(feat_obj.FeatureStore);
 
-                        result_count += ResultMax;
-                        count += limit;
-                        var pad = new float[padding];
-
-                        var feat_ = padding <= 0 ? new NDArray(feature) : new NDArray(feature.Concat(pad).ToArray());
-
                         if (feat_obj.Feats is not null && feat_ is not null)
                         {
-                            var m_feat = np.zeros(1, feat_.shape[0]);
-                            m_feat[0] = feat_;
-                            var scores = np.dot(m_feat, feat_obj.Feats.T)[0];
-                            var rank_ID = scores.argsort<float>(axis: 0)["::-1"];
-                            var rank_score = scores[rank_ID].ToArray<double>();
-
-                            for (int i = 0; i < feat_obj.Names.Length; i++)
-                            {
-                                if (limit < 1 && rank_score[i] < limit) continue;
-                                else if (result.Count > result_count) break;
-
-                                var f_name = feat_obj.Names[rank_ID[i]];
-                                if (string.IsNullOrEmpty(f_name)) continue;
-                                f_name = GetAbsolutePath(f_name);
-                                if (File.Exists(f_name))
-                                {
-                                    result.Add(new KeyValuePair<string, double>(f_name, rank_score[i]));
-                                    if (limit > 1 && result.Count >= count) break;
-                                }
-                            }
+                            result.AddRange(GetNeareatImages(feat_, feat_obj.Feats, feat_obj.Names, limit, ResultMax));
                             GC.Collect();
+                        }
+                        if (feat_obj.ExtraFeatureDatas is not null)
+                        {
+                            foreach (var extra in feat_obj.ExtraFeatureDatas)
+                            {
+                                if (!(extra.Names is not null && extra.Names.Length > 0) || !(extra.Feats is not null && extra.Feats.shape[0] > 0)) await LoadExtraFeatureData(extra.FeatureStore, feat_obj);
+                                result.AddRange(GetNeareatImages(feat_, extra.Feats, extra.Names, limit, ResultMax));
+                                GC.Collect();
+                            }
                         }
                     }
                     result = result.OrderByDescending(r => r.Value).Take(limit > 1 ? (int)limit : ResultMax).ToList();
@@ -1903,6 +2010,24 @@ namespace ImageSearch.Search
             else ReportMessage("Model or Feature Database not loaded.");
             return (result);
         }
-        #endregion
+
+        public async Task<SimilarResult> QueryImageScore(SKBitmap? image, string? feature_db = null, double limit = 10, int padding = 0, bool labels = false)
+        {
+            ReportMessage($"Quering Memory Image", RunningStatue);
+            var features = await ExtractImaegFeature(image, labels);
+            //var result = new SimilarResult(){ Labels = features.Item2?.Where(x => x.Confidence >= confidence).ToArray(), Results = await QueryImageScore(features.Item1, feature_db, limit, padding) };
+            var result = new SimilarResult(){ Labels = features.Item2?.Take(10).ToArray(), Results = await QueryImageScore(features.Item1, feature_db, limit, padding) };
+            return (result);
+        }
+
+        public async Task<SimilarResult> QueryImageScore(string file, string? feature_db = null, double limit = 10, int padding = 0, bool labels = false)
+        {
+            ReportMessage($"Quering {file}", RunningStatue);
+            var features = await ExtractImaegFeature(file, labels);
+            //var result = new SimilarResult(){ Labels = features.Item2?.Where(x => x.Confidence >= confidence).ToArray(), Results = await QueryImageScore(features.Item1, feature_db, limit, padding) };
+            var result = new SimilarResult(){ Labels = features.Item2?.Take(10).ToArray(), Results = await QueryImageScore(features.Item1, feature_db, limit, padding) };
+            return (result);
+        }
+#endregion
     }
 }
