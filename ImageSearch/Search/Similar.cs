@@ -311,7 +311,6 @@ namespace ImageSearch.Search
                         {
                             ReportMessage($"Pre-Processing feature list");
                             var feats_a = feat_obj.Feats.ToJaggedArray<float>() as float[][];
-                            //var feats_a = feat_obj.Feats.ToMuliDimArray<float>() as float[,];                           
                             var names_a = feat_obj.Names;
                             var losts = names_a.Except(files).ToArray();
                             for (var i = 0; i < feats_a?.GetLength(0); i++)
@@ -319,12 +318,6 @@ namespace ImageSearch.Search
                                 if (cancel.IsCancellationRequested) { result = false; break; }
                                 if (string.IsNullOrEmpty(names_a[i]) || losts.Contains(names_a[i])) continue;
                                 feats_list[names_a[i]] = feats_a[i];
-                                //var row = new List<float>();
-                                //for (var j = 0; j < feats_a.GetLength(1); j++)
-                                //{
-                                //    row.Add(feats_a[i, j]);
-                                //}
-                                //feats_list[names_a[i]] = row.ToArray();
                             }
                             ReportMessage($"Pre-Processed feature list");
                         }
@@ -379,10 +372,9 @@ namespace ImageSearch.Search
                                     if (string.IsNullOrEmpty(file)) return;
 
                                     #region Extracting image feature and store it to feats dataset
-                                    //var feat = await ExtractImaegFeature(file);
+                                    //(var feat, _) = await ExtractImaegFeature(file);
                                     (var feat, _) = ExtractImaegFeature(file).GetAwaiter().GetResult();
                                     if (feat is not null) feats[file] = feat;
-                                    //if (feat is not null) feats[Path.GetRelativePath(folder, file)] = feat;
 
                                     var percent = (int)Math.Ceiling((float)index / count * 100.0);
                                     ReportProgress(percent);
@@ -433,7 +425,6 @@ namespace ImageSearch.Search
                                     #region Extracting image feature and store it to feats dataset
                                     (var feat, _) = await ExtractImaegFeature(file);
                                     if (feat is not null) feats[file] = feat;
-                                    //if (feat is not null) feats[Path.GetRelativePath(folder, file)] = feat;
 
                                     var percent = (int)Math.Ceiling((float)index / count * 100.0);
                                     ReportProgress(percent);
@@ -587,7 +578,6 @@ namespace ImageSearch.Search
                             }
                         }
 
-                        //if (count > 0 && !feats.IsEmpty && feats?.Count == (total + count) && feat_obj is not null)
                         if ((!File.Exists(feat_obj.FeatureDB) || count > 0 || in_npz.Any()) && !feats.IsEmpty && feats?.Count <= (total + count) && feat_obj is not null)
                         {
                             if (cancel.IsCancellationRequested) { result = false; break; }
@@ -605,7 +595,7 @@ namespace ImageSearch.Search
                                     np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), npz_fs);
                                     ReportMessage($"Saved latest checkpoint file {npz_file}");
                                 }
-
+                                GC.Collect();
                                 ReportMessage($"Cleaning intermediate checkpoint files");
                                 var cp_npz_files = Directory.GetFiles("data", $@"{dir_name}_checkpoint_*.npz", SearchOption.TopDirectoryOnly);
                                 foreach (var npz in cp_npz_files.Where(f => Regex.IsMatch(f, @"checkpoint_\d+\.npz", RegexOptions.IgnoreCase))) File.Delete(npz);
@@ -623,7 +613,7 @@ namespace ImageSearch.Search
                             feat_obj.FeatureStore = storage;
 
                             feat_obj.Names = feats_new.Keys.ToArray();
-                            ///feat_obj.Feats = np.concatenate([feat_obj.Feats, new NDArray(feats.Values.ToArray())]);
+
                             feat_obj.Feats = null;
                             feat_obj.Feats = new NDArray(feats_new.Values.ToArray());
 
@@ -1310,7 +1300,8 @@ namespace ImageSearch.Search
                             IncludeStructProperties = true,
                             Filters = [
                                 //Blosc2Filter.Id,
-                                new H5Filter(Id: Blosc2Filter.Id, Options: new(){
+                                new H5Filter(Id: Blosc2Filter.Id, Options: new()
+                                {
                                     [Blosc2Filter.COMPRESSION_LEVEL] = 9,
                                     [Blosc2Filter.COMPRESSOR_CODE] = "blosclz", // blosclz, lz4, lz4hc, zlib or zstd
                                 }),
@@ -1318,11 +1309,12 @@ namespace ImageSearch.Search
                         };
                         h5?.Write(file, option);
                         h5?.Clear();
+                        GC.Collect();
                         ReportMessage($"Saved Feature Data to {file}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
                         result = true;
                     }
                     catch (Exception ex) { ReportMessage($"{ex.StackTrace?.Split().LastOrDefault()} : {ex.Message}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s"); }
-                    finally { sw?.Stop(); }
+                    finally { sw?.Stop(); GC.Collect(); }
                 });
             }
             return (result);

@@ -9,7 +9,7 @@
         AllowDrop="True" Drop="Window_Drop" DragEnter="Window_DragEnter" DragLeave="Window_DragLeave" DragOver="Window_DragOver"
         Title="Image Search By Image" 
         Loaded="Window_Loaded" Closing="Window_Closing" StateChanged="Window_StateChanged" 
-        PreviewKeyUp="Window_PreviewKeyUp" PreviewMouseUp="Window_PreviewMouseUp">
+        PreviewKeyUp="Window_PreviewKeyUp" PreviewKeyDown="Window_PreviewKeyDown" PreviewMouseUp="Window_PreviewMouseUp">
     <Window.Resources>
         <DataTemplate x:Key="ImageTile" DataType="local:ImageResultGallery" >
             <Grid x:Name="PART_IMAGEGRID" Width="240" Height="256" MaxWidth="240" MinHeight="256" Margin="4" ToolTip="{Binding Path=Tooltip, Mode=OneWay}">
@@ -92,7 +92,7 @@
                               Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                               HorizontalContentAlignment="Left" VerticalContentAlignment="Top"
                               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                              Focusable="True" ClipToBounds="True" UseLayoutRounding="True" 
+                              Focusable="False" ClipToBounds="True" UseLayoutRounding="True" 
                               ItemTemplate="{StaticResource ImageTile}" 
                               SelectionChanged="SimilarResultGallery_SelectionChanged"
                               MouseMove="SimilarResultGallery_MouseMove"

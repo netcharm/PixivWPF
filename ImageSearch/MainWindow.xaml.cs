@@ -911,6 +911,75 @@ namespace ImageSearch
 
         private void Window_PreviewKeyUp(object sender, KeyEventArgs e)
         {
+            return;
+            var shift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
+            var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+            var alt = Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
+            var win = Keyboard.Modifiers.HasFlag(ModifierKeys.Windows);
+            try
+            {
+                if (e.Key == Key.Enter)
+                {
+                    if (Tabs.SelectedItem == TabSimilar)
+                    {
+                        e.Handled = true;
+                        var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGalleryItem>().Select(item => item.FullName);
+                        ShellOpen(files.ToArray(), openwith: shift, viewinfo: ctrl);
+                    }
+                }
+                else if (e.Key == Key.Delete)
+                {
+                    if (Tabs.SelectedItem == TabSimilar)
+                    {
+                    }
+                    else if (Tabs.SelectedItem == TabCompare)
+                    {
+                        foreach (var compare in new System.Windows.Controls.Image[] { CompareL, CompareR })
+                        {
+                            if (compare.Source is not null) { compare.Source = null; }
+                            if (compare.Tag is SKBitmap) (compare.Tag as SKBitmap).Dispose();
+                            if (compare.ToolTip is not null) ToolTipService.SetToolTip(compare, null);
+                        }
+                    }
+                }
+                else if (e.Key == Key.V && ctrl)
+                {
+                    if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
+                    {
+                        e.Handled = true;
+                        QueryImage_Click(QueryImage, e);
+                    }
+                    else if (e.Source == TabCompare || Tabs.SelectedItem == TabCompare)
+                    {
+                        e.Handled = true;
+                        CompareImage_Click(CompareImage, e);
+                    }
+                }
+                else if (e.Key == Key.C && shift)
+                {
+                    if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
+                    {
+                        e.Handled = true;
+                        string sep = $"{Environment.NewLine}================================================================================{Environment.NewLine}";
+                        var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGalleryItem>().Select(item => item.Tooltip);
+                        if (files.Any()) Clipboard.SetText((sep + string.Join(sep, files) + sep).Trim());
+                    }
+                }
+                else if (e.Key == Key.C && ctrl)
+                {
+                    if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
+                    {
+                        e.Handled = true;
+                        var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGalleryItem>().Select(item => item.FullName);
+                        if (files.Any()) Clipboard.SetText(string.Join(Environment.NewLine, files));
+                    }
+                }
+            }
+            catch (Exception ex) { ReportMessage(ex); }
+        }
+
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
             var shift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
             var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
             var alt = Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
