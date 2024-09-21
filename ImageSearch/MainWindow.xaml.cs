@@ -51,6 +51,9 @@ namespace ImageSearch
         private Similar? similar = null;
 
         //private System.Windows.Media.Brush? DefaultTextBrush { get; set; } = null;
+        
+        private static Encoding CJK = Encoding.GetEncoding("Unicode");
+        private string lcid_file = $"Labels_0x{LabelMap.LCID:X4}.csv";
 
         private List<Storage> _storages_ = [];
 
@@ -733,13 +736,40 @@ namespace ImageSearch
             return (string.Join(Environment.NewLine, result).Trim());
         }
 
+        private static int LenCJK(string? text)
+        {
+            return (string.IsNullOrEmpty(text) ? 0 : CJK.GetByteCount(text));
+        }
+
+        public static string? PadLeftCJK(string? text, int totalWidth) => PadLeftCJK(text, totalWidth, ' ');
+
+        public static string? PadLeftCJK(string? text, int totalWidth, char paddingChar)
+        {
+            if (string.IsNullOrEmpty(text)) return (text);
+            var len_cjk = CJK.GetByteCount(text);
+            var len_asc = text.Length;
+            var len_dif = len_cjk - len_asc;
+            return (text.PadLeft(totalWidth - len_dif));
+        }
+
+        public static string? PadRightCJK(string? text, int totalWidth) => PadRightCJK(text, totalWidth, ' ');
+
+        public static string? PadRightCJK(string? text, int totalWidth, char paddingChar)
+        {
+            if (string.IsNullOrEmpty(text)) return (text);            
+            var len_cjk = CJK.GetByteCount(text);
+            var len_asc = text.Length;
+            var len_dif = len_cjk - len_asc;
+            return (text.PadRight(totalWidth - len_dif));
+        }
+
         private static string GetLabelString(LabeledObject[] items)
         {
             var result = string.Empty;
             if (items is not null && items.Length > 0)
             {
-                var padding = items.Select(x => x.Label.Length).Max();
-                result = string.Join(Environment.NewLine, items.Select(x => $"Confidence  : {x.Label.PadRight(padding)} ≈ {x.Confidence:F6}"));
+                var padding = items.Select(x => LenCJK(x.Label)).Max();
+                result = string.Join(Environment.NewLine, items.Select(x => $"Confidence  : {PadRightCJK(x.Label, padding)} ≈ {x.Confidence:F6}"));
             }
             return (result);
         }
@@ -865,6 +895,14 @@ namespace ImageSearch
             {
                 LoadSetting();
 
+                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                CJK = Encoding.GetEncoding("GBK");
+
+                if (File.Exists(lcid_file))
+                {
+                    LabelMap.LoadLabels(LabelMap.LCID, lcid_file);
+                }
+
                 var ww = SystemParameters.PrimaryScreenWidth;
                 var wh = SystemParameters.PrimaryScreenHeight;
                 var ratio = Width / ww;
@@ -911,71 +949,6 @@ namespace ImageSearch
 
         private void Window_PreviewKeyUp(object sender, KeyEventArgs e)
         {
-            return;
-            var shift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
-            var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
-            var alt = Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
-            var win = Keyboard.Modifiers.HasFlag(ModifierKeys.Windows);
-            try
-            {
-                if (e.Key == Key.Enter)
-                {
-                    if (Tabs.SelectedItem == TabSimilar)
-                    {
-                        e.Handled = true;
-                        var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGalleryItem>().Select(item => item.FullName);
-                        ShellOpen(files.ToArray(), openwith: shift, viewinfo: ctrl);
-                    }
-                }
-                else if (e.Key == Key.Delete)
-                {
-                    if (Tabs.SelectedItem == TabSimilar)
-                    {
-                    }
-                    else if (Tabs.SelectedItem == TabCompare)
-                    {
-                        foreach (var compare in new System.Windows.Controls.Image[] { CompareL, CompareR })
-                        {
-                            if (compare.Source is not null) { compare.Source = null; }
-                            if (compare.Tag is SKBitmap) (compare.Tag as SKBitmap).Dispose();
-                            if (compare.ToolTip is not null) ToolTipService.SetToolTip(compare, null);
-                        }
-                    }
-                }
-                else if (e.Key == Key.V && ctrl)
-                {
-                    if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
-                    {
-                        e.Handled = true;
-                        QueryImage_Click(QueryImage, e);
-                    }
-                    else if (e.Source == TabCompare || Tabs.SelectedItem == TabCompare)
-                    {
-                        e.Handled = true;
-                        CompareImage_Click(CompareImage, e);
-                    }
-                }
-                else if (e.Key == Key.C && shift)
-                {
-                    if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
-                    {
-                        e.Handled = true;
-                        string sep = $"{Environment.NewLine}================================================================================{Environment.NewLine}";
-                        var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGalleryItem>().Select(item => item.Tooltip);
-                        if (files.Any()) Clipboard.SetText((sep + string.Join(sep, files) + sep).Trim());
-                    }
-                }
-                else if (e.Key == Key.C && ctrl)
-                {
-                    if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
-                    {
-                        e.Handled = true;
-                        var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGalleryItem>().Select(item => item.FullName);
-                        if (files.Any()) Clipboard.SetText(string.Join(Environment.NewLine, files));
-                    }
-                }
-            }
-            catch (Exception ex) { ReportMessage(ex); }
         }
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -1138,6 +1111,14 @@ namespace ImageSearch
                 var folders = AllFolders.IsChecked ?? false ? _storages_.Select(x => Similar.GetAbsolutePath(x.ImageFolder)).ToArray(): [folder];
                 ShellSearch(query, folders);
             }    
+            else if (sender == LoadLocaleLabels)
+            {
+                LabelMap.LoadLabels(LabelMap.LCID, lcid_file);
+            }
+            else if (sender == SaveDefaultLabels)
+            {
+                LabelMap.SaveLabels(0, "Labels_0x0000.csv");
+            }
             else if (sender == ClearLog)
             {
                 _log_.Clear();

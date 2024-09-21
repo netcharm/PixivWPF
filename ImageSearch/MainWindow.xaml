@@ -194,6 +194,9 @@
                         <MenuItem x:Name="DBRemove" Header="Remove Feature Database" Click="DBTools_Click" Visibility="Collapsed"/>
                         <MenuItem x:Name="DBAdd" Header="Add New Feature Database" Click="DBTools_Click" Visibility="Collapsed"/>
                         <Separator/>
+                        <MenuItem x:Name="SaveDefaultLabels" Header="Save Default Labels List To File" Click="DBTools_Click"/>
+                        <MenuItem x:Name="LoadLocaleLabels" Header="Load Locale Labels List From File" Click="DBTools_Click"/>
+                        <Separator/>
                         <MenuItem x:Name="ClearLog" Header="Clear Logs" Click="DBTools_Click"/>
                         <Separator/>
                         <MenuItem x:Name="ShellSearchWin" Header="Shell Search Window" Click="DBTools_Click"/>

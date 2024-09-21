@@ -7,20 +7,20 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>similar.ico</ApplicationIcon>
-     <Version>1.1.1009.0</Version>
-     <AssemblyVersion>1.1.1009.0</AssemblyVersion>
-     <FileVersion>1.1.1009.0</FileVersion>
-     <Company>NetCharm Studio!</Company>
-     <Authors>NetCharm</Authors>
-     <Product>Local Image Search By Image</Product>
-     <Description>Using ML.NET to create local image feature table, and using NumSharp to dot product matrix to calc simalrity.</Description>
-     <Copyright>Copyright © 2024</Copyright>
-     <Title>Search Similar Image By Image</Title>
-     <PackageProjectUrl>https://bitbucket.org/netcharm/pixivwpf.git</PackageProjectUrl>
-     <RepositoryUrl>https://github.com/netcharm/PixivWPF/</RepositoryUrl>
-     <PackageTags>DeepLearning; AI; WPF;</PackageTags>
-     <PackageLicenseExpression>BSD-2-Clause OR MIT</PackageLicenseExpression>
-     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <Version>1.1.1012.0</Version>
+    <AssemblyVersion>1.1.1012.0</AssemblyVersion>
+    <FileVersion>1.1.1012.0</FileVersion>
+    <Company>NetCharm Studio!</Company>
+    <Authors>NetCharm</Authors>
+    <Product>Local Image Search By Image</Product>
+    <Description>Using ML.NET to create local image feature table, and using NumSharp to dot product matrix to calc simalrity.</Description>
+    <Copyright>Copyright © 2024</Copyright>
+    <Title>Search Similar Image By Image</Title>
+    <PackageProjectUrl>https://bitbucket.org/netcharm/pixivwpf.git</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/netcharm/PixivWPF/</RepositoryUrl>
+    <PackageTags>DeepLearning; AI; WPF;</PackageTags>
+    <PackageLicenseExpression>BSD-2-Clause OR MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -54,6 +54,7 @@
     <PackageReference Include="PureHDF" Version="2.1.0" />
     <PackageReference Include="PureHDF.Filters.Blosc2" Version="2.1.0" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.8" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -29,6 +29,7 @@ using NumSharp;
 using PureHDF;
 using PureHDF.Filters;
 using SkiaSharp;
+using System.Globalization;
 
 namespace ImageSearch.Search
 {
@@ -150,6 +151,9 @@ namespace ImageSearch.Search
         private static readonly string[] tiff_exts = [ ".tif", ".tiff" ];
         private static string AppPath = string.Empty;
         public Settings? Setting { get; set; } = null;
+
+        private static CultureInfo _culture_ = CultureInfo.CurrentCulture;
+        private static int _lcid_ = _culture_.LCID;
 
         public bool ModelHasSoftMax { get; set; } = false;
 
@@ -1691,10 +1695,20 @@ namespace ImageSearch.Search
             {
                 try
                 {
-                    if(softmax)
-                        return (SoftMax(feat)?.Select((x, i) => new LabeledObject() { Label = LabelMap.Labels[i], Confidence = x }).OrderByDescending(x => x.Confidence).Take(10).ToArray());
+                    if (LabelMap.LabelCultures.TryGetValue(_lcid_, out string[]? labels_lcid))
+                    {
+                        if (softmax)
+                            return (SoftMax(feat)?.Select((x, i) => new LabeledObject() { Label = $"{labels_lcid[i]}({LabelMap.Labels[i]})", Confidence = x }).OrderByDescending(x => x.Confidence).Take(10).ToArray());
+                        else
+                            return (feat?.Select((x, i) => new LabeledObject() { Label = $"{labels_lcid[i]}({LabelMap.Labels[i]})", Confidence = x }).OrderByDescending(x => x.Confidence).Take(10).ToArray());
+                    }
                     else
-                        return (feat?.Select((x, i) => new LabeledObject() { Label = LabelMap.Labels[i], Confidence = x }).OrderByDescending(x => x.Confidence).Take(10).ToArray());
+                    {
+                        if (softmax)
+                            return (SoftMax(feat)?.Select((x, i) => new LabeledObject() { Label = LabelMap.Labels[i], Confidence = x }).OrderByDescending(x => x.Confidence).Take(10).ToArray());
+                        else
+                            return (feat?.Select((x, i) => new LabeledObject() { Label = LabelMap.Labels[i], Confidence = x }).OrderByDescending(x => x.Confidence).Take(10).ToArray());
+                    }
                 }
                 catch(Exception ex) { ReportMessage(ex); return []; }
             });
