@@ -48,12 +48,12 @@ namespace ImageSearch.Search
             //var lcid_table = Labels.Select((s, i) => new { s, i }).ToDictionary(x => x.i, x => x.s);
             if (lcid <= 0)
             {
-                var lcid_table = Labels.Select((s, i) => $"{i:X4}: {s}").ToList();
+                var lcid_table = Labels.Select((s, i) => $"{i:0000}: {s}").ToList();
                 File.WriteAllLines(lcid_file, lcid_table, encoding: Encoding.UTF8);
             }
             else if (LabelCultures.TryGetValue(lcid, out string[]? labels))
             {
-                var lcid_table = labels.Select((s, i) => $"{i:X4}: {s}").ToList();
+                var lcid_table = labels.Select((s, i) => $"{i:0000}: {s}").ToList();
                 File.WriteAllLines(lcid_file, lcid_table, encoding: Encoding.UTF8);
             }
         }
