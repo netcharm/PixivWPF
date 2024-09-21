@@ -320,7 +320,7 @@ namespace PixivWPF.Common
                 NotifyPropertyChanged("StateChanged");
                 NotifyPropertyChanged();
             }
-            $"{FileName} : {State}[{illustid}, {exists}]".DEBUG("UpdateDownloadState");
+            $"{FileName} : {State}[{illustid}{(exists != null ? ", " : "")}{exists}]".DEBUG("UpdateDownloadState");
         }
 
         public void UpdateLikeState()
