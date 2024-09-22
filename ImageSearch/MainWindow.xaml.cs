@@ -1499,9 +1499,13 @@ namespace ImageSearch
                         ReportMessage("Quering Image Labels", TaskStatus.Running);
                         foreach (var item in items)
                         {
-                            if (force || item.Labels is null)
+                            if (force)
                             {
-                                if (force && item.Labels?.Length > 0) item.Tooltip = ClearLabelString(item.Tooltip);
+                                item.Tooltip = ClearLabelString(item.Tooltip);
+                                item.Labels = null;
+                            }
+                            if (item.Labels is null)
+                            {
                                 item.Labels = await similar.GetImageLabel(item.FullName);
                                 if (item.Labels?.Length > 0)
                                 {
