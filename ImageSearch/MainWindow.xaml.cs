@@ -763,6 +763,18 @@ namespace ImageSearch
             return (text.PadRight(totalWidth - len_dif));
         }
 
+        private static string ClearLabelString(string? text)
+        {
+            var result = text;
+            if (!string.IsNullOrEmpty(result))
+            {
+                var lines = text.Split(Environment.NewLine);
+                result = string.Join(Environment.NewLine, lines.Where(l => !l.StartsWith("Confidence  : ")));
+            }
+            else result = string.Empty;
+            return (result);
+        }
+
         private static string GetLabelString(LabeledObject[] items)
         {
             var result = string.Empty;
@@ -1475,6 +1487,7 @@ namespace ImageSearch
         {
             InitSimilar();
 
+            var force = Keyboard.Modifiers == ModifierKeys.Control;
             if (Tabs.SelectedItem == TabSimilar)
             {
                 var items = SimilarResultGallery.SelectedItems.OfType<ImageResultGalleryItem>();
@@ -1486,8 +1499,9 @@ namespace ImageSearch
                         ReportMessage("Quering Image Labels", TaskStatus.Running);
                         foreach (var item in items)
                         {
-                            if (item.Labels is null)
+                            if (force || item.Labels is null)
                             {
+                                if (force && item.Labels?.Length > 0) item.Tooltip = ClearLabelString(item.Tooltip);
                                 item.Labels = await similar.GetImageLabel(item.FullName);
                                 if (item.Labels?.Length > 0)
                                 {
@@ -1515,6 +1529,7 @@ namespace ImageSearch
                             {
                                 var value = ToolTipService.GetToolTip(item.Value);
                                 var tooltip = value is string ? value as string : string.Empty;
+                                if (force) tooltip = ClearLabelString(tooltip);
                                 if (string.IsNullOrEmpty(tooltip) || !tooltip.Contains("Confidence  :"))
                                 {
                                     var Labels = await similar.GetImageLabel(item.Key?.Tag as SKBitmap);
