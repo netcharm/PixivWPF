@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Security.RightsManagement;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -13,7 +14,6 @@ namespace ImageSearch.Search
     public class LabelMap
     {
         private static CultureInfo _culture_ = CultureInfo.CurrentCulture;
-        //private static string _lcid_str_ = _culture_.LCID.ToString("X4");
         public static int LCID { get { return (_culture_.LCID); } }
 
         public static void LoadLabels(int lcid, string lcid_file)
@@ -22,14 +22,16 @@ namespace ImageSearch.Search
             {
                 if (lcid > 0 && File.Exists(lcid_file))
                 {
-                    char[] sep = [ ':', '\t' ]; //, ',' ]
+                    char[] sep = [ '\t', ':', '=' ];
+                    char[] trim = [ ' ', ':', '=', '\t', '\0', '\u200B', '\uFEFF', '\u180E', '\u202F', '\u205F' ];
+
                     var lines = File.ReadAllLines(lcid_file, encoding: Encoding.UTF8);
                     var lcid_table = new Dictionary<int, string>();
                     for (var i = 0; i < Labels.Length; i++)
                     {
                         if (i >= lines.Length) continue;
 
-                        var kv = lines[i].Replace("    ", "\t").Replace("  ", "\t").Split(sep);
+                        var kv = Regex.Replace(lines[i].Trim(trim), @"[\t|:|=|*]+", "\t").Split(sep);
                         if (kv.Count() > 1 && int.TryParse(kv[0].Trim(), out int idx))
                             lcid_table[idx] = kv[1].Trim();
                         else if (kv.Count() > 0)
@@ -58,7 +60,7 @@ namespace ImageSearch.Search
             }
         }
 
-        public static readonly string[] Labels = new[] 
+        public static readonly string[] Labels = new[]
         {
             "tench",
             "goldfish",

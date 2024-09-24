@@ -853,6 +853,67 @@ namespace ImageSearch
             }, System.Windows.Threading.DispatcherPriority.Normal);
         }
 
+        public void UpdateSimilarItemsTooltip(IEnumerable<ImageResultGalleryItem> items, bool force = false)
+        {
+            if (items.Any())
+            {
+                Task.Run(async () =>
+                {
+                    var sw = Stopwatch.StartNew();
+                    ReportMessage("Quering Image Labels", TaskStatus.Running);
+                    foreach (var item in items)
+                    {
+                        if (force)
+                        {
+                            item.Tooltip = ClearLabelString(item.Tooltip);
+                            item.Labels = null;
+                        }
+                        if (item.Labels is null)
+                        {
+                            item.Labels = await similar.GetImageLabel(item.FullName);
+                            if (item.Labels?.Length > 0)
+                            {
+                                item.Tooltip += Environment.NewLine + GetLabelString(item.Labels);
+                                item.UpdateToolTip();
+                            }
+                        }
+                    }
+                    sw?.Stop();
+                    ReportMessage($"Quered Image Labels. Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
+                    GC.Collect();
+                });
+            }
+        }
+
+        public void UpdateCompareItemsTooltip(Dictionary<System.Windows.Controls.Image, Viewbox> items, bool force = false)
+        {
+            Task.Run(() =>
+            {
+                foreach (var item in items)
+                {
+                    item.Key?.Dispatcher.InvokeAsync(async () =>
+                    {
+                        if (item.Key?.Tag is SKBitmap)
+                        {
+                            var value = ToolTipService.GetToolTip(item.Value);
+                            var tooltip = value is string ? value as string : string.Empty;
+                            if (force) tooltip = ClearLabelString(tooltip);
+                            if (string.IsNullOrEmpty(tooltip) || !tooltip.Contains("Confidence  :"))
+                            {
+                                var Labels = await similar.GetImageLabel(item.Key?.Tag as SKBitmap);
+                                if (Labels?.Length > 0)
+                                {
+                                    tooltip += Environment.NewLine + GetLabelString(Labels);
+                                    ToolTipService.SetToolTip(item.Value, tooltip.Trim());
+                                }
+                            }
+                        }
+                    });
+                }
+                GC.Collect();
+            });
+        }
+
         public void LoadSetting()
         {
             var setting_file = GetAbsolutePath($"{GetAppName()}.settings");
@@ -1491,63 +1552,12 @@ namespace ImageSearch
             if (Tabs.SelectedItem == TabSimilar)
             {
                 var items = SimilarResultGallery.SelectedItems.OfType<ImageResultGalleryItem>();
-                if (items.Any())
-                {
-                    Task.Run(async () =>
-                    {
-                        var sw = Stopwatch.StartNew();
-                        ReportMessage("Quering Image Labels", TaskStatus.Running);
-                        foreach (var item in items)
-                        {
-                            if (force)
-                            {
-                                item.Tooltip = ClearLabelString(item.Tooltip);
-                                item.Labels = null;
-                            }
-                            if (item.Labels is null)
-                            {
-                                item.Labels = await similar.GetImageLabel(item.FullName);
-                                if (item.Labels?.Length > 0)
-                                {
-                                    item.Tooltip += Environment.NewLine + GetLabelString(item.Labels);
-                                    item.UpdateToolTip();
-                                }
-                            }
-                        }
-                        sw?.Stop();
-                        ReportMessage($"Quered Image Labels. Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
-                        GC.Collect();
-                    });
-                }
+                UpdateSimilarItemsTooltip(items, force);
             }
             else if (Tabs.SelectedItem == TabCompare)
             {
                 var items = new Dictionary<System.Windows.Controls.Image, Viewbox>{ { CompareL, CompareBoxL }, { CompareR, CompareBoxR } };
-                Task.Run(() =>
-                {
-                    foreach (var item in items)
-                    {
-                        item.Key?.Dispatcher.InvokeAsync(async () =>
-                        {
-                            if (item.Key?.Tag is SKBitmap)
-                            {
-                                var value = ToolTipService.GetToolTip(item.Value);
-                                var tooltip = value is string ? value as string : string.Empty;
-                                if (force) tooltip = ClearLabelString(tooltip);
-                                if (string.IsNullOrEmpty(tooltip) || !tooltip.Contains("Confidence  :"))
-                                {
-                                    var Labels = await similar.GetImageLabel(item.Key?.Tag as SKBitmap);
-                                    if (Labels?.Length > 0)
-                                    {
-                                        tooltip += Environment.NewLine + GetLabelString(Labels);
-                                        ToolTipService.SetToolTip(item.Value, tooltip.Trim());
-                                    }
-                                }
-                            }
-                        });
-                    }
-                    GC.Collect();
-                });
+                UpdateCompareItemsTooltip(items, force);
             }
         }
 
@@ -1616,6 +1626,7 @@ namespace ImageSearch
         private void SimilarResultGallery_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             UpdateTabSimilarTooltip();
+            //UpdateSimilarItemsTooltip(e.AddedItems.OfType<ImageResultGalleryItem>());
         }
 
     }
