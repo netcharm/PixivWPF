@@ -74,7 +74,7 @@ namespace ImageCompare
         {
             var t = resourceSet.GetString(text);
             //return (string.IsNullOrEmpty(t) ? null : t.Replace("\\n", Environment.NewLine));
-            return (string.IsNullOrEmpty(t) ? null : Regex.Replace(t, @"(\n\r|\r\n|\n|\r)", Environment.NewLine));
+            return (string.IsNullOrEmpty(t) ? null : Regex.Replace(t, @"(\\n\\r|\\r\\n|\n\r|\r\n|\\n|\\r|\n|\r)", Environment.NewLine));
         }
 
         public static string GetString(this string text, CultureInfo culture)
