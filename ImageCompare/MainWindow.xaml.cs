@@ -933,8 +933,8 @@ namespace ImageCompare
 
                     await Dispatcher.InvokeAsync(() =>
                     {
-                        ImageSource.ToolTip = image_s.ValidCurrent ? "Waiting".T() : null;
-                        ImageTarget.ToolTip = image_t.ValidCurrent ? "Waiting".T() : null;
+                        ImageSource.ToolTip = image_s.ValidCurrent ? "Waiting".T(DefaultCultureInfo) : null;
+                        ImageTarget.ToolTip = image_t.ValidCurrent ? "Waiting".T(DefaultCultureInfo) : null;
                         ImageResult.Source = null;
                     }, DispatcherPriority.Normal);
                     if (image_r.ValidCurrent) image_r.Dispose();
@@ -950,7 +950,7 @@ namespace ImageCompare
                     await Dispatcher.InvokeAsync(() =>
                     {
                         ImageResult.Source = image_r.Source;
-                        ImageResult.ToolTip = image_r.ValidCurrent ? "Waiting".T() : null;
+                        ImageResult.ToolTip = image_r.ValidCurrent ? "Waiting".T(DefaultCultureInfo) : null;
                     }, DispatcherPriority.Normal);
 
                     CalcDisplay(set_ratio: false);
@@ -1518,12 +1518,12 @@ namespace ImageCompare
             DefaultComposeToolTip = ImageCompose.ToolTip as string;
 
             ImageCompareFuzzy.ToolTip = $"{"Tolerances".T(culture)}: {ImageCompareFuzzy.Value:F1}%";
-            ImageCompositeBlend.ToolTip = $"{"Blend".T(DefaultCultureInfo)}: {ImageCompositeBlend.Value:F0}%";
+            ImageCompositeBlend.ToolTip = $"{"Blend".T(culture)}: {ImageCompositeBlend.Value:F0}%";
             ZoomRatio.ToolTip = $"{"Zoom Ratio".T(culture)}: {ZoomRatio.Value:F2}X";
 
-            ImageSource.ToolTip = "Waiting".T();
-            ImageTarget.ToolTip = "Waiting".T();
-            ImageResult.ToolTip = "Waiting".T();
+            ImageSource.ToolTip = "Waiting".T(culture);
+            ImageTarget.ToolTip = "Waiting".T(culture);
+            ImageResult.ToolTip = "Waiting".T(culture);
 
             #region Create Image Flip/Rotate/Effects Menu
             CreateImageOpMenu(ImageSourceScroll);
@@ -2862,7 +2862,7 @@ namespace ImageCompare
                             else if (is_result) image = ImageResult;
 
                             var element = sender as FrameworkElement;
-                            if (element.ToolTip is string && (element.ToolTip as string).StartsWith("Waiting".T(), StringComparison.CurrentCultureIgnoreCase))
+                            if (element.ToolTip is string && (element.ToolTip as string).StartsWith("Waiting".T(DefaultCultureInfo), StringComparison.CurrentCultureIgnoreCase))
                             {
                                 element.ToolTip = await image.GetInformation().GetImageInfo();
                             }

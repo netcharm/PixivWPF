@@ -120,7 +120,7 @@ namespace ImageCompare
                 var src = source ? ImageSource : ImageTarget;
                 if (src.ToolTip is string && !string.IsNullOrEmpty(src.ToolTip as string))
                 {
-                    if ((src.ToolTip as string).StartsWith("Waiting".T(), StringComparison.CurrentCultureIgnoreCase))
+                    if ((src.ToolTip as string).StartsWith("Waiting".T(DefaultCultureInfo), StringComparison.CurrentCultureIgnoreCase))
                     {
                         src.ToolTip = await src.GetInformation().GetImageInfo();
                     }
@@ -1690,12 +1690,12 @@ namespace ImageCompare
                 {
                     if (compose)
                     {
-                        ImageCompose.ToolTip = tip.Count > 1 ? $"{DefaultComposeToolTip}{Environment.NewLine}{Environment.NewLine}{string.Join(Environment.NewLine, tip)}" : DefaultComposeToolTip;
                         ImageCompare.ToolTip = DefaultCompareToolTip;
+                        ImageCompose.ToolTip = tip.Count > 1 ? $"{DefaultComposeToolTip}{Environment.NewLine}{Environment.NewLine}{string.Join(Environment.NewLine, tip)}" : DefaultComposeToolTip;
                     }
                     else
                     {
-                        ImageCompare.ToolTip = tip.Count > 1 ? $"{DefaultComposeToolTip}{Environment.NewLine}{Environment.NewLine}{string.Join(Environment.NewLine, tip)}" : DefaultCompareToolTip;
+                        ImageCompare.ToolTip = tip.Count > 1 ? $"{DefaultCompareToolTip}{Environment.NewLine}{Environment.NewLine}{string.Join(Environment.NewLine, tip)}" : DefaultCompareToolTip;
                         ImageCompose.ToolTip = DefaultComposeToolTip;
                     }
                 }, DispatcherPriority.Normal);
