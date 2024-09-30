@@ -53,7 +53,7 @@ namespace PixivWPF.Common
     [JsonObject(MemberSerialization.OptOut)]
     public class Setting
     {
-        #region Application base
+        #region Application Base
         //private static string AppPath = Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString()).Replace("file:\\", "");
         private static string AppPath = Application.Current.GetRoot();
         [JsonIgnore]
@@ -188,7 +188,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Config load/save Related
+        #region Config Load/Save Related
         private static SemaphoreSlim CanConfigRead = new SemaphoreSlim(1, 1);
         private static SemaphoreSlim CanConfigWrite = new SemaphoreSlim(1, 1);
 
@@ -811,7 +811,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Pixiv account Related
+        #region Pixiv Account Related
         private string accesstoken = string.Empty;
         public string AccessToken
         {
@@ -1027,7 +1027,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region UI theme/font Related
+        #region UI Theme/Font Related
         [JsonIgnore]
         private FontFamily fontfamily = SystemFonts.MessageFontFamily;
         [JsonIgnore]
@@ -1093,7 +1093,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region network Related
+        #region Network Related
         private Version http_version = new Version(1, 1);
         public Version HttpVersion
         {
@@ -2091,6 +2091,19 @@ namespace PixivWPF.Common
 
         #endregion
 
+        #region Live Filter Related
+        private string[] filter_mmd_tags = new string[]{ "mmd", "vroid" };
+        public string[] FilterMMDTags 
+        {
+            get { return (Cache is Setting ? Cache.filter_mmd_tags : filter_mmd_tags); }
+            set
+            {
+                filter_mmd_tags = value;
+                if (Cache is Setting) Cache.filter_mmd_tags = filter_mmd_tags;
+            }
+        }
+        #endregion
+
         #region Favorite/Follow Related
         private bool private_fav_prefer = false;
         public bool PrivateFavPrefer
@@ -2137,7 +2150,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Selection behavior Related
+        #region Selection Behavior Related
         private bool open_with_selection_order = true;
         public bool OpenWithSelectionOrder
         {
@@ -2569,7 +2582,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Storage monitor Related
+        #region Storage Monitor Related
         private string save_folder = string.Empty;
         private string SaveFolder
         {

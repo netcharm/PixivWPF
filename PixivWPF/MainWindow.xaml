@@ -172,6 +172,9 @@
                     <Separator/>
                     <MenuItem x:Name="LiveFilterMovie" x:Uid="LiveFilterMovie" Header="Movie Only" Click="LiveFilterItem_Click"/>
                     <MenuItem x:Name="LiveFilterNotMovie" x:Uid="LiveFilterNotMovie" Header="Not Movie" Click="LiveFilterItem_Click"/>
+                    <Separator Visibility="{Binding Visibility, Source={x:Reference LiveFilterMMD}, Mode=OneWay}"/>
+                    <MenuItem x:Name="LiveFilterMMD" x:Uid="LiveFilterMMD" Header="MMD/VRoid" Click="LiveFilterItem_Click"/>
+                    <MenuItem x:Name="LiveFilterNotMMD" x:Uid="LiveFilterNotMMD" Header="Not MMD/VRoid" Click="LiveFilterItem_Click"/>
                     <Separator/>
                     <MenuItem x:Name="LiveFilterFullList" x:Uid="LiveFilterFullList" Header="User Artworks Full-Listed" Click="LiveFilterItem_Click"/>
                     <MenuItem x:Name="LiveFilterNotFullList" x:Uid="LiveFilterNotFullList" Header="User Artworks Not Full-Listed" Click="LiveFilterItem_Click"/>

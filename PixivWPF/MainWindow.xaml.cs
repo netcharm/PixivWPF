@@ -996,6 +996,9 @@ namespace PixivWPF
             var menus_movie = new List<MenuItem>() {
                 LiveFilterMovie, LiveFilterNotMovie,
             };
+            var menus_mmd = new List<MenuItem>() {
+                LiveFilterMMD, LiveFilterNotMMD,
+            };
             var menus_full = new List<MenuItem>() {
                 LiveFilterFullList, LiveFilterNotFullList,
             };
@@ -1021,6 +1024,7 @@ namespace PixivWPF
             string filter_down = string.Empty;
             string filter_ai = string.Empty;
             string filter_movie = string.Empty;
+            string filter_mmd = string.Empty;
             string filter_full = string.Empty;
             string filter_sanity = string.Empty;
 
@@ -1168,6 +1172,17 @@ namespace PixivWPF
                     if (fmenu.IsChecked) filter_movie = fmenu.Name.Substring(idx);
                 }
                 #endregion
+                #region filter by mmd state
+                foreach (var fmenu in menus_mmd)
+                {
+                    if (menus_mmd.Contains(menu))
+                    {
+                        if (fmenu == menu) fmenu.IsChecked = !fmenu.IsChecked;
+                        else fmenu.IsChecked = false;
+                    }
+                    if (fmenu.IsChecked) filter_mmd = fmenu.Name.Substring(idx);
+                }
+                #endregion
                 #region filter by fulllist
                 foreach (var fmenu in menus_full)
                 {
@@ -1218,6 +1233,7 @@ namespace PixivWPF
                 Downloaded = filter_down,
                 AI = filter_ai,
                 Movie = filter_movie,
+                MMD = filter_mmd,
                 FullListed = filter_full,
                 Sanity = filter_sanity,
                 SanityOption_IncludeUnder = LiveFilterSanity_OptIncludeUnder.IsChecked

@@ -34,6 +34,7 @@ namespace PixivWPF.Common
         public string Downloaded { get; set; } = string.Empty;
         public string AI { get; set; } = string.Empty;
         public string Movie { get; set; } = string.Empty;
+        public string MMD { get; set; } = string.Empty;
         public string FullListed { get; set; } = string.Empty;
         public string Sanity { get; set; } = string.Empty;
         public bool SanityOption_IncludeUnder { get; set; } = true;
@@ -137,6 +138,16 @@ namespace PixivWPF.Common
             {
                 if (is_movie == null) is_movie = this.IsMovie() || this.IsUgoira();
                 return (is_movie ?? (this.IsMovie() || this.IsUgoira()));
+            }
+        }
+
+        private bool? is_mmd = null;
+        public bool IsMMD
+        {
+            get
+            {
+                if (is_mmd == null) is_mmd = this.IsMMD();
+                return (is_mmd ?? this.IsMMD());
             }
         }
 
@@ -542,6 +553,30 @@ namespace PixivWPF.Common
                         return (result);
                     });
                 }
+                else if (filter.Equals("mmd"))
+                {
+                    filter_action = new Func<object, bool>(obj =>
+                    {
+                        var result = true;
+                        if (obj is PixivItem)
+                        {
+                            result = (obj as PixivItem).IsMMD;
+                        }
+                        return (result);
+                    });
+                }
+                else if (filter.Equals("notmmd"))
+                {
+                    filter_action = new Func<object, bool>(obj =>
+                    {
+                        var result = true;
+                        if (obj is PixivItem)
+                        {
+                            result = !(obj as PixivItem).IsMMD;
+                        }
+                        return (result);
+                    });
+                }
                 #endregion
                 #region Sanity
                 else if (filter.Equals("allage") || filter.Equals("fullage"))
@@ -609,6 +644,7 @@ namespace PixivWPF.Common
                 var filter_down = string.IsNullOrEmpty(filter.Downloaded) ? string.Empty : filter.Downloaded.ToLower();
                 var filter_ai = string.IsNullOrEmpty(filter.AI) ? string.Empty : filter.AI.ToLower();
                 var filter_movie = string.IsNullOrEmpty(filter.Movie) ? string.Empty : filter.Movie.ToLower();
+                var filter_mmd = string.IsNullOrEmpty(filter.MMD) ? string.Empty : filter.MMD.ToLower();
                 var filter_full = string.IsNullOrEmpty(filter.FullListed) ? string.Empty : filter.FullListed.ToLower();
                 var filter_sanity = string.IsNullOrEmpty(filter.Sanity) ? string.Empty : filter.Sanity.ToLower();
 
@@ -639,6 +675,9 @@ namespace PixivWPF.Common
 
                 bool movie = filter_movie.Equals("movie");
                 bool notmovie = filter_movie.Equals("notmovie");
+
+                bool mmd = filter_mmd.Equals("mmd");
+                bool notmmd = filter_mmd.Equals("notmmd");
 
                 bool full = filter_full.Equals("fulllist");
                 bool notfull = filter_full.Equals("notfulllist");
@@ -837,6 +876,15 @@ namespace PixivWPF.Common
                                 result = result && item.IsMovie;
                             else if (notmovie)
                                 result = result && !item.IsMovie;
+                        }
+                        #endregion
+                        #region filter by mmd state
+                        if (mmd || notmmd)
+                        {
+                            if (mmd)
+                                result = result && item.IsMMD;
+                            else if (notmmd)
+                                result = result && !item.IsMMD;
                         }
                         #endregion
                         #region filter by full listed state
@@ -2046,6 +2094,30 @@ namespace PixivWPF.Common
                         result = item.Illust is Pixeez.Objects.Work &&
                             (item.Illust.Type.Equals("ugoira", StringComparison.CurrentCultureIgnoreCase) ||
                             item.Illust.GetOriginalUrl().ToLower().Contains("_ugoira")) ? true : false;
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+
+        public static bool IsMMD(this PixivItem item)
+        {
+            bool result = false;
+            try
+            {
+                if (item is PixivItem)
+                {
+                    if (item.ItemType == PixivItemType.Work ||
+                        item.ItemType == PixivItemType.Page ||
+                        item.ItemType == PixivItemType.Pages ||
+                        item.ItemType == PixivItemType.Movie)
+                    {
+                        if (item.Illust is Pixeez.Objects.Work && item.Illust.Tags.Count > 0)
+                        {
+                            var mmd_tags = $@"({string.Join("|", Application.Current.LoadSetting().FilterMMDTags)})";
+                            result = item.Illust.Tags.Count(t => Regex.IsMatch(t, mmd_tags, RegexOptions.IgnoreCase)) > 0;
+                        }
+                    }
                 }
             }
             catch (Exception ex) { ex.ERROR(); }
