@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -878,7 +879,7 @@ namespace ImageSearch
             }
         }
 
-        public void UpdateCompareItemsTooltip(Dictionary<System.Windows.Controls.Image, Viewbox> items, bool force = false)
+        public void UpdateImageBoxTooltip(Dictionary<System.Windows.Controls.Image, Viewbox> items, bool force = false)
         {
             Task.Run(() =>
             {
@@ -905,6 +906,20 @@ namespace ImageSearch
                 }
                 GC.Collect();
             });
+        }
+
+        public void UpdateLabels()
+        {
+            var similar_items = GalleryList.Where(i => i.Tooltip.Contains("Confidence  :"));
+            UpdateSimilarItemsTooltip(similar_items, true);
+
+            var imagebox_items = new Dictionary<System.Windows.Controls.Image, Viewbox>()
+            {
+                { SimilarSrc, SimilarSrcBox },
+                { CompareL, CompareBoxL },
+                { CompareR, CompareBoxR },
+            };
+            UpdateImageBoxTooltip(imagebox_items, true);
         }
 
         public void LoadSetting()
@@ -1180,6 +1195,7 @@ namespace ImageSearch
             else if (sender == LoadLocaleLabels)
             {
                 LabelMap.LoadLabels(LabelMap.LCID, lcid_file);
+                UpdateLabels();
             }
             else if (sender == SaveDefaultLabels)
             {
@@ -1550,7 +1566,7 @@ namespace ImageSearch
             else if (Tabs.SelectedItem == TabCompare)
             {
                 var items = new Dictionary<System.Windows.Controls.Image, Viewbox>{ { CompareL, CompareBoxL }, { CompareR, CompareBoxR } };
-                UpdateCompareItemsTooltip(items, force);
+                UpdateImageBoxTooltip(items, force);
             }
         }
 
