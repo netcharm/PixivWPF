@@ -24,6 +24,7 @@ using System.Windows.Threading;
 using CompactExifLib;
 using SkiaSharp;
 using ImageSearch.Search;
+using System.Text.RegularExpressions;
 
 
 namespace ImageSearch
@@ -780,50 +781,72 @@ namespace ImageSearch
             return (result);
         }
 
-        public static Predicate<object>? GetFilter(string filter)
+        public static Predicate<object>? GetFilter(string filter_content)
         {
             Predicate<object>? result = null;
-            if (!string.IsNullOrEmpty(filter))
+            if (!string.IsNullOrEmpty(filter_content))
             {
-                var action = new Func<object, bool>(obj =>
+                //var filters = filter.Split(new string[]{ "||", "&&" }, StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries);
+                var filters = new List<Tuple<string, string>>();
+                var matches = Regex.Matches("||" + filter_content.Trim(['|', '&']) + "||", @"(\|\||\&\&)\s*?(.+?)\s*?(?=[\|\&])", RegexOptions.IgnoreCase);
+                foreach (Match m in matches.Where(ma => ma.Success))
                 {
-                    var ret = true;
-                    if (obj is ImageResultGalleryItem)
+                    if (m.Length > 0) { filters.Add(new Tuple<string, string>(m.Groups[1].Value.Trim(), m.Groups[2].Value.Trim())); }
+                }
+                if (filters.Any())
+                {
+                    var action = new Func<object, bool>(obj =>
                     {
-                        var item = obj as ImageResultGalleryItem;
-                        if (item is not null && item.Tooltip is not null && !string.IsNullOrEmpty(item.Tooltip))
+                        var rets = false;
+                        if (obj is ImageResultGalleryItem)
                         {
-                            if (filter.StartsWith('!'))
-                                ret = !item.Tooltip.Contains(filter[1..], StringComparison.CurrentCultureIgnoreCase);
-                            else if (filter.StartsWith('='))
-                                ret = !item.Tooltip.Equals(filter[1..], StringComparison.CurrentCultureIgnoreCase);
-                            else
-                                ret = item.Tooltip.Contains(filter, StringComparison.CurrentCultureIgnoreCase);
+                            var item = obj as ImageResultGalleryItem;
+                            foreach (var filter_op in filters)
+                            {
+                                var ret = false;
+
+                                var op = filter_op.Item1;
+                                var filter = filter_op.Item2;
+
+                                if (item is not null && item.Tooltip is not null && !string.IsNullOrEmpty(item.Tooltip))
+                                {
+                                    if (filter.StartsWith('!'))
+                                        ret = !item.Tooltip.Contains(filter[1..], StringComparison.CurrentCultureIgnoreCase);
+                                    else if (filter.StartsWith('='))
+                                        ret = !item.Tooltip.Equals(filter[1..], StringComparison.CurrentCultureIgnoreCase);
+                                    else
+                                        ret = item.Tooltip.Contains(filter, StringComparison.CurrentCultureIgnoreCase);
+                                }
+                                if (double.TryParse(item.Similar, out double sv))
+                                {
+                                    double fv = 0;
+                                    if (filter.StartsWith('!') && double.TryParse(filter.AsSpan(1), out fv))
+                                        ret |= sv != fv;
+                                    else if (filter.StartsWith('=') && double.TryParse(filter.AsSpan(1), out fv))
+                                        ret |= sv == fv;
+                                    else if (filter.StartsWith(">=") && double.TryParse(filter.AsSpan(2), out fv))
+                                        ret |= sv >= fv;
+                                    else if (filter.StartsWith("<=") && double.TryParse(filter.AsSpan(2), out fv))
+                                        ret |= sv <= fv;
+                                    else if (filter.StartsWith('>') && double.TryParse(filter.AsSpan(1), out fv))
+                                        ret |= sv > fv;
+                                    else if (filter.StartsWith('<') && double.TryParse(filter.AsSpan(1), out fv))
+                                        ret |= sv < fv;
+                                    else if (filter.StartsWith('~') && double.TryParse(filter.AsSpan(1), out fv))
+                                        ret |= item.Similar.StartsWith(filter.Substring(1));
+                                    else if (double.TryParse(filter, out fv))
+                                        ret |= item.Similar.StartsWith(filter);
+                                }
+
+                                if (filter_op == filters.First()) rets = ret;
+                                else if (op == "||") rets |= ret;
+                                else if (op == "&&") rets &= ret;
+                            }
                         }
-                        if (double.TryParse(item.Similar, out double sv))
-                        {
-                            double fv = 0;
-                            if (filter.StartsWith('!') && double.TryParse(filter.AsSpan(1), out fv))
-                                ret |= sv != fv;
-                            else if (filter.StartsWith('=') && double.TryParse(filter.AsSpan(1), out fv))
-                                ret |= sv == fv;
-                            else if (filter.StartsWith(">=") && double.TryParse(filter.AsSpan(2), out fv))
-                                ret |= sv >= fv;
-                            else if (filter.StartsWith("<=") && double.TryParse(filter.AsSpan(2), out fv))
-                                ret |= sv <= fv;
-                            else if (filter.StartsWith('>') && double.TryParse(filter.AsSpan(1), out fv))
-                                ret |= sv > fv;
-                            else if (filter.StartsWith('<') && double.TryParse(filter.AsSpan(1), out fv))
-                                ret |= sv < fv;
-                            else if (filter.StartsWith('~') && double.TryParse(filter.AsSpan(1), out fv))
-                                ret |= item.Similar.StartsWith(filter.Substring(1));
-                            else if (double.TryParse(filter, out fv))
-                                ret |= item.Similar.StartsWith(filter);
-                        }
-                    }
-                    return (ret);
-                });
-                result = new Predicate<object>(action);
+                        return (rets);
+                    });
+                    result = new Predicate<object>(action);
+                }
             }
             return (result);
         }
@@ -1066,7 +1089,11 @@ namespace ImageSearch
                 }
                 else if (e.Key == Key.V && ctrl)
                 {
-                    if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
+                    if (e.Source == ResultFilter)
+                    {
+                        ResultFilter.Paste();
+                    }
+                    else if(e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
                     {
                         e.Handled = true;
                         QueryImage_Click(QueryImage, e);
