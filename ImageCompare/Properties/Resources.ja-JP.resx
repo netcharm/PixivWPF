@@ -627,4 +627,19 @@
   <data name="InfoTipOrientation" xml:space="preserve">
     <value>画像の向き         =</value>
   </data>
+  <data name="ExtentImageEdge.Header" xml:space="preserve">
+    <value>画像の境界を拡張する</value>
+  </data>
+  <data name="PanImageEdge.Header" xml:space="preserve">
+    <value>画像の境界をオフセットする</value>
+  </data>
+  <data name="AutoCompare.ToolTip" xml:space="preserve">
+    <value>比較/合成を自動的に実行</value>
+  </data>
+  <data name="SmallSizeModeIndep.Header" xml:space="preserve">
+    <value>個別スケーリング</value>
+  </data>
+  <data name="SmallSizeModeLink.Header" xml:space="preserve">
+    <value>連想スケーリング</value>
+  </data>
 </root>

@@ -759,6 +759,129 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <param name="align"></param>
+        /// <param name="color"></param>
+#if Q16HDRI
+        private void ExtentImageEdge(bool source, int width = 0, int height = 0, Gravity align = Gravity.Center, IMagickColor<float> color = null)
+#else
+        private void ExtentImageEdge(bool source, int width = 0, int height = 0, Gravity align = Gravity.Center, IMagickColor<byte> color = null)
+#endif
+        {
+            try
+            {
+                var action = false;
+                var factor = WeakEffects ? 1 : 5;
+                var image_s = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                var image_t = source ? ImageTarget.GetInformation() : ImageSource.GetInformation();
+                if (image_s.ValidCurrent)
+                {
+                    switch (align)
+                    {
+                        case Gravity.Center: width *= 2; height *= 2; break;
+                        case Gravity.North: width = 0; align = Gravity.South; break;
+                        case Gravity.South: width = 0; align = Gravity.North; break;
+                        case Gravity.East: height = 0; align = Gravity.West; break;
+                        case Gravity.West: height = 0; align = Gravity.East; break;
+                        case Gravity.Northeast: align = Gravity.Southwest; break;
+                        case Gravity.Northwest: align = Gravity.Southeast; break;
+                        case Gravity.Southeast: align = Gravity.Northwest; break;
+                        case Gravity.Southwest: align = Gravity.Northeast; break;
+                        default: break;
+                    }
+                    var box = new MagickGeometry(image_s.Current.Width, image_s.Current.Height)
+                    {
+                        IgnoreAspectRatio = true,
+                        LimitPixels = true,
+                        Width = Math.Max(image_s.Current.Width, image_s.Current.Width + width * factor),
+                        Height = Math.Max(image_s.Current.Height, image_s.Current.Height + height * factor),
+                    };
+                    if (width > 0 || height > 0)
+                    {
+                        image_s.Current.Extent(box.Width, box.Height, align, color ?? MagickColors.Transparent);
+                        image_s.Current.RePage();
+                        action = true;
+                    }
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <param name="align"></param>
+        private void ExtentImageEdge(bool source, int width = 0, int height = 0, Gravity align = Gravity.Center)
+        {
+            ExtentImageEdge(source, width, height, align, MasklightColor);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <param name="align"></param>
+        private void PanImageEdge(bool source, int width = 0, int height = 0, Gravity align = Gravity.Center)
+        {
+            ExtentImageEdge(source, width, height, align, MagickColors.Transparent);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <param name="align"></param>
+        private void RollImageEdge(bool source, int width = 0, int height = 0, Gravity align = Gravity.Center)
+        {
+            try
+            {
+                var action = false;
+                var factor = WeakEffects ? 1 : 5;
+                var image_s = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                var image_t = source ? ImageTarget.GetInformation() : ImageSource.GetInformation();
+                if (image_s.ValidCurrent)
+                {
+                    switch (align)
+                    {
+                        case Gravity.Center: width *= 2; height *= 2; break;
+                        case Gravity.North: width = 0; align = Gravity.South; break;
+                        case Gravity.South: width = 0; align = Gravity.North; break;
+                        case Gravity.East: height = 0; align = Gravity.West; break;
+                        case Gravity.West: height = 0; align = Gravity.East; break;
+                        case Gravity.Northeast: align = Gravity.Southwest; break;
+                        case Gravity.Northwest: align = Gravity.Southeast; break;
+                        case Gravity.Southeast: align = Gravity.Northwest; break;
+                        case Gravity.Southwest: align = Gravity.Northeast; break;
+                        default: break;
+                    }
+
+                    if (width > 0 || height > 0)
+                    {
+                        image_s.Current.Roll(Math.Max(0, width * factor), Math.Max(0, height * factor));
+                        image_s.Current.RePage();
+                        action = true;
+                    }
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
         private void EmbossImage(bool source)
         {
             try
@@ -1560,7 +1683,7 @@ namespace ImageCompare
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
-        #endregion
+#endregion
 
         /// <summary>
         /// 

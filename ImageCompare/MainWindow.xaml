@@ -127,6 +127,8 @@
                        Text="{Binding ElementName=ImageCompositeBlend, Path=Value, StringFormat={}{0:F0}%}"
                        ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>
             <ProgressBar x:Uid="ProcessStatus" x:Name="ProcessStatus" ToolTip="Picture Processing Progress" Margin="4,0,2,0" HorizontalAlignment="Right" Width="36" Height="20" />
+            <xctk:BusyIndicator x:Uid="BusyNow" x:Name="BusyNow" Height="22" Width="64" ToolBar.OverflowMode="Never"
+                HorizontalAlignment="Right" HorizontalContentAlignment="Stretch" VerticalAlignment="Center" VerticalContentAlignment="Stretch" />
             <Button x:Name="ImageDenoiseResult" x:Uid="ImageDenoiseResult" ToolTip="Denoise Result Picture" Click="ImageActions_Click">
                 <StackPanel x:Uid="ImageCopyResultPanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="ImageCopyResultIcon" Text="&#xED61;" Style="{DynamicResource MenuItemIcon}"/>
@@ -237,8 +239,15 @@
                 <StackPanel x:Uid="UseSmallerImagePanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="UseSmallerImageIcon" Text="&#xE123;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
+                <ToggleButton.ContextMenu>
+                    <ContextMenu x:Name="SmallSizeMode" x:Uid="SmallSizeMode">
+                        <MenuItem x:Name="SmallSizeModeIndep" x:Uid="SmallSizeModeIndep" Header="Independence Scale" IsChecked="True" Click="ImageActions_Click"/>
+                        <MenuItem x:Name="SmallSizeModeLink" x:Uid="SmallSizeModeLink" Header="Relative Scale" IsChecked="False" Click="ImageActions_Click"/>
+                    </ContextMenu>
+                </ToggleButton.ContextMenu>
             </ToggleButton>
-            <TextBox x:Name="MaxCompareSizeValue" x:Uid="MaxCompareSizeValue" Text="1024" Margin="2 0" HorizontalAlignment="Right" 
+            <TextBox x:Name="MaxCompareSizeValue" x:Uid="MaxCompareSizeValue" Text="1024" 
+                     Margin="2 0" HorizontalAlignment="Right" HorizontalContentAlignment="Center"
                      ToolTip="Max Image Width/Height Size When Using Smaller Image"
                      FontFamily="{DynamicResource MonoSpaceFamily}" TextChanged="MaxCompareSizeValue_TextChanged"/>
             <ToggleButton x:Name="UseColorImage" x:Uid="UseColorImage" IsChecked="True"
@@ -306,6 +315,12 @@
                 </StackPanel>
             </ToggleButton>
             <Separator x:Uid="Separator_6"/>
+            <ToggleButton x:Name="AutoCompare" x:Uid="AutoCompare" IsChecked="True"
+                          ToolTip="Auto Comparing/Compositing" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="AutoComparePanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="AutoComparePanelIcon" Text="&#xE102;" Style="{DynamicResource MenuItemIcon}" />
+                </StackPanel>
+            </ToggleButton>
             <ToggleButton x:Name="ImageLayout" x:Uid="ImageLayout" IsChecked="False"
                           ToolTip="Horizontal/Vertical Image Layout" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="ImageLayoutPanel" Orientation="Horizontal" Margin="2">

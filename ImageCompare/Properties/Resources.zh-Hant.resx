@@ -627,4 +627,19 @@
   <data name="InfoTipOrientation" xml:space="preserve">
     <value>圖像方向       =</value>
   </data>
+  <data name="ExtentImageEdge.Header" xml:space="preserve">
+    <value>擴展影像的邊界</value>
+  </data>
+  <data name="PanImageEdge.Header" xml:space="preserve">
+    <value>偏移影像的邊界</value>
+  </data>
+  <data name="AutoCompare.ToolTip" xml:space="preserve">
+    <value>自動執行比較/合成</value>
+  </data>
+  <data name="SmallSizeModeIndep.Header" xml:space="preserve">
+    <value>獨立縮放</value>
+  </data>
+  <data name="SmallSizeModeLink.Header" xml:space="preserve">
+    <value>關聯縮放</value>
+  </data>
 </root>

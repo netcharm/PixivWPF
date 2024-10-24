@@ -205,10 +205,14 @@ namespace ImageCompare
                 ImageSource result = null;
                 if (ValidCurrent)
                 {
-                    var image = new MagickImage(Current);
-                    image.Extent(SourceParams.Geometry, SourceParams.Align, MagickColors.Transparent);
-                    image.RePage();
-                    result = image.ToBitmapSource();
+                    try
+                    {
+                        var image = new MagickImage(Current);
+                        image.Extent(SourceParams.Geometry, SourceParams.Align, MagickColors.Transparent);
+                        image.RePage();
+                        result = image.ToBitmapSource();
+                    }
+                    catch (Exception ex) { ex.ShowMessage(); }
                 }
                 return (result);
             }
@@ -1191,7 +1195,7 @@ namespace ImageCompare
                         ResetTransform();
                         if (CurrentGeometry is MagickGeometry)
                         {
-                            Current.Resize(CurrentGeometry);
+                            Current.AdaptiveResize(CurrentGeometry);
                             Current.RePage();
                         }
                         _basesize_ = new Size(Current.Width, Current.Height);
@@ -1225,7 +1229,7 @@ namespace ImageCompare
                         ResetTransform();
                         if (geo is MagickGeometry)
                         {
-                            Current.Resize(geo);
+                            Current.AdaptiveResize(geo);
                             Current.RePage();
                         }
                         _basesize_ = new Size(Current.Width, Current.Height);

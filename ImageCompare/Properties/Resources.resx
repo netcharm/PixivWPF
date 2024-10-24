@@ -627,4 +627,19 @@
   <data name="InfoTipOrientation" xml:space="preserve">
     <value>Orientation        =</value>
   </data>
+  <data name="ExtentImageEdge.Header" xml:space="preserve">
+    <value>Extend Image Edge</value>
+  </data>
+  <data name="PanImageEdge.Header" xml:space="preserve">
+    <value>Add Offset To Image Edge</value>
+  </data>
+  <data name="AutoCompare.ToolTip" xml:space="preserve">
+    <value>Auto Comparing/Compositing</value>
+  </data>
+  <data name="SmallSizeModeIndep.Header" xml:space="preserve">
+    <value>Independence Scale</value>
+  </data>
+  <data name="SmallSizeModeLink.Header" xml:space="preserve">
+    <value>Relative Scale</value>
+  </data>
 </root>

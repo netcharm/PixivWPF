@@ -7,6 +7,10 @@
           <source>All Supported Image Files</source>
           <target state="new">所有受支持的影像檔案格式</target>
         </trans-unit>
+        <trans-unit id="AutoCompare.ToolTip" translate="yes" xml:space="preserve">
+          <source>Auto Comparing/Compositing</source>
+          <target state="new">自動執行比較/合成</target>
+        </trans-unit>
         <trans-unit id="AutoContrast.Header" translate="yes" xml:space="preserve">
           <source>Auto Contrast</source>
           <target state="new">自動調節對比度</target>
@@ -126,6 +130,10 @@
         <trans-unit id="Emboss.Header" translate="yes" xml:space="preserve">
           <source>Emboss</source>
           <target state="new">浮雕效果</target>
+        </trans-unit>
+        <trans-unit id="ExtentImageEdge.Header" translate="yes" xml:space="preserve">
+          <source>Extend Image Edge</source>
+          <target state="new">擴展影像的邊界</target>
         </trans-unit>
         <trans-unit id="File" translate="yes" xml:space="preserve">
           <source>File</source>
@@ -499,6 +507,10 @@
           <source>Oil Paint</source>
           <target state="new">油畫效果</target>
         </trans-unit>
+        <trans-unit id="PanImageEdge.Header" translate="yes" xml:space="preserve">
+          <source>Add Offset To Image Edge</source>
+          <target state="new">偏移影像的邊界</target>
+        </trans-unit>
         <trans-unit id="PencilPaint.Header" translate="yes" xml:space="preserve">
           <source>Pencil Paint</source>
           <target state="new">鉛筆草稿效果</target>
@@ -586,6 +598,14 @@
         <trans-unit id="SlicingY.Header" translate="yes" xml:space="preserve">
           <source>Slicing Vertical</source>
           <target state="new">垂直對分影像</target>
+        </trans-unit>
+        <trans-unit id="SmallSizeModeIndep.Header" translate="yes" xml:space="preserve">
+          <source>Independence Scale</source>
+          <target state="new">獨立縮放</target>
+        </trans-unit>
+        <trans-unit id="SmallSizeModeLink.Header" translate="yes" xml:space="preserve">
+          <source>Relative Scale</source>
+          <target state="new">關聯縮放</target>
         </trans-unit>
         <trans-unit id="Solarize.Header" translate="yes" xml:space="preserve">
           <source>Solarize</source>

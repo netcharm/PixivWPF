@@ -70,6 +70,15 @@ namespace ImageCompare.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Auto Comparing/Compositing 的本地化字符串。
+        /// </summary>
+        public static string AutoCompare_ToolTip {
+            get {
+                return ResourceManager.GetString("AutoCompare.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Auto Contrast 的本地化字符串。
         /// </summary>
         public static string AutoContrast_Header {
@@ -336,6 +345,15 @@ namespace ImageCompare.Properties {
         public static string Emboss_Header {
             get {
                 return ResourceManager.GetString("Emboss.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Extend Image Edge 的本地化字符串。
+        /// </summary>
+        public static string ExtentImageEdge_Header {
+            get {
+                return ResourceManager.GetString("ExtentImageEdge.Header", resourceCulture);
             }
         }
         
@@ -1177,6 +1195,15 @@ namespace ImageCompare.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Add Offset To Image Edge 的本地化字符串。
+        /// </summary>
+        public static string PanImageEdge_Header {
+            get {
+                return ResourceManager.GetString("PanImageEdge.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Pencil Paint 的本地化字符串。
         /// </summary>
         public static string PencilPaint_Header {
@@ -1371,6 +1398,24 @@ namespace ImageCompare.Properties {
         public static string SlicingY_Header {
             get {
                 return ResourceManager.GetString("SlicingY.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Independence Scale 的本地化字符串。
+        /// </summary>
+        public static string SmallSizeModeIndep_Header {
+            get {
+                return ResourceManager.GetString("SmallSizeModeIndep.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Relative Scale 的本地化字符串。
+        /// </summary>
+        public static string SmallSizeModeLink_Header {
+            get {
+                return ResourceManager.GetString("SmallSizeModeLink.Header", resourceCulture);
             }
         }
         
