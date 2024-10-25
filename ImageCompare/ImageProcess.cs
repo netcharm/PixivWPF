@@ -103,8 +103,11 @@ namespace ImageCompare
         {
             try
             {
-                var src = source ? ImageSource : ImageTarget;
-                src.ToolTip = await src.GetInformation().GetImageInfo(include_colorinfo: true);
+                await Dispatcher.InvokeAsync(async () =>
+                {
+                    var src = source ? ImageSource : ImageTarget;
+                    src.ToolTip = await src.GetInformation().GetImageInfo(include_colorinfo: true);
+                });
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -117,15 +120,18 @@ namespace ImageCompare
         {
             try
             {
-                var src = source ? ImageSource : ImageTarget;
-                if (src.ToolTip is string && !string.IsNullOrEmpty(src.ToolTip as string))
+                await Dispatcher.Invoke(async () =>
                 {
-                    if ((src.ToolTip as string).StartsWith("Waiting".T(DefaultCultureInfo), StringComparison.CurrentCultureIgnoreCase))
+                    var src = source ? ImageSource : ImageTarget;
+                    if (src.ToolTip is string && !string.IsNullOrEmpty(src.ToolTip as string))
                     {
-                        src.ToolTip = await src.GetInformation().GetImageInfo();
+                        if ((src.ToolTip as string).StartsWith("Waiting".T(DefaultCultureInfo), StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            src.ToolTip = await src.GetInformation().GetImageInfo();
+                        }
+                        Clipboard.SetText(src.ToolTip as string);
                     }
-                    Clipboard.SetText(src.ToolTip as string);
-                }
+                });
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -440,7 +446,7 @@ namespace ImageCompare
                         s_image.Extent(t_image.Width, t_image.Height, align, s_image.HasAlpha ? MagickColors.Transparent : MasklightColor ?? MagickColors.Transparent);
                     else
                         s_image.Scale(t_image.Width, t_image.Height);
-                        //s_image.Resize(t_image.Width, t_image.Height);
+                    //s_image.Resize(t_image.Width, t_image.Height);
                     s_image.RePage();
                     action = true;
                 }
@@ -1684,7 +1690,7 @@ namespace ImageCompare
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
-#endregion
+        #endregion
 
         /// <summary>
         /// 
