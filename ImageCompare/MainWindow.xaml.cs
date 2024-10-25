@@ -928,29 +928,21 @@ namespace ImageCompare
                                                 var shc = exchanged ? image_t.CurrentSize.Height : image_s.CurrentSize.Height;
                                                 var thc = exchanged ? image_s.CurrentSize.Height : image_t.CurrentSize.Height;
 
-                                                var factor_s = image_s.OriginalSize.Width / swc;
-                                                var factor_t = image_t.OriginalSize.Width / twc;
-                                                var factor = exchanged ? image_t.OriginalSize.Width / image_s.OriginalSize.Width : image_s.OriginalSize.Width / image_t.OriginalSize.Width;
+                                                var factor_s = image_s.OriginalSize.Width / image_s.BaseSize.Width;
+                                                var factor_t = image_t.OriginalSize.Width / image_t.BaseSize.Width;
+
+                                                var factor = Math.Max(factor_s, factor_t);
                                                 if (factor_s < factor_t)
-                                                {
-                                                    if (exchanged)
-                                                        image_t.Current.Resize((int)(image_t.BaseSize.Width / factor), (int)(image_t.BaseSize.Height / factor));
-                                                    else
-                                                        image_s.Current.Resize((int)(image_s.BaseSize.Width / factor), (int)(image_s.BaseSize.Height / factor));
-                                                }
+                                                    image_s.Current.Resize((int)(image_s.OriginalSize.Width / factor), (int)(image_s.OriginalSize.Height / factor));
                                                 else if (factor_s > factor_t)
-                                                {
-                                                    if (exchanged)
-                                                        image_s.Current.Resize((int)(image_s.BaseSize.Width / factor), (int)(image_s.BaseSize.Height / factor));
-                                                    else
-                                                        image_t.Current.Resize((int)(image_t.BaseSize.Width / factor), (int)(image_t.BaseSize.Height / factor));
-                                                }
+                                                    image_t.Current.Resize((int)(image_t.OriginalSize.Width / factor), (int)(image_t.OriginalSize.Height / factor));
                                             }
                                             image_s.Current.RePage();
                                             image_t.Current.RePage();
                                         }
                                     }
                                 }
+                                if (exchanged) (image_s.Current, image_t.Current) = (new MagickImage(image_t.Current), new MagickImage(image_s.Current));
                             }
 
                             if (image_s.ValidCurrent && image_t.ValidCurrent)
