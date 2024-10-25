@@ -103,11 +103,9 @@ namespace ImageCompare
         {
             try
             {
-                await Dispatcher.InvokeAsync(async () =>
-                {
-                    var src = source ? ImageSource : ImageTarget;
-                    src.ToolTip = await src.GetInformation().GetImageInfo(include_colorinfo: true);
-                });
+                var src = source ? ImageSource : ImageTarget;
+                var tooltip = await src.GetInformation().GetImageInfo(include_colorinfo: true);
+                await src.Dispatcher.InvokeAsync(() => src.ToolTip = tooltip);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
