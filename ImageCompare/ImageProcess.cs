@@ -440,6 +440,7 @@ namespace ImageCompare
                         s_image.Extent(t_image.Width, t_image.Height, align, s_image.HasAlpha ? MagickColors.Transparent : MasklightColor ?? MagickColors.Transparent);
                     else
                         s_image.Scale(t_image.Width, t_image.Height);
+                        //s_image.Resize(t_image.Width, t_image.Height);
                     s_image.RePage();
                     action = true;
                 }

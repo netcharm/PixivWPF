@@ -37,6 +37,7 @@ namespace ImageCompare
     public class ImageInformation
     {
         public ImageType Type { get; set; } = ImageType.None;
+        public FilterType ResizeFilter { get; set; } = FilterType.Lanczos2Sharp;
 
         private MagickImage _original_ = null;
         public MagickImage Original
@@ -47,13 +48,15 @@ namespace ImageCompare
                 if (_original_ is MagickImage) { _original_.Dispose(); _original_ = null; }
                 _original_ = value;
                 _OriginalModified_ = true;
-                GetProfiles();
                 DenoiseCount = 0;
                 DenoiseLevel = 0;
-                if (ValidOriginal) _original_.FilterType = FilterType.CubicSpline;
-                //if (_OriginalModified_) Dispatcher.CurrentDispatcher.InvokeAsync(async () => { await Reload(); });
-                if (_OriginalModified_) Dispatcher.CurrentDispatcher.Invoke(async () => { await Reload(); });
-                //if (_OriginalModified_) Reload();
+                if (ValidOriginal)
+                {
+                    _original_.FilterType = ResizeFilter;
+                    Dispatcher.CurrentDispatcher.Invoke(async () => { await Reload(); });
+                }
+                GetProfiles();
+
             }
         }
         public Size OriginalSize { get { return (ValidOriginal ? new Size(Original.Width, Original.Height) : new Size(0, 0)); } }
@@ -107,10 +110,9 @@ namespace ImageCompare
                 if (_current_ is MagickImage) { _current_.Dispose(); _current_ = null; }
                 _current_ = value;
                 _CurrentModified_ = true;
-                GetProfiles();
                 if (ValidCurrent)
                 {
-                    _current_.FilterType = FilterType.CubicSpline;
+                    _current_.FilterType = ResizeFilter;
                     if (ValidOriginal && !string.IsNullOrEmpty(FileName))
                     {
                         if (_original_.Endian == Endian.Undefined) _original_.Endian = DetectFileEndian(FileName);
@@ -121,6 +123,7 @@ namespace ImageCompare
                         if (_current_.Endian == Endian.Undefined) _current_.Endian = BitConverter.IsLittleEndian ? Endian.LSB : Endian.MSB;
                     }
                 }
+                GetProfiles();
             }
         }
         public Size CurrentSize { get { return (ValidCurrent ? new Size(Current.Width, Current.Height) : new Size(0, 0)); } }
@@ -207,7 +210,7 @@ namespace ImageCompare
                 {
                     try
                     {
-                        var image = new MagickImage(Current);
+                        var image = new MagickImage(Current) { FilterType = ResizeFilter };
                         image.Extent(SourceParams.Geometry, SourceParams.Align, MagickColors.Transparent);
                         image.RePage();
                         result = image.ToBitmapSource();
@@ -295,14 +298,14 @@ namespace ImageCompare
 
         public async Task<bool> LoadImageFromClipboard()
         {
-            var result = await Application.Current.Dispatcher.InvokeAsync(() =>
+            var result = await Task.Run(() =>
             {
                 var ret = false;
                 var exceptions = new List<string>();
                 try
                 {
                     var supported_fmts = new string[] { "PNG", "image/png", "image/tif", "image/tiff", "image/webp", "image/xpm", "image/ico", "image/cur", "image/jpg", "image/jpeg", "image/bmp", "DeviceIndependentBitmap", "image/wbmp", "Text" };
-                    IDataObject dataPackage = Clipboard.GetDataObject();
+                    IDataObject dataPackage = Application.Current.Dispatcher.Invoke(() => Clipboard.GetDataObject());
                     var fmts = dataPackage.GetFormats(true);
                     foreach (var fmt in supported_fmts)
                     {
@@ -353,14 +356,14 @@ namespace ImageCompare
                 catch (Exception ex) { ex.ShowMessage();}
                 if(!ret) string.Join(Environment.NewLine, exceptions).ShowMessage();
                 return(ret);
-            }, DispatcherPriority.Render);
+            });
             return (result);
         }
 
         public async Task<bool> LoadImageFromPrevFile()
         {
             var result = false;
-            result = await Application.Current.Dispatcher.Invoke(async () =>
+            result = await Task.Run(async () =>
             {
                 bool ret = false;
                 try
@@ -386,7 +389,7 @@ namespace ImageCompare
         public async Task<bool> LoadImageFromNextFile()
         {
             var result = false;
-            result = await Application.Current.Dispatcher.Invoke(async () =>
+            result = await Task.Run(async () =>
             {
                 var ret = false;
                 try
@@ -414,7 +417,6 @@ namespace ImageCompare
             var result = false;
             if (File.Exists(file))
             {
-                //result = await Application.Current.Dispatcher.InvokeAsync(() =>
                 result = await Task.Run(() =>
                 {
                     var ret = false;
@@ -715,11 +717,31 @@ namespace ImageCompare
             }
         }
 
+        public async Task<bool> SetImage()
+        {
+            var result = false;
+            result = await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                var ret = false;
+                try
+                {
+                    if (ValidCurrent && Tagetment is Image)
+                    {
+                        (Tagetment as Image).Source = Source;
+                        ret = true;
+                    }
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
+                return (ret);
+            });
+            return (result);
+        }
+
         public async void CopyToClipboard()
         {
             if (ValidCurrent)
             {
-                await Task.Run(async () => 
+                await Task.Run(async () =>
                 {
                     try
                     {
@@ -739,7 +761,7 @@ namespace ImageCompare
                         {
                             if (fmt.Equals("CF_DIBV5", StringComparison.CurrentCultureIgnoreCase))
                             {
-                                byte[] arr = Current.ToByteArray(MagickFormat.Bmp3);// await bs.ToBytes(fmt);
+                                byte[] arr = Current.ToByteArray(MagickFormat.Bmp3);
                                 byte[] dib = arr.Skip(14).ToArray();
                                 ms = new MemoryStream(dib);
                                 dataPackage.SetData(fmt, ms);
@@ -750,7 +772,7 @@ namespace ImageCompare
                                 var mfmt = GetMagickFormat(fmt);
                                 if (mfmt != MagickFormat.Unknown)
                                 {
-                                    byte[] arr = Current.ToByteArray(mfmt); //await bs.ToBytes(fmt);
+                                    byte[] arr = Current.ToByteArray(mfmt);
                                     ms = new MemoryStream(arr);
                                     dataPackage.SetData(fmt, ms);
                                     await ms.FlushAsync();
@@ -767,26 +789,6 @@ namespace ImageCompare
                 });
 
             }
-        }
-
-        public async Task<bool> SetImage()
-        {
-            var result = false;
-            result = await Application.Current.Dispatcher.InvokeAsync(() =>
-            {
-                var ret = false;
-                try
-                {
-                    if (ValidCurrent && Tagetment is Image)
-                    {
-                        (Tagetment as Image).Source = Source;
-                        ret = true;
-                    }
-                }
-                catch (Exception ex) { ex.ShowMessage(); }
-                return (ret);
-            });
-            return (result);
         }
 
         public void ChangeColorSpace(bool force)
@@ -1174,40 +1176,6 @@ namespace ImageCompare
             return (await Reload(size, reload: false, reset: true));
         }
 
-        public async Task<bool> Reload(bool reload = false, bool reset = false)
-        {
-            var result = false;
-            try
-            {
-                if (ValidOriginal)
-                {
-                    if (reload && !string.IsNullOrEmpty(LastFileName)) await LoadImageFromFile(LastFileName);
-                    if (OriginalModified || (ValidOriginal && !ValidCurrent) || (reset && ValidOriginal))
-                    {
-                        if (ValidCurrent) { Current.Dispose(); Current = null; }
-                        Current = new MagickImage(Original);
-                    }
-                    if (ValidCurrent)
-                    {
-                        FlipX = false;
-                        FlipY = false;
-                        Rotated = 0;
-                        ResetTransform();
-                        if (CurrentGeometry is MagickGeometry)
-                        {
-                            Current.AdaptiveResize(CurrentGeometry);
-                            Current.RePage();
-                        }
-                        _basesize_ = new Size(Current.Width, Current.Height);
-                        _last_colorspace_ = Current.ColorSpace;
-                    }
-                    result = true;
-                }
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-            return (result);
-        }
-
         public async Task<bool> Reload(MagickGeometry geo, bool reload = false, bool reset = false)
         {
             var result = false;
@@ -1229,7 +1197,7 @@ namespace ImageCompare
                         ResetTransform();
                         if (geo is MagickGeometry)
                         {
-                            Current.AdaptiveResize(geo);
+                            Current.Resize(geo);
                             Current.RePage();
                         }
                         _basesize_ = new Size(Current.Width, Current.Height);
@@ -1240,6 +1208,11 @@ namespace ImageCompare
             }
             catch (Exception ex) { ex.ShowMessage(); }
             return (result);
+        }
+
+        public async Task<bool> Reload(bool reload = false, bool reset = false)
+        {
+            return (await Reload(CurrentGeometry, reload, reset));
         }
 
         public async Task<bool> Reload(int size, bool reload = false, bool reset = false)

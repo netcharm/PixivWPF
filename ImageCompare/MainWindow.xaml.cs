@@ -303,7 +303,7 @@ namespace ImageCompare
         private void RenderRun(Action action)
         {
             InitRenderWorker();
-            if (RenderWorker is BackgroundWorker && !RenderWorker.IsBusy && action is Action)
+            if (RenderWorker is BackgroundWorker && !RenderWorker.IsBusy && !IsBusy && action is Action)
             {
                 RenderWorker.RunWorkerAsync(action);
             }
