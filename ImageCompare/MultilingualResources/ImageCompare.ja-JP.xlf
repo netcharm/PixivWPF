@@ -375,6 +375,10 @@
           <source>Load Prev Image File</source>
           <target state="new">前の画像ファイルを読み込む</target>
         </trans-unit>
+        <trans-unit id="LoadingIndicator.BusyContent" translate="yes" xml:space="preserve">
+          <source>Loading ...</source>
+          <target state="new">ドキュメントを読み込む...</target>
+        </trans-unit>
         <trans-unit id="LowlightColorPick.AdvancedTabHeader" translate="yes" xml:space="preserve">
           <source>Advanced</source>
           <target state="new">カスタム</target>

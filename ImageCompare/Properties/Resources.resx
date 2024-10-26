@@ -642,4 +642,7 @@
   <data name="SmallSizeModeLink.Header" xml:space="preserve">
     <value>Relative Scale</value>
   </data>
+  <data name="LoadingIndicator.BusyContent" xml:space="preserve">
+    <value>Loading ...</value>
+  </data>
 </root>

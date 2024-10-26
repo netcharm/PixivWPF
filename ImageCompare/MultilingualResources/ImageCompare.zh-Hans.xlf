@@ -375,6 +375,10 @@
           <source>Load Prev Image File</source>
           <target state="new">载入前一个图像文件</target>
         </trans-unit>
+        <trans-unit id="LoadingIndicator.BusyContent" translate="yes" xml:space="preserve">
+          <source>Loading ...</source>
+          <target state="new">正在载入文件中...</target>
+        </trans-unit>
         <trans-unit id="LowlightColorPick.AdvancedTabHeader" translate="yes" xml:space="preserve">
           <source>Advanced</source>
           <target state="new">自定</target>

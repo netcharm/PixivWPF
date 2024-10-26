@@ -642,4 +642,7 @@
   <data name="SmallSizeModeLink.Header" xml:space="preserve">
     <value>关联缩放</value>
   </data>
+  <data name="LoadingIndicator.BusyContent" xml:space="preserve">
+    <value>正在载入文件中...</value>
+  </data>
 </root>

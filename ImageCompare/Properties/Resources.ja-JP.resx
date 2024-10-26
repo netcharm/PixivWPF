@@ -642,4 +642,7 @@
   <data name="SmallSizeModeLink.Header" xml:space="preserve">
     <value>連想スケーリング</value>
   </data>
+  <data name="LoadingIndicator.BusyContent" xml:space="preserve">
+    <value>ドキュメントを読み込む...</value>
+  </data>
 </root>

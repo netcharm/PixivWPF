@@ -22,6 +22,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 using ImageMagick;
+using ImageMagick.Configuration;
 using Xceed.Wpf.Toolkit;
 
 namespace ImageCompare
@@ -93,7 +94,26 @@ namespace ImageCompare
         private bool IsBusy
         {
             get => BusyNow.Dispatcher.Invoke(() => { return (BusyNow.IsBusy); });
-            set => BusyNow.Dispatcher.Invoke(() => { /*BusyNow.Visibility = value ? Visibility.Visible : Visibility.Collapsed;*/ BusyNow.IsBusy = value; ProcessStatus.IsIndeterminate = value; });
+            set => BusyNow.Dispatcher.Invoke(() => 
+            { 
+                /*BusyNow.Visibility = value ? Visibility.Visible : Visibility.Collapsed;*/ 
+                BusyNow.IsBusy = value; 
+                ProcessStatus.IsIndeterminate = value;
+                ProcessStatus.Value = value ? 0 : 100;
+                DoEvents(); 
+            });
+        }
+
+        private bool IsLoadingSource
+        {
+            get => BusyNow.Dispatcher.Invoke(() => { return (LoadingSource.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() => { LoadingSource.Visibility = value ? Visibility.Visible : Visibility.Collapsed; LoadingSource.IsBusy = value; DoEvents(); });
+        }
+
+        private bool IsLoadingTarget
+        {
+            get => BusyNow.Dispatcher.Invoke(() => { return (LoadingTarget.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() => { LoadingTarget.Visibility = value ? Visibility.Visible : Visibility.Collapsed; LoadingTarget.IsBusy = value; DoEvents(); });
         }
 
         private bool IsExchanged
@@ -167,7 +187,7 @@ namespace ImageCompare
                 {
                     if (Application.Current.Dispatcher.CheckAccess())
                     {
-                        await Dispatcher.Yield(DispatcherPriority.Render);
+                        await Dispatcher.Yield(DispatcherPriority.Normal);
                         //await System.Windows.Threading.Dispatcher.Yield();
 
                         //DispatcherFrame frame = new DispatcherFrame();
@@ -263,30 +283,12 @@ namespace ImageCompare
             if (RenderWorker == null)
             {
                 RenderWorker = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
-                RenderWorker.ProgressChanged += (o, e) =>
-                {
-                    ProcessStatus.Dispatcher.InvokeAsync(() =>
-                    {
-                        ProcessStatus.IsIndeterminate = true;
-                    }, DispatcherPriority.Normal);
-                };
-                RenderWorker.RunWorkerCompleted += (o, e) =>
-                {
-                    ProcessStatus.Dispatcher.InvokeAsync(() =>
-                    {
-                        ProcessStatus.IsIndeterminate = false;
-                        ProcessStatus.Value = 100;
-                    }, DispatcherPriority.Normal);
-                };
+                RenderWorker.ProgressChanged += (o, e) => { IsBusy = true; };
+                RenderWorker.RunWorkerCompleted += (o, e) => { IsBusy = false; };
                 RenderWorker.DoWork += async (o, e) =>
                 {
                     if (e.Argument is Action)
                     {
-                        ProcessStatus.Dispatcher.Invoke(() =>
-                        {
-                            ProcessStatus.Value = 0;
-                            ProcessStatus.IsIndeterminate = true;
-                        }, DispatcherPriority.Normal);
                         var action = e.Argument as Action;
                         await Task.Run(() =>
                         {
@@ -858,8 +860,6 @@ namespace ImageCompare
 
                     await Dispatcher.InvokeAsync(() =>
                     {
-                        ProcessStatus.IsIndeterminate = true;
-
                         source = ImageSource.Source == null;
                         target = ImageTarget.Source == null;
                     }, DispatcherPriority.Normal);
@@ -1002,13 +1002,9 @@ namespace ImageCompare
                 finally
                 {
                     GC.Collect();
-                    //GC.WaitForPendingFinalizers();
 
-                    await Dispatcher.InvokeAsync(() =>
-                    {
-                        ProcessStatus.IsIndeterminate = false;
-                    }, DispatcherPriority.Normal);
-
+                    IsLoadingSource = false;
+                    IsLoadingTarget = false;
                     IsBusy = false;
 
                     if (_CanUpdate_ is SemaphoreSlim && _CanUpdate_.CurrentCount < 1) _CanUpdate_.Release();
@@ -1140,6 +1136,9 @@ namespace ImageCompare
                     var file_t = string.Empty;
                     if (count >= 2)
                     {
+                        IsLoadingSource = true;
+                        IsLoadingTarget = true;
+
                         file_s = files.First();
                         file_t = files.Skip(1).First();
 
@@ -1149,6 +1148,9 @@ namespace ImageCompare
                     }
                     else
                     {
+                        if (source) IsLoadingSource = true;
+                        else IsLoadingTarget = true;
+
                         var image  = source ? image_s : image_t;
                         file_s = files.First();
                         action |= await image.LoadImageFromFile(file_s);
@@ -1555,6 +1557,9 @@ namespace ImageCompare
         {
             Title = $"{Uid}.Title".T(culture) ?? Title;
             ImageToolBar.Locale();
+            ImageSourceScroll.Locale();
+            ImageTargetScroll.Locale();
+            ImageResultScroll.Locale();
 
             DefaultWindowTitle = Title;
             DefaultCompareToolTip = ImageCompare.ToolTip as string;
@@ -2272,6 +2277,10 @@ namespace ImageCompare
         }
         #endregion
 
+        private const ulong GB = 1024 * 1024 * 1024;
+        private const ulong MB = 1024 * 1024;
+        private const ulong KB = 1024;
+
         private void InitMagickNet()
         {
             #region Magick.Net Default Settings
@@ -2286,11 +2295,27 @@ namespace ImageCompare
 #if DEBUG
                 Debug.WriteLine(string.Join(", ", OpenCL.Devices.Select(d => d.Name)));
 #endif
-                ResourceLimits.Memory = 256 * 1024 * 1024;
-                ResourceLimits.LimitMemory(new Percentage(5));
+                ResourceLimits.MaxMemoryRequest = 4 * GB;
+                ResourceLimits.Memory = 4 * GB;
+                ResourceLimits.LimitMemory(new Percentage(10));
                 ResourceLimits.Thread = 4;
                 //ResourceLimits.Area = 4096 * 4096;
                 //ResourceLimits.Throttle = 
+
+
+                //<policymap>
+                //  <policy domain=""delegate"" rights=""none"" pattern=""*"" />
+                //  <policy domain=""coder"" rights=""none"" pattern=""*"" />
+                //  <policy domain=""coder"" rights=""read|write"" pattern=""{GIF,JPEG,PNG,WEBP}"" />
+                //</policymap>
+
+//                var magick_config = ConfigurationFiles.Default;
+//                magick_config.Policy.Data = @"
+//<policymap>
+//  <policy domain=""delegate"" rights=""none"" pattern=""*"" />
+//  <policy domain=""coder"" rights=""none"" pattern=""*"" />
+//</policymap>";
+//                MagickNET.Initialize();
             }
             catch (Exception ex) { ex.ShowMessage(); }
 

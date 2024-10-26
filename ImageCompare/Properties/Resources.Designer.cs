@@ -880,6 +880,15 @@ namespace ImageCompare.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Loading ... 的本地化字符串。
+        /// </summary>
+        public static string LoadingIndicator_BusyContent {
+            get {
+                return ResourceManager.GetString("LoadingIndicator.BusyContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Load Next Image File 的本地化字符串。
         /// </summary>
         public static string LoadNextImageFile_Header {

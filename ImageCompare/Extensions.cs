@@ -177,6 +177,15 @@ namespace ImageCompare
                                 if (!string.IsNullOrEmpty(text)) ui.RecentColorsHeader = text;
                             }
                         }
+                        else if (element is BusyIndicator)
+                        {
+                            var ui = element as BusyIndicator;
+                            if (ui.BusyContent is string && !string.IsNullOrEmpty(ui.BusyContent as string))
+                            {
+                                var text = $"{ui.Uid}.BusyContent".T();
+                                if (!string.IsNullOrEmpty(text)) ui.BusyContent = text;
+                            }
+                        }
                     }
                 }
 
