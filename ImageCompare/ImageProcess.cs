@@ -62,13 +62,20 @@ namespace ImageCompare
             ImageTarget.GetInformation().Dispose();
             ImageResult.GetInformation().Dispose();
 
-            if (ImageSource.Source != null) { ImageSource.Source = null; }
-            if (ImageTarget.Source != null) { ImageTarget.Source = null; }
-            if (ImageResult.Source != null) { ImageResult.Source = null; }
+            Dispatcher.InvokeAsync(() =>
+            {
+                if (ImageSource.Source != null) { ImageSource.Source = null; }
+                if (ImageTarget.Source != null) { ImageTarget.Source = null; }
+                if (ImageResult.Source != null) { ImageResult.Source = null; }
 
-            ImageSource.ToolTip = null;
-            ImageTarget.ToolTip = null;
-            ImageResult.ToolTip = null;
+                if (ImageSource.ToolTip is ToolTip) { (ImageSource.ToolTip as ToolTip).IsOpen = false; (ImageSource.ToolTip as ToolTip).Content = null; }
+                if (ImageTarget.ToolTip is ToolTip) { (ImageTarget.ToolTip as ToolTip).IsOpen = false; (ImageTarget.ToolTip as ToolTip).Content = null; }
+                if (ImageResult.ToolTip is ToolTip) { (ImageResult.ToolTip as ToolTip).IsOpen = false; (ImageResult.ToolTip as ToolTip).Content = null; }
+
+                ImageSource.ToolTip = null;
+                ImageTarget.ToolTip = null;
+                ImageResult.ToolTip = null;
+            });
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
@@ -105,7 +112,11 @@ namespace ImageCompare
             {
                 var src = source ? ImageSource : ImageTarget;
                 var tooltip = await src.GetInformation().GetImageInfo(include_colorinfo: true);
-                await src.Dispatcher.InvokeAsync(() => src.ToolTip = tooltip);
+                await src.Dispatcher.InvokeAsync(() =>
+                {
+                    if (src.ToolTip is string) src.ToolTip = tooltip;
+                    else if (src.ToolTip is ToolTip) (src.ToolTip as ToolTip).Content = tooltip;
+                });
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -121,13 +132,19 @@ namespace ImageCompare
                 await Dispatcher.Invoke(async () =>
                 {
                     var src = source ? ImageSource : ImageTarget;
-                    if (src.ToolTip is string && !string.IsNullOrEmpty(src.ToolTip as string))
+                    var tooltip = string.Empty;
+                    if (src.ToolTip is string) tooltip = src.ToolTip as string;
+                    else if (src.ToolTip is ToolTip && (src.ToolTip as ToolTip).Content is string) tooltip = (src.ToolTip as ToolTip).Content as string;
+
+                    if (!string.IsNullOrEmpty(tooltip))
                     {
-                        if ((src.ToolTip as string).StartsWith("Waiting".T(DefaultCultureInfo), StringComparison.CurrentCultureIgnoreCase))
+                        if (tooltip.StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            src.ToolTip = await src.GetInformation().GetImageInfo();
+                            tooltip = await src.GetInformation().GetImageInfo();
+                            if (src.ToolTip is string) src.ToolTip = tooltip;
+                            else if (src.ToolTip is ToolTip) (src.ToolTip as ToolTip).Content = tooltip;
                         }
-                        Clipboard.SetText(src.ToolTip as string);
+                        Clipboard.SetText(tooltip);
                     }
                 });
             }

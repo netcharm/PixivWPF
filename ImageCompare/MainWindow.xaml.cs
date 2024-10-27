@@ -94,26 +94,25 @@ namespace ImageCompare
         private bool IsBusy
         {
             get => BusyNow.Dispatcher.Invoke(() => { return (BusyNow.IsBusy); });
-            set => BusyNow.Dispatcher.Invoke(() => 
-            { 
-                /*BusyNow.Visibility = value ? Visibility.Visible : Visibility.Collapsed;*/ 
-                BusyNow.IsBusy = value; 
+            set => BusyNow.Dispatcher.Invoke(() =>
+            {
+                BusyNow.IsBusy = value;
                 ProcessStatus.IsIndeterminate = value;
                 ProcessStatus.Value = value ? 0 : 100;
-                DoEvents(); 
+                DoEvents();
             });
         }
 
         private bool IsLoadingSource
         {
             get => BusyNow.Dispatcher.Invoke(() => { return (LoadingSource.IsBusy); });
-            set => BusyNow.Dispatcher.Invoke(() => { LoadingSource.Visibility = value ? Visibility.Visible : Visibility.Collapsed; LoadingSource.IsBusy = value; DoEvents(); });
+            set => BusyNow.Dispatcher.Invoke(() => { LoadingSource.IsBusy = value; DoEvents(); });
         }
 
         private bool IsLoadingTarget
         {
             get => BusyNow.Dispatcher.Invoke(() => { return (LoadingTarget.IsBusy); });
-            set => BusyNow.Dispatcher.Invoke(() => { LoadingTarget.Visibility = value ? Visibility.Visible : Visibility.Collapsed; LoadingTarget.IsBusy = value; DoEvents(); });
+            set => BusyNow.Dispatcher.Invoke(() => { LoadingTarget.IsBusy = value; DoEvents(); });
         }
 
         private bool IsExchanged
@@ -313,6 +312,9 @@ namespace ImageCompare
         #endregion
 
         #region Image Display Helper
+        private static string DefaultWaitingString = "Waiting";
+        private string WaitingString = DefaultWaitingString;
+
         private Orientation CurrentImageLayout
         {
             get { return (ViewerPanel.Orientation); }
@@ -653,6 +655,26 @@ namespace ImageCompare
                     ImageTargetScroll.MaxHeight = h;
                     ImageResultScroll.MaxWidth = w;
                     ImageResultScroll.MaxHeight = h;
+
+                    if (w <= 0 || h <= 0)
+                    {
+                        LoadingSource.HorizontalAlignment = HorizontalAlignment.Center;
+                        LoadingSource.VerticalAlignment = VerticalAlignment.Center;
+                        LoadingSource.Margin = new Thickness(0);
+                        LoadingTarget.HorizontalAlignment = HorizontalAlignment.Center;
+                        LoadingTarget.VerticalAlignment = VerticalAlignment.Center;
+                        LoadingTarget.Margin = new Thickness(0);
+                    }
+                    else
+                    {
+                        LoadingSource.HorizontalAlignment = HorizontalAlignment.Left;
+                        LoadingSource.VerticalAlignment = VerticalAlignment.Top;
+                        LoadingSource.Margin = new Thickness((w - LoadingSource.ActualWidth) / 2, (h - LoadingSource.ActualHeight) / 2, 0, 0);
+                        LoadingTarget.HorizontalAlignment = HorizontalAlignment.Left;
+                        LoadingTarget.VerticalAlignment = VerticalAlignment.Top;
+                        LoadingTarget.Margin = new Thickness((w - LoadingSource.ActualWidth) / 2, (h - LoadingSource.ActualHeight) / 2, 0, 0);
+                    }
+
                     #endregion
 
                     if (ZoomFitAll.IsChecked ?? false)
@@ -966,17 +988,22 @@ namespace ImageCompare
                             {
                                 ImageSource.Source = image_s.Source;
                                 ImageTarget.Source = image_t.Source;
+
+                                var tooltip_s = image_s.ValidCurrent ? WaitingString : null;
+                                if (ImageSource.ToolTip is string) ImageSource.ToolTip = tooltip_s;
+                                else if (ImageSource.ToolTip is ToolTip) (ImageSource.ToolTip as ToolTip).Content = tooltip_s;
+                                else if (ImageSource.ToolTip is null) ImageSource.ToolTip = new ToolTip() { Content = tooltip_s };
+
+                                var tooltip_t = image_t.ValidCurrent ? WaitingString : null;
+                                if (ImageTarget.ToolTip is string) ImageTarget.ToolTip = tooltip_t;
+                                else if (ImageTarget.ToolTip is ToolTip) (ImageTarget.ToolTip as ToolTip).Content = tooltip_t;
+                                else if (ImageTarget.ToolTip is null) ImageTarget.ToolTip = new ToolTip() { Content = tooltip_t };
+
+                                if (autocompare) ImageResult.Source = null;
                             }, DispatcherPriority.Normal);
                         }
                         catch (Exception ex) { ex.ShowMessage(); }
                     }
-
-                    await Dispatcher.InvokeAsync(() =>
-                    {
-                        ImageSource.ToolTip = image_s.ValidCurrent ? "Waiting".T(DefaultCultureInfo) : null;
-                        ImageTarget.ToolTip = image_t.ValidCurrent ? "Waiting".T(DefaultCultureInfo) : null;
-                        if (autocompare) ImageResult.Source = null;
-                    }, DispatcherPriority.Normal);
 
                     if (autocompare)
                     {
@@ -993,7 +1020,11 @@ namespace ImageCompare
                         await Dispatcher.InvokeAsync(() =>
                         {
                             ImageResult.Source = image_r.Source;
-                            ImageResult.ToolTip = image_r.ValidCurrent ? "Waiting".T(DefaultCultureInfo) : null;
+
+                            var tooltip_r = image_r.ValidCurrent ? WaitingString : null;
+                            if (ImageResult.ToolTip is string) ImageResult.ToolTip = tooltip_r;
+                            else if (ImageResult.ToolTip is ToolTip) (ImageResult.ToolTip as ToolTip).Content = tooltip_r;
+                            else if (ImageResult.ToolTip is null) ImageResult.ToolTip = new ToolTip() { Content = tooltip_r };
                         }, DispatcherPriority.Normal);
                     }
                     CalcDisplay(set_ratio: false);
@@ -1555,6 +1586,9 @@ namespace ImageCompare
 
         private void LocaleUI(CultureInfo culture = null)
         {
+            var lang = (culture ?? CultureInfo.CurrentCulture).IetfLanguageTag;
+            Language = System.Windows.Markup.XmlLanguage.GetLanguage(lang);
+
             Title = $"{Uid}.Title".T(culture) ?? Title;
             ImageToolBar.Locale();
             ImageSourceScroll.Locale();
@@ -1569,9 +1603,10 @@ namespace ImageCompare
             ImageCompositeBlend.ToolTip = $"{"Blend".T(culture)}: {ImageCompositeBlend.Value:F0}%";
             ZoomRatio.ToolTip = $"{"Zoom Ratio".T(culture)}: {ZoomRatio.Value:F2}X";
 
-            ImageSource.ToolTip = "Waiting".T(culture);
-            ImageTarget.ToolTip = "Waiting".T(culture);
-            ImageResult.ToolTip = "Waiting".T(culture);
+            WaitingString = DefaultWaitingString.T(culture);
+            ImageSource.ToolTip = new ToolTip() { Content = WaitingString };
+            ImageTarget.ToolTip = new ToolTip() { Content = WaitingString };
+            ImageResult.ToolTip = new ToolTip() { Content = WaitingString };
 
             #region Create Image Flip/Rotate/Effects Menu
             CreateImageOpMenu(ImageSourceScroll);
@@ -2309,13 +2344,13 @@ namespace ImageCompare
                 //  <policy domain=""coder"" rights=""read|write"" pattern=""{GIF,JPEG,PNG,WEBP}"" />
                 //</policymap>
 
-//                var magick_config = ConfigurationFiles.Default;
-//                magick_config.Policy.Data = @"
-//<policymap>
-//  <policy domain=""delegate"" rights=""none"" pattern=""*"" />
-//  <policy domain=""coder"" rights=""none"" pattern=""*"" />
-//</policymap>";
-//                MagickNET.Initialize();
+                //                var magick_config = ConfigurationFiles.Default;
+                //                magick_config.Policy.Data = @"
+                //<policymap>
+                //  <policy domain=""delegate"" rights=""none"" pattern=""*"" />
+                //  <policy domain=""coder"" rights=""none"" pattern=""*"" />
+                //</policymap>";
+                //                MagickNET.Initialize();
             }
             catch (Exception ex) { ex.ShowMessage(); }
 
@@ -2910,6 +2945,34 @@ namespace ImageCompare
                         }
                     }
                 }
+                else if (sender is FrameworkElement)
+                {
+                    var tooltip_opened = false;
+                    foreach (var element in new FrameworkElement[] { ImageSource, ImageTarget, ImageResult })
+                    {
+                        if (element.ToolTip is ToolTip && (element.ToolTip as ToolTip).IsOpen)
+                        {
+                            (element.ToolTip as ToolTip).IsOpen = false;
+                            tooltip_opened = true;
+                            break;
+                        }
+                    }
+                    if (tooltip_opened)
+                    {
+                        if ((sender == ImageSource || sender == ImageSourceBox || sender == ImageSourceScroll) && ImageSource.ToolTip is ToolTip)
+                        {
+                            (ImageSource.ToolTip as ToolTip).IsOpen = true;
+                        }
+                        else if ((sender == ImageTarget || sender == ImageTargetBox || sender == ImageTargetScroll) && ImageTarget.ToolTip is ToolTip)
+                        {
+                            (ImageTarget.ToolTip as ToolTip).IsOpen = true;
+                        }
+                        else if ((sender == ImageResult || sender == ImageResultBox || sender == ImageResultScroll) && ImageResult.ToolTip is ToolTip)
+                        {
+                            (ImageResult.ToolTip as ToolTip).IsOpen = true;
+                        }
+                    }
+                }
             }
             catch (Exception ex) { ex.ShowMessage("MouseEnter"); }
         }
@@ -2949,9 +3012,13 @@ namespace ImageCompare
                             else if (is_result) image = ImageResult;
 
                             var element = sender as FrameworkElement;
-                            if (element.ToolTip is string && (element.ToolTip as string).StartsWith("Waiting".T(DefaultCultureInfo), StringComparison.CurrentCultureIgnoreCase))
+                            if (element.ToolTip is string && (element.ToolTip as string).StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
                             {
                                 element.ToolTip = await image.GetInformation().GetImageInfo();
+                            }
+                            else if (element.ToolTip is ToolTip && (element.ToolTip as ToolTip).Content is string && ((element.ToolTip as ToolTip).Content as string).StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                (element.ToolTip as ToolTip).Content = await image.GetInformation().GetImageInfo();
                             }
                         }
                         catch (Exception ex) { ex.ShowMessage(); }

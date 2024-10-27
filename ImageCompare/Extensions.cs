@@ -210,10 +210,14 @@ namespace ImageCompare
                 if (element is FrameworkElement)
                 {
                     var ui = element as FrameworkElement;
-                    if (trans_uid && trans_element && !string.IsNullOrEmpty(ui.Uid) && ui.ToolTip is string)
+                    if (trans_uid && trans_element && !string.IsNullOrEmpty(ui.Uid))
                     {
                         var tip = $"{ui.Uid}.ToolTip".T();
-                        if (!string.IsNullOrEmpty(tip)) ui.ToolTip = tip;
+                        if (!string.IsNullOrEmpty(tip))
+                        {
+                            if (ui.ToolTip is string) ui.ToolTip = tip;
+                            else if (ui.ToolTip is ToolTip && (ui.ToolTip as ToolTip).Content is string) (ui.ToolTip as ToolTip).Content = tip;
+                        }
                     }
                     if (!_be_locale_.ContainsKey(element)) _be_locale_.Add(element, true);
                     if (ui.ContextMenu is ContextMenu) Locale(ui.ContextMenu);
