@@ -656,24 +656,24 @@ namespace ImageCompare
                     ImageResultScroll.MaxWidth = w;
                     ImageResultScroll.MaxHeight = h;
 
-                    if (w <= 0 || h <= 0)
-                    {
-                        LoadingSource.HorizontalAlignment = HorizontalAlignment.Center;
-                        LoadingSource.VerticalAlignment = VerticalAlignment.Center;
-                        LoadingSource.Margin = new Thickness(0);
-                        LoadingTarget.HorizontalAlignment = HorizontalAlignment.Center;
-                        LoadingTarget.VerticalAlignment = VerticalAlignment.Center;
-                        LoadingTarget.Margin = new Thickness(0);
-                    }
-                    else
-                    {
-                        LoadingSource.HorizontalAlignment = HorizontalAlignment.Left;
-                        LoadingSource.VerticalAlignment = VerticalAlignment.Top;
-                        LoadingSource.Margin = new Thickness((w - LoadingSource.ActualWidth) / 2, (h - LoadingSource.ActualHeight) / 2, 0, 0);
-                        LoadingTarget.HorizontalAlignment = HorizontalAlignment.Left;
-                        LoadingTarget.VerticalAlignment = VerticalAlignment.Top;
-                        LoadingTarget.Margin = new Thickness((w - LoadingSource.ActualWidth) / 2, (h - LoadingSource.ActualHeight) / 2, 0, 0);
-                    }
+                    //if (w <= 0 || h <= 0)
+                    //{
+                    //    LoadingSource.HorizontalAlignment = HorizontalAlignment.Center;
+                    //    LoadingSource.VerticalAlignment = VerticalAlignment.Center;
+                    //    LoadingSource.Margin = new Thickness(0);
+                    //    LoadingTarget.HorizontalAlignment = HorizontalAlignment.Center;
+                    //    LoadingTarget.VerticalAlignment = VerticalAlignment.Center;
+                    //    LoadingTarget.Margin = new Thickness(0);
+                    //}
+                    //else
+                    //{
+                    //    LoadingSource.HorizontalAlignment = HorizontalAlignment.Left;
+                    //    LoadingSource.VerticalAlignment = VerticalAlignment.Top;
+                    //    LoadingSource.Margin = new Thickness((w - LoadingSource.ActualWidth) / 2, (h - LoadingSource.ActualHeight) / 2, 0, 0);
+                    //    LoadingTarget.HorizontalAlignment = HorizontalAlignment.Left;
+                    //    LoadingTarget.VerticalAlignment = VerticalAlignment.Top;
+                    //    LoadingTarget.Margin = new Thickness((w - LoadingTarget.ActualWidth) / 2, (h - LoadingTarget.ActualHeight) / 2, 0, 0);
+                    //}
 
                     #endregion
 
@@ -1591,9 +1591,9 @@ namespace ImageCompare
 
             Title = $"{Uid}.Title".T(culture) ?? Title;
             ImageToolBar.Locale();
-            ImageSourceScroll.Locale();
-            ImageTargetScroll.Locale();
-            ImageResultScroll.Locale();
+            ImageSourceGrid.Locale();
+            ImageTargetGrid.Locale();
+            ImageResultGrid.Locale();
 
             DefaultWindowTitle = Title;
             DefaultCompareToolTip = ImageCompare.ToolTip as string;
