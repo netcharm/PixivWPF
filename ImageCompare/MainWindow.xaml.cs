@@ -1151,7 +1151,7 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
         }
 
-        private async void LoadImageFromPrevFile(bool source = true)
+        private async Task<bool> LoadImageFromPrevFile(bool source = true)
         {
             var ret = false;
             try
@@ -1164,9 +1164,10 @@ namespace ImageCompare
                 if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: source ? ImageType.Source : ImageType.Target));
             }
             catch (Exception ex) { ex.ShowMessage(); }
+            return (ret);
         }
 
-        private async void LoadImageFromNextFile(bool source = true)
+        private async Task<bool> LoadImageFromNextFile(bool source = true)
         {
             var ret = false;
             try
@@ -1179,6 +1180,7 @@ namespace ImageCompare
                 if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: source ? ImageType.Source : ImageType.Target));
             }
             catch (Exception ex) { ex.ShowMessage(); }
+            return (ret);
         }
 
         private void LoadImageFromFiles(IEnumerable<string> files, bool source = true)
@@ -2865,9 +2867,9 @@ namespace ImageCompare
                 var action = false;
                 var reload_type = GetImageType(sender);
                 if (reload_type == ImageType.Source)
-                    action |= await ImageSource.GetInformation().LoadImageFromNextFile();
+                    action |= await LoadImageFromNextFile(true);
                 else if (reload_type == ImageType.Target)
-                    action |= await ImageTarget.GetInformation().LoadImageFromNextFile();
+                    action |= await LoadImageFromNextFile(false);
 
                 if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload_type: reload_type));
             }
@@ -2877,9 +2879,9 @@ namespace ImageCompare
                 var action = false;
                 var reload_type = GetImageType(sender);
                 if (reload_type == ImageType.Source)
-                    action |= await ImageSource.GetInformation().LoadImageFromPrevFile();
+                    action |= await LoadImageFromPrevFile(true);
                 else if (reload_type == ImageType.Target)
-                    action |= await ImageTarget.GetInformation().LoadImageFromPrevFile();
+                    action |= await LoadImageFromPrevFile(false);
 
                 if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload_type: reload_type));
             }
