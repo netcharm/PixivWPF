@@ -645,4 +645,13 @@
   <data name="LoadingIndicator.BusyContent" xml:space="preserve">
     <value>Loading ...</value>
   </data>
+  <data name="LoadingIndicatorTitle" xml:space="preserve">
+    <value>Loading ...</value>
+  </data>
+  <data name="SavingIndicatorTitle" xml:space="preserve">
+    <value>Saving ...</value>
+  </data>
+  <data name="ProcessingIndicatorTitle" xml:space="preserve">
+    <value>Processing ...</value>
+  </data>
 </root>

@@ -379,6 +379,10 @@
           <source>Loading ...</source>
           <target state="new">正在载入文件中...</target>
         </trans-unit>
+        <trans-unit id="LoadingIndicatorTitle" translate="yes" xml:space="preserve">
+          <source>Loading ...</source>
+          <target state="new">正在载入文件中...</target>
+        </trans-unit>
         <trans-unit id="LowlightColorPick.AdvancedTabHeader" translate="yes" xml:space="preserve">
           <source>Advanced</source>
           <target state="new">自定</target>
@@ -531,6 +535,10 @@
           <source>Picture Processing Progress</source>
           <target state="new">图像处理进展</target>
         </trans-unit>
+        <trans-unit id="ProcessingIndicatorTitle" translate="yes" xml:space="preserve">
+          <source>Processing ...</source>
+          <target state="new">正在处理图像中...</target>
+        </trans-unit>
         <trans-unit id="Quantize.Header" translate="yes" xml:space="preserve">
           <source>Quantize</source>
           <target state="new">量化图像色彩</target>
@@ -582,6 +590,10 @@
         <trans-unit id="SaveAs.Header" translate="yes" xml:space="preserve">
           <source>Save Image As ...</source>
           <target state="new">图像另存为 ...</target>
+        </trans-unit>
+        <trans-unit id="SavingIndicatorTitle" translate="yes" xml:space="preserve">
+          <source>Saving ...</source>
+          <target state="new">正在保存文件中...</target>
         </trans-unit>
         <trans-unit id="Segment.Header" translate="yes" xml:space="preserve">
           <source>Segment</source>

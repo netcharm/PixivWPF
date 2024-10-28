@@ -645,4 +645,13 @@
   <data name="LoadingIndicator.BusyContent" xml:space="preserve">
     <value>正在载入文件中...</value>
   </data>
+  <data name="LoadingIndicatorTitle" xml:space="preserve">
+    <value>正在载入文件中...</value>
+  </data>
+  <data name="SavingIndicatorTitle" xml:space="preserve">
+    <value>正在保存文件中...</value>
+  </data>
+  <data name="ProcessingIndicatorTitle" xml:space="preserve">
+    <value>正在处理图像中...</value>
+  </data>
 </root>

@@ -476,8 +476,9 @@ namespace ImageCompare
             return (result);
         }
 
-        public void Save(string file, string ext = ".png", MagickFormat format = MagickFormat.Unknown)
+        public bool Save(string file, string ext = ".png", MagickFormat format = MagickFormat.Unknown)
         {
+            var result = false;
             if (ValidCurrent)
             {
                 try
@@ -528,13 +529,16 @@ namespace ImageCompare
                             Current.Write(file, format);
                         }
                     }
+                    result = true;
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }
+            return (result);
         }
 
-        public void SaveTopazMask(string file)
+        public bool SaveTopazMask(string file)
         {
+            var result = false;
             if (ValidCurrent)
             {
                 try
@@ -577,21 +581,24 @@ namespace ImageCompare
                         image.Depth = 8;
 
                         image.Write(file, format);
+                        result = true;
                     }
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }
+            return (result);
         }
 
-        public void Save(bool overwrite = false)
+        public bool Save(bool overwrite = false)
         {
+            var result = false;
             if (ValidCurrent)
             {
                 try
                 {
                     if (overwrite && ValidOriginal && !string.IsNullOrEmpty(FileName) && File.Exists(FileName))
                     {
-                        Save(FileName, format: Original.Format);
+                        result = Save(FileName, format: Original.Format);
                     }
                     else
                     {
@@ -628,17 +635,18 @@ namespace ImageCompare
                             var topaz = filter.StartsWith("Topaz", StringComparison.CurrentCultureIgnoreCase);
                             if (topaz)
                             {
-                                SaveTopazMask(file);
+                                result = SaveTopazMask(file);
                             }
                             else
                             {
-                                Save(file, format: fmt);
+                                result = Save(file, format: fmt);
                             }
                         }
                     }
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }
+            return (result);
         }
 
         private MagickFormat GetMagickFormat(string fmt)

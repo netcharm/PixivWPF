@@ -396,7 +396,7 @@
                             </Viewbox.LayoutTransform>
                         </Viewbox>
                 </ScrollViewer>
-                <xctk:BusyIndicator x:Uid="LoadingIndicator" x:Name="LoadingSource" BusyContent="Loading ..." Background="Transparent"
+                <xctk:BusyIndicator x:Uid="LoadingIndicator" x:Name="IndicatorSource" BusyContent="Loading ..." Background="Transparent"
                     HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" />
             </Grid>
             <!-- Image Result Preview -->
@@ -454,7 +454,7 @@
                             </Viewbox.LayoutTransform>
                         </Viewbox>
                 </ScrollViewer>
-                <xctk:BusyIndicator x:Uid="LoadingIndicator" x:Name="LoadingTarget"  BusyContent="Loading ..." Background="Transparent"
+                <xctk:BusyIndicator x:Uid="LoadingIndicator" x:Name="IndicatorTarget"  BusyContent="Loading ..." Background="Transparent"
                     HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" />
             </Grid>
         </StackPanel>

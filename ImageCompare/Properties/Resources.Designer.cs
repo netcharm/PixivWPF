@@ -889,6 +889,15 @@ namespace ImageCompare.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Loading ... 的本地化字符串。
+        /// </summary>
+        public static string LoadingIndicatorTitle {
+            get {
+                return ResourceManager.GetString("LoadingIndicatorTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Load Next Image File 的本地化字符串。
         /// </summary>
         public static string LoadNextImageFile_Header {
@@ -1240,6 +1249,15 @@ namespace ImageCompare.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Processing ... 的本地化字符串。
+        /// </summary>
+        public static string ProcessingIndicatorTitle {
+            get {
+                return ResourceManager.GetString("ProcessingIndicatorTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Picture Processing Progress 的本地化字符串。
         /// </summary>
         public static string ProcessStatus_ToolTip {
@@ -1362,6 +1380,15 @@ namespace ImageCompare.Properties {
         public static string SaveAs_Header {
             get {
                 return ResourceManager.GetString("SaveAs.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Saving ... 的本地化字符串。
+        /// </summary>
+        public static string SavingIndicatorTitle {
+            get {
+                return ResourceManager.GetString("SavingIndicatorTitle", resourceCulture);
             }
         }
         

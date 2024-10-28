@@ -103,16 +103,44 @@ namespace ImageCompare
             });
         }
 
+        private string LoadingWaitingStr = string.Empty;
+        private string SavingWaitingStr = string.Empty;
+        private string ProcessingWaitingStr = string.Empty;
+
         private bool IsLoadingSource
         {
-            get => BusyNow.Dispatcher.Invoke(() => { return (LoadingSource.IsBusy); });
-            set => BusyNow.Dispatcher.Invoke(() => { LoadingSource.IsBusy = value; DoEvents(); });
+            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorSource.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() => { IndicatorSource.BusyContent = LoadingWaitingStr; IndicatorSource.IsBusy = value; DoEvents(); });
         }
 
         private bool IsLoadingTarget
         {
-            get => BusyNow.Dispatcher.Invoke(() => { return (LoadingTarget.IsBusy); });
-            set => BusyNow.Dispatcher.Invoke(() => { LoadingTarget.IsBusy = value; DoEvents(); });
+            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorTarget.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() => { IndicatorTarget.BusyContent = LoadingWaitingStr; IndicatorTarget.IsBusy = value; DoEvents(); });
+        }
+
+        private bool IsSavingSource
+        {
+            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorSource.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() => { IndicatorSource.BusyContent = SavingWaitingStr; IndicatorSource.IsBusy = value; DoEvents(); });
+        }
+
+        private bool IsSavingTarget
+        {
+            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorTarget.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() => { IndicatorTarget.BusyContent = SavingWaitingStr; IndicatorTarget.IsBusy = value; DoEvents(); });
+        }
+
+        private bool IsProcessingSource
+        {
+            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorSource.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() => { IndicatorSource.BusyContent = ProcessingWaitingStr; IndicatorSource.IsBusy = value; DoEvents(); });
+        }
+
+        private bool IsProcessingTarget
+        {
+            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorTarget.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() => { IndicatorTarget.BusyContent = ProcessingWaitingStr; IndicatorTarget.IsBusy = value; DoEvents(); });
         }
 
         private bool IsExchanged
@@ -987,7 +1015,9 @@ namespace ImageCompare
                             await Dispatcher.InvokeAsync(() =>
                             {
                                 ImageSource.Source = image_s.Source;
+                                IsLoadingSource = false;
                                 ImageTarget.Source = image_t.Source;
+                                IsLoadingTarget = false;
 
                                 var tooltip_s = image_s.ValidCurrent ? WaitingString : null;
                                 if (ImageSource.ToolTip is string) ImageSource.ToolTip = tooltip_s;
@@ -1020,6 +1050,7 @@ namespace ImageCompare
                         await Dispatcher.InvokeAsync(() =>
                         {
                             ImageResult.Source = image_r.Source;
+                            IsBusy = false;
 
                             var tooltip_r = image_r.ValidCurrent ? WaitingString : null;
                             if (ImageResult.ToolTip is string) ImageResult.ToolTip = tooltip_r;
@@ -1125,6 +1156,9 @@ namespace ImageCompare
             var ret = false;
             try
             {
+                if (source) IsLoadingSource = true;
+                else IsLoadingTarget = true;
+
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 ret = await image.LoadImageFromPrevFile();
                 if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: source ? ImageType.Source : ImageType.Target));
@@ -1137,6 +1171,9 @@ namespace ImageCompare
             var ret = false;
             try
             {
+                if (source) IsLoadingSource = true;
+                else IsLoadingTarget = true;
+
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 ret = await image.LoadImageFromNextFile();
                 if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: source ? ImageType.Source : ImageType.Target));
@@ -1195,11 +1232,20 @@ namespace ImageCompare
 
         private void SaveImageAs(bool source)
         {
+            var ret = false;
             var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
             if (source)
-                ImageSource.GetInformation().Save(overwrite: ctrl);
+            {
+                IsSavingSource = true;
+                ret = ImageSource.GetInformation().Save(overwrite: ctrl);
+                IsSavingSource = false;
+            }
             else
-                ImageTarget.GetInformation().Save(overwrite: ctrl);
+            {
+                IsSavingTarget = true;
+                ret = ImageTarget.GetInformation().Save(overwrite: ctrl);
+                IsSavingTarget = true;
+            }
         }
         #endregion
 
@@ -1598,6 +1644,10 @@ namespace ImageCompare
             DefaultWindowTitle = Title;
             DefaultCompareToolTip = ImageCompare.ToolTip as string;
             DefaultComposeToolTip = ImageCompose.ToolTip as string;
+
+            LoadingWaitingStr = "LoadingIndicatorTitle".T(culture);
+            SavingWaitingStr = "SavingIndicatorTitle".T(culture);
+            ProcessingWaitingStr = "ProcessingIndicatorTitle".T(culture);
 
             ImageCompareFuzzy.ToolTip = $"{"Tolerances".T(culture)}: {ImageCompareFuzzy.Value:F1}%";
             ImageCompositeBlend.ToolTip = $"{"Blend".T(culture)}: {ImageCompositeBlend.Value:F0}%";
