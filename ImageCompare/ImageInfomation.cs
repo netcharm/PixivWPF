@@ -59,7 +59,7 @@ namespace ImageCompare
 
             }
         }
-        public Size OriginalSize { get { return (ValidOriginal ? new Size(Original.Width, Original.Height) : new Size(0, 0)); } }
+        public Size OriginalSize { get { return (ValidOriginal ? new Size((double)(Original?.Width), (double)(Original?.Height)) : new Size(0, 0)); } }
         public long OriginalRealMemoryUsage
         {
             get
@@ -907,7 +907,7 @@ namespace ImageCompare
                         $"{"InfoTipDimention".T()} {CurrentSize.Width:F0}x{CurrentSize.Height:F0}x{current_depth:F0}, {(long)CurrentSize.Width * CurrentSize.Height / 1000000:F2}MP"
                     };
                     if (Current.BoundingBox != null) tip.Add($"{"InfoTipBounding".T()} {Current.BoundingBox.Width:F0}x{Current.BoundingBox.Height:F0}");
-                    tip.Add($"{"InfoTipOrientation".T()} {Original.Orientation}");
+                    tip.Add($"{"InfoTipOrientation".T()} {Original?.Orientation}");
                     tip.Add($"{"InfoTipResolution".T()} {DPI_TEXT}");
 
                     if (include_colorinfo) tip.Add(await GetTotalColors());
@@ -917,7 +917,7 @@ namespace ImageCompare
                         var fi = OriginalIsFile ? new FileInfo(FileName) : null;
                         if (fi is FileInfo && fi.Exists)
                         {
-                            if (Original.Endian == Endian.Undefined) Original.Endian = DetectFileEndian(fi.FullName);
+                            if (Original?.Endian == Endian.Undefined) Original.Endian = DetectFileEndian(fi.FullName);
                             if (Current.Endian == Endian.Undefined) Current.Endian = Original.Endian;
                         }
                         else if (Type == ImageType.Result && Current.Endian == Endian.Undefined)
@@ -1105,12 +1105,12 @@ namespace ImageCompare
                         tip.Add($"{"InfoTipFormatInfo".T()} {OriginalFormatInfo.Format} ({OriginalFormatInfo.Description}), mime:{OriginalFormatInfo.MimeType}");
                     else if (CurrentFormatInfo != null)
                         tip.Add($"{"InfoTipFormatInfo".T()} {CurrentFormatInfo.Format} ({CurrentFormatInfo.Description}), mime:{CurrentFormatInfo.MimeType}");
-                    tip.Add($"{"InfoTipColorSpace".T()} {Original.ColorSpace}");
+                    tip.Add($"{"InfoTipColorSpace".T()} {Original?.ColorSpace}");
                     tip.Add($"{"InfoTipColorChannelCount".T()} {ChannelCount}");
-                    tip.Add($"{"InfoTipHasAlpha".T()} {(Original.HasAlpha ? "Included" : "NotIncluded").T()}");
-                    if (Original.ColormapSize > 0) tip.Add($"{"InfoTipColorMapsSize".T()} {Original.ColormapSize}");
-                    tip.Add($"{"InfoTipCompression".T()} {Original.Compression}");
-                    tip.Add($"{"InfoTipQuality".T()} {(Original.Compression == CompressionMethod.JPEG || Original.Quality > 0 ? $"{Original.Quality}" : "Unknown")}");
+                    tip.Add($"{"InfoTipHasAlpha".T()} {((bool)(Original?.HasAlpha) ? "Included" : "NotIncluded").T()}");
+                    if (Original?.ColormapSize > 0) tip.Add($"{"InfoTipColorMapsSize".T()} {Original?.ColormapSize}");
+                    tip.Add($"{"InfoTipCompression".T()} {Original?.Compression}");
+                    tip.Add($"{"InfoTipQuality".T()} {(Original?.Compression == CompressionMethod.JPEG || Original?.Quality > 0 ? $"{Original?.Quality}" : "Unknown")}");
                     tip.Add($"{"InfoTipMemoryMode".T()} {MemoryUsageMode}");
                     tip.Add($"{"InfoTipIdealMemoryUsage".T()} {(ValidOriginal ? OriginalIdealMemoryUsage.SmartFileSize() : CurrentIdealMemoryUsage.SmartFileSize())}");
                     tip.Add($"{"InfoTipMemoryUsage".T()} {(ValidOriginal ? OriginalRealMemoryUsage.SmartFileSize() : CurrentRealMemoryUsage.SmartFileSize())}");
@@ -1118,14 +1118,14 @@ namespace ImageCompare
                     if (!string.IsNullOrEmpty(FileName))
                     {
                         var FileSize = !string.IsNullOrEmpty(FileName) && File.Exists(FileName) ? new FileInfo(FileName).Length : -1;
-                        tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}, {Original.Endian}");
+                        tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}, {Original?.Endian}");
                         tip.Add($"{"InfoTipFileName".T()} {FileName}");
                     }
-                    else if (ValidOriginal && !string.IsNullOrEmpty(Original.FileName))
+                    else if (ValidOriginal && !string.IsNullOrEmpty(Original?.FileName))
                     {
-                        var FileSize = !string.IsNullOrEmpty(Original.FileName) && File.Exists(Original.FileName) ? new FileInfo(Original.FileName).Length : -1;
-                        tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}, {Original.Endian}");
-                        tip.Add($"{"InfoTipFileName".T()} {Original.FileName}");
+                        var FileSize = !string.IsNullOrEmpty(Original?.FileName) && File.Exists(Original?.FileName) ? new FileInfo(Original?.FileName).Length : -1;
+                        tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}, {Original?.Endian}");
+                        tip.Add($"{"InfoTipFileName".T()} {Original?.FileName}");
                     }
                     else if (!string.IsNullOrEmpty(Current.FileName))
                     {
@@ -1232,7 +1232,7 @@ namespace ImageCompare
         public void Dispose()
         {
             if (ValidCurrent) { Current.Dispose(); Current = null; FileName = string.Empty; }
-            if (ValidOriginal) { Original.Dispose(); Original = null; FileName = string.Empty; }
+            if (ValidOriginal) { Original?.Dispose(); Original = null; FileName = string.Empty; }
             ResetTransform();
         }
     }

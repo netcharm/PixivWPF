@@ -163,11 +163,13 @@ namespace ImageCompare
                 var dst = source ? ImageTarget.GetInformation() : ImageSource.GetInformation();
 
                 if (dst.ValidOriginal)
-                    src.Original = new MagickImage(MasklightColor, dst.Original.Width, dst.Original.Height);
+                    src.Original = new MagickImage(MasklightColor ?? MagickColors.Transparent, dst.Original.Width, dst.Original.Height);
                 else if (dst.ValidCurrent)
-                    src.Current = new MagickImage(MasklightColor, dst.Current.Width, dst.Current.Height);
+                    src.Current = new MagickImage(MasklightColor ?? MagickColors.Transparent, dst.Current.Width, dst.Current.Height);
                 else
-                    src.Current = new MagickImage(MasklightColor, MaxCompareSize, MaxCompareSize);
+                    src.Current = new MagickImage(MasklightColor ?? MagickColors.Transparent, MaxCompareSize, MaxCompareSize);
+                
+                UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -225,7 +227,7 @@ namespace ImageCompare
                 else
                     action = ImageTarget.GetInformation().ResetTransform();
 
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -247,7 +249,7 @@ namespace ImageCompare
 
                 LastMatchedImage = ImageType.None;
 
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -277,7 +279,7 @@ namespace ImageCompare
 
                 LastMatchedImage = ImageType.None;
 
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -300,7 +302,7 @@ namespace ImageCompare
                     image.Rotated %= 360;
                     action = true;
                 }
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -323,7 +325,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -346,7 +348,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -364,7 +366,7 @@ namespace ImageCompare
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 if (image.ValidCurrent) { image.Current.Grayscale(GrayscaleMode); action = true; }
 
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -388,7 +390,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -414,7 +416,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -437,7 +439,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -474,7 +476,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action && assign) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+                if (action && assign) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }

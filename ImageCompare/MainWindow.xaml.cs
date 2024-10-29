@@ -1014,20 +1014,27 @@ namespace ImageCompare
 
                             await Dispatcher.InvokeAsync(() =>
                             {
-                                ImageSource.Source = image_s.Source;
-                                IsLoadingSource = false;
-                                ImageTarget.Source = image_t.Source;
-                                IsLoadingTarget = false;
+                                if (reload_type == ImageType.All || reload_type == ImageType.Source)
+                                {
+                                    ImageSource.Source = image_s.Source;
+                                    IsLoadingSource = false;
 
-                                var tooltip_s = image_s.ValidCurrent ? WaitingString : null;
-                                if (ImageSource.ToolTip is string) ImageSource.ToolTip = tooltip_s;
-                                else if (ImageSource.ToolTip is ToolTip) (ImageSource.ToolTip as ToolTip).Content = tooltip_s;
-                                else if (ImageSource.ToolTip is null) ImageSource.ToolTip = new ToolTip() { Content = tooltip_s };
+                                    var tooltip_s = image_s.ValidCurrent ? WaitingString : null;
+                                    if (ImageSource.ToolTip is string) ImageSource.ToolTip = tooltip_s;
+                                    else if (ImageSource.ToolTip is ToolTip) (ImageSource.ToolTip as ToolTip).Content = tooltip_s;
+                                    else if (ImageSource.ToolTip is null) ImageSource.ToolTip = new ToolTip() { Content = tooltip_s };
+                                }
 
-                                var tooltip_t = image_t.ValidCurrent ? WaitingString : null;
-                                if (ImageTarget.ToolTip is string) ImageTarget.ToolTip = tooltip_t;
-                                else if (ImageTarget.ToolTip is ToolTip) (ImageTarget.ToolTip as ToolTip).Content = tooltip_t;
-                                else if (ImageTarget.ToolTip is null) ImageTarget.ToolTip = new ToolTip() { Content = tooltip_t };
+                                if (reload_type == ImageType.All || reload_type == ImageType.Target)
+                                {
+                                    ImageTarget.Source = image_t.Source;
+                                    IsLoadingTarget = false;
+
+                                    var tooltip_t = image_t.ValidCurrent ? WaitingString : null;
+                                    if (ImageTarget.ToolTip is string) ImageTarget.ToolTip = tooltip_t;
+                                    else if (ImageTarget.ToolTip is ToolTip) (ImageTarget.ToolTip as ToolTip).Content = tooltip_t;
+                                    else if (ImageTarget.ToolTip is null) ImageTarget.ToolTip = new ToolTip() { Content = tooltip_t };
+                                }
 
                                 if (autocompare) ImageResult.Source = null;
                             }, DispatcherPriority.Normal);
@@ -1955,8 +1962,8 @@ namespace ImageCompare
                 item_copyto_source.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(source); }); };
                 item_copyto_target.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(source); }); };
 
-                item_load_prev.Click += (obj, evt) => { RenderRun(() => { LoadImageFromPrevFile(MenuHost(obj)); }); };
-                item_load_next.Click += (obj, evt) => { RenderRun(() => { LoadImageFromNextFile(MenuHost(obj)); }); };
+                item_load_prev.Click += (obj, evt) => { RenderRun(async () => { await LoadImageFromPrevFile(MenuHost(obj)); }); };
+                item_load_next.Click += (obj, evt) => { RenderRun(async () => { await LoadImageFromNextFile(MenuHost(obj)); }); };
 
                 item_reset_image.Click += (obj, evt) => { RenderRun(() => { ResetImage(MenuHost(obj)); }); };
                 item_reload.Click += (obj, evt) => { RenderRun(() => { ReloadImage(MenuHost(obj)); }); };
@@ -2736,9 +2743,9 @@ namespace ImageCompare
                     {
                         e.Handled = true;
                         if (Keyboard.Modifiers == ModifierKeys.Shift)
-                            LoadImageFromPrevFile(true);
+                            Dispatcher.Invoke(async () => await LoadImageFromPrevFile(true));
                         else if (Keyboard.Modifiers == ModifierKeys.Control)
-                            LoadImageFromNextFile(true);
+                            Dispatcher.Invoke(async () => await LoadImageFromNextFile(true));
                         else if (Keyboard.Modifiers == ModifierKeys.Alt)
                             CreateColorImage(true);
                         else
@@ -2748,9 +2755,9 @@ namespace ImageCompare
                     {
                         e.Handled = true;
                         if (Keyboard.Modifiers == ModifierKeys.Shift)
-                            LoadImageFromPrevFile(false);
+                            Dispatcher.Invoke(async () => await LoadImageFromPrevFile(false));
                         else if (Keyboard.Modifiers == ModifierKeys.Control)
-                            LoadImageFromNextFile(false);
+                            Dispatcher.Invoke(async () => await LoadImageFromNextFile(false));
                         else if (Keyboard.Modifiers == ModifierKeys.Alt)
                             CreateColorImage(false);
                         else
@@ -3138,7 +3145,6 @@ namespace ImageCompare
                 RenderRun(new Action(() =>
                 {
                     CreateColorImage(true);
-                    UpdateImageViewer(compose: LastOpIsComposite, assign: true);
                 }));
             }
             else if (sender == CreateImageWithColorTarget)
@@ -3146,7 +3152,6 @@ namespace ImageCompare
                 RenderRun(new Action(() =>
                 {
                     CreateColorImage(false);
-                    UpdateImageViewer(compose: LastOpIsComposite, assign: true);
                 }));
             }
 
