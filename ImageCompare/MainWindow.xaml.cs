@@ -888,6 +888,24 @@ namespace ImageCompare
             }
         }
 
+        private Image GetImageControl(FrameworkElement element)
+        {
+            Image result = null;
+            if (element == ImageSource || element == ImageSourceBox || element == ImageSourceScroll || element == ImageSourceGrid)
+            {
+                result = ImageSource;
+            }
+            else if (element == ImageTarget || element == ImageTargetBox || element == ImageTargetScroll || element == ImageTargetGrid)
+            {
+                result = ImageTarget;
+            }
+            else if (element == ImageResult || element == ImageResultBox || element == ImageResultScroll || element == ImageResultGrid)
+            {
+                result = ImageResult;
+            }
+            return (result);
+        }
+
         private async void UpdateImageViewer(bool compose = false, bool assign = false, bool reload = true, ImageType reload_type = ImageType.All, bool autocompare = false)
         {
             var loaded = await Dispatcher.InvokeAsync(() => IsLoaded);
@@ -3049,21 +3067,11 @@ namespace ImageCompare
                     }
                     if (tooltip_opened)
                     {
-                        var tooltip = GetToolTip(sender as FrameworkElement);
-                        if (!string.IsNullOrEmpty(tooltip))
+                        var image = GetImageControl(sender as FrameworkElement);
+                        var tooltip = GetToolTip(image);
+                        if (image?.Source != null && !string.IsNullOrEmpty(tooltip) && image.ToolTip is ToolTip)
                         {
-                            if ((sender == ImageSource || sender == ImageSourceBox || sender == ImageSourceScroll || sender == ImageSourceGrid) && ImageSource.ToolTip is ToolTip)
-                            {
-                                (ImageSource.ToolTip as ToolTip).IsOpen = true;
-                            }
-                            else if ((sender == ImageTarget || sender == ImageTargetBox || sender == ImageTargetScroll || sender == ImageTargetGrid) && ImageTarget.ToolTip is ToolTip)
-                            {
-                                (ImageTarget.ToolTip as ToolTip).IsOpen = true;
-                            }
-                            else if ((sender == ImageResult || sender == ImageResultBox || sender == ImageResultScroll || sender == ImageResultGrid) && ImageResult.ToolTip is ToolTip)
-                            {
-                                (ImageResult.ToolTip as ToolTip).IsOpen = true;
-                            }
+                            (image.ToolTip as ToolTip).IsOpen = true;
                         }
                     }
                 }
@@ -3088,23 +3096,19 @@ namespace ImageCompare
         #region Image & ContextMenu Events
         private async void Image_ToolTipOpening(object sender, ToolTipEventArgs e)
         {
-            if (sender is FrameworkElement)
+            if (e.Source is FrameworkElement)
             {
                 try
                 {
-                    Image image = null;
-                    var is_source = e.Source == ImageSourceGrid || e.Source == ImageSourceScroll || e.Source == ImageSourceBox || e.Source == ImageSource;
-                    var is_target = e.Source == ImageTargetGrid || e.Source == ImageTargetScroll || e.Source == ImageTargetBox || e.Source == ImageTarget;
-                    var is_result = e.Source == ImageResultGrid || e.Source == ImageResultScroll || e.Source == ImageResultBox || e.Source == ImageResult;
-                    if (is_source) image = ImageSource;
-                    else if (is_target) image = ImageTarget;
-                    else if (is_result) image = ImageResult;
-
-                    var tooltip = GetToolTip(image);
-                    if (string.IsNullOrEmpty(tooltip) || tooltip.StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
+                    Image image = GetImageControl(e.Source as FrameworkElement);
+                    if (image is Image)
                     {
-                        tooltip = await image?.GetInformation().GetImageInfo();
-                        SetToolTip(image, tooltip);
+                        var tooltip = GetToolTip(image);
+                        if (string.IsNullOrEmpty(tooltip) || tooltip.StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            tooltip = await image.GetInformation().GetImageInfo();
+                            SetToolTip(image, tooltip);
+                        }
                     }
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
