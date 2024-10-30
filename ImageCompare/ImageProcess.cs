@@ -106,19 +106,18 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
-        private async void CalcImageColors(bool source)
+        private void CalcImageColors(bool source)
         {
-            try
+            Task.Run(async () =>
             {
-                var src = source ? ImageSource : ImageTarget;
-                var tooltip = await src.GetInformation().GetImageInfo(include_colorinfo: true);
-                await src.Dispatcher.InvokeAsync(() =>
+                try
                 {
-                    if (src.ToolTip is string) src.ToolTip = tooltip;
-                    else if (src.ToolTip is ToolTip) (src.ToolTip as ToolTip).Content = tooltip;
-                });
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
+                    var src = source ? ImageSource : ImageTarget;
+                    var tooltip = await src.GetInformation().GetImageInfo(include_colorinfo: true);
+                    SetToolTip(src, tooltip);
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
+            });
         }
 
         /// <summary>
@@ -132,20 +131,14 @@ namespace ImageCompare
                 await Dispatcher.Invoke(async () =>
                 {
                     var src = source ? ImageSource : ImageTarget;
-                    var tooltip = string.Empty;
-                    if (src.ToolTip is string) tooltip = src.ToolTip as string;
-                    else if (src.ToolTip is ToolTip && (src.ToolTip as ToolTip).Content is string) tooltip = (src.ToolTip as ToolTip).Content as string;
+                    var tooltip = GetToolTip(src);
 
-                    if (!string.IsNullOrEmpty(tooltip))
+                    if (string.IsNullOrEmpty(tooltip) || tooltip.StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        if (tooltip.StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            tooltip = await src.GetInformation().GetImageInfo();
-                            if (src.ToolTip is string) src.ToolTip = tooltip;
-                            else if (src.ToolTip is ToolTip) (src.ToolTip as ToolTip).Content = tooltip;
-                        }
-                        Clipboard.SetText(tooltip);
+                        tooltip = await src.GetInformation().GetImageInfo();
+                        SetToolTip(src, tooltip);
                     }
+                    Clipboard.SetText(tooltip);
                 });
             }
             catch (Exception ex) { ex.ShowMessage(); }

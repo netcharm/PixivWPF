@@ -877,271 +877,275 @@ namespace ImageCompare
         public async Task<string> GetImageInfo(bool include_colorinfo = false)
         {
             string result = string.Empty;
-            try
+            if (ValidCurrent)
             {
-                if (ValidCurrent)
+                result = await Task.Run(async () =>
                 {
+                    var ret = string.Empty;
                     var st = Stopwatch.StartNew();
-
-                    var DPI_TEXT = string.Empty;
-                    if (Current.Density == null || Current.Density.X <= 0 || Current.Density.Y <= 0)
+                    try
                     {
-                        var dpi = Application.Current.GetSystemDPI();
-                        Current.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
-                    }
-                    var DPI_UNIT = Current.Density.Units == DensityUnit.PixelsPerCentimeter ? "PPC" : (Current.Density.Units == DensityUnit.PixelsPerInch ? "PPI" : string.Empty);
-                    DPI_TEXT = DPI_UNIT.Equals("PPC") ? $"{Current.Density.X:F2} {DPI_UNIT} x {Current.Density.Y:F2} {DPI_UNIT}" : $"{Current.Density.X:F0} {DPI_UNIT} x {Current.Density.Y:F0} {DPI_UNIT}";
-                    if (Current.Density.Units != DensityUnit.PixelsPerInch)
-                    {
-                        var dpi = Current.Density.ChangeUnits(DensityUnit.PixelsPerInch);
-                        var dpi_text = $"{dpi.X:F0} PPI x {dpi.Y:F0} PPI";
-                        DPI_TEXT = $"{DPI_TEXT} [{dpi_text}]";
-                    }
-
-                    var original_depth = CalcColorDepth(Original);
-                    var current_depth = CalcColorDepth(Current);
-
-                    var tip = new List<string>
-                    {
-                        $"{"InfoTipDimentionOriginal".T()} {OriginalSize.Width:F0}x{OriginalSize.Height:F0}x{original_depth:F0}, {(long)OriginalSize.Width * OriginalSize.Height / 1000000:F2}MP",
-                        $"{"InfoTipDimention".T()} {CurrentSize.Width:F0}x{CurrentSize.Height:F0}x{current_depth:F0}, {(long)CurrentSize.Width * CurrentSize.Height / 1000000:F2}MP"
-                    };
-                    if (Current.BoundingBox != null) tip.Add($"{"InfoTipBounding".T()} {Current.BoundingBox.Width:F0}x{Current.BoundingBox.Height:F0}");
-                    tip.Add($"{"InfoTipOrientation".T()} {Original?.Orientation}");
-                    tip.Add($"{"InfoTipResolution".T()} {DPI_TEXT}");
-
-                    if (include_colorinfo) tip.Add(await GetTotalColors());
-
-                    if (Current.AttributeNames != null)
-                    {
-                        var fi = OriginalIsFile ? new FileInfo(FileName) : null;
-                        if (fi is FileInfo && fi.Exists)
+                        var DPI_TEXT = string.Empty;
+                        if (Current.Density == null || Current.Density.X <= 0 || Current.Density.Y <= 0)
                         {
-                            if (Original?.Endian == Endian.Undefined) Original.Endian = DetectFileEndian(fi.FullName);
-                            if (Current.Endian == Endian.Undefined) Current.Endian = Original.Endian;
+                            var dpi = Application.Current.GetSystemDPI();
+                            Current.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
                         }
-                        else if (Type == ImageType.Result && Current.Endian == Endian.Undefined)
-                            Current.Endian = BitConverter.IsLittleEndian ? Endian.LSB : Endian.MSB;
-
-                        if (Current.ArtifactNames.Count() > 0)
+                        var DPI_UNIT = Current.Density.Units == DensityUnit.PixelsPerCentimeter ? "PPC" : (Current.Density.Units == DensityUnit.PixelsPerInch ? "PPI" : string.Empty);
+                        DPI_TEXT = DPI_UNIT.Equals("PPC") ? $"{Current.Density.X:F2} {DPI_UNIT} x {Current.Density.Y:F2} {DPI_UNIT}" : $"{Current.Density.X:F0} {DPI_UNIT} x {Current.Density.Y:F0} {DPI_UNIT}";
+                        if (Current.Density.Units != DensityUnit.PixelsPerInch)
                         {
-                            tip.Add($"{"InfoTipArtifacts".T()}");
-                            var artifacts = new List<string>();
-                            foreach (var artifact in Current.ArtifactNames)
+                            var dpi = Current.Density.ChangeUnits(DensityUnit.PixelsPerInch);
+                            var dpi_text = $"{dpi.X:F0} PPI x {dpi.Y:F0} PPI";
+                            DPI_TEXT = $"{DPI_TEXT} [{dpi_text}]";
+                        }
+
+                        var original_depth = CalcColorDepth(Original);
+                        var current_depth = CalcColorDepth(Current);
+
+                        var tip = new List<string>
+                        {
+                            $"{"InfoTipDimentionOriginal".T()} {OriginalSize.Width:F0}x{OriginalSize.Height:F0}x{original_depth:F0}, {(long)OriginalSize.Width * OriginalSize.Height / 1000000:F2}MP",
+                            $"{"InfoTipDimention".T()} {CurrentSize.Width:F0}x{CurrentSize.Height:F0}x{current_depth:F0}, {(long)CurrentSize.Width * CurrentSize.Height / 1000000:F2}MP"
+                        };
+                        if (Current.BoundingBox != null) tip.Add($"{"InfoTipBounding".T()} {Current.BoundingBox.Width:F0}x{Current.BoundingBox.Height:F0}");
+                        tip.Add($"{"InfoTipOrientation".T()} {Original?.Orientation}");
+                        tip.Add($"{"InfoTipResolution".T()} {DPI_TEXT}");
+
+                        if (include_colorinfo) tip.Add(await GetTotalColors());
+
+                        if (Current.AttributeNames != null)
+                        {
+                            var fi = OriginalIsFile ? new FileInfo(FileName) : null;
+                            if (fi is FileInfo && fi.Exists)
                             {
-                                var label = artifact.PadRight(32, ' ');
-                                var value = Current.GetArtifact(artifact);
-                                if (string.IsNullOrEmpty(value)) continue;
-                                artifacts.Add($"  {label}= {TextPadding(value, label, 4)}");
+                                if (Original?.Endian == Endian.Undefined) Original.Endian = DetectFileEndian(fi.FullName);
+                                if (Current.Endian == Endian.Undefined) Current.Endian = Original.Endian;
                             }
-                            tip.AddRange(artifacts.OrderBy(a => a));
-                        }
+                            else if (Type == ImageType.Result && Current.Endian == Endian.Undefined)
+                                Current.Endian = BitConverter.IsLittleEndian ? Endian.LSB : Endian.MSB;
 
-                        var exif = Current.HasProfile("exif") ? Current.GetExifProfile() : new ExifProfile();
-                        tip.Add($"{"InfoTipAttributes".T()}");
-                        var attrs = new List<string>();
-                        var tags = new Dictionary<string, IExifValue>();
-                        foreach (var tv in exif.Values)
-                        {
-                            tags[$"exif:{tv.Tag}"] = tv;
-                        }
-                        foreach (var attr in Current.AttributeNames.Union(new string[] { "exif:Rating", "exif:RatingPercent" }).Union(tags.Keys))
-                        {
-                            try
+                            if (Current.ArtifactNames.Count() > 0)
                             {
-                                var label = attr.PadRight(32, ' ');
-                                var value = Current.GetAttribute(attr);
-                                if (string.IsNullOrEmpty(value) && !attr.Contains("Rating") && !tags.Keys.Contains(attr)) continue;
-                                if (attr.Contains("WinXP")) value = Current.GetAttributes(attr);
-                                else if (attr.StartsWith("date:", StringComparison.CurrentCultureIgnoreCase))
+                                tip.Add($"{"InfoTipArtifacts".T()}");
+                                var artifacts = new List<string>();
+                                foreach (var artifact in Current.ArtifactNames)
                                 {
-                                    var d = DateTime.Now;
-                                    if (fi is FileInfo && attr.EndsWith(":create", StringComparison.CurrentCultureIgnoreCase))
-                                        value = fi.CreationTime.ToLocalTime().ToString();
-                                    else if (fi is FileInfo && attr.EndsWith(":modify", StringComparison.CurrentCultureIgnoreCase))
-                                        value = fi.LastWriteTime.ToLocalTime().ToString();
-                                    else if (DateTime.TryParse(value, out d))
-                                        value = d.ToLocalTime().ToString();
+                                    var label = artifact.PadRight(32, ' ');
+                                    var value = Current.GetArtifact(artifact);
+                                    if (string.IsNullOrEmpty(value)) continue;
+                                    artifacts.Add($"  {label}= {TextPadding(value, label, 4)}");
                                 }
-                                else if (attr.Equals("exif:Artist"))
-                                    value = exif.GetValue(ExifTag.Artist) != null ? exif.GetValue(ExifTag.Artist).Value : value;
-                                else if (attr.Equals("exif:Copyright"))
-                                    value = exif.GetValue(ExifTag.Copyright) != null ? exif.GetValue(ExifTag.Copyright).Value : value;
-                                else if (attr.Equals("exif:ExifVersion"))
-                                    value = exif.GetValue(ExifTag.ExifVersion) != null ? Encoding.UTF8.GetString(exif.GetValue(ExifTag.ExifVersion).Value) : value;
-                                else if (attr.Equals("exif:ImageDescription"))
-                                    value = exif.GetValue(ExifTag.ImageDescription) != null ? exif.GetValue(ExifTag.ImageDescription).Value : value;
-                                else if (attr.Equals("exif:UserComment") && exif.GetValue(ExifTag.UserComment) != null)
-                                    value = Current.GetAttributes(attr);
-                                else if (attr.Equals("exif:ExtensibleMetadataPlatform") || attr.Equals("exif:XmpMetadata"))
+                                tip.AddRange(artifacts.OrderBy(a => a));
+                            }
+
+                            var exif = Current.HasProfile("exif") ? Current.GetExifProfile() : new ExifProfile();
+                            tip.Add($"{"InfoTipAttributes".T()}");
+                            var attrs = new List<string>();
+                            var tags = new Dictionary<string, IExifValue>();
+                            foreach (var tv in exif.Values)
+                            {
+                                tags[$"exif:{tv.Tag}"] = tv;
+                            }
+                            foreach (var attr in Current.AttributeNames.Union(new string[] { "exif:Rating", "exif:RatingPercent" }).Union(tags.Keys))
+                            {
+                                try
                                 {
-                                    var xmp = exif.GetValue(ExifTag.XMP);
-                                    if (xmp != null && xmp.IsArray) value = Regex.Replace(Encoding.UTF8.GetString(xmp.Value), @"(\n\r|\r\n|\n|\r|\t)", "", RegexOptions.IgnoreCase);
-                                }
-                                else if (attr.Equals("exif:Rating"))
-                                {
-                                    foreach (var tag in exif.Values.Where(v => v.Tag.Equals(ExifTag.Rating))) { value = tag.GetValue().ToString(); }
-                                }
-                                else if (attr.Equals("exif:RatingPercent"))
-                                {
-                                    foreach (var tag in exif.Values.Where(v => v.Tag.Equals(ExifTag.RatingPercent))) { value = tag.GetValue().ToString(); }
-                                }
-                                else if (attr.StartsWith("exif:GPSVersionID") && tags.ContainsKey(attr))
-                                {
-                                    var tag = tags[attr];
-                                    var v = (byte[])tag.GetValue();
-                                    value = string.Join("", v.Select(b => $"{b}"));
-                                }
-                                else if (attr.StartsWith("exif:GPS") && attr.Contains("itude"))
-                                {
-                                    var tag = exif.Values.Where(v => v.Tag.ToString().Equals(attr.Substring(5))).FirstOrDefault();
-                                    if (tag is IExifValue)
+                                    var label = attr.PadRight(32, ' ');
+                                    var value = Current.GetAttribute(attr);
+                                    if (string.IsNullOrEmpty(value) && !attr.Contains("Rating") && !tags.Keys.Contains(attr)) continue;
+                                    if (attr.Contains("WinXP")) value = Current.GetAttributes(attr);
+                                    else if (attr.StartsWith("date:", StringComparison.CurrentCultureIgnoreCase))
                                     {
-                                        if (attr.EndsWith("Ref"))
-                                            value = tag.GetValue().ToString().Trim('\0');
-                                        else
+                                        var d = DateTime.Now;
+                                        if (fi is FileInfo && attr.EndsWith(":create", StringComparison.CurrentCultureIgnoreCase))
+                                            value = fi.CreationTime.ToLocalTime().ToString();
+                                        else if (fi is FileInfo && attr.EndsWith(":modify", StringComparison.CurrentCultureIgnoreCase))
+                                            value = fi.LastWriteTime.ToLocalTime().ToString();
+                                        else if (DateTime.TryParse(value, out d))
+                                            value = d.ToLocalTime().ToString();
+                                    }
+                                    else if (attr.Equals("exif:Artist"))
+                                        value = exif.GetValue(ExifTag.Artist) != null ? exif.GetValue(ExifTag.Artist).Value : value;
+                                    else if (attr.Equals("exif:Copyright"))
+                                        value = exif.GetValue(ExifTag.Copyright) != null ? exif.GetValue(ExifTag.Copyright).Value : value;
+                                    else if (attr.Equals("exif:ExifVersion"))
+                                        value = exif.GetValue(ExifTag.ExifVersion) != null ? Encoding.UTF8.GetString(exif.GetValue(ExifTag.ExifVersion).Value) : value;
+                                    else if (attr.Equals("exif:ImageDescription"))
+                                        value = exif.GetValue(ExifTag.ImageDescription) != null ? exif.GetValue(ExifTag.ImageDescription).Value : value;
+                                    else if (attr.Equals("exif:UserComment") && exif.GetValue(ExifTag.UserComment) != null)
+                                        value = Current.GetAttributes(attr);
+                                    else if (attr.Equals("exif:ExtensibleMetadataPlatform") || attr.Equals("exif:XmpMetadata"))
+                                    {
+                                        var xmp = exif.GetValue(ExifTag.XMP);
+                                        if (xmp != null && xmp.IsArray) value = Regex.Replace(Encoding.UTF8.GetString(xmp.Value), @"(\n\r|\r\n|\n|\r|\t)", "", RegexOptions.IgnoreCase);
+                                    }
+                                    else if (attr.Equals("exif:Rating"))
+                                    {
+                                        foreach (var tag in exif.Values.Where(v => v.Tag.Equals(ExifTag.Rating))) { value = tag.GetValue().ToString(); }
+                                    }
+                                    else if (attr.Equals("exif:RatingPercent"))
+                                    {
+                                        foreach (var tag in exif.Values.Where(v => v.Tag.Equals(ExifTag.RatingPercent))) { value = tag.GetValue().ToString(); }
+                                    }
+                                    else if (attr.StartsWith("exif:GPSVersionID") && tags.ContainsKey(attr))
+                                    {
+                                        var tag = tags[attr];
+                                        var v = (byte[])tag.GetValue();
+                                        value = string.Join("", v.Select(b => $"{b}"));
+                                    }
+                                    else if (attr.StartsWith("exif:GPS") && attr.Contains("itude"))
+                                    {
+                                        var tag = exif.Values.Where(v => v.Tag.ToString().Equals(attr.Substring(5))).FirstOrDefault();
+                                        if (tag is IExifValue)
                                         {
-                                            var arv = tag.GetValue() as Rational[];
-                                            value = $"{arv[0].Numerator / arv[0].Denominator:F0}.{arv[1].Numerator / arv[1].Denominator:F0}'{arv[2].Numerator / (double)arv[2].Denominator}\"";
+                                            if (attr.EndsWith("Ref"))
+                                                value = tag.GetValue().ToString().Trim('\0');
+                                            else
+                                            {
+                                                var arv = tag.GetValue() as Rational[];
+                                                value = $"{arv[0].Numerator / arv[0].Denominator:F0}.{arv[1].Numerator / arv[1].Denominator:F0}'{arv[2].Numerator / (double)arv[2].Denominator}\"";
+                                            }
                                         }
                                     }
-                                }
-                                else if (attr.Equals("exif:59932")) { value = "Padding"; continue; }
-                                else if (value != null && string.IsNullOrEmpty(value.Trim('.')) && tags.ContainsKey(attr) && !attr.StartsWith("exif:XP") && !attr.StartsWith("exif:XMP"))
-                                {
-                                    var tag = tags[attr];
-                                    if (tag.DataType == ExifDataType.Short)
+                                    else if (attr.Equals("exif:59932")) { value = "Padding"; continue; }
+                                    else if (value != null && string.IsNullOrEmpty(value.Trim('.')) && tags.ContainsKey(attr) && !attr.StartsWith("exif:XP") && !attr.StartsWith("exif:XMP"))
                                     {
-                                        if (tag.IsArray) value = string.Join(", ", ((short[])tag.GetValue()).Select(s => $"{s}"));
-                                        else value = $"{(short)tag.GetValue()}";
+                                        var tag = tags[attr];
+                                        if (tag.DataType == ExifDataType.Short)
+                                        {
+                                            if (tag.IsArray) value = string.Join(", ", ((short[])tag.GetValue()).Select(s => $"{s}"));
+                                            else value = $"{(short)tag.GetValue()}";
+                                        }
+                                        else if (tag.DataType == ExifDataType.Undefined)
+                                        {
+                                            if (tag.IsArray)
+                                            {
+                                                var v = (byte[])tag.GetValue();
+                                                value = string.Join(",", v);
+                                            }
+                                            else value = $"{(byte)tag.GetValue()}";
+                                        }
+                                        else value = tag.ToString();
                                     }
-                                    else if (tag.DataType == ExifDataType.Undefined)
+                                    else if (tags.ContainsKey(attr) && value == null)
                                     {
+                                        var tag = tags[attr];
                                         if (tag.IsArray)
                                         {
-                                            var v = (byte[])tag.GetValue();
-                                            value = string.Join(",", v);
+                                            var rv = new List<double>();
+                                            if (tag.DataType == ExifDataType.Rational)
+                                            {
+                                                foreach (var v in (Rational[])tag.GetValue())
+                                                {
+                                                    rv.Add(v.Numerator / (double)v.Denominator);
+                                                }
+                                                if (rv.Count > 0) value = string.Join(", ", rv);
+                                            }
+                                            else if (tag.DataType == ExifDataType.SignedRational)
+                                            {
+                                                foreach (var v in (SignedRational[])tag.GetValue())
+                                                {
+                                                    rv.Add(v.Numerator / (double)v.Denominator);
+                                                }
+                                                if (rv.Count > 0) value = string.Join(", ", rv);
+                                            }
+                                            else if (tag.DataType == ExifDataType.Short)
+                                            {
+                                                foreach (var v in (ushort[])tag.GetValue())
+                                                {
+                                                    rv.Add(v);
+                                                }
+                                                if (rv.Count > 0) value = string.Join(", ", rv);
+                                            }
+                                            else if (tag.DataType == ExifDataType.SignedShort)
+                                            {
+                                                foreach (var v in (short[])tag.GetValue())
+                                                {
+                                                    rv.Add(v);
+                                                }
+                                                if (rv.Count > 0) value = string.Join(", ", rv);
+                                            }
                                         }
-                                        else value = $"{(byte)tag.GetValue()}";
+                                        else
+                                        {
+                                            if (tag.DataType == ExifDataType.Rational)
+                                            {
+                                                var rv = (Rational)tag.GetValue();
+                                                value = $"{rv.Numerator / (double)rv.Denominator}";
+                                            }
+                                            else if (tag.DataType == ExifDataType.SignedRational)
+                                            {
+                                                var rv = (SignedRational)tag.GetValue();
+                                                value = $"{rv.Numerator / (double)rv.Denominator}";
+                                            }
+                                            else if (tag.DataType == ExifDataType.Short)
+                                            {
+                                                value = $"{(ushort)tag.GetValue()}";
+                                            }
+                                            else if (tag.DataType == ExifDataType.SignedShort)
+                                            {
+                                                value = $"{(short)tag.GetValue()}";
+                                            }
+                                        }
                                     }
-                                    else value = tag.ToString();
-                                }
-                                else if (tags.ContainsKey(attr) && value == null)
-                                {
-                                    var tag = tags[attr];
-                                    if (tag.IsArray)
+                                    if (string.IsNullOrEmpty(value)) continue;
+                                    if (attr.EndsWith("Keywords") || attr.EndsWith("Author") || attr.EndsWith("Artist") || attr.EndsWith("Copyright") || attr.EndsWith("Copyrights"))
                                     {
-                                        var rv = new List<double>();
-                                        if (tag.DataType == ExifDataType.Rational)
-                                        {
-                                            foreach (var v in (Rational[])tag.GetValue())
-                                            {
-                                                rv.Add(v.Numerator / (double)v.Denominator);
-                                            }
-                                            if (rv.Count > 0) value = string.Join(", ", rv);
-                                        }
-                                        else if (tag.DataType == ExifDataType.SignedRational)
-                                        {
-                                            foreach (var v in (SignedRational[])tag.GetValue())
-                                            {
-                                                rv.Add(v.Numerator / (double)v.Denominator);
-                                            }
-                                            if (rv.Count > 0) value = string.Join(", ", rv);
-                                        }
-                                        else if (tag.DataType == ExifDataType.Short)
-                                        {
-                                            foreach (var v in (ushort[])tag.GetValue())
-                                            {
-                                                rv.Add(v);
-                                            }
-                                            if (rv.Count > 0) value = string.Join(", ", rv);
-                                        }
-                                        else if (tag.DataType == ExifDataType.SignedShort)
-                                        {
-                                            foreach (var v in (short[])tag.GetValue())
-                                            {
-                                                rv.Add(v);
-                                            }
-                                            if (rv.Count > 0) value = string.Join(", ", rv);
-                                        }
+                                        var keywords = value.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(w => w.Trim()).ToList();
+                                        for (var i = 5; i < keywords.Count; i += 5) { keywords[i] = $"{Environment.NewLine}{keywords[i]}"; }
+                                        value = string.Join("; ", keywords) + ';';
                                     }
-                                    else
-                                    {
-                                        if (tag.DataType == ExifDataType.Rational)
-                                        {
-                                            var rv = (Rational)tag.GetValue();
-                                            value = $"{rv.Numerator / (double)rv.Denominator}";
-                                        }
-                                        else if (tag.DataType == ExifDataType.SignedRational)
-                                        {
-                                            var rv = (SignedRational)tag.GetValue();
-                                            value = $"{rv.Numerator / (double)rv.Denominator}";
-                                        }
-                                        else if (tag.DataType == ExifDataType.Short)
-                                        {
-                                            value = $"{(ushort)tag.GetValue()}";
-                                        }
-                                        else if (tag.DataType == ExifDataType.SignedShort)
-                                        {
-                                            value = $"{(short)tag.GetValue()}";
-                                        }
-                                    }
+                                    else if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
+                                    attrs.Add($"  {label}= {TextPadding(value, label, 4)}");
                                 }
-                                if (string.IsNullOrEmpty(value)) continue;
-                                if (attr.EndsWith("Keywords") || attr.EndsWith("Author") || attr.EndsWith("Artist") || attr.EndsWith("Copyright") || attr.EndsWith("Copyrights"))
-                                {
-                                    var keywords = value.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(w => w.Trim()).ToList();
-                                    for (var i = 5; i < keywords.Count; i += 5) { keywords[i] = $"{Environment.NewLine}{keywords[i]}"; }
-                                    value = string.Join("; ", keywords) + ';';
-                                }
-                                else if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
-                                attrs.Add($"  {label}= {TextPadding(value, label, 4)}");
+                                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, $"{attr} : {ex.Message}"); }
                             }
-                            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, $"{attr} : {ex.Message}"); }
+                            tip.AddRange(attrs.OrderBy(a => a));
                         }
-                        tip.AddRange(attrs.OrderBy(a => a));
+                        if (OriginalFormatInfo != null)
+                            tip.Add($"{"InfoTipFormatInfo".T()} {OriginalFormatInfo.Format} ({OriginalFormatInfo.Description}), mime:{OriginalFormatInfo.MimeType}");
+                        else if (CurrentFormatInfo != null)
+                            tip.Add($"{"InfoTipFormatInfo".T()} {CurrentFormatInfo.Format} ({CurrentFormatInfo.Description}), mime:{CurrentFormatInfo.MimeType}");
+                        tip.Add($"{"InfoTipColorSpace".T()} {Original?.ColorSpace}");
+                        tip.Add($"{"InfoTipColorChannelCount".T()} {ChannelCount}");
+                        tip.Add($"{"InfoTipHasAlpha".T()} {((bool)(Original?.HasAlpha) ? "Included" : "NotIncluded").T()}");
+                        if (Original?.ColormapSize > 0) tip.Add($"{"InfoTipColorMapsSize".T()} {Original?.ColormapSize}");
+                        tip.Add($"{"InfoTipCompression".T()} {Original?.Compression}");
+                        tip.Add($"{"InfoTipQuality".T()} {(Original?.Compression == CompressionMethod.JPEG || Original?.Quality > 0 ? $"{Original?.Quality}" : "Unknown")}");
+                        tip.Add($"{"InfoTipMemoryMode".T()} {MemoryUsageMode}");
+                        tip.Add($"{"InfoTipIdealMemoryUsage".T()} {(ValidOriginal ? OriginalIdealMemoryUsage.SmartFileSize() : CurrentIdealMemoryUsage.SmartFileSize())}");
+                        tip.Add($"{"InfoTipMemoryUsage".T()} {(ValidOriginal ? OriginalRealMemoryUsage.SmartFileSize() : CurrentRealMemoryUsage.SmartFileSize())}");
+                        tip.Add($"{"InfoTipDisplayMemory".T()} {CurrentDisplayMemoryUsage.SmartFileSize()}");
+                        if (!string.IsNullOrEmpty(FileName))
+                        {
+                            var FileSize = !string.IsNullOrEmpty(FileName) && File.Exists(FileName) ? new FileInfo(FileName).Length : -1;
+                            tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}, {Original?.Endian}");
+                            tip.Add($"{"InfoTipFileName".T()} {FileName}");
+                        }
+                        else if (ValidOriginal && !string.IsNullOrEmpty(Original?.FileName))
+                        {
+                            var FileSize = !string.IsNullOrEmpty(Original?.FileName) && File.Exists(Original?.FileName) ? new FileInfo(Original?.FileName).Length : -1;
+                            tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}, {Original?.Endian}");
+                            tip.Add($"{"InfoTipFileName".T()} {Original?.FileName}");
+                        }
+                        else if (!string.IsNullOrEmpty(Current.FileName))
+                        {
+                            var FileSize = !string.IsNullOrEmpty(Current.FileName) && File.Exists(Current.FileName) ? new FileInfo(Current.FileName).Length : -1;
+                            tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}");
+                            tip.Add($"{"InfoTipFileName".T()} {Current.FileName}");
+                        }
+                        ret = string.Join(Environment.NewLine, tip);
                     }
-                    if (OriginalFormatInfo != null)
-                        tip.Add($"{"InfoTipFormatInfo".T()} {OriginalFormatInfo.Format} ({OriginalFormatInfo.Description}), mime:{OriginalFormatInfo.MimeType}");
-                    else if (CurrentFormatInfo != null)
-                        tip.Add($"{"InfoTipFormatInfo".T()} {CurrentFormatInfo.Format} ({CurrentFormatInfo.Description}), mime:{CurrentFormatInfo.MimeType}");
-                    tip.Add($"{"InfoTipColorSpace".T()} {Original?.ColorSpace}");
-                    tip.Add($"{"InfoTipColorChannelCount".T()} {ChannelCount}");
-                    tip.Add($"{"InfoTipHasAlpha".T()} {((bool)(Original?.HasAlpha) ? "Included" : "NotIncluded").T()}");
-                    if (Original?.ColormapSize > 0) tip.Add($"{"InfoTipColorMapsSize".T()} {Original?.ColormapSize}");
-                    tip.Add($"{"InfoTipCompression".T()} {Original?.Compression}");
-                    tip.Add($"{"InfoTipQuality".T()} {(Original?.Compression == CompressionMethod.JPEG || Original?.Quality > 0 ? $"{Original?.Quality}" : "Unknown")}");
-                    tip.Add($"{"InfoTipMemoryMode".T()} {MemoryUsageMode}");
-                    tip.Add($"{"InfoTipIdealMemoryUsage".T()} {(ValidOriginal ? OriginalIdealMemoryUsage.SmartFileSize() : CurrentIdealMemoryUsage.SmartFileSize())}");
-                    tip.Add($"{"InfoTipMemoryUsage".T()} {(ValidOriginal ? OriginalRealMemoryUsage.SmartFileSize() : CurrentRealMemoryUsage.SmartFileSize())}");
-                    tip.Add($"{"InfoTipDisplayMemory".T()} {CurrentDisplayMemoryUsage.SmartFileSize()}");
-                    if (!string.IsNullOrEmpty(FileName))
-                    {
-                        var FileSize = !string.IsNullOrEmpty(FileName) && File.Exists(FileName) ? new FileInfo(FileName).Length : -1;
-                        tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}, {Original?.Endian}");
-                        tip.Add($"{"InfoTipFileName".T()} {FileName}");
-                    }
-                    else if (ValidOriginal && !string.IsNullOrEmpty(Original?.FileName))
-                    {
-                        var FileSize = !string.IsNullOrEmpty(Original?.FileName) && File.Exists(Original?.FileName) ? new FileInfo(Original?.FileName).Length : -1;
-                        tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}, {Original?.Endian}");
-                        tip.Add($"{"InfoTipFileName".T()} {Original?.FileName}");
-                    }
-                    else if (!string.IsNullOrEmpty(Current.FileName))
-                    {
-                        var FileSize = !string.IsNullOrEmpty(Current.FileName) && File.Exists(Current.FileName) ? new FileInfo(Current.FileName).Length : -1;
-                        tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}");
-                        tip.Add($"{"InfoTipFileName".T()} {Current.FileName}");
-                    }
-                    result = string.Join(Environment.NewLine, tip);
+                    catch (Exception ex) { ex.ShowMessage(); }
                     st.Stop();
 #if DEBUG
                     Debug.WriteLine($"{TimeSpan.FromTicks(st.ElapsedTicks).TotalSeconds:F4}s");
 #endif
-                    Current.GetExif();
-                }
+                    return (ret);
+                });
+                Current.GetExif();
             }
-            catch (Exception ex) { ex.ShowMessage(); }
             return (string.IsNullOrEmpty(result) ? null : result);
         }
 

@@ -1020,9 +1020,7 @@ namespace ImageCompare
                                     IsLoadingSource = false;
 
                                     var tooltip_s = image_s.ValidCurrent ? WaitingString : null;
-                                    if (ImageSource.ToolTip is string) ImageSource.ToolTip = tooltip_s;
-                                    else if (ImageSource.ToolTip is ToolTip) (ImageSource.ToolTip as ToolTip).Content = tooltip_s;
-                                    else if (ImageSource.ToolTip is null) ImageSource.ToolTip = new ToolTip() { Content = tooltip_s };
+                                    SetToolTip(ImageSource, tooltip_s);
                                 }
 
                                 if (reload_type == ImageType.All || reload_type == ImageType.Target)
@@ -1031,9 +1029,7 @@ namespace ImageCompare
                                     IsLoadingTarget = false;
 
                                     var tooltip_t = image_t.ValidCurrent ? WaitingString : null;
-                                    if (ImageTarget.ToolTip is string) ImageTarget.ToolTip = tooltip_t;
-                                    else if (ImageTarget.ToolTip is ToolTip) (ImageTarget.ToolTip as ToolTip).Content = tooltip_t;
-                                    else if (ImageTarget.ToolTip is null) ImageTarget.ToolTip = new ToolTip() { Content = tooltip_t };
+                                    SetToolTip(ImageTarget, tooltip_t);
                                 }
 
                                 if (autocompare) ImageResult.Source = null;
@@ -1060,9 +1056,7 @@ namespace ImageCompare
                             IsBusy = false;
 
                             var tooltip_r = image_r.ValidCurrent ? WaitingString : null;
-                            if (ImageResult.ToolTip is string) ImageResult.ToolTip = tooltip_r;
-                            else if (ImageResult.ToolTip is ToolTip) (ImageResult.ToolTip as ToolTip).Content = tooltip_r;
-                            else if (ImageResult.ToolTip is null) ImageResult.ToolTip = new ToolTip() { Content = tooltip_r };
+                            SetToolTip(ImageResult, tooltip_r);
                         }, DispatcherPriority.Normal);
                     }
                     CalcDisplay(set_ratio: false);
@@ -2356,6 +2350,43 @@ namespace ImageCompare
             catch { }
         }
 
+        private string GetToolTip(FrameworkElement element)
+        {
+            var result = string.Empty;
+            if (element?.ToolTip is string)
+            {
+                result = Dispatcher.Invoke(() => element?.ToolTip as string);
+            }
+            else if (element?.ToolTip is ToolTip && (element?.ToolTip as ToolTip).Content is string)
+            {
+                result = Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).Content as string);
+            }
+            return (result);
+        }
+
+        private void SetToolTip(FrameworkElement element, string tooltip)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (element?.ToolTip is string)
+                {
+                    element.ToolTip = tooltip;
+                }
+                else if (element?.ToolTip is ToolTip)
+                {
+                    (element.ToolTip as ToolTip).Content = tooltip;
+                }
+                else if (element?.ToolTip is null && !string.IsNullOrEmpty(tooltip))
+                {
+                    element.ToolTip = new ToolTip() { Content = tooltip };
+                }
+                else if (string.IsNullOrEmpty(tooltip))
+                {
+                    element.ToolTip = null;
+                }
+            });
+        }
+
         private Cursor SetBusy()
         {
             var result = Cursor;
@@ -3018,17 +3049,21 @@ namespace ImageCompare
                     }
                     if (tooltip_opened)
                     {
-                        if ((sender == ImageSource || sender == ImageSourceBox || sender == ImageSourceScroll) && ImageSource.ToolTip is ToolTip)
+                        var tooltip = GetToolTip(sender as FrameworkElement);
+                        if (!string.IsNullOrEmpty(tooltip))
                         {
-                            (ImageSource.ToolTip as ToolTip).IsOpen = true;
-                        }
-                        else if ((sender == ImageTarget || sender == ImageTargetBox || sender == ImageTargetScroll) && ImageTarget.ToolTip is ToolTip)
-                        {
-                            (ImageTarget.ToolTip as ToolTip).IsOpen = true;
-                        }
-                        else if ((sender == ImageResult || sender == ImageResultBox || sender == ImageResultScroll) && ImageResult.ToolTip is ToolTip)
-                        {
-                            (ImageResult.ToolTip as ToolTip).IsOpen = true;
+                            if ((sender == ImageSource || sender == ImageSourceBox || sender == ImageSourceScroll || sender == ImageSourceGrid) && ImageSource.ToolTip is ToolTip)
+                            {
+                                (ImageSource.ToolTip as ToolTip).IsOpen = true;
+                            }
+                            else if ((sender == ImageTarget || sender == ImageTargetBox || sender == ImageTargetScroll || sender == ImageTargetGrid) && ImageTarget.ToolTip is ToolTip)
+                            {
+                                (ImageTarget.ToolTip as ToolTip).IsOpen = true;
+                            }
+                            else if ((sender == ImageResult || sender == ImageResultBox || sender == ImageResultScroll || sender == ImageResultGrid) && ImageResult.ToolTip is ToolTip)
+                            {
+                                (ImageResult.ToolTip as ToolTip).IsOpen = true;
+                            }
                         }
                     }
                 }
@@ -3051,40 +3086,29 @@ namespace ImageCompare
         #endregion
 
         #region Image & ContextMenu Events
-        private void Image_ToolTipOpening(object sender, ToolTipEventArgs e)
+        private async void Image_ToolTipOpening(object sender, ToolTipEventArgs e)
         {
-            try
+            if (sender is FrameworkElement)
             {
-                if (sender is FrameworkElement)
+                try
                 {
-                    this.InvokeAsync(async () =>
-                    {
-                        try
-                        {
-                            //var image = sender as Image;
-                            Image image = null;
-                            var is_source = e.Source == ImageSourceScroll || e.Source == ImageSourceBox || e.Source == ImageSource;
-                            var is_target = e.Source == ImageTargetScroll || e.Source == ImageTargetBox || e.Source == ImageTarget;
-                            var is_result = e.Source == ImageResultScroll || e.Source == ImageResultBox || e.Source == ImageResult;
-                            if (is_source) image = ImageSource;
-                            else if (is_target) image = ImageTarget;
-                            else if (is_result) image = ImageResult;
+                    Image image = null;
+                    var is_source = e.Source == ImageSourceGrid || e.Source == ImageSourceScroll || e.Source == ImageSourceBox || e.Source == ImageSource;
+                    var is_target = e.Source == ImageTargetGrid || e.Source == ImageTargetScroll || e.Source == ImageTargetBox || e.Source == ImageTarget;
+                    var is_result = e.Source == ImageResultGrid || e.Source == ImageResultScroll || e.Source == ImageResultBox || e.Source == ImageResult;
+                    if (is_source) image = ImageSource;
+                    else if (is_target) image = ImageTarget;
+                    else if (is_result) image = ImageResult;
 
-                            var element = sender as FrameworkElement;
-                            if (element.ToolTip is string && (element.ToolTip as string).StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
-                            {
-                                element.ToolTip = await image.GetInformation().GetImageInfo();
-                            }
-                            else if (element.ToolTip is ToolTip && (element.ToolTip as ToolTip).Content is string && ((element.ToolTip as ToolTip).Content as string).StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
-                            {
-                                (element.ToolTip as ToolTip).Content = await image.GetInformation().GetImageInfo();
-                            }
-                        }
-                        catch (Exception ex) { ex.ShowMessage(); }
-                    });
+                    var tooltip = GetToolTip(image);
+                    if (string.IsNullOrEmpty(tooltip) || tooltip.StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        tooltip = await image?.GetInformation().GetImageInfo();
+                        SetToolTip(image, tooltip);
+                    }
                 }
+                catch (Exception ex) { ex.ShowMessage(); }
             }
-            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         private void ImageActions_Click(object sender, RoutedEventArgs e)
