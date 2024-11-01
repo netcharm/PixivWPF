@@ -654,4 +654,7 @@
   <data name="ProcessingIndicatorTitle" xml:space="preserve">
     <value>Processing ...</value>
   </data>
+  <data name="AlwaysOnTop.ToolTip" xml:space="preserve">
+    <value>Always On Top</value>
+  </data>
 </root>

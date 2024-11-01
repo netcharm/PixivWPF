@@ -70,6 +70,15 @@ namespace ImageCompare.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Always On Top 的本地化字符串。
+        /// </summary>
+        public static string AlwaysOnTop_ToolTip {
+            get {
+                return ResourceManager.GetString("AlwaysOnTop.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Auto Comparing/Compositing 的本地化字符串。
         /// </summary>
         public static string AutoCompare_ToolTip {

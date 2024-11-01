@@ -7,6 +7,10 @@
           <source>All Supported Image Files</source>
           <target state="new">所有受支持的图像文件格式</target>
         </trans-unit>
+        <trans-unit id="AlwaysOnTop.ToolTip" translate="yes" xml:space="preserve">
+          <source>Always On Top</source>
+          <target state="new">窗口置顶</target>
+        </trans-unit>
         <trans-unit id="AutoCompare.ToolTip" translate="yes" xml:space="preserve">
           <source>Auto Comparing/Compositing</source>
           <target state="new">自动执行比较/合成</target>

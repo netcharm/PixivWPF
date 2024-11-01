@@ -404,6 +404,11 @@ namespace ImageCompare
         private double ZoomMin = 0.1;
         private double ZoomMax = 10.0;
 
+        public void TopMostWindow(bool? topmost)
+        {
+            if (IsLoaded) Topmost = topmost ?? false;
+        }
+
         public void ChangeTheme()
         {
             try
@@ -3143,6 +3148,10 @@ namespace ImageCompare
                 LocaleUI(DefaultCultureInfo);
             }
 
+            else if (sender == AlwaysOnTop)
+            {
+                TopMostWindow(AlwaysOnTop.IsChecked);
+            }
             else if (sender == DarkBackground)
             {
                 ChangeTheme();

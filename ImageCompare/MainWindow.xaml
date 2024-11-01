@@ -126,7 +126,7 @@
                        HorizontalAlignment="Right" VerticalAlignment="Center"
                        Text="{Binding ElementName=ImageCompositeBlend, Path=Value, StringFormat={}{0:F0}%}"
                        ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>
-            <ProgressBar x:Uid="ProcessStatus" x:Name="ProcessStatus" ToolTip="Picture Processing Progress" Margin="4,0,2,0" HorizontalAlignment="Right" Width="36" Height="20" />
+            <ProgressBar x:Uid="ProcessStatus" x:Name="ProcessStatus" ToolBar.OverflowMode="Never" ToolTip="Picture Processing Progress" Margin="4,0,2,0" HorizontalAlignment="Right" Width="36" Height="20" />
             <xctk:BusyIndicator x:Uid="BusyNow" x:Name="BusyNow" Height="22" Width="64" ToolBar.OverflowMode="Never"
                 HorizontalAlignment="Right" HorizontalContentAlignment="Stretch" VerticalAlignment="Center" VerticalContentAlignment="Stretch" />
             <Button x:Name="ImageDenoiseResult" x:Uid="ImageDenoiseResult" ToolTip="Denoise Result Picture" Click="ImageActions_Click">
@@ -295,7 +295,7 @@
             <ToggleButton x:Name="UseWeakBlur" x:Uid="UseWeakBlur" IsChecked="True"
                           ToolTip="Low/High Intensity Blur" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="UseWeakBlurPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="UseWeakBlurIcon" Text="&#xEB42;" Style="{DynamicResource MenuItemIcon}" Foreground="Gray">
+                    <TextBlock x:Uid="UseWeakBlurIcon" Text="&#xEB42;" Style="{DynamicResource MenuItemIcon}" >
                         <TextBlock.Effect>
                             <BlurEffect x:Uid="UseWeakBlurEffect" Radius="2" KernelType="Gaussian"/>
                         </TextBlock.Effect>
@@ -305,23 +305,23 @@
             <ToggleButton x:Name="UseWeakSharp" x:Uid="UseWeakSharp" IsChecked="True"
                           ToolTip="Low/High Intensity Sharp" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="UseWeakSharpPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="UseWeakSharpIcon" Text="&#xE879;" Style="{DynamicResource MenuItemIcon}" Foreground="Gray"/>
+                    <TextBlock x:Uid="UseWeakSharpIcon" Text="&#xE879;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </ToggleButton>
             <ToggleButton x:Name="UseWeakEffects" x:Uid="UseWeakEffects" IsChecked="True"
                           ToolTip="Low/High Intensity Effects" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="UseWeakEffectsPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="UseWeakEffectsIcon" Text="&#xE10C;" Style="{DynamicResource MenuItemIcon}" Foreground="Gray"/>
+                    <TextBlock x:Uid="UseWeakEffectsIcon" Text="&#xE10C;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </ToggleButton>
             <Separator x:Uid="Separator_6"/>
-            <ToggleButton x:Name="AutoCompare" x:Uid="AutoCompare" IsChecked="True"
+            <ToggleButton x:Name="AutoCompare" x:Uid="AutoCompare" IsChecked="True" ToolBar.OverflowMode="Never"
                           ToolTip="Auto Comparing/Compositing" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="AutoComparePanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="AutoComparePanelIcon" Text="&#xE102;" Style="{DynamicResource MenuItemIcon}" />
                 </StackPanel>
             </ToggleButton>
-            <ToggleButton x:Name="ImageLayout" x:Uid="ImageLayout" IsChecked="False"
+            <ToggleButton x:Name="ImageLayout" x:Uid="ImageLayout" IsChecked="False" ToolBar.OverflowMode="Never"
                           ToolTip="Horizontal/Vertical Image Layout" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="ImageLayoutPanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="ImageLayoutPanelIcon" Text="&#xE2AE;" Style="{DynamicResource MenuItemIcon}" />
@@ -330,7 +330,13 @@
             <ToggleButton x:Name="DarkBackground" x:Uid="DarkBackground" IsChecked="False"
                           ToolTip="Dark Background" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="AutoSaveOptionsPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="AutoSaveOptionsIcon" Text="&#xE793;" Style="{DynamicResource MenuItemIcon}" Foreground="Gray"/>
+                    <TextBlock x:Uid="AutoSaveOptionsIcon" Text="&#xE793;" Style="{DynamicResource MenuItemIcon}"/>
+                </StackPanel>
+            </ToggleButton>
+            <ToggleButton x:Name="AlwaysOnTop" x:Uid="AlwaysOnTop" IsChecked="False" ToolBar.OverflowMode="Never"
+                          ToolTip="Always On Top" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="AutoSaveOptionsPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="AutoSaveOptionsIcon" Text="&#xE840;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </ToggleButton>
             <Button x:Name="UILanguage" x:Uid="UILanguage" ToolTip="UI Language Selector" ToolBar.OverflowMode="Never" Click="ImageActions_Click">
@@ -376,25 +382,25 @@
                     ScrollChanged="ImageScroll_ScrollChanged" PreviewMouseWheel="ImageBox_MouseWheel"
                     MouseDown="ImageScroll_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave"
                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
-                        <Viewbox x:Name="ImageSourceBox" x:Uid="ImageSourceBox" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
-                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                            MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave">
-                            <Image x:Name="ImageSource" x:Uid="ImageSource" Stretch="None" ToolTipOpening="Image_ToolTipOpening"
-                                HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
-                                <Image.LayoutTransform>
-                                    <TransformGroup x:Uid="ImageSourceTransformGroup">
-                                        <ScaleTransform x:Uid="ImageSourceScale" x:Name="ImageSourceScale" ScaleX="1" ScaleY="1"/>
-                                        <RotateTransform x:Uid="ImageSourceRotate" x:Name="ImageSourceRotate" Angle="0" />
-                                    </TransformGroup>
-                                </Image.LayoutTransform>
-                            </Image>
-                            <Viewbox.LayoutTransform>
-                                <TransformGroup x:Uid="ImageSourceBoxTransformGroup">
-                                    <ScaleTransform x:Name="ImageSourceBoxScale" x:Uid="ImageSourceBoxScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}"/>
-                                    <RotateTransform x:Name="ImageSourceBoxRotate" x:Uid="ImageSourceBoxRotate" Angle="0" />
+                    <Viewbox x:Name="ImageSourceBox" x:Uid="ImageSourceBox" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                        MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave">
+                        <Image x:Name="ImageSource" x:Uid="ImageSource" Stretch="None" ToolTipOpening="Image_ToolTipOpening"
+                            HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                            <Image.LayoutTransform>
+                                <TransformGroup x:Uid="ImageSourceTransformGroup">
+                                    <ScaleTransform x:Uid="ImageSourceScale" x:Name="ImageSourceScale" ScaleX="1" ScaleY="1"/>
+                                    <RotateTransform x:Uid="ImageSourceRotate" x:Name="ImageSourceRotate" Angle="0" />
                                 </TransformGroup>
-                            </Viewbox.LayoutTransform>
-                        </Viewbox>
+                            </Image.LayoutTransform>
+                        </Image>
+                        <Viewbox.LayoutTransform>
+                            <TransformGroup x:Uid="ImageSourceBoxTransformGroup">
+                                <ScaleTransform x:Name="ImageSourceBoxScale" x:Uid="ImageSourceBoxScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}"/>
+                                <RotateTransform x:Name="ImageSourceBoxRotate" x:Uid="ImageSourceBoxRotate" Angle="0" />
+                            </TransformGroup>
+                        </Viewbox.LayoutTransform>
+                    </Viewbox>
                 </ScrollViewer>
                 <xctk:BusyIndicator x:Uid="LoadingIndicator" x:Name="IndicatorSource" BusyContent="Loading ..." Background="Transparent"
                     HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" />
@@ -402,29 +408,29 @@
             <!-- Image Result Preview -->
             <Grid x:Name="ImageResultGrid" x:Uid="ImageResultGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MinWidth="240">
                 <ScrollViewer x:Name="ImageResultScroll" x:Uid="ImageResultScroll" Focusable="False"  MinWidth="240"
-                ScrollChanged="ImageScroll_ScrollChanged" PreviewMouseWheel="ImageBox_MouseWheel"
-                MouseDown="ImageScroll_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
-                <Viewbox x:Uid="ImageResultBox" x:Name="ImageResultBox" Stretch="Uniform" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
-                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                    MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave">
-                    <Image x:Name="ImageResult" x:Uid="ImageResult" Stretch="None" ToolTipOpening="Image_ToolTipOpening"
-                        HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
-                        <Image.LayoutTransform>
-                            <TransformGroup x:Uid="TransformGroup_5">
-                                <ScaleTransform x:Name="ImageResultScale" x:Uid="ImageResultScale" ScaleX="1" ScaleY="1"/>
-                                <RotateTransform x:Name="ImageResultRotate" x:Uid="ImageResultRotate" Angle="0" />
+                    ScrollChanged="ImageScroll_ScrollChanged" PreviewMouseWheel="ImageBox_MouseWheel"
+                    MouseDown="ImageScroll_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
+                    <Viewbox x:Uid="ImageResultBox" x:Name="ImageResultBox" Stretch="Uniform" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                        MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave">
+                        <Image x:Name="ImageResult" x:Uid="ImageResult" Stretch="None" ToolTipOpening="Image_ToolTipOpening"
+                            HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                            <Image.LayoutTransform>
+                                <TransformGroup x:Uid="TransformGroup_5">
+                                    <ScaleTransform x:Name="ImageResultScale" x:Uid="ImageResultScale" ScaleX="1" ScaleY="1"/>
+                                    <RotateTransform x:Name="ImageResultRotate" x:Uid="ImageResultRotate" Angle="0" />
+                                </TransformGroup>
+                            </Image.LayoutTransform>
+                        </Image>
+                        <Viewbox.LayoutTransform>
+                            <TransformGroup x:Uid="ImageResultBoxTransformGroup">
+                                <ScaleTransform x:Name="ImageResultBoxScale" x:Uid="ImageResultBoxScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}"/>
+                                <RotateTransform x:Name="ImageResultBoxRotate" x:Uid="ImageResultBoxRotate" Angle="0" />
                             </TransformGroup>
-                        </Image.LayoutTransform>
-                    </Image>
-                    <Viewbox.LayoutTransform>
-                        <TransformGroup x:Uid="ImageResultBoxTransformGroup">
-                            <ScaleTransform x:Name="ImageResultBoxScale" x:Uid="ImageResultBoxScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}"/>
-                            <RotateTransform x:Name="ImageResultBoxRotate" x:Uid="ImageResultBoxRotate" Angle="0" />
-                        </TransformGroup>
-                    </Viewbox.LayoutTransform>
-                </Viewbox>
-            </ScrollViewer>
+                        </Viewbox.LayoutTransform>
+                    </Viewbox>
+                </ScrollViewer>
                 <xctk:BusyIndicator x:Uid="LoadingIndicator" x:Name="LoadingResult"  BusyContent="Loading ..." Background="Transparent"
                     HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" />
             </Grid>
@@ -434,25 +440,25 @@
                     ScrollChanged="ImageScroll_ScrollChanged" PreviewMouseWheel="ImageBox_MouseWheel"
                     MouseDown="ImageScroll_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave"
                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
-                        <Viewbox x:Name="ImageTargetBox" x:Uid="ImageTargetBox" Stretch="Uniform" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
-                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                            MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave">
-                            <Image x:Name="ImageTarget" x:Uid="ImageTarget" Stretch="None" ToolTipOpening="Image_ToolTipOpening"
+                    <Viewbox x:Name="ImageTargetBox" x:Uid="ImageTargetBox" Stretch="Uniform" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                        MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave">
+                        <Image x:Name="ImageTarget" x:Uid="ImageTarget" Stretch="None" ToolTipOpening="Image_ToolTipOpening"
                             HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
-                                <Image.LayoutTransform>
-                                    <TransformGroup x:Uid="ImageTargetTransformGroup">
-                                        <ScaleTransform x:Name="ImageTargetScale" x:Uid="ImageTargetScale" ScaleX="1" ScaleY="1"/>
-                                        <RotateTransform x:Name="ImageTargetRotate" x:Uid="ImageTargetRotate" Angle="0" />
-                                    </TransformGroup>
-                                </Image.LayoutTransform>
-                            </Image>
-                            <Viewbox.LayoutTransform>
-                                <TransformGroup x:Uid="ImageTargetBoxTransformGroup">
-                                    <ScaleTransform x:Name="ImageTargetBoxScale" x:Uid="ImageTargetBoxScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}"/>
-                                    <RotateTransform x:Name="ImageTargetBoxRotate" x:Uid="ImageTargetBoxRotate" Angle="0" />
+                            <Image.LayoutTransform>
+                                <TransformGroup x:Uid="ImageTargetTransformGroup">
+                                    <ScaleTransform x:Name="ImageTargetScale" x:Uid="ImageTargetScale" ScaleX="1" ScaleY="1"/>
+                                    <RotateTransform x:Name="ImageTargetRotate" x:Uid="ImageTargetRotate" Angle="0" />
                                 </TransformGroup>
-                            </Viewbox.LayoutTransform>
-                        </Viewbox>
+                            </Image.LayoutTransform>
+                        </Image>
+                        <Viewbox.LayoutTransform>
+                            <TransformGroup x:Uid="ImageTargetBoxTransformGroup">
+                                <ScaleTransform x:Name="ImageTargetBoxScale" x:Uid="ImageTargetBoxScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}"/>
+                                <RotateTransform x:Name="ImageTargetBoxRotate" x:Uid="ImageTargetBoxRotate" Angle="0" />
+                            </TransformGroup>
+                        </Viewbox.LayoutTransform>
+                    </Viewbox>
                 </ScrollViewer>
                 <xctk:BusyIndicator x:Uid="LoadingIndicator" x:Name="IndicatorTarget"  BusyContent="Loading ..." Background="Transparent"
                     HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" />

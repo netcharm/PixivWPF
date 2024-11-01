@@ -654,4 +654,7 @@
   <data name="ProcessingIndicatorTitle" xml:space="preserve">
     <value>画像を処理する...</value>
   </data>
+  <data name="AlwaysOnTop.ToolTip" xml:space="preserve">
+    <value>ウインドートッピング</value>
+  </data>
 </root>

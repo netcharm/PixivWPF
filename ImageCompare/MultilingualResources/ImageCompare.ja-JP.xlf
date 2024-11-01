@@ -7,6 +7,10 @@
           <source>All Supported Image Files</source>
           <target state="new">サポートされている画像ファイルのすべてのフォーマット</target>
         </trans-unit>
+        <trans-unit id="AlwaysOnTop.ToolTip" translate="yes" xml:space="preserve">
+          <source>Always On Top</source>
+          <target state="new">ウインドートッピング</target>
+        </trans-unit>
         <trans-unit id="AutoCompare.ToolTip" translate="yes" xml:space="preserve">
           <source>Auto Comparing/Compositing</source>
           <target state="new">比較/合成を自動的に実行</target>
