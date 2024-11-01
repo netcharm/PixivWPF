@@ -329,14 +329,14 @@
             </ToggleButton>
             <ToggleButton x:Name="DarkBackground" x:Uid="DarkBackground" IsChecked="False"
                           ToolTip="Dark Background" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel x:Uid="AutoSaveOptionsPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="AutoSaveOptionsIcon" Text="&#xE793;" Style="{DynamicResource MenuItemIcon}"/>
+                <StackPanel x:Uid="DarkBackgroundPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="DarkBackgroundIcon" Text="&#xE793;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </ToggleButton>
             <ToggleButton x:Name="AlwaysOnTop" x:Uid="AlwaysOnTop" IsChecked="False" ToolBar.OverflowMode="Never"
                           ToolTip="Always On Top" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel x:Uid="AutoSaveOptionsPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="AutoSaveOptionsIcon" Text="&#xE840;" Style="{DynamicResource MenuItemIcon}"/>
+                <StackPanel x:Uid="AlwaysOnTopPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="AlwaysOnTopIcon" Text="&#xE840;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </ToggleButton>
             <Button x:Name="UILanguage" x:Uid="UILanguage" ToolTip="UI Language Selector" ToolBar.OverflowMode="Never" Click="ImageActions_Click">
