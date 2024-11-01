@@ -167,7 +167,13 @@
                       ScrollViewer.VerticalScrollBarVisibility="Auto"/>
             <ToggleButton x:Name="DarkBG" Margin="4" Width="22" IsChecked="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Click="DarkBG_Click">
                 <ToggleButton.Content>
-                    <TextBlock x:Uid="AutoSaveOptionsIcon" Text="&#xE793;" Margin="1,1,0,0" Style="{DynamicResource MenuItemIcon}" Foreground="Gray" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock x:Uid="DarkBGIcon" Text="&#xE793;" Margin="1,1,0,0" Style="{DynamicResource MenuItemIcon}"/>
+                </ToggleButton.Content>
+            </ToggleButton>
+            <ToggleButton x:Name="AlwaysOnTop" x:Uid="AlwaysOnTop" Margin="4" Width="22" IsChecked="False" 
+                          ToolTip="Always On Top" HorizontalAlignment="Right" Click="AlwaysOnTop_Click">
+                <ToggleButton.Content>
+                    <TextBlock x:Uid="AlwaysOnTopIcon" Text="&#xE840;" Margin="1,1,0,0" Style="{DynamicResource MenuItemIcon}"/>
                 </ToggleButton.Content>
             </ToggleButton>
             <TextBlock x:Uid="ResultFilterLabel" Text="Filter:" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" />

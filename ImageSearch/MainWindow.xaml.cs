@@ -1165,6 +1165,11 @@ namespace ImageSearch
             }
         }
 
+        private void AlwaysOnTop_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsLoaded) Topmost = AlwaysOnTop.IsChecked ?? false;
+        }
+
         private void DarkBG_Click(object sender, RoutedEventArgs e)
         {
             if (settings is not null)
