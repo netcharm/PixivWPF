@@ -2670,7 +2670,8 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    Process.Start(shell, string.Join(" ", files.TakeWhile(f => !string.IsNullOrEmpty(f.Trim())).Select(f => $"\"{f.Trim()}\"")));
+                    var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+                    Process.Start(shell, (shift ? "/s " : "") + string.Join(" ", files.TakeWhile(f => !string.IsNullOrEmpty(f.Trim())).Select(f => $"\"{f.Trim()}\"")));
                 }
                 catch (Exception ex) { ex.ERROR("ShellImageCompare"); }
             }

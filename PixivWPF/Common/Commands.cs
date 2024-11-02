@@ -1014,15 +1014,7 @@ namespace PixivWPF.Common
             else if (obj is IEnumerable<DownloadInfo>)
             {
                 var content = (obj as IEnumerable<DownloadInfo>).Where(di => !string.IsNullOrEmpty(di.FileName) && File.Exists(di.FileName)).Select(di => di.FileName).ToArray();
-                if (content.Count() > 0)
-                {
-                    await new Action(async () =>
-                    {
-                        CommonHelper.ShellImageCompare(content);
-                        await Task.Delay(1);
-                        Application.Current.DoEvents();
-                    }).InvokeAsync();
-                }
+                if (content.Count() > 0) Compare.Execute(content);
             }
             else if (obj is DownloadManagerPage)
             {
