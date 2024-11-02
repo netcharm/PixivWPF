@@ -1242,7 +1242,10 @@ namespace ImageCompare
                     }
                     else
                     {
+                        load_type = ImageType.Source;
+
                         if (source == null) load_type = image_t.ValidCurrent || !image_s.ValidCurrent ? ImageType.Source : ImageType.Target;
+                        else load_type = source ?? false ? ImageType.Source : ImageType.Target;
 
                         if (load_type == ImageType.Source) IsLoadingSource = true;
                         else if (load_type == ImageType.Target) IsLoadingTarget = true;
