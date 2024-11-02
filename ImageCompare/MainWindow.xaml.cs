@@ -1207,12 +1207,12 @@ namespace ImageCompare
             return (ret);
         }
 
-        private void LoadImageFromFiles(IEnumerable<string> files, bool source = true)
+        protected internal void LoadImageFromFiles(IEnumerable<string> files, bool? source = null)
         {
             LoadImageFromFiles(files.ToArray(), source);
         }
 
-        private async void LoadImageFromFiles(string[] files, bool source = true)
+        private async void LoadImageFromFiles(string[] files, bool? source = null)
         {
             try
             {
@@ -1242,13 +1242,14 @@ namespace ImageCompare
                     }
                     else
                     {
-                        if (source) IsLoadingSource = true;
-                        else IsLoadingTarget = true;
+                        if (source == null) load_type = image_t.ValidCurrent || !image_s.ValidCurrent ? ImageType.Source : ImageType.Target;
 
-                        var image  = source ? image_s : image_t;
+                        if (load_type == ImageType.Source) IsLoadingSource = true;
+                        else if (load_type == ImageType.Target) IsLoadingTarget = true;
+
+                        var image  = load_type == ImageType.Source ? image_s : image_t;
                         file_s = files.First();
                         action |= await image.LoadImageFromFile(file_s);
-                        load_type = source ? ImageType.Source : ImageType.Target;
                     }
                     if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: load_type));
                 }
@@ -2690,7 +2691,7 @@ namespace ImageCompare
             DoEvents();
 
             var args = Environment.GetCommandLineArgs();
-            LoadImageFromFiles(args.Skip(1).ToArray());
+            if (args.Length > 1) LoadImageFromFiles(args.Skip(1).ToArray());
         }
 
         private void Window_Unloaded(object sender, RoutedEventArgs e)

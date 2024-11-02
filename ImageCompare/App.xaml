@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:local="clr-namespace:ImageCompare"
-             StartupUri="MainWindow.xaml" Startup="Application_Startup">
+             StartupUri="MainWindow.xaml" Startup="Application_Startup" Exit="Application_Exit">
     <Application.Resources>
         <FontFamily x:Uid="MonoSpaceFamily" x:Key="MonoSpaceFamily">
             霞骛文楷等宽, LXGW WenKai Mono, Sarasa Mono J, 等距更纱黑体 SC, Iosevka, Consolas, FontAwesome, Segoe UI Emoji, Segoe UI Symbol, Segoe MDL2 Assets, Twemoji Mozilla, EmojiOne Mozilla, Noto Color Emoji, Noto Emoji, 更纱黑体 SC, Segoe UI, Monospace
