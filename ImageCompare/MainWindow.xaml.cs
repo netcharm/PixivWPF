@@ -2484,6 +2484,38 @@ namespace ImageCompare
             });
         }
 
+        private void OpenToolTip(FrameworkElement element)
+        {
+            try
+            {
+                if (element?.ToolTip is string)
+                {
+                    Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).IsOpen = true);
+                }
+                else if (element?.ToolTip is ToolTip && (element?.ToolTip as ToolTip).Content is string)
+                {
+                    Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).IsOpen = true);
+                }
+            }
+            catch { }
+        }
+
+        private void CloseToolTip(FrameworkElement element)
+        {
+            try
+            {
+                if (element?.ToolTip is string)
+                {
+                    Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).IsOpen = false);
+                }
+                else if (element?.ToolTip is ToolTip && (element?.ToolTip as ToolTip).Content is string)
+                {
+                    Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).IsOpen = false);
+                }
+            }
+            catch { }
+        }
+
         private Cursor SetBusy()
         {
             var result = Cursor;
@@ -2762,6 +2794,10 @@ namespace ImageCompare
             ImageMagnifier.Radius = ImageMagnifierRadius;
             ImageMagnifier.BorderBrush = new SolidColorBrush(ImageMagnifierBorderBrush);
             ImageMagnifier.BorderThickness = new Thickness(ImageMagnifierBorderThickness);
+
+            ToolTipService.SetShowOnDisabled(ImageSource, false);
+            ToolTipService.SetShowOnDisabled(ImageTarget, false);
+            ToolTipService.SetShowOnDisabled(ImageResult, false);
 
             BusyNow.Visibility = Visibility.Collapsed;
 
@@ -3363,6 +3399,12 @@ namespace ImageCompare
                 ToolTipService.SetIsEnabled(ImageSource, !mag);
                 ToolTipService.SetIsEnabled(ImageTarget, !mag);
                 ToolTipService.SetIsEnabled(ImageResult, !mag);
+                if (mag)
+                {
+                    CloseToolTip(ImageSource);
+                    CloseToolTip(ImageTarget);
+                    CloseToolTip(ImageResult);
+                }
             }
             else if (sender == ZoomFitNone)
             {
