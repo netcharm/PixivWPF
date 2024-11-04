@@ -657,4 +657,7 @@
   <data name="AlwaysOnTop.ToolTip" xml:space="preserve">
     <value>ウインドートッピング</value>
   </data>
+  <data name="Magnifier.ToolTip" xml:space="preserve">
+    <value>画像拡大鏡</value>
+  </data>
 </root>

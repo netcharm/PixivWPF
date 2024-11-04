@@ -411,6 +411,10 @@
           <source>Lowlight Color</source>
           <target state="new">同一エリアの表示色</target>
         </trans-unit>
+        <trans-unit id="Magnifier.ToolTip" translate="yes" xml:space="preserve">
+          <source>Image Magnifier</source>
+          <target state="new">画像拡大鏡</target>
+        </trans-unit>
         <trans-unit id="MainWindow.Title" translate="yes" xml:space="preserve">
           <source>Image Compare</source>
           <target state="new">画像の差異比較</target>

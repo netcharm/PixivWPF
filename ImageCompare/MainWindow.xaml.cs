@@ -397,6 +397,15 @@ namespace ImageCompare
                 });
             }
         }
+
+        private bool? AutoHideToolTip { get; set; } = false;
+        private int ToolTipDuration { get; set; } = 5000;
+
+        private double ImageMagnifierZoomFactor { get; set; } = 0.25;
+        private double ImageMagnifierRadius { get; set; } = 100;
+        private double ImageMagnifierBorderThickness { get; set; } = 1;
+        private Color ImageMagnifierBorderBrush { get; set; } = Colors.Silver;
+
         private readonly SemaphoreSlim _CanUpdate_ = new SemaphoreSlim(1, 1);
         private readonly Dictionary<Color, string> ColorNames = new Dictionary<Color, string>();
         private Point mouse_start;
@@ -1293,6 +1302,17 @@ namespace ImageCompare
                     if (bool.TryParse(appSection.Settings["AutoSaveOptions"].Value, out value)) AutoSaveConfig = value;
                 }
 
+                if (appSection.Settings.AllKeys.Contains("AutoHideToolTip"))
+                {
+                    var value = AutoHideToolTip ?? true;
+                    if (bool.TryParse(appSection.Settings["AutoHideToolTip"].Value, out value)) AutoHideToolTip = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("ToolTipDuration"))
+                {
+                    var value = ToolTipDuration;
+                    if (int.TryParse(appSection.Settings["ToolTipDuration"].Value, out value)) ToolTipDuration = value;
+                }
+
                 if (appSection.Settings.AllKeys.Contains("DarkTheme"))
                 {
                     var value = DarkBackground.IsChecked ?? true;
@@ -1426,6 +1446,30 @@ namespace ImageCompare
                     if (Enum.TryParse(appSection.Settings["ImageLayout"].Value, out value)) CurrentImageLayout = value;
                 }
 
+                if (appSection.Settings.AllKeys.Contains("ImageMagnifierZoomFactor"))
+                {
+                    var value = ImageMagnifierZoomFactor;
+                    if (double.TryParse(appSection.Settings["ImageMagnifierZoomFactor"].Value, out value)) ImageMagnifierZoomFactor = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("ImageMagnifierRadius"))
+                {
+                    var value = ImageMagnifierRadius;
+                    if (double.TryParse(appSection.Settings["ImageMagnifierRadius"].Value, out value)) ImageMagnifierRadius = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("ImageMagnifierBorderBrush"))
+                {
+                    try
+                    {
+                        ImageMagnifierBorderBrush = (Color)ColorConverter.ConvertFromString(appSection.Settings["ImageMagnifierBorderBrush"].Value);
+                    }
+                    catch { }
+                }
+                if (appSection.Settings.AllKeys.Contains("ImageMagnifierBorderThickness"))
+                {
+                    var value = ImageMagnifierBorderThickness;
+                    if (double.TryParse(appSection.Settings["ImageMagnifierBorderThickness"].Value, out value)) ImageMagnifierBorderThickness = value;
+                }
+
                 if (appSection.Settings.AllKeys.Contains("AutoMatchSize"))
                 {
                     var value = AutoMatchSize.IsChecked ?? true;
@@ -1495,6 +1539,31 @@ namespace ImageCompare
 
                 if (AutoSaveConfig)
                 {
+                    if (appSection.Settings.AllKeys.Contains("AutoHideToolTip"))
+                        appSection.Settings["AutoHideToolTip"].Value = AutoHideToolTip.ToString();
+                    else
+                        appSection.Settings.Add("AutoHideToolTip", AutoHideToolTip.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("ImageMagnifierZoomFactor"))
+                        appSection.Settings["ImageMagnifierZoomFactor"].Value = ImageMagnifierZoomFactor.ToString();
+                    else
+                        appSection.Settings.Add("ImageMagnifierZoomFactor", ImageMagnifierZoomFactor.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("ImageMagnifierRadius"))
+                        appSection.Settings["ImageMagnifierRadius"].Value = ImageMagnifierRadius.ToString();
+                    else
+                        appSection.Settings.Add("ImageMagnifierRadius", ImageMagnifierRadius.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("ImageMagnifierBorderBrush"))
+                        appSection.Settings["ImageMagnifierBorderBrush"].Value = ImageMagnifierBorderBrush.ToString();
+                    else
+                        appSection.Settings.Add("ImageMagnifierBorderBrush", ImageMagnifierBorderBrush.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("ImageMagnifierBorderThickness"))
+                        appSection.Settings["ImageMagnifierBorderThickness"].Value = ImageMagnifierBorderThickness.ToString();
+                    else
+                        appSection.Settings.Add("ImageMagnifierBorderThickness", ImageMagnifierBorderThickness.ToString());
+
                     var rect = new Rect(
                         LastPositionSize.Left, LastPositionSize.Top,
                         Math.Min(MaxWidth, Math.Max(MinWidth, LastPositionSize.Width)),
@@ -2411,6 +2480,7 @@ namespace ImageCompare
                 {
                     element.ToolTip = null;
                 }
+                if (AutoHideToolTip ?? false) ToolTipService.SetShowDuration(element, ToolTipDuration);
             });
         }
 
@@ -2688,6 +2758,11 @@ namespace ImageCompare
             }
             #endregion
 
+            ImageMagnifier.ZoomFactor = ImageMagnifierZoomFactor;
+            ImageMagnifier.Radius = ImageMagnifierRadius;
+            ImageMagnifier.BorderBrush = new SolidColorBrush(ImageMagnifierBorderBrush);
+            ImageMagnifier.BorderThickness = new Thickness(ImageMagnifierBorderThickness);
+
             BusyNow.Visibility = Visibility.Collapsed;
 
             SyncColorLighting();
@@ -2905,6 +2980,12 @@ namespace ImageCompare
                         }
                         else RenderRun(LastAction);
                     }
+                    else if (e.Key == Key.M || e.SystemKey == Key.M)
+                    {
+                        Magnifier.IsChecked = !Magnifier.IsChecked;
+                        ImageActions_Click(Magnifier, e);
+                    }
+
                     _last_key_ = e.Key;
                     _last_key_time_ = DateTime.Now;
                 }
@@ -3274,6 +3355,14 @@ namespace ImageCompare
                 else
                     ViewerPanel.Orientation = Orientation.Horizontal;
                 CalcDisplay();
+            }
+            else if (sender == Magnifier)
+            {
+                var mag = Magnifier.IsChecked ?? false;
+                ImageMagnifier.Visibility = mag ? Visibility.Visible : Visibility.Collapsed;
+                ToolTipService.SetIsEnabled(ImageSource, !mag);
+                ToolTipService.SetIsEnabled(ImageTarget, !mag);
+                ToolTipService.SetIsEnabled(ImageResult, !mag);
             }
             else if (sender == ZoomFitNone)
             {

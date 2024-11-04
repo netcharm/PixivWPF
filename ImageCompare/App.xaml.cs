@@ -24,7 +24,7 @@ namespace ImageCompare
             {
                 if ((Current?.MainWindow is MainWindow) && (Current.MainWindow.IsLoaded))
                 {
-                    MessageBox.Show(ex.Message + Environment.NewLine + ex.StackTrace);
+                    Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message + Environment.NewLine + ex.StackTrace);
                 }
             });
         }

@@ -979,6 +979,15 @@ namespace ImageCompare.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Image Magnifier 的本地化字符串。
+        /// </summary>
+        public static string Magnifier_ToolTip {
+            get {
+                return ResourceManager.GetString("Magnifier.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Image Compare 的本地化字符串。
         /// </summary>
         public static string MainWindow_Title {
