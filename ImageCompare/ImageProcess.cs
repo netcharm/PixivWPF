@@ -1817,8 +1817,10 @@ namespace ImageCompare
                             };
                             result.SetArtifact("compare:align", $"{DefaultMatchAlign}");
                             result.SetArtifact("compare:channels", $"{CompareImageChannels}");
-                            result.SetArtifact("compare:mode", $"{ErrorMetricMode}");
+                            result.SetArtifact("compare:mode", $"{ErrorMetricMode}, {(CompareImageForceColor ? "Color" : "Gray")}");
+                            result.SetArtifact("compare:fuzzy", $"{fuzzy:P2}");
                             result.SetArtifact("compare:distance", $"{distance:F4}");
+                            result.SetArtifact("compare:similarity", $"{1 - distance:P2}");
 
                             tip.Add($"{"ResultTipMode".T()} {ErrorMetricMode}");
                             tip.Add($"{"ResultTipDifference".T()} {distance:F4}");
