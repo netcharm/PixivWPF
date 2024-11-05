@@ -705,24 +705,30 @@ namespace ImageCompare
             }
         }
 
-        public async void Denoise(int? order = null, bool more = false)
+        public async Task<bool> Denoise(int? order = null, bool more = false)
         {
+            var result = false;
             if (ValidCurrent)
             {
-                var value = order ?? 0;
-
-                var factor = DenoiseLevel <= 0 ? 1 : DenoiseLevel;
-                if (factor <= 1)
+                try
                 {
-                    if (DenoiseCount > 10) factor = 2;
-                    else if (DenoiseCount > 20) factor = 4;
-                    else if (DenoiseCount > 50) factor = 8;
-                    else if (DenoiseCount > 100) factor = 16;
-                }
+                    var value = order ?? 0;
 
-                Current.MedianFilter((value > 0 ? value : 3) * (more ? factor * 4 : factor));
-                await SetImage();
+                    var factor = DenoiseLevel <= 0 ? 1 : DenoiseLevel;
+                    if (factor <= 1)
+                    {
+                        if (DenoiseCount > 10) factor = 2;
+                        else if (DenoiseCount > 20) factor = 4;
+                        else if (DenoiseCount > 50) factor = 8;
+                        else if (DenoiseCount > 100) factor = 16;
+                    }
+
+                    Current.MedianFilter((value > 0 ? value : 3) * (more ? factor * 4 : factor));
+                    result = await SetImage();
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
             }
+            return (result);
         }
 
         public async Task<bool> SetImage()

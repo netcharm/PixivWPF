@@ -119,6 +119,12 @@ namespace ImageCompare
             set => BusyNow.Dispatcher.Invoke(() => { IndicatorTarget.BusyContent = LoadingWaitingStr; IndicatorTarget.IsBusy = value; DoEvents(); });
         }
 
+        private bool IsLoadingResult
+        {
+            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorResult.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() => { IndicatorResult.BusyContent = LoadingWaitingStr; IndicatorResult.IsBusy = value; DoEvents(); });
+        }
+
         private bool IsSavingSource
         {
             get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorSource.IsBusy); });
@@ -131,6 +137,12 @@ namespace ImageCompare
             set => BusyNow.Dispatcher.Invoke(() => { IndicatorTarget.BusyContent = SavingWaitingStr; IndicatorTarget.IsBusy = value; DoEvents(); });
         }
 
+        private bool IsSavingResult
+        {
+            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorResult.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() => { IndicatorResult.BusyContent = SavingWaitingStr; IndicatorResult.IsBusy = value; DoEvents(); });
+        }
+
         private bool IsProcessingSource
         {
             get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorSource.IsBusy); });
@@ -141,6 +153,12 @@ namespace ImageCompare
         {
             get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorTarget.IsBusy); });
             set => BusyNow.Dispatcher.Invoke(() => { IndicatorTarget.BusyContent = ProcessingWaitingStr; IndicatorTarget.IsBusy = value; DoEvents(); });
+        }
+
+        private bool IsProcessingResult
+        {
+            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorResult.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() => { IndicatorResult.BusyContent = ProcessingWaitingStr; IndicatorResult.IsBusy = value; DoEvents(); });
         }
 
         private bool IsExchanged
@@ -290,15 +308,18 @@ namespace ImageCompare
             var result = ImageType.None;
             try
             {
-                var host = sender is MenuItem ? GetContextMenuHost(sender as MenuItem) : sender as UIElement;
-                if (host is UIElement)
+                if (sender is UIElement)
                 {
-                    var ui_source = new UIElement[] { ImageSourceScroll, ImageSourceBox, ImageSource };
-                    var ui_target = new UIElement[] { ImageTargetScroll, ImageTargetBox, ImageTarget };
-                    var ui_result = new UIElement[] { ImageResultScroll, ImageResultBox, ImageResult };
-                    if (ui_source.Contains(host)) result = ImageType.Source;
-                    else if (ui_target.Contains(host)) result = ImageType.Target;
-                    else if (ui_result.Contains(host)) result = ImageType.Result;
+                    var host = sender is MenuItem ? GetContextMenuHost(sender as MenuItem) : sender as UIElement;
+                    if (host is UIElement)
+                    {
+                        var ui_source = new UIElement[] { ImageSourceGrid, ImageSourceScroll, ImageSourceBox, ImageSource };
+                        var ui_target = new UIElement[] { ImageTargetGrid, ImageTargetScroll, ImageTargetBox, ImageTarget };
+                        var ui_result = new UIElement[] { ImageResultGrid, ImageResultScroll, ImageResultBox, ImageResult };
+                        if (ui_source.Contains(host)) result = ImageType.Source;
+                        else if (ui_target.Contains(host)) result = ImageType.Target;
+                        else if (ui_result.Contains(host)) result = ImageType.Result;
+                    }
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -321,6 +342,9 @@ namespace ImageCompare
                         {
                             IsBusy = true;
                             action.Invoke();
+                            if (IsProcessingSource) IsProcessingSource = false;
+                            if (IsProcessingTarget) IsProcessingTarget = false;
+                            if (IsProcessingResult) IsProcessingResult = false;
                             IsBusy = false;
                         });
                         LastAction = action;
@@ -329,11 +353,15 @@ namespace ImageCompare
             }
         }
 
-        private void RenderRun(Action action)
+        private void RenderRun(Action action, object sender = null)
         {
             InitRenderWorker();
             if (RenderWorker is BackgroundWorker && !RenderWorker.IsBusy && !IsBusy && action is Action)
             {
+                var sender_source = GetImageType(sender);
+                if (sender_source == ImageType.Source) IsProcessingSource = true;
+                else if (sender_source == ImageType.Target) IsProcessingTarget = true;
+                else if (sender_source == ImageType.Result) IsProcessingResult = true;
                 RenderWorker.RunWorkerAsync(action);
             }
         }
@@ -920,6 +948,26 @@ namespace ImageCompare
             return (result);
         }
 
+        private void ToggleMagnifierState(bool change_state = false)
+        {
+            MagnifierMode.Dispatcher.Invoke(() => 
+            {
+                if (change_state) MagnifierMode.IsChecked = !MagnifierMode.IsChecked;
+
+                var mag = MagnifierMode.IsChecked ?? false;
+                ToolTipService.SetIsEnabled(ImageSource, !mag);
+                ToolTipService.SetIsEnabled(ImageTarget, !mag);
+                ToolTipService.SetIsEnabled(ImageResult, !mag);
+                if (mag)
+                {
+                    CloseToolTip(ImageSource);
+                    CloseToolTip(ImageTarget);
+                    CloseToolTip(ImageResult);
+                }
+                ImageMagnifier.Visibility = mag ? Visibility.Visible : Visibility.Collapsed;
+            });
+        }
+
         private async void UpdateImageViewer(bool compose = false, bool assign = false, bool reload = true, ImageType reload_type = ImageType.All, bool autocompare = false)
         {
             var loaded = await Dispatcher.InvokeAsync(() => IsLoaded);
@@ -1072,6 +1120,7 @@ namespace ImageCompare
 
                     if (autocompare)
                     {
+                        IsLoadingResult = true;
                         if (image_r.ValidCurrent) image_r.Dispose();
 
                         image_r.Original = await Compare(image_s.Current, image_t.Current, compose: compose);
@@ -1090,6 +1139,7 @@ namespace ImageCompare
                             var tooltip_r = image_r.ValidCurrent ? WaitingString : null;
                             SetToolTip(ImageResult, tooltip_r);
                         }, DispatcherPriority.Normal);
+                        IsLoadingResult = false;
                     }
                     CalcDisplay(set_ratio: false);
                 }
@@ -1100,6 +1150,7 @@ namespace ImageCompare
 
                     IsLoadingSource = false;
                     IsLoadingTarget = false;
+                    IsLoadingResult = false;
                     IsBusy = false;
 
                     if (_CanUpdate_ is SemaphoreSlim && _CanUpdate_.CurrentCount < 1) _CanUpdate_.Release();
@@ -2005,62 +2056,62 @@ namespace ImageCompare
                 };
                 #endregion
                 #region Create MenuItem Click event handles
-                item_fh.Click += (obj, evt) => { RenderRun(() => { FlopImage(MenuHost(obj)); }); };
-                item_fv.Click += (obj, evt) => { RenderRun(() => { FlipImage(MenuHost(obj)); }); };
-                item_r090.Click += (obj, evt) => { RenderRun(() => { RotateImage(MenuHost(obj), 90); }); };
-                item_r180.Click += (obj, evt) => { RenderRun(() => { RotateImage(MenuHost(obj), 180); }); };
-                item_r270.Click += (obj, evt) => { RenderRun(() => { RotateImage(MenuHost(obj), 270); }); };
-                item_reset_transform.Click += (obj, evt) => { RenderRun(() => { ResetImageTransform(MenuHost(obj)); }); };
+                item_fh.Click += (obj, evt) => { RenderRun(() => { FlopImage(MenuHost(obj)); }, target); };
+                item_fv.Click += (obj, evt) => { RenderRun(() => { FlipImage(MenuHost(obj)); }, target); };
+                item_r090.Click += (obj, evt) => { RenderRun(() => { RotateImage(MenuHost(obj), 90); }, target); };
+                item_r180.Click += (obj, evt) => { RenderRun(() => { RotateImage(MenuHost(obj), 180); }, target); };
+                item_r270.Click += (obj, evt) => { RenderRun(() => { RotateImage(MenuHost(obj), 270); }, target); };
+                item_reset_transform.Click += (obj, evt) => { RenderRun(() => { ResetImageTransform(MenuHost(obj)); }, target); };
 
-                item_gray.Click += (obj, evt) => { RenderRun(() => { GrayscaleImage(MenuHost(obj)); }); };
-                item_blur.Click += (obj, evt) => { RenderRun(() => { BlurImage(MenuHost(obj)); }); };
-                item_sharp.Click += (obj, evt) => { RenderRun(() => { SharpImage(MenuHost(obj)); }); };
+                item_gray.Click += (obj, evt) => { RenderRun(() => { GrayscaleImage(MenuHost(obj)); }, target); };
+                item_blur.Click += (obj, evt) => { RenderRun(() => { BlurImage(MenuHost(obj)); }, target); };
+                item_sharp.Click += (obj, evt) => { RenderRun(() => { SharpImage(MenuHost(obj)); }, target); };
 
-                item_size_crop.Click += (obj, evt) => { RenderRun(() => { CropImage(MenuHost(obj)); }); };
-                item_size_cropedge.Click += (obj, evt) => { RenderRun(() => { CropImageEdge(MenuHost(obj), 1, 1, DefaultMatchAlign); }); };
-                item_size_extentedge.Click += (obj, evt) => { RenderRun(() => { ExtentImageEdge(MenuHost(obj), 1, 1, DefaultMatchAlign); }); };
-                item_size_panedge.Click += (obj, evt) => { RenderRun(() => { PanImageEdge(MenuHost(obj), 1, 1, DefaultMatchAlign); }); };
-                item_size_to_source.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(false, reset: false, align: DefaultMatchAlign); }); };
-                item_size_to_target.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(true, reset: false, align: DefaultMatchAlign); }); };
+                item_size_crop.Click += (obj, evt) => { RenderRun(() => { CropImage(MenuHost(obj)); }, target); };
+                item_size_cropedge.Click += (obj, evt) => { RenderRun(() => { CropImageEdge(MenuHost(obj), 1, 1, DefaultMatchAlign); }, target); };
+                item_size_extentedge.Click += (obj, evt) => { RenderRun(() => { ExtentImageEdge(MenuHost(obj), 1, 1, DefaultMatchAlign); }, target); };
+                item_size_panedge.Click += (obj, evt) => { RenderRun(() => { PanImageEdge(MenuHost(obj), 1, 1, DefaultMatchAlign); }, target); };
+                item_size_to_source.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(false, reset: false, align: DefaultMatchAlign); }, target); };
+                item_size_to_target.Click += (obj, evt) => { RenderRun(() => { ResizeToImage(true, reset: false, align: DefaultMatchAlign); }, target); };
 
                 item_slice_h.Click += (obj, evt) =>
                 {
                     var sendto = Keyboard.Modifiers == ModifierKeys.None;
                     var first = Keyboard.Modifiers == ModifierKeys.Shift || (Keyboard.Modifiers != ModifierKeys.Control);
-                    RenderRun(() => { SlicingImage(MenuHost(obj), vertical: false, sendto: sendto, first: first); });
+                    RenderRun(() => { SlicingImage(MenuHost(obj), vertical: false, sendto: sendto, first: first); }, target);
                 };
                 item_slice_v.Click += (obj, evt) =>
                 {
                     var sendto = Keyboard.Modifiers == ModifierKeys.None;
                     var first = Keyboard.Modifiers == ModifierKeys.Shift || (Keyboard.Modifiers != ModifierKeys.Control);
-                    RenderRun(() => { SlicingImage(MenuHost(obj), vertical: true, sendto: sendto, first: first); });
+                    RenderRun(() => { SlicingImage(MenuHost(obj), vertical: true, sendto: sendto, first: first); }, target);
                 };
                 item_merge_h.Click += (obj, evt) =>
                 {
                     var sendto = Keyboard.Modifiers == ModifierKeys.Shift;
                     var first = Keyboard.Modifiers == ModifierKeys.Shift || (Keyboard.Modifiers != ModifierKeys.Control);
-                    RenderRun(() => { MergeImage(MenuHost(obj), vertical: false, sendto: sendto, first: first); });
+                    RenderRun(() => { MergeImage(MenuHost(obj), vertical: false, sendto: sendto, first: first); }, target);
                 };
                 item_merge_v.Click += (obj, evt) =>
                 {
                     var sendto = Keyboard.Modifiers == ModifierKeys.Shift;
                     var first = Keyboard.Modifiers == ModifierKeys.Shift || (Keyboard.Modifiers != ModifierKeys.Control);
-                    RenderRun(() => { MergeImage(MenuHost(obj), vertical: true, sendto: sendto, first: first); });
+                    RenderRun(() => { MergeImage(MenuHost(obj), vertical: true, sendto: sendto, first: first); }, target);
                 };
 
-                item_copyfrom_result.Click += (obj, evt) => { RenderRun(() => { CopyImageFromResult(source); }); };
-                item_copyto_source.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(source); }); };
-                item_copyto_target.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(source); }); };
+                item_copyfrom_result.Click += (obj, evt) => { RenderRun(() => { CopyImageFromResult(source); }, target); };
+                item_copyto_source.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(source); }, target); };
+                item_copyto_target.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(source); }, target); };
 
-                item_load_prev.Click += (obj, evt) => { RenderRun(async () => { await LoadImageFromPrevFile(MenuHost(obj)); }); };
-                item_load_next.Click += (obj, evt) => { RenderRun(async () => { await LoadImageFromNextFile(MenuHost(obj)); }); };
+                item_load_prev.Click += (obj, evt) => { RenderRun(async () => { await LoadImageFromPrevFile(MenuHost(obj)); }, target); };
+                item_load_next.Click += (obj, evt) => { RenderRun(async () => { await LoadImageFromNextFile(MenuHost(obj)); }, target); };
 
-                item_reset_image.Click += (obj, evt) => { RenderRun(() => { ResetImage(MenuHost(obj)); }); };
-                item_reload.Click += (obj, evt) => { RenderRun(() => { ReloadImage(MenuHost(obj)); }); };
+                item_reset_image.Click += (obj, evt) => { RenderRun(() => { ResetImage(MenuHost(obj)); }, target); };
+                item_reload.Click += (obj, evt) => { RenderRun(() => { ReloadImage(MenuHost(obj)); }, target); };
 
-                item_colorcalc.Click += (obj, evt) => { RenderRun(() => { CalcImageColors(MenuHost(obj)); }); };
-                item_copyinfo.Click += (obj, evt) => { RenderRun(() => { CopyImageInfo(MenuHost(obj)); }); };
-                item_copyimage.Click += (obj, evt) => { RenderRun(() => { CopyImage(MenuHost(obj)); }); };
+                item_colorcalc.Click += (obj, evt) => { RenderRun(() => { CalcImageColors(MenuHost(obj)); }, target); };
+                item_copyinfo.Click += (obj, evt) => { RenderRun(() => { CopyImageInfo(MenuHost(obj)); }, target); };
+                item_copyimage.Click += (obj, evt) => { RenderRun(() => { CopyImage(MenuHost(obj)); }, target); };
                 item_saveas.Click += (obj, evt) => { SaveImageAs(MenuHost(obj)); };
                 #endregion
                 #region Add MenuItems to ContextMenu
@@ -2309,44 +2360,44 @@ namespace ImageCompare
                 };
                 #endregion
                 #region MoreEffects MenuItem Click event handles
-                item_more_oil.Click += (obj, evt) => { RenderRun(() => { OilImage(MenuHost(obj)); }); };
-                item_more_charcoal.Click += (obj, evt) => { RenderRun(() => { CharcoalImage(MenuHost(obj)); }); };
-                item_more_pencil.Click += (obj, evt) => { RenderRun(() => { PencilImage(MenuHost(obj)); }); };
-                item_more_edge.Click += (obj, evt) => { RenderRun(() => { EdgeImage(MenuHost(obj)); }); };
-                item_more_emboss.Click += (obj, evt) => { RenderRun(() => { EmbossImage(MenuHost(obj)); }); };
-                item_more_morph.Click += (obj, evt) => { RenderRun(() => { MorphologyImage(MenuHost(obj)); }); };
+                item_more_oil.Click += (obj, evt) => { RenderRun(() => { OilImage(MenuHost(obj)); }, target); };
+                item_more_charcoal.Click += (obj, evt) => { RenderRun(() => { CharcoalImage(MenuHost(obj)); }, target); };
+                item_more_pencil.Click += (obj, evt) => { RenderRun(() => { PencilImage(MenuHost(obj)); }, target); };
+                item_more_edge.Click += (obj, evt) => { RenderRun(() => { EdgeImage(MenuHost(obj)); }, target); };
+                item_more_emboss.Click += (obj, evt) => { RenderRun(() => { EmbossImage(MenuHost(obj)); }, target); };
+                item_more_morph.Click += (obj, evt) => { RenderRun(() => { MorphologyImage(MenuHost(obj)); }, target); };
 
-                item_more_autoequalize.Click += (obj, evt) => { RenderRun(() => { AutoEqualizeImage(MenuHost(obj)); }); };
-                item_more_autoreducenoise.Click += (obj, evt) => { RenderRun(() => { ReduceNoiseImage(MenuHost(obj)); }); };
-                item_more_autoenhance.Click += (obj, evt) => { RenderRun(() => { AutoEnhanceImage(MenuHost(obj)); }); };
-                item_more_autolevel.Click += (obj, evt) => { RenderRun(() => { AutoLevelImage(MenuHost(obj)); }); };
-                item_more_autocontrast.Click += (obj, evt) => { RenderRun(() => { AutoContrastImage(MenuHost(obj)); }); };
-                item_more_autowhitebalance.Click += (obj, evt) => { RenderRun(() => { AutoWhiteBalanceImage(MenuHost(obj)); }); };
-                item_more_autogamma.Click += (obj, evt) => { RenderRun(() => { AutoGammaImage(MenuHost(obj)); }); };
+                item_more_autoequalize.Click += (obj, evt) => { RenderRun(() => { AutoEqualizeImage(MenuHost(obj)); }, target); };
+                item_more_autoreducenoise.Click += (obj, evt) => { RenderRun(() => { ReduceNoiseImage(MenuHost(obj)); }, target); };
+                item_more_autoenhance.Click += (obj, evt) => { RenderRun(() => { AutoEnhanceImage(MenuHost(obj)); }, target); };
+                item_more_autolevel.Click += (obj, evt) => { RenderRun(() => { AutoLevelImage(MenuHost(obj)); }, target); };
+                item_more_autocontrast.Click += (obj, evt) => { RenderRun(() => { AutoContrastImage(MenuHost(obj)); }, target); };
+                item_more_autowhitebalance.Click += (obj, evt) => { RenderRun(() => { AutoWhiteBalanceImage(MenuHost(obj)); }, target); };
+                item_more_autogamma.Click += (obj, evt) => { RenderRun(() => { AutoGammaImage(MenuHost(obj)); }, target); };
 
-                item_more_autovignette.Click += (obj, evt) => { RenderRun(() => { AutoVignetteImage(MenuHost(obj)); }); };
-                item_more_invert.Click += (obj, evt) => { RenderRun(() => { InvertImage(MenuHost(obj)); }); };
-                item_more_solarize.Click += (obj, evt) => { RenderRun(() => { SolarizeImage(MenuHost(obj)); }); };
-                item_more_polaroid.Click += (obj, evt) => { RenderRun(() => { PolaroidImage(MenuHost(obj)); }); };
-                item_more_posterize.Click += (obj, evt) => { RenderRun(() => { PosterizeImage(MenuHost(obj)); }); };
-                item_more_medianfilter.Click += (obj, evt) => { RenderRun(() => { MedianFilterImage(MenuHost(obj)); }); };
+                item_more_autovignette.Click += (obj, evt) => { RenderRun(() => { AutoVignetteImage(MenuHost(obj)); }, target); };
+                item_more_invert.Click += (obj, evt) => { RenderRun(() => { InvertImage(MenuHost(obj)); }, target); };
+                item_more_solarize.Click += (obj, evt) => { RenderRun(() => { SolarizeImage(MenuHost(obj)); }, target); };
+                item_more_polaroid.Click += (obj, evt) => { RenderRun(() => { PolaroidImage(MenuHost(obj)); }, target); };
+                item_more_posterize.Click += (obj, evt) => { RenderRun(() => { PosterizeImage(MenuHost(obj)); }, target); };
+                item_more_medianfilter.Click += (obj, evt) => { RenderRun(() => { MedianFilterImage(MenuHost(obj)); }, target); };
 
-                item_more_stereo.Click += (obj, evt) => { RenderRun(() => { StereoImage(MenuHost(obj)); }); };
-                item_more_blueshift.Click += (obj, evt) => { RenderRun(() => { BlueShiftImage(MenuHost(obj)); }); };
-                item_more_autothreshold.Click += (obj, evt) => { RenderRun(() => { AutoThresholdImage(MenuHost(obj)); }); };
-                item_more_remap.Click += (obj, evt) => { RenderRun(() => { RemapImage(MenuHost(obj)); }); };
-                item_more_clut.Click += (obj, evt) => { RenderRun(() => { ClutImage(MenuHost(obj)); }); };
-                item_more_haldclut.Click += (obj, evt) => { var shift = Keyboard.Modifiers == ModifierKeys.Shift; RenderRun(() => { HaldClutImage(MenuHost(obj), shift); }); };
+                item_more_stereo.Click += (obj, evt) => { RenderRun(() => { StereoImage(MenuHost(obj)); }, target); };
+                item_more_blueshift.Click += (obj, evt) => { RenderRun(() => { BlueShiftImage(MenuHost(obj)); }, target); };
+                item_more_autothreshold.Click += (obj, evt) => { RenderRun(() => { AutoThresholdImage(MenuHost(obj)); }, target); };
+                item_more_remap.Click += (obj, evt) => { RenderRun(() => { RemapImage(MenuHost(obj)); }, target); };
+                item_more_clut.Click += (obj, evt) => { RenderRun(() => { ClutImage(MenuHost(obj)); }, target); };
+                item_more_haldclut.Click += (obj, evt) => { var shift = Keyboard.Modifiers == ModifierKeys.Shift; RenderRun(() => { HaldClutImage(MenuHost(obj), shift); }, target); };
 
-                item_more_meanshift.Click += (obj, evt) => { RenderRun(() => { MeanShiftImage(MenuHost(obj)); }); };
-                item_more_kmeans.Click += (obj, evt) => { RenderRun(() => { KmeansImage(MenuHost(obj)); }); };
-                item_more_segment.Click += (obj, evt) => { RenderRun(() => { SegmentImage(MenuHost(obj)); }); };
-                item_more_quantize.Click += (obj, evt) => { RenderRun(() => { QuantizeImage(MenuHost(obj)); }); };
+                item_more_meanshift.Click += (obj, evt) => { RenderRun(() => { MeanShiftImage(MenuHost(obj)); }, target); };
+                item_more_kmeans.Click += (obj, evt) => { RenderRun(() => { KmeansImage(MenuHost(obj)); }, target); };
+                item_more_segment.Click += (obj, evt) => { RenderRun(() => { SegmentImage(MenuHost(obj)); }, target); };
+                item_more_quantize.Click += (obj, evt) => { RenderRun(() => { QuantizeImage(MenuHost(obj)); }, target); };
 
-                item_more_fillflood.Click += (obj, evt) => { RenderRun(() => { FillOutBoundBoxImage(MenuHost(obj)); }); };
-                item_more_setalphatocolor.Click += (obj, evt) => { RenderRun(() => { SetAlphaToColorImage(MenuHost(obj)); }); };
-                item_more_setcolortoalpha.Click += (obj, evt) => { RenderRun(() => { SetColorToAlphaImage(MenuHost(obj)); }); };
-                item_more_createcolorimage.Click += (obj, evt) => { var shift = Keyboard.Modifiers == ModifierKeys.Shift; RenderRun(() => { CreateColorImage(MenuHost(obj), shift); }); };
+                item_more_fillflood.Click += (obj, evt) => { RenderRun(() => { FillOutBoundBoxImage(MenuHost(obj)); }, target); };
+                item_more_setalphatocolor.Click += (obj, evt) => { RenderRun(() => { SetAlphaToColorImage(MenuHost(obj)); }, target); };
+                item_more_setcolortoalpha.Click += (obj, evt) => { RenderRun(() => { SetColorToAlphaImage(MenuHost(obj)); }, target); };
+                item_more_createcolorimage.Click += (obj, evt) => { var shift = Keyboard.Modifiers == ModifierKeys.Shift; RenderRun(() => { CreateColorImage(MenuHost(obj), shift); }, target); };
                 #endregion
                 #region Add MoreEffects MenuItems to MoreEffects
                 item_more.Items.Add(item_more_autoenhance);
@@ -2480,7 +2531,7 @@ namespace ImageCompare
                 {
                     element.ToolTip = null;
                 }
-                if (AutoHideToolTip ?? false) ToolTipService.SetShowDuration(element, ToolTipDuration);
+                ToolTipService.SetShowDuration(element, AutoHideToolTip ?? false ? ToolTipDuration : int.MaxValue);
             });
         }
 
@@ -3018,8 +3069,7 @@ namespace ImageCompare
                     }
                     else if (e.Key == Key.M || e.SystemKey == Key.M)
                     {
-                        Magnifier.IsChecked = !Magnifier.IsChecked;
-                        ImageActions_Click(Magnifier, e);
+                        ToggleMagnifierState(change_state: true);
                     }
 
                     _last_key_ = e.Key;
@@ -3363,10 +3413,12 @@ namespace ImageCompare
             else if (sender == ImageDenoiseResult)
             {
                 var shift = Keyboard.Modifiers == ModifierKeys.Shift;
-                RenderRun(new Action(() =>
+                RenderRun(new Action(async () =>
                 {
-                    ImageResult.GetInformation().Denoise(WeakEffects ? 3 : 5, more: shift);
+                    IsProcessingResult = true;
+                    var ret = await ImageResult.GetInformation().Denoise(WeakEffects ? 3 : 5, more: shift);
                     ImageResult.GetInformation().DenoiseCount++;
+                    if (ret) IsProcessingResult = false;
                 }));
             }
             else if (sender == ImageCopyResult)
@@ -3392,19 +3444,9 @@ namespace ImageCompare
                     ViewerPanel.Orientation = Orientation.Horizontal;
                 CalcDisplay();
             }
-            else if (sender == Magnifier)
+            else if (sender == MagnifierMode)
             {
-                var mag = Magnifier.IsChecked ?? false;
-                ImageMagnifier.Visibility = mag ? Visibility.Visible : Visibility.Collapsed;
-                ToolTipService.SetIsEnabled(ImageSource, !mag);
-                ToolTipService.SetIsEnabled(ImageTarget, !mag);
-                ToolTipService.SetIsEnabled(ImageResult, !mag);
-                if (mag)
-                {
-                    CloseToolTip(ImageSource);
-                    CloseToolTip(ImageTarget);
-                    CloseToolTip(ImageResult);
-                }
+                ToggleMagnifierState();
             }
             else if (sender == ZoomFitNone)
             {
@@ -3483,16 +3525,9 @@ namespace ImageCompare
                 e.Handled = true;
 
                 if (!CompareImageAutoMatchSize && !old_align.Equals(DefaultMatchAlign))
-                {
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false));
-                    //switch (LastMatchedImage)
-                    //{
-                    //    case ImageType.Source: RenderRun(() => { ResizeToImage(false, reset: true, align: DefaultMatchAlign); }); break;
-                    //    case ImageType.Target: RenderRun(() => { ResizeToImage(true, reset: true, align: DefaultMatchAlign); }); break;
-                    //    default: break;
-                    //}
-                }
-                else if (!LastOpIsComposite && CompareImageAutoMatchSize) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
+                else if (!LastOpIsComposite && CompareImageAutoMatchSize) 
+                    RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
             }
         }
         #endregion

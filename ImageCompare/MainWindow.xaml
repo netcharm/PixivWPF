@@ -321,7 +321,7 @@
                     <TextBlock x:Uid="AutoComparePanelIcon" Text="&#xE102;" Style="{DynamicResource MenuItemIcon}" />
                 </StackPanel>
             </ToggleButton>
-            <ToggleButton x:Name="Magnifier" x:Uid="Magnifier" IsChecked="False" ToolBar.OverflowMode="Never"
+            <ToggleButton x:Name="MagnifierMode" x:Uid="Magnifier" IsChecked="False" ToolBar.OverflowMode="Never"
                           ToolTip="Image Magnifier" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="MagnifierPanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="MagnifierPanelIcon" Text="&#xE1A3;" Style="{DynamicResource MenuItemIcon}" />
@@ -437,7 +437,7 @@
                         </Viewbox.LayoutTransform>
                     </Viewbox>
                 </ScrollViewer>
-                <xctk:BusyIndicator x:Uid="LoadingIndicator" x:Name="LoadingResult"  BusyContent="Loading ..." Background="Transparent"
+                <xctk:BusyIndicator x:Uid="LoadingIndicator" x:Name="IndicatorResult"  BusyContent="Loading ..." Background="Transparent"
                     HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" />
             </Grid>
             <!-- Image Target Preview -->
