@@ -1030,7 +1030,6 @@ namespace ImageCompare
                                     if (reload_type == ImageType.All || reload_type == ImageType.Target)
                                     {
                                         if (image_t.CurrentSize.Width != image_t.OriginalSize.Width || image_t.CurrentSize.Height != image_t.OriginalSize.Height)
-
                                             await image_t.Reload(reset: true);
                                     }
                                 }
@@ -1097,22 +1096,26 @@ namespace ImageCompare
                                 if (reload_type == ImageType.All || reload_type == ImageType.Source)
                                 {
                                     ImageSource.Source = image_s.Source;
-                                    IsLoadingSource = false;
 
                                     var tooltip_s = image_s.ValidCurrent ? WaitingString : null;
                                     SetToolTip(ImageSource, tooltip_s);
+
+                                    IsLoadingSource = false;
                                 }
 
                                 if (reload_type == ImageType.All || reload_type == ImageType.Target)
                                 {
                                     ImageTarget.Source = image_t.Source;
-                                    IsLoadingTarget = false;
 
                                     var tooltip_t = image_t.ValidCurrent ? WaitingString : null;
                                     SetToolTip(ImageTarget, tooltip_t);
+
+                                    IsLoadingTarget = false;
                                 }
 
                                 if (autocompare) ImageResult.Source = null;
+
+                                DoEvents();
                             }, DispatcherPriority.Normal);
                         }
                         catch (Exception ex) { ex.ShowMessage(); }
@@ -1134,12 +1137,15 @@ namespace ImageCompare
                         await Dispatcher.InvokeAsync(() =>
                         {
                             ImageResult.Source = image_r.Source;
-                            IsBusy = false;
 
                             var tooltip_r = image_r.ValidCurrent ? WaitingString : null;
                             SetToolTip(ImageResult, tooltip_r);
+
+                            IsLoadingResult = false;
+                            IsBusy = false;
+
+                            DoEvents();
                         }, DispatcherPriority.Normal);
-                        IsLoadingResult = false;
                     }
                     CalcDisplay(set_ratio: false);
                 }
@@ -1152,6 +1158,8 @@ namespace ImageCompare
                     IsLoadingTarget = false;
                     IsLoadingResult = false;
                     IsBusy = false;
+
+                    DoEvents();
 
                     if (_CanUpdate_ is SemaphoreSlim && _CanUpdate_.CurrentCount < 1) _CanUpdate_.Release();
                 }

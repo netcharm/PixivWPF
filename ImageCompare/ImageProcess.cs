@@ -236,9 +236,17 @@ namespace ImageCompare
                 var action = false;
                 var size = UseSmallImage ? MaxCompareSize : -1;
                 if (source)
+                {
+                    IsBusy = true;
+                    IsProcessingSource = true;
                     action = await ImageSource.GetInformation().Reset(size);
+                }
                 else
+                {
+                    IsBusy = true;
+                    IsProcessingTarget = true;
                     action = await ImageTarget.GetInformation().Reset(size);
+                }
 
                 LastMatchedImage = ImageType.None;
 
