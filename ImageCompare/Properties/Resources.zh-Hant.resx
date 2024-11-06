@@ -643,13 +643,13 @@
     <value>關聯縮放</value>
   </data>
   <data name="LoadingIndicator.BusyContent" xml:space="preserve">
-    <value>正在載入檔案中...</value>
+    <value>正在載入影像中...</value>
   </data>
   <data name="LoadingIndicatorTitle" xml:space="preserve">
-    <value>正在載入檔案中...</value>
+    <value>正在載入影像中...</value>
   </data>
   <data name="SavingIndicatorTitle" xml:space="preserve">
-    <value>正在儲存檔案中...</value>
+    <value>正在儲存影像中...</value>
   </data>
   <data name="ProcessingIndicatorTitle" xml:space="preserve">
     <value>正在處理影像中...</value>

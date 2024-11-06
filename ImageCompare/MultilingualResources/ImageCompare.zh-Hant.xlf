@@ -381,11 +381,11 @@
         </trans-unit>
         <trans-unit id="LoadingIndicator.BusyContent" translate="yes" xml:space="preserve">
           <source>Loading ...</source>
-          <target state="new">正在載入檔案中...</target>
+          <target state="new">正在載入影像中...</target>
         </trans-unit>
         <trans-unit id="LoadingIndicatorTitle" translate="yes" xml:space="preserve">
           <source>Loading ...</source>
-          <target state="new">正在載入檔案中...</target>
+          <target state="new">正在載入影像中...</target>
         </trans-unit>
         <trans-unit id="LowlightColorPick.AdvancedTabHeader" translate="yes" xml:space="preserve">
           <source>Advanced</source>
@@ -601,7 +601,7 @@
         </trans-unit>
         <trans-unit id="SavingIndicatorTitle" translate="yes" xml:space="preserve">
           <source>Saving ...</source>
-          <target state="new">正在儲存檔案中...</target>
+          <target state="new">正在儲存影像中...</target>
         </trans-unit>
         <trans-unit id="Segment.Header" translate="yes" xml:space="preserve">
           <source>Segment</source>

@@ -643,13 +643,13 @@
     <value>連想スケーリング</value>
   </data>
   <data name="LoadingIndicator.BusyContent" xml:space="preserve">
-    <value>ドキュメントを読み込む...</value>
+    <value>画像を読み込む...</value>
   </data>
   <data name="LoadingIndicatorTitle" xml:space="preserve">
-    <value>ドキュメントを読み込む...</value>
+    <value>画像を読み込む...</value>
   </data>
   <data name="SavingIndicatorTitle" xml:space="preserve">
-    <value>ファイルの保存...</value>
+    <value>画像の保存...</value>
   </data>
   <data name="ProcessingIndicatorTitle" xml:space="preserve">
     <value>画像を処理する...</value>
