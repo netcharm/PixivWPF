@@ -1254,6 +1254,11 @@ namespace ImageCompare
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 ret = await image.LoadImageFromPrevFile();
                 if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: source ? ImageType.Source : ImageType.Target));
+                else
+                {
+                    if (source) IsLoadingSource = false;
+                    else IsLoadingTarget = false;
+                }
             }
             catch (Exception ex) { ex.ShowMessage(); }
             return (ret);
@@ -1270,6 +1275,11 @@ namespace ImageCompare
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 ret = await image.LoadImageFromNextFile();
                 if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: source ? ImageType.Source : ImageType.Target));
+                else
+                {
+                    if (source) IsLoadingSource = false;
+                    else IsLoadingTarget = false;
+                }
             }
             catch (Exception ex) { ex.ShowMessage(); }
             return (ret);
@@ -1323,6 +1333,11 @@ namespace ImageCompare
                         action |= await image.LoadImageFromFile(file_s);
                     }
                     if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: load_type));
+                    else
+                    {
+                        if (load_type == ImageType.Source) IsLoadingSource = false;
+                        if (load_type == ImageType.Target) IsLoadingTarget = false;
+                    }
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
