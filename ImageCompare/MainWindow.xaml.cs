@@ -8,6 +8,7 @@ using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Resources;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -107,60 +108,90 @@ namespace ImageCompare
         private string SavingWaitingStr = string.Empty;
         private string ProcessingWaitingStr = string.Empty;
 
+        /// <summary>
+        /// 
+        /// </summary>
         private bool IsLoadingSource
         {
             get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorSource.IsBusy); });
             set => BusyNow.Dispatcher.Invoke(() => { IndicatorSource.BusyContent = LoadingWaitingStr; IndicatorSource.IsBusy = value; DoEvents(); });
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private bool IsLoadingTarget
         {
             get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorTarget.IsBusy); });
             set => BusyNow.Dispatcher.Invoke(() => { IndicatorTarget.BusyContent = LoadingWaitingStr; IndicatorTarget.IsBusy = value; DoEvents(); });
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private bool IsLoadingResult
         {
             get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorResult.IsBusy); });
             set => BusyNow.Dispatcher.Invoke(() => { IndicatorResult.BusyContent = LoadingWaitingStr; IndicatorResult.IsBusy = value; DoEvents(); });
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private bool IsSavingSource
         {
             get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorSource.IsBusy); });
             set => BusyNow.Dispatcher.Invoke(() => { IndicatorSource.BusyContent = SavingWaitingStr; IndicatorSource.IsBusy = value; DoEvents(); });
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private bool IsSavingTarget
         {
             get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorTarget.IsBusy); });
             set => BusyNow.Dispatcher.Invoke(() => { IndicatorTarget.BusyContent = SavingWaitingStr; IndicatorTarget.IsBusy = value; DoEvents(); });
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private bool IsSavingResult
         {
             get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorResult.IsBusy); });
             set => BusyNow.Dispatcher.Invoke(() => { IndicatorResult.BusyContent = SavingWaitingStr; IndicatorResult.IsBusy = value; DoEvents(); });
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private bool IsProcessingSource
         {
             get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorSource.IsBusy); });
             set => BusyNow.Dispatcher.Invoke(() => { IndicatorSource.BusyContent = ProcessingWaitingStr; IndicatorSource.IsBusy = value; DoEvents(); });
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private bool IsProcessingTarget
         {
             get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorTarget.IsBusy); });
             set => BusyNow.Dispatcher.Invoke(() => { IndicatorTarget.BusyContent = ProcessingWaitingStr; IndicatorTarget.IsBusy = value; DoEvents(); });
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private bool IsProcessingResult
         {
             get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorResult.IsBusy); });
             set => BusyNow.Dispatcher.Invoke(() => { IndicatorResult.BusyContent = ProcessingWaitingStr; IndicatorResult.IsBusy = value; DoEvents(); });
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private bool IsExchanged
         {
             get => ImageExchange.Dispatcher.Invoke(() => { return (ImageExchange.IsChecked ?? false); });
@@ -441,11 +472,18 @@ namespace ImageCompare
         private double ZoomMin = 0.1;
         private double ZoomMax = 10.0;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="topmost"></param>
         public void TopMostWindow(bool? topmost)
         {
             if (IsLoaded) Topmost = topmost ?? false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void ChangeTheme()
         {
             try
@@ -471,6 +509,11 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="font"></param>
+        /// <param name="fonts"></param>
         public void ChangeResourceFonts(FontFamily font = null, string fonts = "")
         {
             var customfamilies = new Dictionary<string, FontFamily>() {
@@ -500,11 +543,18 @@ namespace ImageCompare
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void GetColorNames()
         {
             typeof(Colors).GetProperties();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         private Point GetSystemDPI()
         {
             var result = new Point(96, 96);
@@ -521,11 +571,21 @@ namespace ImageCompare
             return (result);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="color"></param>
+        /// <returns></returns>
         private string ColorToHex(Color color)
         {
             return ($"#{color.A:X2}{color.R:X2}{color.G:X2}{color.B:X2}");
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="picker"></param>
+        /// <returns></returns>
         private IList<Color> GetRecentColors(ColorPicker picker)
         {
             var result = new List<Color>();
@@ -536,6 +596,11 @@ namespace ImageCompare
             return (result);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="picker"></param>
+        /// <returns></returns>
         private IList<string> GetRecentHexColors(ColorPicker picker)
         {
             var result = new List<string>();
@@ -546,6 +611,11 @@ namespace ImageCompare
             return (result);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="picker"></param>
+        /// <param name="colors"></param>
         private void SetRecentColors(ColorPicker picker, IEnumerable<Color> colors)
         {
             if (colors is IEnumerable<Color> && colors.Count() > 0)
@@ -570,6 +640,11 @@ namespace ImageCompare
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="picker"></param>
+        /// <param name="colors"></param>
         private void SetRecentColors(ColorPicker picker, IEnumerable<string> colors)
         {
             if (colors is IEnumerable<string> && colors.Count() > 0)
@@ -578,6 +653,9 @@ namespace ImageCompare
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void SyncColorLighting()
         {
             if (IsLoaded)
@@ -600,6 +678,11 @@ namespace ImageCompare
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <returns></returns>
         private Point GetScrollOffset(FrameworkElement sender)
         {
             double offset_x = -1, offset_y = -1;
@@ -630,6 +713,12 @@ namespace ImageCompare
             return (new Point(offset_x, offset_y));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
         private Point CalcScrollOffset(FrameworkElement sender, MouseEventArgs e)
         {
             double offset_x = -1, offset_y = -1;
@@ -666,6 +755,10 @@ namespace ImageCompare
             return (new Point(offset_x, offset_y));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="offset"></param>
         private void SyncScrollOffset(Point offset)
         {
             Dispatcher.Invoke(() =>
@@ -685,6 +778,10 @@ namespace ImageCompare
             });
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="set_ratio"></param>
         private void CalcDisplay(bool set_ratio = true)
         {
             try
@@ -777,6 +874,9 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void CalcZoomRatio()
         {
             try
@@ -850,6 +950,13 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="dst"></param>
+        /// <param name="align"></param>
+        /// <param name="mask"></param>
         private void MatchImageSize(ImageInformation src, ImageInformation dst, Gravity align = Gravity.Center, MagickColor mask = null)
         {
             if (src is ImageInformation && dst is ImageInformation && src.ValidCurrent && dst.ValidCurrent)
@@ -897,6 +1004,11 @@ namespace ImageCompare
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
         private Image GetImageControl(FrameworkElement element)
         {
             Image result = null;
@@ -915,6 +1027,10 @@ namespace ImageCompare
             return (result);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="change_state"></param>
         private void ToggleMagnifierState(bool change_state = false)
         {
             MagnifierMode.Dispatcher.Invoke(() => 
@@ -935,6 +1051,14 @@ namespace ImageCompare
             });
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="compose"></param>
+        /// <param name="assign"></param>
+        /// <param name="reload"></param>
+        /// <param name="reload_type"></param>
+        /// <param name="autocompare"></param>
         private async void UpdateImageViewer(bool compose = false, bool assign = false, bool reload = true, ImageType reload_type = ImageType.All, bool autocompare = false)
         {
             var loaded = await Dispatcher.InvokeAsync(() => IsLoaded);
@@ -1135,6 +1259,10 @@ namespace ImageCompare
         #endregion
 
         #region Image Load/Save Helper
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="hald"></param>
         private void LoadHaldLutFile(string hald = null)
         {
             if (string.IsNullOrEmpty(hald))
@@ -1167,6 +1295,10 @@ namespace ImageCompare
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
         private void CopyImageFromResult(bool source = true)
         {
             try
@@ -1188,6 +1320,10 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
         private void CopyImageToOpposite(bool source = true)
         {
             try
@@ -1210,6 +1346,43 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        private async Task<bool> SaveImageAs(bool source)
+        {
+            var result = false;
+            var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+            if (source)
+            {
+                IsSavingSource = true;
+                result = await Task.Run(() =>
+                {
+                    var ret = ImageSource.GetInformation().Save(overwrite: ctrl);
+                    IsSavingSource = false;
+                    return (ret);
+                });
+            }
+            else
+            {
+                IsSavingTarget = true;
+                result = await Task.Run(() =>
+                {
+                    var ret = ImageTarget.GetInformation().Save(overwrite: ctrl);
+                    IsSavingTarget = false;
+                    return (ret);
+                });
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
         private async Task<bool> LoadImageFromPrevFile(bool source = true)
         {
             var ret = false;
@@ -1231,6 +1404,11 @@ namespace ImageCompare
             return (ret);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
         private async Task<bool> LoadImageFromNextFile(bool source = true)
         {
             var ret = false;
@@ -1252,16 +1430,17 @@ namespace ImageCompare
             return (ret);
         }
 
-        protected internal void LoadImageFromFiles(IEnumerable<string> files, bool? source = null)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="files"></param>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        private async Task<bool> LoadImageFromFiles(string[] files, bool? source = null)
         {
-            LoadImageFromFiles(files.ToArray(), source);
-        }
-
-        private async void LoadImageFromFiles(string[] files, bool? source = null)
-        {
+            var action = false;
             try
-            {
-                var action = false;
+            {                
                 files = files.Select(f => f.Trim()).Where(f => !string.IsNullOrEmpty(f)).Where(f => Extensions.AllSupportedFormats.Keys.ToList().Select(e => $".{e.ToLower()}").ToList().Contains(Path.GetExtension(f).ToLower())).ToArray();
                 var count = files.Length;
                 if (count > 0)
@@ -1308,28 +1487,25 @@ namespace ImageCompare
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
+            return (action);
         }
 
-        private void SaveImageAs(bool source)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="files"></param>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        protected internal async Task<bool> LoadImageFromFiles(IEnumerable<string> files, bool? source = null)
         {
-            var ret = false;
-            var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
-            if (source)
-            {
-                IsSavingSource = true;
-                ret = ImageSource.GetInformation().Save(overwrite: ctrl);
-                IsSavingSource = false;
-            }
-            else
-            {
-                IsSavingTarget = true;
-                ret = ImageTarget.GetInformation().Save(overwrite: ctrl);
-                IsSavingTarget = true;
-            }
+            return (await LoadImageFromFiles(files.ToArray(), source));
         }
         #endregion
 
         #region Config Load/Save Helper
+        /// <summary>
+        /// 
+        /// </summary>
         private void LoadConfig()
         {
             Configuration appCfg =  ConfigurationManager.OpenExeConfiguration(AppExec);
@@ -1566,6 +1742,10 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="force"></param>
         private void SaveConfig(bool force = false)
         {
             try
@@ -1757,6 +1937,9 @@ namespace ImageCompare
         #endregion
 
         #region UI Helper
+        /// <summary>
+        /// 
+        /// </summary>
         private void RestoreWindowLocationSize()
         {
             Top = LastPositionSize.Top;
@@ -1765,11 +1948,18 @@ namespace ImageCompare
             Height = Math.Min(MaxHeight, Math.Max(MinHeight, LastPositionSize.Height));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void RestoreWindowState()
         {
             if (IsLoaded && LastWinState == System.Windows.WindowState.Maximized) WindowState = LastWinState;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="culture"></param>
         private void LocaleUI(CultureInfo culture = null)
         {
             var lang = (culture ?? CultureInfo.CurrentCulture).IetfLanguageTag;
@@ -1804,6 +1994,10 @@ namespace ImageCompare
             #endregion
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="target"></param>
         private void CreateImageOpMenu(FrameworkElement target)
         {
             //bool source = target == ImageSource ? true : false;
@@ -2464,6 +2658,10 @@ namespace ImageCompare
             target.ContextMenu.ItemsSource = new ObservableCollection<FrameworkElement>(items);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="orientation"></param>
         private void ChangeLayout(Orientation orientation)
         {
             switch (orientation)
@@ -2474,6 +2672,11 @@ namespace ImageCompare
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
         private string GetToolTip(FrameworkElement element)
         {
             var result = string.Empty;
@@ -2488,6 +2691,11 @@ namespace ImageCompare
             return (result);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="tooltip"></param>
         private void SetToolTip(FrameworkElement element, string tooltip)
         {
             Dispatcher.Invoke(() =>
@@ -2512,6 +2720,10 @@ namespace ImageCompare
             });
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
         private void OpenToolTip(FrameworkElement element)
         {
             try
@@ -2528,6 +2740,10 @@ namespace ImageCompare
             catch { }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
         private void CloseToolTip(FrameworkElement element)
         {
             try
@@ -2544,6 +2760,10 @@ namespace ImageCompare
             catch { }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="cursor"></param>
         private void SetCursor(Cursor cursor)
         {
             try
@@ -2557,6 +2777,10 @@ namespace ImageCompare
             catch { }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         private Cursor SetBusy()
         {
             var result = Cursor;
@@ -2564,6 +2788,10 @@ namespace ImageCompare
             return (result);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         private Cursor SetIdle()
         {
             var result = Cursor;
@@ -2576,6 +2804,9 @@ namespace ImageCompare
         private const ulong MB = 1024 * 1024;
         private const ulong KB = 1024;
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void InitMagickNet()
         {
             #region Magick.Net Default Settings
@@ -3106,7 +3337,7 @@ namespace ImageCompare
                     action |= await LoadImageFromPrevFile(false);
 
                 if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload_type: reload_type));
-            }
+            } 
             else ImageBox_MouseDown(sender, e);
         }
         #endregion
@@ -3132,7 +3363,12 @@ namespace ImageCompare
             {
                 if (e.Device is MouseDevice)
                 {
-                    if (e.ChangedButton == MouseButton.Left)
+                    if (e.ChangedButton == MouseButton.Left && e.ClickCount >= 2)
+                    {
+                        e.Handled = true;
+                        ToggleMagnifierState(change_state: true);
+                    }
+                    else if(e.ChangedButton == MouseButton.Left)
                     {
                         var image_s = ImageSource.GetInformation();
                         var image_t = ImageTarget.GetInformation();
