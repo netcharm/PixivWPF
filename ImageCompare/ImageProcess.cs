@@ -115,6 +115,12 @@ namespace ImageCompare
                     var src = source ? ImageSource : ImageTarget;
                     var tooltip = await src.GetInformation().GetImageInfo(include_colorinfo: true);
                     SetToolTip(src, tooltip);
+
+                    if (source) IsProcessingSource = false;
+                    else IsProcessingTarget = false;
+                    IsBusy = false;
+
+                    DoEvents();
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             });

@@ -796,8 +796,8 @@ namespace ImageCompare
         public static async Task<int> CalcTotalColors(this MagickImage image)
         {
             var result = 0;
-            Func<int> GetColorsCount = () => { return ((image is MagickImage) ? image.TotalColors : 0);};
-            result = await Application.Current.Dispatcher.InvokeAsync<int>(GetColorsCount, DispatcherPriority.Background);
+            Func<int> GetColorsCount = () => { return ((image is MagickImage) ? image.TotalColors : 0); };
+            result = await Task.Run(GetColorsCount);
             return (result);
         }
 

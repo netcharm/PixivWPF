@@ -2474,19 +2474,6 @@ namespace ImageCompare
             }
         }
 
-        private void SetCursor(Cursor cursor)
-        {
-            try
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    Cursor = cursor;
-                    DoEvents();
-                });
-            }
-            catch { }
-        }
-
         private string GetToolTip(FrameworkElement element)
         {
             var result = string.Empty;
@@ -2553,6 +2540,19 @@ namespace ImageCompare
                 {
                     Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).IsOpen = false);
                 }
+            }
+            catch { }
+        }
+
+        private void SetCursor(Cursor cursor)
+        {
+            try
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    Cursor = cursor;
+                    DoEvents();
+                });
             }
             catch { }
         }
