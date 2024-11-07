@@ -435,7 +435,7 @@ namespace ImageCompare
                 {
                     element.DoEvents();
                     await Task.Delay(1);
-                    await element.Dispatcher.InvokeAsync(action, realtime ? DispatcherPriority.Render : DispatcherPriority.Background);
+                    await element.Dispatcher.InvokeAsync(action, realtime ? DispatcherPriority.Normal : DispatcherPriority.Background);
                 }
             }
             catch { }
@@ -619,11 +619,6 @@ namespace ImageCompare
             return (encoding.GetString(ByteStringToBytes(text)));
         }
 
-        public static bool IsValidRead(this MagickImage image)
-        {
-            return (image is MagickImage && MagickFormatInfo.Create(image.Format).SupportsReading);
-        }
-
         public static string GetAttributes(this MagickImage image, string attr)
         {
             string result = null;
@@ -783,15 +778,20 @@ namespace ImageCompare
 
         public static bool Valid(this MagickImage image)
         {
-            return (image is MagickImage);
+            return (image is MagickImage && image.Width > 0 && image.Height > 0);
         }
 
         public static bool Invalided(this MagickImage image)
         {
-            return (image == null);
+            return (image == null || image.Width == 0 || image.Height == 0);
         }
 
-        public static Func<MagickImage, int> FuncTotalColors = (i)=> { return ((i is MagickImage) ? i.TotalColors : 0); };
+        public static bool IsValidRead(this MagickImage image)
+        {
+            return (image is MagickImage && MagickFormatInfo.Create(image.Format).SupportsReading);
+        }
+
+        public static Func<MagickImage, int> FuncTotalColors = (i) => { return ((i is MagickImage) ? i.TotalColors : 0); };
 
         public static async Task<int> CalcTotalColors(this MagickImage image)
         {
