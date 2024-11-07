@@ -2296,7 +2296,7 @@ namespace ImageCompare
                 item_colorcalc.Click += (obj, evt) => { RenderRun(() => { CalcImageColors(MenuHost(obj)); }, target); };
                 item_copyinfo.Click += (obj, evt) => { RenderRun(() => { CopyImageInfo(MenuHost(obj)); }, target); };
                 item_copyimage.Click += (obj, evt) => { RenderRun(() => { CopyImage(MenuHost(obj)); }, target); };
-                item_saveas.Click += (obj, evt) => { SaveImageAs(MenuHost(obj)); };
+                item_saveas.Click += async (obj, evt) => await SaveImageAs(MenuHost(obj));
                 #endregion
                 #region Add MenuItems to ContextMenu
                 items.Add(item_fh);
@@ -2647,7 +2647,6 @@ namespace ImageCompare
                 {
                     if (item is MenuItem) (item as MenuItem).Items.Clear();
                 }
-                //target.ContextMenu.Items.Clear();
             }
             else
             {
@@ -3077,7 +3076,7 @@ namespace ImageCompare
             DoEvents();
 
             var args = Environment.GetCommandLineArgs();
-            if (args.Length > 1) LoadImageFromFiles(args.Skip(1).ToArray());
+            if (args.Length > 1) Dispatcher.InvokeAsync(async () => await LoadImageFromFiles(args.Skip(1).ToArray()));
         }
 
         private void Window_Unloaded(object sender, RoutedEventArgs e)
@@ -3141,7 +3140,7 @@ namespace ImageCompare
                     if (sender == ImageLoadHaldLut)
                         LoadHaldLutFile((files as IEnumerable<string>).Where(f => File.Exists(f)).First());
                     else
-                        LoadImageFromFiles((files as IEnumerable<string>).ToArray(), e.Source == ImageSourceScroll || e.Source == ImageSource);
+                        Dispatcher.InvokeAsync(async () => await LoadImageFromFiles((files as IEnumerable<string>).ToArray(), e.Source == ImageSourceScroll || e.Source == ImageSource));
                 }
             }
             else if (e.Data.GetDataPresent("Text"))
@@ -3152,7 +3151,7 @@ namespace ImageCompare
                     if (sender == ImageLoadHaldLut)
                         LoadHaldLutFile(files.Where(f => File.Exists(f)).First());
                     else
-                        LoadImageFromFiles(files as IEnumerable<string>, e.Source == ImageSourceScroll || e.Source == ImageSource);
+                        Dispatcher.InvokeAsync(async () => await LoadImageFromFiles(files as IEnumerable<string>, e.Source == ImageSourceScroll || e.Source == ImageSource));
                 }
             }
             e.Handled = true;

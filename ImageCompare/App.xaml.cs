@@ -143,11 +143,11 @@ namespace ImageCompare
                                             Current?.Dispatcher.Invoke(() => { Current?.MainWindow?.Activate(); });
                                         else if (content.Command.Equals("compare", StringComparison.CurrentCultureIgnoreCase))
                                         {
-                                            Current?.Dispatcher.Invoke(() =>
+                                            Current?.Dispatcher.Invoke(async () =>
                                             {
                                                 if (Current?.MainWindow is MainWindow && content.Args.Length > 0)
                                                 {
-                                                    (Current?.MainWindow as MainWindow).LoadImageFromFiles(content.Args);
+                                                    await (Current?.MainWindow as MainWindow).LoadImageFromFiles(content.Args);
                                                 }
                                             });
                                         }
