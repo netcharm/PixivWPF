@@ -342,10 +342,10 @@ namespace ImageCompare
                         {
                             IsBusy = true;
                             action.Invoke();
-                            if (IsProcessingSource) IsProcessingSource = false;
-                            if (IsProcessingTarget) IsProcessingTarget = false;
-                            if (IsProcessingResult) IsProcessingResult = false;
-                            IsBusy = false;
+                            //if (IsProcessingSource) IsProcessingSource = false;
+                            //if (IsProcessingTarget) IsProcessingTarget = false;
+                            //if (IsProcessingResult) IsProcessingResult = false;
+                            //IsBusy = false;
                         });
                         LastAction = action;
                     }
@@ -725,26 +725,6 @@ namespace ImageCompare
                     ImageTargetScroll.MaxHeight = h;
                     ImageResultScroll.MaxWidth = w;
                     ImageResultScroll.MaxHeight = h;
-
-                    //if (w <= 0 || h <= 0)
-                    //{
-                    //    LoadingSource.HorizontalAlignment = HorizontalAlignment.Center;
-                    //    LoadingSource.VerticalAlignment = VerticalAlignment.Center;
-                    //    LoadingSource.Margin = new Thickness(0);
-                    //    LoadingTarget.HorizontalAlignment = HorizontalAlignment.Center;
-                    //    LoadingTarget.VerticalAlignment = VerticalAlignment.Center;
-                    //    LoadingTarget.Margin = new Thickness(0);
-                    //}
-                    //else
-                    //{
-                    //    LoadingSource.HorizontalAlignment = HorizontalAlignment.Left;
-                    //    LoadingSource.VerticalAlignment = VerticalAlignment.Top;
-                    //    LoadingSource.Margin = new Thickness((w - LoadingSource.ActualWidth) / 2, (h - LoadingSource.ActualHeight) / 2, 0, 0);
-                    //    LoadingTarget.HorizontalAlignment = HorizontalAlignment.Left;
-                    //    LoadingTarget.VerticalAlignment = VerticalAlignment.Top;
-                    //    LoadingTarget.Margin = new Thickness((w - LoadingTarget.ActualWidth) / 2, (h - LoadingTarget.ActualHeight) / 2, 0, 0);
-                    //}
-
                     #endregion
 
                     if (ZoomFitAll.IsChecked ?? false)
@@ -822,29 +802,16 @@ namespace ImageCompare
 
                     if (ZoomFitAll.IsChecked ?? false)
                     {
-                        //ZoomRatio.Value = 1;
                         ZoomRatio.Minimum = ZoomMin;
-                        //if (scroll.ActualHeight < height && scroll.ActualWidth < width)
-                        //{
-                        //    ZoomRatioValue.Text = $"{Math.Min(scroll.ActualHeight / height, scroll.ActualWidth / width):F2}X";
-                        //}
-                        //else ZoomRatioValue.Text = $"{ZoomRatio.Value:F2}X";
                     }
                     else if (ZoomFitNone.IsChecked ?? false)
                     {
-                        //ZoomRatio.Value = 1;
                         ZoomRatio.Minimum = ZoomMin;
-                        //if (scroll.ActualHeight < height && scroll.ActualWidth < width)
-                        //{
-                        //    ZoomRatioValue.Text = $"{Math.Min(scroll.ActualHeight / height, scroll.ActualWidth / width):F2}X";
-                        //}
-                        //else ZoomRatioValue.Text = $"{ZoomRatio.Value:F2}";
                     }
                     else if (ZoomFitWidth.IsChecked ?? false)
                     {
                         if (scroll.ActualWidth > width)
                         {
-                            //ZoomRatioValue.Text = $"{Math.Min(scroll.ActualHeight / height, scroll.ActualWidth / width):F2}X";
                             ZoomRatio.Minimum = ZoomMin;
                             ZoomRatio.Value = 1;
                         }
