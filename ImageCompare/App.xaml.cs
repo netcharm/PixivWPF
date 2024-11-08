@@ -8,6 +8,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Reflection;
+using Xceed.Wpf.Toolkit;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace ImageCompare
 {
@@ -77,8 +80,11 @@ namespace ImageCompare
             try
             {
                 ReleaseNamedPipeServer();
-                _pipeServer_ = new NamedPipeServerStream($"{PipeName}-{PID}", PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-                //pipeServer.WaitForConnectionAsync();
+                var pipeSec = new PipeSecurity();
+                SecurityIdentifier securityIdentifier = new SecurityIdentifier(WellKnownSidType.AuthenticatedUserSid, null);
+                pipeSec.AddAccessRule(new PipeAccessRule(securityIdentifier, PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance, AccessControlType.Allow));
+                //pipeSec.SetAccessRule(new PipeAccessRule("Everyone", PipeAccessRights.ReadWrite, System.Security.AccessControl.AccessControlType.Allow));
+                _pipeServer_ = new NamedPipeServerStream($"{PipeName}-{PID}", PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous, 0, 0, pipeSecurity: pipeSec);
                 _pipeServer_.BeginWaitForConnection(PipeReceiveData, _pipeServer_);
             }
             catch (Exception ex) { ReportMessage(ex); }
@@ -165,9 +171,9 @@ namespace ImageCompare
             {
                 Current?.Dispatcher.Invoke(() =>
                 {
-                    if (Current?.MainWindow?.WindowState == WindowState.Minimized)
+                    if (Current?.MainWindow?.WindowState == System.Windows.WindowState.Minimized)
                     {
-                        Current.MainWindow.WindowState = WindowState.Normal;
+                        Current.MainWindow.WindowState = System.Windows.WindowState.Normal;
                     }
                     Current?.MainWindow?.Activate();
                 });

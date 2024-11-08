@@ -1033,7 +1033,7 @@ namespace ImageCompare
         /// <param name="change_state"></param>
         private void ToggleMagnifierState(bool change_state = false)
         {
-            MagnifierMode.Dispatcher.Invoke(() => 
+            MagnifierMode.Dispatcher.Invoke(() =>
             {
                 if (change_state) MagnifierMode.IsChecked = !MagnifierMode.IsChecked;
 
@@ -1440,7 +1440,7 @@ namespace ImageCompare
         {
             var action = false;
             try
-            {                
+            {
                 files = files.Select(f => f.Trim()).Where(f => !string.IsNullOrEmpty(f)).Where(f => Extensions.AllSupportedFormats.Keys.ToList().Select(e => $".{e.ToLower()}").ToList().Contains(Path.GetExtension(f).ToLower())).ToArray();
                 var count = files.Length;
                 if (count > 0)
@@ -3336,7 +3336,7 @@ namespace ImageCompare
                     action |= await LoadImageFromPrevFile(false);
 
                 if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload_type: reload_type));
-            } 
+            }
             else ImageBox_MouseDown(sender, e);
         }
         #endregion
@@ -3367,7 +3367,7 @@ namespace ImageCompare
                         e.Handled = true;
                         ToggleMagnifierState(change_state: true);
                     }
-                    else if(e.ChangedButton == MouseButton.Left)
+                    else if (e.ChangedButton == MouseButton.Left)
                     {
                         var image_s = ImageSource.GetInformation();
                         var image_t = ImageTarget.GetInformation();
@@ -3751,7 +3751,7 @@ namespace ImageCompare
 
                 if (!CompareImageAutoMatchSize && !old_align.Equals(DefaultMatchAlign))
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false));
-                else if (!LastOpIsComposite && CompareImageAutoMatchSize) 
+                else if (!LastOpIsComposite && CompareImageAutoMatchSize)
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
             }
         }
