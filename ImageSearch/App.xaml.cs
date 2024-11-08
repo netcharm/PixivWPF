@@ -9,6 +9,8 @@ using System.Reflection;
 using System.Windows.Navigation;
 using System.Text.RegularExpressions;
 using System.Threading.Channels;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace ImageSearch
 {
@@ -77,8 +79,15 @@ namespace ImageSearch
             try
             {
                 ReleaseNamedPipeServer();
-                _pipeServer_ = new NamedPipeServerStream($"{PipeName}-{PID}", PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-                //pipeServer.WaitForConnectionAsync();
+                var pipeSec = new PipeSecurity();
+                if (OperatingSystem.IsWindows())
+                {
+                    SecurityIdentifier securityIdentifier = new SecurityIdentifier(WellKnownSidType.AuthenticatedUserSid, null);
+                    pipeSec.AddAccessRule(new PipeAccessRule(securityIdentifier, PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance, AccessControlType.Allow));
+                    //pipeSec.SetAccessRule(new PipeAccessRule("Everyone", PipeAccessRights.ReadWrite, System.Security.AccessControl.AccessControlType.Allow));
+                    _pipeServer_ = NamedPipeServerStreamAcl.Create($"{PipeName}-{PID}", PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous, 0, 0, pipeSec);
+                }
+                else _pipeServer_ = new NamedPipeServerStream($"{PipeName}-{PID}", PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
                 _pipeServer_.BeginWaitForConnection(PipeReceiveData, _pipeServer_);
             }
             catch (Exception ex) { ReportMessage(ex); }
