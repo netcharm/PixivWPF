@@ -880,11 +880,13 @@ namespace ImageCompare
             return (result);
         }
 
+        private bool IsGetInfo = false;
         public async Task<string> GetImageInfo(bool include_colorinfo = false)
         {
             string result = string.Empty;
-            if (ValidCurrent)
+            if (ValidCurrent && !IsGetInfo)
             {
+                IsGetInfo = true;
                 result = await Task.Run(async () =>
                 {
                     var ret = string.Empty;
@@ -1152,6 +1154,7 @@ namespace ImageCompare
                 });
                 Current.GetExif();
             }
+            IsGetInfo = false;
             return (string.IsNullOrEmpty(result) ? null : result);
         }
 

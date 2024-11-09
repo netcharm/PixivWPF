@@ -1355,23 +1355,46 @@ namespace ImageCompare
         {
             var result = false;
             var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
-            if (source)
+            result = source ? await SaveImageAs(ImageType.Source, overwrite: ctrl) : await SaveImageAs(ImageType.Target, overwrite: ctrl);
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="overwrite"></param>
+        /// <returns></returns>
+        private async Task<bool> SaveImageAs(ImageType source, bool overwrite = false)
+        {
+            var result = false;
+            if (source == ImageType.Source)
             {
                 IsSavingSource = true;
                 result = await Task.Run(() =>
                 {
-                    var ret = ImageSource.GetInformation().Save(overwrite: ctrl);
+                    var ret = ImageSource.GetInformation().Save(overwrite: overwrite);
                     IsSavingSource = false;
                     return (ret);
                 });
             }
-            else
+            else if (source == ImageType.Target)
             {
                 IsSavingTarget = true;
                 result = await Task.Run(() =>
                 {
-                    var ret = ImageTarget.GetInformation().Save(overwrite: ctrl);
+                    var ret = ImageTarget.GetInformation().Save(overwrite: overwrite);
                     IsSavingTarget = false;
+                    return (ret);
+                });
+            }
+            else if (source == ImageType.Result)
+            {
+                IsSavingResult = true;
+                result = await Task.Run(() =>
+                {
+                    var ret = ImageResult.GetInformation().Save(overwrite: overwrite);
+                    IsSavingResult = false;
                     return (ret);
                 });
             }
@@ -3619,6 +3642,7 @@ namespace ImageCompare
             {
                 RenderRun(LastAction);
             }
+
             else if (sender == ImageCompose)
             {
                 RenderRun(new Action(() =>
@@ -3635,6 +3659,7 @@ namespace ImageCompare
                     UpdateImageViewer(compose: false, autocompare: true);
                 }));
             }
+
             else if (sender == ImageDenoiseResult)
             {
                 var shift = Keyboard.Modifiers == ModifierKeys.Shift;
@@ -3658,9 +3683,10 @@ namespace ImageCompare
                     if (InfoResult.HighlightColor == null) InfoResult.HighlightColor = HighlightColor;
                     if (InfoResult.LowlightColor == null) InfoResult.LowlightColor = LowlightColor;
                     if (InfoResult.MasklightColor == null) InfoResult.MasklightColor = MasklightColor;
-                    InfoResult.Save();
+                    Dispatcher.InvokeAsync(async () => await SaveImageAs(ImageType.Result));
                 }
             }
+
             else if (sender == ImageLayout)
             {
                 if (ImageLayout.IsChecked ?? false)
@@ -3673,6 +3699,7 @@ namespace ImageCompare
             {
                 ToggleMagnifierState();
             }
+
             else if (sender == ZoomFitNone)
             {
                 CurrentZoomFitMode = ZoomFitMode.None;
@@ -3693,6 +3720,7 @@ namespace ImageCompare
             {
                 RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
             }
+
             else if (sender == UseSmallerImage)
             {
                 SmallSizeModeIndep.IsChecked = true;
@@ -3721,6 +3749,7 @@ namespace ImageCompare
             {
                 UsedChannels.ContextMenu.IsOpen = true;
             }
+
             else if (sender == ImageLoadHaldLut)
             {
                 LoadHaldLutFile();
