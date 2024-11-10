@@ -298,7 +298,7 @@ namespace ImageCompare
 
         public async Task<bool> LoadImageFromClipboard()
         {
-            var result = await Task.Run(() =>
+            var result = await Task.Run(async () =>
             {
                 var ret = false;
                 var exceptions = new List<string>();
@@ -306,14 +306,14 @@ namespace ImageCompare
                 {
                     var supported_fmts = new string[] { "PNG", "image/png", "image/tif", "image/tiff", "image/webp", "image/xpm", "image/ico", "image/cur", "image/jpg", "image/jpeg", "image/bmp", "DeviceIndependentBitmap", "image/wbmp", "Text" };
                     IDataObject dataPackage = Application.Current.Dispatcher.Invoke(() => Clipboard.GetDataObject());
-                    var fmts = dataPackage.GetFormats(true);
+                    var fmts = await Application.Current.Dispatcher.InvokeAsync(() => dataPackage.GetFormats(true));
                     foreach (var fmt in supported_fmts)
                     {
-                        if (fmts.Contains(fmt) && dataPackage.GetDataPresent(fmt, true))
+                        if (fmts.Contains(fmt) && await Application.Current.Dispatcher.InvokeAsync(() => dataPackage.GetDataPresent(fmt, true)))
                         {
                             if (fmt.Equals("Text", StringComparison.CurrentCultureIgnoreCase))
                             {
-                                var text = dataPackage.GetData(fmt, true) as string;
+                                var text = await Application.Current.Dispatcher.InvokeAsync(() => dataPackage.GetData(fmt, true) as string);
                                 try
                                 {
                                     var image = MagickImage.FromBase64(Regex.Replace(text, @"^data:.*?;base64,", "", RegexOptions.IgnoreCase));
@@ -334,7 +334,7 @@ namespace ImageCompare
                             {
                                 try
                                 {
-                                    var obj = dataPackage.GetData(fmt, true);
+                                    var obj = await Application.Current.Dispatcher.InvokeAsync(() => dataPackage.GetData(fmt, true));
                                     if (obj is MemoryStream)
                                     {
                                         Original = new MagickImage(obj as MemoryStream);
@@ -354,7 +354,7 @@ namespace ImageCompare
                     }
                 }
                 catch (Exception ex) { ex.ShowMessage();}
-                if(!ret) string.Join(Environment.NewLine, exceptions).ShowMessage();
+                if (!ret && exceptions.Any()) string.Join(Environment.NewLine, exceptions).ShowMessage();
                 return(ret);
             });
             return (result);
@@ -490,6 +490,7 @@ namespace ImageCompare
 
                     if (e.Equals(".png8", StringComparison.CurrentCultureIgnoreCase))
                     {
+                        //if (Current.ColorSpace == ColorSpace.scRGB) Current.ColorSpace = ColorSpace.sRGB;
                         Current.VirtualPixelMethod = VirtualPixelMethod.Transparent;
                         Current.Write(Path.ChangeExtension(file, ".png"), MagickFormat.Png8);
                     }
@@ -500,6 +501,7 @@ namespace ImageCompare
                         if (Current.HasAlpha && (fmt_no_alpha.Contains(format) || ext_no_alpha.Contains(e)))
                         {
                             var target = Current.Clone();
+                            //if (target.ColorSpace == ColorSpace.scRGB) target.ColorSpace = ColorSpace.sRGB;
                             target.ColorAlpha(MasklightColor ?? target.BackgroundColor);
                             target.BackgroundColor = MasklightColor ?? target.BackgroundColor;
                             target.MatteColor = MasklightColor ?? target.BackgroundColor;
@@ -526,6 +528,7 @@ namespace ImageCompare
                             {
                                 Current.VirtualPixelMethod = VirtualPixelMethod.Transparent;
                             }
+                            //if (Current.ColorSpace == ColorSpace.scRGB) Current.ColorSpace = ColorSpace.sRGB;
                             Current.Write(file, format);
                         }
                     }
@@ -751,12 +754,14 @@ namespace ImageCompare
             return (result);
         }
 
-        public async void CopyToClipboard()
+        public async Task<bool> CopyToClipboard()
         {
+            var result = false;
             if (ValidCurrent)
             {
-                await Task.Run(async () =>
+                result = await Task.Run(async () =>
                 {
+                    var ret = false;
                     try
                     {
                         var bs = Current.ToBitmapSource();
@@ -775,6 +780,7 @@ namespace ImageCompare
                         {
                             if (fmt.Equals("CF_DIBV5", StringComparison.CurrentCultureIgnoreCase))
                             {
+                                //if (Current.ColorSpace == ColorSpace.scRGB) Current.ColorSpace = ColorSpace.sRGB;
                                 byte[] arr = Current.ToByteArray(MagickFormat.Bmp3);
                                 byte[] dib = arr.Skip(14).ToArray();
                                 ms = new MemoryStream(dib);
@@ -786,6 +792,7 @@ namespace ImageCompare
                                 var mfmt = GetMagickFormat(fmt);
                                 if (mfmt != MagickFormat.Unknown)
                                 {
+                                    //if (Current.ColorSpace == ColorSpace.scRGB) Current.ColorSpace = ColorSpace.sRGB;
                                     byte[] arr = Current.ToByteArray(mfmt);
                                     ms = new MemoryStream(arr);
                                     dataPackage.SetData(fmt, ms);
@@ -796,13 +803,16 @@ namespace ImageCompare
                         #endregion
                         await Application.Current.Dispatcher.InvokeAsync(() =>
                         {
-                            Clipboard.SetDataObject(dataPackage, true);
+                            //Clipboard.Clear();
+                            Clipboard.SetDataObject(dataPackage, false);
                         });
+                        ret = true;
                     }
                     catch (Exception ex) { ex.ShowMessage(); }
+                    return (ret);
                 });
-
             }
+            return (result);
         }
 
         public void ChangeColorSpace(bool force)

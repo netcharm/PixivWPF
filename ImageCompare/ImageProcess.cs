@@ -52,12 +52,43 @@ namespace ImageCompare
         private bool SimpleTrimCropBoundingBox { get; set; } = false;
         #endregion
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="state"></param>
+        /// <param name="busy"></param>
+        public void UpdateIndaicatorState(bool source, bool state, bool busy = false)
+        {
+            if (source) IsProcessingSource = state;
+            else IsProcessingTarget = state;
+            if (busy) IsBusy = state;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="state"></param>
+        /// <param name="busy"></param>
+        public void UpdateIndaicatorState(ImageType source, bool state, bool busy = false)
+        {
+            if (source == ImageType.Source) IsProcessingSource = state;
+            else if (source == ImageType.Target) IsProcessingTarget = state;
+            else if (source == ImageType.Result) IsProcessingResult = state;
+            if (busy) IsBusy = state;
+        }
+
         #region Image Processing Routines
         /// <summary>
         /// 
         /// </summary>
         private void CleanImage()
         {
+            IsProcessingSource = true;
+            IsProcessingTarget = true;
+            IsProcessingResult = true;
+
             ImageSource.GetInformation().Dispose();
             ImageTarget.GetInformation().Dispose();
             ImageResult.GetInformation().Dispose();
@@ -80,6 +111,11 @@ namespace ImageCompare
             GC.Collect();
             GC.WaitForPendingFinalizers();
             GC.WaitForFullGCComplete();
+
+            IsProcessingSource = false;
+            IsProcessingTarget = false;
+            IsProcessingResult = false;
+            IsBusy = false;
         }
 
         /// <summary>
@@ -116,9 +152,7 @@ namespace ImageCompare
                     var tooltip = await src.GetInformation().GetImageInfo(include_colorinfo: true);
                     SetToolTip(src, tooltip);
 
-                    if (source) IsProcessingSource = false;
-                    else IsProcessingTarget = false;
-                    IsBusy = false;
+                    UpdateIndaicatorState(source, false, true);
 
                     DoEvents();
                 }
@@ -134,20 +168,41 @@ namespace ImageCompare
         {
             try
             {
-                await Dispatcher.Invoke(async () =>
-                {
-                    var src = source ? ImageSource : ImageTarget;
-                    var tooltip = GetToolTip(src);
+                var src = source ? ImageSource : ImageTarget;
+                var tooltip = GetToolTip(src);
 
-                    if (string.IsNullOrEmpty(tooltip) || tooltip.StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        tooltip = await src.GetInformation().GetImageInfo();
-                        SetToolTip(src, tooltip);
-                    }
-                    Clipboard.SetText(tooltip);
-                });
+                if (string.IsNullOrEmpty(tooltip) || tooltip.StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    tooltip = await src.GetInformation().GetImageInfo();
+                    SetToolTip(src, tooltip);
+                }
+
+                DataObject dataPackage = new DataObject();
+                dataPackage.SetText(tooltip);
+                await Application.Current.Dispatcher.InvokeAsync(() => 
+                {
+                    //Clipboard.Clear(); 
+                    Clipboard.SetDataObject(dataPackage, false); 
+                });                
             }
             catch (Exception ex) { ex.ShowMessage(); }
+            finally { UpdateIndaicatorState(source, false, true); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        private async Task<bool> CopyImage(bool source)
+        {
+            var result = false;
+            try
+            {
+                result = await CopyImageTo(source);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+            finally { UpdateIndaicatorState(source, false, true); }
+            return (result);
         }
 
         /// <summary>
@@ -169,20 +224,6 @@ namespace ImageCompare
                     src.Current = new MagickImage(MasklightColor ?? MagickColors.Transparent, MaxCompareSize, MaxCompareSize);
                 
                 UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="source"></param>
-        private void CopyImage(bool source)
-        {
-            try
-            {
-                var src = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
-                src.CopyToClipboard();
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -220,6 +261,8 @@ namespace ImageCompare
         {
             try
             {
+                UpdateIndaicatorState(source, true, true);
+
                 var action = false;
                 if (source)
                     action = ImageSource.GetInformation().ResetTransform();
@@ -227,6 +270,7 @@ namespace ImageCompare
                     action = ImageTarget.GetInformation().ResetTransform();
 
                 if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
+                else UpdateIndaicatorState(source, false, true);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -239,24 +283,23 @@ namespace ImageCompare
         {
             try
             {
+                UpdateIndaicatorState(source, true, true);
+
                 var action = false;
                 var size = UseSmallImage ? MaxCompareSize : -1;
                 if (source)
                 {
-                    IsBusy = true;
-                    IsProcessingSource = true;
                     action = await ImageSource.GetInformation().Reset(size);
                 }
                 else
                 {
-                    IsBusy = true;
-                    IsProcessingTarget = true;
                     action = await ImageTarget.GetInformation().Reset(size);
                 }
 
                 LastMatchedImage = ImageType.None;
 
                 if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
+                else UpdateIndaicatorState(source, false, true);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -269,24 +312,23 @@ namespace ImageCompare
         {
             try
             {
+                UpdateIndaicatorState(source, true, true);
+
                 var action = false;
                 var size = UseSmallImage ? MaxCompareSize : -1;
                 if (source)
                 {
-                    IsBusy = true;
-                    IsLoadingSource = true;
                     action = await ImageSource.GetInformation().Reload(size, reload: true);
                 }
                 else
                 {
-                    IsBusy = true;
-                    IsLoadingTarget = true;
                     action = await ImageTarget.GetInformation().Reload(size, reload: true);
                 }
 
                 LastMatchedImage = ImageType.None;
 
                 if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
+                else UpdateIndaicatorState(source, false, true);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -300,6 +342,8 @@ namespace ImageCompare
         {
             try
             {
+                UpdateIndaicatorState(source, true, true);
+
                 var action = false;
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 if (image.ValidCurrent)
@@ -310,6 +354,7 @@ namespace ImageCompare
                     action = true;
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
+                else UpdateIndaicatorState(source, false, true);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -322,6 +367,8 @@ namespace ImageCompare
         {
             try
             {
+                UpdateIndaicatorState(source, true, true);
+
                 var action = false;
 
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
@@ -333,6 +380,7 @@ namespace ImageCompare
                 }
 
                 if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
+                else UpdateIndaicatorState(source, false, true);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -345,6 +393,8 @@ namespace ImageCompare
         {
             try
             {
+                UpdateIndaicatorState(source, true, true);
+
                 var action = false;
 
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
@@ -356,6 +406,7 @@ namespace ImageCompare
                 }
 
                 if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
+                else UpdateIndaicatorState(source, false, true);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -1789,6 +1840,7 @@ namespace ImageCompare
                         result = new MagickImage(target_x)
                         {
                             ColorFuzz = fuzzy,
+                            //ColorSpace = ColorSpace.sRGB,
                             //Comment = "NetCharm Created",
                             //VirtualPixelMethod = VirtualPixelMethod.CheckerTile,
                             VirtualPixelMethod = VirtualPixelMethod.Transparent
@@ -1799,8 +1851,9 @@ namespace ImageCompare
                         result.SetArtifact("composite:args", $"{args}");
 
                         tip.Add($"{"ResultTipMode".T()} {CompositeMode}");
-                        await Task.Delay(1);
-                        DoEvents();
+
+                        source_x.Dispose();
+                        target_x.Dispose();
                     }
                     else
                     {
@@ -1825,6 +1878,7 @@ namespace ImageCompare
                             result = new MagickImage(diff)
                             {
                                 ColorFuzz = fuzzy,
+                                ColorSpace = ColorSpace.sRGB,
                                 //Comment = "NetCharm Created",
                                 //VirtualPixelMethod = VirtualPixelMethod.CheckerTile,
                                 VirtualPixelMethod = VirtualPixelMethod.Transparent
@@ -1839,8 +1893,8 @@ namespace ImageCompare
                             tip.Add($"{"ResultTipMode".T()} {ErrorMetricMode}");
                             tip.Add($"{"ResultTipDifference".T()} {distance:F4}");
 
-                            //await Task.Delay(1);
-                            //DoEvents();
+                            source_x.Dispose();
+                            target_x.Dispose();
                         }
                     }
                 }

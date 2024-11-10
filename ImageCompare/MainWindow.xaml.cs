@@ -371,12 +371,7 @@ namespace ImageCompare
                         var action = e.Argument as Action;
                         await Task.Run(() =>
                         {
-                            IsBusy = true;
                             action.Invoke();
-                            //if (IsProcessingSource) IsProcessingSource = false;
-                            //if (IsProcessingTarget) IsProcessingTarget = false;
-                            //if (IsProcessingResult) IsProcessingResult = false;
-                            //IsBusy = false;
                         });
                         LastAction = action;
                     }
@@ -389,6 +384,7 @@ namespace ImageCompare
             InitRenderWorker();
             if (RenderWorker is BackgroundWorker && !RenderWorker.IsBusy && !IsBusy && action is Action)
             {
+                IsBusy = true;
                 var sender_source = GetImageType(sender);
                 if (sender_source == ImageType.Source) IsProcessingSource = true;
                 else if (sender_source == ImageType.Target) IsProcessingTarget = true;
@@ -1310,9 +1306,15 @@ namespace ImageCompare
                 if (image_r.ValidCurrent)
                 {
                     if (source)
+                    {
+                        IsLoadingSource = true;
                         image_s.Current = new MagickImage(image_r.Current);
+                    }
                     else
+                    {
+                        IsLoadingTarget = true;
                         image_t.Current = new MagickImage(image_r.Current);
+                    }
                     action = true;
                 }
                 if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false));
@@ -1333,6 +1335,9 @@ namespace ImageCompare
                 var image_t = (source ? ImageTarget : ImageSource).GetInformation();
                 if (image_s.ValidCurrent)
                 {
+                    if (source) IsLoadingTarget = true;
+                    else IsLoadingSource = true;
+
                     if (!image_t.ValidOriginal && image_s.ValidOriginal)
                     {
                         image_t.Original = new MagickImage(image_s.Original);
@@ -1344,6 +1349,59 @@ namespace ImageCompare
                 if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false));
             }
             catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        private async Task<bool> CopyImageTo(ImageType source)
+        {
+            var result = false;
+            if (source == ImageType.Source)
+            {
+                IsProcessingSource = true;
+                result = await Task.Run(async () =>
+                {
+                    var ret = await ImageSource.GetInformation().CopyToClipboard();
+                    IsProcessingSource = false;
+                    return (ret);
+                });
+            }
+            else if (source == ImageType.Target)
+            {
+                IsProcessingTarget = true;
+                result = await Task.Run(async () =>
+                {
+                    var ret = await ImageTarget.GetInformation().CopyToClipboard();
+                    IsProcessingTarget = false;
+                    return (ret);
+                });
+            }
+            else if (source == ImageType.Result)
+            {
+                IsProcessingResult = true;
+                result = await Task.Run(async () =>
+                {
+                    var ret = await ImageResult.GetInformation().CopyToClipboard();
+                    IsProcessingResult = false;
+                    return (ret);
+                });
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        private async Task<bool> CopyImageTo(bool source)
+        {
+            var result = false;
+            result = await CopyImageTo(source ? ImageType.Source : ImageType.Target);
+            return (result);
         }
 
         /// <summary>
@@ -2025,7 +2083,7 @@ namespace ImageCompare
         {
             //bool source = target == ImageSource ? true : false;
             bool source = target == ImageSourceScroll;
-            var effect_blur = new System.Windows.Media.Effects.BlurEffect() { Radius = 2, KernelType = System.Windows.Media.Effects.KernelType.Gaussian };
+            var effect_blur = new BlurEffect() { Radius = 2, KernelType = KernelType.Gaussian };
 
             var items = source ? cm_image_source : cm_image_target;
             if (items != null) items.Clear();
@@ -2318,7 +2376,7 @@ namespace ImageCompare
 
                 item_colorcalc.Click += (obj, evt) => { RenderRun(() => { CalcImageColors(MenuHost(obj)); }, target); };
                 item_copyinfo.Click += (obj, evt) => { RenderRun(() => { CopyImageInfo(MenuHost(obj)); }, target); };
-                item_copyimage.Click += (obj, evt) => { RenderRun(() => { CopyImage(MenuHost(obj)); }, target); };
+                item_copyimage.Click += (obj, evt) => { RenderRun(async () => { await CopyImage(MenuHost(obj)); }, target); };
                 item_saveas.Click += async (obj, evt) => await SaveImageAs(MenuHost(obj));
                 #endregion
                 #region Add MenuItems to ContextMenu
@@ -2701,15 +2759,19 @@ namespace ImageCompare
         /// <returns></returns>
         private string GetToolTip(FrameworkElement element)
         {
-            var result = string.Empty;
-            if (element?.ToolTip is string)
+            var result = Dispatcher.Invoke(() =>
             {
-                result = Dispatcher.Invoke(() => element?.ToolTip as string);
-            }
-            else if (element?.ToolTip is ToolTip && (element?.ToolTip as ToolTip).Content is string)
-            {
-                result = Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).Content as string);
-            }
+                var ret = string.Empty;
+                if (element?.ToolTip is string)
+                {
+                    ret = element?.ToolTip as string;
+                }
+                else if (element?.ToolTip is ToolTip && (element?.ToolTip as ToolTip).Content is string)
+                {
+                    ret = (element?.ToolTip as ToolTip).Content as string;
+                }
+                return(ret);
+            });
             return (result);
         }
 
@@ -3584,22 +3646,27 @@ namespace ImageCompare
             {
                 RenderRun(new Action(async () =>
                 {
+                    IsLoadingSource = true;
                     var action = await ImageSource.GetInformation().LoadImageFromFile();
                     if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true));
+                    else UpdateIndaicatorState(ImageType.Source, false, true);
                 }));
             }
             else if (sender == ImageOpenTarget)
             {
                 RenderRun(new Action(async () =>
                 {
+                    IsLoadingTarget = true;
                     var action = await ImageTarget.GetInformation().LoadImageFromFile();
                     if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true));
+                    else UpdateIndaicatorState(ImageType.Target, false, true);
                 }));
             }
             else if (sender == CreateImageWithColorSource)
             {
                 RenderRun(new Action(() =>
                 {
+                    IsLoadingSource = true;
                     CreateColorImage(true);
                 }));
             }
@@ -3607,25 +3674,30 @@ namespace ImageCompare
             {
                 RenderRun(new Action(() =>
                 {
+                    IsLoadingTarget = true;
                     CreateColorImage(false);
                 }));
             }
 
             else if (sender == ImagePasteSource)
             {
-                RenderRun(new Action(async () =>
+                RenderRun(async () =>
                 {
+                    IsLoadingSource = true;
                     var action = await ImageSource.GetInformation().LoadImageFromClipboard();
                     if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true);
-                }));
+                    else UpdateIndaicatorState(ImageType.Source, false, true);
+                });
             }
             else if (sender == ImagePasteTarget)
             {
-                RenderRun(new Action(async () =>
+                RenderRun(async () =>
                 {
+                    IsLoadingTarget = true;
                     var action = await ImageTarget.GetInformation().LoadImageFromClipboard();
                     if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true);
-                }));
+                    else UpdateIndaicatorState(ImageType.Target, false, true);
+                });
             }
             else if (sender == ImageClear)
             {
@@ -3633,6 +3705,9 @@ namespace ImageCompare
             }
             else if (sender == ImageExchange)
             {
+                IsLoadingSource = true;
+                IsLoadingTarget = true;
+
                 var st = ImageSource.GetInformation();
                 var tt = ImageTarget.GetInformation();
                 (st.Current, tt.Current) = (new MagickImage(tt.Current), new MagickImage(st.Current));
@@ -3647,6 +3722,7 @@ namespace ImageCompare
             {
                 RenderRun(new Action(() =>
                 {
+                    IsBusy = true;
                     LastOpIsComposite = true;
                     UpdateImageViewer(compose: true, autocompare: true);
                 }));
@@ -3655,6 +3731,7 @@ namespace ImageCompare
             {
                 RenderRun(new Action(() =>
                 {
+                    IsBusy = true;
                     LastOpIsComposite = false;
                     UpdateImageViewer(compose: false, autocompare: true);
                 }));
@@ -3667,13 +3744,19 @@ namespace ImageCompare
                 {
                     IsProcessingResult = true;
                     var ret = await ImageResult.GetInformation().Denoise(WeakEffects ? 3 : 5, more: shift);
-                    ImageResult.GetInformation().DenoiseCount++;
+                    if (ret) ImageResult.GetInformation().DenoiseCount++;
                     if (ret) IsProcessingResult = false;
+                    else UpdateIndaicatorState(ImageType.Result, false, true);
                 }));
             }
             else if (sender == ImageCopyResult)
             {
-                ImageResult.GetInformation().CopyToClipboard();
+                RenderRun(async () =>
+                {
+                    IsProcessingResult = true;
+                    var ret = await CopyImageTo(ImageType.Result);
+                    if (!ret) UpdateIndaicatorState(ImageType.Target, false, true);
+                });
             }
             else if (sender == ImageSaveResult)
             {
