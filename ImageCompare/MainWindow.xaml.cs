@@ -77,7 +77,7 @@ namespace ImageCompare
         private string DefaultWindowTitle = string.Empty;
         private string DefaultCompareToolTip = string.Empty;
         private string DefaultComposeToolTip = string.Empty;
-        private string DefaultFuzzySliderToolTip = string.Empty;
+        private readonly string DefaultFuzzySliderToolTip = string.Empty;
 
 
         private Percentage DefaultColorFuzzy
@@ -416,7 +416,7 @@ namespace ImageCompare
         #endregion
 
         #region Image Display Helper
-        private static string DefaultWaitingString = "Waiting";
+        private static readonly string DefaultWaitingString = "Waiting";
         private string WaitingString = DefaultWaitingString;
 
         private Orientation CurrentImageLayout
@@ -1040,6 +1040,9 @@ namespace ImageCompare
                     {
                         try
                         {
+                            if (reload_type == ImageType.All || reload_type == ImageType.Source) IsLoadingSource = true;
+                            if (reload_type == ImageType.All || reload_type == ImageType.Target) IsLoadingTarget = true;
+
                             if (reload)
                             {
                                 image_s.CurrentGeometry = CompareImageForceScale ? CompareResizeGeometry : null;
@@ -1092,11 +1095,6 @@ namespace ImageCompare
                                             }
                                             else if (ScaleMode == ImageScaleMode.Relative)
                                             {
-                                                var swc = exchanged ? image_t.CurrentSize.Width : image_s.CurrentSize.Width;
-                                                var twc = exchanged ? image_s.CurrentSize.Width : image_t.CurrentSize.Width;
-                                                var shc = exchanged ? image_t.CurrentSize.Height : image_s.CurrentSize.Height;
-                                                var thc = exchanged ? image_s.CurrentSize.Height : image_t.CurrentSize.Height;
-
                                                 var factor_s = image_s.OriginalSize.Width / image_s.BaseSize.Width;
                                                 var factor_t = image_t.OriginalSize.Width / image_t.BaseSize.Width;
 
@@ -1354,8 +1352,7 @@ namespace ImageCompare
         /// <returns></returns>
         private async Task<bool> CopyImageTo(bool source)
         {
-            var result = false;
-            result = await CopyImageTo(source ? ImageType.Source : ImageType.Target);
+            var result = await CopyImageTo(source ? ImageType.Source : ImageType.Target);
             return (result);
         }
 
@@ -1366,9 +1363,8 @@ namespace ImageCompare
         /// <returns></returns>
         private async Task<bool> SaveImageAs(bool source)
         {
-            var result = false;
             var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
-            result = source ? await SaveImageAs(ImageType.Source, overwrite: ctrl) : await SaveImageAs(ImageType.Target, overwrite: ctrl);
+            var result = source ? await SaveImageAs(ImageType.Source, overwrite: ctrl) : await SaveImageAs(ImageType.Target, overwrite: ctrl);
             return (result);
         }
 
