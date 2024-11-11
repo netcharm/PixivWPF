@@ -44,18 +44,27 @@ namespace ImageCompare
         private static readonly string AppName = Path.GetFileNameWithoutExtension(AppPath);
         private static string CachePath =  "cache";
 
+        /// <summary>
+        /// 
+        /// </summary>
         private bool AutoSaveConfig
         {
             get { return (AutoSaveOptions.Dispatcher.Invoke(() => AutoSaveOptions.IsChecked ?? true)); }
             set { AutoSaveOptions.Dispatcher.Invoke(() => AutoSaveOptions.IsChecked = value); }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private bool AutoComparing
         {
             get { return (AutoCompare.Dispatcher.Invoke(() => AutoCompare.IsChecked ?? true)); }
             set { AutoCompare.Dispatcher.Invoke(() => AutoCompare.IsChecked = value); }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private bool DarkTheme
         {
             get { return (DarkBackground.Dispatcher.Invoke(() => DarkBackground.IsChecked ?? true)); }
@@ -92,6 +101,9 @@ namespace ImageCompare
 
         private CultureInfo DefaultCultureInfo = CultureInfo.CurrentCulture;
 
+        /// <summary>
+        /// 
+        /// </summary>
         private bool IsBusy
         {
             get => BusyNow.Dispatcher.Invoke(() => { return (BusyNow.IsBusy); });
@@ -197,6 +209,15 @@ namespace ImageCompare
             get => ImageExchange.Dispatcher.Invoke(() => { return (ImageExchange.IsChecked ?? false); });
             set => ImageExchange.Dispatcher.Invoke(() => { ImageExchange.IsChecked = value; });
         }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        private bool IsMagnifier
+        {
+            get => ImageMagnifier.Dispatcher.Invoke(() => { return (ImageMagnifier.IsEnabled); });
+            set => ImageMagnifier.Dispatcher.Invoke(() => { ImageMagnifier.IsEnabled = value; });
+        }
         #endregion
 
         #region Magick.Net Settings
@@ -224,12 +245,12 @@ namespace ImageCompare
 
 #if Q16HDRI
         private IMagickColor<float> HighlightColor = MagickColors.Red;
-        private IMagickColor<float> LowlightColor = null;
-        private IMagickColor<float> MasklightColor = null;
+        private IMagickColor<float> LowlightColor = MagickColors.White;
+        private IMagickColor<float> MasklightColor = MagickColors.Transparent;
 #else
         private IMagickColor<byte> HighlightColor = MagickColors.Red;
-        private IMagickColor<byte> LowlightColor = null;
-        private IMagickColor<byte> MasklightColor = null;
+        private IMagickColor<byte> LowlightColor = MagickColors.White;
+        private IMagickColor<byte> MasklightColor = MagickColors.Transparent;
 #endif
 
         private string LastHaldFolder { get; set; } = string.Empty;
@@ -467,77 +488,6 @@ namespace ImageCompare
         private Point mouse_origin;
         private double ZoomMin = 0.1;
         private double ZoomMax = 10.0;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="topmost"></param>
-        public void TopMostWindow(bool? topmost)
-        {
-            if (IsLoaded) Topmost = topmost ?? false;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void ChangeTheme()
-        {
-            try
-            {
-                var source = new Uri(@"pack://application:,,,/ImageCompare;component/Resources/CheckboardPattern_32.png", UriKind.RelativeOrAbsolute);
-                var sri = Application.GetResourceStream(source);
-                if (sri is System.Windows.Resources.StreamResourceInfo && sri.ContentType.Equals("image/png") && sri.Stream is Stream && sri.Stream.CanRead && sri.Stream.Length > 0)
-                {
-                    //var bg = ImageCanvas.Background;
-                    var opacity = 0.1;
-                    var pattern = new MagickImage(sri.Stream);
-                    if (DarkTheme)
-                    {
-                        pattern.Negate(Channels.RGB);
-                        pattern.Opaque(MagickColors.Black, new MagickColor("#202020"));
-                        pattern.Opaque(MagickColors.White, new MagickColor("#303030"));
-                        opacity = 1.0;
-                    }
-                    ImageCanvas.Background = new ImageBrush(pattern.ToBitmapSource()) { TileMode = TileMode.Tile, Opacity = opacity, ViewportUnits = BrushMappingMode.Absolute, Viewport = new Rect(0, 0, 32, 32) };
-                    ImageCanvas.InvalidateVisual();
-                }
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="font"></param>
-        /// <param name="fonts"></param>
-        public void ChangeResourceFonts(FontFamily font = null, string fonts = "")
-        {
-            var customfamilies = new Dictionary<string, FontFamily>() {
-                { "MonoSpaceFamily", CustomMonoFontFamily },
-                { "SegoeIconFamily", CustomIconFontFamily },
-            };
-
-            if (font == null) { font = new FontFamily(); }
-
-            foreach (var family in font is FontFamily ? customfamilies.Where(f => f.Value.Equals(font)) : customfamilies)
-            {
-                var old_family = FindResource(family.Key);
-                if (old_family is FontFamily && font is FontFamily && !string.IsNullOrEmpty(fonts))
-                {
-                    try
-                    {
-                        font = new FontFamily(fonts);
-                        var old_fonts = (old_family as FontFamily).Source.Trim().Trim('"').Split(',').Select(f => f.Trim());
-                        var new_fonts = fonts.Trim().Trim('"').Split(',').Select(f => f.Trim());
-                        var source = new_fonts.Union(old_fonts);
-                        var new_family = new FontFamily(string.Join(", ", source));
-                        Resources.Remove(family.Key);
-                        Resources.Add(family.Key, new_family);
-                    }
-                    catch (Exception ex) { ex.ShowMessage(); }
-                }
-            }
-        }
 
         /// <summary>
         /// 
@@ -1027,13 +977,15 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="change_state"></param>
-        private void ToggleMagnifierState(bool change_state = false)
+        private void ToggleMagnifierState(bool? state = null, bool change_state = false)
         {
-            MagnifierMode.Dispatcher.Invoke(() =>
+            ImageMagnifier.Dispatcher.Invoke(() =>
             {
-                if (change_state) MagnifierMode.IsChecked = !MagnifierMode.IsChecked;
+                var mag = ImageMagnifier.IsEnabled;
+                if (state == null) { mag = !mag; }
+                else mag = state ?? false;
 
-                var mag = MagnifierMode.IsChecked ?? false;
+                if (change_state) MagnifierMode.IsChecked = mag;
                 ToolTipService.SetIsEnabled(ImageSource, !mag);
                 ToolTipService.SetIsEnabled(ImageTarget, !mag);
                 ToolTipService.SetIsEnabled(ImageResult, !mag);
@@ -1043,6 +995,7 @@ namespace ImageCompare
                     CloseToolTip(ImageTarget);
                     CloseToolTip(ImageResult);
                 }
+                ImageMagnifier.IsEnabled = mag;
                 ImageMagnifier.Visibility = mag ? Visibility.Visible : Visibility.Collapsed;
             });
         }
@@ -1210,7 +1163,7 @@ namespace ImageCompare
 
                     if (autocompare)
                     {
-                        IsLoadingResult = true;
+                        IsProcessingResult = true;
                         if (image_r.ValidCurrent) image_r.Dispose();
 
                         image_r.Original = await Compare(image_s.Current, image_t.Current, compose: compose);
@@ -1221,6 +1174,7 @@ namespace ImageCompare
                         image_r.SourceParams.Align = DefaultMatchAlign;
                         image_r.SourceParams.FillColor = MasklightColor;
 
+                        IsLoadingResult = true;
                         await Dispatcher.InvokeAsync(() =>
                         {
                             ImageResult.Source = image_r.Source;
@@ -1234,6 +1188,7 @@ namespace ImageCompare
                             DoEvents();
                         }, DispatcherPriority.Normal);
                     }
+
                     CalcDisplay(set_ratio: false);
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
@@ -2018,6 +1973,77 @@ namespace ImageCompare
         #endregion
 
         #region UI Helper
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="topmost"></param>
+        public void TopMostWindow(bool? topmost)
+        {
+            if (IsLoaded) Topmost = topmost ?? false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void ChangeTheme()
+        {
+            try
+            {
+                var source = new Uri(@"pack://application:,,,/ImageCompare;component/Resources/CheckboardPattern_32.png", UriKind.RelativeOrAbsolute);
+                var sri = Application.GetResourceStream(source);
+                if (sri is System.Windows.Resources.StreamResourceInfo && sri.ContentType.Equals("image/png") && sri.Stream is Stream && sri.Stream.CanRead && sri.Stream.Length > 0)
+                {
+                    //var bg = ImageCanvas.Background;
+                    var opacity = 0.1;
+                    var pattern = new MagickImage(sri.Stream);
+                    if (DarkTheme)
+                    {
+                        pattern.Negate(Channels.RGB);
+                        pattern.Opaque(MagickColors.Black, new MagickColor("#202020"));
+                        pattern.Opaque(MagickColors.White, new MagickColor("#303030"));
+                        opacity = 1.0;
+                    }
+                    ImageCanvas.Background = new ImageBrush(pattern.ToBitmapSource()) { TileMode = TileMode.Tile, Opacity = opacity, ViewportUnits = BrushMappingMode.Absolute, Viewport = new Rect(0, 0, 32, 32) };
+                    ImageCanvas.InvalidateVisual();
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="font"></param>
+        /// <param name="fonts"></param>
+        public void ChangeResourceFonts(FontFamily font = null, string fonts = "")
+        {
+            var customfamilies = new Dictionary<string, FontFamily>() {
+                { "MonoSpaceFamily", CustomMonoFontFamily },
+                { "SegoeIconFamily", CustomIconFontFamily },
+            };
+
+            if (font == null) { font = new FontFamily(); }
+
+            foreach (var family in font is FontFamily ? customfamilies.Where(f => f.Value.Equals(font)) : customfamilies)
+            {
+                var old_family = FindResource(family.Key);
+                if (old_family is FontFamily && font is FontFamily && !string.IsNullOrEmpty(fonts))
+                {
+                    try
+                    {
+                        font = new FontFamily(fonts);
+                        var old_fonts = (old_family as FontFamily).Source.Trim().Trim('"').Split(',').Select(f => f.Trim());
+                        var new_fonts = fonts.Trim().Trim('"').Split(',').Select(f => f.Trim());
+                        var source = new_fonts.Union(old_fonts);
+                        var new_family = new FontFamily(string.Join(", ", source));
+                        Resources.Remove(family.Key);
+                        Resources.Add(family.Key, new_family);
+                    }
+                    catch (Exception ex) { ex.ShowMessage(); }
+                }
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -3146,6 +3172,8 @@ namespace ImageCompare
             }
             #endregion
 
+            ImageMagnifier.IsEnabled = false;
+            ImageMagnifier.Visibility = Visibility.Collapsed;
             ImageMagnifier.ZoomFactor = ImageMagnifierZoomFactor;
             ImageMagnifier.Radius = ImageMagnifierRadius;
             ImageMagnifier.BorderBrush = new SolidColorBrush(ImageMagnifierBorderBrush);
@@ -3258,7 +3286,13 @@ namespace ImageCompare
                     }
                     else if ((e.Key == Key.Escape || e.SystemKey == Key.Escape) && _last_key_ == Key.Escape)
                     {
-                        if ((DateTime.Now - _last_key_time_).TotalMilliseconds < 150)
+                        if (IsMagnifier)
+                        {
+                            e.Handled = true;
+                            ToggleMagnifierState(state: false, change_state: true);
+                        }
+                        //else if (e.IsRepeat && (DateTime.Now - _last_key_time_).TotalMilliseconds < 150)
+                        else if ((DateTime.Now - _last_key_time_).TotalMilliseconds < 150)
                         {
                             e.Handled = true;
                             Close();
