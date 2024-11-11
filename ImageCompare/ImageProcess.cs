@@ -1918,6 +1918,7 @@ namespace ImageCompare
                     }
                 }, DispatcherPriority.Normal);
             }
+            if (result?.BoundingBox == null || result?.BoundingBox.Width <= 0 || result?.BoundingBox.Height <= 0) result?.RePage();
             return (result);
         }
     }

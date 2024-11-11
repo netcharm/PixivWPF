@@ -768,6 +768,17 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
             return (result);
         }
+
+        public static string TextPadding(this string text, string label, int offset = 0, char padding_char = ' ')
+        {
+            var count = Encoding.ASCII.GetByteCount(label);
+            return (TextPadding(text, count, offset, padding_char));
+        }
+
+        public static string TextPadding(this string text, int count, int offset = 0, char padding = ' ')
+        {
+            return (Regex.Replace(text, @"(\n\r|\r\n|\n|\r)", $"{Environment.NewLine}{" ".PadLeft(count + offset, padding)}", RegexOptions.IgnoreCase));
+        }
         #endregion
 
         #region Magick.Net Helper
@@ -966,15 +977,56 @@ namespace ImageCompare
             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message); }
         }
 
+        public static MagickFormat GetMagickFormat(this string fmt)
+        {
+            var result = MagickFormat.Unknown;
+            switch (fmt)
+            {
+                case "image/bmp":
+                case "image/bitmap":
+                case "CF_BITMAP":
+                case "CF_DIB":
+                case ".bmp":
+                    result = MagickFormat.Bmp3;
+                    break;
+                case "image/gif":
+                case "gif":
+                case ".gif":
+                    result = MagickFormat.Gif;
+                    break;
+                case "image/png":
+                case "png":
+                case "PNG":
+                case ".png":
+                    result = MagickFormat.Png;
+                    break;
+                case "image/jpg":
+                case ".jpg":
+                case "image/jpeg":
+                case ".jpeg":
+                    result = MagickFormat.Jpeg;
+                    break;
+                case "image/tif":
+                case ".tif":
+                case "image/tiff":
+                case ".tiff":
+                    result = MagickFormat.Tiff;
+                    break;
+                default:
+                    result = MagickFormat.Unknown;
+                    break;
+            }
+            return (result);
+        }
+
         public static IMagickGeometry CalcBoundingBox(this MagickImage image)
         {
-            var result = image.BoundingBox;
+            var result = image?.BoundingBox;
             try
             {
                 if (image is MagickImage)
                 {
-                    var diff = new MagickImage(image);
-                    diff.ColorType = ColorType.Bilevel;
+                    var diff = new MagickImage(image) { ColorType = ColorType.Bilevel };
                     result = diff.BoundingBox;
                     diff.Dispose();
                 }
