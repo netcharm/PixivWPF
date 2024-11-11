@@ -3280,15 +3280,14 @@ namespace ImageCompare
                         e.Handled = true;
                         Close();
                     }
-                    else if ((e.Key == Key.Escape || e.SystemKey == Key.Escape) && _last_key_ == Key.Escape)
+                    else if (e.Key == Key.Escape || e.SystemKey == Key.Escape)
                     {
                         if (IsMagnifier)
                         {
                             e.Handled = true;
                             ToggleMagnifierState(state: false, change_state: true);
                         }
-                        //else if (e.IsRepeat && (DateTime.Now - _last_key_time_).TotalMilliseconds < 150)
-                        else if ((DateTime.Now - _last_key_time_).TotalMilliseconds < 150)
+                        else if (_last_key_ == Key.Escape && (DateTime.Now - _last_key_time_).TotalMilliseconds < 200)
                         {
                             e.Handled = true;
                             Close();
