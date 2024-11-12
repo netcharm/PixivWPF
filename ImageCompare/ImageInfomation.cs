@@ -480,11 +480,17 @@ namespace ImageCompare
                                     else if (attr.Equals("exif:Copyright"))
                                         value = exif.GetValue(ExifTag.Copyright) != null ? exif.GetValue(ExifTag.Copyright).Value : value;
                                     else if (attr.Equals("exif:ExifVersion"))
+                                    {
                                         value = exif.GetValue(ExifTag.ExifVersion) != null ? Encoding.UTF8.GetString(exif.GetValue(ExifTag.ExifVersion).Value) : value;
+                                        if (value.IsByteString()) value = value.ByteStringToString();
+                                    }
                                     else if (attr.Equals("exif:ImageDescription"))
                                         value = exif.GetValue(ExifTag.ImageDescription) != null ? exif.GetValue(ExifTag.ImageDescription).Value : value;
-                                    else if (attr.Equals("exif:UserComment") && exif.GetValue(ExifTag.UserComment) != null)
-                                        value = Current.GetAttributes(attr);
+                                    else if (attr.Equals("exif:UserComment"))// && exif.GetValue(ExifTag.UserComment) != null)
+                                    {
+                                        if (exif.GetValue(ExifTag.UserComment) != null) value = Current.GetAttributes(attr);
+                                        else if (value.IsByteString()) value = value.ByteStringToBytes().BytesToString(msb: Current.Endian == Endian.MSB ? true : false);
+                                    }
                                     else if (attr.Equals("exif:ExtensibleMetadataPlatform") || attr.Equals("exif:XmpMetadata"))
                                     {
                                         var xmp = exif.GetValue(ExifTag.XMP);
@@ -889,6 +895,71 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <returns></returns>
+        public async Task<bool> CopyToClipboard()
+        {
+            var result = false;
+            if (ValidCurrent)
+            {
+                result = await Task.Run(async () =>
+                {
+                    var ret = false;
+                    try
+                    {
+                        var bs = Current.ToBitmapSource();
+                        //Current.ToByteArray(MagickFormat.Dib);
+
+                        DataObject dataPackage = new DataObject();
+                        MemoryStream ms = null;
+
+                        #region Copy Standard Bitmap date to Clipboard
+                        dataPackage.SetImage(bs);
+                        #endregion
+                        #region Copy other MIME format data to Clipboard
+                        string[] fmts = new string[] { "PNG", "image/png", "image/bmp", "image/jpg", "image/jpeg" };
+                        //string[] fmts = new string[] { };
+                        foreach (var fmt in fmts)
+                        {
+                            if (fmt.Equals("CF_DIBV5", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                //if (Current.ColorSpace == ColorSpace.scRGB) Current.ColorSpace = ColorSpace.sRGB;
+                                byte[] arr = Current.ToByteArray(MagickFormat.Bmp3);
+                                byte[] dib = arr.Skip(14).ToArray();
+                                ms = new MemoryStream(dib);
+                                dataPackage.SetData(fmt, ms);
+                                await ms.FlushAsync();
+                            }
+                            else
+                            {
+                                var mfmt = fmt.GetMagickFormat();
+                                if (mfmt != MagickFormat.Unknown)
+                                {
+                                    //if (Current.ColorSpace == ColorSpace.scRGB) Current.ColorSpace = ColorSpace.sRGB;
+                                    byte[] arr = Current.ToByteArray(mfmt);
+                                    ms = new MemoryStream(arr);
+                                    dataPackage.SetData(fmt, ms);
+                                    await ms.FlushAsync();
+                                }
+                            }
+                        }
+                        #endregion
+                        await Application.Current.Dispatcher.InvokeAsync(() =>
+                        {
+                            //Clipboard.Clear();
+                            Clipboard.SetDataObject(dataPackage, false);
+                        });
+                        ret = true;
+                    }
+                    catch (Exception ex) { ex.ShowMessage(); }
+                    return (ret);
+                });
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public async Task<bool> SetImage()
         {
             var result = false;
@@ -906,6 +977,64 @@ namespace ImageCompare
                 catch (Exception ex) { ex.ShowMessage(); }
                 return (ret);
             });
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public bool SaveTopazMask(string file)
+        {
+            var result = false;
+            if (ValidCurrent)
+            {
+                try
+                {
+                    var format = MagickFormat.Tiff;
+                    var fd = Path.GetDirectoryName(file);
+                    var fn = Path.GetFileNameWithoutExtension(file);
+                    var fe = Path.GetExtension(file);
+                    var fm = "-mask";
+                    file = fn.ToLower().Contains(fm) ? Path.Combine(fd, $"{fn}.tiff") : Path.Combine(fd, $"{fn}{fm}.tiff");
+
+                    using (var image = new MagickImage(Current) { BackgroundColor = MagickColors.Black, MatteColor = new MagickColor(MasklightColor.R, MasklightColor.G, MasklightColor.B) })
+                    {
+                        var threshold_color = new MagickColor(HighlightColor.R, HighlightColor.G, HighlightColor.B);
+                        FixDPI(image, use_system: true);
+                        if (OpMode == ImageOpMode.Compose)
+                        {
+                            image.Grayscale();
+                            image.LevelColors(MagickColors.White, MagickColors.Black);
+                            if (LowlightColor.HasAlpha() || LowlightColor == null) image.ColorAlpha(MagickColors.White);
+                            image.Threshold(new Percentage(100 - ColorFuzzy.ToDouble() - 5.0));
+                        }
+                        else if (HighlightColor.HasAlpha() || LowlightColor.HasAlpha() || MasklightColor.HasAlpha())
+                        {
+                            image.Grayscale();
+                            image.ColorAlpha(MagickColors.White);
+                            image.LevelColors(MagickColors.Black, MagickColors.White);
+                            image.AutoThreshold(AutoThresholdMethod.OTSU);
+                        }
+                        else
+                        {
+                            image.ColorThreshold(threshold_color, threshold_color);
+                            image.LevelColors(MagickColors.White, MagickColors.Black);
+                        }
+                        image.Format = format;
+                        image.SetCompression(CompressionMethod.Zip);
+                        image.Settings.Compression = CompressionMethod.Zip;
+                        image.ColorType = ColorType.Palette;
+                        image.ColorSpace = ColorSpace.Gray;
+                        image.Depth = 8;
+
+                        image.Write(file, format);
+                        result = true;
+                    }
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
+            }
             return (result);
         }
 
@@ -982,64 +1111,6 @@ namespace ImageCompare
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="file"></param>
-        /// <returns></returns>
-        public bool SaveTopazMask(string file)
-        {
-            var result = false;
-            if (ValidCurrent)
-            {
-                try
-                {
-                    var format = MagickFormat.Tiff;
-                    var fd = Path.GetDirectoryName(file);
-                    var fn = Path.GetFileNameWithoutExtension(file);
-                    var fe = Path.GetExtension(file);
-                    var fm = "-mask";
-                    file = fn.ToLower().Contains(fm) ? Path.Combine(fd, $"{fn}.tiff") : Path.Combine(fd, $"{fn}{fm}.tiff");
-
-                    using (var image = new MagickImage(Current) { BackgroundColor = MagickColors.Black, MatteColor = new MagickColor(MasklightColor.R, MasklightColor.G, MasklightColor.B) })
-                    {
-                        var threshold_color = new MagickColor(HighlightColor.R, HighlightColor.G, HighlightColor.B);
-                        FixDPI(image, use_system: true);
-                        if (OpMode == ImageOpMode.Compose)
-                        {
-                            image.Grayscale();
-                            image.LevelColors(MagickColors.White, MagickColors.Black);
-                            if (LowlightColor.HasAlpha() || LowlightColor == null) image.ColorAlpha(MagickColors.White);
-                            image.Threshold(new Percentage(100 - ColorFuzzy.ToDouble() - 5.0));
-                        }
-                        else if (HighlightColor.HasAlpha() || LowlightColor.HasAlpha() || MasklightColor.HasAlpha())
-                        {
-                            image.Grayscale();
-                            image.ColorAlpha(MagickColors.White);
-                            image.LevelColors(MagickColors.Black, MagickColors.White);
-                            image.AutoThreshold(AutoThresholdMethod.OTSU);
-                        }
-                        else
-                        {
-                            image.ColorThreshold(threshold_color, threshold_color);
-                            image.LevelColors(MagickColors.White, MagickColors.Black);
-                        }
-                        image.Format = format;
-                        image.SetCompression(CompressionMethod.Zip);
-                        image.Settings.Compression = CompressionMethod.Zip;
-                        image.ColorType = ColorType.Palette;
-                        image.ColorSpace = ColorSpace.Gray;
-                        image.Depth = 8;
-
-                        image.Write(file, format);
-                        result = true;
-                    }
-                }
-                catch (Exception ex) { ex.ShowMessage(); }
-            }
-            return (result);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
         /// <param name="overwrite"></param>
         /// <returns></returns>
         public bool Save(bool overwrite = false)
@@ -1098,71 +1169,6 @@ namespace ImageCompare
                     }
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
-            }
-            return (result);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public async Task<bool> CopyToClipboard()
-        {
-            var result = false;
-            if (ValidCurrent)
-            {
-                result = await Task.Run(async () =>
-                {
-                    var ret = false;
-                    try
-                    {
-                        var bs = Current.ToBitmapSource();
-                        //Current.ToByteArray(MagickFormat.Dib);
-
-                        DataObject dataPackage = new DataObject();
-                        MemoryStream ms = null;
-
-                        #region Copy Standard Bitmap date to Clipboard
-                        dataPackage.SetImage(bs);
-                        #endregion
-                        #region Copy other MIME format data to Clipboard
-                        string[] fmts = new string[] { "PNG", "image/png", "image/bmp", "image/jpg", "image/jpeg" };
-                        //string[] fmts = new string[] { };
-                        foreach (var fmt in fmts)
-                        {
-                            if (fmt.Equals("CF_DIBV5", StringComparison.CurrentCultureIgnoreCase))
-                            {
-                                //if (Current.ColorSpace == ColorSpace.scRGB) Current.ColorSpace = ColorSpace.sRGB;
-                                byte[] arr = Current.ToByteArray(MagickFormat.Bmp3);
-                                byte[] dib = arr.Skip(14).ToArray();
-                                ms = new MemoryStream(dib);
-                                dataPackage.SetData(fmt, ms);
-                                await ms.FlushAsync();
-                            }
-                            else
-                            {
-                                var mfmt = fmt.GetMagickFormat();
-                                if (mfmt != MagickFormat.Unknown)
-                                {
-                                    //if (Current.ColorSpace == ColorSpace.scRGB) Current.ColorSpace = ColorSpace.sRGB;
-                                    byte[] arr = Current.ToByteArray(mfmt);
-                                    ms = new MemoryStream(arr);
-                                    dataPackage.SetData(fmt, ms);
-                                    await ms.FlushAsync();
-                                }
-                            }
-                        }
-                        #endregion
-                        await Application.Current.Dispatcher.InvokeAsync(() =>
-                        {
-                            //Clipboard.Clear();
-                            Clipboard.SetDataObject(dataPackage, false);
-                        });
-                        ret = true;
-                    }
-                    catch (Exception ex) { ex.ShowMessage(); }
-                    return (ret);
-                });
             }
             return (result);
         }

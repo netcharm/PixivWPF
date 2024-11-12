@@ -465,6 +465,12 @@ namespace ImageCompare
         public static double VALUE_MB = 1024 * 1024;
         public static double VALUE_KB = 1024;
 
+        public static bool IsByteString(this string text)
+        {
+            var result = string.IsNullOrEmpty(text) ? false : Regex.IsMatch(text, @"(0x\d\d,?)+", RegexOptions.IgnoreCase);
+            return (result);
+        }
+
         public static string SmartFileSize(this long v, double factor = 1, bool unit = true, int padleft = 0) { return (SmartFileSize((double)v, factor, unit, padleft: padleft)); }
 
         public static string SmartFileSize(this double v, double factor = 1, bool unit = true, bool trimzero = true, int padleft = 0)
@@ -504,7 +510,7 @@ namespace ImageCompare
             return (result);
         }
 
-        private static byte[] ByteStringToBytes(string text, bool msb = false, int offset = 0)
+        public static byte[] ByteStringToBytes(this string text, bool msb = false, int offset = 0)
         {
             byte[] result = null;
             if (!string.IsNullOrEmpty(text))
@@ -542,7 +548,7 @@ namespace ImageCompare
             return (result);
         }
 
-        private static string BytesToUnicode(string text, bool msb = false, int offset = 0)
+        public static string BytesToUnicode(this string text, bool msb = false, int offset = 0)
         {
             var result = text;
             if (!string.IsNullOrEmpty(text))
@@ -553,7 +559,7 @@ namespace ImageCompare
             return (result);
         }
 
-        private static string BytesToString(byte[] bytes, bool ascii = false, bool msb = false, Encoding encoding = null)
+        public static string BytesToString(this byte[] bytes, bool ascii = false, bool msb = false, Encoding encoding = null)
         {
             var result = string.Empty;
             if (bytes is byte[] && bytes.Length > 0)
@@ -612,7 +618,7 @@ namespace ImageCompare
             return (result);
         }
 
-        private static string ByteStringToString(string text, Encoding encoding = default(Encoding), bool msb = false)
+        public static string ByteStringToString(this string text, Encoding encoding = default(Encoding), bool msb = false)
         {
             if (encoding == null) encoding = Encoding.UTF8;
             if (msb && encoding == Encoding.Unicode) encoding = Encoding.BigEndianUnicode;
