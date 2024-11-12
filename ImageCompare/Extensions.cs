@@ -25,7 +25,7 @@ namespace ImageCompare
     {
         #region Locale Resource Helper
         private static CultureInfo resourceCulture = Properties.Resources.Culture ?? CultureInfo.CurrentCulture;
-        private static System.Resources.ResourceManager resourceMan = Properties.Resources.ResourceManager;
+        private static readonly System.Resources.ResourceManager resourceMan = Properties.Resources.ResourceManager;
         private static System.Resources.ResourceSet resourceSet = resourceMan.GetResourceSet(resourceCulture, true, true);
         private static Dictionary<FrameworkElement, bool> _be_locale_ = null;
 
@@ -85,7 +85,7 @@ namespace ImageCompare
 
         public static bool Contains(this string text)
         {
-            return (resourceSet.GetString(text) == null ? false : true);
+            return (resourceSet.GetString(text) != null);
         }
 
         public static void Locale(this FrameworkElement element, IEnumerable<string> ignore_uids = null, IEnumerable<FrameworkElement> ignore_elements = null)
@@ -98,8 +98,8 @@ namespace ImageCompare
                 var element_name = element.Name ?? string.Empty;
                 var elemet_uid = element.Uid ?? string.Empty;
 
-                bool trans_uid = ignore_uids is IEnumerable<string> ? ignore_uids.Where(uid => uid.Equals(elemet_uid) || uid.Equals(element_name)).Count() <= 0 : true;
-                bool trans_element = ignore_elements is IEnumerable<FrameworkElement> ? ignore_elements.Where(e => e == element).Count() <= 0 : true;
+                bool trans_uid = !(ignore_uids is IEnumerable<string>) || ignore_uids.Where(uid => uid.Equals(elemet_uid) || uid.Equals(element_name)).Count() <= 0;
+                bool trans_element = !(ignore_elements is IEnumerable<FrameworkElement>) || ignore_elements.Where(e => e == element).Count() <= 0;
 
                 if (!string.IsNullOrEmpty(elemet_uid))
                 {
@@ -372,7 +372,7 @@ namespace ImageCompare
             return null;
         }
 
-        private static SemaphoreSlim CanDoEvents = new SemaphoreSlim(1, 1);
+        private static readonly SemaphoreSlim CanDoEvents = new SemaphoreSlim(1, 1);
         public static async void DoEvents()
         {
             if (await CanDoEvents.WaitAsync(0))
@@ -467,7 +467,7 @@ namespace ImageCompare
 
         public static bool IsByteString(this string text)
         {
-            var result = string.IsNullOrEmpty(text) ? false : Regex.IsMatch(text, @"(0x\d\d,?)+", RegexOptions.IgnoreCase);
+            var result = !string.IsNullOrEmpty(text) && Regex.IsMatch(text, @"(0x\d\d,?)+", RegexOptions.IgnoreCase);
             return (result);
         }
 
@@ -475,8 +475,8 @@ namespace ImageCompare
 
         public static string SmartFileSize(this double v, double factor = 1, bool unit = true, bool trimzero = true, int padleft = 0)
         {
-            string v_str = string.Empty;
-            string u_str = string.Empty;
+            string v_str;
+            string u_str;
             if (double.IsNaN(v) || double.IsInfinity(v) || double.IsNegativeInfinity(v) || double.IsPositiveInfinity(v)) { v_str = "0"; u_str = "B"; }
             else if (v >= VALUE_GB) { v_str = $"{v / factor / VALUE_GB:F2}"; u_str = "GB"; }
             else if (v >= VALUE_MB) { v_str = $"{v / factor / VALUE_MB:F2}"; u_str = "MB"; }
@@ -618,7 +618,7 @@ namespace ImageCompare
             return (result);
         }
 
-        public static string ByteStringToString(this string text, Encoding encoding = default(Encoding), bool msb = false)
+        public static string ByteStringToString(this string text, Encoding encoding = default, bool msb = false)
         {
             if (encoding == null) encoding = Encoding.UTF8;
             if (msb && encoding == Encoding.Unicode) encoding = Encoding.BigEndianUnicode;
@@ -763,8 +763,7 @@ namespace ImageCompare
 
                     if (attr.StartsWith("date:"))
                     {
-                        DateTime dt;
-                        if (DateTime.TryParse(result, out dt)) result = dt.ToString("yyyy-MM-ddTHH:mm:sszzz");
+                        if (DateTime.TryParse(result, out DateTime dt)) result = dt.ToString("yyyy-MM-ddTHH:mm:sszzz");
                     }
 
                     if (!string.IsNullOrEmpty(result)) result = result.Replace("\0", string.Empty).TrimEnd('\0');
@@ -810,7 +809,7 @@ namespace ImageCompare
 
         public static Func<MagickImage, int> FuncTotalColors = (i) => { return ((i is MagickImage) ? i.TotalColors : 0); };
 
-        public static async Task<int> CalcTotalColors(this MagickImage image, CancellationToken cancel = default(CancellationToken))
+        public static async Task<int> CalcTotalColors(this MagickImage image, CancellationToken cancel = default)
         {
             var result = 0;
             Func<int> GetColorsCount = () => { return ((image is MagickImage) ? image.TotalColors : 0); };
@@ -911,8 +910,8 @@ namespace ImageCompare
             return (png);
         }
 
-        private static List<string> _auto_formats_ = new List<string>() { ".jpg", ".jpeg", ".png", ".bmp" };
-        private static Dictionary<string, MagickFormat> _supported_formats_ = new Dictionary<string, MagickFormat>();
+        private static readonly List<string> _auto_formats_ = new List<string>() { ".jpg", ".jpeg", ".png", ".bmp" };
+        private static readonly Dictionary<string, MagickFormat> _supported_formats_ = new Dictionary<string, MagickFormat>();
         public static MagickFormat GetImageFileFormat(this string ext)
         {
             var result = MagickFormat.Unknown;
@@ -985,7 +984,7 @@ namespace ImageCompare
 
         public static MagickFormat GetMagickFormat(this string fmt)
         {
-            var result = MagickFormat.Unknown;
+            MagickFormat result;
             switch (fmt)
             {
                 case "image/bmp":

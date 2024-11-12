@@ -492,7 +492,7 @@ namespace ImageCompare
                                     else if (attr.Equals("exif:UserComment"))// && exif.GetValue(ExifTag.UserComment) != null)
                                     {
                                         if (exif.GetValue(ExifTag.UserComment) != null) value = Current.GetAttributes(attr);
-                                        else if (value.IsByteString()) value = value.ByteStringToBytes().BytesToString(msb: Current.Endian == Endian.MSB ? true : false);
+                                        else if (value.IsByteString()) value = value.ByteStringToBytes().BytesToString(msb: Current.Endian == Endian.MSB);
                                     }
                                     else if (attr.Equals("exif:ExtensibleMetadataPlatform") || attr.Equals("exif:XmpMetadata"))
                                     {
@@ -673,7 +673,7 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <returns></returns>
-        public async Task<string> GetTotalColors(CancellationToken cancel = default(CancellationToken))
+        public async Task<string> GetTotalColors(CancellationToken cancel = default)
         {
             var colors = new List<string>();
             if (ValidOriginal)
