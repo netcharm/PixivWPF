@@ -810,11 +810,11 @@ namespace ImageCompare
 
         public static Func<MagickImage, int> FuncTotalColors = (i) => { return ((i is MagickImage) ? i.TotalColors : 0); };
 
-        public static async Task<int> CalcTotalColors(this MagickImage image)
+        public static async Task<int> CalcTotalColors(this MagickImage image, CancellationToken cancel = default(CancellationToken))
         {
             var result = 0;
             Func<int> GetColorsCount = () => { return ((image is MagickImage) ? image.TotalColors : 0); };
-            result = await Task.Run(GetColorsCount);
+            result = await Task.Run(GetColorsCount, cancellationToken: cancel);
             return (result);
         }
 

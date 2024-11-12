@@ -150,7 +150,7 @@ namespace ImageCompare
                 {
                     var src = source ? ImageSource : ImageTarget;
                     var tooltip = await src.GetInformation().GetImageInfo(include_colorinfo: true);
-                    SetToolTip(src, tooltip);
+                    if (!string.IsNullOrEmpty(tooltip)) SetToolTip(src, tooltip);
 
                     UpdateIndaicatorState(source, false, true);
 
@@ -174,7 +174,7 @@ namespace ImageCompare
                 if (string.IsNullOrEmpty(tooltip) || tooltip.StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
                 {
                     tooltip = await src.GetInformation().GetImageInfo();
-                    SetToolTip(src, tooltip);
+                    if (!string.IsNullOrEmpty(tooltip)) SetToolTip(src, tooltip);
                 }
 
                 DataObject dataPackage = new DataObject();

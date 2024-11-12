@@ -107,6 +107,7 @@ namespace ImageCompare
             get { return (_current_); }
             set
             {
+                CancelGetInfo?.Cancel();
                 if (_current_ is MagickImage) { _current_.Dispose(); _current_ = null; }
                 _current_ = value;
                 _CurrentModified_ = true;
@@ -380,6 +381,7 @@ namespace ImageCompare
         /// 
         /// </summary>
         private bool IsGetInfo = false;
+        CancellationTokenSource CancelGetInfo = new CancellationTokenSource();
         /// <summary>
         /// 
         /// </summary>
@@ -391,6 +393,7 @@ namespace ImageCompare
             if (ValidCurrent && !IsGetInfo)
             {
                 IsGetInfo = true;
+                CancelGetInfo = new CancellationTokenSource();
                 result = await Task.Run(async () =>
                 {
                     var ret = string.Empty;
@@ -398,16 +401,16 @@ namespace ImageCompare
                     try
                     {
                         var DPI_TEXT = string.Empty;
-                        if (Current.Density == null || Current.Density.X <= 0 || Current.Density.Y <= 0)
+                        if (Current?.Density == null || Current?.Density?.X <= 0 || Current?.Density?.Y <= 0)
                         {
                             var dpi = Application.Current.GetSystemDPI();
                             Current.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
                         }
-                        var DPI_UNIT = Current.Density.Units == DensityUnit.PixelsPerCentimeter ? "PPC" : (Current.Density.Units == DensityUnit.PixelsPerInch ? "PPI" : string.Empty);
-                        DPI_TEXT = DPI_UNIT.Equals("PPC") ? $"{Current.Density.X:F2} {DPI_UNIT} x {Current.Density.Y:F2} {DPI_UNIT}" : $"{Current.Density.X:F0} {DPI_UNIT} x {Current.Density.Y:F0} {DPI_UNIT}";
-                        if (Current.Density.Units != DensityUnit.PixelsPerInch)
+                        var DPI_UNIT = Current?.Density?.Units == DensityUnit.PixelsPerCentimeter ? "PPC" : (Current?.Density?.Units == DensityUnit.PixelsPerInch ? "PPI" : string.Empty);
+                        DPI_TEXT = DPI_UNIT.Equals("PPC") ? $"{Current?.Density?.X:F2} {DPI_UNIT} x {Current?.Density?.Y:F2} {DPI_UNIT}" : $"{Current?.Density?.X:F0} {DPI_UNIT} x {Current?.Density?.Y:F0} {DPI_UNIT}";
+                        if (Current?.Density?.Units != DensityUnit.PixelsPerInch)
                         {
-                            var dpi = Current.Density.ChangeUnits(DensityUnit.PixelsPerInch);
+                            var dpi = Current?.Density?.ChangeUnits(DensityUnit.PixelsPerInch);
                             var dpi_text = $"{dpi.X:F0} PPI x {dpi.Y:F0} PPI";
                             DPI_TEXT = $"{DPI_TEXT} [{dpi_text}]";
                         }
@@ -425,39 +428,39 @@ namespace ImageCompare
                         tip.Add($"{"InfoTipOrientation".T()} {Original?.Orientation}");
                         tip.Add($"{"InfoTipResolution".T()} {DPI_TEXT}");
 
-                        if (include_colorinfo) tip.Add(await GetTotalColors());
+                        if (include_colorinfo) tip.Add(await GetTotalColors(cancel: CancelGetInfo.Token));
 
-                        if (Current.AttributeNames != null)
+                        if (Current?.AttributeNames != null)
                         {
                             var fi = OriginalIsFile ? new FileInfo(FileName) : null;
                             if (fi is FileInfo && fi.Exists)
                             {
                                 if (Original?.Endian == Endian.Undefined) Original.Endian = DetectFileEndian(fi.FullName);
-                                if (Current.Endian == Endian.Undefined) Current.Endian = Original.Endian;
+                                if (Current?.Endian == Endian.Undefined) Current.Endian = Original.Endian;
                             }
-                            else if (Type == ImageType.Result && Current.Endian == Endian.Undefined)
+                            else if (Type == ImageType.Result && Current?.Endian == Endian.Undefined)
                                 Current.Endian = BitConverter.IsLittleEndian ? Endian.LSB : Endian.MSB;
 
-                            if (Current.ArtifactNames.Count() > 0)
+                            if (Current?.ArtifactNames?.Count() > 0)
                             {
                                 tip.Add($"{"InfoTipArtifacts".T()}");
                                 var artifacts = new List<string>();
-                                foreach (var artifact in Current.ArtifactNames)
+                                foreach (var artifact in Current?.ArtifactNames)
                                 {
                                     var label = artifact.PadRight(32, ' ');
-                                    var value = Current.GetArtifact(artifact);
+                                    var value = Current?.GetArtifact(artifact);
                                     if (string.IsNullOrEmpty(value)) continue;
                                     artifacts.Add($"  {label}= {value.TextPadding(label, 4)}");
                                 }
                                 tip.AddRange(artifacts.OrderBy(a => a));
                             }
 
-                            var exif = Current.HasProfile("exif") ? Current.GetExifProfile() : new ExifProfile();
+                            var exif = Current.HasProfile("exif") ? Current?.GetExifProfile() : new ExifProfile();
                             tip.Add($"{"InfoTipAttributes".T()}");
                             var attrs = new List<string>();
                             var tags = new Dictionary<string, IExifValue>();
                             foreach (var tv in exif.Values) { tags[$"exif:{tv.Tag}"] = tv; }
-                            foreach (var attr in Current.AttributeNames.Union(new string[] { "exif:Rating", "exif:RatingPercent" }).Union(tags.Keys))
+                            foreach (var attr in Current?.AttributeNames?.Union(new string[] { "exif:Rating", "exif:RatingPercent" }).Union(tags.Keys))
                             {
                                 try
                                 {
@@ -645,11 +648,11 @@ namespace ImageCompare
                             tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}, {Original?.Endian}");
                             tip.Add($"{"InfoTipFileName".T()} {Original?.FileName}");
                         }
-                        else if (!string.IsNullOrEmpty(Current.FileName))
+                        else if (!string.IsNullOrEmpty(Current?.FileName))
                         {
-                            var FileSize = !string.IsNullOrEmpty(Current.FileName) && File.Exists(Current.FileName) ? new FileInfo(Current.FileName).Length : -1;
+                            var FileSize = !string.IsNullOrEmpty(Current?.FileName) && File.Exists(Current?.FileName) ? new FileInfo(Current?.FileName).Length : -1;
                             tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}");
-                            tip.Add($"{"InfoTipFileName".T()} {Current.FileName}");
+                            tip.Add($"{"InfoTipFileName".T()} {Current?.FileName}");
                         }
                         ret = string.Join(Environment.NewLine, tip);
                     }
@@ -659,8 +662,8 @@ namespace ImageCompare
                     Debug.WriteLine($"{TimeSpan.FromTicks(st.ElapsedTicks).TotalSeconds:F4}s");
 #endif
                     return (ret);
-                });
-                Current.GetExif();
+                }, cancellationToken: CancelGetInfo.Token);
+                Current?.GetExif();
             }
             IsGetInfo = false;
             return (string.IsNullOrEmpty(result) ? null : result);
@@ -670,22 +673,22 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <returns></returns>
-        public async Task<string> GetTotalColors()
+        public async Task<string> GetTotalColors(CancellationToken cancel = default(CancellationToken))
         {
             var colors = new List<string>();
             if (ValidOriginal)
             {
-                colors.Add($"{"InfoTipColorsOriginal".T()} {await Original.CalcTotalColors()}");
-                colors.Add($"{"InfoTipBackgroundColorOriginal".T()} {Original.BackgroundColor.ToHexString()}");
-                colors.Add($"{"InfoTipBorderColorOriginal".T()} {Original.BorderColor.ToHexString()}");
-                colors.Add($"{"InfoTipMatteColorOriginal".T()} {Original.MatteColor.ToHexString()}");
+                colors.Add($"{"InfoTipColorsOriginal".T()} {await Original?.CalcTotalColors(cancel: cancel)}");
+                colors.Add($"{"InfoTipBackgroundColorOriginal".T()} {Original?.BackgroundColor.ToHexString()}");
+                colors.Add($"{"InfoTipBorderColorOriginal".T()} {Original?.BorderColor.ToHexString()}");
+                colors.Add($"{"InfoTipMatteColorOriginal".T()} {Original?.MatteColor.ToHexString()}");
             }
             if (ValidCurrent)
             {
-                colors.Add($"{"InfoTipColors".T()} {await Current.CalcTotalColors()}");
-                colors.Add($"{"InfoTipBackgroundColor".T()} {Current.BackgroundColor.ToHexString()}");
-                colors.Add($"{"InfoTipBorderColor".T()} {Current.BorderColor.ToHexString()}");
-                colors.Add($"{"InfoTipMatteColor".T()} {Current.MatteColor.ToHexString()}");
+                colors.Add($"{"InfoTipColors".T()} {await Current?.CalcTotalColors(cancel: cancel)}");
+                colors.Add($"{"InfoTipBackgroundColor".T()} {Current?.BackgroundColor.ToHexString()}");
+                colors.Add($"{"InfoTipBorderColor".T()} {Current?.BorderColor.ToHexString()}");
+                colors.Add($"{"InfoTipMatteColor".T()} {Current?.MatteColor.ToHexString()}");
             }
             return (colors.Count > 0 ? string.Join(Environment.NewLine, colors) : string.Empty);
         }

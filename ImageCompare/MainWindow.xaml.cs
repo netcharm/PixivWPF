@@ -3622,7 +3622,7 @@ namespace ImageCompare
                         if (string.IsNullOrEmpty(tooltip) || tooltip.StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
                         {
                             tooltip = await image.GetInformation().GetImageInfo();
-                            SetToolTip(image, tooltip);
+                            if (!string.IsNullOrEmpty(tooltip)) SetToolTip(image, tooltip);
                         }
                     }
                 }
