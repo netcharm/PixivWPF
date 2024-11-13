@@ -977,7 +977,7 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="change_state"></param>
-        private void ToggleMagnifierState(bool? state = null, bool change_state = false)
+        private void ToggleMagnifier(bool? state = null, bool change_state = false)
         {
             ImageMagnifier.Dispatcher.Invoke(() =>
             {
@@ -2869,6 +2869,49 @@ namespace ImageCompare
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="element"></param>
+        /// <param name="show"></param>
+        private void ShowToolTip(FrameworkElement element, bool show)
+        {
+            if (show) OpenToolTip(element);
+            else CloseToolTip(element);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        private void ToggleToolTip(FrameworkElement element)
+        {
+            ShowToolTip(element, !IsToolTipOpen(element));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        private bool IsToolTipOpen(FrameworkElement element)
+        {
+            var result = false;
+            try
+            {
+                if (element?.ToolTip is string)
+                {
+                    result = Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).IsOpen);
+                }
+                else if (element?.ToolTip is ToolTip && (element?.ToolTip as ToolTip).Content is string)
+                {
+                    result = Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).IsOpen);
+                }
+            }
+            catch { }
+            return(result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="cursor"></param>
         private void SetCursor(Cursor cursor)
         {
@@ -3275,17 +3318,27 @@ namespace ImageCompare
                 try
                 {
                     e.Handled = false;
-                    if (Keyboard.Modifiers == ModifierKeys.Control && (e.Key == Key.W || e.SystemKey == Key.W))
+                    if      (Keyboard.Modifiers == ModifierKeys.Control && (e.Key == Key.W || e.SystemKey == Key.W))
                     {
                         e.Handled = true;
                         Close();
+                    }
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt && (e.Key == Key.S || e.SystemKey == Key.S))
+                    {
+                        e.Handled = true;
+                        if (ImageSource.Source != null && ImageSourceScroll.ContextMenu != null) ImageSourceScroll.ContextMenu.IsOpen = true;
+                    }
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt && (e.Key == Key.T || e.SystemKey == Key.T))
+                    {
+                        e.Handled = true;
+                        if (ImageTarget.Source != null && ImageTarget.ContextMenu != null) ImageTargetScroll.ContextMenu.IsOpen = true;
                     }
                     else if (e.Key == Key.Escape || e.SystemKey == Key.Escape)
                     {
                         if (IsMagnifier)
                         {
                             e.Handled = true;
-                            ToggleMagnifierState(state: false, change_state: true);
+                            ToggleMagnifier(state: false, change_state: true);
                         }
                         else if (_last_key_ == Key.Escape && (DateTime.Now - _last_key_time_).TotalMilliseconds < 200)
                         {
@@ -3377,33 +3430,29 @@ namespace ImageCompare
                         ImageExchange.IsChecked = !ImageExchange.IsChecked;
                         ImageActions_Click(ImageExchange, e);
                     }
-                    else if (Keyboard.Modifiers == ModifierKeys.Alt && (e.Key == Key.S || e.SystemKey == Key.S))
+                    else if (e.Key == Key.I || e.SystemKey == Key.I)
                     {
-                        e.Handled = true;
-                        if (ImageSource.Source != null && ImageSource.ContextMenu != null) ImageSource.ContextMenu.IsOpen = true;
+                        if      (ImageSourceScroll.IsMouseOver) ToggleToolTip(ImageSource);
+                        else if (ImageTargetScroll.IsMouseOver) ToggleToolTip(ImageTarget);
+                        else if (ImageResultScroll.IsMouseOver) ToggleToolTip(ImageResult);
                     }
-                    else if (Keyboard.Modifiers == ModifierKeys.Alt && (e.Key == Key.T || e.SystemKey == Key.T))
+                    else if (e.Key == Key.M || e.SystemKey == Key.M)
                     {
-                        e.Handled = true;
-                        if (ImageTarget.Source != null && ImageTarget.ContextMenu != null) ImageTarget.ContextMenu.IsOpen = true;
+                        ToggleMagnifier(change_state: true);
                     }
                     else if (e.Key == Key.R || e.SystemKey == Key.R)
                     {
                         if (Keyboard.Modifiers == ModifierKeys.Shift)
                         {
-                            if (ImageSourceScroll.IsMouseDirectlyOver) ResetImage(true);
-                            else if (ImageTargetScroll.IsMouseDirectlyOver) ResetImage(false);
+                            if (ImageSourceScroll.IsMouseOver) ResetImage(true);
+                            else if (ImageTargetScroll.IsMouseOver) ResetImage(false);
                         }
                         else if (Keyboard.Modifiers == ModifierKeys.Control)
                         {
-                            if (ImageSourceScroll.IsMouseDirectlyOver) ReloadImage(true);
-                            else if (ImageTargetScroll.IsMouseDirectlyOver) ReloadImage(false);
+                            if (ImageSourceScroll.IsMouseOver) ReloadImage(true);
+                            else if (ImageTargetScroll.IsMouseOver) ReloadImage(false);
                         }
                         else RenderRun(LastAction);
-                    }
-                    else if (e.Key == Key.M || e.SystemKey == Key.M)
-                    {
-                        ToggleMagnifierState(change_state: true);
                     }
 
                     _last_key_ = e.Key;
@@ -3479,7 +3528,7 @@ namespace ImageCompare
                     if (e.ChangedButton == MouseButton.Left && e.ClickCount >= 2)
                     {
                         e.Handled = true;
-                        ToggleMagnifierState(change_state: true);
+                        ToggleMagnifier(change_state: true);
                     }
                     else if (e.ChangedButton == MouseButton.Left)
                     {
@@ -3809,7 +3858,7 @@ namespace ImageCompare
             }
             else if (sender == MagnifierMode)
             {
-                ToggleMagnifierState();
+                ToggleMagnifier();
             }
 
             else if (sender == ZoomFitNone)
