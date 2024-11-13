@@ -1317,8 +1317,7 @@ namespace ImageCompare
                 IsProcessingSource = true;
                 result = await Task.Run(async () =>
                 {
-                    var ret = await ImageSource.GetInformation().CopyToClipboard();
-                    IsProcessingSource = false;
+                    var ret = await ImageSource.GetInformation().CopyToClipboard().ContinueWith(t => { UpdateIndaicatorState(source, false, true); return(t.Result); });
                     return (ret);
                 });
             }
@@ -1327,8 +1326,7 @@ namespace ImageCompare
                 IsProcessingTarget = true;
                 result = await Task.Run(async () =>
                 {
-                    var ret = await ImageTarget.GetInformation().CopyToClipboard();
-                    IsProcessingTarget = false;
+                    var ret = await ImageTarget.GetInformation().CopyToClipboard().ContinueWith(t => { UpdateIndaicatorState(source, false, true); return(t.Result); });
                     return (ret);
                 });
             }
@@ -1337,8 +1335,7 @@ namespace ImageCompare
                 IsProcessingResult = true;
                 result = await Task.Run(async () =>
                 {
-                    var ret = await ImageResult.GetInformation().CopyToClipboard();
-                    IsProcessingResult = false;
+                    var ret = await ImageResult.GetInformation().CopyToClipboard().ContinueWith(t => { UpdateIndaicatorState(source, false, true); return(t.Result); });
                     return (ret);
                 });
             }
@@ -3323,15 +3320,11 @@ namespace ImageCompare
                         e.Handled = true;
                         Close();
                     }
-                    else if (Keyboard.Modifiers == ModifierKeys.Alt && (e.Key == Key.S || e.SystemKey == Key.S))
-                    {
-                        e.Handled = true;
-                        if (ImageSource.Source != null && ImageSourceScroll.ContextMenu != null) ImageSourceScroll.ContextMenu.IsOpen = true;
-                    }
                     else if (Keyboard.Modifiers == ModifierKeys.Alt && (e.Key == Key.T || e.SystemKey == Key.T))
                     {
                         e.Handled = true;
-                        if (ImageTarget.Source != null && ImageTarget.ContextMenu != null) ImageTargetScroll.ContextMenu.IsOpen = true;
+                        if (ImageSourceScroll.IsMouseOver && ImageSource.Source != null && ImageSourceScroll.ContextMenu != null) ImageSourceScroll.ContextMenu.IsOpen = true;
+                        else if (ImageTargetScroll.IsMouseOver && ImageTarget.Source != null && ImageTargetScroll.ContextMenu != null) ImageTargetScroll.ContextMenu.IsOpen = true;
                     }
                     else if (e.Key == Key.Escape || e.SystemKey == Key.Escape)
                     {
@@ -3430,9 +3423,18 @@ namespace ImageCompare
                         ImageExchange.IsChecked = !ImageExchange.IsChecked;
                         ImageActions_Click(ImageExchange, e);
                     }
+                    else if (Keyboard.Modifiers == ModifierKeys.Control && (e.Key == Key.C || e.SystemKey == Key.C))
+                    {
+                        Dispatcher.Invoke(async () =>
+                        {
+                            if      (ImageSourceScroll.IsMouseOver) await CopyImageTo(ImageType.Source);
+                            else if (ImageTargetScroll.IsMouseOver) await CopyImageTo(ImageType.Target);
+                            else if (ImageResultScroll.IsMouseOver) await CopyImageTo(ImageType.Result);
+                        });
+                    }
                     else if (e.Key == Key.I || e.SystemKey == Key.I)
                     {
-                        if      (ImageSourceScroll.IsMouseOver) ToggleToolTip(ImageSource);
+                        if (ImageSourceScroll.IsMouseOver) ToggleToolTip(ImageSource);
                         else if (ImageTargetScroll.IsMouseOver) ToggleToolTip(ImageTarget);
                         else if (ImageResultScroll.IsMouseOver) ToggleToolTip(ImageResult);
                     }
@@ -3832,8 +3834,7 @@ namespace ImageCompare
                 RenderRun(async () =>
                 {
                     IsProcessingResult = true;
-                    var ret = await CopyImageTo(ImageType.Result);
-                    if (!ret) UpdateIndaicatorState(ImageType.Target, false, true);
+                    await CopyImageTo(ImageType.Result);
                 });
             }
             else if (sender == ImageSaveResult)
