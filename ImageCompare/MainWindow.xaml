@@ -470,7 +470,7 @@
                     HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" />
             </Grid>
             <xctk:MagnifierManager.Magnifier>
-                <xctk:Magnifier x:Name="ImageMagnifier" x:Uid="ImageMagnifier" BorderBrush="DimGray" BorderThickness="1" Radius="100" ZoomFactor="0.25" Visibility="Hidden" />
+                <xctk:Magnifier x:Name="ImageMagnifier" x:Uid="ImageMagnifier" BorderBrush="DimGray" BorderThickness="1" Radius="100" ZoomFactor="0.25" Visibility="Collapsed" />
             </xctk:MagnifierManager.Magnifier>
         </StackPanel>
     </Grid>

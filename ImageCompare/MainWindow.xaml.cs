@@ -209,7 +209,7 @@ namespace ImageCompare
             get => ImageExchange.Dispatcher.Invoke(() => { return (ImageExchange.IsChecked ?? false); });
             set => ImageExchange.Dispatcher.Invoke(() => { ImageExchange.IsChecked = value; });
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -488,6 +488,8 @@ namespace ImageCompare
         private Point mouse_origin;
         private double ZoomMin = 0.1;
         private double ZoomMax = 10.0;
+
+        private ImageType _last_loading_ = ImageType.None;
 
         /// <summary>
         /// 
@@ -1181,7 +1183,6 @@ namespace ImageCompare
                             SetToolTip(ImageResult, tooltip_r);
 
                             IsLoadingResult = false;
-                            IsBusy = false;
 
                             DoEvents();
                         }, DispatcherPriority.Normal);
@@ -1238,9 +1239,6 @@ namespace ImageCompare
             {
                 LastHaldFolder = Path.GetDirectoryName(hald);
                 LastHaldFile = hald;
-                //using (var img = new MagickImage())
-                //{                   
-                //}
             }
         }
 
@@ -1250,29 +1248,34 @@ namespace ImageCompare
         /// <param name="source"></param>
         private void CopyImageFromResult(bool source = true)
         {
-            try
+            Task.Run(() =>
             {
-                var action = false;
-                var image_s = ImageSource.GetInformation();
-                var image_t = ImageTarget.GetInformation();
-                var image_r = ImageResult.GetInformation();
-                if (image_r.ValidCurrent)
+                try
                 {
-                    if (source)
+                    var action = false;
+                    var image_s = ImageSource.GetInformation();
+                    var image_t = ImageTarget.GetInformation();
+                    var image_r = ImageResult.GetInformation();
+                    if (image_r.ValidCurrent)
                     {
-                        IsLoadingSource = true;
-                        image_s.Current = new MagickImage(image_r.Current);
+                        if (source)
+                        {
+                            IsLoadingSource = true;
+                            image_s.Current = new MagickImage(image_r.Current);
+                            _last_loading_ = ImageType.Source;
+                        }
+                        else
+                        {
+                            IsLoadingTarget = true;
+                            image_t.Current = new MagickImage(image_r.Current);
+                            _last_loading_ = ImageType.Target;
+                        }
+                        action = true;
                     }
-                    else
-                    {
-                        IsLoadingTarget = true;
-                        image_t.Current = new MagickImage(image_r.Current);
-                    }
-                    action = true;
+                    if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: _last_loading_));
                 }
-                if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false));
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
+                catch (Exception ex) { ex.ShowMessage(); }
+            });
         }
 
         /// <summary>
@@ -1281,27 +1284,36 @@ namespace ImageCompare
         /// <param name="source"></param>
         private void CopyImageToOpposite(bool source = true)
         {
-            try
+            Task.Run(() =>
             {
-                var action = false;
-                var image_s = (source ? ImageSource : ImageTarget).GetInformation();
-                var image_t = (source ? ImageTarget : ImageSource).GetInformation();
-                if (image_s.ValidCurrent)
+                try
                 {
-                    if (source) IsLoadingTarget = true;
-                    else IsLoadingSource = true;
-
-                    if (!image_t.ValidOriginal && image_s.ValidOriginal)
+                    var action = false;
+                    var image_s = (source ? ImageSource : ImageTarget).GetInformation();
+                    var image_t = (source ? ImageTarget : ImageSource).GetInformation();
+                    if (image_s.ValidCurrent)
                     {
-                        image_t.Original = new MagickImage(image_s.Original);
-                        if (image_s.OriginalIsFile) image_t.FileName = image_s.FileName;
+                        if (source) IsProcessingSource = true;
+                        else IsProcessingTarget = true;
+
+                        if (!image_t.ValidOriginal && image_s.ValidOriginal)
+                        {
+                            image_t.Original = new MagickImage(image_s.Original);
+                            if (image_s.OriginalIsFile) image_t.FileName = image_s.FileName;
+                        }
+                        image_t.Current = new MagickImage(image_s.Current);
+
+                        if (source) IsProcessingSource = false;
+                        else IsProcessingTarget = false;
+
+                        _last_loading_ = source ? ImageType.Target : ImageType.Source;
+
+                        action = true;
                     }
-                    image_t.Current = new MagickImage(image_s.Current);
-                    action = true;
+                    if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: _last_loading_));
                 }
-                if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false));
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
+                catch (Exception ex) { ex.ShowMessage(); }
+            });
         }
 
         /// <summary>
@@ -1412,6 +1424,52 @@ namespace ImageCompare
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
+        private async Task<bool> LoadImageFromClipboard(bool? source = null)
+        {
+            return (await LoadImageFromClipboard(source ?? false ? ImageType.Source : ImageType.Target));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        private async Task<bool> LoadImageFromClipboard(ImageType? source = null)
+        {
+            var action = false;
+            try
+            {
+                var load_type = ImageType.None;
+                var image_s = ImageSource.GetInformation();
+                var image_t = ImageTarget.GetInformation();
+
+                load_type = source != null ? (source == ImageType.Source ? ImageType.Source : ImageType.Target) : (_last_loading_ != ImageType.Source ? ImageType.Source : ImageType.Target);
+
+                if (load_type == ImageType.Source) IsLoadingSource = true;
+                else if (load_type == ImageType.Target) IsLoadingTarget = true;
+
+                var image  = load_type == ImageType.Source ? image_s : image_t;
+                action |= await image.LoadImageFromClipboard();
+                if (action)
+                {
+                    _last_loading_ = load_type;
+                    RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: load_type));
+                }
+                else
+                {
+                    if (load_type == ImageType.Source) IsLoadingSource = false;
+                    if (load_type == ImageType.Target) IsLoadingTarget = false;
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+            return (action);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
         private async Task<bool> LoadImageFromPrevFile(bool source = true)
         {
             var ret = false;
@@ -1422,7 +1480,8 @@ namespace ImageCompare
 
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 ret = await image.LoadImageFromPrevFile();
-                if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: source ? ImageType.Source : ImageType.Target));
+                if (ret) _last_loading_ = source ? ImageType.Source : ImageType.Target;
+                if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: _last_loading_));
                 else
                 {
                     if (source) IsLoadingSource = false;
@@ -1448,7 +1507,8 @@ namespace ImageCompare
 
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 ret = await image.LoadImageFromNextFile();
-                if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: source ? ImageType.Source : ImageType.Target));
+                if (ret) _last_loading_ = source ? ImageType.Source : ImageType.Target;
+                if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: _last_loading_));
                 else
                 {
                     if (source) IsLoadingSource = false;
@@ -1458,6 +1518,13 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
             return (ret);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        private async Task<bool> LoadImageFromFile(bool? source = null) => (await LoadImageFromFiles(new string[] { }, source));
 
         /// <summary>
         /// 
@@ -1472,9 +1539,9 @@ namespace ImageCompare
             {
                 files = files.Select(f => f.Trim()).Where(f => !string.IsNullOrEmpty(f)).Where(f => Extensions.AllSupportedFormats.Keys.ToList().Select(e => $".{e.ToLower()}").ToList().Contains(Path.GetExtension(f).ToLower())).ToArray();
                 var count = files.Length;
-                if (count > 0)
+                if (count >= 0)
                 {
-                    var load_type = ImageType.None;
+                    var load_type = source != null ? (source ?? false ? ImageType.Source : ImageType.Target) : (_last_loading_ != ImageType.Source ? ImageType.Source : ImageType.Target);
 
                     var image_s = ImageSource.GetInformation();
                     var image_t = ImageTarget.GetInformation();
@@ -1493,25 +1560,23 @@ namespace ImageCompare
                         action |= await image_t.LoadImageFromFile(file_t);
                         load_type = ImageType.All;
                     }
-                    else
+                    else if (count >= 0)
                     {
-                        load_type = ImageType.Source;
-
-                        if (source == null) load_type = image_t.ValidCurrent || !image_s.ValidCurrent ? ImageType.Source : ImageType.Target;
-                        else load_type = source ?? false ? ImageType.Source : ImageType.Target;
-
                         if (load_type == ImageType.Source) IsLoadingSource = true;
                         else if (load_type == ImageType.Target) IsLoadingTarget = true;
 
                         var image  = load_type == ImageType.Source ? image_s : image_t;
-                        file_s = files.First();
-                        action |= await image.LoadImageFromFile(file_s);
+                        action |= count == 0 ? await image.LoadImageFromFile() : await image.LoadImageFromFile(files.First());
                     }
-                    if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: load_type));
+                    if (action)
+                    {
+                        _last_loading_ = load_type;
+                        RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: load_type));
+                    }
                     else
                     {
-                        if (load_type == ImageType.Source) IsLoadingSource = false;
-                        if (load_type == ImageType.Target) IsLoadingTarget = false;
+                        if (load_type == ImageType.All || load_type == ImageType.Source) IsLoadingSource = false;
+                        if (load_type == ImageType.All || load_type == ImageType.Target) IsLoadingTarget = false;
                     }
                 }
             }
@@ -2383,9 +2448,9 @@ namespace ImageCompare
                     RenderRun(() => { MergeImage(MenuHost(obj), vertical: true, sendto: sendto, first: first); }, target);
                 };
 
-                item_copyfrom_result.Click += (obj, evt) => { RenderRun(() => { CopyImageFromResult(source); }, target); };
-                item_copyto_source.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(source); }, target); };
-                item_copyto_target.Click += (obj, evt) => { RenderRun(() => { CopyImageToOpposite(source); }, target); };
+                item_copyfrom_result.Click += (obj, evt) => CopyImageFromResult(source);
+                item_copyto_source.Click += (obj, evt) => CopyImageToOpposite(source);
+                item_copyto_target.Click += (obj, evt) => CopyImageToOpposite(source);
 
                 item_load_prev.Click += (obj, evt) => { RenderRun(async () => { await LoadImageFromPrevFile(MenuHost(obj)); }, target); };
                 item_load_next.Click += (obj, evt) => { RenderRun(async () => { await LoadImageFromNextFile(MenuHost(obj)); }, target); };
@@ -3208,12 +3273,16 @@ namespace ImageCompare
             }
             #endregion
 
+            #region Magnifier Init
             ImageMagnifier.IsEnabled = false;
+            ImageMagnifier.IsUsingZoomOnMouseWheel = false;
+            //ImageMagnifier.FrameType = FrameType.Rectangle;            
             ImageMagnifier.Visibility = Visibility.Collapsed;
-            ImageMagnifier.ZoomFactor = ImageMagnifierZoomFactor;
             ImageMagnifier.Radius = ImageMagnifierRadius;
             ImageMagnifier.BorderBrush = new SolidColorBrush(ImageMagnifierBorderBrush);
             ImageMagnifier.BorderThickness = new Thickness(ImageMagnifierBorderThickness);
+            ImageMagnifier.ZoomFactor = ImageMagnifierZoomFactor;
+            #endregion
 
             ToolTipService.SetShowOnDisabled(ImageSource, false);
             ToolTipService.SetShowOnDisabled(ImageTarget, false);
@@ -3430,6 +3499,14 @@ namespace ImageCompare
                             if      (ImageSourceScroll.IsMouseOver) await CopyImageTo(ImageType.Source);
                             else if (ImageTargetScroll.IsMouseOver) await CopyImageTo(ImageType.Target);
                             else if (ImageResultScroll.IsMouseOver) await CopyImageTo(ImageType.Result);
+                        });
+                    }
+                    else if (Keyboard.Modifiers == ModifierKeys.Control && (e.Key == Key.V || e.SystemKey == Key.V))
+                    {
+                        Dispatcher.Invoke(async () =>
+                        {
+                            if (ImageSourceScroll.IsMouseOver) await LoadImageFromClipboard(ImageType.Source);
+                            else if (ImageTargetScroll.IsMouseOver) await LoadImageFromClipboard(ImageType.Target);
                         });
                     }
                     else if (e.Key == Key.I || e.SystemKey == Key.I)
@@ -3724,23 +3801,11 @@ namespace ImageCompare
 
             else if (sender == ImageOpenSource)
             {
-                RenderRun(new Action(async () =>
-                {
-                    IsLoadingSource = true;
-                    var action = await ImageSource.GetInformation().LoadImageFromFile();
-                    if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true));
-                    else UpdateIndaicatorState(ImageType.Source, false, true);
-                }));
+                RenderRun(async () => await LoadImageFromFile(source: true));
             }
             else if (sender == ImageOpenTarget)
             {
-                RenderRun(new Action(async () =>
-                {
-                    IsLoadingTarget = true;
-                    var action = await ImageTarget.GetInformation().LoadImageFromFile();
-                    if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true));
-                    else UpdateIndaicatorState(ImageType.Target, false, true);
-                }));
+                RenderRun(async () => await LoadImageFromFile(source: false));
             }
             else if (sender == CreateImageWithColorSource)
             {
@@ -3761,23 +3826,11 @@ namespace ImageCompare
 
             else if (sender == ImagePasteSource)
             {
-                RenderRun(async () =>
-                {
-                    IsLoadingSource = true;
-                    var action = await ImageSource.GetInformation().LoadImageFromClipboard();
-                    if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true);
-                    else UpdateIndaicatorState(ImageType.Source, false, true);
-                });
+                RenderRun(async () => await LoadImageFromClipboard(source: true));
             }
             else if (sender == ImagePasteTarget)
             {
-                RenderRun(async () =>
-                {
-                    IsLoadingTarget = true;
-                    var action = await ImageTarget.GetInformation().LoadImageFromClipboard();
-                    if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true);
-                    else UpdateIndaicatorState(ImageType.Target, false, true);
-                });
+                RenderRun(async () => await LoadImageFromClipboard(source: false));
             }
             else if (sender == ImageClear)
             {
