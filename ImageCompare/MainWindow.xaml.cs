@@ -484,6 +484,7 @@ namespace ImageCompare
 
         private readonly SemaphoreSlim _CanUpdate_ = new SemaphoreSlim(1, 1);
         private readonly Dictionary<Color, string> ColorNames = new Dictionary<Color, string>();
+        private Point? _last_viewer_pos_ = null;
         private Point mouse_start;
         private Point mouse_origin;
         private double ZoomMin = 0.1;
@@ -723,6 +724,35 @@ namespace ImageCompare
                     ImageTargetScroll.ScrollToVerticalOffset(offset.Y);
                     ImageResultScroll.ScrollToVerticalOffset(offset.Y);
                 }
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void CenterViewer()
+        {
+            Dispatcher.InvokeAsync(() =>
+            {
+                ImageSourceScroll.ScrollToVerticalOffset(ImageSourceScroll.ScrollableHeight / 2);
+                ImageSourceScroll.ScrollToHorizontalOffset(ImageSourceScroll.ScrollableWidth / 2);
+
+                ImageTargetScroll.ScrollToVerticalOffset(ImageTargetScroll.ScrollableHeight / 2);
+                ImageTargetScroll.ScrollToHorizontalOffset(ImageTargetScroll.ScrollableWidth / 2);
+
+                ImageResultScroll.ScrollToVerticalOffset(ImageResultScroll.ScrollableHeight / 2);
+                ImageResultScroll.ScrollToHorizontalOffset(ImageResultScroll.ScrollableWidth / 2);
+
+                //ImageSourceScroll.ScrollToVerticalOffset(ImageSourceScroll.ExtentHeight / 2);
+                //ImageSourceScroll.ScrollToHorizontalOffset(ImageSourceScroll.ExtentWidth / 2);
+
+                //ImageTargetScroll.ScrollToVerticalOffset(ImageTargetScroll.ExtentHeight / 2);
+                //ImageTargetScroll.ScrollToHorizontalOffset(ImageTargetScroll.ExtentWidth / 2);
+
+                //ImageResultScroll.ScrollToVerticalOffset(ImageResultScroll.ExtentHeight / 2);
+                //ImageResultScroll.ScrollToHorizontalOffset(ImageResultScroll.ExtentWidth / 2);
+
+                DoEvents();
             });
         }
 
@@ -3550,12 +3580,17 @@ namespace ImageCompare
 
         private async void ImageScroll_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ChangedButton == MouseButton.Middle)
+            if (e.ChangedButton == MouseButton.Middle && e.XButton1 == MouseButtonState.Pressed)
+            {
+                e.Handled = true;
+                if (e.ClickCount >= 1) CenterViewer();
+            }
+            else if (e.ChangedButton == MouseButton.Middle)
             {
                 e.Handled = true;
                 Close();
             }
-            else if (e.ChangedButton == MouseButton.XButton1)
+            else if (e.ChangedButton == MouseButton.XButton1 && e.ClickCount >= 2)
             {
                 e.Handled = true;
                 var action = false;
@@ -3567,7 +3602,7 @@ namespace ImageCompare
 
                 if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload_type: reload_type));
             }
-            else if (e.ChangedButton == MouseButton.XButton2)
+            else if (e.ChangedButton == MouseButton.XButton2 && e.ClickCount >= 2)
             {
                 e.Handled = true;
                 var action = false;
@@ -3604,7 +3639,16 @@ namespace ImageCompare
             {
                 if (e.Device is MouseDevice)
                 {
-                    if (e.ChangedButton == MouseButton.Left && e.ClickCount >= 2)
+                    if (e.ChangedButton == MouseButton.Left && e.XButton1 == MouseButtonState.Pressed)
+                    {
+                        e.Handled = true;
+                        if (e.ClickCount == 1)
+                        {
+                            ZoomRatio.Value = ZoomRatio.Value == 1 ? ZoomRatio.Maximum : 1.0;
+                            DoEvents();
+                        }
+                    }
+                    else if (e.ChangedButton == MouseButton.Left && e.ClickCount >= 2)
                     {
                         e.Handled = true;
                         ToggleMagnifier(change_state: true);
@@ -3648,7 +3692,21 @@ namespace ImageCompare
         {
             try
             {
-                if (e.LeftButton == MouseButtonState.Pressed)
+                if (e.XButton1 == MouseButtonState.Pressed)
+                {
+                    var pos = e.GetPosition(ViewerPanel);
+                    if (_last_viewer_pos_ is null) _last_viewer_pos_ = pos;
+                    else
+                    {
+                        var dx = pos.X - _last_viewer_pos_.Value.X;
+                        if (dx > 0) 
+                            ZoomRatio.Value += 0.033;
+                        else if (dx < 0) 
+                            ZoomRatio.Value -= 0.033;
+                    }
+                    _last_viewer_pos_ = pos;
+                }
+                else if (e.LeftButton == MouseButtonState.Pressed)
                 {
                     e.Handled = true;
                     var offset = sender is Viewbox || sender is ScrollViewer ? CalcScrollOffset(sender as FrameworkElement, e) : new Point(-1, -1);

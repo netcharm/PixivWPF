@@ -395,14 +395,14 @@
                             HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                             <Image.LayoutTransform>
                                 <TransformGroup x:Uid="ImageSourceTransformGroup">
-                                    <ScaleTransform x:Uid="ImageSourceScale" x:Name="ImageSourceScale" ScaleX="1" ScaleY="1"/>
+                                    <ScaleTransform x:Uid="ImageSourceScale" x:Name="ImageSourceScale" ScaleX="1" ScaleY="1" CenterX="0.5" CenterY="0.5"/>
                                     <RotateTransform x:Uid="ImageSourceRotate" x:Name="ImageSourceRotate" Angle="0" />
                                 </TransformGroup>
                             </Image.LayoutTransform>
                         </Image>
                         <Viewbox.LayoutTransform>
                             <TransformGroup x:Uid="ImageSourceBoxTransformGroup">
-                                <ScaleTransform x:Name="ImageSourceBoxScale" x:Uid="ImageSourceBoxScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}"/>
+                                <ScaleTransform x:Name="ImageSourceBoxScale" x:Uid="ImageSourceBoxScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}" CenterX="0.5" CenterY="0.5"/>
                                 <RotateTransform x:Name="ImageSourceBoxRotate" x:Uid="ImageSourceBoxRotate" Angle="0" />
                             </TransformGroup>
                         </Viewbox.LayoutTransform>
@@ -424,14 +424,14 @@
                             HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                             <Image.LayoutTransform>
                                 <TransformGroup x:Uid="TransformGroup_5">
-                                    <ScaleTransform x:Name="ImageResultScale" x:Uid="ImageResultScale" ScaleX="1" ScaleY="1"/>
+                                    <ScaleTransform x:Name="ImageResultScale" x:Uid="ImageResultScale" ScaleX="1" ScaleY="1" CenterX="0.5" CenterY="0.5"/>
                                     <RotateTransform x:Name="ImageResultRotate" x:Uid="ImageResultRotate" Angle="0" />
                                 </TransformGroup>
                             </Image.LayoutTransform>
                         </Image>
                         <Viewbox.LayoutTransform>
                             <TransformGroup x:Uid="ImageResultBoxTransformGroup">
-                                <ScaleTransform x:Name="ImageResultBoxScale" x:Uid="ImageResultBoxScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}"/>
+                                <ScaleTransform x:Name="ImageResultBoxScale" x:Uid="ImageResultBoxScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}" CenterX="0.5" CenterY="0.5"/>
                                 <RotateTransform x:Name="ImageResultBoxRotate" x:Uid="ImageResultBoxRotate" Angle="0" />
                             </TransformGroup>
                         </Viewbox.LayoutTransform>
@@ -453,14 +453,14 @@
                             HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                             <Image.LayoutTransform>
                                 <TransformGroup x:Uid="ImageTargetTransformGroup">
-                                    <ScaleTransform x:Name="ImageTargetScale" x:Uid="ImageTargetScale" ScaleX="1" ScaleY="1"/>
+                                    <ScaleTransform x:Name="ImageTargetScale" x:Uid="ImageTargetScale" ScaleX="1" ScaleY="1" CenterX="0.5" CenterY="0.5"/>
                                     <RotateTransform x:Name="ImageTargetRotate" x:Uid="ImageTargetRotate" Angle="0" />
                                 </TransformGroup>
                             </Image.LayoutTransform>
                         </Image>
                         <Viewbox.LayoutTransform>
                             <TransformGroup x:Uid="ImageTargetBoxTransformGroup">
-                                <ScaleTransform x:Name="ImageTargetBoxScale" x:Uid="ImageTargetBoxScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}"/>
+                                <ScaleTransform x:Name="ImageTargetBoxScale" x:Uid="ImageTargetBoxScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}" CenterX="0.5" CenterY="0.5"/>
                                 <RotateTransform x:Name="ImageTargetBoxRotate" x:Uid="ImageTargetBoxRotate" Angle="0" />
                             </TransformGroup>
                         </Viewbox.LayoutTransform>
