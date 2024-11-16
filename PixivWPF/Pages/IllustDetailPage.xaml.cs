@@ -3531,7 +3531,7 @@ namespace PixivWPF.Pages
                 else
                 {
                     var items = SubIllusts.GetSelected().Where(i => !string.IsNullOrEmpty(i.DownloadedFilePath)).Select(i => i.DownloadedFilePath).ToList();
-                    if (items.Count > 0) Commands.Compare.Execute(items);
+                    if (items.Any()) Commands.Compare.Execute(items);
                 }
             }
             else if (sender == ActionShowDownloadedMeta || uid.Equals("ActionShowDownloadedMeta", StringComparison.CurrentCultureIgnoreCase))
