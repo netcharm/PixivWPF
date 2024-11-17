@@ -1888,6 +1888,7 @@ namespace ImageCompare
                             result.SetArtifact("compare:mode", $"{ErrorMetricMode}, {(CompareImageForceColor ? "Color" : "Gray")}");
                             result.SetArtifact("compare:fuzzy", $"{fuzzy:P2}");
                             result.SetArtifact("compare:distance", $"{distance:F4}");
+                            result.SetArtifact("compare:difference", $"{distance:P2}");
                             result.SetArtifact("compare:similarity", $"{1 - distance:P2}");
 
                             tip.Add($"{"ResultTipMode".T()} {ErrorMetricMode}");
