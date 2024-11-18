@@ -238,6 +238,7 @@ namespace ImageCompare
 
         private string LastFileName { get; set; } = string.Empty;
         public string FileName { get; set; } = string.Empty;
+        private FileInfo ImageFileInfo { get; set; } = null;
 
         public bool AutoScale { get; set; } = true;
         public int AutoScaleSize { get; set; } = 1024;
@@ -638,19 +639,28 @@ namespace ImageCompare
                         tip.Add($"{"InfoTipDisplayMemory".T()} {CurrentDisplayMemoryUsage.SmartFileSize()}");
                         if (!string.IsNullOrEmpty(FileName))
                         {
-                            var FileSize = !string.IsNullOrEmpty(FileName) && File.Exists(FileName) ? new FileInfo(FileName).Length : -1;
-                            tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}, {Original?.Endian}");
-                            tip.Add($"{"InfoTipFileName".T()} {FileName}");
+                            if (ImageFileInfo is FileInfo)
+                            {
+                                var FileSize = ImageFileInfo.Exists && File.Exists(ImageFileInfo.FullName) ? ImageFileInfo.Length : -1;
+                                tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}, {Original?.Endian}");
+                                tip.Add($"{"InfoTipFileName".T()} {ImageFileInfo.FullName}");
+                            }
+                            else
+                            {
+                                var FileSize = File.Exists(FileName) ? new FileInfo(FileName).Length : -1;
+                                tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}, {Original?.Endian}");
+                                tip.Add($"{"InfoTipFileName".T()} {FileName}");
+                            }
                         }
                         else if (ValidOriginal && !string.IsNullOrEmpty(Original?.FileName))
                         {
-                            var FileSize = !string.IsNullOrEmpty(Original?.FileName) && File.Exists(Original?.FileName) ? new FileInfo(Original?.FileName).Length : -1;
+                            var FileSize = File.Exists(Original?.FileName) ? new FileInfo(Original?.FileName).Length : -1;
                             tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}, {Original?.Endian}");
                             tip.Add($"{"InfoTipFileName".T()} {Original?.FileName}");
                         }
                         else if (!string.IsNullOrEmpty(Current?.FileName))
                         {
-                            var FileSize = !string.IsNullOrEmpty(Current?.FileName) && File.Exists(Current?.FileName) ? new FileInfo(Current?.FileName).Length : -1;
+                            var FileSize = File.Exists(Current?.FileName) ? new FileInfo(Current?.FileName).Length : -1;
                             tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}");
                             tip.Add($"{"InfoTipFileName".T()} {Current?.FileName}");
                         }
@@ -721,6 +731,7 @@ namespace ImageCompare
                                     Original = new MagickImage(image);
                                     image.Dispose();
                                     FileName = string.Empty;
+                                    ImageFileInfo = null;
                                     OriginalModified = true;
                                     ret = true;
                                     break;
@@ -740,6 +751,7 @@ namespace ImageCompare
                                     {
                                         Original = new MagickImage(obj as MemoryStream);
                                         FileName = string.Empty;
+                                        ImageFileInfo = null;
                                         OriginalModified = true;
                                         ret = true;
                                         break;
@@ -840,6 +852,8 @@ namespace ImageCompare
                         {
                             LastFileName = file;
                             FileName = file;
+                            ImageFileInfo = new FileInfo(file);
+                            ImageFileInfo.Refresh();
 
                             if (Path.GetExtension(file).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
                             {
@@ -1244,6 +1258,24 @@ namespace ImageCompare
                 CurrentModified = true;
             }
             return (CurrentModified);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool RefreshImageFileInfo()
+        {
+            var result = false;
+            if (ImageFileInfo is null && !string.IsNullOrEmpty(FileName))
+            {
+                ImageFileInfo = new FileInfo(FileName);
+            }
+            if (ImageFileInfo is FileInfo)
+            {
+                ImageFileInfo.Refresh();
+                result = true;
+            }
+            return (result);
         }
 
         /// <summary>

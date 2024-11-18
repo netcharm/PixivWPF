@@ -308,7 +308,7 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
-        private async void ReloadImage(bool source)
+        private async void ReloadImage(bool source, bool info_only = false)
         {
             try
             {
@@ -318,11 +318,23 @@ namespace ImageCompare
                 var size = UseSmallImage ? MaxCompareSize : -1;
                 if (source)
                 {
-                    action = await ImageSource.GetInformation().Reload(size, reload: true);
+                    if (info_only)
+                    {
+                        ImageSource.GetInformation().RefreshImageFileInfo();
+                        var tooltip = await ImageSource.GetInformation().GetImageInfo();
+                        if (!string.IsNullOrEmpty(tooltip)) SetToolTip(ImageSource, tooltip);
+                    }
+                    else action = await ImageSource.GetInformation().Reload(size, reload: true);
                 }
                 else
                 {
-                    action = await ImageTarget.GetInformation().Reload(size, reload: true);
+                    if (info_only)
+                    {
+                        ImageTarget.GetInformation().RefreshImageFileInfo();
+                        var tooltip = await ImageTarget.GetInformation().GetImageInfo();
+                        if (!string.IsNullOrEmpty(tooltip)) SetToolTip(ImageTarget, tooltip);
+                    }
+                    else action = await ImageTarget.GetInformation().Reload(size, reload: true);
                 }
 
                 LastMatchedImage = ImageType.None;

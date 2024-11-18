@@ -2486,7 +2486,7 @@ namespace ImageCompare
                 item_load_next.Click += (obj, evt) => { RenderRun(async () => { await LoadImageFromNextFile(MenuHost(obj)); }, target); };
 
                 item_reset_image.Click += (obj, evt) => { RenderRun(() => { ResetImage(MenuHost(obj)); }, target); };
-                item_reload.Click += (obj, evt) => { RenderRun(() => { ReloadImage(MenuHost(obj)); }, target); };
+                item_reload.Click += (obj, evt) => { var shift = Keyboard.Modifiers == ModifierKeys.Shift; RenderRun(() => { ReloadImage(MenuHost(obj), info_only: shift); }, target); };
 
                 item_colorcalc.Click += (obj, evt) => { RenderRun(() => { CalcImageColors(MenuHost(obj)); }, target); };
                 item_copyinfo.Click += (obj, evt) => { RenderRun(() => { CopyImageInfo(MenuHost(obj)); }, target); };
@@ -3560,6 +3560,11 @@ namespace ImageCompare
                         {
                             if (ImageSourceScroll.IsMouseOver) ReloadImage(true);
                             else if (ImageTargetScroll.IsMouseOver) ReloadImage(false);
+                        }
+                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        {
+                            if (ImageSourceScroll.IsMouseOver) ReloadImage(true, info_only: true);
+                            else if (ImageTargetScroll.IsMouseOver) ReloadImage(false, info_only: true);
                         }
                         else RenderRun(LastAction);
                     }
