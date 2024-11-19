@@ -222,7 +222,7 @@ namespace ImageCompare
                     src.Current = new MagickImage(MasklightColor ?? MagickColors.Transparent, dst.Current.Width, dst.Current.Height);
                 else
                     src.Current = new MagickImage(MasklightColor ?? MagickColors.Transparent, MaxCompareSize, MaxCompareSize);
-                
+
                 UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -269,7 +269,7 @@ namespace ImageCompare
                 else
                     action = ImageTarget.GetInformation().ResetTransform();
 
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
                 else UpdateIndaicatorState(source, false, true);
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -298,7 +298,7 @@ namespace ImageCompare
 
                 LastMatchedImage = ImageType.None;
 
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
                 else UpdateIndaicatorState(source, false, true);
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -339,7 +339,7 @@ namespace ImageCompare
 
                 LastMatchedImage = ImageType.None;
 
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
                 else UpdateIndaicatorState(source, false, true);
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -365,7 +365,7 @@ namespace ImageCompare
                     image.Rotated %= 360;
                     action = true;
                 }
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
                 else UpdateIndaicatorState(source, false, true);
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -391,7 +391,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
                 else UpdateIndaicatorState(source, false, true);
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -417,99 +417,8 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
                 else UpdateIndaicatorState(source, false, true);
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="source"></param>
-        private void GrayscaleImage(bool source)
-        {
-            try
-            {
-                var action = false;
-
-                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
-                if (image.ValidCurrent) { image.Current.Grayscale(GrayscaleMode); action = true; }
-
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="source"></param>
-        private void BlurImage(bool source)
-        {
-            try
-            {
-                var action = false;
-                var radius = WeakBlur ? 5 : 10;
-                var sigma = WeakBlur ? 0.75 : 1.5;
-
-                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
-                if (image.ValidCurrent)
-                {
-                    image.Current.GaussianBlur(radius, sigma);
-                    action = true;
-                }
-
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="source"></param>
-        private void SharpImage(bool source)
-        {
-            try
-            {
-                var action = false;
-                var radius = 5;
-                var sigma = WeakSharp ? 0.25 : 0.35;
-                var amount = 15;
-                var threshold = 0;
-
-                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
-                if (image.ValidCurrent)
-                {
-                    image.Current.UnsharpMask(radius, sigma, amount, threshold);
-                    action = true;
-                }
-
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="source"></param>
-        private void ReduceNoiseImage(bool source)
-        {
-            try
-            {
-                var action = false;
-                var sigma = WeakSharp ? 5 : 10;
-
-                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
-                if (image.ValidCurrent)
-                {
-                    image.Current.ReduceNoise(sigma);
-                    action = true;
-                }
-
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -546,7 +455,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action && assign) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
+                if (action && assign) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -976,6 +885,97 @@ namespace ImageCompare
                 }
 
                 if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        private void GrayscaleImage(bool source)
+        {
+            try
+            {
+                var action = false;
+
+                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                if (image.ValidCurrent) { image.Current.Grayscale(GrayscaleMode); action = true; }
+
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        private void BlurImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var radius = WeakBlur ? 5 : 10;
+                var sigma = WeakBlur ? 0.75 : 1.5;
+
+                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                if (image.ValidCurrent)
+                {
+                    image.Current.GaussianBlur(radius, sigma);
+                    action = true;
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        private void SharpImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var radius = 5;
+                var sigma = WeakSharp ? 0.25 : 0.35;
+                var amount = 15;
+                var threshold = 0;
+
+                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                if (image.ValidCurrent)
+                {
+                    image.Current.UnsharpMask(radius, sigma, amount, threshold);
+                    action = true;
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        private void ReduceNoiseImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var sigma = WeakSharp ? 5 : 10;
+
+                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                if (image.ValidCurrent)
+                {
+                    image.Current.ReduceNoise(sigma);
+                    action = true;
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
