@@ -2872,6 +2872,7 @@ namespace ImageCompare
             }
         }
 
+        private string QualityChangeerTitle = string.Empty;
         /// <summary>
         /// 
         /// </summary>
@@ -2884,14 +2885,19 @@ namespace ImageCompare
                 var image = info?.Current;
                 var quality = image?.Compression == CompressionMethod.JPEG || image?.Quality > 0 ? image?.Quality : 100;
                 var quality_str = image?.Compression == CompressionMethod.JPEG || image?.Quality > 0 ? $"{image?.Quality}" : "Unknown";
+                QualityChangeerTitle = $"{"InfoTipQuality".T().Trim('=').Trim()} : {quality_str}";
                 QualityChanger.Tag = source;
-                QualityChanger.Caption = $"{"InfoTipQuality".T().Trim('=').Trim()} : {quality_str}";
+                QualityChanger.Caption = QualityChangeerTitle;
                 QualityChanger.WindowStartupLocation = Xceed.Wpf.Toolkit.WindowStartupLocation.Center;
+                QualityChanger.FocusedElement = QualityChangerSlider;
+                QualityChangerSlider.Width = 300;
                 QualityChangerSlider.Tag = new MagickImage(image);
                 QualityChangerSlider.Ticks = new DoubleCollection() { 10, 25, 30, 35, 55, 60, 65, 70, 75, 85, 95 };
+                QualityChangerSlider.TickPlacement = System.Windows.Controls.Primitives.TickPlacement.Both;
                 QualityChangerSlider.LargeChange = 5;
                 QualityChangerSlider.SmallChange = 1;
                 QualityChangerSlider.Value = quality ?? 100;
+                QualityChangerSlider.Focus();
                 QualityChanger.Show();
             }
         }
@@ -2901,7 +2907,20 @@ namespace ImageCompare
         /// </summary>
         private void CloseQualityChanger()
         {            
-            Dispatcher.Invoke(() => { if (IsLoaded) QualityChanger.Close(); });
+            Dispatcher.Invoke(() => { if (IsLoaded && QualityChanger.IsVisible) { QualityChangerSlider.Tag = null; QualityChanger.Close(); } });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="title"></param>
+        private void SetQualityChangerTitle(string title = null)
+        {
+            QualityChanger.Dispatcher.Invoke(() => 
+            {
+                title = title.Trim();
+                QualityChanger.Caption = string.IsNullOrEmpty(title) ? $"{QualityChangeerTitle}" : $"{QualityChangeerTitle} => {title}";
+            });            
         }
 
         /// <summary>
@@ -4192,6 +4211,7 @@ namespace ImageCompare
             }
         }
 
+        private DateTime _last_quality_change = default;
         private void QualityChangerSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
@@ -4199,27 +4219,66 @@ namespace ImageCompare
                 try
                 {
                     var source = (ImageType)(QualityChanger.Tag);
-                    //var image = QualityChangerSlider.Tag as MagickImage;
+
                     var image = source == ImageType.Source ? ImageSource.GetInformation().Original : ImageTarget.GetInformation().Original;
-                    var quality_n = (int)QualityChangerSlider.Value;
+                    var quality_n = (int)e.NewValue;
                     var quality_o = image.Quality == 0 ? 75 : image.Quality;
-                    if (quality_n < quality_o)
+                    var delta = (DateTime.Now - _last_quality_change).TotalMilliseconds;
+                    if (quality_n < quality_o && !IsBusy && delta > 330)
                     {
-                        if (source == ImageType.Source) IsProcessingSource = true;
-                        else if (source == ImageType.Target) IsProcessingTarget = true;
+                        e.Handled = true;
                         RenderRun(async () =>
                         {
-                            var result = await ChangeQuality(image, quality_n);
-                            if (CompareImageForceScale) result.Resize(CompareResizeGeometry);
-                            if (source == ImageType.Source) ImageSource.GetInformation().Current = result;
-                            else if (source == ImageType.Target) ImageTarget.GetInformation().Current = result;
-                            UpdateImageViewer(LastOpIsComposite, assign: true, reload: false, reload_type: source);
+                            try
+                            {
+                                _last_quality_change = DateTime.Now;
+                                if (source == ImageType.Source) IsProcessingSource = true;
+                                else if (source == ImageType.Target) IsProcessingTarget = true;
+
+                                var result = await ChangeQuality(image, quality_n);
+                                if (CompareImageForceScale) result.Resize(CompareResizeGeometry);
+                                if (source == ImageType.Source) ImageSource.GetInformation().Current = result;
+                                else if (source == ImageType.Target) ImageTarget.GetInformation().Current = result;
+                                UpdateImageViewer(LastOpIsComposite, assign: true, reload: false, reload_type: source);
+                                if (ImageResult.GetInformation().ValidCurrent)
+                                {
+                                    var diff = ImageResult.GetInformation().Current.GetArtifact("compare:difference");
+                                    SetQualityChangerTitle(string.IsNullOrEmpty(diff) ? null : $"{quality_n}, {"ResultTipDifference".T()} {diff}");
+                                }
+                            }
+                            catch (Exception ex) { ex.ShowMessage(); }
                         });
                     }
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }
         }
+
+        private void QualityChanger_CloseButtonClicked(object sender, RoutedEventArgs e)
+        {
+            if (QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
+            {
+                try
+                {
+                    var source = (ImageType)(QualityChanger.Tag);
+                    if (source == ImageType.Source) IsProcessingSource = true;
+                    else if (source == ImageType.Target) IsProcessingTarget = true;
+
+                    var image = QualityChangerSlider.Tag as MagickImage;
+                    QualityChangerSlider.Tag = null;
+
+                    RenderRun(() =>
+                    {
+                        if (source == ImageType.Source) ImageSource.GetInformation().Current = image;
+                        else if (source == ImageType.Target) ImageTarget.GetInformation().Current = image;
+
+                        UpdateImageViewer(LastOpIsComposite, assign: true, reload: false, reload_type: source);
+                    });
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
+            }
+        }
         #endregion
+
     }
 }
