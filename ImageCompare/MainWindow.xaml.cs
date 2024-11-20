@@ -4312,6 +4312,7 @@ namespace ImageCompare
                                 if (source == ImageType.Source) ImageSource.GetInformation().Current = result;
                                 else if (source == ImageType.Target) ImageTarget.GetInformation().Current = result;
                                 UpdateImageViewer(LastOpIsComposite, assign: true, reload: false, reload_type: source);
+                                await Task.Delay(1);
                                 if (await UpdateImageViewerFinished(TaskTimeOutSeconds) && ImageResult.GetInformation().ValidCurrent)
                                 {
                                     var diff = ImageResult.GetInformation().Current?.GetArtifact("compare:difference");
