@@ -45,6 +45,8 @@ namespace ImageCompare
         private static readonly string AppName = Path.GetFileNameWithoutExtension(AppPath);
         private static string CachePath =  "cache";
 
+        private double TaskTimeOutSeconds = 60;
+
         /// <summary>
         /// 
         /// </summary>
@@ -218,6 +220,14 @@ namespace ImageCompare
         {
             get => ImageMagnifier.Dispatcher.Invoke(() => { return (ImageMagnifier.IsEnabled); });
             set => ImageMagnifier.Dispatcher.Invoke(() => { ImageMagnifier.IsEnabled = value; });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private bool IsQualityChanger
+        {
+            get => QualityChanger.Dispatcher.Invoke(() => { return (QualityChanger.IsVisible); });
         }
         #endregion
 
@@ -1034,6 +1044,22 @@ namespace ImageCompare
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="timeout"></param>
+        /// <returns></returns>
+        private async Task<bool> UpdateImageViewerFinished(double timeout = 60)
+        {
+            var result = false;
+            if (_CanUpdate_ is SemaphoreSlim && await _CanUpdate_.WaitAsync(TimeSpan.FromSeconds(timeout)))
+            {
+                _CanUpdate_.Release();
+                result = true;
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="compose"></param>
         /// <param name="assign"></param>
         /// <param name="reload"></param>
@@ -1642,11 +1668,16 @@ namespace ImageCompare
             AppSettingsSection appSection = appCfg.AppSettings;
             try
             {
-
                 if (appSection.Settings.AllKeys.Contains("AutoSaveOptions"))
                 {
                     var value = AutoSaveOptions.IsChecked ?? true;
                     if (bool.TryParse(appSection.Settings["AutoSaveOptions"].Value, out value)) AutoSaveConfig = value;
+                }
+
+                if (appSection.Settings.AllKeys.Contains("TaskTimeOutSeconds"))
+                {
+                    var value = TaskTimeOutSeconds;
+                    if (double.TryParse(appSection.Settings["TaskTimeOutSeconds"].Value, out value)) TaskTimeOutSeconds = value;
                 }
 
                 if (appSection.Settings.AllKeys.Contains("AutoHideToolTip"))
@@ -1890,6 +1921,11 @@ namespace ImageCompare
 
                 if (AutoSaveConfig)
                 {
+                    if (appSection.Settings.AllKeys.Contains("TaskTimeOutSeconds"))
+                        appSection.Settings["TaskTimeOutSeconds"].Value = TaskTimeOutSeconds.ToString();
+                    else
+                        appSection.Settings.Add("TaskTimeOutSeconds", TaskTimeOutSeconds.ToString());
+
                     if (appSection.Settings.AllKeys.Contains("AutoHideToolTip"))
                         appSection.Settings["AutoHideToolTip"].Value = AutoHideToolTip.ToString();
                     else
@@ -2906,9 +2942,19 @@ namespace ImageCompare
         /// <summary>
         /// 
         /// </summary>
-        private void CloseQualityChanger()
+        private void CloseQualityChanger(bool restore = false)
         {            
-            Dispatcher.Invoke(() => { if (IsLoaded && QualityChanger.IsVisible) { QualityChangerSlider.Tag = null; QualityChanger.Close(); } });
+            Dispatcher.Invoke(() => 
+            {
+                if (IsLoaded && QualityChanger.IsVisible)
+                {
+                    if (restore) 
+                        QualityChanger_CloseButtonClicked(QualityChanger, null);
+                    else
+                        QualityChangerSlider.Tag = null;
+                    QualityChanger.Close();
+                }
+            });
         }
 
         /// <summary>
@@ -3497,6 +3543,11 @@ namespace ImageCompare
                         {
                             e.Handled = true;
                             ToggleMagnifier(state: false, change_state: true);
+                        }
+                        else if(IsQualityChanger)
+                        {
+                            e.Handled = true;
+                            CloseQualityChanger(restore: true);
                         }
                         else if (_last_key_ == Key.Escape && (DateTime.Now - _last_key_time_).TotalMilliseconds < 200)
                         {
@@ -4261,9 +4312,9 @@ namespace ImageCompare
                                 if (source == ImageType.Source) ImageSource.GetInformation().Current = result;
                                 else if (source == ImageType.Target) ImageTarget.GetInformation().Current = result;
                                 UpdateImageViewer(LastOpIsComposite, assign: true, reload: false, reload_type: source);
-                                if (ImageResult.GetInformation().ValidCurrent)
+                                if (await UpdateImageViewerFinished(TaskTimeOutSeconds) && ImageResult.GetInformation().ValidCurrent)
                                 {
-                                    var diff = ImageResult.GetInformation().Current.GetArtifact("compare:difference");
+                                    var diff = ImageResult.GetInformation().Current?.GetArtifact("compare:difference");
                                     SetQualityChangerTitle(string.IsNullOrEmpty(diff) ? null : $"{quality_n}, {"ResultTipDifference".T()} {diff}");
                                 }
                             }
