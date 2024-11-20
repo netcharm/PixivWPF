@@ -2877,7 +2877,7 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="info"></param>
-        private void ShowQualityChanger(ImageType source)
+        private void OpenQualityChanger(ImageType source)
         {
             var info = source == ImageType.Source ? ImageSource.GetInformation() : (source == ImageType.Target ? ImageTarget.GetInformation() : new ImageInformation());
             if (info.ValidCurrent)
@@ -2891,6 +2891,7 @@ namespace ImageCompare
                 QualityChanger.WindowStartupLocation = Xceed.Wpf.Toolkit.WindowStartupLocation.Center;
                 QualityChanger.FocusedElement = QualityChangerSlider;
                 QualityChangerSlider.Width = 300;
+                QualityChangerSlider.IsSnapToTickEnabled = true;
                 QualityChangerSlider.Tag = new MagickImage(image);
                 QualityChangerSlider.Ticks = new DoubleCollection() { 10, 25, 30, 35, 55, 60, 65, 70, 75, 85, 95 };
                 QualityChangerSlider.TickPlacement = System.Windows.Controls.Primitives.TickPlacement.Both;
@@ -3225,6 +3226,11 @@ namespace ImageCompare
             ZoomMin = ZoomRatio.Minimum;
             ZoomMax = ZoomRatio.Maximum;
             #endregion
+
+            ImageCompareFuzzy.MouseWheel += Slider_MouseWheel;
+            ImageCompositeBlend.MouseWheel += Slider_MouseWheel;
+            ZoomRatio.MouseWheel += Slider_MouseWheel;
+            QualityChangerSlider.MouseWheel += Slider_MouseWheel;
 
             LocaleUI(DefaultCultureInfo);
 
@@ -3630,8 +3636,8 @@ namespace ImageCompare
                     }
                     else if (e.Key == Key.Q|| e.SystemKey == Key.Q)
                     {
-                        if (ImageSourceScroll.IsMouseOver) ShowQualityChanger(ImageType.Source);
-                        else if (ImageTargetScroll.IsMouseOver) ShowQualityChanger(ImageType.Target);
+                        if (ImageSourceScroll.IsMouseOver) OpenQualityChanger(ImageType.Source);
+                        else if (ImageTargetScroll.IsMouseOver) OpenQualityChanger(ImageType.Target);
                     }
 
                     _last_key_ = e.Key;
@@ -4136,6 +4142,19 @@ namespace ImageCompare
         #endregion
 
         #region Misc UI Control Events
+        private void Slider_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (sender is Slider)
+            {
+                var slider = sender as Slider;
+                slider.Dispatcher.Invoke(() =>
+                {
+                    if (e.Delta < 0) slider.Value -= slider.SmallChange;
+                    if (e.Delta > 0) slider.Value += slider.SmallChange;
+                });
+            }
+        }
+
         private void ZoomRatio_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             try
@@ -4156,7 +4175,8 @@ namespace ImageCompare
             if (IsLoaded)
             {
                 ImageCompareFuzzy.ToolTip = $"{"Tolerances".T(DefaultCultureInfo)}: {e.NewValue:F1}%";
-                RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite));
+                if (ImageSourceBox.GetInformation().ValidCurrent && ImageTargetBox.GetInformation().ValidCurrent)
+                    RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite));
             }
         }
 
@@ -4224,14 +4244,15 @@ namespace ImageCompare
                     var quality_n = (int)e.NewValue;
                     var quality_o = image.Quality == 0 ? 75 : image.Quality;
                     var delta = (DateTime.Now - _last_quality_change).TotalMilliseconds;
-                    if (quality_n < quality_o && !IsBusy && delta > 330)
+                    if (quality_n < quality_o && !IsBusy && delta > 350)
                     {
                         e.Handled = true;
+                        _last_quality_change = DateTime.Now;
+                        SetQualityChangerTitle($"{quality_n}");
                         RenderRun(async () =>
                         {
                             try
                             {
-                                _last_quality_change = DateTime.Now;
                                 if (source == ImageType.Source) IsProcessingSource = true;
                                 else if (source == ImageType.Target) IsProcessingTarget = true;
 
