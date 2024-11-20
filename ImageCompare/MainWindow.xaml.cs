@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Configuration;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
+using System.Diagnostics.Eventing.Reader;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -238,8 +239,6 @@ namespace ImageCompare
         private ErrorMetric ErrorMetricMode = ErrorMetric.Fuzz;
         private CompositeOperator CompositeMode = CompositeOperator.Difference;
         private PixelIntensityMethod GrayscaleMode = PixelIntensityMethod.Undefined;
-
-        private bool UseSmallImage { get { return (UseSmallerImage.Dispatcher.Invoke(() => UseSmallerImage.IsChecked ?? false)); } }
 
         private ImageScaleMode ScaleMode = ImageScaleMode.Independence;
 
@@ -1288,6 +1287,7 @@ namespace ImageCompare
                     var image_r = ImageResult.GetInformation();
                     if (image_r.ValidCurrent)
                     {
+                        CloseQualityChanger();
                         if (source)
                         {
                             IsLoadingSource = true;
@@ -1323,6 +1323,7 @@ namespace ImageCompare
                     var image_t = (source ? ImageTarget : ImageSource).GetInformation();
                     if (image_s.ValidCurrent)
                     {
+                        CloseQualityChanger();
                         if (source) IsProcessingSource = true;
                         else IsProcessingTarget = true;
 
@@ -1356,6 +1357,7 @@ namespace ImageCompare
             var result = false;
             if (source == ImageType.Source)
             {
+                CloseQualityChanger();
                 IsProcessingSource = true;
                 result = await Task.Run(async () =>
                 {
@@ -1365,6 +1367,7 @@ namespace ImageCompare
             }
             else if (source == ImageType.Target)
             {
+                CloseQualityChanger();
                 IsProcessingTarget = true;
                 result = await Task.Run(async () =>
                 {
@@ -1374,6 +1377,7 @@ namespace ImageCompare
             }
             else if (source == ImageType.Result)
             {
+                CloseQualityChanger();
                 IsProcessingResult = true;
                 result = await Task.Run(async () =>
                 {
@@ -1482,6 +1486,7 @@ namespace ImageCompare
                 action |= await image.LoadImageFromClipboard();
                 if (action)
                 {
+                    CloseQualityChanger();
                     _last_loading_ = load_type;
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: load_type));
                 }
@@ -1600,6 +1605,7 @@ namespace ImageCompare
                     }
                     if (action)
                     {
+                        CloseQualityChanger();
                         _last_loading_ = load_type;
                         RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: load_type));
                     }
@@ -2869,6 +2875,38 @@ namespace ImageCompare
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="info"></param>
+        private void ShowQualityChanger(ImageType source)
+        {
+            var info = source == ImageType.Source ? ImageSource.GetInformation() : (source == ImageType.Target ? ImageTarget.GetInformation() : new ImageInformation());
+            if (info.ValidCurrent)
+            {
+                var image = info?.Current;
+                var quality = image?.Compression == CompressionMethod.JPEG || image?.Quality > 0 ? image?.Quality : 100;
+                var quality_str = image?.Compression == CompressionMethod.JPEG || image?.Quality > 0 ? $"{image?.Quality}" : "Unknown";
+                QualityChanger.Tag = source;
+                QualityChanger.Caption = $"{"InfoTipQuality".T().Trim('=').Trim()} : {quality_str}";
+                QualityChanger.WindowStartupLocation = Xceed.Wpf.Toolkit.WindowStartupLocation.Center;
+                QualityChangerSlider.Tag = new MagickImage(image);
+                QualityChangerSlider.Ticks = new DoubleCollection() { 10, 25, 30, 35, 55, 60, 65, 70, 75, 85, 95 };
+                QualityChangerSlider.LargeChange = 5;
+                QualityChangerSlider.SmallChange = 1;
+                QualityChangerSlider.Value = quality ?? 100;
+                QualityChanger.Show();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void CloseQualityChanger()
+        {            
+            Dispatcher.Invoke(() => { if (IsLoaded) QualityChanger.Close(); });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="element"></param>
         /// <returns></returns>
         private string GetToolTip(FrameworkElement element)
@@ -2926,14 +2964,17 @@ namespace ImageCompare
         {
             try
             {
-                if (element?.ToolTip is string)
+                Dispatcher.Invoke(() =>
                 {
-                    Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).IsOpen = true);
-                }
-                else if (element?.ToolTip is ToolTip && (element?.ToolTip as ToolTip).Content is string)
-                {
-                    Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).IsOpen = true);
-                }
+                    if (element?.ToolTip is string)
+                    {
+                        (element?.ToolTip as ToolTip).IsOpen = true;
+                    }
+                    else if (element?.ToolTip is ToolTip && (element?.ToolTip as ToolTip).Content is string)
+                    {
+                        (element?.ToolTip as ToolTip).IsOpen = true;
+                    }
+                });
             }
             catch { }
         }
@@ -3568,6 +3609,11 @@ namespace ImageCompare
                         }
                         else RenderRun(LastAction);
                     }
+                    else if (e.Key == Key.Q|| e.SystemKey == Key.Q)
+                    {
+                        if (ImageSourceScroll.IsMouseOver) ShowQualityChanger(ImageType.Source);
+                        else if (ImageTargetScroll.IsMouseOver) ShowQualityChanger(ImageType.Target);
+                    }
 
                     _last_key_ = e.Key;
                     _last_key_time_ = DateTime.Now;
@@ -3996,17 +4042,20 @@ namespace ImageCompare
             }
             else if (sender == AutoMatchSize)
             {
+                CloseQualityChanger();
                 RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
             }
 
             else if (sender == UseSmallerImage)
             {
+                CloseQualityChanger();
                 SmallSizeModeIndep.IsChecked = true;
                 SmallSizeModeLink.IsChecked = false;
                 RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
             }
             else if (sender == SmallSizeModeIndep)
             {
+                CloseQualityChanger();
                 ScaleMode = ImageScaleMode.Independence;
                 SmallSizeModeIndep.IsChecked = true;
                 SmallSizeModeLink.IsChecked = false;
@@ -4014,6 +4063,7 @@ namespace ImageCompare
             }
             else if (sender == SmallSizeModeLink)
             {
+                CloseQualityChanger();
                 ScaleMode = ImageScaleMode.Relative;
                 SmallSizeModeIndep.IsChecked = false;
                 SmallSizeModeLink.IsChecked = true;
@@ -4038,6 +4088,8 @@ namespace ImageCompare
         {
             if (sender is MenuItem)
             {
+                CloseQualityChanger();
+
                 var old_align = DefaultMatchAlign;
                 var menu = sender as MenuItem;
                 foreach (var m in MatchSizeAlign.Items) { if (m is MenuItem) (m as MenuItem).IsChecked = false; }
@@ -4106,6 +4158,7 @@ namespace ImageCompare
                 int value = MaxCompareSize;
                 if (int.TryParse(MaxCompareSizeValue.Text, out value))
                 {
+                    CloseQualityChanger();
                     MaxCompareSize = Math.Max(0, Math.Min(2048, value));
                     CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
                     var image_s = ImageSource.GetInformation();
@@ -4138,7 +4191,35 @@ namespace ImageCompare
                 SyncColorLighting();
             }
         }
-        #endregion
 
+        private void QualityChangerSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
+            {
+                try
+                {
+                    var source = (ImageType)(QualityChanger.Tag);
+                    //var image = QualityChangerSlider.Tag as MagickImage;
+                    var image = source == ImageType.Source ? ImageSource.GetInformation().Original : ImageTarget.GetInformation().Original;
+                    var quality_n = (int)QualityChangerSlider.Value;
+                    var quality_o = image.Quality == 0 ? 75 : image.Quality;
+                    if (quality_n < quality_o)
+                    {
+                        if (source == ImageType.Source) IsProcessingSource = true;
+                        else if (source == ImageType.Target) IsProcessingTarget = true;
+                        RenderRun(async () =>
+                        {
+                            var result = await ChangeQuality(image, quality_n);
+                            if (CompareImageForceScale) result.Resize(CompareResizeGeometry);
+                            if (source == ImageType.Source) ImageSource.GetInformation().Current = result;
+                            else if (source == ImageType.Target) ImageTarget.GetInformation().Current = result;
+                            UpdateImageViewer(LastOpIsComposite, assign: true, reload: false, reload_type: source);
+                        });
+                    }
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
+            }
+        }
+        #endregion
     }
 }

@@ -629,7 +629,7 @@ namespace ImageCompare
                             tip.Add($"{"InfoTipFormatInfo".T()} {CurrentFormatInfo.Format} ({CurrentFormatInfo.Description}), mime:{CurrentFormatInfo.MimeType}");
                         tip.Add($"{"InfoTipColorSpace".T()} {Original?.ColorSpace}");
                         tip.Add($"{"InfoTipColorChannelCount".T()} {ChannelCount}");
-                        tip.Add($"{"InfoTipHasAlpha".T()} {((bool)(Original?.HasAlpha) ? "Included" : "NotIncluded").T()}");
+                        tip.Add($"{"InfoTipHasAlpha".T()} {(Original?.HasAlpha ?? false ? "Included" : "NotIncluded").T()}");
                         if (Original?.ColormapSize > 0) tip.Add($"{"InfoTipColorMapsSize".T()} {Original?.ColormapSize}");
                         tip.Add($"{"InfoTipCompression".T()} {Original?.Compression}");
                         tip.Add($"{"InfoTipQuality".T()} {(Original?.Compression == CompressionMethod.JPEG || Original?.Quality > 0 ? $"{Original?.Quality}" : "Unknown")}");
@@ -923,7 +923,6 @@ namespace ImageCompare
                     try
                     {
                         var bs = Current.ToBitmapSource();
-                        //Current.ToByteArray(MagickFormat.Dib);
 
                         DataObject dataPackage = new DataObject();
                         MemoryStream ms = null;
@@ -932,8 +931,7 @@ namespace ImageCompare
                         dataPackage.SetImage(bs);
                         #endregion
                         #region Copy other MIME format data to Clipboard
-                        string[] fmts = new string[] { "PNG", "image/png", "image/bmp", "image/jpg", "image/jpeg" };
-                        //string[] fmts = new string[] { };
+                        string[] fmts = Current.IsJPG() ? new string[] { "image/jpg", "image/jpeg", "CF_DIBV5" } : new string[] { "PNG", "image/png", "image/bmp", "image/jpg", "image/jpeg", "CF_DIBV5" };
                         foreach (var fmt in fmts)
                         {
                             if (fmt.Equals("CF_DIBV5", StringComparison.CurrentCultureIgnoreCase))

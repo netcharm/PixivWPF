@@ -24,19 +24,14 @@
             <RowDefinition x:Uid="CanvasRowDefinition_1" Height="Auto"/>
             <RowDefinition x:Uid="CanvasRowDefinition_2" Height="*"/>
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition x:Uid="CanvasColumnDefinition_1" Width="0.33333333*"/>
-            <ColumnDefinition x:Uid="CanvasColumnDefinition_2" Width="0.33333333*"/>
-            <ColumnDefinition x:Uid="CanvasColumnDefinition_3" Width="0.33333333*"/>
-        </Grid.ColumnDefinitions>
 
         <Grid.Background>
             <ImageBrush x:Uid="CanvasBackImageBrush" ImageSource="pack://application:,,,/ImageCompare;component/Resources/CheckboardPattern_32.png" 
                 TileMode="Tile" Opacity="0.10" ViewportUnits="Absolute" Viewport="0,0,32,32"/>
         </Grid.Background>
 
-        <Rectangle Grid.Row="0" Grid.ColumnSpan="3" x:Name="ImageToolBarBG" x:Uid="MainToolBarBG" Fill="{Binding ElementName=ImageToolBar, Path=Background, Mode=OneWay}"/>
-        <ToolBar Grid.Row="0" Grid.ColumnSpan="3" x:Name="ImageToolBar" x:Uid="MainToolBar" ToolBarTray.IsLocked="True"
+        <Rectangle Grid.Row="0" x:Name="ImageToolBarBG" x:Uid="MainToolBarBG" Fill="{Binding ElementName=ImageToolBar, Path=Background, Mode=OneWay}"/>
+        <ToolBar Grid.Row="0" x:Name="ImageToolBar" x:Uid="MainToolBar" ToolBarTray.IsLocked="True"
                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalContentAlignment="Left" VerticalContentAlignment="Center">
             <ToolBar.Resources>
                 <Style x:Uid="ToolBarStyle" TargetType="{x:Type DockPanel}">
@@ -381,7 +376,7 @@
                 </StackPanel>
             </ToggleButton>
         </ToolBar>
-        <StackPanel x:Name="ViewerPanel" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal">
+        <StackPanel x:Name="ViewerPanel" Grid.Row="1" Orientation="Horizontal">
             <!-- Image Source Preview -->
             <Grid x:Name="ImageSourceGrid" x:Uid="ImageSourceGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MinWidth="240">
                 <ScrollViewer x:Name="ImageSourceScroll" x:Uid="ImageSourceScroll" AllowDrop="True" Focusable="False"
@@ -473,5 +468,21 @@
                 <xctk:Magnifier x:Name="ImageMagnifier" x:Uid="ImageMagnifier" BorderBrush="DimGray" BorderThickness="1" Radius="100" ZoomFactor="0.25" Visibility="Collapsed" />
             </xctk:MagnifierManager.Magnifier>
         </StackPanel>
+        <xctk:ChildWindow Grid.Row="1" x:Name="QualityChanger" x:Uid="QualityChanger">
+            <Grid Margin="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+                <Slider Grid.Row="0" Grid.Column="0" x:Name="QualityChangerSlider" x:Uid="QualityChangerSlider" Width="240"
+                    Minimum="1" Maximum="100" Value="75" TickFrequency="5" ValueChanged="QualityChangerSlider_ValueChanged" />
+                <xctk:UIntegerUpDown Grid.Row="0" Grid.Column="1" Margin="4,0,0,0" 
+                    Value="{Binding ElementName=QualityChangerSlider, Path=Value, Mode=TwoWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"/>
+            </Grid>
+        </xctk:ChildWindow>
     </Grid>
 </Window>

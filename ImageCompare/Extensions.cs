@@ -338,6 +338,7 @@ namespace ImageCompare
             {
                 try
                 {
+                    (Application.Current.MainWindow as MainWindow)?.UpdateIndaicatorState(ImageType.All, state: false, busy: true);
 
                     if (string.IsNullOrEmpty(prefix))
                         Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text);
@@ -354,6 +355,7 @@ namespace ImageCompare
             {
                 try
                 {
+                    (Application.Current.MainWindow as MainWindow)?.UpdateIndaicatorState(ImageType.All, state: false, busy: true);
 
                     var contents = $"{exception.Message}{Environment.NewLine}{exception.StackTrace}";
                     if (string.IsNullOrEmpty(prefix))
@@ -791,6 +793,54 @@ namespace ImageCompare
         public static IList<string> AllSupportedExts { get; set; } = new List<string>();
         public static string AllSupportedFiles { get; set; } = string.Empty;
         public static string AllSupportedFilters { get; set; } = string.Empty;
+
+        public static IMagickFormatInfo GetFormatInfo(this MagickImage image)
+        {
+            try { return (MagickFormatInfo.Create(image.Format)); }
+            catch { return (MagickFormatInfo.Create(MagickFormat.Unknown)); }
+        }
+
+        public static IMagickFormatInfo GetFormatInfo(this MagickFormat format)
+        {
+            try { return (MagickFormatInfo.Create(format)); }
+            catch { return (MagickFormatInfo.Create(MagickFormat.Unknown)); }
+        }
+
+        public static bool IsPNG(this MagickFormat format)
+        {
+            var result = false;
+            var fmts = new MagickFormat[] { MagickFormat.APng, MagickFormat.Png, MagickFormat.Png8, MagickFormat.Png00, MagickFormat.Png24, MagickFormat.Png32, MagickFormat.Png48, MagickFormat.Png64, MagickFormat.Pnm };
+            result = fmts.Contains(format);
+            return (result);
+        }
+
+        public static bool IsPNG(this MagickImage image)
+        {
+            var result = false;
+            if (image is MagickImage)
+            {
+                result = IsPNG(image.Format) || GetFormatInfo(image).MimeType.Equals("image/png", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("png") || image.Format.ToString().EndsWith("png");
+            }
+            return (result);
+        }
+
+        public static bool IsJPG(this MagickFormat format)
+        {
+            var result = false;
+            var fmts = new MagickFormat[] { MagickFormat.J2c, MagickFormat.J2k, MagickFormat.Jng, MagickFormat.Jp2, MagickFormat.Jpc, MagickFormat.Jpe, MagickFormat.Jpeg, MagickFormat.Jpg, MagickFormat.Jpm, MagickFormat.Jps, MagickFormat.Jpt };
+            result = fmts.Contains(format);
+            return (result);
+        }
+
+        public static bool IsJPG(this MagickImage image)
+        {
+            var result = false;
+            if (image is MagickImage)
+            {
+                result = IsJPG(image.Format) || GetFormatInfo(image).MimeType.Equals("image/jpeg", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("jp");
+            }
+            return (result);
+        }
 
         public static bool Valid(this MagickImage image)
         {

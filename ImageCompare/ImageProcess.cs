@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -73,9 +74,9 @@ namespace ImageCompare
         /// <param name="busy"></param>
         public void UpdateIndaicatorState(ImageType source, bool state, bool busy = false)
         {
-            if (source == ImageType.Source) IsProcessingSource = state;
-            else if (source == ImageType.Target) IsProcessingTarget = state;
-            else if (source == ImageType.Result) IsProcessingResult = state;
+            if      (source == ImageType.Source || source == ImageType.All) IsProcessingSource = state;
+            else if (source == ImageType.Target || source == ImageType.All) IsProcessingTarget = state;
+            else if (source == ImageType.Result || source == ImageType.All) IsProcessingResult = state;
             if (busy) IsBusy = state;
         }
 
@@ -286,7 +287,7 @@ namespace ImageCompare
                 UpdateIndaicatorState(source, true, true);
 
                 var action = false;
-                var size = UseSmallImage ? MaxCompareSize : -1;
+                var size = CompareImageForceScale ? MaxCompareSize : -1;
                 if (source)
                 {
                     action = await ImageSource.GetInformation().Reset(size);
@@ -296,6 +297,7 @@ namespace ImageCompare
                     action = await ImageTarget.GetInformation().Reset(size);
                 }
 
+                CloseQualityChanger();
                 LastMatchedImage = ImageType.None;
 
                 if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
@@ -315,7 +317,7 @@ namespace ImageCompare
                 UpdateIndaicatorState(source, true, true);
 
                 var action = false;
-                var size = UseSmallImage ? MaxCompareSize : -1;
+                var size = CompareImageForceScale ? MaxCompareSize : -1;
                 if (source)
                 {
                     if (info_only)
@@ -337,6 +339,7 @@ namespace ImageCompare
                     else action = await ImageTarget.GetInformation().Reload(size, reload: true);
                 }
 
+                CloseQualityChanger();
                 LastMatchedImage = ImageType.None;
 
                 if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
@@ -1784,6 +1787,128 @@ namespace ImageCompare
                 if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="mimeType"></param>
+        /// <returns></returns>
+        private System.Drawing.Imaging.ImageCodecInfo GetEncoderInfo(string mimeType)
+        {
+            // Get image codecs for all image formats 
+            var codecs = System.Drawing.Imaging.ImageCodecInfo.GetImageEncoders();
+
+            // Find the correct image codec 
+            for (int i = 0; i < codecs.Length; i++)
+            {
+                if (codecs[i].MimeType == mimeType) return codecs[i];
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="fmt"></param>
+        /// <param name="quality"></param>
+        /// <param name="colordepth"></param>
+        /// <returns></returns>
+        private byte[] ConvertImageTo(byte[] buffer, string fmt, int quality = 85, long colordepth = 0)
+        {
+            byte[] result = null;
+            try
+            {
+                if (buffer is byte[] && buffer.Length > 0)
+                {
+                    System.Drawing.Imaging.ImageFormat pFmt = System.Drawing.Imaging.ImageFormat.MemoryBmp;
+
+                    fmt = fmt.ToLower();
+                    if (fmt.Equals("png")) pFmt = System.Drawing.Imaging.ImageFormat.Png;
+                    else if (fmt.Equals("jpg")) pFmt = System.Drawing.Imaging.ImageFormat.Jpeg;
+                    else return (buffer);
+
+                    using (var mi = new MemoryStream(buffer))
+                    {
+                        using (var mo = new MemoryStream())
+                        {
+                            var bmp = new System.Drawing.Bitmap(mi);
+                            var codec_info = GetEncoderInfo("image/jpeg");
+                            var qualityParam = new System.Drawing.Imaging.EncoderParameter(System.Drawing.Imaging.Encoder.Quality, quality);
+                            var colorDepth = new System.Drawing.Imaging.EncoderParameter(System.Drawing.Imaging.Encoder.ColorDepth, colordepth <= 0 ? 24L : colordepth);
+                            var encoderParams = new System.Drawing.Imaging.EncoderParameters(2);
+
+                            encoderParams.Param[0] = qualityParam;
+                            encoderParams.Param[1] = colorDepth;
+                            if (pFmt == System.Drawing.Imaging.ImageFormat.Jpeg)
+                            {
+                                var canvas = new System.Drawing.Bitmap(bmp.Width, bmp.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                                using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(canvas))
+                                {
+                                    if (mi.CanSeek) mi.Seek(0, SeekOrigin.Begin);
+                                    var bg = Colors.White;
+                                    g.Clear(System.Drawing.Color.FromArgb(bg.A, bg.R, bg.G, bg.B));
+                                    g.DrawImage(bmp, 0, 0, new System.Drawing.Rectangle(new System.Drawing.Point(), bmp.Size), System.Drawing.GraphicsUnit.Pixel);
+                                }
+                                bmp.Save(mo, codec_info, encoderParams);
+                            }
+                            else
+                                bmp.Save(mo, pFmt);
+                            result = mo.ToArray();
+                            bmp.Dispose();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="quality"></param>
+        /// <returns></returns>
+        private async Task<MagickImage> ChangeQuality(MagickImage image, int quality, bool native_method = true)
+        {
+            var result = image;
+            if (image is MagickImage)
+            {
+                result = await Task.Run(async () =>
+                {
+                    var ret = image;
+                    try
+                    {
+                        if (!(image?.HasAlpha ?? false))
+                        {
+                            using (MemoryStream mo = new MemoryStream())
+                            {
+                                var target = image.Clone();
+                                if (native_method)
+                                {
+                                    target.Quality = Math.Max(1, Math.Min(100, quality));
+                                    await target.WriteAsync(mo, MagickFormat.Jpg);
+                                }
+                                else
+                                {
+                                    var bytes_i = target.ToByteArray(MagickFormat.Png);
+                                    var bytes_o = ConvertImageTo(bytes_i, "jpg", quality);
+                                    await mo.WriteAsync(bytes_o, 0, bytes_o.Length);
+                                }
+                                await mo.FlushAsync();
+                                if (mo.Length > 0) ret = new MagickImage(mo.ToArray());
+                            }
+                        }
+                        else $"{"InfoTipHasAlpha".T()} {(image?.HasAlpha ?? false ? "Included" : "NotIncluded").T()}".ShowMessage();
+                    }
+                    catch (Exception ex) { ex.ShowMessage(); }
+                    return (ret);
+                });
+            }
+            return (result);
         }
         #endregion
 
