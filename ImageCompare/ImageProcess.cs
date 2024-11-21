@@ -1816,7 +1816,7 @@ namespace ImageCompare
         /// <param name="quality"></param>
         /// <param name="colordepth"></param>
         /// <returns></returns>
-        private byte[] ConvertImageTo(byte[] buffer, string fmt, int quality = 85, long colordepth = 0)
+        private byte[] ConvertImageTo(byte[] buffer, string fmt, int quality = 85, long colordepth = 0, Color? bgcolor = null)
         {
             byte[] result = null;
             try
@@ -1848,7 +1848,7 @@ namespace ImageCompare
                                 using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(canvas))
                                 {
                                     if (mi.CanSeek) mi.Seek(0, SeekOrigin.Begin);
-                                    var bg = Colors.White;
+                                    var bg = bgcolor ?? Colors.White;
                                     g.Clear(System.Drawing.Color.FromArgb(bg.A, bg.R, bg.G, bg.B));
                                     g.DrawImage(bmp, 0, 0, new System.Drawing.Rectangle(new System.Drawing.Point(), bmp.Size), System.Drawing.GraphicsUnit.Pixel);
                                 }
@@ -1894,12 +1894,18 @@ namespace ImageCompare
                                 }
                                 else
                                 {
+                                    var bg = (Color)ColorConverter.ConvertFromString(image.BackgroundColor.ToHexString());
                                     var bytes_i = target.ToByteArray(MagickFormat.Png);
-                                    var bytes_o = ConvertImageTo(bytes_i, "jpg", quality);
+                                    var bytes_o = ConvertImageTo(bytes_i, "jpg", quality, bgcolor: bg);
                                     await mo.WriteAsync(bytes_o, 0, bytes_o.Length);
                                 }
                                 await mo.FlushAsync();
-                                if (mo.Length > 0) ret = new MagickImage(mo.ToArray());
+                                if (mo.Length > 0)
+                                {
+                                    ret = new MagickImage(mo.ToArray());
+                                    ret.SetArtifact($"filesize", $"{mo.Length.SmartFileSize()}");
+                                    ret.SetArtifact($"quality", $"{ret.Quality}");
+                                }
                             }
                         }
                         else $"{"InfoTipHasAlpha".T()} {(image?.HasAlpha ?? false ? "Included" : "NotIncluded").T()}".ShowMessage();

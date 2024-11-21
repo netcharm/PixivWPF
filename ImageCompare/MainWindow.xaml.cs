@@ -2970,6 +2970,7 @@ namespace ImageCompare
                 QualityChangerSlider.Value = quality ?? 100;
                 QualityChangerSlider.Focus();
                 QualityChanger.Show();
+                QualityChanger.Top += 96;
             }
         }
 
@@ -3969,6 +3970,8 @@ namespace ImageCompare
                         if (string.IsNullOrEmpty(tooltip) || tooltip.StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
                         {
                             tooltip = await image.GetInformation().GetImageInfo();
+                            await Task.Delay(1);
+                            DoEvents();
                             if (!string.IsNullOrEmpty(tooltip)) SetToolTip(image, tooltip);
                         }
                     }
