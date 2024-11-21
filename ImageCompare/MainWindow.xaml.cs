@@ -270,14 +270,62 @@ namespace ImageCompare
         private bool WeakBlur { get { return (UseWeakBlur.Dispatcher.Invoke(() => UseWeakBlur.IsChecked ?? false)); } }
         private bool WeakSharp { get { return (UseWeakSharp.Dispatcher.Invoke(() => UseWeakSharp.IsChecked ?? false)); } }
         private bool WeakEffects { get { return (UseWeakEffects.Dispatcher.Invoke(() => UseWeakEffects.IsChecked ?? false)); } }
+
+        private const ulong GB = 1024 * 1024 * 1024;
+        private const ulong MB = 1024 * 1024;
+        private const ulong KB = 1024;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void InitMagickNet()
+        {
+            #region Magick.Net Default Settings
+            try
+            {
+                var magick_cache = Path.IsPathRooted(CachePath) ? CachePath : Path.Combine(AppPath, CachePath);
+                //if (!Directory.Exists(magick_cache)) Directory.CreateDirectory(magick_cache);
+                //MagickAnyCPU.CacheDirectory = Directory.Exists(magick_cache) ? magick_cache : AppPath;
+                //MagickAnyCPU.HasSharedCacheDirectory = true;
+                OpenCL.IsEnabled = true;
+                if (Directory.Exists(magick_cache)) OpenCL.SetCacheDirectory(magick_cache);
+#if DEBUG
+                Debug.WriteLine(string.Join(", ", OpenCL.Devices.Select(d => d.Name)));
+#endif
+                ResourceLimits.MaxMemoryRequest = 4 * GB;
+                ResourceLimits.Memory = 4 * GB;
+                ResourceLimits.LimitMemory(new Percentage(10));
+                ResourceLimits.Thread = 4;
+                //ResourceLimits.Area = 4096 * 4096;
+                //ResourceLimits.Throttle = 
+
+
+                //<policymap>
+                //  <policy domain=""delegate"" rights=""none"" pattern=""*"" />
+                //  <policy domain=""coder"" rights=""none"" pattern=""*"" />
+                //  <policy domain=""coder"" rights=""read|write"" pattern=""{GIF,JPEG,PNG,WEBP}"" />
+                //</policymap>
+
+                //                var magick_config = ConfigurationFiles.Default;
+                //                magick_config.Policy.Data = @"
+                //<policymap>
+                //  <policy domain=""delegate"" rights=""none"" pattern=""*"" />
+                //  <policy domain=""coder"" rights=""none"" pattern=""*"" />
+                //</policymap>";
+                //                MagickNET.Initialize();
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+
+            Extensions.AllSupportedFormats = Extensions.GetSupportedImageFormats();
+            Extensions.AllSupportedExts = Extensions.AllSupportedFormats.Keys.ToList().Skip(4).Select(ext => $".{ext.ToLower()}").Where(ext => !ext.Equals(".txt")).ToList();
+            var exts = Extensions.AllSupportedExts.Select(ext => $"*{ext}");
+            Extensions.AllSupportedFiles = string.Join(";", exts);
+            Extensions.AllSupportedFilters = string.Join("|", Extensions.AllSupportedFormats.Select(f => $"{f.Value}|*.{f.Key}"));
+
+            CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
+            #endregion
+        }
         #endregion
-
-        private ContextMenu cm_compare_mode = null;
-        private ContextMenu cm_compose_mode = null;
-        private ContextMenu cm_grayscale_mode = null;
-
-        private readonly List<FrameworkElement> cm_image_source = new List<FrameworkElement>();
-        private readonly List<FrameworkElement> cm_image_target = new List<FrameworkElement>();
 
         #region DoEvent Helper
         private static object ExitFrame(object state)
@@ -1020,6 +1068,19 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="element"></param>
+        private void ClearImageSource(Image element)
+        {
+            if (Ready && element is Image)
+            {
+
+                element.Dispatcher.InvokeAsync(() => element.Source = null);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
         /// <returns></returns>
         private bool IsImageNull(Image element)
         {
@@ -1029,18 +1090,6 @@ namespace ImageCompare
                 result = element.Dispatcher.Invoke(() => element.Source == null);
             }
             return (result);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="element"></param>
-        private void ClearImageSource(Image element)
-        {
-            if (Ready && element is Image)
-            {
-                element.Dispatcher.InvokeAsync(() => element.Source = null);
-            }
         }
 
         /// <summary>
@@ -1069,33 +1118,6 @@ namespace ImageCompare
                 var tooltip_s = image.ValidCurrent ? WaitingString : null;
                 SetToolTip(element, tooltip_s);
             }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="change_state"></param>
-        private void ToggleMagnifier(bool? state = null, bool change_state = false)
-        {
-            ImageMagnifier.Dispatcher.Invoke(() =>
-            {
-                var mag = ImageMagnifier.IsEnabled;
-                if (state == null) { mag = !mag; }
-                else mag = state ?? false;
-
-                if (change_state) MagnifierMode.IsChecked = mag;
-                ToolTipService.SetIsEnabled(ImageSource, !mag);
-                ToolTipService.SetIsEnabled(ImageTarget, !mag);
-                ToolTipService.SetIsEnabled(ImageResult, !mag);
-                if (mag)
-                {
-                    CloseToolTip(ImageSource);
-                    CloseToolTip(ImageTarget);
-                    CloseToolTip(ImageResult);
-                }
-                ImageMagnifier.IsEnabled = mag;
-                ImageMagnifier.Visibility = mag ? Visibility.Visible : Visibility.Collapsed;
-            });
         }
 
         /// <summary>
@@ -1274,6 +1296,12 @@ namespace ImageCompare
                         IsLoadingResult = true;
                         SetImageSource(ImageResult, image_r);
                         IsLoadingResult = false;
+
+                        if (image_r.ValidOriginal && image_r.Original.ArtifactNames.Contains("compare:difference"))
+                        {
+                            var diff = image_r.Original?.GetArtifact("compare:difference");
+                            UpdateQualityChangerTitle(diff);
+                        }
                     }
 
                     CalcDisplay(set_ratio: false);
@@ -1336,7 +1364,7 @@ namespace ImageCompare
         /// <param name="source"></param>
         private void CopyImageFromResult(bool source = true)
         {
-            Task.Run(() =>
+            Task.Run(async () =>
             {
                 try
                 {
@@ -1347,6 +1375,7 @@ namespace ImageCompare
                     if (image_r.ValidCurrent)
                     {
                         CloseQualityChanger();
+                        await Task.Delay(1);
                         if (source)
                         {
                             IsLoadingSource = true;
@@ -1373,7 +1402,7 @@ namespace ImageCompare
         /// <param name="source"></param>
         private void CopyImageToOpposite(bool source = true)
         {
-            Task.Run(() =>
+            Task.Run(async () =>
             {
                 try
                 {
@@ -1383,6 +1412,7 @@ namespace ImageCompare
                     if (image_s.ValidCurrent)
                     {
                         CloseQualityChanger();
+                        await Task.Delay(1);
                         if (source) IsProcessingSource = true;
                         else IsProcessingTarget = true;
 
@@ -1417,6 +1447,7 @@ namespace ImageCompare
             if (source == ImageType.Source)
             {
                 CloseQualityChanger();
+                await Task.Delay(1);
                 IsProcessingSource = true;
                 result = await Task.Run(async () =>
                 {
@@ -1427,6 +1458,7 @@ namespace ImageCompare
             else if (source == ImageType.Target)
             {
                 CloseQualityChanger();
+                await Task.Delay(1);
                 IsProcessingTarget = true;
                 result = await Task.Run(async () =>
                 {
@@ -1437,6 +1469,7 @@ namespace ImageCompare
             else if (source == ImageType.Result)
             {
                 CloseQualityChanger();
+                await Task.Delay(1);
                 IsProcessingResult = true;
                 result = await Task.Run(async () =>
                 {
@@ -1546,6 +1579,8 @@ namespace ImageCompare
                 if (action)
                 {
                     CloseQualityChanger();
+                    await Task.Delay(1);
+
                     _last_loading_ = load_type;
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: load_type));
                 }
@@ -1569,6 +1604,9 @@ namespace ImageCompare
             var ret = false;
             try
             {
+                CloseQualityChanger();
+                await Task.Delay(1);
+
                 if (source) IsLoadingSource = true;
                 else IsLoadingTarget = true;
 
@@ -1596,6 +1634,9 @@ namespace ImageCompare
             var ret = false;
             try
             {
+                CloseQualityChanger();
+                await Task.Delay(1);
+
                 if (source) IsLoadingSource = true;
                 else IsLoadingTarget = true;
 
@@ -1635,6 +1676,9 @@ namespace ImageCompare
                 var count = files.Length;
                 if (count >= 0)
                 {
+                    CloseQualityChanger();
+                    await Task.Delay(1);
+
                     var load_type = source != null ? (source ?? false ? ImageType.Source : ImageType.Target) : (_last_loading_ != ImageType.Source ? ImageType.Source : ImageType.Target);
 
                     var image_s = ImageSource.GetInformation();
@@ -1664,7 +1708,6 @@ namespace ImageCompare
                     }
                     if (action)
                     {
-                        CloseQualityChanger();
                         _last_loading_ = load_type;
                         RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: load_type));
                     }
@@ -2263,6 +2306,13 @@ namespace ImageCompare
             CreateImageOpMenu(ImageTargetScroll);
             #endregion
         }
+
+        private ContextMenu cm_compare_mode = null;
+        private ContextMenu cm_compose_mode = null;
+        private ContextMenu cm_grayscale_mode = null;
+
+        private readonly List<FrameworkElement> cm_image_source = new List<FrameworkElement>();
+        private readonly List<FrameworkElement> cm_image_target = new List<FrameworkElement>();
 
         /// <summary>
         /// 
@@ -2948,29 +2998,35 @@ namespace ImageCompare
         /// <param name="info"></param>
         private void OpenQualityChanger(ImageType source)
         {
-            var info = source == ImageType.Source ? ImageSource.GetInformation() : (source == ImageType.Target ? ImageTarget.GetInformation() : new ImageInformation());
-            if (info.ValidCurrent)
+            if (Ready && !IsQualityChanger)
             {
-                var image = info?.Current;
-                var quality = image?.Compression == CompressionMethod.JPEG || image?.Quality > 0 ? image?.Quality : 100;
-                var quality_str = image?.Compression == CompressionMethod.JPEG || image?.Quality > 0 ? $"{image?.Quality}" : "Unknown";
-                QualityChangeerTitle = $"{"InfoTipQuality".T().Trim('=').Trim()} : {quality_str}";
-                QualityChanger.Tag = source;
-                QualityChanger.Caption = QualityChangeerTitle;
-                QualityChanger.WindowStartupLocation = Xceed.Wpf.Toolkit.WindowStartupLocation.Center;
-                QualityChanger.FocusedElement = QualityChangerSlider;
-                QualityChangerSlider.Maximum = quality ?? 100;
-                QualityChangerSlider.Width = 300;
-                QualityChangerSlider.IsSnapToTickEnabled = true;
-                QualityChangerSlider.Tag = new MagickImage(image);
-                QualityChangerSlider.Ticks = new DoubleCollection() { 10, 25, 30, 35, 55, 60, 65, 70, 75, 85, 95 };
-                QualityChangerSlider.TickPlacement = System.Windows.Controls.Primitives.TickPlacement.Both;
-                QualityChangerSlider.LargeChange = 5;
-                QualityChangerSlider.SmallChange = 1;
-                QualityChangerSlider.Value = quality ?? 100;
-                QualityChangerSlider.Focus();
-                QualityChanger.Show();
-                QualityChanger.Top += 96;
+                Dispatcher.Invoke(() =>
+                {
+                    var info = source == ImageType.Source ? ImageSource.GetInformation() : (source == ImageType.Target ? ImageTarget.GetInformation() : new ImageInformation());
+                    if (info.ValidCurrent)
+                    {
+                        var image = info?.Current;
+                        var quality = image?.Compression == CompressionMethod.JPEG || image?.Quality > 0 ? image?.Quality : 100;
+                        var quality_str = image?.Compression == CompressionMethod.JPEG || image?.Quality > 0 ? $"{image?.Quality}" : "Unknown";
+                        QualityChangeerTitle = $"{"InfoTipQuality".T().Trim('=').Trim()} : {quality_str}";
+                        QualityChanger.Tag = source;
+                        QualityChanger.Caption = QualityChangeerTitle;
+                        QualityChanger.WindowStartupLocation = Xceed.Wpf.Toolkit.WindowStartupLocation.Center;
+                        QualityChanger.FocusedElement = QualityChangerSlider;
+                        QualityChangerSlider.Maximum = quality ?? 100;
+                        QualityChangerSlider.Width = 300;
+                        QualityChangerSlider.IsSnapToTickEnabled = true;
+                        QualityChangerSlider.Tag = new MagickImage(image);
+                        QualityChangerSlider.Ticks = new DoubleCollection() { 10, 25, 30, 35, 55, 60, 65, 70, 75, 85, 95 };
+                        QualityChangerSlider.TickPlacement = System.Windows.Controls.Primitives.TickPlacement.Both;
+                        QualityChangerSlider.LargeChange = 5;
+                        QualityChangerSlider.SmallChange = 1;
+                        QualityChangerSlider.Value = quality ?? 100;
+                        QualityChangerSlider.Focus();
+                        QualityChanger.Show();
+                        QualityChanger.Top += 128;
+                    }
+                });
             }
         }
 
@@ -2978,18 +3034,18 @@ namespace ImageCompare
         /// 
         /// </summary>
         private void CloseQualityChanger(bool restore = false)
-        {            
-            Dispatcher.Invoke(() => 
+        {
+            if (Ready && IsQualityChanger)
             {
-                if (IsLoaded && QualityChanger.IsVisible)
+                Dispatcher.Invoke(() =>
                 {
-                    if (restore) 
+                    if (restore)
                         QualityChanger_CloseButtonClicked(QualityChanger, null);
                     else
                         QualityChangerSlider.Tag = null;
                     QualityChanger.Close();
-                }
-            });
+                });
+            }
         }
 
         /// <summary>
@@ -3003,6 +3059,69 @@ namespace ImageCompare
                 title = title.Trim();
                 QualityChanger.Caption = string.IsNullOrEmpty(title) ? $"{QualityChangeerTitle}" : $"{QualityChangeerTitle} => {title}";
             });            
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="diff"></param>
+        private void UpdateQualityChangerTitle(string diff = null)
+        {
+            if (IsQualityChanger && !string.IsNullOrEmpty(diff))
+            {
+                QualityChanger.Dispatcher.InvokeAsync(() =>
+                {
+                    if (Regex.IsMatch(QualityChanger.Caption, $"{"ResultTipDifference".T()}", RegexOptions.IgnoreCase))
+                    {
+                        QualityChanger.Caption = Regex.Replace(QualityChanger.Caption, $"{"ResultTipDifference".T()}.*?$", $"{"ResultTipDifference".T()} {diff}", RegexOptions.IgnoreCase);
+                    }
+                });
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="diff"></param>
+        private void UpdateQualityChangerTitle(double? diff = null)
+        {
+            if (IsQualityChanger && diff != null && diff != double.NaN)
+            {
+                QualityChanger.Dispatcher.InvokeAsync(() => 
+                {
+                    if (Regex.IsMatch(QualityChanger.Caption, $"{"ResultTipDifference".T()}", RegexOptions.IgnoreCase))
+                    {
+                        QualityChanger.Caption = Regex.Replace(QualityChanger.Caption, $"{"ResultTipDifference".T()}.*?$", $"{"ResultTipDifference".T()} {diff:P2}", RegexOptions.IgnoreCase);
+                    }
+                });
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="change_state"></param>
+        private void ToggleMagnifier(bool? state = null, bool change_state = false)
+        {
+            ImageMagnifier.Dispatcher.Invoke(() =>
+            {
+                var mag = ImageMagnifier.IsEnabled;
+                if (state == null) { mag = !mag; }
+                else mag = state ?? false;
+
+                if (change_state) MagnifierMode.IsChecked = mag;
+                ToolTipService.SetIsEnabled(ImageSource, !mag);
+                ToolTipService.SetIsEnabled(ImageTarget, !mag);
+                ToolTipService.SetIsEnabled(ImageResult, !mag);
+                if (mag)
+                {
+                    CloseToolTip(ImageSource);
+                    CloseToolTip(ImageTarget);
+                    CloseToolTip(ImageResult);
+                }
+                ImageMagnifier.IsEnabled = mag;
+                ImageMagnifier.Visibility = mag ? Visibility.Visible : Visibility.Collapsed;
+            });
         }
 
         /// <summary>
@@ -3182,61 +3301,6 @@ namespace ImageCompare
             return (result);
         }
         #endregion
-
-        private const ulong GB = 1024 * 1024 * 1024;
-        private const ulong MB = 1024 * 1024;
-        private const ulong KB = 1024;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void InitMagickNet()
-        {
-            #region Magick.Net Default Settings
-            try
-            {
-                var magick_cache = Path.IsPathRooted(CachePath) ? CachePath : Path.Combine(AppPath, CachePath);
-                //if (!Directory.Exists(magick_cache)) Directory.CreateDirectory(magick_cache);
-                //MagickAnyCPU.CacheDirectory = Directory.Exists(magick_cache) ? magick_cache : AppPath;
-                //MagickAnyCPU.HasSharedCacheDirectory = true;
-                OpenCL.IsEnabled = true;
-                if (Directory.Exists(magick_cache)) OpenCL.SetCacheDirectory(magick_cache);
-#if DEBUG
-                Debug.WriteLine(string.Join(", ", OpenCL.Devices.Select(d => d.Name)));
-#endif
-                ResourceLimits.MaxMemoryRequest = 4 * GB;
-                ResourceLimits.Memory = 4 * GB;
-                ResourceLimits.LimitMemory(new Percentage(10));
-                ResourceLimits.Thread = 4;
-                //ResourceLimits.Area = 4096 * 4096;
-                //ResourceLimits.Throttle = 
-
-
-                //<policymap>
-                //  <policy domain=""delegate"" rights=""none"" pattern=""*"" />
-                //  <policy domain=""coder"" rights=""none"" pattern=""*"" />
-                //  <policy domain=""coder"" rights=""read|write"" pattern=""{GIF,JPEG,PNG,WEBP}"" />
-                //</policymap>
-
-                //                var magick_config = ConfigurationFiles.Default;
-                //                magick_config.Policy.Data = @"
-                //<policymap>
-                //  <policy domain=""delegate"" rights=""none"" pattern=""*"" />
-                //  <policy domain=""coder"" rights=""none"" pattern=""*"" />
-                //</policymap>";
-                //                MagickNET.Initialize();
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-
-            Extensions.AllSupportedFormats = Extensions.GetSupportedImageFormats();
-            Extensions.AllSupportedExts = Extensions.AllSupportedFormats.Keys.ToList().Skip(4).Select(ext => $".{ext.ToLower()}").Where(ext => !ext.Equals(".txt")).ToList();
-            var exts = Extensions.AllSupportedExts.Select(ext => $"*{ext}");
-            Extensions.AllSupportedFiles = string.Join(";", exts);
-            Extensions.AllSupportedFilters = string.Join("|", Extensions.AllSupportedFormats.Select(f => $"{f.Value}|*.{f.Key}"));
-
-            CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
-            #endregion
-        }
 
         #region IDisposable Support
         private bool disposedValue = false; // 要检测冗余调用
@@ -4322,7 +4386,7 @@ namespace ImageCompare
         private DateTime _last_quality_change = default;
         private void QualityChangerSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
+            if (IsQualityChanger && QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
             {
                 try
                 {

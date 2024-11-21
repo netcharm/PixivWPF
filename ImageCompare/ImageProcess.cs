@@ -262,6 +262,9 @@ namespace ImageCompare
         {
             try
             {
+                CloseQualityChanger();
+                //await Task.Delay(1);
+
                 UpdateIndaicatorState(source, true, true);
 
                 var action = false;
@@ -284,6 +287,9 @@ namespace ImageCompare
         {
             try
             {
+                CloseQualityChanger();
+                await Task.Delay(1);
+
                 UpdateIndaicatorState(source, true, true);
 
                 var action = false;
@@ -314,6 +320,9 @@ namespace ImageCompare
         {
             try
             {
+                CloseQualityChanger();
+                await Task.Delay(1);
+
                 UpdateIndaicatorState(source, true, true);
 
                 var action = false;
@@ -357,6 +366,9 @@ namespace ImageCompare
         {
             try
             {
+                CloseQualityChanger();
+                //await Task.Delay(1);
+
                 UpdateIndaicatorState(source, true, true);
 
                 var action = false;
@@ -437,6 +449,9 @@ namespace ImageCompare
         {
             try
             {
+                CloseQualityChanger();
+                await Task.Delay(1);
+
                 var action = false;
 
                 var image_s = ImageSource.GetInformation();
@@ -474,6 +489,9 @@ namespace ImageCompare
         {
             try
             {
+                CloseQualityChanger();
+                //await Task.Delay(1);
+
                 var action = false;
 
                 var image_s = ImageSource.GetInformation();
@@ -520,6 +538,9 @@ namespace ImageCompare
         {
             try
             {
+                CloseQualityChanger();
+                //await Task.Delay(1);
+
                 var action = false;
 
                 var image_s = ImageSource.GetInformation();
@@ -588,6 +609,9 @@ namespace ImageCompare
         {
             try
             {
+                CloseQualityChanger();
+                await Task.Delay(1);
+
                 var action = false;
 
                 var image_s = ImageSource.GetInformation();
@@ -642,6 +666,9 @@ namespace ImageCompare
         {
             try
             {
+                CloseQualityChanger();
+                await Task.Delay(1);
+
                 var action = false;
 
                 var image_s = ImageSource.GetInformation();
@@ -695,6 +722,9 @@ namespace ImageCompare
         {
             try
             {
+                CloseQualityChanger();
+                //await Task.Delay(1);
+
                 var action = false;
 
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
@@ -730,6 +760,9 @@ namespace ImageCompare
         {
             try
             {
+                CloseQualityChanger();
+                //await Task.Delay(1);
+
                 var action = false;
                 var factor = WeakEffects ? 1 : 5;
                 var image_s = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
@@ -785,6 +818,9 @@ namespace ImageCompare
         {
             try
             {
+                CloseQualityChanger();
+                //await Task.Delay(1);
+
                 var action = false;
                 var factor = WeakEffects ? 1 : 5;
                 var image_s = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
