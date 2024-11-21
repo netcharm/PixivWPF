@@ -45,6 +45,8 @@ namespace ImageCompare
         private static readonly string AppName = Path.GetFileNameWithoutExtension(AppPath);
         private static string CachePath =  "cache";
 
+        private bool Ready { get { return (Dispatcher.Invoke(() => IsLoaded)); } }
+
         private double TaskTimeOutSeconds = 60;
 
         /// <summary>
@@ -1017,6 +1019,61 @@ namespace ImageCompare
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        private bool IsImageNull(Image element)
+        {
+            var result = false;
+            if (Ready && element is Image)
+            {
+                result = element.Dispatcher.Invoke(() => element.Source == null);
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        private void ClearImageSource(Image element)
+        {
+            if (Ready && element is Image)
+            {
+                element.Dispatcher.InvokeAsync(() => element.Source = null);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="image"></param>
+        private async void SetImageSource(Image element, ImageSource image)
+        {
+            if (Ready && element is Image && image is ImageSource)
+            {
+                await element.Dispatcher.InvokeAsync(() => element.Source = image);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="image"></param>
+        private async void SetImageSource(Image element, ImageInformation image)
+        {
+            if (Ready && element is Image && image is ImageInformation)
+            {
+                await element.Dispatcher.InvokeAsync(() => element.Source = image.Source);
+                var tooltip_s = image.ValidCurrent ? WaitingString : null;
+                SetToolTip(element, tooltip_s);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="change_state"></param>
         private void ToggleMagnifier(bool? state = null, bool change_state = false)
         {
@@ -1085,11 +1142,9 @@ namespace ImageCompare
                     autocompare |= AutoComparing;
                     var exchanged = IsExchanged;
 
-                    await Dispatcher.InvokeAsync(() =>
-                    {
-                        source = ImageSource.Source == null;
-                        target = ImageTarget.Source == null;
-                    }, DispatcherPriority.Normal);
+
+                    source = IsImageNull(ImageSource);
+                    target = IsImageNull(ImageTarget);
 
                     var ShowGeometry = new MagickGeometry();
 
@@ -1186,32 +1241,17 @@ namespace ImageCompare
                                 image.SourceParams.FillColor = MasklightColor;
                             }
 
-                            await Dispatcher.InvokeAsync(() =>
+                            if (reload_type == ImageType.All || reload_type == ImageType.Source)
                             {
-                                if (reload_type == ImageType.All || reload_type == ImageType.Source)
-                                {
-                                    ImageSource.Source = image_s.Source;
+                                SetImageSource(ImageSource, image_s);
+                                IsLoadingSource = false;
+                            }
 
-                                    var tooltip_s = image_s.ValidCurrent ? WaitingString : null;
-                                    SetToolTip(ImageSource, tooltip_s);
-
-                                    IsLoadingSource = false;
-                                }
-
-                                if (reload_type == ImageType.All || reload_type == ImageType.Target)
-                                {
-                                    ImageTarget.Source = image_t.Source;
-
-                                    var tooltip_t = image_t.ValidCurrent ? WaitingString : null;
-                                    SetToolTip(ImageTarget, tooltip_t);
-
-                                    IsLoadingTarget = false;
-                                }
-
-                                if (autocompare) ImageResult.Source = null;
-
-                                DoEvents();
-                            }, DispatcherPriority.Normal);
+                            if (reload_type == ImageType.All || reload_type == ImageType.Target)
+                            {
+                                SetImageSource(ImageTarget, image_t);
+                                IsLoadingTarget = false;
+                            }
                         }
                         catch (Exception ex) { ex.ShowMessage(); }
                     }
@@ -1219,6 +1259,8 @@ namespace ImageCompare
                     if (autocompare)
                     {
                         IsProcessingResult = true;
+                        //ClearImageSource(ImageResult);
+
                         if (image_r.ValidCurrent) image_r.Dispose();
 
                         image_r.Original = await Compare(image_s.Current, image_t.Current, compose: compose);
@@ -1230,17 +1272,8 @@ namespace ImageCompare
                         image_r.SourceParams.FillColor = MasklightColor;
 
                         IsLoadingResult = true;
-                        await Dispatcher.InvokeAsync(() =>
-                        {
-                            ImageResult.Source = image_r.Source;
-
-                            var tooltip_r = image_r.ValidCurrent ? WaitingString : null;
-                            SetToolTip(ImageResult, tooltip_r);
-
-                            IsLoadingResult = false;
-
-                            DoEvents();
-                        }, DispatcherPriority.Normal);
+                        SetImageSource(ImageResult, image_r);
+                        IsLoadingResult = false;
                     }
 
                     CalcDisplay(set_ratio: false);
@@ -2926,6 +2959,7 @@ namespace ImageCompare
                 QualityChanger.Caption = QualityChangeerTitle;
                 QualityChanger.WindowStartupLocation = Xceed.Wpf.Toolkit.WindowStartupLocation.Center;
                 QualityChanger.FocusedElement = QualityChangerSlider;
+                QualityChangerSlider.Maximum = quality ?? 100;
                 QualityChangerSlider.Width = 300;
                 QualityChangerSlider.IsSnapToTickEnabled = true;
                 QualityChangerSlider.Tag = new MagickImage(image);
@@ -4293,12 +4327,12 @@ namespace ImageCompare
 
                     var image = source == ImageType.Source ? ImageSource.GetInformation().Original : ImageTarget.GetInformation().Original;
                     var quality_n = (int)e.NewValue;
-                    var quality_o = image.Quality == 0 ? 75 : image.Quality;
+                    var quality_o = image.Quality == 0 ? 75 : image?.Quality;
                     var delta = (DateTime.Now - _last_quality_change).TotalMilliseconds;
-                    if (quality_n < quality_o && !IsBusy && delta > 350)
+                    _last_quality_change = DateTime.Now;
+                    if (e.NewValue != e.OldValue && quality_n <= quality_o && !IsBusy && delta > 200)
                     {
                         e.Handled = true;
-                        _last_quality_change = DateTime.Now;
                         SetQualityChangerTitle($"{quality_n}");
                         RenderRun(async () =>
                         {
@@ -4307,12 +4341,13 @@ namespace ImageCompare
                                 if (source == ImageType.Source) IsProcessingSource = true;
                                 else if (source == ImageType.Target) IsProcessingTarget = true;
 
-                                var result = await ChangeQuality(image, quality_n);
+                                var result = quality_n < quality_o ? await ChangeQuality(image, quality_n) : new MagickImage(image);
                                 if (CompareImageForceScale) result.Resize(CompareResizeGeometry);
                                 if (source == ImageType.Source) ImageSource.GetInformation().Current = result;
                                 else if (source == ImageType.Target) ImageTarget.GetInformation().Current = result;
                                 UpdateImageViewer(LastOpIsComposite, assign: true, reload: false, reload_type: source);
                                 await Task.Delay(1);
+                             
                                 if (await UpdateImageViewerFinished(TaskTimeOutSeconds) && ImageResult.GetInformation().ValidCurrent)
                                 {
                                     var diff = ImageResult.GetInformation().Current?.GetArtifact("compare:difference");

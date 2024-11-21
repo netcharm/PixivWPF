@@ -468,7 +468,7 @@
                 <xctk:Magnifier x:Name="ImageMagnifier" x:Uid="ImageMagnifier" BorderBrush="DimGray" BorderThickness="1" Radius="100" ZoomFactor="0.25" Visibility="Collapsed" />
             </xctk:MagnifierManager.Magnifier>
         </StackPanel>
-        <xctk:ChildWindow Grid.Row="1" x:Name="QualityChanger" x:Uid="QualityChanger" CloseButtonClicked="QualityChanger_CloseButtonClicked">
+        <xctk:ChildWindow Grid.Row="1" x:Name="QualityChanger" x:Uid="QualityChanger" CloseButtonClicked="QualityChanger_CloseButtonClicked" WindowStartupLocation="Center">
             <Grid Margin="8">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
@@ -480,8 +480,9 @@
                 </Grid.ColumnDefinitions>
                 <Slider Grid.Row="0" Grid.Column="0" x:Name="QualityChangerSlider" x:Uid="QualityChangerSlider" Width="240"
                     Minimum="1" Maximum="100" Value="75" TickFrequency="5" ValueChanged="QualityChangerSlider_ValueChanged" />
-                <xctk:UIntegerUpDown Grid.Row="0" Grid.Column="1" Margin="4,0,0,0" 
-                    Value="{Binding ElementName=QualityChangerSlider, Path=Value, Mode=TwoWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"/>
+                <xctk:UIntegerUpDown Grid.Row="0" Grid.Column="1" x:Name="QualityChangerValue" x:Uid="QualityChangerValue" 
+                    Margin="4,0,0,0" AutoSelectBehavior="Never" ClipValueToMinMax="True" TextAlignment="Center" 
+                    Value="{Binding ElementName=QualityChangerSlider, Path=Value, Mode=TwoWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}" />
             </Grid>
         </xctk:ChildWindow>
     </Grid>
