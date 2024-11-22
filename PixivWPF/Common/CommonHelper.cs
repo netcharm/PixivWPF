@@ -40,6 +40,7 @@ using WPFNotification.Model;
 using WPFNotification.Services;
 using CompactExifLib;
 using PixivWPF.Pages;
+using mshtml;
 
 namespace PixivWPF.Common
 {
@@ -115,6 +116,19 @@ namespace PixivWPF.Common
         public CompareType Type { get; set; } = CompareType.Auto;
         public string Src { get; set; } = string.Empty;
         public string Dst { get; set; } = string.Empty;
+    }
+
+    public class Modifier
+    {
+        public bool Shift { get; set; } = false;
+        public bool Ctrl { get; set; } = false;
+        public bool Alt { get; set; } = false;
+        public bool Win { get; set; } = false;
+
+        public bool OnlyShift { get; set; } = false;
+        public bool OnlyCtrl { get; set; } = false;
+        public bool OnlyAlt { get; set; } = false;
+        public bool OnlyWin { get; set; } = false;
     }
 
     #region DPI Helper
@@ -2670,8 +2684,13 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    var shift = Keyboard.Modifiers == ModifierKeys.Shift;
-                    Process.Start(shell, (shift ? "/s " : "") + string.Join(" ", files.TakeWhile(f => !string.IsNullOrEmpty(f.Trim())).Select(f => $"\"{f.Trim()}\"")));
+                    var keys = Application.Current.GetModifier();
+                    var shift = keys.OnlyShift;
+                    var ctrl = keys.OnlyCtrl;
+
+                    if (shift) Process.Start(shell, "/s " + string.Join(" ", files.TakeWhile(f => !string.IsNullOrEmpty(f.Trim())).Select(f => $"\"{f.Trim()}\"")));
+                    else if (ctrl) Process.Start(shell, "/d " + string.Join(" ", files.TakeWhile(f => !string.IsNullOrEmpty(f.Trim())).Select(f => $"\"{f.Trim()}\"")));
+                    else Process.Start(shell, string.Join(" ", files.TakeWhile(f => !string.IsNullOrEmpty(f.Trim())).Select(f => $"\"{f.Trim()}\"")));
                 }
                 catch (Exception ex) { ex.ERROR("ShellImageCompare"); }
             }
@@ -12478,6 +12497,77 @@ namespace PixivWPF.Common
 
             current_deeper = 0;
             return (result);
+        }
+
+        public static async Task<Modifier> GetModifierAsync(this Application app)
+        {
+            var result = new Modifier();
+            var modifiers = await app.Dispatcher.InvokeAsync(() => Keyboard.Modifiers);
+            result.Shift = modifiers.HasFlag(ModifierKeys.Shift);
+            result.Ctrl = modifiers.HasFlag(ModifierKeys.Control);
+            result.Alt = modifiers.HasFlag(ModifierKeys.Alt);
+            result.Win = modifiers.HasFlag(ModifierKeys.Windows);
+            result.OnlyShift = modifiers == ModifierKeys.Shift;
+            result.OnlyCtrl = modifiers == ModifierKeys.Control;
+            result.OnlyAlt = modifiers == ModifierKeys.Alt;
+            result.OnlyWin = modifiers == ModifierKeys.Windows;
+            return (result);
+        }
+
+        public static Modifier GetModifier(this Application app)
+        {
+            var result = new Modifier();
+            var modifiers = app.Dispatcher.Invoke(() => Keyboard.Modifiers);
+            result.Shift = modifiers.HasFlag(ModifierKeys.Shift);
+            result.Ctrl = modifiers.HasFlag(ModifierKeys.Control);
+            result.Alt = modifiers.HasFlag(ModifierKeys.Alt);
+            result.Win = modifiers.HasFlag(ModifierKeys.Windows);
+            result.OnlyShift = modifiers == ModifierKeys.Shift;
+            result.OnlyCtrl = modifiers == ModifierKeys.Control;
+            result.OnlyAlt = modifiers == ModifierKeys.Alt;
+            result.OnlyWin = modifiers == ModifierKeys.Windows;
+            return (result);
+        }
+
+        public static bool IsModifierPressed(this Application app, ModifierKeys key, bool exclude = true)
+        {
+            var result = false;
+            var keys = GetModifier(app);
+            if (exclude)
+            {
+                if (key == ModifierKeys.Shift) result = keys.OnlyShift; // keys.Shift && !keys.Alt && !keys.Ctrl && !keys.Win;
+                else if(key == ModifierKeys.Alt) result = keys.OnlyAlt; // !keys.Shift && keys.Alt && !keys.Ctrl && !keys.Win;
+                else if(key == ModifierKeys.Control) result = keys.OnlyCtrl; // !keys.Shift && !keys.Alt && keys.Ctrl && !keys.Win;
+                else if(key == ModifierKeys.Windows) result = keys.OnlyWin; // !keys.Shift && !keys.Alt && !keys.Ctrl && keys.Win;
+            }
+            else
+            {
+                if (key == ModifierKeys.Shift) result = keys.Shift;
+                else if (key == ModifierKeys.Alt) result = keys.Alt;
+                else if (key == ModifierKeys.Control) result = keys.Ctrl;
+                else if (key == ModifierKeys.Windows) result = keys.Win;
+            }
+            return (result);
+        }
+
+        public static bool IsShiftPressed(this Application app, bool exclude = true)
+        {
+            return (IsModifierPressed(app, ModifierKeys.Shift, exclude));
+        }
+
+        public static bool IsCtrlPressed(this Application app, bool exclude = true)
+        {
+            return (IsModifierPressed(app, ModifierKeys.Control, exclude));
+        }
+
+        public static bool IsAltPressed(this Application app, bool exclude = true)
+        {
+            return (IsModifierPressed(app, ModifierKeys.Alt, exclude));
+        }
+
+        public static bool IsWinPressed(this Application app, bool exclude = true)
+        {
+            return (IsModifierPressed(app, ModifierKeys.Windows, exclude));
         }
 
         //public static ModifierKeys GetModifiderKeys(this Application app)
