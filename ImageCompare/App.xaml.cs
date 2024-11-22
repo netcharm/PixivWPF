@@ -221,16 +221,18 @@ namespace ImageCompare
             catch (Exception ex) { ReportMessage(ex); }
             return (result);
         }
-
         #endregion
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             if (DetectPipeServer())
             {
+                var cmds = new string[] {"/s", "/d" };
                 var args = Environment.GetCommandLineArgs();
-                if (args.Length > 1 && args[1].Equals("/s", StringComparison.CurrentCultureIgnoreCase))
+
+                if (args.Length > 1 && cmds.Contains(args[1].ToLower()))
                 {
+                    if (args[1].ToLower().Equals("/d")) args = args.Append(args[2]).ToArray();
                     args = args.Skip(1).ToArray();
                     if (args.Length > 1)
                     {

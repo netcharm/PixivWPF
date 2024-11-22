@@ -3535,7 +3535,14 @@ namespace ImageCompare
             DoEvents();
 
             var args = Environment.GetCommandLineArgs();
-            if (args.Length > 1) Dispatcher.InvokeAsync(async () => await LoadImageFromFiles(args.Skip(1).ToArray()));
+            if (args.Length > 1)
+            {
+                if (args.Length > 2 && args[1].ToLower().Equals("/d"))
+                    args = new string[] { args[2], args[2] };
+                else 
+                    args = args.Skip(1).SkipWhile(a => a.StartsWith("/")).ToArray();
+                if (args.Length > 0) Dispatcher.InvokeAsync(async () => await LoadImageFromFiles(args));
+            }
         }
 
         private void Window_Unloaded(object sender, RoutedEventArgs e)
