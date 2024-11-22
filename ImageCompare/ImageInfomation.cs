@@ -181,7 +181,7 @@ namespace ImageCompare
         public ImageOpMode OpMode = ImageOpMode.None;
         public Percentage ColorFuzzy = new Percentage();
 
-        public int ChannelCount { get { return (ValidOriginal ? Original.ChannelCount : (ValidCurrent ? Current.ChannelCount : -1)); } }
+        public uint ChannelCount { get { return (ValidOriginal ? Original.ChannelCount : (ValidCurrent ? Current.ChannelCount : 0)); } }
         public string MemoryUsageMode
         {
             get
@@ -213,7 +213,7 @@ namespace ImageCompare
                     {
                         var image = new MagickImage(Current) { FilterType = ResizeFilter };
                         image.Extent(SourceParams.Geometry, SourceParams.Align, MagickColors.Transparent);
-                        image.RePage();
+                        image.ResetPage();
                         result = image.ToBitmapSource();
                     }
                     catch (Exception ex) { ex.ShowMessage(); }
@@ -275,8 +275,8 @@ namespace ImageCompare
         public bool FlipY { get; set; } = false;
         public double Rotated { get; set; } = .0;
 
-        public int DenoiseCount { get; set; } = 0;
-        public int DenoiseLevel { get; set; } = 0;
+        public uint DenoiseCount { get; set; } = 0;
+        public uint DenoiseLevel { get; set; } = 0;
 
         public MagickGeometry CurrentGeometry { get; internal set; }
 
@@ -342,17 +342,17 @@ namespace ImageCompare
         /// </summary>
         /// <param name="image"></param>
         /// <returns></returns>
-        public int CalcColorDepth(MagickImage image)
+        public uint CalcColorDepth(MagickImage image)
         {
-            var result = 0;
+            uint result = 0;
             if (image is MagickImage)
             {
                 result = image.Depth * image.ChannelCount;
                 if (image.ColorType == ColorType.Bilevel) result = 2;
                 else if (image.ColorType == ColorType.Grayscale) result = 8;
                 else if (image.ColorType == ColorType.GrayscaleAlpha) result = 8 + 8;
-                else if (image.ColorType == ColorType.Palette) result = (int)Math.Ceiling(Math.Log(image.ColormapSize, 2));
-                else if (image.ColorType == ColorType.PaletteAlpha) result = (int)Math.Ceiling(Math.Log(image.ColormapSize, 2)) + 8;
+                else if (image.ColorType == ColorType.Palette) result = (uint)Math.Ceiling(Math.Log(image.ColormapSize, 2));
+                else if (image.ColorType == ColorType.PaletteAlpha) result = (uint)Math.Ceiling(Math.Log(image.ColormapSize, 2)) + 8;
                 else if (image.ColorType == ColorType.TrueColor) result = 24;
                 else if (image.ColorType == ColorType.TrueColorAlpha) result = 32;
                 else if (image.ColorType == ColorType.ColorSeparation) result = 24;
@@ -1194,7 +1194,7 @@ namespace ImageCompare
         /// <param name="order"></param>
         /// <param name="more"></param>
         /// <returns></returns>
-        public async Task<bool> Denoise(int? order = null, bool more = false)
+        public async Task<bool> Denoise(uint? order = null, bool more = false)
         {
             var result = false;
             if (ValidCurrent)
@@ -1289,6 +1289,16 @@ namespace ImageCompare
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        public async Task<bool> Reset(uint size = 0)
+        {
+            return (await Reload((int)size, reload: false, reset: true));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="geo"></param>
         /// <param name="reload"></param>
         /// <param name="reset"></param>
@@ -1315,7 +1325,7 @@ namespace ImageCompare
                         if (geo is MagickGeometry)
                         {
                             Current.Resize(geo);
-                            Current.RePage();
+                            Current.ResetPage();
                         }
                         _basesize_ = new Size(Current.Width, Current.Height);
                         _last_colorspace_ = Current.ColorSpace;
@@ -1346,6 +1356,19 @@ namespace ImageCompare
         /// <param name="reset"></param>
         /// <returns></returns>
         public async Task<bool> Reload(int size, bool reload = false, bool reset = false)
+        {
+            if (size <= 0) return (await Reload(reload, reset));
+            else return (await Reload(new MagickGeometry($"{size}x{size}>"), reload, reset));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="size"></param>
+        /// <param name="reload"></param>
+        /// <param name="reset"></param>
+        /// <returns></returns>
+        public async Task<bool> Reload(uint size, bool reload = false, bool reset = false)
         {
             if (size <= 0) return (await Reload(reload, reset));
             else return (await Reload(new MagickGeometry($"{size}x{size}>"), reload, reset));

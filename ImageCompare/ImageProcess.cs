@@ -293,7 +293,7 @@ namespace ImageCompare
                 UpdateIndaicatorState(source, true, true);
 
                 var action = false;
-                var size = CompareImageForceScale ? MaxCompareSize : -1;
+                var size = CompareImageForceScale ? MaxCompareSize : 0;
                 if (source)
                 {
                     action = await ImageSource.GetInformation().Reset(size);
@@ -326,7 +326,7 @@ namespace ImageCompare
                 UpdateIndaicatorState(source, true, true);
 
                 var action = false;
-                var size = CompareImageForceScale ? MaxCompareSize : -1;
+                var size = CompareImageForceScale ? MaxCompareSize : 0;
                 if (source)
                 {
                     if (info_only)
@@ -458,7 +458,7 @@ namespace ImageCompare
                 var image_t = ImageTarget.GetInformation();
                 if (image_s.ValidCurrent && image_t.ValidCurrent)
                 {
-                    if (reset) await (source ? image_s : image_t).Reset(size: (CompareImageForceScale ? MaxCompareSize : -1));
+                    if (reset) await (source ? image_s : image_t).Reset(size: (CompareImageForceScale ? MaxCompareSize : 0));
                     LastMatchedImage = source ? ImageType.Target : ImageType.Source;
 
                     var s_image = source ? image_s.Current : image_t.Current;
@@ -469,7 +469,7 @@ namespace ImageCompare
                     else
                         s_image.Scale(t_image.Width, t_image.Height);
                     //s_image.Resize(t_image.Width, t_image.Height);
-                    s_image.RePage();
+                    s_image.ResetPage();
                     action = true;
                 }
 
@@ -506,9 +506,9 @@ namespace ImageCompare
                         if (sendto)
                         {
                             image_s.Current = new MagickImage(result.FirstOrDefault());
-                            image_s.Current.RePage();
+                            image_s.Current.ResetPage();
                             image_t.Current = new MagickImage(result.Skip(1).Take(1).FirstOrDefault());
-                            image_t.Current.RePage();
+                            image_t.Current.ResetPage();
                         }
                         else
                         {
@@ -516,7 +516,7 @@ namespace ImageCompare
                                 image.Current = new MagickImage(result.FirstOrDefault());
                             else
                                 image.Current = new MagickImage(result.Skip(1).Take(1).FirstOrDefault());
-                            image.Current.RePage();
+                            image.Current.ResetPage();
                         }
                         action = true;
                     }
@@ -550,8 +550,8 @@ namespace ImageCompare
                 {
                     var s_image = source ? image_s : image_t;
                     var t_image = source ? image_t : image_s;
-                    var image = s_image.Current.Clone();
-                    var target = t_image.Current.Clone();
+                    var image = new MagickImage(s_image.Current);
+                    var target = new MagickImage(t_image.Current);
 
                     var offset_x = image.Width == target.Width ? 0 : (image.Width - target.Width) / 2;
                     var offset_y = image.Height == target.Height ? 0 : (image.Height - target.Height) / 2;
@@ -586,7 +586,7 @@ namespace ImageCompare
 
                     var collection = new MagickImageCollection { image, target };
                     var result = vertical ? collection.AppendVertically() : collection.AppendHorizontally();
-                    result.RePage();
+                    result.ResetPage();
 
                     if (sendto)
                         t_image.Current = new MagickImage(result);
@@ -620,8 +620,8 @@ namespace ImageCompare
                 {
                     if (geomatry is MagickGeometry)
                     {
-                        if (image_s.ValidCurrent) { image_s.Current.Resize(geomatry); image_s.Current.RePage(); action = true; }
-                        if (image_t.ValidCurrent) { image_t.Current.Resize(geomatry); image_t.Current.RePage(); action = true; }
+                        if (image_s.ValidCurrent) { image_s.Current.Resize(geomatry); image_s.Current.ResetPage(); action = true; }
+                        if (image_t.ValidCurrent) { image_t.Current.Resize(geomatry); image_t.Current.ResetPage(); action = true; }
                     }
                     else
                     {
@@ -633,7 +633,7 @@ namespace ImageCompare
                 {
                     if (geomatry is MagickGeometry)
                     {
-                        if (image_s.ValidCurrent) { image_s.Current.Resize(geomatry); image_s.Current.RePage(); action = true; }
+                        if (image_s.ValidCurrent) { image_s.Current.Resize(geomatry); image_s.Current.ResetPage(); action = true; }
                     }
                     else
                     {
@@ -644,7 +644,7 @@ namespace ImageCompare
                 {
                     if (geomatry is MagickGeometry)
                     {
-                        if (image_t.ValidCurrent) { image_t.Current.Resize(geomatry); image_t.Current.RePage(); action = true; }
+                        if (image_t.ValidCurrent) { image_t.Current.Resize(geomatry); image_t.Current.ResetPage(); action = true; }
                     }
                     else
                     {
@@ -677,8 +677,8 @@ namespace ImageCompare
                 {
                     if (geomatry is MagickGeometry)
                     {
-                        if (image_s.ValidCurrent) { image_s.Current.Resize(geomatry); image_s.Current.RePage(); action = true; }
-                        if (image_t.ValidCurrent) { image_t.Current.Resize(geomatry); image_t.Current.RePage(); action = true; }
+                        if (image_s.ValidCurrent) { image_s.Current.Resize(geomatry); image_s.Current.ResetPage(); action = true; }
+                        if (image_t.ValidCurrent) { image_t.Current.Resize(geomatry); image_t.Current.ResetPage(); action = true; }
                     }
                     else
                     {
@@ -690,7 +690,7 @@ namespace ImageCompare
                 {
                     if (geomatry is MagickGeometry)
                     {
-                        if (image_s.ValidCurrent) { image_s.Current.LiquidRescale(geomatry); image_s.Current.RePage(); action = true; }
+                        if (image_s.ValidCurrent) { image_s.Current.LiquidRescale(geomatry); image_s.Current.ResetPage(); action = true; }
                     }
                     else
                     {
@@ -701,7 +701,7 @@ namespace ImageCompare
                 {
                     if (geomatry is MagickGeometry)
                     {
-                        if (image_t.ValidCurrent) { image_t.Current.LiquidRescale(geomatry); image_t.Current.RePage(); action = true; }
+                        if (image_t.ValidCurrent) { image_t.Current.LiquidRescale(geomatry); image_t.Current.ResetPage(); action = true; }
                     }
                     else
                     {
@@ -740,7 +740,7 @@ namespace ImageCompare
                         else
                             image.Current.Crop(box);
                     }
-                    image.Current.RePage();
+                    image.Current.ResetPage();
                     action = true;
                 }
 
@@ -756,7 +756,7 @@ namespace ImageCompare
         /// <param name="width"></param>
         /// <param name="height"></param>
         /// <param name="align"></param>
-        private void CropImageEdge(bool source, int width = 0, int height = 0, Gravity align = Gravity.Center)
+        private void CropImageEdge(bool source, uint width = 0, uint height = 0, Gravity align = Gravity.Center)
         {
             try
             {
@@ -764,7 +764,7 @@ namespace ImageCompare
                 //await Task.Delay(1);
 
                 var action = false;
-                var factor = WeakEffects ? 1 : 5;
+                var factor = WeakEffects ? 1u : 5u;
                 var image_s = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 var image_t = source ? ImageTarget.GetInformation() : ImageSource.GetInformation();
                 if (image_s.ValidCurrent)
@@ -792,7 +792,7 @@ namespace ImageCompare
                     if (width > 0 || height > 0)
                     {
                         image_s.Current.Extent(box.Width, box.Height, align);
-                        image_s.Current.RePage();
+                        image_s.Current.ResetPage();
                         action = true;
                     }
                 }
@@ -811,9 +811,9 @@ namespace ImageCompare
         /// <param name="align"></param>
         /// <param name="color"></param>
 #if Q16HDRI
-        private void ExtentImageEdge(bool source, int width = 0, int height = 0, Gravity align = Gravity.Center, IMagickColor<float> color = null)
+        private void ExtentImageEdge(bool source, uint width = 0, uint height = 0, Gravity align = Gravity.Center, IMagickColor<float> color = null)
 #else
-        private void ExtentImageEdge(bool source, int width = 0, int height = 0, Gravity align = Gravity.Center, IMagickColor<byte> color = null)
+        private void ExtentImageEdge(bool source, uint width = 0, uint height = 0, Gravity align = Gravity.Center, IMagickColor<byte> color = null)
 #endif
         {
             try
@@ -822,7 +822,7 @@ namespace ImageCompare
                 //await Task.Delay(1);
 
                 var action = false;
-                var factor = WeakEffects ? 1 : 5;
+                var factor = WeakEffects ? 1u : 5u;
                 var image_s = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 var image_t = source ? ImageTarget.GetInformation() : ImageSource.GetInformation();
                 if (image_s.ValidCurrent)
@@ -850,7 +850,7 @@ namespace ImageCompare
                     if (width > 0 || height > 0)
                     {
                         image_s.Current.Extent(box.Width, box.Height, align, color ?? MagickColors.Transparent);
-                        image_s.Current.RePage();
+                        image_s.Current.ResetPage();
                         action = true;
                     }
                 }
@@ -867,7 +867,7 @@ namespace ImageCompare
         /// <param name="width"></param>
         /// <param name="height"></param>
         /// <param name="align"></param>
-        private void ExtentImageEdge(bool source, int width = 0, int height = 0, Gravity align = Gravity.Center)
+        private void ExtentImageEdge(bool source, uint width = 0, uint height = 0, Gravity align = Gravity.Center)
         {
             ExtentImageEdge(source, width, height, align, MasklightColor);
         }
@@ -879,7 +879,7 @@ namespace ImageCompare
         /// <param name="width"></param>
         /// <param name="height"></param>
         /// <param name="align"></param>
-        private void PanImageEdge(bool source, int width = 0, int height = 0, Gravity align = Gravity.Center)
+        private void PanImageEdge(bool source, uint width = 0, uint height = 0, Gravity align = Gravity.Center)
         {
             ExtentImageEdge(source, width, height, align, MagickColors.Transparent);
         }
@@ -918,7 +918,7 @@ namespace ImageCompare
                     if (width > 0 || height > 0)
                     {
                         image_s.Current.Roll(Math.Max(0, width * factor), Math.Max(0, height * factor));
-                        image_s.Current.RePage();
+                        image_s.Current.ResetPage();
                         action = true;
                     }
                 }
@@ -1005,7 +1005,7 @@ namespace ImageCompare
             try
             {
                 var action = false;
-                var sigma = WeakSharp ? 5 : 10;
+                var sigma = WeakSharp ? 5u : 10u;
 
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 if (image.ValidCurrent)
@@ -1060,7 +1060,8 @@ namespace ImageCompare
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 if (image.ValidCurrent)
                 {
-                    image.Current.Morphology(MorphologyMethod.Smooth, Kernel.Euclidean);
+                    var setting = new MorphologySettings() { Kernel = Kernel.Euclidean, Method = MorphologyMethod.Smooth };
+                    image.Current.Morphology(setting);
                     action = true;
                 }
 
@@ -1505,9 +1506,9 @@ namespace ImageCompare
             try
             {
                 var action = false;
-                var colors = WeakEffects ? 32768 : 65536;
+                var colors = WeakEffects ? 32768u : 65536u;
                 var dither = WeakEffects ? DitherMethod.FloydSteinberg :  DitherMethod.Riemersma;
-                var depth = WeakEffects ? 3 : 7;
+                var depth = WeakEffects ? 3u : 7u;
 
                 var image_s = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 var image_t = source ? ImageTarget.GetInformation() : ImageSource.GetInformation();
@@ -1515,7 +1516,7 @@ namespace ImageCompare
                 {
                     var ref_img = new MagickImage(image_t.Current);
                     ref_img.Quantize(new QuantizeSettings() { Colors = colors, ColorSpace = ColorSpace.sRGB, DitherMethod = dither, MeasureErrors = true, TreeDepth = depth });
-                    var err = image_s.Current.Map(ref_img, new QuantizeSettings()
+                    var err = image_s.Current.Remap(ref_img, new QuantizeSettings()
                     {
                         Colors = colors,
                         ColorSpace = ColorSpace.sRGB,
@@ -1595,7 +1596,7 @@ namespace ImageCompare
             try
             {
                 var action = false;
-                var radius = WeakEffects ? 3 : 5;
+                var radius = WeakEffects ? 3u : 5u;
 
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 if (image.ValidCurrent)
@@ -1618,7 +1619,7 @@ namespace ImageCompare
             try
             {
                 var action = false;
-                var radius = WeakEffects ? 5 : 10;
+                var radius = WeakEffects ? 5u : 10u;
                 var sigma = WeakEffects ? 5 : 10;
 
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
@@ -1688,7 +1689,7 @@ namespace ImageCompare
             try
             {
                 var action = false;
-                var sigma = WeakEffects ? 256 : 64;
+                var sigma = WeakEffects ? 256u : 64u;
 
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 if (image.ValidCurrent)
@@ -1722,9 +1723,9 @@ namespace ImageCompare
                     if (image.LastClickPos == null)
                     {
                         image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, 1);
-                        image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, image.Current.Width - 2, 1);
-                        image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, image.Current.Width - 2, image.Current.Height - 2);
-                        image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, image.Current.Height - 2);
+                        image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, (int)image.Current.Width - 2, 1);
+                        image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, (int)image.Current.Width - 2, (int)image.Current.Height - 2);
+                        image.Current.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, (int)image.Current.Height - 2);
                     }
                     else
                     {
@@ -1852,7 +1853,7 @@ namespace ImageCompare
         /// <param name="quality"></param>
         /// <param name="colordepth"></param>
         /// <returns></returns>
-        private byte[] ConvertImageTo(byte[] buffer, string fmt, int quality = 85, long colordepth = 0, Color? bgcolor = null)
+        private byte[] ConvertImageTo(byte[] buffer, string fmt, uint quality = 85, long colordepth = 0, Color? bgcolor = null)
         {
             byte[] result = null;
             try
@@ -1908,7 +1909,7 @@ namespace ImageCompare
         /// <param name="image"></param>
         /// <param name="quality"></param>
         /// <returns></returns>
-        private async Task<MagickImage> ChangeQuality(MagickImage image, int quality, bool native_method = true)
+        private async Task<MagickImage> ChangeQuality(MagickImage image, uint quality, bool native_method = true)
         {
             var result = image;
             if (image is MagickImage)
@@ -1968,9 +1969,9 @@ namespace ImageCompare
             var tip = new List<string>();
             try
             {
-                Func<MagickImage, IMagickImage<float>> ToGray = (im) =>
+                Func<MagickImage, MagickImage> ToGray = (im) =>
                 {
-                    var im_out = im.Clone();
+                    var im_out = new MagickImage(im);
                     im_out.Grayscale(GrayscaleMode);
                     im_out.MatteColor = MasklightColor;
                     im_out.ColorSpace = ColorSpace.scRGB;
@@ -1978,9 +1979,9 @@ namespace ImageCompare
                     return(im_out);
                 };
 
-                Func<MagickImage, IMagickImage<float>> ToColor = (im) =>
+                Func<MagickImage, MagickImage> ToColor = (im) =>
                 {
-                    var im_out = im.Clone();
+                    var im_out = new MagickImage(im);
                     if (im_out.ColorSpace == ColorSpace.Gray || im_out.ColorSpace == ColorSpace.LinearGray ||
                         im_out.ColorType != ColorType.TrueColor || im_out.ColorType != ColorType.TrueColorAlpha)
                     {
@@ -1990,9 +1991,9 @@ namespace ImageCompare
                     return(im_out);
                 };
 
-                Action<IMagickImage<float>, int, int> NormSize = (im, w, h) =>
+                Action<IMagickImage<float>, uint, uint> NormSize = (im, w, h) =>
                 {
-                    im.Extent(w, h, DefaultMatchAlign, MagickColors.Transparent);
+                    im.Extent(w, h, DefaultMatchAlign);
                 };
 
                 if (source is MagickImage && target is MagickImage)
@@ -2036,46 +2037,42 @@ namespace ImageCompare
                     }
                     else
                     {
-                        using (MagickImage diff = new MagickImage() { BorderColor = MagickColors.Transparent, BackgroundColor = MagickColors.Transparent, MatteColor = MagickColors.Transparent })
+                        var setting = new CompareSettings(ErrorMetricMode)
                         {
-                            var setting = new CompareSettings()
-                            {
-                                Metric = ErrorMetricMode,
-                                HighlightColor = HighlightColor,
-                                LowlightColor = LowlightColor,
-                                MasklightColor = MasklightColor
-                            };
+                            HighlightColor = HighlightColor,
+                            LowlightColor = LowlightColor,
+                            MasklightColor = MasklightColor
+                        };
 
-                            var source_x = CompareImageForceColor ? ToColor(source) : ToGray(source);
-                            var target_x = CompareImageForceColor ? ToColor(target) : ToGray(target);
+                        var source_x = CompareImageForceColor ? ToColor(source) : ToGray(source);
+                        var target_x = CompareImageForceColor ? ToColor(target) : ToGray(target);
 
-                            NormSize(source_x, max_w, max_h);
-                            NormSize(target_x, max_w, max_h);
+                        NormSize(source_x, max_w, max_h);
+                        NormSize(target_x, max_w, max_h);
 
-                            var distance = source_x.Compare(target_x, setting, diff, CompareImageChannels);
+                        var diff = source_x.Compare(target_x, setting, CompareImageChannels, out var distance);
 
-                            result = new MagickImage(diff)
-                            {
-                                ColorFuzz = fuzzy,
-                                ColorSpace = ColorSpace.sRGB,
-                                //Comment = "NetCharm Created",
-                                //VirtualPixelMethod = VirtualPixelMethod.CheckerTile,
-                                VirtualPixelMethod = VirtualPixelMethod.Transparent
-                            };
-                            result.SetArtifact("compare:align", $"{DefaultMatchAlign}");
-                            result.SetArtifact("compare:channels", $"{CompareImageChannels}");
-                            result.SetArtifact("compare:mode", $"{ErrorMetricMode}, {(CompareImageForceColor ? "Color" : "Gray")}");
-                            result.SetArtifact("compare:fuzzy", $"{fuzzy:P2}");
-                            result.SetArtifact("compare:distance", $"{distance:F4}");
-                            result.SetArtifact("compare:difference", $"{distance:P2}");
-                            result.SetArtifact("compare:similarity", $"{1 - distance:P2}");
+                        result = new MagickImage(diff)
+                        {
+                            ColorFuzz = fuzzy,
+                            ColorSpace = ColorSpace.sRGB,
+                            //Comment = "NetCharm Created",
+                            //VirtualPixelMethod = VirtualPixelMethod.CheckerTile,
+                            VirtualPixelMethod = VirtualPixelMethod.Transparent
+                        };
+                        result.SetArtifact("compare:align", $"{DefaultMatchAlign}");
+                        result.SetArtifact("compare:channels", $"{CompareImageChannels}");
+                        result.SetArtifact("compare:mode", $"{ErrorMetricMode}, {(CompareImageForceColor ? "Color" : "Gray")}");
+                        result.SetArtifact("compare:fuzzy", $"{fuzzy:P2}");
+                        result.SetArtifact("compare:distance", $"{distance:F4}");
+                        result.SetArtifact("compare:difference", $"{distance:P2}");
+                        result.SetArtifact("compare:similarity", $"{1 - distance:P2}");
 
-                            tip.Add($"{"ResultTipMode".T()} {ErrorMetricMode}");
-                            tip.Add($"{"ResultTipDifference".T()} {distance:F4}");
+                        tip.Add($"{"ResultTipMode".T()} {ErrorMetricMode}");
+                        tip.Add($"{"ResultTipDifference".T()} {distance:F4}");
 
-                            source_x.Dispose();
-                            target_x.Dispose();
-                        }
+                        source_x.Dispose();
+                        target_x.Dispose();
                     }
                 }
             }
@@ -2098,7 +2095,7 @@ namespace ImageCompare
                     }
                 }, DispatcherPriority.Normal);
             }
-            try { if (result?.BoundingBox == null || result?.BoundingBox?.Width <= 0 || result?.BoundingBox?.Height <= 0) result?.RePage(); } catch { }
+            try { if (result?.BoundingBox == null || result?.BoundingBox?.Width <= 0 || result?.BoundingBox?.Height <= 0) result?.ResetPage(); } catch { }
             return (result);
         }
     }

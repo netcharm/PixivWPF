@@ -24,7 +24,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 using ImageMagick;
-using ImageMagick.Configuration;
 using Xceed.Wpf.Toolkit;
 
 namespace ImageCompare
@@ -234,7 +233,7 @@ namespace ImageCompare
         #endregion
 
         #region Magick.Net Settings
-        private int MaxCompareSize = 1024;
+        private uint MaxCompareSize = 1024;
         private MagickGeometry CompareResizeGeometry = null;
 
         private double LastZoomRatio = 1;
@@ -1009,16 +1008,16 @@ namespace ImageCompare
                     var offset = new PointD(src.CurrentSize.Width - dst.CurrentSize.Width, src.CurrentSize.Height - dst.CurrentSize.Height);
                     if (offset.X != 0 || offset.Y != 0)
                     {
-                        var w_s = (int)Math.Max(src.CurrentSize.Width, src.CurrentSize.Width - offset.X);
-                        var h_s = (int)Math.Max(src.CurrentSize.Height, src.CurrentSize.Height - offset.Y);
-                        var w_t = (int)Math.Max(dst.CurrentSize.Width, dst.CurrentSize.Width + offset.X);
-                        var h_t = (int)Math.Max(dst.CurrentSize.Height, dst.CurrentSize.Height + offset.Y);
+                        var w_s = (uint)Math.Max(src.CurrentSize.Width, src.CurrentSize.Width - offset.X);
+                        var h_s = (uint)Math.Max(src.CurrentSize.Height, src.CurrentSize.Height - offset.Y);
+                        var w_t = (uint)Math.Max(dst.CurrentSize.Width, dst.CurrentSize.Width + offset.X);
+                        var h_t = (uint)Math.Max(dst.CurrentSize.Height, dst.CurrentSize.Height + offset.Y);
 
                         src.Current.Extent(w_s, h_s, align, src.Current.HasAlpha ? MagickColors.Transparent : src.Current.BackgroundColor);
                         dst.Current.Extent(w_t, h_t, align, dst.Current.HasAlpha ? MagickColors.Transparent : dst.Current.BackgroundColor);
 
-                        src.Current.RePage();
-                        dst.Current.RePage();
+                        src.Current.ResetPage();
+                        dst.Current.ResetPage();
                     }
                 }
                 else
@@ -1026,16 +1025,16 @@ namespace ImageCompare
                     var offset = new PointD(src.BaseSize.Width - dst.BaseSize.Width, src.BaseSize.Height - dst.BaseSize.Height);
                     if (offset.X != 0 || offset.Y != 0)
                     {
-                        var w_s = (int)Math.Max(src.BaseSize.Width, src.BaseSize.Width - offset.X);
-                        var h_s = (int)Math.Max(src.BaseSize.Height, src.BaseSize.Height - offset.Y);
-                        var w_t = (int)Math.Max(dst.BaseSize.Width, dst.BaseSize.Width + offset.X);
-                        var h_t = (int)Math.Max(dst.BaseSize.Height, dst.BaseSize.Height + offset.Y);
+                        var w_s = (uint)Math.Max(src.BaseSize.Width, src.BaseSize.Width - offset.X);
+                        var h_s = (uint)Math.Max(src.BaseSize.Height, src.BaseSize.Height - offset.Y);
+                        var w_t = (uint)Math.Max(dst.BaseSize.Width, dst.BaseSize.Width + offset.X);
+                        var h_t = (uint)Math.Max(dst.BaseSize.Height, dst.BaseSize.Height + offset.Y);
 
                         src.Current.Extent(w_s, h_s, align, src.Current.HasAlpha ? MagickColors.Transparent : src.Current.BackgroundColor);
                         dst.Current.Extent(w_t, h_t, align, dst.Current.HasAlpha ? MagickColors.Transparent : dst.Current.BackgroundColor);
 
-                        src.Current.RePage();
-                        dst.Current.RePage();
+                        src.Current.ResetPage();
+                        dst.Current.ResetPage();
                     }
                 }
             }
@@ -1224,8 +1223,8 @@ namespace ImageCompare
                                         {
                                             if (ScaleMode == ImageScaleMode.Independence)
                                             {
-                                                image_s.Current.Crop((int)image_s.BaseSize.Width, (int)image_s.BaseSize.Height, DefaultMatchAlign);
-                                                image_t.Current.Crop((int)image_t.BaseSize.Width, (int)image_t.BaseSize.Height, DefaultMatchAlign);
+                                                image_s.Current.Crop((uint)image_s.BaseSize.Width, (uint)image_s.BaseSize.Height, DefaultMatchAlign);
+                                                image_t.Current.Crop((uint)image_t.BaseSize.Width, (uint)image_t.BaseSize.Height, DefaultMatchAlign);
                                             }
                                             else if (ScaleMode == ImageScaleMode.Relative)
                                             {
@@ -1234,12 +1233,12 @@ namespace ImageCompare
 
                                                 var factor = Math.Max(factor_s, factor_t);
                                                 if (factor_s < factor_t)
-                                                    image_s.Current.Resize((int)(image_s.OriginalSize.Width / factor), (int)(image_s.OriginalSize.Height / factor));
+                                                    image_s.Current.Resize((uint)(image_s.OriginalSize.Width / factor), (uint)(image_s.OriginalSize.Height / factor));
                                                 else if (factor_s > factor_t)
-                                                    image_t.Current.Resize((int)(image_t.OriginalSize.Width / factor), (int)(image_t.OriginalSize.Height / factor));
+                                                    image_t.Current.Resize((uint)(image_t.OriginalSize.Width / factor), (uint)(image_t.OriginalSize.Height / factor));
                                             }
-                                            image_s.Current.RePage();
-                                            image_t.Current.RePage();
+                                            image_s.Current.ResetPage();
+                                            image_t.Current.ResetPage();
                                         }
                                     }
                                 }
@@ -1966,7 +1965,7 @@ namespace ImageCompare
                 if (appSection.Settings.AllKeys.Contains("MaxCompareSize"))
                 {
                     var value = MaxCompareSize;
-                    if (int.TryParse(appSection.Settings["MaxCompareSize"].Value, out value)) MaxCompareSize = value;
+                    if (uint.TryParse(appSection.Settings["MaxCompareSize"].Value, out value)) MaxCompareSize = value;
                 }
 
                 if (appSection.Settings.AllKeys.Contains("SimpleTrimCropBoundingBox"))
@@ -3534,15 +3533,9 @@ namespace ImageCompare
             SyncColorLighting();
             DoEvents();
 
-            var args = Environment.GetCommandLineArgs();
-            if (args.Length > 1)
-            {
-                if (args.Length > 2 && args[1].ToLower().Equals("/d"))
-                    args = new string[] { args[2], args[2] };
-                else 
-                    args = args.Skip(1).SkipWhile(a => a.StartsWith("/")).ToArray();
-                if (args.Length > 0) Dispatcher.InvokeAsync(async () => await LoadImageFromFiles(args));
-            }
+            var opts = this.GetCmdLineOpts();
+            var args = opts.Args.ToArray();
+            if (args.Length > 0) Dispatcher.InvokeAsync(async () => await LoadImageFromFiles(args));
         }
 
         private void Window_Unloaded(object sender, RoutedEventArgs e)
@@ -4169,7 +4162,7 @@ namespace ImageCompare
                 RenderRun(new Action(async () =>
                 {
                     IsProcessingResult = true;
-                    var ret = await ImageResult.GetInformation().Denoise(WeakEffects ? 3 : 5, more: shift);
+                    var ret = await ImageResult.GetInformation().Denoise(WeakEffects ? 3u : 5u, more: shift);
                     if (ret) ImageResult.GetInformation().DenoiseCount++;
                     if (ret) IsProcessingResult = false;
                     else UpdateIndaicatorState(ImageType.Result, false, true);
@@ -4353,8 +4346,8 @@ namespace ImageCompare
         {
             try
             {
-                int value = MaxCompareSize;
-                if (int.TryParse(MaxCompareSizeValue.Text, out value))
+                var value = MaxCompareSize;
+                if (uint.TryParse(MaxCompareSizeValue.Text, out value))
                 {
                     CloseQualityChanger();
                     MaxCompareSize = Math.Max(0, Math.Min(2048, value));
@@ -4400,7 +4393,7 @@ namespace ImageCompare
                     var source = (ImageType)(QualityChanger.Tag);
 
                     var image = source == ImageType.Source ? ImageSource.GetInformation().Original : ImageTarget.GetInformation().Original;
-                    var quality_n = (int)e.NewValue;
+                    var quality_n = (uint)e.NewValue;
                     var quality_o = image.Quality == 0 ? 75 : image?.Quality;
                     var delta = (DateTime.Now - _last_quality_change).TotalMilliseconds;
                     _last_quality_change = DateTime.Now;

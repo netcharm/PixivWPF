@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Reflection;
-using Xceed.Wpf.Toolkit;
 using System.Security.AccessControl;
 using System.Security.Principal;
 
@@ -225,30 +224,25 @@ namespace ImageCompare
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            if (DetectPipeServer())
-            {
-                var cmds = new string[] {"/s", "/d" };
-                var args = Environment.GetCommandLineArgs();
+            var opts = this.GetCmdLineOpts();
+            var args = opts.Args.ToArray();
 
-                if (args.Length > 1 && cmds.Contains(args[1].ToLower()))
+            if (opts.Singleton && DetectPipeServer())
+            {
+                if (args.Length > 0)
                 {
-                    if (args[1].ToLower().Equals("/d")) args = args.Append(args[2]).ToArray();
-                    args = args.Skip(1).ToArray();
-                    if (args.Length > 1)
-                    {
-                        var content = new NamedPipeContent(){ Command = "query", Args = args?.Skip(1).ToArray() };
-                        //SendToPipeServer(Newtonsoft.Json.JsonConvert.SerializeObject(content, Newtonsoft.Json.Formatting.Indented).ToString());
-                        SendToPipeServer(string.Join(Environment.NewLine, content.Args));
-                    }
-                    else
-                    {
-                        var content = new NamedPipeContent(){ Command = "active" };
-                        //SendToPipeServer(Newtonsoft.Json.JsonConvert.SerializeObject(content, Newtonsoft.Json.Formatting.Indented).ToString());
-                        SendToPipeServer("");
-                    }
-                    Shutdown();
-                    Environment.Exit(0);
+                    var content = new NamedPipeContent(){ Command = "query", Args = args };
+                    //SendToPipeServer(Newtonsoft.Json.JsonConvert.SerializeObject(content, Newtonsoft.Json.Formatting.Indented).ToString());
+                    SendToPipeServer(string.Join(Environment.NewLine, content.Args));
                 }
+                else
+                {
+                    var content = new NamedPipeContent(){ Command = "active" };
+                    //SendToPipeServer(Newtonsoft.Json.JsonConvert.SerializeObject(content, Newtonsoft.Json.Formatting.Indented).ToString());
+                    SendToPipeServer("");
+                }
+                Shutdown();
+                Environment.Exit(0);
             }
             CreateNamedPipeServer();
         }

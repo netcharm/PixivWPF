@@ -2,22 +2,23 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 using ImageMagick;
+using Mono.Options;
 using Xceed.Wpf.Toolkit;
-using System.Text.RegularExpressions;
-using System.IO;
-using System.Windows.Media.Imaging;
-using System.Runtime.InteropServices;
 
 namespace ImageCompare
 {
@@ -268,6 +269,45 @@ namespace ImageCompare
         #endregion
 
         #region Application Helper
+        public class MyOptions
+        {
+            public bool Singleton { get; set; } = false;
+            public bool DualOpen { get; set; } = false;
+            public List<string> Args = new List<string>();
+        }
+
+        private static bool singleton = false;
+        private static bool dualopen = false;
+        private static MyOptions myoptions = null;
+
+        public static OptionSet Options { get; set; } = new OptionSet()
+        {
+            { "s|single", "Single Instance Mode", v => { singleton = v != null; } },
+            { "d|dual", "Dual Open One Image Mode", v => { dualopen = v != null; } },
+        };
+
+        public static MyOptions GetCmdLineOpts(this Application app)
+        {
+            if (myoptions == null)
+            {
+                var args = Environment.GetCommandLineArgs().Skip(1).ToList();
+                var opts = Options.Parse(args);
+                if (dualopen && opts.Count > 0) opts.Insert(0, opts.FirstOrDefault());
+                myoptions = new MyOptions() { DualOpen = dualopen, Singleton = singleton, Args = opts };
+            }
+            return (myoptions ?? new MyOptions());
+        }
+
+        public static MyOptions GetCmdLineOpts(this Window app)
+        {
+            return (GetCmdLineOpts(Application.Current));
+        }
+
+        public static MyOptions GetCmdLineOpts(this MainWindow app)
+        {
+            return (GetCmdLineOpts(Application.Current));
+        }
+
         private static Point GetDpi()
         {
             var result = new Point(96, 96);
@@ -857,12 +897,12 @@ namespace ImageCompare
             return (image is MagickImage && MagickFormatInfo.Create(image.Format).SupportsReading);
         }
 
-        public static Func<MagickImage, int> FuncTotalColors = (i) => { return ((i is MagickImage) ? i.TotalColors : 0); };
+        public static Func<MagickImage, uint> FuncTotalColors = (i) => { return ((i is MagickImage) ? i.TotalColors : 0); };
 
-        public static async Task<int> CalcTotalColors(this MagickImage image, CancellationToken cancel = default)
+        public static async Task<uint> CalcTotalColors(this MagickImage image, CancellationToken cancel = default)
         {
-            var result = 0;
-            Func<int> GetColorsCount = () => { return ((image is MagickImage) ? image.TotalColors : 0); };
+            var result = 0u;
+            Func<uint> GetColorsCount = () => { return ((image is MagickImage) ? image.TotalColors : 0); };
             result = await Task.Run(GetColorsCount, cancellationToken: cancel);
             return (result);
         }
