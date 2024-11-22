@@ -2685,12 +2685,10 @@ namespace PixivWPF.Common
                 try
                 {
                     var keys = Application.Current.GetModifier();
-                    var shift = keys.OnlyShift;
-                    var ctrl = keys.OnlyCtrl;
-
-                    if (shift) Process.Start(shell, "/s " + string.Join(" ", files.TakeWhile(f => !string.IsNullOrEmpty(f.Trim())).Select(f => $"\"{f.Trim()}\"")));
-                    else if (ctrl) Process.Start(shell, "/d " + string.Join(" ", files.TakeWhile(f => !string.IsNullOrEmpty(f.Trim())).Select(f => $"\"{f.Trim()}\"")));
-                    else Process.Start(shell, string.Join(" ", files.TakeWhile(f => !string.IsNullOrEmpty(f.Trim())).Select(f => $"\"{f.Trim()}\"")));
+                    var prefix = string.Empty;
+                    if (keys.Shift) prefix += "/s ";
+                    if (keys.Ctrl) prefix += "/d ";
+                    Process.Start(shell, prefix + string.Join(" ", files.TakeWhile(f => !string.IsNullOrEmpty(f.Trim())).Select(f => $"\"{f.Trim()}\"")));
                 }
                 catch (Exception ex) { ex.ERROR("ShellImageCompare"); }
             }
