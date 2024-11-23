@@ -822,7 +822,7 @@ namespace ImageCompare
         {
             try
             {
-                Dispatcher.InvokeAsync(() =>
+                Dispatcher.InvokeAsync(async () =>
                 {
                     #region Re-Calc Scroll Viewer Size
                     ViewerPanel.MaxWidth = ImageCanvas.ActualWidth;
@@ -905,6 +905,11 @@ namespace ImageCompare
                     ZoomRatioValue.IsEnabled = ZoomRatio.IsEnabled;
 
                     CalcZoomRatio();
+
+                    await Task.Delay(1);
+                    DoEvents();
+
+                    AdjustQualityChangerPos();
                 });
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -2990,6 +2995,29 @@ namespace ImageCompare
             }
         }
 
+        private void AdjustQualityChangerPos()
+        {
+            QualityChanger.Dispatcher.InvokeAsync(() =>
+            {
+                if (QualityChanger.IsVisible && QualityChanger.Tag is ImageType)
+                {
+                    QualityChanger.WindowStartupLocation = Xceed.Wpf.Toolkit.WindowStartupLocation.Manual;
+                    var source = (ImageType)QualityChanger.Tag;
+                    var is_hor = ViewerPanel.Orientation == Orientation.Horizontal;
+                    var pw = ViewerPanel.DesiredSize.Width;
+                    var ph = ViewerPanel.DesiredSize.Height;
+                    var factor_x = pw / 6f;
+                    var factor_y = ph / 6f;
+                    var offset_x = SystemParameters.WindowCornerRadius.TopLeft;
+                    var offset_y = SystemParameters.WindowCornerRadius.TopLeft;
+                    var center_x = !is_hor ? pw / 2f : (source == ImageType.Source ?  factor_x : factor_x * 5f);
+                    var center_y = is_hor ? ph : (source == ImageType.Source ?  factor_y * 2f : ph);
+                    QualityChanger.Left = center_x - (QualityChanger.DesiredSize.Width / 2f);
+                    QualityChanger.Top = center_y - (QualityChanger.DesiredSize.Height * 1.5);
+                }
+            });
+        }
+
         private string QualityChangeerTitle = string.Empty;
         /// <summary>
         /// 
@@ -2999,7 +3027,7 @@ namespace ImageCompare
         {
             if (Ready && !IsQualityChanger)
             {
-                Dispatcher.Invoke(() =>
+                QualityChanger.Dispatcher.InvokeAsync(async () =>
                 {
                     var info = source == ImageType.Source ? ImageSource.GetInformation() : (source == ImageType.Target ? ImageTarget.GetInformation() : new ImageInformation());
                     if (info.ValidCurrent)
@@ -3010,7 +3038,6 @@ namespace ImageCompare
                         QualityChangeerTitle = $"{"InfoTipQuality".T().Trim('=').Trim()} : {quality_str}";
                         QualityChanger.Tag = source;
                         QualityChanger.Caption = QualityChangeerTitle;
-                        QualityChanger.WindowStartupLocation = Xceed.Wpf.Toolkit.WindowStartupLocation.Center;
                         QualityChanger.FocusedElement = QualityChangerSlider;
                         QualityChangerSlider.Maximum = quality > 0 ? quality : 100;
                         QualityChangerSlider.Width = 300;
@@ -3021,9 +3048,12 @@ namespace ImageCompare
                         QualityChangerSlider.LargeChange = 5;
                         QualityChangerSlider.SmallChange = 1;
                         QualityChangerSlider.Value = quality > 0 ? quality : 100;
-                        QualityChangerSlider.Focus();
                         QualityChanger.Show();
-                        QualityChanger.Top += 128;
+                        QualityChangerSlider.Focus();
+
+                        await Task.Delay(1);
+                        DoEvents();
+                        AdjustQualityChangerPos();
                     }
                 });
             }
@@ -3036,7 +3066,7 @@ namespace ImageCompare
         {
             if (Ready && IsQualityChanger)
             {
-                Dispatcher.Invoke(() =>
+                QualityChanger.Dispatcher.InvokeAsync(() =>
                 {
                     if (restore)
                         QualityChanger_CloseButtonClicked(QualityChanger, null);
@@ -3053,7 +3083,7 @@ namespace ImageCompare
         /// <param name="title"></param>
         private void SetQualityChangerTitle(string title = null)
         {
-            QualityChanger.Dispatcher.Invoke(() => 
+            QualityChanger.Dispatcher.InvokeAsync(() => 
             {
                 title = title.Trim();
                 QualityChanger.Caption = string.IsNullOrEmpty(title) ? $"{QualityChangeerTitle}" : $"{QualityChangeerTitle} => {title}";
@@ -3572,8 +3602,6 @@ namespace ImageCompare
             if (!IsLoaded) return;
             LastWinState = WindowState;
             LastPositionSize = new Rect(Left, Top, LastPositionSize.Width, LastPositionSize.Height);
-            //if (WindowState != System.Windows.WindowState.Normal)
-            //    LastPositionSize = new Rect(Top, Left, Width, Height);
         }
 
         private void Window_DragOver(object sender, DragEventArgs e)
