@@ -3049,11 +3049,13 @@ namespace ImageCompare
                         QualityChangerSlider.SmallChange = 1;
                         QualityChangerSlider.Value = quality > 0 ? quality : 100;
                         QualityChanger.Show();
-                        QualityChangerSlider.Focus();
 
                         await Task.Delay(1);
                         DoEvents();
                         AdjustQualityChangerPos();
+
+                        QualityChangerSlider.Focusable = true;
+                        QualityChangerSlider.Focus();
                     }
                 });
             }
@@ -3183,7 +3185,7 @@ namespace ImageCompare
         /// <param name="tooltip"></param>
         private void SetToolTip(FrameworkElement element, string tooltip)
         {
-            Dispatcher.Invoke(() =>
+            Dispatcher.Invoke(async () =>
             {
                 if (element?.ToolTip is string)
                 {
@@ -3201,6 +3203,8 @@ namespace ImageCompare
                 {
                     element.ToolTip = null;
                 }
+                await Task.Delay(1);
+                DoEvents();
                 ToolTipService.SetShowDuration(element, AutoHideToolTip ?? false ? ToolTipDuration : int.MaxValue);
             });
         }

@@ -292,21 +292,24 @@ namespace ImageCompare
 
                 UpdateIndaicatorState(source, true, true);
 
+                var reload = ImageType.None;
                 var action = false;
                 var size = CompareImageForceScale ? MaxCompareSize : 0;
                 if (source)
                 {
+                    reload = ImageSource.GetInformation().IsRotated ? ImageType.All : ImageType.Source;
                     action = await ImageSource.GetInformation().Reset(size);
                 }
                 else
                 {
+                    reload = ImageTarget.GetInformation().IsRotated ? ImageType.All : ImageType.Target;
                     action = await ImageTarget.GetInformation().Reset(size);
                 }
 
                 CloseQualityChanger();
                 LastMatchedImage = ImageType.None;
 
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: reload);
                 else UpdateIndaicatorState(source, false, true);
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -325,6 +328,7 @@ namespace ImageCompare
 
                 UpdateIndaicatorState(source, true, true);
 
+                var reload = ImageType.None;
                 var action = false;
                 var size = CompareImageForceScale ? MaxCompareSize : 0;
                 if (source)
@@ -335,7 +339,11 @@ namespace ImageCompare
                         var tooltip = await ImageSource.GetInformation().GetImageInfo();
                         if (!string.IsNullOrEmpty(tooltip)) SetToolTip(ImageSource, tooltip);
                     }
-                    else action = await ImageSource.GetInformation().Reload(size, reload: true);
+                    else
+                    {
+                        reload = ImageSource.GetInformation().IsRotated ? ImageType.All : ImageType.Source;
+                        action = await ImageSource.GetInformation().Reload(size, reload: true);
+                    }
                 }
                 else
                 {
@@ -345,13 +353,17 @@ namespace ImageCompare
                         var tooltip = await ImageTarget.GetInformation().GetImageInfo();
                         if (!string.IsNullOrEmpty(tooltip)) SetToolTip(ImageTarget, tooltip);
                     }
-                    else action = await ImageTarget.GetInformation().Reload(size, reload: true);
+                    else
+                    {
+                        reload = ImageTarget.GetInformation().IsRotated ? ImageType.All : ImageType.Target;
+                        action = await ImageTarget.GetInformation().Reload(size, reload: true);
+                    }
                 }
 
                 CloseQualityChanger();
                 LastMatchedImage = ImageType.None;
 
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: reload);
                 else UpdateIndaicatorState(source, false, true);
             }
             catch (Exception ex) { ex.ShowMessage(); }

@@ -274,6 +274,10 @@ namespace ImageCompare
         public bool FlipY { get; set; } = false;
         public double Rotated { get; set; } = .0;
 
+        public bool IsFliped { get { return (FlipX || FlipY); } }
+        public bool IsRotated { get { return (Rotated % 180 != 0); } }
+        public bool IsTransformed { get { return (IsRotated || IsFliped); } }
+
         public uint DenoiseCount { get; set; } = 0;
         public uint DenoiseLevel { get; set; } = 0;
 
