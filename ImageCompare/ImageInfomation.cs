@@ -222,7 +222,6 @@ namespace ImageCompare
             }
         }
 
-
         public bool ValidCurrent { get { return (Current is MagickImage); } }
         public bool ValidOriginal { get { return (Original is MagickImage); } }
 
@@ -632,7 +631,8 @@ namespace ImageCompare
                         tip.Add($"{"InfoTipHasAlpha".T()} {(Original?.HasAlpha ?? false ? "Included" : "NotIncluded").T()}");
                         if (Original?.ColormapSize > 0) tip.Add($"{"InfoTipColorMapsSize".T()} {Original?.ColormapSize}");
                         tip.Add($"{"InfoTipCompression".T()} {Original?.Compression}");
-                        tip.Add($"{"InfoTipQuality".T()} {(Original?.Compression == CompressionMethod.JPEG || Original?.Quality > 0 ? $"{Original?.Quality}" : "Unknown")}");
+                        //tip.Add($"{"InfoTipQuality".T()} {(Original?.Compression == CompressionMethod.JPEG || Original?.Quality > 0 ? $"{Original?.Quality}" : "Unknown")}");
+                        tip.Add($"{"InfoTipQuality".T()} {(Original?.Compression == CompressionMethod.JPEG ? $"{Original?.Quality()}" : "Unknown")}");
                         tip.Add($"{"InfoTipMemoryMode".T()} {MemoryUsageMode}");
                         tip.Add($"{"InfoTipIdealMemoryUsage".T()} {(ValidOriginal ? OriginalIdealMemoryUsage.SmartFileSize() : CurrentIdealMemoryUsage.SmartFileSize())}");
                         tip.Add($"{"InfoTipMemoryUsage".T()} {(ValidOriginal ? OriginalRealMemoryUsage.SmartFileSize() : CurrentRealMemoryUsage.SmartFileSize())}");

@@ -341,7 +341,7 @@ namespace ImageCompare
             {
                 ReleaseDC(desktopWnd, dc);
             }
-            return(result);
+            return (result);
         }
 
         public static Point GetSystemDPI(this Application app)
@@ -1130,6 +1130,17 @@ namespace ImageCompare
             return (result);
         }
 
+        public static uint Quality(this MagickImage image)
+        {
+            uint result = image?.Quality ?? 0;
+            var zip = new CompressionMethod[] { CompressionMethod.Zip, CompressionMethod.ZipS, CompressionMethod.Zstd, CompressionMethod.BZip, CompressionMethod.LZMA, CompressionMethod.LZW, CompressionMethod.RLE, CompressionMethod.NoCompression, CompressionMethod.LosslessJPEG };
+            if (image is MagickImage && result == 0)
+            {
+                if (image?.Compression == CompressionMethod.JPEG) result = 75;
+                else if (zip.Contains(image?.Compression ?? CompressionMethod.Undefined)) result = 100;
+            }
+            return (result);
+        }
         public static Dictionary<string, string> GetSupportedImageFormats()
         {
             Dictionary<string, string> result = new Dictionary<string, string>();
@@ -1191,7 +1202,6 @@ namespace ImageCompare
                     if (element.Tag is ImageInformation) result = element.Tag as ImageInformation;
                     else element.Tag = result;
                 });
-
             }
             return (result);
         }

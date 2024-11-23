@@ -3005,14 +3005,14 @@ namespace ImageCompare
                     if (info.ValidCurrent)
                     {
                         var image = info?.Current;
-                        var quality = image?.Compression == CompressionMethod.JPEG || image?.Quality > 0 ? image?.Quality : 100;
-                        var quality_str = image?.Compression == CompressionMethod.JPEG || image?.Quality > 0 ? $"{image?.Quality}" : "Unknown";
+                        var quality = image.Quality();
+                        var quality_str = quality > 0  ? $"{quality}" : "Unknown";
                         QualityChangeerTitle = $"{"InfoTipQuality".T().Trim('=').Trim()} : {quality_str}";
                         QualityChanger.Tag = source;
                         QualityChanger.Caption = QualityChangeerTitle;
                         QualityChanger.WindowStartupLocation = Xceed.Wpf.Toolkit.WindowStartupLocation.Center;
                         QualityChanger.FocusedElement = QualityChangerSlider;
-                        QualityChangerSlider.Maximum = quality ?? 100;
+                        QualityChangerSlider.Maximum = quality > 0 ? quality : 100;
                         QualityChangerSlider.Width = 300;
                         QualityChangerSlider.IsSnapToTickEnabled = true;
                         QualityChangerSlider.Tag = new MagickImage(image);
@@ -3020,7 +3020,7 @@ namespace ImageCompare
                         QualityChangerSlider.TickPlacement = System.Windows.Controls.Primitives.TickPlacement.Both;
                         QualityChangerSlider.LargeChange = 5;
                         QualityChangerSlider.SmallChange = 1;
-                        QualityChangerSlider.Value = quality ?? 100;
+                        QualityChangerSlider.Value = quality > 0 ? quality : 100;
                         QualityChangerSlider.Focus();
                         QualityChanger.Show();
                         QualityChanger.Top += 128;
