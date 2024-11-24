@@ -273,17 +273,21 @@ namespace ImageCompare
         {
             public bool Singleton { get; set; } = false;
             public bool DualOpen { get; set; } = false;
+            public bool RunAs64Bits { get; set; } = false;
             public List<string> Args = new List<string>();
         }
 
         private static bool singleton = false;
         private static bool dualopen = false;
+        private static bool runas64 = false;
+        
         private static MyOptions myoptions = null;
 
         public static OptionSet Options { get; set; } = new OptionSet()
         {
             { "s|single", "Single Instance Mode", v => { singleton = v != null; } },
             { "d|dual", "Dual Open One Image Mode", v => { dualopen = v != null; } },
+            { "64", "Run As 64Bits Application", v => { runas64 = v != null; } },
         };
 
         public static MyOptions GetCmdLineOpts(this Application app)
@@ -293,7 +297,7 @@ namespace ImageCompare
                 var args = Environment.GetCommandLineArgs().Skip(1).ToList();
                 var opts = Options.Parse(args);
                 if (dualopen && opts.Count > 0) opts.Insert(0, opts.FirstOrDefault());
-                myoptions = new MyOptions() { DualOpen = dualopen, Singleton = singleton, Args = opts };
+                myoptions = new MyOptions() { DualOpen = dualopen, Singleton = singleton, RunAs64Bits = runas64, Args = opts };
             }
             return (myoptions ?? new MyOptions());
         }
@@ -306,6 +310,21 @@ namespace ImageCompare
         public static MyOptions GetCmdLineOpts(this MainWindow app)
         {
             return (GetCmdLineOpts(Application.Current));
+        }
+
+        public static bool IsRunAs32Bits(this Application app)
+        {
+            return (IntPtr.Size == 4);
+        }
+
+        public static bool IsRunAs32Bits(this Window app)
+        {
+            return (IsRunAs32Bits(Application.Current));
+        }
+
+        public static bool IsRunAs32Bits(this MainWindow app)
+        {
+            return (IsRunAs32Bits(Application.Current));
         }
 
         private static Point GetDpi()
@@ -380,12 +399,32 @@ namespace ImageCompare
                 {
                     (Application.Current.MainWindow as MainWindow)?.UpdateIndaicatorState(ImageType.All, state: false, busy: true);
 
-                    if (string.IsNullOrEmpty(prefix))
-                        Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text);
+                    if (Application.Current.MainWindow.IsVisible)
+                    {
+                        if (string.IsNullOrEmpty(prefix))
+                            Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text);
+                        else
+                            Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text, prefix);
+                    }
                     else
-                        Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text, prefix);
+                    {
+                        if (string.IsNullOrEmpty(prefix))
+                            Xceed.Wpf.Toolkit.MessageBox.Show(text);
+                        else
+                            Xceed.Wpf.Toolkit.MessageBox.Show(text, prefix);
+                    }
                 }
-                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message); }
+                catch (Exception ex)
+                {
+                    if (Application.Current.MainWindow.IsVisible)
+                    {
+                        Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message);
+                    }
+                    else
+                    {
+                        Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message);
+                    }
+                }
             });
         }
 
@@ -398,13 +437,32 @@ namespace ImageCompare
                     (Application.Current.MainWindow as MainWindow)?.UpdateIndaicatorState(ImageType.All, state: false, busy: true);
 
                     var contents = $"{exception.Message}{Environment.NewLine}{exception.StackTrace}";
-                    if (string.IsNullOrEmpty(prefix))
-                        Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, contents);
+                    if (Application.Current.MainWindow.IsVisible)
+                    {
+                        if (string.IsNullOrEmpty(prefix))
+                            Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, contents);
+                        else
+                            Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, contents, prefix);
+                    }
                     else
-                        Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, contents, prefix);
-
+                    {
+                        if (string.IsNullOrEmpty(prefix))
+                            Xceed.Wpf.Toolkit.MessageBox.Show(contents);
+                        else
+                            Xceed.Wpf.Toolkit.MessageBox.Show(prefix);
+                    }
                 }
-                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message); }
+                catch (Exception ex)
+                {
+                    if (Application.Current.MainWindow.IsVisible)
+                    {
+                        Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message);
+                    }
+                    else
+                    {
+                        Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message);
+                    }
+                }
             });
         }
 

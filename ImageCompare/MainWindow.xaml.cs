@@ -44,6 +44,8 @@ namespace ImageCompare
         private static readonly string AppName = Path.GetFileNameWithoutExtension(AppPath);
         private static string CachePath =  "cache";
 
+        private string Command64Bits = string.Empty;
+
         private bool Ready { get { return (Dispatcher.Invoke(() => IsLoaded)); } }
 
         private double TaskTimeOutSeconds = 60;
@@ -1738,450 +1740,6 @@ namespace ImageCompare
         }
         #endregion
 
-        #region Config Load/Save Helper
-        /// <summary>
-        /// 
-        /// </summary>
-        private void LoadConfig()
-        {
-            Configuration appCfg =  ConfigurationManager.OpenExeConfiguration(AppExec);
-            AppSettingsSection appSection = appCfg.AppSettings;
-            try
-            {
-                if (appSection.Settings.AllKeys.Contains("AutoSaveOptions"))
-                {
-                    var value = AutoSaveOptions.IsChecked ?? true;
-                    if (bool.TryParse(appSection.Settings["AutoSaveOptions"].Value, out value)) AutoSaveConfig = value;
-                }
-
-                if (appSection.Settings.AllKeys.Contains("TaskTimeOutSeconds"))
-                {
-                    var value = TaskTimeOutSeconds;
-                    if (double.TryParse(appSection.Settings["TaskTimeOutSeconds"].Value, out value)) TaskTimeOutSeconds = value;
-                }
-
-                if (appSection.Settings.AllKeys.Contains("AutoHideToolTip"))
-                {
-                    var value = AutoHideToolTip ?? true;
-                    if (bool.TryParse(appSection.Settings["AutoHideToolTip"].Value, out value)) AutoHideToolTip = value;
-                }
-                if (appSection.Settings.AllKeys.Contains("ToolTipDuration"))
-                {
-                    var value = ToolTipDuration;
-                    if (int.TryParse(appSection.Settings["ToolTipDuration"].Value, out value)) ToolTipDuration = value;
-                }
-
-                if (appSection.Settings.AllKeys.Contains("DarkTheme"))
-                {
-                    var value = DarkBackground.IsChecked ?? true;
-                    if (bool.TryParse(appSection.Settings["DarkTheme"].Value, out value)) DarkTheme = value;
-                }
-
-                if (appSection.Settings.AllKeys.Contains("CustomMonoFontFamily"))
-                {
-                    var value = appSection.Settings["CustomMonoFontFamily"].Value;
-                    if (!string.IsNullOrEmpty(value))
-                    {
-                        try
-                        {
-                            ChangeResourceFonts(CustomMonoFontFamily, value);
-                        }
-                        catch { }
-                    }
-                }
-                if (appSection.Settings.AllKeys.Contains("CustomIconFontFamily"))
-                {
-                    var value = appSection.Settings["CustomIconFontFamily"].Value;
-                    if (!string.IsNullOrEmpty(value))
-                    {
-                        try
-                        {
-                            ChangeResourceFonts(CustomIconFontFamily, value);
-                        }
-                        catch { }
-                    }
-                }
-
-                if (appSection.Settings.AllKeys.Contains("WindowPosition"))
-                {
-                    var value = appSection.Settings["WindowPosition"].Value;
-                    if (!string.IsNullOrEmpty(value))
-                    {
-                        try
-                        {
-                            LastPositionSize = Rect.Parse(value);
-                            RestoreWindowLocationSize();
-                        }
-                        catch { }
-                    }
-                }
-
-                if (appSection.Settings.AllKeys.Contains("WindowState"))
-                {
-                    var value = appSection.Settings["WindowState"].Value;
-                    if (!string.IsNullOrEmpty(value))
-                    {
-                        try
-                        {
-                            Enum.TryParse(value, out LastWinState);
-                            //RestoreWindowState();
-                        }
-                        catch { }
-                    }
-                }
-
-                if (appSection.Settings.AllKeys.Contains("CachePath"))
-                {
-                    var value = appSection.Settings["CachePath"].Value;
-                    if (!string.IsNullOrEmpty(value)) CachePath = value;
-                }
-
-                if (appSection.Settings.AllKeys.Contains("UILanguage"))
-                {
-                    var value = appSection.Settings["UILanguage"].Value;
-                    DefaultCultureInfo = CultureInfo.GetCultureInfoByIetfLanguageTag(value);
-                }
-
-                if (appSection.Settings.AllKeys.Contains("HighlightColor"))
-                {
-                    var value = appSection.Settings["HighlightColor"].Value;
-                    if (!string.IsNullOrEmpty(value)) HighlightColor = new MagickColor(value);
-                }
-                if (appSection.Settings.AllKeys.Contains("HighlightColorRecents"))
-                {
-                    var value = appSection.Settings["HighlightColorRecents"].Value;
-                    if (!string.IsNullOrEmpty(value)) SetRecentColors(HighlightColorPick, value.Split(',').Select(v => v.Trim()));
-                }
-                if (appSection.Settings.AllKeys.Contains("LowlightColor"))
-                {
-                    var value = appSection.Settings["LowlightColor"].Value;
-                    if (!string.IsNullOrEmpty(value)) LowlightColor = new MagickColor(value);
-                }
-                if (appSection.Settings.AllKeys.Contains("LowlightColorRecents"))
-                {
-                    var value = appSection.Settings["LowlightColorRecents"].Value;
-                    if (!string.IsNullOrEmpty(value)) SetRecentColors(LowlightColorPick, value.Split(',').Select(v => v.Trim()));
-                }
-                if (appSection.Settings.AllKeys.Contains("MasklightColor"))
-                {
-                    var value = appSection.Settings["MasklightColor"].Value;
-                    if (!string.IsNullOrEmpty(value)) MasklightColor = new MagickColor(value);
-                }
-                if (appSection.Settings.AllKeys.Contains("MasklightColorRecents"))
-                {
-                    var value = appSection.Settings["MasklightColorRecents"].Value;
-                    if (!string.IsNullOrEmpty(value)) SetRecentColors(MasklightColorPick, value.Split(',').Select(v => v.Trim()));
-                }
-
-                if (appSection.Settings.AllKeys.Contains("ImageCompareFuzzy"))
-                {
-                    var value = ImageCompareFuzzy.Value;
-                    if (double.TryParse(appSection.Settings["ImageCompareFuzzy"].Value, out value)) ImageCompareFuzzy.Value = Math.Max(0, Math.Min(100, value));
-                }
-                if (appSection.Settings.AllKeys.Contains("ErrorMetricMode"))
-                {
-                    var value = ErrorMetricMode;
-                    if (Enum.TryParse(appSection.Settings["ErrorMetricMode"].Value, out value)) ErrorMetricMode = value;
-                }
-                if (appSection.Settings.AllKeys.Contains("CompositeMode"))
-                {
-                    var value = CompositeMode;
-                    if (Enum.TryParse(appSection.Settings["CompositeMode"].Value, out value)) CompositeMode = value;
-                }
-                if (appSection.Settings.AllKeys.Contains("GrayscaleMode"))
-                {
-                    var value = GrayscaleMode;
-                    if (Enum.TryParse(appSection.Settings["GrayscaleMode"].Value, out value)) GrayscaleMode = value;
-                }
-                if (appSection.Settings.AllKeys.Contains("ZoomFitMode"))
-                {
-                    var value = CurrentZoomFitMode;
-                    if (Enum.TryParse(appSection.Settings["ZoomFitMode"].Value, out value)) CurrentZoomFitMode = value;
-                }
-                if (appSection.Settings.AllKeys.Contains("ImageLayout"))
-                {
-                    var value = CurrentImageLayout;
-                    if (Enum.TryParse(appSection.Settings["ImageLayout"].Value, out value)) CurrentImageLayout = value;
-                }
-
-                if (appSection.Settings.AllKeys.Contains("ImageMagnifierZoomFactor"))
-                {
-                    var value = ImageMagnifierZoomFactor;
-                    if (double.TryParse(appSection.Settings["ImageMagnifierZoomFactor"].Value, out value)) ImageMagnifierZoomFactor = value;
-                }
-                if (appSection.Settings.AllKeys.Contains("ImageMagnifierRadius"))
-                {
-                    var value = ImageMagnifierRadius;
-                    if (double.TryParse(appSection.Settings["ImageMagnifierRadius"].Value, out value)) ImageMagnifierRadius = value;
-                }
-                if (appSection.Settings.AllKeys.Contains("ImageMagnifierBorderBrush"))
-                {
-                    try
-                    {
-                        ImageMagnifierBorderBrush = (Color)ColorConverter.ConvertFromString(appSection.Settings["ImageMagnifierBorderBrush"].Value);
-                    }
-                    catch { }
-                }
-                if (appSection.Settings.AllKeys.Contains("ImageMagnifierBorderThickness"))
-                {
-                    var value = ImageMagnifierBorderThickness;
-                    if (double.TryParse(appSection.Settings["ImageMagnifierBorderThickness"].Value, out value)) ImageMagnifierBorderThickness = value;
-                }
-
-                if (appSection.Settings.AllKeys.Contains("AutoMatchSize"))
-                {
-                    var value = AutoMatchSize.IsChecked ?? true;
-                    if (bool.TryParse(appSection.Settings["AutoMatchSize"].Value, out value)) AutoMatchSize.IsChecked = value;
-                }
-
-                if (appSection.Settings.AllKeys.Contains("UseSmallerImage"))
-                {
-                    var value = UseSmallerImage.IsChecked ?? true;
-                    if (bool.TryParse(appSection.Settings["UseSmallerImage"].Value, out value)) UseSmallerImage.IsChecked = value;
-                }
-                if (appSection.Settings.AllKeys.Contains("UseColorImage"))
-                {
-                    var value = UseColorImage.IsChecked ?? true;
-                    if (bool.TryParse(appSection.Settings["UseColorImage"].Value, out value)) UseColorImage.IsChecked = value;
-                }
-
-                if (appSection.Settings.AllKeys.Contains("LastHaldFolder"))
-                {
-                    var value = appSection.Settings["LastHaldFolder"].Value;
-                    if (!string.IsNullOrEmpty(value)) LastHaldFolder = value;
-                }
-                if (appSection.Settings.AllKeys.Contains("LastHaldFile"))
-                {
-                    var value = appSection.Settings["LastHaldFile"].Value;
-                    if (!string.IsNullOrEmpty(value)) LastHaldFile = value;
-                }
-
-                if (appSection.Settings.AllKeys.Contains("UseWeakBlur"))
-                {
-                    var value = UseWeakBlur.IsChecked ?? true;
-                    if (bool.TryParse(appSection.Settings["UseWeakBlur"].Value, out value)) UseWeakBlur.IsChecked = value;
-                }
-                if (appSection.Settings.AllKeys.Contains("UseWeakSharp"))
-                {
-                    var value = UseWeakSharp.IsChecked ?? true;
-                    if (bool.TryParse(appSection.Settings["UseWeakSharp"].Value, out value)) UseWeakSharp.IsChecked = value;
-                }
-
-                if (appSection.Settings.AllKeys.Contains("MaxCompareSize"))
-                {
-                    var value = MaxCompareSize;
-                    if (uint.TryParse(appSection.Settings["MaxCompareSize"].Value, out value)) MaxCompareSize = value;
-                }
-
-                if (appSection.Settings.AllKeys.Contains("SimpleTrimCropBoundingBox"))
-                {
-                    var value = SimpleTrimCropBoundingBox;
-                    if (bool.TryParse(appSection.Settings["SimpleTrimCropBoundingBox"].Value, out value)) SimpleTrimCropBoundingBox = value;
-                }
-
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="force"></param>
-        private void SaveConfig(bool force = false)
-        {
-            try
-            {
-                Configuration appCfg =  ConfigurationManager.OpenExeConfiguration(AppExec);
-                AppSettingsSection appSection = appCfg.AppSettings;
-
-                if (appSection.Settings.AllKeys.Contains("AutoSaveOptions"))
-                    appSection.Settings["AutoSaveOptions"].Value = AutoSaveConfig.ToString();
-                else
-                    appSection.Settings.Add("AutoSaveOptions", AutoSaveConfig.ToString());
-
-                if (AutoSaveConfig)
-                {
-                    if (appSection.Settings.AllKeys.Contains("TaskTimeOutSeconds"))
-                        appSection.Settings["TaskTimeOutSeconds"].Value = TaskTimeOutSeconds.ToString();
-                    else
-                        appSection.Settings.Add("TaskTimeOutSeconds", TaskTimeOutSeconds.ToString());
-
-                    if (appSection.Settings.AllKeys.Contains("AutoHideToolTip"))
-                        appSection.Settings["AutoHideToolTip"].Value = AutoHideToolTip.ToString();
-                    else
-                        appSection.Settings.Add("AutoHideToolTip", AutoHideToolTip.ToString());
-
-                    if (appSection.Settings.AllKeys.Contains("ImageMagnifierZoomFactor"))
-                        appSection.Settings["ImageMagnifierZoomFactor"].Value = ImageMagnifierZoomFactor.ToString();
-                    else
-                        appSection.Settings.Add("ImageMagnifierZoomFactor", ImageMagnifierZoomFactor.ToString());
-
-                    if (appSection.Settings.AllKeys.Contains("ImageMagnifierRadius"))
-                        appSection.Settings["ImageMagnifierRadius"].Value = ImageMagnifierRadius.ToString();
-                    else
-                        appSection.Settings.Add("ImageMagnifierRadius", ImageMagnifierRadius.ToString());
-
-                    if (appSection.Settings.AllKeys.Contains("ImageMagnifierBorderBrush"))
-                        appSection.Settings["ImageMagnifierBorderBrush"].Value = ImageMagnifierBorderBrush.ToString();
-                    else
-                        appSection.Settings.Add("ImageMagnifierBorderBrush", ImageMagnifierBorderBrush.ToString());
-
-                    if (appSection.Settings.AllKeys.Contains("ImageMagnifierBorderThickness"))
-                        appSection.Settings["ImageMagnifierBorderThickness"].Value = ImageMagnifierBorderThickness.ToString();
-                    else
-                        appSection.Settings.Add("ImageMagnifierBorderThickness", ImageMagnifierBorderThickness.ToString());
-
-                    var rect = new Rect(
-                        LastPositionSize.Left, LastPositionSize.Top,
-                        Math.Min(MaxWidth, Math.Max(MinWidth, LastPositionSize.Width)),
-                        Math.Min(MaxHeight, Math.Max(MinHeight, LastPositionSize.Height))
-                    );
-                    if (appSection.Settings.AllKeys.Contains("WindowPosition"))
-                        appSection.Settings["WindowPosition"].Value = rect.ToString();
-                    else
-                        appSection.Settings.Add("WindowPosition", rect.ToString());
-
-                    if (appSection.Settings.AllKeys.Contains("WindowState"))
-                        appSection.Settings["WindowState"].Value = LastWinState.ToString();
-                    else
-                        appSection.Settings.Add("WindowState", LastWinState.ToString());
-
-                    if (appSection.Settings.AllKeys.Contains("CachePath"))
-                        appSection.Settings["CachePath"].Value = CachePath;
-                    else
-                        appSection.Settings.Add("CachePath", CachePath);
-
-                    if (appSection.Settings.AllKeys.Contains("CachePath"))
-                        appSection.Settings["CachePath"].Value = CachePath;
-                    else
-                        appSection.Settings.Add("CachePath", CachePath);
-
-                    if (appSection.Settings.AllKeys.Contains("DarkTheme"))
-                        appSection.Settings["DarkTheme"].Value = DarkTheme.ToString();
-                    else
-                        appSection.Settings.Add("DarkTheme", DarkTheme.ToString());
-
-                    if (appSection.Settings.AllKeys.Contains("UILanguage"))
-                        appSection.Settings["UILanguage"].Value = DefaultCultureInfo.IetfLanguageTag;
-                    else
-                        appSection.Settings.Add("UILanguage", DefaultCultureInfo.IetfLanguageTag);
-
-                    if (appSection.Settings.AllKeys.Contains("HighlightColor"))
-                        appSection.Settings["HighlightColor"].Value = HighlightColor == null ? string.Empty : HighlightColor.ToHexString();
-                    else
-                        appSection.Settings.Add("HighlightColor", HighlightColor == null ? string.Empty : HighlightColor.ToHexString());
-
-                    if (appSection.Settings.AllKeys.Contains("HighlightColorRecents"))
-                        appSection.Settings["HighlightColorRecents"].Value = string.Join(", ", GetRecentHexColors(HighlightColorPick));
-                    else
-                        appSection.Settings.Add("HighlightColorRecents", string.Join(", ", GetRecentHexColors(HighlightColorPick)));
-
-                    if (appSection.Settings.AllKeys.Contains("LowlightColor"))
-                        appSection.Settings["LowlightColor"].Value = LowlightColor == null ? string.Empty : LowlightColor.ToHexString();
-                    else
-                        appSection.Settings.Add("LowlightColor", LowlightColor == null ? string.Empty : LowlightColor.ToHexString());
-
-                    if (appSection.Settings.AllKeys.Contains("LowlightColorRecents"))
-                        appSection.Settings["LowlightColorRecents"].Value = string.Join(", ", GetRecentHexColors(LowlightColorPick));
-                    else
-                        appSection.Settings.Add("LowlightColorRecents", string.Join(", ", GetRecentHexColors(LowlightColorPick)));
-
-                    if (appSection.Settings.AllKeys.Contains("MasklightColor"))
-                        appSection.Settings["MasklightColor"].Value = MasklightColor == null ? string.Empty : MasklightColor.ToHexString();
-                    else
-                        appSection.Settings.Add("MasklightColor", MasklightColor == null ? string.Empty : MasklightColor.ToHexString());
-
-                    if (appSection.Settings.AllKeys.Contains("MasklightColorRecents"))
-                        appSection.Settings["MasklightColorRecents"].Value = string.Join(", ", GetRecentHexColors(MasklightColorPick));
-                    else
-                        appSection.Settings.Add("MasklightColorRecents", string.Join(", ", GetRecentHexColors(MasklightColorPick)));
-
-                    if (appSection.Settings.AllKeys.Contains("ImageCompareFuzzy"))
-                        appSection.Settings["ImageCompareFuzzy"].Value = ImageCompareFuzzy.Value.ToString();
-                    else
-                        appSection.Settings.Add("ImageCompareFuzzy", ImageCompareFuzzy.Value.ToString());
-
-                    if (appSection.Settings.AllKeys.Contains("ErrorMetricMode"))
-                        appSection.Settings["ErrorMetricMode"].Value = ErrorMetricMode.ToString();
-                    else
-                        appSection.Settings.Add("ErrorMetricMode", ErrorMetricMode.ToString());
-
-                    if (appSection.Settings.AllKeys.Contains("CompositeMode"))
-                        appSection.Settings["CompositeMode"].Value = CompositeMode.ToString();
-                    else
-                        appSection.Settings.Add("CompositeMode", CompositeMode.ToString());
-
-                    if (appSection.Settings.AllKeys.Contains("GrayscaleMode"))
-                        appSection.Settings["GrayscaleMode"].Value = GrayscaleMode.ToString();
-                    else
-                        appSection.Settings.Add("GrayscaleMode", GrayscaleMode.ToString());
-
-                    if (appSection.Settings.AllKeys.Contains("ZoomFitMode"))
-                        appSection.Settings["ZoomFitMode"].Value = CurrentZoomFitMode.ToString();
-                    else
-                        appSection.Settings.Add("ZoomFitMode", CurrentZoomFitMode.ToString());
-
-                    if (appSection.Settings.AllKeys.Contains("ImageLayout"))
-                        appSection.Settings["ImageLayout"].Value = CurrentImageLayout.ToString();
-                    else
-                        appSection.Settings.Add("ImageLayout", CurrentImageLayout.ToString());
-
-                    if (appSection.Settings.AllKeys.Contains("ImageLayout"))
-                    {
-                        var value = Orientation.Horizontal;
-                        if (Enum.TryParse(appSection.Settings["ImageLayout"].Value, out value)) ImageLayout.IsChecked = value == Orientation.Vertical;
-                    }
-
-                    if (appSection.Settings.AllKeys.Contains("AutoMatchSize"))
-                        appSection.Settings["AutoMatchSize"].Value = AutoMatchSize.IsChecked.ToString();
-                    else
-                        appSection.Settings.Add("AutoMatchSize", AutoMatchSize.IsChecked.Value.ToString());
-
-                    if (appSection.Settings.AllKeys.Contains("UseSmallerImage"))
-                        appSection.Settings["UseSmallerImage"].Value = UseSmallerImage.IsChecked.ToString();
-                    else
-                        appSection.Settings.Add("UseSmallerImage", UseSmallerImage.IsChecked.Value.ToString());
-
-                    if (appSection.Settings.AllKeys.Contains("UseColorImage"))
-                        appSection.Settings["UseColorImage"].Value = UseColorImage.IsChecked.Value.ToString();
-                    else
-                        appSection.Settings.Add("UseColorImage", UseColorImage.IsChecked.Value.ToString());
-
-                    if (appSection.Settings.AllKeys.Contains("LastHaldFolder"))
-                        appSection.Settings["LastHaldFolder"].Value = LastHaldFolder;
-                    else
-                        appSection.Settings.Add("LastHaldFolder", LastHaldFolder);
-                    if (appSection.Settings.AllKeys.Contains("LastHaldFile"))
-                        appSection.Settings["LastHaldFile"].Value = LastHaldFile;
-                    else
-                        appSection.Settings.Add("LastHaldFile", LastHaldFile);
-
-                    if (appSection.Settings.AllKeys.Contains("UseWeakBlur"))
-                        appSection.Settings["UseWeakBlur"].Value = UseWeakBlur.IsChecked.Value.ToString();
-                    else
-                        appSection.Settings.Add("UseWeakBlur", UseWeakBlur.IsChecked.Value.ToString());
-
-                    if (appSection.Settings.AllKeys.Contains("UseWeakSharp"))
-                        appSection.Settings["UseWeakSharp"].Value = UseWeakSharp.IsChecked.Value.ToString();
-                    else
-                        appSection.Settings.Add("UseWeakSharp", UseWeakSharp.IsChecked.Value.ToString());
-
-                    if (appSection.Settings.AllKeys.Contains("MaxCompareSize"))
-                        appSection.Settings["MaxCompareSize"].Value = MaxCompareSize.ToString();
-                    else
-                        appSection.Settings.Add("MaxCompareSize", MaxCompareSize.ToString());
-
-                    if (appSection.Settings.AllKeys.Contains("SimpleTrimCropBoundingBox"))
-                        appSection.Settings["SimpleTrimCropBoundingBox"].Value = SimpleTrimCropBoundingBox.ToString();
-                    else
-                        appSection.Settings.Add("SimpleTrimCropBoundingBox", SimpleTrimCropBoundingBox.ToString());
-                }
-                if (AutoSaveConfig || force) appCfg.Save();
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-        }
-        #endregion
-
         #region UI Helper
         /// <summary>
         /// 
@@ -3335,6 +2893,455 @@ namespace ImageCompare
         }
         #endregion
 
+        #region Config Load/Save Helper
+        /// <summary>
+        /// 
+        /// </summary>
+        private void LoadConfig()
+        {
+            Configuration appCfg =  ConfigurationManager.OpenExeConfiguration(AppExec);
+            AppSettingsSection appSection = appCfg.AppSettings;
+            try
+            {
+                if (appSection.Settings.AllKeys.Contains("AutoSaveOptions"))
+                {
+                    var value = AutoSaveOptions.IsChecked ?? true;
+                    if (bool.TryParse(appSection.Settings["AutoSaveOptions"].Value, out value)) AutoSaveConfig = value;
+                }
+
+                if (appSection.Settings.AllKeys.Contains("Command64Bits"))
+                {
+                    var value = appSection.Settings["Command64Bits"].Value;
+                    if (!string.IsNullOrEmpty(value)) Command64Bits = value;
+                }
+
+                if (appSection.Settings.AllKeys.Contains("TaskTimeOutSeconds"))
+                {
+                    var value = TaskTimeOutSeconds;
+                    if (double.TryParse(appSection.Settings["TaskTimeOutSeconds"].Value, out value)) TaskTimeOutSeconds = value;
+                }
+
+                if (appSection.Settings.AllKeys.Contains("AutoHideToolTip"))
+                {
+                    var value = AutoHideToolTip ?? true;
+                    if (bool.TryParse(appSection.Settings["AutoHideToolTip"].Value, out value)) AutoHideToolTip = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("ToolTipDuration"))
+                {
+                    var value = ToolTipDuration;
+                    if (int.TryParse(appSection.Settings["ToolTipDuration"].Value, out value)) ToolTipDuration = value;
+                }
+
+                if (appSection.Settings.AllKeys.Contains("DarkTheme"))
+                {
+                    var value = DarkBackground.IsChecked ?? true;
+                    if (bool.TryParse(appSection.Settings["DarkTheme"].Value, out value)) DarkTheme = value;
+                }
+
+                if (appSection.Settings.AllKeys.Contains("CustomMonoFontFamily"))
+                {
+                    var value = appSection.Settings["CustomMonoFontFamily"].Value;
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        try
+                        {
+                            ChangeResourceFonts(CustomMonoFontFamily, value);
+                        }
+                        catch { }
+                    }
+                }
+                if (appSection.Settings.AllKeys.Contains("CustomIconFontFamily"))
+                {
+                    var value = appSection.Settings["CustomIconFontFamily"].Value;
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        try
+                        {
+                            ChangeResourceFonts(CustomIconFontFamily, value);
+                        }
+                        catch { }
+                    }
+                }
+
+                if (appSection.Settings.AllKeys.Contains("WindowPosition"))
+                {
+                    var value = appSection.Settings["WindowPosition"].Value;
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        try
+                        {
+                            LastPositionSize = Rect.Parse(value);
+                            RestoreWindowLocationSize();
+                        }
+                        catch { }
+                    }
+                }
+
+                if (appSection.Settings.AllKeys.Contains("WindowState"))
+                {
+                    var value = appSection.Settings["WindowState"].Value;
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        try
+                        {
+                            Enum.TryParse(value, out LastWinState);
+                            //RestoreWindowState();
+                        }
+                        catch { }
+                    }
+                }
+
+                if (appSection.Settings.AllKeys.Contains("CachePath"))
+                {
+                    var value = appSection.Settings["CachePath"].Value;
+                    if (!string.IsNullOrEmpty(value)) CachePath = value;
+                }
+
+                if (appSection.Settings.AllKeys.Contains("UILanguage"))
+                {
+                    var value = appSection.Settings["UILanguage"].Value;
+                    DefaultCultureInfo = CultureInfo.GetCultureInfoByIetfLanguageTag(value);
+                }
+
+                if (appSection.Settings.AllKeys.Contains("HighlightColor"))
+                {
+                    var value = appSection.Settings["HighlightColor"].Value;
+                    if (!string.IsNullOrEmpty(value)) HighlightColor = new MagickColor(value);
+                }
+                if (appSection.Settings.AllKeys.Contains("HighlightColorRecents"))
+                {
+                    var value = appSection.Settings["HighlightColorRecents"].Value;
+                    if (!string.IsNullOrEmpty(value)) SetRecentColors(HighlightColorPick, value.Split(',').Select(v => v.Trim()));
+                }
+                if (appSection.Settings.AllKeys.Contains("LowlightColor"))
+                {
+                    var value = appSection.Settings["LowlightColor"].Value;
+                    if (!string.IsNullOrEmpty(value)) LowlightColor = new MagickColor(value);
+                }
+                if (appSection.Settings.AllKeys.Contains("LowlightColorRecents"))
+                {
+                    var value = appSection.Settings["LowlightColorRecents"].Value;
+                    if (!string.IsNullOrEmpty(value)) SetRecentColors(LowlightColorPick, value.Split(',').Select(v => v.Trim()));
+                }
+                if (appSection.Settings.AllKeys.Contains("MasklightColor"))
+                {
+                    var value = appSection.Settings["MasklightColor"].Value;
+                    if (!string.IsNullOrEmpty(value)) MasklightColor = new MagickColor(value);
+                }
+                if (appSection.Settings.AllKeys.Contains("MasklightColorRecents"))
+                {
+                    var value = appSection.Settings["MasklightColorRecents"].Value;
+                    if (!string.IsNullOrEmpty(value)) SetRecentColors(MasklightColorPick, value.Split(',').Select(v => v.Trim()));
+                }
+
+                if (appSection.Settings.AllKeys.Contains("ImageCompareFuzzy"))
+                {
+                    var value = ImageCompareFuzzy.Value;
+                    if (double.TryParse(appSection.Settings["ImageCompareFuzzy"].Value, out value)) ImageCompareFuzzy.Value = Math.Max(0, Math.Min(100, value));
+                }
+                if (appSection.Settings.AllKeys.Contains("ErrorMetricMode"))
+                {
+                    var value = ErrorMetricMode;
+                    if (Enum.TryParse(appSection.Settings["ErrorMetricMode"].Value, out value)) ErrorMetricMode = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("CompositeMode"))
+                {
+                    var value = CompositeMode;
+                    if (Enum.TryParse(appSection.Settings["CompositeMode"].Value, out value)) CompositeMode = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("GrayscaleMode"))
+                {
+                    var value = GrayscaleMode;
+                    if (Enum.TryParse(appSection.Settings["GrayscaleMode"].Value, out value)) GrayscaleMode = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("ZoomFitMode"))
+                {
+                    var value = CurrentZoomFitMode;
+                    if (Enum.TryParse(appSection.Settings["ZoomFitMode"].Value, out value)) CurrentZoomFitMode = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("ImageLayout"))
+                {
+                    var value = CurrentImageLayout;
+                    if (Enum.TryParse(appSection.Settings["ImageLayout"].Value, out value)) CurrentImageLayout = value;
+                }
+
+                if (appSection.Settings.AllKeys.Contains("ImageMagnifierZoomFactor"))
+                {
+                    var value = ImageMagnifierZoomFactor;
+                    if (double.TryParse(appSection.Settings["ImageMagnifierZoomFactor"].Value, out value)) ImageMagnifierZoomFactor = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("ImageMagnifierRadius"))
+                {
+                    var value = ImageMagnifierRadius;
+                    if (double.TryParse(appSection.Settings["ImageMagnifierRadius"].Value, out value)) ImageMagnifierRadius = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("ImageMagnifierBorderBrush"))
+                {
+                    try
+                    {
+                        ImageMagnifierBorderBrush = (Color)ColorConverter.ConvertFromString(appSection.Settings["ImageMagnifierBorderBrush"].Value);
+                    }
+                    catch { }
+                }
+                if (appSection.Settings.AllKeys.Contains("ImageMagnifierBorderThickness"))
+                {
+                    var value = ImageMagnifierBorderThickness;
+                    if (double.TryParse(appSection.Settings["ImageMagnifierBorderThickness"].Value, out value)) ImageMagnifierBorderThickness = value;
+                }
+
+                if (appSection.Settings.AllKeys.Contains("AutoMatchSize"))
+                {
+                    var value = AutoMatchSize.IsChecked ?? true;
+                    if (bool.TryParse(appSection.Settings["AutoMatchSize"].Value, out value)) AutoMatchSize.IsChecked = value;
+                }
+
+                if (appSection.Settings.AllKeys.Contains("UseSmallerImage"))
+                {
+                    var value = UseSmallerImage.IsChecked ?? true;
+                    if (bool.TryParse(appSection.Settings["UseSmallerImage"].Value, out value)) UseSmallerImage.IsChecked = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("UseColorImage"))
+                {
+                    var value = UseColorImage.IsChecked ?? true;
+                    if (bool.TryParse(appSection.Settings["UseColorImage"].Value, out value)) UseColorImage.IsChecked = value;
+                }
+
+                if (appSection.Settings.AllKeys.Contains("LastHaldFolder"))
+                {
+                    var value = appSection.Settings["LastHaldFolder"].Value;
+                    if (!string.IsNullOrEmpty(value)) LastHaldFolder = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("LastHaldFile"))
+                {
+                    var value = appSection.Settings["LastHaldFile"].Value;
+                    if (!string.IsNullOrEmpty(value)) LastHaldFile = value;
+                }
+
+                if (appSection.Settings.AllKeys.Contains("UseWeakBlur"))
+                {
+                    var value = UseWeakBlur.IsChecked ?? true;
+                    if (bool.TryParse(appSection.Settings["UseWeakBlur"].Value, out value)) UseWeakBlur.IsChecked = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("UseWeakSharp"))
+                {
+                    var value = UseWeakSharp.IsChecked ?? true;
+                    if (bool.TryParse(appSection.Settings["UseWeakSharp"].Value, out value)) UseWeakSharp.IsChecked = value;
+                }
+
+                if (appSection.Settings.AllKeys.Contains("MaxCompareSize"))
+                {
+                    var value = MaxCompareSize;
+                    if (uint.TryParse(appSection.Settings["MaxCompareSize"].Value, out value)) MaxCompareSize = value;
+                }
+
+                if (appSection.Settings.AllKeys.Contains("SimpleTrimCropBoundingBox"))
+                {
+                    var value = SimpleTrimCropBoundingBox;
+                    if (bool.TryParse(appSection.Settings["SimpleTrimCropBoundingBox"].Value, out value)) SimpleTrimCropBoundingBox = value;
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="force"></param>
+        private void SaveConfig(bool force = false)
+        {
+            try
+            {
+                Configuration appCfg =  ConfigurationManager.OpenExeConfiguration(AppExec);
+                AppSettingsSection appSection = appCfg.AppSettings;
+
+                if (appSection.Settings.AllKeys.Contains("AutoSaveOptions"))
+                    appSection.Settings["AutoSaveOptions"].Value = AutoSaveConfig.ToString();
+                else
+                    appSection.Settings.Add("AutoSaveOptions", AutoSaveConfig.ToString());
+
+                if (AutoSaveConfig)
+                {
+                    if (appSection.Settings.AllKeys.Contains("TaskTimeOutSeconds"))
+                        appSection.Settings["TaskTimeOutSeconds"].Value = TaskTimeOutSeconds.ToString();
+                    else
+                        appSection.Settings.Add("TaskTimeOutSeconds", TaskTimeOutSeconds.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("AutoHideToolTip"))
+                        appSection.Settings["AutoHideToolTip"].Value = AutoHideToolTip.ToString();
+                    else
+                        appSection.Settings.Add("AutoHideToolTip", AutoHideToolTip.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("ImageMagnifierZoomFactor"))
+                        appSection.Settings["ImageMagnifierZoomFactor"].Value = ImageMagnifierZoomFactor.ToString();
+                    else
+                        appSection.Settings.Add("ImageMagnifierZoomFactor", ImageMagnifierZoomFactor.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("ImageMagnifierRadius"))
+                        appSection.Settings["ImageMagnifierRadius"].Value = ImageMagnifierRadius.ToString();
+                    else
+                        appSection.Settings.Add("ImageMagnifierRadius", ImageMagnifierRadius.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("ImageMagnifierBorderBrush"))
+                        appSection.Settings["ImageMagnifierBorderBrush"].Value = ImageMagnifierBorderBrush.ToString();
+                    else
+                        appSection.Settings.Add("ImageMagnifierBorderBrush", ImageMagnifierBorderBrush.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("ImageMagnifierBorderThickness"))
+                        appSection.Settings["ImageMagnifierBorderThickness"].Value = ImageMagnifierBorderThickness.ToString();
+                    else
+                        appSection.Settings.Add("ImageMagnifierBorderThickness", ImageMagnifierBorderThickness.ToString());
+
+                    var rect = new Rect(
+                        LastPositionSize.Left, LastPositionSize.Top,
+                        Math.Min(MaxWidth, Math.Max(MinWidth, LastPositionSize.Width)),
+                        Math.Min(MaxHeight, Math.Max(MinHeight, LastPositionSize.Height))
+                    );
+                    if (appSection.Settings.AllKeys.Contains("WindowPosition"))
+                        appSection.Settings["WindowPosition"].Value = rect.ToString();
+                    else
+                        appSection.Settings.Add("WindowPosition", rect.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("WindowState"))
+                        appSection.Settings["WindowState"].Value = LastWinState.ToString();
+                    else
+                        appSection.Settings.Add("WindowState", LastWinState.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("CachePath"))
+                        appSection.Settings["CachePath"].Value = CachePath;
+                    else
+                        appSection.Settings.Add("CachePath", CachePath);
+
+                    if (appSection.Settings.AllKeys.Contains("CachePath"))
+                        appSection.Settings["CachePath"].Value = CachePath;
+                    else
+                        appSection.Settings.Add("CachePath", CachePath);
+
+                    if (appSection.Settings.AllKeys.Contains("DarkTheme"))
+                        appSection.Settings["DarkTheme"].Value = DarkTheme.ToString();
+                    else
+                        appSection.Settings.Add("DarkTheme", DarkTheme.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("UILanguage"))
+                        appSection.Settings["UILanguage"].Value = DefaultCultureInfo.IetfLanguageTag;
+                    else
+                        appSection.Settings.Add("UILanguage", DefaultCultureInfo.IetfLanguageTag);
+
+                    if (appSection.Settings.AllKeys.Contains("HighlightColor"))
+                        appSection.Settings["HighlightColor"].Value = HighlightColor == null ? string.Empty : HighlightColor.ToHexString();
+                    else
+                        appSection.Settings.Add("HighlightColor", HighlightColor == null ? string.Empty : HighlightColor.ToHexString());
+
+                    if (appSection.Settings.AllKeys.Contains("HighlightColorRecents"))
+                        appSection.Settings["HighlightColorRecents"].Value = string.Join(", ", GetRecentHexColors(HighlightColorPick));
+                    else
+                        appSection.Settings.Add("HighlightColorRecents", string.Join(", ", GetRecentHexColors(HighlightColorPick)));
+
+                    if (appSection.Settings.AllKeys.Contains("LowlightColor"))
+                        appSection.Settings["LowlightColor"].Value = LowlightColor == null ? string.Empty : LowlightColor.ToHexString();
+                    else
+                        appSection.Settings.Add("LowlightColor", LowlightColor == null ? string.Empty : LowlightColor.ToHexString());
+
+                    if (appSection.Settings.AllKeys.Contains("LowlightColorRecents"))
+                        appSection.Settings["LowlightColorRecents"].Value = string.Join(", ", GetRecentHexColors(LowlightColorPick));
+                    else
+                        appSection.Settings.Add("LowlightColorRecents", string.Join(", ", GetRecentHexColors(LowlightColorPick)));
+
+                    if (appSection.Settings.AllKeys.Contains("MasklightColor"))
+                        appSection.Settings["MasklightColor"].Value = MasklightColor == null ? string.Empty : MasklightColor.ToHexString();
+                    else
+                        appSection.Settings.Add("MasklightColor", MasklightColor == null ? string.Empty : MasklightColor.ToHexString());
+
+                    if (appSection.Settings.AllKeys.Contains("MasklightColorRecents"))
+                        appSection.Settings["MasklightColorRecents"].Value = string.Join(", ", GetRecentHexColors(MasklightColorPick));
+                    else
+                        appSection.Settings.Add("MasklightColorRecents", string.Join(", ", GetRecentHexColors(MasklightColorPick)));
+
+                    if (appSection.Settings.AllKeys.Contains("ImageCompareFuzzy"))
+                        appSection.Settings["ImageCompareFuzzy"].Value = ImageCompareFuzzy.Value.ToString();
+                    else
+                        appSection.Settings.Add("ImageCompareFuzzy", ImageCompareFuzzy.Value.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("ErrorMetricMode"))
+                        appSection.Settings["ErrorMetricMode"].Value = ErrorMetricMode.ToString();
+                    else
+                        appSection.Settings.Add("ErrorMetricMode", ErrorMetricMode.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("CompositeMode"))
+                        appSection.Settings["CompositeMode"].Value = CompositeMode.ToString();
+                    else
+                        appSection.Settings.Add("CompositeMode", CompositeMode.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("GrayscaleMode"))
+                        appSection.Settings["GrayscaleMode"].Value = GrayscaleMode.ToString();
+                    else
+                        appSection.Settings.Add("GrayscaleMode", GrayscaleMode.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("ZoomFitMode"))
+                        appSection.Settings["ZoomFitMode"].Value = CurrentZoomFitMode.ToString();
+                    else
+                        appSection.Settings.Add("ZoomFitMode", CurrentZoomFitMode.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("ImageLayout"))
+                        appSection.Settings["ImageLayout"].Value = CurrentImageLayout.ToString();
+                    else
+                        appSection.Settings.Add("ImageLayout", CurrentImageLayout.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("ImageLayout"))
+                    {
+                        var value = Orientation.Horizontal;
+                        if (Enum.TryParse(appSection.Settings["ImageLayout"].Value, out value)) ImageLayout.IsChecked = value == Orientation.Vertical;
+                    }
+
+                    if (appSection.Settings.AllKeys.Contains("AutoMatchSize"))
+                        appSection.Settings["AutoMatchSize"].Value = AutoMatchSize.IsChecked.ToString();
+                    else
+                        appSection.Settings.Add("AutoMatchSize", AutoMatchSize.IsChecked.Value.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("UseSmallerImage"))
+                        appSection.Settings["UseSmallerImage"].Value = UseSmallerImage.IsChecked.ToString();
+                    else
+                        appSection.Settings.Add("UseSmallerImage", UseSmallerImage.IsChecked.Value.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("UseColorImage"))
+                        appSection.Settings["UseColorImage"].Value = UseColorImage.IsChecked.Value.ToString();
+                    else
+                        appSection.Settings.Add("UseColorImage", UseColorImage.IsChecked.Value.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("LastHaldFolder"))
+                        appSection.Settings["LastHaldFolder"].Value = LastHaldFolder;
+                    else
+                        appSection.Settings.Add("LastHaldFolder", LastHaldFolder);
+                    if (appSection.Settings.AllKeys.Contains("LastHaldFile"))
+                        appSection.Settings["LastHaldFile"].Value = LastHaldFile;
+                    else
+                        appSection.Settings.Add("LastHaldFile", LastHaldFile);
+
+                    if (appSection.Settings.AllKeys.Contains("UseWeakBlur"))
+                        appSection.Settings["UseWeakBlur"].Value = UseWeakBlur.IsChecked.Value.ToString();
+                    else
+                        appSection.Settings.Add("UseWeakBlur", UseWeakBlur.IsChecked.Value.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("UseWeakSharp"))
+                        appSection.Settings["UseWeakSharp"].Value = UseWeakSharp.IsChecked.Value.ToString();
+                    else
+                        appSection.Settings.Add("UseWeakSharp", UseWeakSharp.IsChecked.Value.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("MaxCompareSize"))
+                        appSection.Settings["MaxCompareSize"].Value = MaxCompareSize.ToString();
+                    else
+                        appSection.Settings.Add("MaxCompareSize", MaxCompareSize.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("SimpleTrimCropBoundingBox"))
+                        appSection.Settings["SimpleTrimCropBoundingBox"].Value = SimpleTrimCropBoundingBox.ToString();
+                    else
+                        appSection.Settings.Add("SimpleTrimCropBoundingBox", SimpleTrimCropBoundingBox.ToString());
+                }
+                if (AutoSaveConfig || force) appCfg.Save();
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+        #endregion
+
         #region IDisposable Support
         private bool disposedValue = false; // 要检测冗余调用
 
@@ -3379,6 +3386,13 @@ namespace ImageCompare
         {
             InitializeComponent();
             LoadConfig();
+            var opts = this.GetCmdLineOpts();
+            if (IntPtr.Size == 4 && opts.RunAs64Bits && !string.IsNullOrEmpty(Command64Bits) && File.Exists(Command64Bits))
+            {
+                Application.Current.Shutdown();
+                Process.Start(Command64Bits, string.Join(" ", Environment.GetCommandLineArgs().Where(a => !a.Equals("/64")).Skip(1)));
+                Environment.Exit(0);
+            }
         }
 
         #region Window Events
@@ -4416,6 +4430,7 @@ namespace ImageCompare
         }
 
         private DateTime _last_quality_change = default;
+
         private void QualityChangerSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (IsQualityChanger && QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
