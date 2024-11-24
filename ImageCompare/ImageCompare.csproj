@@ -35,6 +35,8 @@
     <DefineConstants>TRACE;Q16HDRI</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <PreferNativeArm64>true</PreferNativeArm64>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Resources\Compare.ico</ApplicationIcon>
