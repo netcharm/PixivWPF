@@ -314,7 +314,7 @@ namespace ImageCompare
 
         public static bool IsRunAs32Bits(this Application app)
         {
-            return (IntPtr.Size == 4);
+            return (System.Environment.Is64BitProcess || IntPtr.Size == 4);
         }
 
         public static bool IsRunAs32Bits(this Window app)

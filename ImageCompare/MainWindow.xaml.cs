@@ -3387,7 +3387,7 @@ namespace ImageCompare
             InitializeComponent();
             LoadConfig();
             var opts = this.GetCmdLineOpts();
-            if (IntPtr.Size == 4 && opts.RunAs64Bits && !string.IsNullOrEmpty(Command64Bits) && File.Exists(Command64Bits))
+            if (!Environment.Is64BitProcess && opts.RunAs64Bits && !string.IsNullOrEmpty(Command64Bits) && File.Exists(Command64Bits))
             {
                 Application.Current.Shutdown();
                 Process.Start(Command64Bits, string.Join(" ", Environment.GetCommandLineArgs().Where(a => !a.Equals("/64")).Skip(1)));
