@@ -273,6 +273,7 @@ namespace ImageCompare
         {
             public bool Singleton { get; set; } = false;
             public bool DualOpen { get; set; } = false;
+            public bool RunAs32Bits { get; set; } = false;
             public bool RunAs64Bits { get; set; } = false;
             public List<string> Args = new List<string>();
         }
@@ -280,6 +281,7 @@ namespace ImageCompare
         private static bool singleton = false;
         private static bool dualopen = false;
         private static bool runas64 = false;
+        private static bool runas32 = false;
         
         private static MyOptions myoptions = null;
 
@@ -287,6 +289,7 @@ namespace ImageCompare
         {
             { "s|single", "Single Instance Mode", v => { singleton = v != null; } },
             { "d|dual", "Dual Open One Image Mode", v => { dualopen = v != null; } },
+            { "32", "Run As 64Bits Application", v => { runas32 = v != null; } },
             { "64", "Run As 64Bits Application", v => { runas64 = v != null; } },
         };
 
@@ -297,7 +300,7 @@ namespace ImageCompare
                 var args = Environment.GetCommandLineArgs().Skip(1).ToList();
                 var opts = Options.Parse(args);
                 if (dualopen && opts.Count > 0) opts.Insert(0, opts.FirstOrDefault());
-                myoptions = new MyOptions() { DualOpen = dualopen, Singleton = singleton, RunAs64Bits = runas64, Args = opts };
+                myoptions = new MyOptions() { DualOpen = dualopen, Singleton = singleton, RunAs32Bits = runas32, RunAs64Bits = runas64, Args = opts };
             }
             return (myoptions ?? new MyOptions());
         }

@@ -42,8 +42,10 @@ namespace ImageCompare
         private static readonly string AppExec = Application.ResourceAssembly.CodeBase.ToString().Replace("file:///", "").Replace("/", "\\");
         private static readonly string AppPath = Path.GetDirectoryName(AppExec);
         private static readonly string AppName = Path.GetFileNameWithoutExtension(AppPath);
+        private static readonly string AppFullName = Application.ResourceAssembly.FullName.Split(',').First().Trim();
         private static string CachePath =  "cache";
 
+        private string Command32Bits = string.Empty;
         private string Command64Bits = string.Empty;
 
         private bool Ready { get { return (Dispatcher.Invoke(() => IsLoaded)); } }
@@ -106,132 +108,6 @@ namespace ImageCompare
         //private Screen screens = Screen..AllScreens;
 
         private CultureInfo DefaultCultureInfo = CultureInfo.CurrentCulture;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private bool IsBusy
-        {
-            get => BusyNow.Dispatcher.Invoke(() => { return (BusyNow.IsBusy); });
-            set => BusyNow.Dispatcher.Invoke(() =>
-            {
-                BusyNow.IsBusy = value;
-                ProcessStatus.IsIndeterminate = value;
-                ProcessStatus.Value = value ? 0 : 100;
-                DoEvents();
-            });
-        }
-
-        private string LoadingWaitingStr = string.Empty;
-        private string SavingWaitingStr = string.Empty;
-        private string ProcessingWaitingStr = string.Empty;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private bool IsLoadingSource
-        {
-            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorSource.IsBusy); });
-            set => BusyNow.Dispatcher.Invoke(() => { IndicatorSource.BusyContent = LoadingWaitingStr; IndicatorSource.IsBusy = value; DoEvents(); });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private bool IsLoadingTarget
-        {
-            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorTarget.IsBusy); });
-            set => BusyNow.Dispatcher.Invoke(() => { IndicatorTarget.BusyContent = LoadingWaitingStr; IndicatorTarget.IsBusy = value; DoEvents(); });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private bool IsLoadingResult
-        {
-            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorResult.IsBusy); });
-            set => BusyNow.Dispatcher.Invoke(() => { IndicatorResult.BusyContent = LoadingWaitingStr; IndicatorResult.IsBusy = value; DoEvents(); });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private bool IsSavingSource
-        {
-            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorSource.IsBusy); });
-            set => BusyNow.Dispatcher.Invoke(() => { IndicatorSource.BusyContent = SavingWaitingStr; IndicatorSource.IsBusy = value; DoEvents(); });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private bool IsSavingTarget
-        {
-            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorTarget.IsBusy); });
-            set => BusyNow.Dispatcher.Invoke(() => { IndicatorTarget.BusyContent = SavingWaitingStr; IndicatorTarget.IsBusy = value; DoEvents(); });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private bool IsSavingResult
-        {
-            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorResult.IsBusy); });
-            set => BusyNow.Dispatcher.Invoke(() => { IndicatorResult.BusyContent = SavingWaitingStr; IndicatorResult.IsBusy = value; DoEvents(); });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private bool IsProcessingSource
-        {
-            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorSource.IsBusy); });
-            set => BusyNow.Dispatcher.Invoke(() => { IndicatorSource.BusyContent = ProcessingWaitingStr; IndicatorSource.IsBusy = value; DoEvents(); });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private bool IsProcessingTarget
-        {
-            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorTarget.IsBusy); });
-            set => BusyNow.Dispatcher.Invoke(() => { IndicatorTarget.BusyContent = ProcessingWaitingStr; IndicatorTarget.IsBusy = value; DoEvents(); });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private bool IsProcessingResult
-        {
-            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorResult.IsBusy); });
-            set => BusyNow.Dispatcher.Invoke(() => { IndicatorResult.BusyContent = ProcessingWaitingStr; IndicatorResult.IsBusy = value; DoEvents(); });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private bool IsExchanged
-        {
-            get => ImageExchange.Dispatcher.Invoke(() => { return (ImageExchange.IsChecked ?? false); });
-            set => ImageExchange.Dispatcher.Invoke(() => { ImageExchange.IsChecked = value; });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private bool IsMagnifier
-        {
-            get => ImageMagnifier.Dispatcher.Invoke(() => { return (ImageMagnifier.IsEnabled); });
-            set => ImageMagnifier.Dispatcher.Invoke(() => { ImageMagnifier.IsEnabled = value; });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private bool IsQualityChanger
-        {
-            get => QualityChanger.Dispatcher.Invoke(() => { return (QualityChanger.IsVisible); });
-        }
         #endregion
 
         #region Magick.Net Settings
@@ -1121,7 +997,7 @@ namespace ImageCompare
             if (Ready && element is Image && image is ImageInformation)
             {
                 await element.Dispatcher.InvokeAsync(() => element.Source = image.Source);
-                var tooltip_s = image.ValidCurrent ? WaitingString : null;
+                var tooltip_s = image.ValidCurrent ? await image.GetImageInfo() : null;
                 SetToolTip(element, tooltip_s);
             }
         }
@@ -1737,6 +1613,134 @@ namespace ImageCompare
         protected internal async Task<bool> LoadImageFromFiles(IEnumerable<string> files, bool? source = null)
         {
             return (await LoadImageFromFiles(files.ToArray(), source));
+        }
+        #endregion
+
+        #region UI Indicator
+        /// <summary>
+        /// 
+        /// </summary>
+        private bool IsBusy
+        {
+            get => BusyNow.Dispatcher.Invoke(() => { return (BusyNow.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() =>
+            {
+                BusyNow.IsBusy = value;
+                ProcessStatus.IsIndeterminate = value;
+                ProcessStatus.Value = value ? 0 : 100;
+                DoEvents();
+            });
+        }
+
+        private string LoadingWaitingStr = string.Empty;
+        private string SavingWaitingStr = string.Empty;
+        private string ProcessingWaitingStr = string.Empty;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private bool IsLoadingSource
+        {
+            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorSource.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() => { IndicatorSource.BusyContent = LoadingWaitingStr; IndicatorSource.IsBusy = value; DoEvents(); });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private bool IsLoadingTarget
+        {
+            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorTarget.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() => { IndicatorTarget.BusyContent = LoadingWaitingStr; IndicatorTarget.IsBusy = value; DoEvents(); });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private bool IsLoadingResult
+        {
+            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorResult.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() => { IndicatorResult.BusyContent = LoadingWaitingStr; IndicatorResult.IsBusy = value; DoEvents(); });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private bool IsSavingSource
+        {
+            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorSource.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() => { IndicatorSource.BusyContent = SavingWaitingStr; IndicatorSource.IsBusy = value; DoEvents(); });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private bool IsSavingTarget
+        {
+            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorTarget.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() => { IndicatorTarget.BusyContent = SavingWaitingStr; IndicatorTarget.IsBusy = value; DoEvents(); });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private bool IsSavingResult
+        {
+            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorResult.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() => { IndicatorResult.BusyContent = SavingWaitingStr; IndicatorResult.IsBusy = value; DoEvents(); });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private bool IsProcessingSource
+        {
+            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorSource.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() => { IndicatorSource.BusyContent = ProcessingWaitingStr; IndicatorSource.IsBusy = value; DoEvents(); });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private bool IsProcessingTarget
+        {
+            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorTarget.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() => { IndicatorTarget.BusyContent = ProcessingWaitingStr; IndicatorTarget.IsBusy = value; DoEvents(); });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private bool IsProcessingResult
+        {
+            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorResult.IsBusy); });
+            set => BusyNow.Dispatcher.Invoke(() => { IndicatorResult.BusyContent = ProcessingWaitingStr; IndicatorResult.IsBusy = value; DoEvents(); });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private bool IsExchanged
+        {
+            get => ImageExchange.Dispatcher.Invoke(() => { return (ImageExchange.IsChecked ?? false); });
+            set => ImageExchange.Dispatcher.Invoke(() => { ImageExchange.IsChecked = value; });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private bool IsMagnifier
+        {
+            get => ImageMagnifier.Dispatcher.Invoke(() => { return (ImageMagnifier.IsEnabled); });
+            set => ImageMagnifier.Dispatcher.Invoke(() => { ImageMagnifier.IsEnabled = value; });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private bool IsQualityChanger
+        {
+            get => QualityChanger.Dispatcher.Invoke(() => { return (QualityChanger.IsVisible); });
         }
         #endregion
 
@@ -2909,6 +2913,11 @@ namespace ImageCompare
                     if (bool.TryParse(appSection.Settings["AutoSaveOptions"].Value, out value)) AutoSaveConfig = value;
                 }
 
+                if (appSection.Settings.AllKeys.Contains("Command32Bits"))
+                {
+                    var value = appSection.Settings["Command32Bits"].Value;
+                    if (!string.IsNullOrEmpty(value)) Command32Bits = value;
+                }
                 if (appSection.Settings.AllKeys.Contains("Command64Bits"))
                 {
                     var value = appSection.Settings["Command64Bits"].Value;
@@ -3391,6 +3400,12 @@ namespace ImageCompare
             {
                 Application.Current.Shutdown();
                 Process.Start(Command64Bits, string.Join(" ", Environment.GetCommandLineArgs().Where(a => !a.Equals("/64")).Skip(1)));
+                Environment.Exit(0);
+            }
+            else if (Environment.Is64BitProcess && opts.RunAs32Bits && !string.IsNullOrEmpty(Command32Bits) && File.Exists(Command32Bits))
+            {
+                Application.Current.Shutdown();
+                Process.Start(Command32Bits, string.Join(" ", Environment.GetCommandLineArgs().Where(a => !a.Equals("/32")).Skip(1)));
                 Environment.Exit(0);
             }
         }
