@@ -110,100 +110,6 @@ namespace ImageCompare
         private CultureInfo DefaultCultureInfo = CultureInfo.CurrentCulture;
         #endregion
 
-        #region Magick.Net Settings
-        private uint MaxCompareSize = 1024;
-        private MagickGeometry CompareResizeGeometry = null;
-
-        private double LastZoomRatio = 1;
-        private bool LastOpIsComposite = false;
-        //private ImageType LastImageType = ImageType.Result;
-        //private double ImageDistance = 0;
-
-        //private double LastCompositeBlendRatio = 50;
-
-        private Channels CompareImageChannels = Channels.All;
-        private bool CompareImageAutoMatchSize { get { return (AutoMatchSize.Dispatcher.Invoke(() => AutoMatchSize.IsChecked ?? false)); } }
-        private bool CompareImageForceScale { get { return (UseSmallerImage.Dispatcher.Invoke(() => UseSmallerImage.IsChecked ?? false)); } }
-        private bool CompareImageForceColor { get { return (UseColorImage.Dispatcher.Invoke(() => UseColorImage.IsChecked ?? false)); } }
-        private ErrorMetric ErrorMetricMode = ErrorMetric.Fuzz;
-        private CompositeOperator CompositeMode = CompositeOperator.Difference;
-        private PixelIntensityMethod GrayscaleMode = PixelIntensityMethod.Undefined;
-
-        private ImageScaleMode ScaleMode = ImageScaleMode.Independence;
-
-#if Q16HDRI
-        private IMagickColor<float> HighlightColor = MagickColors.Red;
-        private IMagickColor<float> LowlightColor = MagickColors.White;
-        private IMagickColor<float> MasklightColor = MagickColors.Transparent;
-#else
-        private IMagickColor<byte> HighlightColor = MagickColors.Red;
-        private IMagickColor<byte> LowlightColor = MagickColors.White;
-        private IMagickColor<byte> MasklightColor = MagickColors.Transparent;
-#endif
-
-        private string LastHaldFolder { get; set; } = string.Empty;
-        private string LastHaldFile { get; set; } = string.Empty;
-
-        private bool WeakBlur { get { return (UseWeakBlur.Dispatcher.Invoke(() => UseWeakBlur.IsChecked ?? false)); } }
-        private bool WeakSharp { get { return (UseWeakSharp.Dispatcher.Invoke(() => UseWeakSharp.IsChecked ?? false)); } }
-        private bool WeakEffects { get { return (UseWeakEffects.Dispatcher.Invoke(() => UseWeakEffects.IsChecked ?? false)); } }
-
-        private const ulong GB = 1024 * 1024 * 1024;
-        private const ulong MB = 1024 * 1024;
-        private const ulong KB = 1024;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void InitMagickNet()
-        {
-            #region Magick.Net Default Settings
-            try
-            {
-                var magick_cache = Path.IsPathRooted(CachePath) ? CachePath : Path.Combine(AppPath, CachePath);
-                //if (!Directory.Exists(magick_cache)) Directory.CreateDirectory(magick_cache);
-                //MagickAnyCPU.CacheDirectory = Directory.Exists(magick_cache) ? magick_cache : AppPath;
-                //MagickAnyCPU.HasSharedCacheDirectory = true;
-                OpenCL.IsEnabled = true;
-                if (Directory.Exists(magick_cache)) OpenCL.SetCacheDirectory(magick_cache);
-#if DEBUG
-                Debug.WriteLine(string.Join(", ", OpenCL.Devices.Select(d => d.Name)));
-#endif
-                ResourceLimits.MaxMemoryRequest = 4 * GB;
-                ResourceLimits.Memory = 4 * GB;
-                ResourceLimits.LimitMemory(new Percentage(10));
-                ResourceLimits.Thread = 4;
-                //ResourceLimits.Area = 4096 * 4096;
-                //ResourceLimits.Throttle = 
-
-
-                //<policymap>
-                //  <policy domain=""delegate"" rights=""none"" pattern=""*"" />
-                //  <policy domain=""coder"" rights=""none"" pattern=""*"" />
-                //  <policy domain=""coder"" rights=""read|write"" pattern=""{GIF,JPEG,PNG,WEBP}"" />
-                //</policymap>
-
-                //                var magick_config = ConfigurationFiles.Default;
-                //                magick_config.Policy.Data = @"
-                //<policymap>
-                //  <policy domain=""delegate"" rights=""none"" pattern=""*"" />
-                //  <policy domain=""coder"" rights=""none"" pattern=""*"" />
-                //</policymap>";
-                //                MagickNET.Initialize();
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-
-            Extensions.AllSupportedFormats = Extensions.GetSupportedImageFormats();
-            Extensions.AllSupportedExts = Extensions.AllSupportedFormats.Keys.ToList().Skip(4).Select(ext => $".{ext.ToLower()}").Where(ext => !ext.Equals(".txt")).ToList();
-            var exts = Extensions.AllSupportedExts.Select(ext => $"*{ext}");
-            Extensions.AllSupportedFiles = string.Join(";", exts);
-            Extensions.AllSupportedFilters = string.Join("|", Extensions.AllSupportedFormats.Select(f => $"{f.Value}|*.{f.Key}"));
-
-            CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
-            #endregion
-        }
-        #endregion
-
         #region DoEvent Helper
         private static object ExitFrame(object state)
         {
@@ -348,6 +254,100 @@ namespace ImageCompare
                 else if (sender_source == ImageType.Result) IsProcessingResult = true;
                 RenderWorker.RunWorkerAsync(action);
             }
+        }
+        #endregion
+
+        #region Magick.Net Settings
+        private uint MaxCompareSize = 1024;
+        private MagickGeometry CompareResizeGeometry = null;
+
+        private double LastZoomRatio = 1;
+        private bool LastOpIsComposite = false;
+        //private ImageType LastImageType = ImageType.Result;
+        //private double ImageDistance = 0;
+
+        //private double LastCompositeBlendRatio = 50;
+
+        private Channels CompareImageChannels = Channels.All;
+        private bool CompareImageAutoMatchSize { get { return (AutoMatchSize.Dispatcher.Invoke(() => AutoMatchSize.IsChecked ?? false)); } }
+        private bool CompareImageForceScale { get { return (UseSmallerImage.Dispatcher.Invoke(() => UseSmallerImage.IsChecked ?? false)); } }
+        private bool CompareImageForceColor { get { return (UseColorImage.Dispatcher.Invoke(() => UseColorImage.IsChecked ?? false)); } }
+        private ErrorMetric ErrorMetricMode = ErrorMetric.Fuzz;
+        private CompositeOperator CompositeMode = CompositeOperator.Difference;
+        private PixelIntensityMethod GrayscaleMode = PixelIntensityMethod.Undefined;
+
+        private ImageScaleMode ScaleMode = ImageScaleMode.Independence;
+
+#if Q16HDRI
+        private IMagickColor<float> HighlightColor = MagickColors.Red;
+        private IMagickColor<float> LowlightColor = MagickColors.White;
+        private IMagickColor<float> MasklightColor = MagickColors.Transparent;
+#else
+        private IMagickColor<byte> HighlightColor = MagickColors.Red;
+        private IMagickColor<byte> LowlightColor = MagickColors.White;
+        private IMagickColor<byte> MasklightColor = MagickColors.Transparent;
+#endif
+
+        private string LastHaldFolder { get; set; } = string.Empty;
+        private string LastHaldFile { get; set; } = string.Empty;
+
+        private bool WeakBlur { get { return (UseWeakBlur.Dispatcher.Invoke(() => UseWeakBlur.IsChecked ?? false)); } }
+        private bool WeakSharp { get { return (UseWeakSharp.Dispatcher.Invoke(() => UseWeakSharp.IsChecked ?? false)); } }
+        private bool WeakEffects { get { return (UseWeakEffects.Dispatcher.Invoke(() => UseWeakEffects.IsChecked ?? false)); } }
+
+        private const ulong GB = 1024 * 1024 * 1024;
+        private const ulong MB = 1024 * 1024;
+        private const ulong KB = 1024;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void InitMagickNet()
+        {
+            #region Magick.Net Default Settings
+            try
+            {
+                var magick_cache = Path.IsPathRooted(CachePath) ? CachePath : Path.Combine(AppPath, CachePath);
+                //if (!Directory.Exists(magick_cache)) Directory.CreateDirectory(magick_cache);
+                //MagickAnyCPU.CacheDirectory = Directory.Exists(magick_cache) ? magick_cache : AppPath;
+                //MagickAnyCPU.HasSharedCacheDirectory = true;
+                OpenCL.IsEnabled = true;
+                if (Directory.Exists(magick_cache)) OpenCL.SetCacheDirectory(magick_cache);
+#if DEBUG
+                Debug.WriteLine(string.Join(", ", OpenCL.Devices.Select(d => d.Name)));
+#endif
+                ResourceLimits.MaxMemoryRequest = 4 * GB;
+                ResourceLimits.Memory = 4 * GB;
+                ResourceLimits.LimitMemory(new Percentage(10));
+                ResourceLimits.Thread = 4;
+                //ResourceLimits.Area = 4096 * 4096;
+                //ResourceLimits.Throttle = 
+
+
+                //<policymap>
+                //  <policy domain=""delegate"" rights=""none"" pattern=""*"" />
+                //  <policy domain=""coder"" rights=""none"" pattern=""*"" />
+                //  <policy domain=""coder"" rights=""read|write"" pattern=""{GIF,JPEG,PNG,WEBP}"" />
+                //</policymap>
+
+                //                var magick_config = ConfigurationFiles.Default;
+                //                magick_config.Policy.Data = @"
+                //<policymap>
+                //  <policy domain=""delegate"" rights=""none"" pattern=""*"" />
+                //  <policy domain=""coder"" rights=""none"" pattern=""*"" />
+                //</policymap>";
+                //                MagickNET.Initialize();
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+
+            Extensions.AllSupportedFormats = Extensions.GetSupportedImageFormats();
+            Extensions.AllSupportedExts = Extensions.AllSupportedFormats.Keys.ToList().Skip(4).Select(ext => $".{ext.ToLower()}").Where(ext => !ext.Equals(".txt")).ToList();
+            var exts = Extensions.AllSupportedExts.Select(ext => $"*{ext}");
+            Extensions.AllSupportedFiles = string.Join(";", exts);
+            Extensions.AllSupportedFilters = string.Join("|", Extensions.AllSupportedFormats.Select(f => $"{f.Value}|*.{f.Key}"));
+
+            CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
+            #endregion
         }
         #endregion
 
@@ -869,6 +869,16 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
         }
 
+        private Size GetImageSize(Image element)
+        {
+            Size result = default;
+            if (element is Image)
+            {
+                result = element.Dispatcher.Invoke(() => element.DesiredSize);
+            }
+            return (result);
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -1145,13 +1155,16 @@ namespace ImageCompare
                                 image.SourceParams.FillColor = MasklightColor;
                             }
 
-                            if (reload_type == ImageType.All || reload_type == ImageType.Source)
+                            var size_source = GetImageSize(ImageSource);
+                            var size_target = GetImageSize(ImageTarget);
+
+                            if (reload_type == ImageType.All || reload_type == ImageType.Source || size_source.Width != image_t.Current.Width || size_source.Height != image_t.Current.Height)
                             {
                                 SetImageSource(ImageSource, image_s);
                                 IsLoadingSource = false;
                             }
 
-                            if (reload_type == ImageType.All || reload_type == ImageType.Target)
+                            if (reload_type == ImageType.All || reload_type == ImageType.Target || size_target.Width != image_t.Current.Width || size_target.Height != image_t.Current.Height)
                             {
                                 SetImageSource(ImageTarget, image_t);
                                 IsLoadingTarget = false;

@@ -466,6 +466,8 @@ namespace ImageCompare
 
                 var action = false;
 
+                var load_type = source ? ImageType.Source : ImageType.Target;
+
                 var image_s = ImageSource.GetInformation();
                 var image_t = ImageTarget.GetInformation();
                 if (image_s.ValidCurrent && image_t.ValidCurrent)
@@ -485,7 +487,7 @@ namespace ImageCompare
                     action = true;
                 }
 
-                if (action && assign) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+                if (action && assign) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: load_type);
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
