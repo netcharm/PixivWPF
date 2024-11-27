@@ -869,12 +869,13 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
         }
 
-        private Size GetImageSize(Image element)
+        private Size? GetImageSize(Image element)
         {
-            Size result = default;
+            Size? result = null;
             if (element is Image)
             {
-                result = element.Dispatcher.Invoke(() => element.DesiredSize);
+                var size = element.Dispatcher.Invoke(() => element.DesiredSize);
+                if (size.Width > 0 && size.Height > 0) result = size;
             }
             return (result);
         }
@@ -1158,13 +1159,13 @@ namespace ImageCompare
                             var size_source = GetImageSize(ImageSource);
                             var size_target = GetImageSize(ImageTarget);
 
-                            if (reload_type == ImageType.All || reload_type == ImageType.Source || size_source.Width != image_t.Current.Width || size_source.Height != image_t.Current.Height)
+                            if (reload_type == ImageType.All || reload_type == ImageType.Source || size_source?.Width != image_t.Current.Width || size_source?.Height != image_t.Current.Height)
                             {
                                 SetImageSource(ImageSource, image_s);
                                 IsLoadingSource = false;
                             }
 
-                            if (reload_type == ImageType.All || reload_type == ImageType.Target || size_target.Width != image_t.Current.Width || size_target.Height != image_t.Current.Height)
+                            if (reload_type == ImageType.All || reload_type == ImageType.Target || size_target?.Width != image_t.Current.Width || size_target?.Height != image_t.Current.Height)
                             {
                                 SetImageSource(ImageTarget, image_t);
                                 IsLoadingTarget = false;
