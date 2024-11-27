@@ -2595,6 +2595,43 @@ namespace ImageCompare
         }
 
         private string QualityChangeerTitle = string.Empty;
+        private DispatcherTimer QualityChangerDelay = null;
+
+        private void QualityChangerDelay_Tick(object sender, EventArgs e)
+        {
+            if (IsQualityChanger && QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
+            {
+                var source = (ImageType)(QualityChanger.Tag);
+                var quality = (uint)(QualityChangerSlider.Value);
+
+                RenderRun(async () =>
+                {
+                    try
+                    {
+                        var image = source == ImageType.Source ? ImageSource.GetInformation().Original : ImageTarget.GetInformation().Original;
+
+                        if (source == ImageType.Source) IsProcessingSource = true;
+                        else if (source == ImageType.Target) IsProcessingTarget = true;
+
+                        var result = await ChangeQuality(image, quality);
+                        if (CompareImageForceScale) result.Resize(CompareResizeGeometry);
+                        if (source == ImageType.Source) ImageSource.GetInformation().Current = result;
+                        else if (source == ImageType.Target) ImageTarget.GetInformation().Current = result;
+                        UpdateImageViewer(LastOpIsComposite, assign: true, reload: false, reload_type: source);
+                        await Task.Delay(1);
+
+                        if (await UpdateImageViewerFinished(TaskTimeOutSeconds) && ImageResult.GetInformation().ValidCurrent)
+                        {
+                            var diff = ImageResult.GetInformation().Current?.GetArtifact("compare:difference");
+                            SetQualityChangerTitle(string.IsNullOrEmpty(diff) ? null : $"{quality}, {"ResultTipDifference".T()} {diff}");
+                        }
+                    }
+                    catch (Exception ex) { ex.ShowMessage(); }
+                });
+            }
+            QualityChangerDelay.Stop();
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -2603,6 +2640,11 @@ namespace ImageCompare
         {
             if (Ready && !IsQualityChanger)
             {
+                if (QualityChangerDelay == null)
+                {
+                    QualityChangerDelay = new DispatcherTimer(DispatcherPriority.Normal) { IsEnabled = false, Interval = TimeSpan.FromMilliseconds(250) };
+                    QualityChangerDelay.Tick += QualityChangerDelay_Tick;
+                }
                 QualityChanger.Dispatcher.InvokeAsync(async () =>
                 {
                     var info = source == ImageType.Source ? ImageSource.GetInformation() : (source == ImageType.Target ? ImageTarget.GetInformation() : new ImageInformation());
@@ -2632,6 +2674,12 @@ namespace ImageCompare
 
                         QualityChangerSlider.Focusable = true;
                         QualityChangerSlider.Focus();
+
+                        if (QualityChangerDelay is DispatcherTimer)
+                        {
+                            QualityChangerDelay.IsEnabled = true;
+                            QualityChangerDelay.Stop();
+                        }
                     }
                 });
             }
@@ -4459,7 +4507,6 @@ namespace ImageCompare
         }
 
         private DateTime _last_quality_change = default;
-
         private void QualityChangerSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (IsQualityChanger && QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
@@ -4473,33 +4520,14 @@ namespace ImageCompare
                     var quality_o = image.Quality == 0 ? 75 : image?.Quality;
                     var delta = (DateTime.Now - _last_quality_change).TotalMilliseconds;
                     _last_quality_change = DateTime.Now;
-                    if (e.NewValue != e.OldValue && quality_n <= quality_o && !IsBusy && delta > 200)
+                    if (delta < 250) QualityChangerDelay.Stop();
+                    if (e.NewValue != e.OldValue && quality_n <= quality_o && !IsBusy)
                     {
                         e.Handled = true;
                         SetQualityChangerTitle($"{quality_n}");
-                        RenderRun(async () =>
-                        {
-                            try
-                            {
-                                if (source == ImageType.Source) IsProcessingSource = true;
-                                else if (source == ImageType.Target) IsProcessingTarget = true;
-
-                                var result = quality_n < quality_o ? await ChangeQuality(image, quality_n) : new MagickImage(image);
-                                if (CompareImageForceScale) result.Resize(CompareResizeGeometry);
-                                if (source == ImageType.Source) ImageSource.GetInformation().Current = result;
-                                else if (source == ImageType.Target) ImageTarget.GetInformation().Current = result;
-                                UpdateImageViewer(LastOpIsComposite, assign: true, reload: false, reload_type: source);
-                                await Task.Delay(1);
-                             
-                                if (await UpdateImageViewerFinished(TaskTimeOutSeconds) && ImageResult.GetInformation().ValidCurrent)
-                                {
-                                    var diff = ImageResult.GetInformation().Current?.GetArtifact("compare:difference");
-                                    SetQualityChangerTitle(string.IsNullOrEmpty(diff) ? null : $"{quality_n}, {"ResultTipDifference".T()} {diff}");
-                                }
-                            }
-                            catch (Exception ex) { ex.ShowMessage(); }
-                        });
+                        QualityChangerDelay.Start();
                     }
+                    System.Diagnostics.Debug.WriteLine($"Key Interval: {delta}ms");
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }
