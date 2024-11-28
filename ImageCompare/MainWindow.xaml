@@ -322,6 +322,12 @@
                     <TextBlock x:Uid="MagnifierPanelIcon" Text="&#xE1A3;" Style="{DynamicResource MenuItemIcon}" />
                 </StackPanel>
             </ToggleButton>
+            <ToggleButton x:Name="ShowImageInfo" x:Uid="ShowImageInfo" IsChecked="True" ToolBar.OverflowMode="Never"
+                          ToolTip="Show Image Information" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="ShowImageInfoPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ShowImageInfoPanelIcon" Text="&#xE783;" Style="{DynamicResource MenuItemIcon}" />
+                </StackPanel>
+            </ToggleButton>
             <ToggleButton x:Name="ImageLayout" x:Uid="ImageLayout" IsChecked="False" ToolBar.OverflowMode="Never"
                           ToolTip="Horizontal/Vertical Image Layout" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="ImageLayoutPanel" Orientation="Horizontal" Margin="2">

@@ -615,6 +615,10 @@
           <source>Set Color To Alpha</source>
           <target state="new">色を透明チャンネルに設定する</target>
         </trans-unit>
+        <trans-unit id="ShowImageInfo.ToolTip" translate="yes" xml:space="preserve">
+          <source>how Image Information</source>
+          <target state="new">画像情報の表示</target>
+        </trans-unit>
         <trans-unit id="SlicingX.Header" translate="yes" xml:space="preserve">
           <source>Slicing Horizontal</source>
           <target state="new">水平分割画像</target>

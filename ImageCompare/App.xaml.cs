@@ -24,7 +24,7 @@ namespace ImageCompare
         {
             Current?.Dispatcher.Invoke(() =>
             {
-                if ((Current?.MainWindow is MainWindow) && (Current.MainWindow.IsLoaded))
+                if (Current?.MainWindow?.IsLoaded ?? false)
                 {
                     Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message + Environment.NewLine + ex.StackTrace);
                 }

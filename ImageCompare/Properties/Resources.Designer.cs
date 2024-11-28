@@ -1438,6 +1438,15 @@ namespace ImageCompare.Properties {
         }
         
         /// <summary>
+        ///   查找类似 how Image Information 的本地化字符串。
+        /// </summary>
+        public static string ShowImageInfo_ToolTip {
+            get {
+                return ResourceManager.GetString("ShowImageInfo.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Slicing Horizontal 的本地化字符串。
         /// </summary>
         public static string SlicingX_Header {

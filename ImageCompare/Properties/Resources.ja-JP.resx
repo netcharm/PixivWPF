@@ -660,4 +660,7 @@
   <data name="Magnifier.ToolTip" xml:space="preserve">
     <value>画像拡大鏡</value>
   </data>
+  <data name="ShowImageInfo.ToolTip" xml:space="preserve">
+    <value>画像情報の表示</value>
+  </data>
 </root>

@@ -615,6 +615,10 @@
           <source>Set Color To Alpha</source>
           <target state="new">指定颜色设为透明通道</target>
         </trans-unit>
+        <trans-unit id="ShowImageInfo.ToolTip" translate="yes" xml:space="preserve">
+          <source>how Image Information</source>
+          <target state="new">显示图像信息</target>
+        </trans-unit>
         <trans-unit id="SlicingX.Header" translate="yes" xml:space="preserve">
           <source>Slicing Horizontal</source>
           <target state="new">水平对分图像</target>

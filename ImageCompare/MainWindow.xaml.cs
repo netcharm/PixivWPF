@@ -48,9 +48,11 @@ namespace ImageCompare
         private string Command32Bits = string.Empty;
         private string Command64Bits = string.Empty;
 
-        private bool Ready { get { return (Dispatcher.Invoke(() => IsLoaded)); } }
+        private bool Ready => Dispatcher.Invoke(() => IsLoaded);
 
         private double TaskTimeOutSeconds = 60;
+        private double CountDownTimeOut = 500;
+
 
         /// <summary>
         /// 
@@ -92,7 +94,7 @@ namespace ImageCompare
         {
             get
             {
-                if (Dispatcher.Invoke(() => IsLoaded))
+                if (Ready)
                 {
                     var value = ImageCompareFuzzy.Dispatcher.Invoke(() => Math.Min(Math.Max(ImageCompareFuzzy.Minimum, ImageCompareFuzzy.Value), ImageCompareFuzzy.Maximum));
                     return (new Percentage(value));
@@ -543,22 +545,31 @@ namespace ImageCompare
         /// </summary>
         private void SyncColorLighting()
         {
-            if (IsLoaded)
+            if (Ready)
             {
                 if (ImageSource is Image)
                 {
-                    if (ImageSource.Tag == null) ImageSource.Tag = new ImageInformation() { Tagetment = ImageSource, HighlightColor = HighlightColor, LowlightColor = LowlightColor, MasklightColor = MasklightColor };
-                    else if (ImageSource.Tag is ImageInformation) { var info = ImageSource.Tag as ImageInformation; info.Tagetment = ImageSource; info.HighlightColor = HighlightColor; info.LowlightColor = LowlightColor; info.MasklightColor = MasklightColor; }
+                    ImageSource.Dispatcher.InvokeAsync(() =>
+                    {
+                        if (ImageSource.Tag == null) ImageSource.Tag = new ImageInformation() { Tagetment = ImageSource, HighlightColor = HighlightColor, LowlightColor = LowlightColor, MasklightColor = MasklightColor };
+                        else if (ImageSource.Tag is ImageInformation) { var info = ImageSource.Tag as ImageInformation; info.Tagetment = ImageSource; info.HighlightColor = HighlightColor; info.LowlightColor = LowlightColor; info.MasklightColor = MasklightColor; }
+                    });
                 }
                 if (ImageTarget is Image)
                 {
-                    if (ImageTarget.Tag == null) ImageTarget.Tag = new ImageInformation() { Tagetment = ImageTarget, HighlightColor = HighlightColor, LowlightColor = LowlightColor, MasklightColor = MasklightColor };
-                    else if (ImageTarget.Tag is ImageInformation) { var info = ImageTarget.Tag as ImageInformation; info.Tagetment = ImageTarget; info.HighlightColor = HighlightColor; info.LowlightColor = LowlightColor; info.MasklightColor = MasklightColor; }
+                    ImageTarget.Dispatcher.InvokeAsync(() =>
+                    {
+                        if (ImageTarget.Tag == null) ImageTarget.Tag = new ImageInformation() { Tagetment = ImageTarget, HighlightColor = HighlightColor, LowlightColor = LowlightColor, MasklightColor = MasklightColor };
+                        else if (ImageTarget.Tag is ImageInformation) { var info = ImageTarget.Tag as ImageInformation; info.Tagetment = ImageTarget; info.HighlightColor = HighlightColor; info.LowlightColor = LowlightColor; info.MasklightColor = MasklightColor; }
+                    });
                 }
                 if (ImageResult is Image)
                 {
-                    if (ImageResult.Tag == null) ImageResult.Tag = new ImageInformation() { Tagetment = ImageResult, HighlightColor = HighlightColor, LowlightColor = LowlightColor, MasklightColor = MasklightColor };
-                    else if (ImageResult.Tag is ImageInformation) { var info = ImageResult.Tag as ImageInformation; info.Tagetment = ImageResult; info.HighlightColor = HighlightColor; info.LowlightColor = LowlightColor; info.MasklightColor = MasklightColor; }
+                    ImageResult.Dispatcher.InvokeAsync(() =>
+                    {
+                        if (ImageResult.Tag == null) ImageResult.Tag = new ImageInformation() { Tagetment = ImageResult, HighlightColor = HighlightColor, LowlightColor = LowlightColor, MasklightColor = MasklightColor };
+                        else if (ImageResult.Tag is ImageInformation) { var info = ImageResult.Tag as ImageInformation; info.Tagetment = ImageResult; info.HighlightColor = HighlightColor; info.LowlightColor = LowlightColor; info.MasklightColor = MasklightColor; }
+                    });
                 }
             }
         }
@@ -1039,8 +1050,7 @@ namespace ImageCompare
         /// <param name="autocompare"></param>
         private async void UpdateImageViewer(bool compose = false, bool assign = false, bool reload = true, ImageType reload_type = ImageType.All, bool autocompare = false)
         {
-            var loaded = await Dispatcher.InvokeAsync(() => IsLoaded);
-            if (loaded && await _CanUpdate_.WaitAsync(TimeSpan.FromMilliseconds(200)))
+            if (Ready && await _CanUpdate_.WaitAsync(TimeSpan.FromMilliseconds(CountDownTimeOut)))
             {
                 try
                 {
@@ -1765,7 +1775,7 @@ namespace ImageCompare
         /// <param name="topmost"></param>
         public void TopMostWindow(bool? topmost)
         {
-            if (IsLoaded) Topmost = topmost ?? false;
+            if (Ready) Topmost = topmost ?? false;
         }
 
         /// <summary>
@@ -1846,7 +1856,7 @@ namespace ImageCompare
         /// </summary>
         private void RestoreWindowState()
         {
-            if (IsLoaded && LastWinState == System.Windows.WindowState.Maximized) WindowState = LastWinState;
+            if (Ready && LastWinState == System.Windows.WindowState.Maximized) WindowState = LastWinState;
         }
 
         /// <summary>
@@ -2594,9 +2604,69 @@ namespace ImageCompare
             });
         }
 
-        private string QualityChangeerTitle = string.Empty;
         private DispatcherTimer QualityChangerDelay = null;
+        private DispatcherTimer FuzzyChangeDelay = null;
+        private DispatcherTimer BlendChangeDelay = null;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        private void InitCoutDownTimer()
+        {
+            if (QualityChangerDelay == null)
+            {
+                QualityChangerDelay = new DispatcherTimer(DispatcherPriority.Normal) { IsEnabled = false, Interval = TimeSpan.FromMilliseconds(CountDownTimeOut) };
+                QualityChangerDelay.Tick += QualityChangerDelay_Tick;
+            }
+            if (FuzzyChangeDelay == null)
+            {
+                FuzzyChangeDelay = new DispatcherTimer(DispatcherPriority.Normal) { IsEnabled = false, Interval = TimeSpan.FromMilliseconds(CountDownTimeOut) };
+                FuzzyChangeDelay.Tick += FuzzyChangeDelay_Tick;
+            }
+            if (BlendChangeDelay == null)
+            {
+                BlendChangeDelay = new DispatcherTimer(DispatcherPriority.Normal) { IsEnabled = false, Interval = TimeSpan.FromMilliseconds(CountDownTimeOut) };
+                BlendChangeDelay.Tick += BlendChangeDelay_Tick;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void FuzzyChangeDelay_Tick(object sender, EventArgs e)
+        {
+            ImageCompareFuzzy.Dispatcher.InvokeAsync(() =>
+            {
+                ImageCompareFuzzy.ToolTip = $"{"Tolerances".T(DefaultCultureInfo)}: {ImageCompareFuzzy.Value:F1}%";
+                if (ImageSource.GetInformation().ValidCurrent && ImageTarget.GetInformation().ValidCurrent)
+                    RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite));
+                FuzzyChangeDelay.Stop();
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void BlendChangeDelay_Tick(object sender, EventArgs e)
+        {
+            ImageCompositeBlend.Dispatcher.InvokeAsync(() =>
+            {
+                ImageCompositeBlend.ToolTip = $"{"Blend".T(DefaultCultureInfo)}: {ImageCompositeBlend.Value:F0}%";
+                if (LastOpIsComposite && ImageSource.GetInformation().ValidCurrent && ImageTarget.GetInformation().ValidCurrent)
+                    RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite));
+                BlendChangeDelay.Stop();
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void QualityChangerDelay_Tick(object sender, EventArgs e)
         {
             if (IsQualityChanger && QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
@@ -2632,6 +2702,8 @@ namespace ImageCompare
             QualityChangerDelay.Stop();
         }
 
+        private string QualityChangeerTitle = string.Empty;
+
         /// <summary>
         /// 
         /// </summary>
@@ -2640,11 +2712,7 @@ namespace ImageCompare
         {
             if (Ready && !IsQualityChanger)
             {
-                if (QualityChangerDelay == null)
-                {
-                    QualityChangerDelay = new DispatcherTimer(DispatcherPriority.Normal) { IsEnabled = false, Interval = TimeSpan.FromMilliseconds(250) };
-                    QualityChangerDelay.Tick += QualityChangerDelay_Tick;
-                }
+                InitCoutDownTimer();
                 QualityChanger.Dispatcher.InvokeAsync(async () =>
                 {
                     var info = source == ImageType.Source ? ImageSource.GetInformation() : (source == ImageType.Target ? ImageTarget.GetInformation() : new ImageInformation());
@@ -2709,11 +2777,11 @@ namespace ImageCompare
         /// <param name="title"></param>
         private void SetQualityChangerTitle(string title = null)
         {
-            QualityChanger.Dispatcher.InvokeAsync(() => 
+            QualityChanger.Dispatcher.InvokeAsync(() =>
             {
                 title = title.Trim();
                 QualityChanger.Caption = string.IsNullOrEmpty(title) ? $"{QualityChangeerTitle}" : $"{QualityChangeerTitle} => {title}";
-            });            
+            });
         }
 
         /// <summary>
@@ -2742,7 +2810,7 @@ namespace ImageCompare
         {
             if (IsQualityChanger && diff != null && diff != double.NaN)
             {
-                QualityChanger.Dispatcher.InvokeAsync(() => 
+                QualityChanger.Dispatcher.InvokeAsync(() =>
                 {
                     if (Regex.IsMatch(QualityChanger.Caption, $"{"ResultTipDifference".T()}", RegexOptions.IgnoreCase))
                     {
@@ -2777,6 +2845,29 @@ namespace ImageCompare
                 ImageMagnifier.IsEnabled = mag;
                 ImageMagnifier.Visibility = mag ? Visibility.Visible : Visibility.Collapsed;
             });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        private bool IsToolTipOpen(FrameworkElement element)
+        {
+            var result = false;
+            try
+            {
+                if (element?.ToolTip is string)
+                {
+                    result = Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).IsOpen);
+                }
+                else if (element?.ToolTip is ToolTip && (element?.ToolTip as ToolTip).Content is string)
+                {
+                    result = Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).IsOpen);
+                }
+            }
+            catch { }
+            return (result);
         }
 
         /// <summary>
@@ -2839,9 +2930,9 @@ namespace ImageCompare
         /// <param name="element"></param>
         private void OpenToolTip(FrameworkElement element)
         {
-            try
+            element?.Dispatcher.InvokeAsync(() =>
             {
-                Dispatcher.Invoke(() =>
+                try
                 {
                     if (element?.ToolTip is string)
                     {
@@ -2851,9 +2942,9 @@ namespace ImageCompare
                     {
                         (element?.ToolTip as ToolTip).IsOpen = true;
                     }
-                });
-            }
-            catch { }
+                }
+                catch { }
+            });
         }
 
         /// <summary>
@@ -2862,29 +2953,21 @@ namespace ImageCompare
         /// <param name="element"></param>
         private void CloseToolTip(FrameworkElement element)
         {
-            try
+            element?.Dispatcher.Invoke(() =>
             {
-                if (element?.ToolTip is string)
+                try
                 {
-                    Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).IsOpen = false);
+                    if (element?.ToolTip is string)
+                    {
+                        (element?.ToolTip as ToolTip).IsOpen = false;
+                    }
+                    else if (element?.ToolTip is ToolTip && (element?.ToolTip as ToolTip).Content is string)
+                    {
+                        (element?.ToolTip as ToolTip).IsOpen = false;
+                    }
                 }
-                else if (element?.ToolTip is ToolTip && (element?.ToolTip as ToolTip).Content is string)
-                {
-                    Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).IsOpen = false);
-                }
-            }
-            catch { }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="element"></param>
-        /// <param name="show"></param>
-        private void ShowToolTip(FrameworkElement element, bool show)
-        {
-            if (show) OpenToolTip(element);
-            else CloseToolTip(element);
+                catch { }
+            });
         }
 
         /// <summary>
@@ -2893,30 +2976,82 @@ namespace ImageCompare
         /// <param name="element"></param>
         private void ToggleToolTip(FrameworkElement element)
         {
-            ShowToolTip(element, !IsToolTipOpen(element));
+            var show = !IsToolTipOpen(element);
+            if (show) OpenToolTip(element);
+            else CloseToolTip(element);
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="element"></param>
-        /// <returns></returns>
-        private bool IsToolTipOpen(FrameworkElement element)
+        private void ShowToolTip(FrameworkElement element)
         {
-            var result = false;
-            try
+            element?.Dispatcher.InvokeAsync(() =>
             {
                 if (element?.ToolTip is string)
                 {
-                    result = Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).IsOpen);
+                    (element?.ToolTip as ToolTip).Visibility = Visibility.Visible;
                 }
                 else if (element?.ToolTip is ToolTip && (element?.ToolTip as ToolTip).Content is string)
                 {
-                    result = Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).IsOpen);
+                    (element?.ToolTip as ToolTip).Visibility = Visibility.Visible;
                 }
-            }
-            catch { }
-            return(result);
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        private void HideToolTip(FrameworkElement element)
+        {
+            element?.Dispatcher.InvokeAsync(() =>
+            {
+                if (element?.ToolTip is string)
+                {
+                    (element?.ToolTip as ToolTip).Visibility = Visibility.Collapsed;
+                }
+                else if (element?.ToolTip is ToolTip && (element?.ToolTip as ToolTip).Content is string)
+                {
+                    (element?.ToolTip as ToolTip).Visibility = Visibility.Collapsed;
+                }
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="state"></param>
+        private void SetToolTipState(FrameworkElement element, bool state)
+        {
+            if (state) ShowToolTip(element);
+            else HideToolTip(element);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void ToggleToolTipState()
+        {
+            ShowImageInfo.Dispatcher.InvokeAsync(() =>
+            {
+                try
+                {
+                    var info = ShowImageInfo.IsChecked ?? false;
+                    if (!info)
+                    {
+                        CloseToolTip(ImageSource);
+                        CloseToolTip(ImageTarget);
+                        CloseToolTip(ImageResult);
+                    }
+                    SetToolTipState(ImageSource, info);
+                    SetToolTipState(ImageTarget, info);
+                    SetToolTipState(ImageResult, info);
+                }
+                catch { }
+            });
         }
 
         /// <summary>
@@ -2990,6 +3125,11 @@ namespace ImageCompare
                 {
                     var value = TaskTimeOutSeconds;
                     if (double.TryParse(appSection.Settings["TaskTimeOutSeconds"].Value, out value)) TaskTimeOutSeconds = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("CountDownTimeOut"))
+                {
+                    var value = CountDownTimeOut;
+                    if (double.TryParse(appSection.Settings["CountDownTimeOut"].Value, out value)) CountDownTimeOut = value;
                 }
 
                 if (appSection.Settings.AllKeys.Contains("AutoHideToolTip"))
@@ -3237,6 +3377,11 @@ namespace ImageCompare
                     else
                         appSection.Settings.Add("TaskTimeOutSeconds", TaskTimeOutSeconds.ToString());
 
+                    if (appSection.Settings.AllKeys.Contains("CountDownTimeOut"))
+                        appSection.Settings["CountDownTimeOut"].Value = CountDownTimeOut.ToString();
+                    else
+                        appSection.Settings.Add("CountDownTimeOut", CountDownTimeOut.ToString());
+
                     if (appSection.Settings.AllKeys.Contains("AutoHideToolTip"))
                         appSection.Settings["AutoHideToolTip"].Value = AutoHideToolTip.ToString();
                     else
@@ -3478,6 +3623,8 @@ namespace ImageCompare
             RestoreWindowLocationSize();
             RestoreWindowState();
 
+            InitCoutDownTimer();
+
             //System.Diagnostics.PresentationTraceSources.DataBindingSource.Switch.Level = System.Diagnostics.SourceLevels.Critical;
             InitMagickNet();
 
@@ -3677,7 +3824,7 @@ namespace ImageCompare
 
         private void Window_LocationChanged(object sender, EventArgs e)
         {
-            if (!IsLoaded) return;
+            if (!Ready) return;
             if (WindowState == System.Windows.WindowState.Normal)
                 LastPositionSize = new Rect(Left, Top, Width, Height);
         }
@@ -3694,7 +3841,7 @@ namespace ImageCompare
 
         private void Window_StateChanged(object sender, EventArgs e)
         {
-            if (!IsLoaded) return;
+            if (!Ready) return;
             LastWinState = WindowState;
             LastPositionSize = new Rect(Left, Top, LastPositionSize.Width, LastPositionSize.Height);
         }
@@ -3766,7 +3913,7 @@ namespace ImageCompare
                             e.Handled = true;
                             ToggleMagnifier(state: false, change_state: true);
                         }
-                        else if(IsQualityChanger)
+                        else if (IsQualityChanger)
                         {
                             e.Handled = true;
                             CloseQualityChanger(restore: true);
@@ -3907,7 +4054,7 @@ namespace ImageCompare
                         }
                         else RenderRun(LastAction);
                     }
-                    else if (e.Key == Key.Q|| e.SystemKey == Key.Q)
+                    else if (e.Key == Key.Q || e.SystemKey == Key.Q)
                     {
                         if (ImageSourceScroll.IsMouseOver) OpenQualityChanger(ImageType.Source);
                         else if (ImageTargetScroll.IsMouseOver) OpenQualityChanger(ImageType.Target);
@@ -4048,9 +4195,9 @@ namespace ImageCompare
                     else
                     {
                         var dx = pos.X - _last_viewer_pos_.Value.X;
-                        if (dx > 0) 
+                        if (dx > 0)
                             ZoomRatio.Value += 0.033;
-                        else if (dx < 0) 
+                        else if (dx < 0)
                             ZoomRatio.Value -= 0.033;
                     }
                     _last_viewer_pos_ = pos;
@@ -4323,6 +4470,10 @@ namespace ImageCompare
             {
                 ToggleMagnifier();
             }
+            else if (sender == ShowImageInfo)
+            {
+                ToggleToolTipState();
+            }
 
             else if (sender == ZoomFitNone)
             {
@@ -4434,7 +4585,7 @@ namespace ImageCompare
         {
             try
             {
-                if (IsLoaded && (ZoomFitNone.IsChecked ?? false) && e.OldValue != e.NewValue)
+                if (Ready && (ZoomFitNone.IsChecked ?? false) && e.OldValue != e.NewValue)
                 {
                     e.Handled = true;
                     ZoomRatio.ToolTip = $"{"Zoom Ratio".T(DefaultCultureInfo)}: {e.NewValue:F2}X";
@@ -4444,24 +4595,39 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
         }
 
+        private DateTime _last_fuzzy_change = default;
         private void ImageCompareFuzzy_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             e.Handled = true;
-            if (IsLoaded)
+            if (Ready)
             {
-                ImageCompareFuzzy.ToolTip = $"{"Tolerances".T(DefaultCultureInfo)}: {e.NewValue:F1}%";
-                if (ImageSourceBox.GetInformation().ValidCurrent && ImageTargetBox.GetInformation().ValidCurrent)
-                    RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite));
+                var delta = (DateTime.Now - _last_fuzzy_change).TotalMilliseconds;
+                _last_fuzzy_change = DateTime.Now;
+                if (delta < CountDownTimeOut) FuzzyChangeDelay.Stop();
+
+                if (e.NewValue != e.OldValue && !IsBusy)
+                {
+                    e.Handled = true;
+                    FuzzyChangeDelay.Start();
+                }
             }
         }
 
+        private DateTime _last_blend_change = default;
         private void ImageCompositeBlend_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             e.Handled = true;
-            if (IsLoaded)
+            if (Ready)
             {
-                ImageCompositeBlend.ToolTip = $"{"Blend".T(DefaultCultureInfo)}: {e.NewValue:F0}%";
-                if (LastOpIsComposite) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite));
+                var delta = (DateTime.Now - _last_blend_change).TotalMilliseconds;
+                _last_blend_change = DateTime.Now;
+                if (delta < CountDownTimeOut) BlendChangeDelay.Stop();
+
+                if (e.NewValue != e.OldValue && !IsBusy)
+                {
+                    e.Handled = true;
+                    BlendChangeDelay.Start();
+                }
             }
         }
 
@@ -4513,21 +4679,25 @@ namespace ImageCompare
             {
                 try
                 {
+                    var delta = (DateTime.Now - _last_quality_change).TotalMilliseconds;
+                    _last_quality_change = DateTime.Now;
+                    if (delta < CountDownTimeOut) QualityChangerDelay.Stop();
+
                     var source = (ImageType)(QualityChanger.Tag);
 
                     var image = source == ImageType.Source ? ImageSource.GetInformation().Original : ImageTarget.GetInformation().Original;
                     var quality_n = (uint)e.NewValue;
                     var quality_o = image.Quality == 0 ? 75 : image?.Quality;
-                    var delta = (DateTime.Now - _last_quality_change).TotalMilliseconds;
-                    _last_quality_change = DateTime.Now;
-                    if (delta < 250) QualityChangerDelay.Stop();
+
                     if (e.NewValue != e.OldValue && quality_n <= quality_o && !IsBusy)
                     {
                         e.Handled = true;
                         SetQualityChangerTitle($"{quality_n}");
                         QualityChangerDelay.Start();
                     }
+#if DEBUG
                     System.Diagnostics.Debug.WriteLine($"Key Interval: {delta}ms");
+#endif
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }

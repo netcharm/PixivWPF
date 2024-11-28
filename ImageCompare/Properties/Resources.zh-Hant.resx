@@ -660,4 +660,7 @@
   <data name="Magnifier.ToolTip" xml:space="preserve">
     <value>放大镜</value>
   </data>
+  <data name="ShowImageInfo.ToolTip" xml:space="preserve">
+    <value>顯示影像資訊</value>
+  </data>
 </root>
