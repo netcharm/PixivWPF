@@ -2684,7 +2684,8 @@ namespace ImageCompare
 
                         var image_s = source == ImageType.Source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                         var image = image_s.Original;
-                        var quality_o = image?.Quality == 0 ? 75 : image?.Quality;
+                        var quality_o = image_s.OriginalQuality;
+
                         var result = quality < quality_o ? await ChangeQuality(image, quality) : new MagickImage(image);
                         if (CompareImageForceScale) result.Resize(CompareResizeGeometry);
                         image_s.Current = new MagickImage(result);
@@ -2696,8 +2697,7 @@ namespace ImageCompare
                         if (await UpdateImageViewerFinished(TaskTimeOutSeconds) && ImageResult.GetInformation().ValidCurrent)
                         {
                             var diff = ImageResult.GetInformation().Current?.GetArtifact("compare:difference");
-                            var quality_n = image_s.Current?.Quality == 0 ? 75 : image_s.Current?.Quality;
-                            SetQualityChangerTitle(string.IsNullOrEmpty(diff) ? null : $"{quality_n}, {"ResultTipDifference".T()} {diff}");
+                            SetQualityChangerTitle(string.IsNullOrEmpty(diff) ? null : $"{image_s.CurrentQuality}, {"ResultTipDifference".T()} {diff}");
                         }
                     }
                     catch (Exception ex) { ex.ShowMessage(); }
@@ -4688,9 +4688,11 @@ namespace ImageCompare
 
                     var source = (ImageType)(QualityChanger.Tag);
 
-                    var image = source == ImageType.Source ? ImageSource.GetInformation().Original : ImageTarget.GetInformation().Original;
+                    var image_s = source == ImageType.Source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                    var image = image_s.Original;
+
                     var quality_n = (uint)e.NewValue;
-                    var quality_o = image.Quality == 0 ? 75 : image?.Quality;
+                    var quality_o = image_s.OriginalQuality;
 
                     if (e.NewValue != e.OldValue && quality_n <= quality_o && !IsBusy)
                     {

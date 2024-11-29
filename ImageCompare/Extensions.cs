@@ -1202,6 +1202,7 @@ namespace ImageCompare
             }
             return (result);
         }
+        
         public static Dictionary<string, string> GetSupportedImageFormats()
         {
             Dictionary<string, string> result = new Dictionary<string, string>();

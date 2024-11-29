@@ -1955,7 +1955,7 @@ namespace ImageCompare
                                 {
                                     ret = new MagickImage(mo.ToArray());
                                     ret.SetArtifact($"filesize", $"{mo.Length.SmartFileSize()}");
-                                    ret.SetArtifact($"quality", $"{ret.Quality}");
+                                    ret.SetArtifact($"quality", $"{ret.Quality()}");
                                 }
                             }
                         }
