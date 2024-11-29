@@ -20,6 +20,27 @@ using PixivWPF.Common;
 
 namespace PixivWPF.Pages
 {
+#pragma warning disable IDE0017
+#pragma warning disable IDE0018
+#pragma warning disable IDE0019
+#pragma warning disable IDE0020
+#pragma warning disable IDE0028
+#pragma warning disable IDE0029
+#pragma warning disable IDE0034
+#pragma warning disable IDE0038
+#pragma warning disable IDE0039
+#pragma warning disable IDE0044
+#pragma warning disable IDE0051
+#pragma warning disable IDE0054
+#pragma warning disable IDE0059
+#pragma warning disable IDE0060
+#pragma warning disable IDE0071
+#pragma warning disable IDE0075
+#pragma warning disable IDE0079
+#pragma warning disable IDE0220
+#pragma warning disable IDE0270
+#pragma warning disable IDE1006
+
     /// <summary>
     /// IllustDetailPage.xaml 的交互逻辑
     /// </summary>
@@ -3953,6 +3974,69 @@ namespace PixivWPF.Pages
                 else
                     Commands.ShellSendToOtherInstance.Execute(text);
             }
+        }
+
+        private void ActionTranslateSelectedText_Click(object sender, RoutedEventArgs e)
+        {
+            var text = string.Empty;
+            var is_tag = false;
+            try
+            {
+                if (sender == IllustTagSpeech)
+                {
+                    is_tag = true;
+                    text = IllustTagsHtml.GetText();
+                }
+                else if (sender == IllustDescSpeech)
+                    text = IllustDescHtml.GetText();
+                else if (sender == IllustTitle)
+                    text = IllustTitle.Text;
+                else if (sender == IllustAuthor)
+                    text = IllustAuthor.Text;
+                else if (sender == IllustDate || sender == IllustDateInfo)
+                    text = IllustDate.Text;
+                else if (sender is MenuItem)
+                {
+                    var mi = sender as MenuItem;
+
+                    var host = mi.GetContextMenuHost();
+                    if (host == IllustTagSpeech) { is_tag = true; text = IllustTagsHtml.GetText(); }
+                    else if (host == IllustDescSpeech) text = IllustDescHtml.GetText();
+                    else if (host == IllustAuthor) text = IllustAuthor.Text;
+                    else if (host == IllustTitle) text = IllustTitle.Text;
+                    else if (host == IllustDateInfo || host == IllustDate) text = IllustDate.Text;
+                    else if (host == SubIllustsExpander || host == SubIllusts) text = IllustTitle.Text;
+                    else if (host == RelatedItemsExpander || host == RelatedItems)
+                    {
+                        List<string> lines = new List<string>();
+                        foreach (PixivItem item in RelatedItems.GetSelected())
+                        {
+                            lines.Add(item.Illust.Title);
+                        }
+                        text = string.Join($",{Environment.NewLine}", lines);
+                    }
+                    else if (host == FavoriteItemsExpander || host == FavoriteItems)
+                    {
+                        List<string> lines = new List<string>();
+                        foreach (PixivItem item in FavoriteItems.GetSelected())
+                        {
+                            lines.Add(item.Illust.Title);
+                        }
+                        text = string.Join($",{Environment.NewLine}", lines);
+                    }
+                }
+            }
+#if DEBUG
+            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
+#else
+            catch (Exception ex) { ex.ERROR(); }
+#endif
+            if (is_tag)
+                text = string.Join(Environment.NewLine, text.Trim().Split(Speech.TagBreak, StringSplitOptions.RemoveEmptyEntries));
+            else
+                text = string.Join(Environment.NewLine, text.Trim().Split(Speech.LineBreak, StringSplitOptions.RemoveEmptyEntries));
+
+            if (!string.IsNullOrEmpty(text)) Commands.TransText.Execute(text);
         }
 
         private async void ActionRefresh_Click(object sender, RoutedEventArgs e)

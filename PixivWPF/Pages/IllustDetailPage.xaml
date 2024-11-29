@@ -551,6 +551,11 @@
                     <TextBlock Text="&#xE724;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <MenuItem x:Name="miTranslateText" x:Uid="TranslateText" Header="Translate Selected" ToolTip="Translate Selected" Click="ActionTranslateSelectedText_Click" >
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xF2B7;" Style="{DynamicResource MenuItemIcon16}"/>
+                </MenuItem.Icon>
+            </MenuItem>
             <MenuItem x:Name="miSearchTextInFiles" x:Uid="SearchTextInFiles" Header="Search In Files" ToolTip="Search Selected In Downloaded" Click="ActionSearchSelectedText_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE773;" Style="{DynamicResource MenuItemIcon16}"/>

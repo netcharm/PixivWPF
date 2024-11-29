@@ -35,6 +35,27 @@ using PixivWPF.Pages;
 
 namespace PixivWPF.Common
 {
+#pragma warning disable IDE0017
+#pragma warning disable IDE0018
+#pragma warning disable IDE0019
+#pragma warning disable IDE0020
+#pragma warning disable IDE0028
+#pragma warning disable IDE0029
+#pragma warning disable IDE0034
+#pragma warning disable IDE0038
+#pragma warning disable IDE0039
+#pragma warning disable IDE0044
+#pragma warning disable IDE0051
+#pragma warning disable IDE0054
+#pragma warning disable IDE0059
+#pragma warning disable IDE0060
+#pragma warning disable IDE0071
+#pragma warning disable IDE0075
+#pragma warning disable IDE0079
+#pragma warning disable IDE0220
+#pragma warning disable IDE0270
+#pragma warning disable IDE1006
+
     #region Hotkey
     public class HotKeyConfig
     {

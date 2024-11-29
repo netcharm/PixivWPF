@@ -2466,6 +2466,28 @@ namespace PixivWPF.Common
             }
         }
 
+        private string shell_text_transltor = string.Empty;
+        public string ShellTranslator
+        {
+            get { return (Cache is Setting ? Cache.shell_text_transltor : shell_text_transltor); }
+            set
+            {
+                shell_text_transltor = value;
+                if (Cache is Setting) Cache.shell_text_transltor = shell_text_transltor;
+            }
+        }
+
+        private string shell_text_transltor_params = string.Empty;
+        public string ShellTranslatorParams
+        {
+            get { return (Cache is Setting ? Cache.shell_text_transltor_params : shell_text_transltor_params); }
+            set
+            {
+                shell_text_transltor_params = value;
+                if (Cache is Setting) Cache.shell_text_transltor_params = shell_text_transltor_params;
+            }
+        }
+
         #endregion
 
         #region Window Related
