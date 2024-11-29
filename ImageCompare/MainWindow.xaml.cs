@@ -2683,8 +2683,9 @@ namespace ImageCompare
                         else if (source == ImageType.Target) IsProcessingTarget = true;
 
                         var image_s = source == ImageType.Source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
-                        var image = image_s.Original;                        
-                        var result = quality < image?.Quality ? await ChangeQuality(image, quality) : new MagickImage(image);
+                        var image = image_s.Original;
+                        var quality_o = image?.Quality == 0 ? 75 : image?.Quality;
+                        var result = quality < quality_o ? await ChangeQuality(image, quality) : new MagickImage(image);
                         if (CompareImageForceScale) result.Resize(CompareResizeGeometry);
                         image_s.Current = new MagickImage(result);
                         result.Dispose();
@@ -2695,7 +2696,8 @@ namespace ImageCompare
                         if (await UpdateImageViewerFinished(TaskTimeOutSeconds) && ImageResult.GetInformation().ValidCurrent)
                         {
                             var diff = ImageResult.GetInformation().Current?.GetArtifact("compare:difference");
-                            SetQualityChangerTitle(string.IsNullOrEmpty(diff) ? null : $"{image_s.Current?.Quality}, {"ResultTipDifference".T()} {diff}");
+                            var quality_n = image_s.Current?.Quality == 0 ? 75 : image_s.Current?.Quality;
+                            SetQualityChangerTitle(string.IsNullOrEmpty(diff) ? null : $"{quality_n}, {"ResultTipDifference".T()} {diff}");
                         }
                     }
                     catch (Exception ex) { ex.ShowMessage(); }
