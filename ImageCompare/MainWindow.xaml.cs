@@ -352,8 +352,6 @@ namespace ImageCompare
             #endregion
         }
 
-        public static Func<string, bool> SupportedFormat = ext => Extensions.AllSupportedFormats.Keys.Select(e => $".{e.ToLower()}").Contains(Path.GetExtension(ext).ToLower());
-        public static Func<string, bool> SupportedExt = ext => Extensions.AllSupportedExts.Contains(Path.GetExtension(ext).ToLower());
         #endregion
 
         #region Image Display Helper
@@ -1581,7 +1579,7 @@ namespace ImageCompare
             var action = false;
             try
             {
-                files = files.Select(f => f.Trim()).Where(f => SupportedExt(f)).Where(f => !string.IsNullOrEmpty(f) && File.Exists(f)).ToArray();
+                files = files.Select(f => f.Trim()).Where(f => f.IsSupportedExt()).Where(f => !string.IsNullOrEmpty(f) && File.Exists(f)).ToArray();
                 var count = files.Length;
                 if (count >= 0)
                 {

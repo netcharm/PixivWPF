@@ -554,7 +554,7 @@ namespace ImageCompare
                     var dir = Path.GetDirectoryName(Path.IsPathRooted(file) ? file : Path.Combine(Directory.GetCurrentDirectory(), file));
                     if (Directory.Exists(dir))
                     {
-                        files.AddRange(Directory.EnumerateFiles(dir, "*.*").Where(f => AllSupportedExts.Contains(Path.GetExtension(f).ToLower())).NaturalSort());
+                        files.AddRange(Directory.EnumerateFiles(dir, "*.*").Where(f => SupportedExt(f)).NaturalSort());
                     }
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
@@ -894,6 +894,20 @@ namespace ImageCompare
         public static IList<string> AllSupportedExts { get; set; } = new List<string>();
         public static string AllSupportedFiles { get; set; } = string.Empty;
         public static string AllSupportedFilters { get; set; } = string.Empty;
+
+        public static Func<string, bool> SupportedFormat = ext => AllSupportedFormats.Keys.Select(e => $".{e.ToLower()}").Contains(Path.GetExtension(ext).ToLower());
+
+        public static bool IsSupportedFormat(this string fmt)
+        {
+            return (SupportedFormat(fmt));
+        }
+
+        public static Func<string, bool> SupportedExt = ext => AllSupportedExts.Contains(Path.GetExtension(ext).ToLower());
+
+        public static bool IsSupportedExt(this string ext)
+        {
+            return (SupportedExt(ext));
+        }
 
         public static IMagickFormatInfo GetFormatInfo(this MagickImage image)
         {
