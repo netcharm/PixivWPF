@@ -343,7 +343,7 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
 
             Extensions.AllSupportedFormats = Extensions.GetSupportedImageFormats();
-            Extensions.AllSupportedExts = Extensions.AllSupportedFormats.Keys.ToList().Skip(4).Select(ext => $".{ext.ToLower()}").Where(ext => !ext.Equals(".txt")).ToList();
+            Extensions.AllSupportedExts = Extensions.AllSupportedFormats.Keys.Skip(4).Select(ext => $".{ext.ToLower()}").Where(ext => !ext.Equals(".txt")).ToList();
             var exts = Extensions.AllSupportedExts.Select(ext => $"*{ext}");
             Extensions.AllSupportedFiles = string.Join(";", exts);
             Extensions.AllSupportedFilters = string.Join("|", Extensions.AllSupportedFormats.Select(f => $"{f.Value}|*.{f.Key}"));
@@ -351,6 +351,9 @@ namespace ImageCompare
             CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
             #endregion
         }
+
+        public static Func<string, bool> SupportedFormat = ext => Extensions.AllSupportedFormats.Keys.Select(e => $".{e.ToLower()}").Contains(Path.GetExtension(ext).ToLower());
+        public static Func<string, bool> SupportedExt = ext => Extensions.AllSupportedExts.Contains(Path.GetExtension(ext).ToLower());
         #endregion
 
         #region Image Display Helper
@@ -1578,7 +1581,7 @@ namespace ImageCompare
             var action = false;
             try
             {
-                files = files.Select(f => f.Trim()).Where(f => !string.IsNullOrEmpty(f)).Where(f => Extensions.AllSupportedFormats.Keys.ToList().Select(e => $".{e.ToLower()}").ToList().Contains(Path.GetExtension(f).ToLower())).ToArray();
+                files = files.Select(f => f.Trim()).Where(f => SupportedExt(f)).Where(f => !string.IsNullOrEmpty(f) && File.Exists(f)).ToArray();
                 var count = files.Length;
                 if (count >= 0)
                 {
