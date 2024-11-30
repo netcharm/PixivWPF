@@ -173,8 +173,17 @@
     <Error Condition="!Exists('..\packages\Magick.NET-Q16-HDRI-AnyCPU.14.2.0\build\netstandard20\Magick.NET-Q16-HDRI-AnyCPU.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Magick.NET-Q16-HDRI-AnyCPU.14.2.0\build\netstandard20\Magick.NET-Q16-HDRI-AnyCPU.targets'))" />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>copy /b /y $(TargetName).exe $(TargetName)64.exe
+copy /b /y $(TargetName).pdb $(TargetName)64.pdb
+copy /b /y $(TargetName).exe.config $(TargetName)64.exe.config
+
+copy /b /y $(TargetName).exe $(TargetName)32.exe
+copy /b /y $(TargetName).pdb $(TargetName)32.pdb
+copy /b /y $(TargetName).exe.config $(TargetName)32.exe.config
+
+set flags="C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8.1 Tools\CorFlags.exe"
+%25flags%25 -32BITPREF+  $(TargetName)32.exe
+</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
