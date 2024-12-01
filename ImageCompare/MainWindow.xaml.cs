@@ -2762,7 +2762,7 @@ namespace ImageCompare
         /// </summary>
         private void CloseQualityChanger(bool restore = false, ImageType source = ImageType.All)
         {
-            if (Ready && IsQualityChanger && source == GetQualityChangerSource() || source == ImageType.All)
+            if (Ready && IsQualityChanger && (source == GetQualityChangerSource() || source == ImageType.All))
             {
                 QualityChanger.Dispatcher.InvokeAsync(() =>
                 {
@@ -4342,6 +4342,8 @@ namespace ImageCompare
 
         private void ImageActions_Click(object sender, RoutedEventArgs e)
         {
+            if (!Ready) return;
+
             e.Handled = true;
             if (sender == UILanguage)
             {
@@ -4416,8 +4418,6 @@ namespace ImageCompare
             }
             else if (sender == ImageClear)
             {
-                CloseQualityChanger();
-
                 RenderRun(() => CleanImage());
             }
             else if (sender == ImageExchange)
@@ -4666,7 +4666,7 @@ namespace ImageCompare
             try
             {
                 var value = MaxCompareSize;
-                if (uint.TryParse(MaxCompareSizeValue.Text, out value))
+                if (Ready && uint.TryParse(MaxCompareSizeValue.Text, out value))
                 {
                     CloseQualityChanger();
                     MaxCompareSize = Math.Max(0, Math.Min(2048, value));
@@ -4705,7 +4705,7 @@ namespace ImageCompare
         private DateTime _last_quality_change = default;
         private void QualityChangerSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (IsQualityChanger && QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
+            if (Ready && IsQualityChanger && QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
             {
                 try
                 {

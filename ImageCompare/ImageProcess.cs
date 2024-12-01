@@ -86,6 +86,9 @@ namespace ImageCompare
         /// </summary>
         private void CleanImage()
         {
+            _last_loading_ = ImageType.None;
+            CloseQualityChanger();
+
             IsProcessingSource = true;
             IsProcessingTarget = true;
             IsProcessingResult = true;
