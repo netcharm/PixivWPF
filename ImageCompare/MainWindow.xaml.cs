@@ -1281,7 +1281,7 @@ namespace ImageCompare
                     var image_r = ImageResult.GetInformation();
                     if (image_r.ValidCurrent)
                     {
-                        CloseQualityChanger();
+                        CloseQualityChanger(source: source ? ImageType.Source : ImageType.Target);
                         await Task.Delay(1);
                         if (source)
                         {
@@ -1318,7 +1318,7 @@ namespace ImageCompare
                     var image_t = (source ? ImageTarget : ImageSource).GetInformation();
                     if (image_s.ValidCurrent)
                     {
-                        CloseQualityChanger();
+                        CloseQualityChanger(source: source ? ImageType.Target : ImageType.Source);
                         await Task.Delay(1);
                         if (source) IsProcessingSource = true;
                         else IsProcessingTarget = true;
@@ -1348,13 +1348,11 @@ namespace ImageCompare
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
-        private async Task<bool> CopyImageTo(ImageType source)
+        private async Task<bool> CopyImageToClipboard(ImageType source)
         {
             var result = false;
             if (source == ImageType.Source)
             {
-                CloseQualityChanger();
-                await Task.Delay(1);
                 IsProcessingSource = true;
                 result = await Task.Run(async () =>
                 {
@@ -1364,8 +1362,6 @@ namespace ImageCompare
             }
             else if (source == ImageType.Target)
             {
-                CloseQualityChanger();
-                await Task.Delay(1);
                 IsProcessingTarget = true;
                 result = await Task.Run(async () =>
                 {
@@ -1375,8 +1371,6 @@ namespace ImageCompare
             }
             else if (source == ImageType.Result)
             {
-                CloseQualityChanger();
-                await Task.Delay(1);
                 IsProcessingResult = true;
                 result = await Task.Run(async () =>
                 {
@@ -1394,7 +1388,7 @@ namespace ImageCompare
         /// <returns></returns>
         private async Task<bool> CopyImageTo(bool source)
         {
-            var result = await CopyImageTo(source ? ImageType.Source : ImageType.Target);
+            var result = await CopyImageToClipboard(source ? ImageType.Source : ImageType.Target);
             return (result);
         }
 
@@ -1485,7 +1479,7 @@ namespace ImageCompare
                 action |= await image.LoadImageFromClipboard();
                 if (action)
                 {
-                    CloseQualityChanger();
+                    CloseQualityChanger(source: source is null ? ImageType.All : source ?? ImageType.All);
                     await Task.Delay(1);
 
                     _last_loading_ = load_type;
@@ -1511,7 +1505,7 @@ namespace ImageCompare
             var ret = false;
             try
             {
-                CloseQualityChanger();
+                CloseQualityChanger(source: source ? ImageType.Source : ImageType.Target);
                 await Task.Delay(1);
 
                 if (source) IsLoadingSource = true;
@@ -1541,7 +1535,7 @@ namespace ImageCompare
             var ret = false;
             try
             {
-                CloseQualityChanger();
+                CloseQualityChanger(source: source ? ImageType.Source : ImageType.Target);
                 await Task.Delay(1);
 
                 if (source) IsLoadingSource = true;
@@ -1583,9 +1577,6 @@ namespace ImageCompare
                 var count = files.Length;
                 if (count >= 0)
                 {
-                    CloseQualityChanger();
-                    await Task.Delay(1);
-
                     var load_type = source != null ? (source ?? false ? ImageType.Source : ImageType.Target) : (_last_loading_ != ImageType.Source ? ImageType.Source : ImageType.Target);
 
                     var image_s = ImageSource.GetInformation();
@@ -1595,6 +1586,9 @@ namespace ImageCompare
                     var file_t = string.Empty;
                     if (count >= 2)
                     {
+                        CloseQualityChanger();
+                        await Task.Delay(1);
+
                         IsLoadingSource = true;
                         IsLoadingTarget = true;
 
@@ -1607,6 +1601,12 @@ namespace ImageCompare
                     }
                     else if (count >= 0)
                     {
+                        if (new ImageType[] { load_type, ImageType.All }.Contains(GetQualityChangerSource()))
+                        {
+                            CloseQualityChanger(source: load_type);
+                            await Task.Delay(1);
+                        }
+
                         if (load_type == ImageType.Source) IsLoadingSource = true;
                         else if (load_type == ImageType.Target) IsLoadingTarget = true;
 
@@ -2760,9 +2760,9 @@ namespace ImageCompare
         /// <summary>
         /// 
         /// </summary>
-        private void CloseQualityChanger(bool restore = false)
+        private void CloseQualityChanger(bool restore = false, ImageType source = ImageType.All)
         {
-            if (Ready && IsQualityChanger)
+            if (Ready && IsQualityChanger && source == GetQualityChangerSource() || source == ImageType.All)
             {
                 QualityChanger.Dispatcher.InvokeAsync(() =>
                 {
@@ -2770,6 +2770,7 @@ namespace ImageCompare
                         QualityChanger_CloseButtonClicked(QualityChanger, null);
                     else
                         QualityChangerSlider.Tag = null;
+
                     QualityChanger.Close();
                 });
             }
@@ -2822,6 +2823,25 @@ namespace ImageCompare
                     }
                 });
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private ImageType GetQualityChangerSource()
+        {
+            var result = ImageType.None;
+            result = QualityChanger.Dispatcher.Invoke(() =>
+            {
+                var source = ImageType.None;
+                if (IsQualityChanger && QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
+                {
+                    source = (ImageType)(QualityChanger.Tag ?? ImageType.None);
+                }
+                return (source);
+            });
+            return (result);
         }
 
         /// <summary>
@@ -4018,9 +4038,9 @@ namespace ImageCompare
                     {
                         Dispatcher.Invoke(async () =>
                         {
-                            if      (ImageSourceScroll.IsMouseOver) await CopyImageTo(ImageType.Source);
-                            else if (ImageTargetScroll.IsMouseOver) await CopyImageTo(ImageType.Target);
-                            else if (ImageResultScroll.IsMouseOver) await CopyImageTo(ImageType.Result);
+                            if      (ImageSourceScroll.IsMouseOver) await CopyImageToClipboard(ImageType.Source);
+                            else if (ImageTargetScroll.IsMouseOver) await CopyImageToClipboard(ImageType.Target);
+                            else if (ImageResultScroll.IsMouseOver) await CopyImageToClipboard(ImageType.Result);
                         });
                     }
                     else if (Keyboard.Modifiers == ModifierKeys.Control && (e.Key == Key.V || e.SystemKey == Key.V))
@@ -4396,10 +4416,14 @@ namespace ImageCompare
             }
             else if (sender == ImageClear)
             {
+                CloseQualityChanger();
+
                 RenderRun(() => CleanImage());
             }
             else if (sender == ImageExchange)
             {
+                CloseQualityChanger();
+                
                 IsLoadingSource = true;
                 IsLoadingTarget = true;
 
@@ -4449,7 +4473,7 @@ namespace ImageCompare
                 RenderRun(async () =>
                 {
                     IsProcessingResult = true;
-                    await CopyImageTo(ImageType.Result);
+                    await CopyImageToClipboard(ImageType.Result);
                 });
             }
             else if (sender == ImageSaveResult)
