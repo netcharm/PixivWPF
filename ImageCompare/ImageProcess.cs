@@ -1933,7 +1933,7 @@ namespace ImageCompare
                     var ret = image;
                     try
                     {
-                        if (!(image?.HasAlpha ?? false))
+                        if (!image.GuessAlpha())
                         {
                             using (MemoryStream mo = new MemoryStream())
                             {

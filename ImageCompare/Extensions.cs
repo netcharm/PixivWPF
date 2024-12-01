@@ -934,7 +934,43 @@ namespace ImageCompare
             var result = false;
             if (image is MagickImage)
             {
-                result = IsPNG(image.Format) || GetFormatInfo(image).MimeType.Equals("image/png", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("png") || image.Format.ToString().EndsWith("png");
+                result = IsPNG(image.Format) || GetFormatInfo(image).MimeType.Equals("image/png", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("png", StringComparison.CurrentCultureIgnoreCase);
+            }
+            return (result);
+        }
+
+        public static bool IsBMP(this MagickFormat format)
+        {
+            var result = false;
+            var fmts = new MagickFormat[] { MagickFormat.Bmp, MagickFormat.Bmp2, MagickFormat.Bmp3 };
+            result = fmts.Contains(format);
+            return (result);
+        }
+
+        public static bool IsBMP(this MagickImage image)
+        {
+            var result = false;
+            if (image is MagickImage)
+            {
+                result = IsBMP(image.Format) || GetFormatInfo(image).MimeType.Equals("image/bmp", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("bmp", StringComparison.CurrentCultureIgnoreCase);
+            }
+            return (result);
+        }
+
+        public static bool IsTIF(this MagickFormat format)
+        {
+            var result = false;
+            var fmts = new MagickFormat[] { MagickFormat.Tif, MagickFormat.Tiff, MagickFormat.Tiff64 };
+            result = fmts.Contains(format);
+            return (result);
+        }
+
+        public static bool IsTIF(this MagickImage image)
+        {
+            var result = false;
+            if (image is MagickImage)
+            {
+                result = IsTIF(image.Format) || GetFormatInfo(image).MimeType.StartsWith("image/tif", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("tif", StringComparison.CurrentCultureIgnoreCase);
             }
             return (result);
         }
@@ -1207,12 +1243,16 @@ namespace ImageCompare
 
         public static uint Quality(this MagickImage image)
         {
-            uint result = image?.Quality ?? 0;
-            var zip = new CompressionMethod[] { CompressionMethod.Zip, CompressionMethod.ZipS, CompressionMethod.Zstd, CompressionMethod.BZip, CompressionMethod.LZMA, CompressionMethod.LZW, CompressionMethod.RLE, CompressionMethod.NoCompression, CompressionMethod.LosslessJPEG };
-            if (image is MagickImage && result == 0)
+            uint result = 0;
+            if (image is MagickImage)
             {
-                if (image?.Compression == CompressionMethod.JPEG) result = 75;
-                else if (zip.Contains(image?.Compression ?? CompressionMethod.Undefined)) result = 100;
+                result = image?.Quality ?? 0;
+                var zip = new CompressionMethod[] { CompressionMethod.Zip, CompressionMethod.ZipS, CompressionMethod.Zstd, CompressionMethod.BZip, CompressionMethod.LZMA, CompressionMethod.LZW, CompressionMethod.RLE, CompressionMethod.NoCompression, CompressionMethod.LosslessJPEG };
+                if (image is MagickImage && result == 0)
+                {
+                    if (image?.Compression == CompressionMethod.JPEG) result = 75;
+                    else if (zip.Contains(image?.Compression ?? CompressionMethod.Undefined)) result = 100;
+                }
             }
             return (result);
         }
@@ -1246,7 +1286,176 @@ namespace ImageCompare
             catch (Exception ex) { ex.ShowMessage(); }
             return (result);
         }
-        #endregion
+
+#if Q16HDRI
+        private static MagickColor[] GetMatrix(this IPixelCollection<float> pixels, uint x, uint y, uint w, uint h)
+#else
+        private static MagickColor[] GetMatrix(this IPixelCollection<byte> pixels, uint x, uint y, uint w, uint h)
+#endif
+        {
+            var ret = new List<MagickColor>();
+#if Q16HDRI
+            if (pixels is IPixelCollection<float>)
+#else
+            if (pixels is IPixelCollection<byte>)
+#endif
+            {
+                var area = pixels.GetArea((int)x, (int)y, w, h);
+                for (var i = 0; i < w; i++)
+                {
+                    for (var j = 0; j < h; j++)
+                    {
+                        var pixel = pixels.GetPixel(i, j);
+                        if (pixel.Channels == 3)
+                        {
+                            var color = new MagickColor(pixel.GetChannel(0), pixel.GetChannel(1), pixel.GetChannel(2));
+                            if (i < w && j < h) ret.Add(color);
+                        }
+                        else if (pixel.Channels == 4)
+                        {
+                            var color = new MagickColor(pixel.GetChannel(0), pixel.GetChannel(1), pixel.GetChannel(2), pixel.GetChannel(3));
+                            if (i < w && j < h) ret.Add(color);
+                        }
+                    }
+                }
+            }
+            return (ret.ToArray());
+        }
+
+        private static MagickColor[] GetMatrix(this MagickImage image, uint x, uint y, uint w, uint h)
+        {
+            var ret = new List<MagickColor>();
+            if (image is MagickImage && image.IsValidRead())
+            {
+                var pixels = image.GetPixels();
+                ret.AddRange(GetMatrix(pixels, x, y, w, h));
+            }
+            return (ret.ToArray());
+        }
+
+        public static bool GuessAlpha(this MagickImage image, uint window = 3, int threshold = 255)
+        {
+            var result = false;
+            try
+            {
+                if (image is MagickImage && image.IsValidRead())
+                {
+                    var status = image?.HasAlpha ?? false;
+                    if (status || image.IsPNG() || image.IsTIF() || image.IsBMP())
+                    {
+                        var w = image.Width;
+                        var h = image.Height;
+                        var m = window;
+                        var mt = Math.Ceiling(m * m / 2.0);
+                        var pixels = image.GetPixels();
+                        var lt = GetMatrix(pixels, 0, 0, m, m).Count(c => c.A < threshold);
+                        var rt = GetMatrix(pixels, w - m, 0, m, m).Count(c => c.A < threshold);
+                        var lb = GetMatrix(pixels, 0, h - m, m, m).Count(c => c.A < threshold);
+                        var rb = GetMatrix(pixels, w - m, h - m, m, m).Count(c => c.A < threshold);
+                        var ct = GetMatrix(pixels, (uint)(w / 2.0 - m / 2.0) , (uint)(h / 2.0 - m / 2.0), m, m).Count(c => c.A < threshold);
+                        status = (lt > mt || rt > mt || lb > mt || rb > mt || ct > mt) ? true : false;
+                    }
+                    result = status;
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage("GuessAlpha"); }
+            return (result);
+        }
+
+        private static System.Drawing.Color[] GetMatrix(System.Drawing.Bitmap bmp, int x, int y, int w, int h)
+        {
+            var ret = new List<System.Drawing.Color>();
+            if (bmp is System.Drawing.Bitmap)
+            {
+                //var data = bmp.LockBits(new Rectangle(x, y, w, h), ImageLockMode.ReadOnly, bmp.PixelFormat);
+                for (var i = x; i < x + w; i++)
+                {
+                    for (var j = y; j < y + h; j++)
+                    {
+                        if (i < bmp.Width && j < bmp.Height)
+                            ret.Add(bmp.GetPixel(i, j));
+                    }
+                }
+                //bmp.UnlockBits(data);
+            }
+            return (ret.ToArray());
+        }
+
+        public static bool GuessAlpha(this Stream source, int window = 3, int threshold = 255)
+        {
+            var result = false;
+            try
+            {
+                if (source is Stream && source.CanRead)
+                {
+                    var status = false;
+                    if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
+                    using (System.Drawing.Image image = System.Drawing.Image.FromStream(source))
+                    {
+                        if (image is System.Drawing.Image && (
+                            image.RawFormat.Guid.Equals(System.Drawing.Imaging.ImageFormat.Png.Guid) ||
+                            image.RawFormat.Guid.Equals(System.Drawing.Imaging.ImageFormat.Bmp.Guid) ||
+                            image.RawFormat.Guid.Equals(System.Drawing.Imaging.ImageFormat.Tiff.Guid)))
+                        {
+                            if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb) { status = true; }
+                            else if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppPArgb) { status = true; }
+                            else if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format16bppArgb1555) { status = true; }
+                            else if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format64bppArgb) { status = true; }
+                            else if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format64bppPArgb) { status = true; }
+                            else if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.PAlpha) { status = true; }
+                            else if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.Alpha) { status = true; }
+                            else if (System.Drawing.Image.IsAlphaPixelFormat(image.PixelFormat)) { status = true; }
+
+                            if (status)
+                            {
+                                var bmp = new System.Drawing.Bitmap(image);
+                                var w = bmp.Width;
+                                var h = bmp.Height;
+                                var m = window;
+                                var mt = Math.Ceiling(m * m / 2.0);
+                                var lt = GetMatrix(bmp, 0, 0, m, m).Count(c => c.A < threshold);
+                                var rt = GetMatrix(bmp, w - m, 0, m, m).Count(c => c.A < threshold);
+                                var lb = GetMatrix(bmp, 0, h - m, m, m).Count(c => c.A < threshold);
+                                var rb = GetMatrix(bmp, w - m, h - m, m, m).Count(c => c.A < threshold);
+                                var ct = GetMatrix(bmp, (int)(w / 2.0 - m / 2.0) , (int)(h / 2.0 - m / 2.0), m, m).Count(c => c.A < threshold);
+                                status = (lt > mt || rt > mt || lb > mt || rb > mt || ct > mt) ? true : false;
+                            }
+                        }
+                    }
+                    result = status;
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage("GuessAlpha"); }
+            return (result);
+        }
+
+        public static bool GuessAlpha(this byte[] buffer, int window = 3, int threshold = 255)
+        {
+            var result = false;
+            if (buffer is byte[] && buffer.Length > 0)
+            {
+                using (var ms = new MemoryStream(buffer))
+                {
+                    result = GuessAlpha(ms, window, threshold);
+                }
+            }
+            return (result);
+        }
+
+        public static bool GuessAlpha(this string file, int window = 3, int threshold = 255)
+        {
+            var result = false;
+
+            if (File.Exists(file))
+            {
+                using (var ms = new MemoryStream(File.ReadAllBytes(file)))
+                {
+                    result = GuessAlpha(ms, window, threshold);
+                }
+            }
+            return (result);
+        }
+#endregion
 
         #region Misc
         public static IList<string> NaturalSort(this IList<string> list, int padding = 16)

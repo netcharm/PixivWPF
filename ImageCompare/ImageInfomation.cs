@@ -100,7 +100,7 @@ namespace ImageCompare
             }
         }
         public IMagickFormatInfo OriginalFormatInfo { get { return (ValidOriginal ? MagickFormatInfo.Create(_original_.Format) : null); } }
-        public uint OriginalQuality => Original.Quality();
+        public uint OriginalQuality => Original?.Quality() ?? 0;
 
         private MagickImage _current_ = null;
         public MagickImage Current
@@ -169,7 +169,7 @@ namespace ImageCompare
             }
         }
         public IMagickFormatInfo CurrentFormatInfo { get { return (ValidCurrent ? MagickFormatInfo.Create(_current_.Format) : null); } }
-        public uint CurrentQuality => Current.Quality();
+        public uint CurrentQuality => Current?.Quality() ?? 0;
 
 #if Q16HDRI
         public IMagickColor<float> HighlightColor = MagickColors.Red;

@@ -2832,6 +2832,8 @@ namespace ImageCompare
         {
             ImageMagnifier.Dispatcher.Invoke(() =>
             {
+                if (ImageSource.Source == null && ImageTarget.Source == null && ImageResult.Source == null) return;
+
                 var mag = ImageMagnifier.IsEnabled;
                 if (state == null) { mag = !mag; }
                 else mag = state ?? false;
@@ -4716,19 +4718,23 @@ namespace ImageCompare
                 try
                 {
                     var source = (ImageType)(QualityChanger.Tag);
-                    if (source == ImageType.Source) IsProcessingSource = true;
-                    else if (source == ImageType.Target) IsProcessingTarget = true;
 
-                    var image = QualityChangerSlider.Tag as MagickImage;
-                    QualityChangerSlider.Tag = null;
-
-                    RenderRun(() =>
+                    var image_s = source == ImageType.Source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                    if (image_s.ValidCurrent)
                     {
-                        if (source == ImageType.Source) ImageSource.GetInformation().Current = image;
-                        else if (source == ImageType.Target) ImageTarget.GetInformation().Current = image;
+                        if (source == ImageType.Source) IsProcessingSource = true;
+                        else if (source == ImageType.Target) IsProcessingTarget = true;
 
-                        UpdateImageViewer(LastOpIsComposite, assign: true, reload: false, reload_type: source);
-                    });
+                        var image = QualityChangerSlider.Tag as MagickImage;
+                        RenderRun(() =>
+                        {
+                            if (source == ImageType.Source) ImageSource.GetInformation().Current = image;
+                            else if (source == ImageType.Target) ImageTarget.GetInformation().Current = image;
+
+                            UpdateImageViewer(LastOpIsComposite, assign: true, reload: false, reload_type: source);
+                        });
+                    }
+                    QualityChangerSlider.Tag = null;
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }
