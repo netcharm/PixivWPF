@@ -213,11 +213,13 @@
             </Grid>
         </xctk:ChildWindow>
         <!-- Image Viewer -->
-        <xctk:Zoombox Grid.Row="1" x:Name="ViewerBox" x:Uid="ViewBox" AllowDrop="True" Focusable="False" MinScale="0.1" MaxScale="10" 
-            DragOnPreview="False" ZoomOnPreview="False" IsAnimated="False" NavigateOnPreview="True" IsUsingScrollBars="False" KeepContentInBounds="True" 
+        <xctk:Zoombox Grid.Row="1" x:Name="ViewerBox" x:Uid="ViewBox" AllowDrop="True" Focusable="False" IsAnimated="False" 
+            AutoWrapContentWithViewbox="True"  DragOnPreview="False" ZoomOnPreview="False" NavigateOnPreview="True" IsUsingScrollBars="False" KeepContentInBounds="False" 
+            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+            MinScale="0.1" MaxScale="10" Scale="{Binding ElementName=ZoomRatio, Path=Value, Mode=TwoWay}"
             ToolTipOpening="Image_ToolTipOpening" CurrentViewChanged="ViewerBox_CurrentViewChanged"
             PreviewMouseMove="ViewerBox_PreviewMouseMove" PreviewMouseDown="ViewerBox_PreviewMouseDown" PreviewMouseWheel="ViewerBox_PreviewMouseWheel">
-            <Image x:Name="ImageViewer" x:Uid="ImageViewer" Stretch="None" ToolTipOpening="Image_ToolTipOpening"
+            <Image x:Name="ImageViewer" x:Uid="ImageViewer" Stretch="None" StretchDirection="DownOnly" ToolTipOpening="Image_ToolTipOpening" 
                 HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                 <Image.LayoutTransform>
                     <TransformGroup x:Uid="ImageViewerTransformGroup">

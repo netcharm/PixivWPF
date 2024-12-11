@@ -45,6 +45,7 @@ namespace ImageViewer
             get { return (_original_); }
             set
             {
+                CancelGetInfo?.Cancel();
                 if (_original_ is MagickImage) { _original_.Dispose(); _original_ = null; }
                 _original_ = value;
                 _OriginalModified_ = true;
@@ -216,7 +217,7 @@ namespace ImageViewer
                     try
                     {
                         var image = new MagickImage(Current) { FilterType = ResizeFilter };
-                        result = image.ToBitmapSource();
+                        result = image.ToBitmapSourceWithDensity();
                         image.Dispose();
                     }
                     catch (Exception ex) { ex.ShowMessage(); }
@@ -424,6 +425,8 @@ namespace ImageViewer
         /// <returns></returns>
         public async Task<string> GetImageInfo(bool include_colorinfo = false)
         {
+            if (IsGetInfo && CancelGetInfo != null) CancelGetInfo.Cancel();
+
             string result = string.Empty;
             if (ValidCurrent && !IsGetInfo)
             {
@@ -438,17 +441,22 @@ namespace ImageViewer
                         var DPI_TEXT = string.Empty;
                         if (Current?.Density == null || Current?.Density?.X <= 0 || Current?.Density?.Y <= 0)
                         {
+                            if (CancelGetInfo.IsCancellationRequested) return (ret);
                             var dpi = Application.Current.GetSystemDPI();
                             Current.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
                         }
+                        if (CancelGetInfo.IsCancellationRequested) return (ret);
+
                         var DPI_UNIT = Current?.Density?.Units == DensityUnit.PixelsPerCentimeter ? "PPC" : (Current?.Density?.Units == DensityUnit.PixelsPerInch ? "PPI" : string.Empty);
                         DPI_TEXT = DPI_UNIT.Equals("PPC") ? $"{Current?.Density?.X:F2} {DPI_UNIT} x {Current?.Density?.Y:F2} {DPI_UNIT}" : $"{Current?.Density?.X:F0} {DPI_UNIT} x {Current?.Density?.Y:F0} {DPI_UNIT}";
                         if (Current?.Density?.Units != DensityUnit.PixelsPerInch)
                         {
+                            if (CancelGetInfo.IsCancellationRequested) return (ret);
                             var dpi = Current?.Density?.ChangeUnits(DensityUnit.PixelsPerInch);
                             var dpi_text = $"{dpi.X:F0} PPI x {dpi.Y:F0} PPI";
                             DPI_TEXT = $"{DPI_TEXT} [{dpi_text}]";
                         }
+                        if (CancelGetInfo.IsCancellationRequested) return (ret);
 
                         var original_depth = CalcColorDepth(Original);
                         var current_depth = CalcColorDepth(Current);
@@ -462,22 +470,33 @@ namespace ImageViewer
                         tip.Add($"{"InfoTipBounding".T()} {box?.Width:F0}x{box?.Height:F0}");
                         tip.Add($"{"InfoTipOrientation".T()} {Original?.Orientation}");
                         tip.Add($"{"InfoTipResolution".T()} {DPI_TEXT}");
+                        if (CancelGetInfo.IsCancellationRequested) return (ret);
 
                         if (include_colorinfo) tip.Add(await GetTotalColors(cancel: CancelGetInfo.Token));
+                        if (CancelGetInfo.IsCancellationRequested) return (ret);
 
                         if (Current?.AttributeNames != null)
                         {
+                            if (CancelGetInfo.IsCancellationRequested) return (ret);
                             var fi = OriginalIsFile ? new FileInfo(FileName) : null;
                             if (fi is FileInfo && fi.Exists)
                             {
+                                if (CancelGetInfo.IsCancellationRequested) return (ret);
                                 if (Original?.Endian == Endian.Undefined) Original.Endian = DetectFileEndian(fi.FullName);
-                                if (Current?.Endian == Endian.Undefined) Current.Endian = Original.Endian;
+                                if (CancelGetInfo.IsCancellationRequested) return (ret);
+                                //if (Current?.Endian == Endian.Undefined) Current.Endian = Original?.Endian;
+                                //if (CancelGetInfo.IsCancellationRequested) return (ret);
                             }
                             else if (Type == ImageType.Result && Current?.Endian == Endian.Undefined)
+                            {
                                 Current.Endian = BitConverter.IsLittleEndian ? Endian.LSB : Endian.MSB;
+                                if (CancelGetInfo.IsCancellationRequested) return (ret);
+                            }
+                            if (CancelGetInfo.IsCancellationRequested) return (ret);
 
                             if (Current?.ArtifactNames?.Count() > 0)
                             {
+                                if (CancelGetInfo.IsCancellationRequested) return (ret);
                                 tip.Add($"{"InfoTipArtifacts".T()}");
                                 var artifacts = new List<string>();
                                 foreach (var artifact in Current?.ArtifactNames)
@@ -489,16 +508,20 @@ namespace ImageViewer
                                 }
                                 tip.AddRange(artifacts.OrderBy(a => a));
                             }
+                            if (CancelGetInfo.IsCancellationRequested) return (ret);
 
                             var exif = Current.HasProfile("exif") ? Current?.GetExifProfile() : new ExifProfile();
                             tip.Add($"{"InfoTipAttributes".T()}");
                             var attrs = new List<string>();
                             var tags = new Dictionary<string, IExifValue>();
                             foreach (var tv in exif.Values) { tags[$"exif:{tv.Tag}"] = tv; }
+                            if (CancelGetInfo.IsCancellationRequested) return (ret);
                             foreach (var attr in Current?.AttributeNames?.Union(new string[] { "exif:Rating", "exif:RatingPercent" }).Union(tags.Keys))
                             {
                                 try
                                 {
+                                    if (CancelGetInfo.IsCancellationRequested) break;
+
                                     var label = attr.PadRight(32, ' ');
                                     var value = Current.GetAttribute(attr);
                                     if (string.IsNullOrEmpty(value) && !attr.Contains("Rating") && !tags.Keys.Contains(attr)) continue;
@@ -643,6 +666,8 @@ namespace ImageViewer
                                             }
                                         }
                                     }
+                                    if (CancelGetInfo.IsCancellationRequested) break;
+
                                     if (string.IsNullOrEmpty(value)) continue;
                                     if (attr.EndsWith("Keywords") || attr.EndsWith("Author") || attr.EndsWith("Artist") || attr.EndsWith("Copyright") || attr.EndsWith("Copyrights"))
                                     {
@@ -652,11 +677,15 @@ namespace ImageViewer
                                     }
                                     else if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
                                     attrs.Add($"  {label}= {value.TextPadding(label, 4)}");
+                                    if (CancelGetInfo.IsCancellationRequested) break;
                                 }
                                 catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, $"{attr} : {ex.Message}"); }
+                                if (CancelGetInfo.IsCancellationRequested) break;
                             }
                             tip.AddRange(attrs.OrderBy(a => a));
+                            if (CancelGetInfo.IsCancellationRequested) return (ret);
                         }
+
                         if (OriginalFormatInfo != null)
                             tip.Add($"{"InfoTipFormatInfo".T()} {OriginalFormatInfo.Format} ({OriginalFormatInfo.Description}), mime:{OriginalFormatInfo.MimeType}");
                         else if (CurrentFormatInfo != null)
@@ -672,6 +701,8 @@ namespace ImageViewer
                         tip.Add($"{"InfoTipIdealMemoryUsage".T()} {(ValidOriginal ? OriginalIdealMemoryUsage.SmartFileSize() : CurrentIdealMemoryUsage.SmartFileSize())}");
                         tip.Add($"{"InfoTipMemoryUsage".T()} {(ValidOriginal ? OriginalRealMemoryUsage.SmartFileSize() : CurrentRealMemoryUsage.SmartFileSize())}");
                         tip.Add($"{"InfoTipDisplayMemory".T()} {CurrentDisplayMemoryUsage.SmartFileSize()}");
+                        if (CancelGetInfo.IsCancellationRequested) return (ret);
+
                         if (!string.IsNullOrEmpty(FileName))
                         {
                             if (ImageFileInfo is FileInfo)
@@ -700,7 +731,9 @@ namespace ImageViewer
                             tip.Add($"{"InfoTipFileName".T()} {Current?.FileName}");
                         }
                         ret = string.Join(Environment.NewLine, tip);
+                        if (CancelGetInfo.IsCancellationRequested) return (ret);
                     }
+                    catch (ObjectDisposedException) { }
                     catch (Exception ex) { ex.ShowMessage(); }
                     st.Stop();
 #if DEBUG

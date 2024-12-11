@@ -227,7 +227,7 @@ namespace ImageViewer
                     if (ui.ContextMenu is ContextMenu) Locale(ui.ContextMenu);
                 }
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show($"Locale : {element.Uid ?? element.ToString()} : {ex.Message}"); }
+            catch (Exception ex) { $"Locale : {element.Uid ?? element.ToString()} : {ex.Message}".ShowMessage(); }
         }
 
         public static void Locale(this FrameworkElement element, CultureInfo culture, IEnumerable<string> ignore_uids = null, IEnumerable<FrameworkElement> ignore_elements = null)
@@ -237,7 +237,7 @@ namespace ImageViewer
                 ChangeLocale(culture);
                 Locale(element, ignore_uids: ignore_uids, ignore_elements: ignore_elements);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show($"Locale : {ex.Message}"); }
+            catch (Exception ex) { $"Locale : {ex.Message}".ShowMessage(); }
         }
 
         public static void Locale(this IEnumerable<FrameworkElement> elements)
@@ -255,7 +255,7 @@ namespace ImageViewer
                 ChangeLocale(culture);
                 Locale(elements);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show($"Locale : {ex.Message}"); }
+            catch (Exception ex) { $"Locale : {ex.Message}".ShowMessage(); }
         }
 
         public static void ChangeLocale(this CultureInfo culture)
@@ -382,7 +382,7 @@ namespace ImageViewer
                 if (dpiXProperty != null) { result.X = (int)dpiXProperty.GetValue(null, null); }
                 if (dpiYProperty != null) { result.Y = (int)dpiYProperty.GetValue(null, null); }
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message); }
+            catch (Exception ex) { ex.ShowMessage(); }
             return (result);
         }
 
@@ -393,7 +393,7 @@ namespace ImageViewer
             {
                 result = GetColorDepth();
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message); }
+            catch (Exception ex) { ex.ShowMessage(); }
             return (result);
         }
 
@@ -436,6 +436,7 @@ namespace ImageViewer
 
         public static void ShowMessage(this Exception exception, string prefix = "")
         {
+            if (exception == null) return;
             Application.Current.Dispatcher.Invoke(() =>
             {
                 try
@@ -1179,7 +1180,8 @@ namespace ImageViewer
                     }
                 }
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message); }
+            catch (ObjectDisposedException) { }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
 
         public static MagickFormat GetMagickFormat(this string fmt)
@@ -1596,7 +1598,9 @@ namespace ImageViewer
             {
                 if (files.Count() > 1)
                 {
-                    foreach (var file in files) _file_list_storage_[file] = null;// File.GetLastWriteTime(file);
+                    _file_list_storage_.Clear();
+                    foreach (var file in files) _file_list_storage_[file] = null;
+                    await UpdateFileList();
                     result = true;
                 }
                 else result = await InitFileList(Path.GetDirectoryName(files.FirstOrDefault()));

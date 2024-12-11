@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Resources;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -454,43 +455,13 @@ namespace ImageViewer
             {
                 if (ImageViewer is Image)
                 {
-                    ImageViewer.Dispatcher.InvokeAsync(() =>
+                    ImageViewer.Dispatcher.Invoke(() =>
                     {
                         if (ImageViewer.Tag == null) ImageViewer.Tag = new ImageInformation() { Tagetment = ImageViewer, HighlightColor = HighlightColor, LowlightColor = LowlightColor, MasklightColor = MasklightColor };
                         else if (ImageViewer.Tag is ImageInformation) { var info = ImageViewer.Tag as ImageInformation; info.Tagetment = ImageViewer; info.HighlightColor = HighlightColor; info.LowlightColor = LowlightColor; info.MasklightColor = MasklightColor; }
                     });
                 }
             }
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        private void CenterViewer()
-        {
-            Dispatcher.InvokeAsync(() =>
-            {
-                ViewerBox.CenterContent();
-                DoEvents();
-            });
-        }
-
-        private void FitView()
-        {
-            ViewerBox.Dispatcher.InvokeAsync(() => 
-            {
-                if (ImageViewer.Source != null)
-                {
-                    var iw = ImageViewer.Source?.Width;
-                    var ih = ImageViewer.Source?.Height;
-
-                    var vw = ViewerBox.Viewport.Width;
-                    var vh = ViewerBox.Viewport.Height;
-
-                    if (iw > vw || ih > vh) ViewerBox.FitToBounds();
-                    else ViewerBox.Scale = 1f;
-                }
-            });
         }
 
         /// <summary>
@@ -571,7 +542,7 @@ namespace ImageViewer
         {
             if (Ready && element is Image && image is ImageSource)
             {
-                await element.Dispatcher.InvokeAsync(() => element.Source = image);
+                await element.Dispatcher.InvokeAsync(() => { try { element.Source = image; } catch { } });
             }
         }
 
@@ -584,13 +555,20 @@ namespace ImageViewer
         {
             if (Ready && element is Image && image is ImageInformation)
             {
-                await element.Dispatcher.InvokeAsync(() => 
-                { 
-                    element.Source = image.Source;
-                    if (fit) FitView();
-                });
-                var tooltip_s = image.ValidCurrent ? await image.GetImageInfo() : null;
-                SetToolTip(element, tooltip_s);
+                try
+                {
+                    await element.Dispatcher.InvokeAsync(() =>
+                    {
+                        try { 
+                        element.Source = image.Source;
+                        if (fit) FitView();
+                        }
+                        catch { }
+                    });
+                    var tooltip_s = image.ValidCurrent ? await image.GetImageInfo() : null;
+                    SetToolTip(element, tooltip_s);
+                }
+                catch { } 
             }
         }
 
@@ -887,6 +865,7 @@ namespace ImageViewer
                     await Task.Delay(1);
 
                     IsLoadingViewer = true;
+                    var is_null = IsImageNull(ImageViewer);
 
                     _ = Task.Run(async () => await files.InitFileList());
 
@@ -897,6 +876,9 @@ namespace ImageViewer
                     {
                         SetTitle(image.FileName);
                         RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
+                        await Task.Delay(1);
+                        //if (await UpdateImageViewerFinished() && is_null) FitView();
+                        if (await UpdateImageViewerFinished()) FitView();
                     }
                     else IsLoadingViewer = false;
                 }
@@ -917,7 +899,7 @@ namespace ImageViewer
         }
         #endregion
 
-        #region UI Indicator
+        #region UI Indicator Helper
         /// <summary>
         ///
         /// </summary>
@@ -1102,7 +1084,9 @@ namespace ImageViewer
             //CreateImageOpMenu(ImageTargetScroll);
             #endregion
         }
+        #endregion
 
+        #region Context Menu Helper
         private ContextMenu cm_grayscale_mode = null;
 
         private readonly List<FrameworkElement> cm_image_viewer = new List<FrameworkElement>();
@@ -1634,8 +1618,72 @@ namespace ImageViewer
             items.Locale();
             target.ContextMenu.ItemsSource = new ObservableCollection<FrameworkElement>(items);
         }
+        #endregion
 
+        #region ZoomBox Helper
+        /// <summary>
+        /// 
+        /// </summary>
+        private void InitZoomBox()
+        {
+            ViewerBox.Dispatcher.Invoke(() =>
+            {
+                //ViewerBox.ViewStackMode = ZoomboxViewStackMode.Disabled;
+                ImageViewer.Source = (ImageCanvas.Background as ImageBrush).ImageSource;
+                ViewerBox.MinScale = ZoomMin;
+                ViewerBox.MaxScale = 1.0;
+                //ViewerBox.MaxScale = ZoomMax;
+                ViewerBox.Scale = 0.99;
+                ViewerBox.Focusable = true;
+                ViewerBox.ZoomOnPreview = false;
+                ViewerBox.CenterContent();
+                ViewerBox.RefocusView();
+                ViewerBox.Focus();
+                ImageViewer.Source = null;
+                ViewerBox.ViewStack?.Clear();
+                ViewerBox.ViewStackMode = ZoomboxViewStackMode.Auto;
+                ViewerBox.UpdateLayout();
+            });
+        }
 
+        /// <summary>
+        ///
+        /// </summary>
+        private void CenterViewer()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                ViewerBox.CenterContent();
+                DoEvents();
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void FitView()
+        {
+            ViewerBox.Dispatcher.Invoke(() =>
+            {
+                if (ImageViewer.Source != null)
+                {
+                    ViewerBox.MaxScale = ZoomMax;
+
+                    var iw = ImageViewer.Source?.Width;
+                    var ih = ImageViewer.Source?.Height;
+
+                    var vw = ViewerBox.ActualWidth;
+                    var vh = ViewerBox.ActualHeight;
+
+                    if (iw >= vw || ih >= vh) ViewerBox.FitToBounds();
+                    else ViewerBox.Scale = 1f;
+                    ViewerBox.CenterContent();
+                }
+            });
+        }
+        #endregion
+
+        #region Quality Changer Helper
         private DispatcherTimer QualityChangerDelay = null;
 
         /// <summary>
@@ -1831,7 +1879,9 @@ namespace ImageViewer
             });
             return (result);
         }
+        #endregion
 
+        #region ToolTip Helper
         /// <summary>
         ///
         /// </summary>
@@ -2059,7 +2109,9 @@ namespace ImageViewer
                 catch { }
             });
         }
+        #endregion
 
+        #region Set Busy Cursor
         /// <summary>
         ///
         /// </summary>
@@ -2516,6 +2568,8 @@ namespace ImageViewer
             ChangeTheme();
             #endregion
 
+            UILanguage.ContextMenu.PlacementTarget = UILanguage;
+
             #region Default Zoom Ratio
             //ZoomFitAll.IsChecked = true;
             //ImageActions_Click(ZoomFitAll, e);
@@ -2572,17 +2626,12 @@ namespace ImageViewer
 
             ToolTipService.SetShowOnDisabled(ImageViewer, false);
 
-            ViewerBox.Focusable = true;
-            ViewerBox.ZoomOnPreview = false;
-            ViewerBox.CenterContent();
-            ViewerBox.ViewStack.Clear();
-            ViewerBox.RefocusView();
-            ViewerBox.Focus();
-
-            UILanguage.ContextMenu.PlacementTarget = UILanguage;
+            InitZoomBox();
 
             SyncColorLighting();
             DoEvents();
+
+            ZoomRatio.Value = 1.0;
 
             var opts = this.GetCmdLineOpts();
             var args = opts.Args.ToArray();
@@ -2871,6 +2920,10 @@ namespace ImageViewer
                     DoEvents();
                 }
             }
+            else if (e.ChangedButton == MouseButton.Left && e.ClickCount == 2 && Keyboard.Modifiers == ModifierKeys.None)
+            {
+                ToggleMagnifier(change_state: true);
+            }
         }
 
         private void ViewerBox_PreviewMouseMove(object sender, MouseEventArgs e)
@@ -2894,6 +2947,23 @@ namespace ImageViewer
                 }
             }
             catch (Exception ex) { ex.ShowMessage("MouseMove"); }
+        }
+
+        private void ViewerBox_CurrentViewChanged(object sender, ZoomboxViewChangedEventArgs e)
+        {
+            if (!Ready) return;
+            if (ViewerBox.CurrentView != null && ImageViewer.Source != null)
+            {
+                ViewerBox.MaxScale = ZoomMax;
+                var view = e.NewValue;
+                if (view.ViewKind == ZoomboxViewKind.Fit) { ZoomFitAll.IsChecked = true; ZoomFitNone.IsChecked = false; }
+                else { ZoomFitAll.IsChecked = false; ZoomFitNone.IsChecked = true; }
+            }
+            else
+            {
+                ViewerBox.MaxScale = 1f;
+                ViewerBox.Scale = 1f;
+            }
         }
 
         private void ImageActions_Click(object sender, RoutedEventArgs e)
@@ -2973,30 +3043,24 @@ namespace ImageViewer
 
             else if (sender == ZoomFitNone)
             {
+                ZoomFitNone.IsChecked = true;
+                ZoomFitAll.IsChecked = false;
                 CurrentZoomFitMode = ZoomFitMode.None;
-                ViewerBox.FillToBounds();
+                //ViewerBox.FillToBounds();
+                CalcDisplay();
             }
             else if (sender == ZoomFitAll)
             {
+                ZoomFitNone.IsChecked = false;
+                ZoomFitAll.IsChecked = true;
                 CurrentZoomFitMode = ZoomFitMode.All;
-                ViewerBox.FitToBounds();
+                FitView();
+                CalcDisplay();
             }
 
             else if (sender == ImageLoadHaldLut)
             {
                 LoadHaldLutFile();
-            }
-        }
-
-        private void ViewerBox_CurrentViewChanged(object sender, ZoomboxViewChangedEventArgs e)
-        {
-            if (Ready && ViewerBox.CurrentView != null && ImageViewer.Source != null)
-            {
-                var view = e.NewValue;
-                if (view.ViewKind == ZoomboxViewKind.Fit) { ZoomFitAll.IsChecked = true; ZoomFitNone.IsChecked = false; }
-                else { ZoomFitAll.IsChecked = false; ZoomFitNone.IsChecked = true; }
-                //ZoomRatio.Value = (double)(ImageViewer.ActualWidth / ImageViewer.Source?.Width);
-                ZoomRatio.Value = ViewerBox.Scale;
             }
         }
         #endregion
@@ -3023,7 +3087,6 @@ namespace ImageViewer
                 {
                     e.Handled = true;
                     ZoomRatio.ToolTip = $"{"Zoom Ratio".T(DefaultCultureInfo)}: {e.NewValue:F2}X";
-                    ViewerBox.Scale = e.NewValue;
                     LastZoomRatio = e.NewValue;
                 }
             }
