@@ -369,7 +369,7 @@ namespace ImageViewer
         /// <param name="endian"></param>
         public void FixEndian(MagickImage image, Endian endian)
         {
-            if (image.Endian == Endian.Undefined) image.Endian = endian;
+            if (image.Endian == Endian.Undefined && endian != Endian.Undefined) image.Endian = endian;
         }
 
         /// <summary>
@@ -418,6 +418,7 @@ namespace ImageViewer
         /// </summary>
         private bool IsGetInfo = false;
         CancellationTokenSource CancelGetInfo = new CancellationTokenSource();
+
         /// <summary>
         ///
         /// </summary>
@@ -933,18 +934,27 @@ namespace ImageViewer
                             else
                             {
                                 var exif = new CompactExifLib.ExifData(fs);
-                                OriginalDepth = (uint)exif.ColorDepth;
-                                OriginalEndian = exif.ByteOrder == CompactExifLib.ExifByteOrder.LittleEndian ? Endian.LSB : Endian.MSB;
+                                if (exif.ImageType == CompactExifLib.ImageType.Unknown)
+                                {
+                                    OriginalDepth = 0;
+                                    OriginalEndian = Endian.Undefined;
+                                }
+                                else
+                                {
+                                    OriginalDepth = (uint)exif.ColorDepth;
+                                    OriginalEndian = exif.ByteOrder == CompactExifLib.ExifByteOrder.LittleEndian ? Endian.LSB : Endian.MSB;
+                                }
 
                                 fs.Seek(0, SeekOrigin.Begin);
                                 try
                                 {
                                     var count = 0;
                                     var image = new MagickImage(fs, ext.GetImageFileFormat());
-                                    while ((image.MetaChannelCount > 0 || CalcColorDepth(image) != OriginalDepth) && count < 10)
+                                    while ((image.MetaChannelCount > 0 || CalcColorDepth(image) < OriginalDepth) && count < 20)
                                     {
                                         fs.Seek(0, SeekOrigin.Begin);
                                         image = new MagickImage(fs, ext.GetImageFileFormat());
+                                        FixEndian(image, OriginalEndian);
                                         count++;
                                     }
                                     Original = new MagickImage(image);
