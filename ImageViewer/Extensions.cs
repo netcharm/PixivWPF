@@ -1529,9 +1529,9 @@ namespace ImageViewer
 
         public static async Task<List<string>> GetFileList(this object file)
         {
-            if (_file_list_.Count() != _file_list_storage_.Count) await UpdateFileList();
+            if (_file_list_.Any() && _file_list_.Count() != _file_list_storage_.Count) await UpdateFileList();
             var result = new List<string>();
-            if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(10)))
+            if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(30)))
             {
                 result = _file_list_;
                 _file_list_updating_.Release();
@@ -1561,19 +1561,26 @@ namespace ImageViewer
         public static async Task<bool> InitFileList(this string path)
         {
             var result = false;
-            result = await Task.Run(() =>
+            result = await Task.Run(async () =>
             {
                 var ret = false;
-                if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
+                if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(1)))
                 {
-                    _file_list_.Clear();
-                    _file_list_storage_.Clear();
-                    //foreach (var file in Directory.GetFiles(path, "*.*").Where(f => SupportedExt(f)))
-                    foreach (var file in Directory.EnumerateFiles(path, "*.*").Where(f => SupportedExt(f)))
+                    try
                     {
-                        _file_list_storage_[file] = File.GetLastWriteTime(file);
+                        if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
+                        {
+                            _file_list_.Clear();
+                            _file_list_storage_.Clear();
+                            foreach (var file in Directory.GetFiles(path, "*.*").Where(f => SupportedExt(f)))
+                            //foreach (var file in Directory.EnumerateFiles(path, "*.*").Where(f => SupportedExt(f)))
+                            {
+                                _file_list_storage_[file] = null;//File.GetLastWriteTime(file);
+                            }
+                            ret = true;
+                        }
                     }
-                    ret = true;
+                    finally { _file_list_updating_.Release(); }                    
                 }
                 return (ret);
             });

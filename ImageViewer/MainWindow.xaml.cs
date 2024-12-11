@@ -475,6 +475,24 @@ namespace ImageViewer
             });
         }
 
+        private void FitView()
+        {
+            ViewerBox.Dispatcher.InvokeAsync(() => 
+            {
+                if (ImageViewer.Source != null)
+                {
+                    var iw = ImageViewer.Source?.Width;
+                    var ih = ImageViewer.Source?.Height;
+
+                    var vw = ViewerBox.Viewport.Width;
+                    var vh = ViewerBox.Viewport.Height;
+
+                    if (iw > vw || ih > vh) ViewerBox.FitToBounds();
+                    else ViewerBox.Scale = 1f;
+                }
+            });
+        }
+
         /// <summary>
         ///
         /// </summary>
@@ -562,11 +580,15 @@ namespace ImageViewer
         /// </summary>
         /// <param name="element"></param>
         /// <param name="image"></param>
-        private async void SetImageSource(Image element, ImageInformation image, bool fit = true)
+        private async void SetImageSource(Image element, ImageInformation image, bool fit = false)
         {
             if (Ready && element is Image && image is ImageInformation)
             {
-                await element.Dispatcher.InvokeAsync(() => { element.Source = image.Source; if (fit) ViewerBox.FitToBounds(); });
+                await element.Dispatcher.InvokeAsync(() => 
+                { 
+                    element.Source = image.Source;
+                    if (fit) FitView();
+                });
                 var tooltip_s = image.ValidCurrent ? await image.GetImageInfo() : null;
                 SetToolTip(element, tooltip_s);
             }
