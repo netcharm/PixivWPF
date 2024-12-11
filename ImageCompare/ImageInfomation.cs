@@ -56,7 +56,6 @@ namespace ImageCompare
                     Dispatcher.CurrentDispatcher.Invoke(async () => { await Reload(); });
                 }
                 GetProfiles();
-
             }
         }
         public Size OriginalSize { get { return (ValidOriginal ? new Size((double)(Original?.Width), (double)(Original?.Height)) : new Size(0, 0)); } }
@@ -101,6 +100,8 @@ namespace ImageCompare
         }
         public IMagickFormatInfo OriginalFormatInfo { get { return (ValidOriginal ? MagickFormatInfo.Create(_original_.Format) : null); } }
         public uint OriginalQuality => Original?.Quality() ?? 0;
+        public uint OriginalDepth = 0;
+        public Endian OriginalEndian = Endian.Undefined;
 
         private MagickImage _current_ = null;
         public MagickImage Current
@@ -217,6 +218,7 @@ namespace ImageCompare
                         image.Extent(SourceParams.Geometry, SourceParams.Align, MagickColors.Transparent);
                         image.ResetPage();
                         result = image.ToBitmapSource();
+                        image.Dispose();
                     }
                     catch (Exception ex) { ex.ShowMessage(); }
                 }
@@ -340,6 +342,36 @@ namespace ImageCompare
                 }
             }
             return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public Endian DetectFileEndian(Stream stream)
+        {
+            var result = Endian.Undefined;
+            if (stream is Stream && stream.CanRead && stream.CanSeek)
+            {
+                var exif = new CompactExifLib.ExifData(stream);
+                if (exif is CompactExifLib.ExifData)
+                {
+                    if (exif.ByteOrder == CompactExifLib.ExifByteOrder.BigEndian) result = Endian.MSB;
+                    else if (exif.ByteOrder == CompactExifLib.ExifByteOrder.LittleEndian) result = Endian.LSB;
+                }
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="endian"></param>
+        public void FixEndian(MagickImage image, Endian endian)
+        {
+            if (image.Endian == Endian.Undefined) image.Endian = endian;
         }
 
         /// <summary>
@@ -854,20 +886,38 @@ namespace ImageCompare
                     var ret = false;
                     try
                     {
-                        using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
-                        {
-                            LastFileName = file;
-                            FileName = file;
-                            ImageFileInfo = new FileInfo(file);
-                            ImageFileInfo.Refresh();
+                        ImageFileInfo = new FileInfo(file);
+                        LastFileName = ImageFileInfo.FullName;
+                        FileName = ImageFileInfo.FullName;
+                        var ext = Path.GetExtension(FileName).ToLower();
 
-                            if (Path.GetExtension(file).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
+                        using (var fs = new FileStream(FileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        {
+                            if (ext.Equals(".cube"))
                             {
                                 Original = fs.Lut2Png();
                             }
                             else
                             {
-                                try { Original = new MagickImage(fs, Path.GetExtension(file).GetImageFileFormat()); }
+                                var exif = new CompactExifLib.ExifData(fs);
+                                OriginalDepth = (uint)exif.ColorDepth;
+                                OriginalEndian = exif.ByteOrder == CompactExifLib.ExifByteOrder.LittleEndian ? Endian.LSB : Endian.MSB;
+
+                                fs.Seek(0, SeekOrigin.Begin);
+                                try
+                                {
+                                    var count = 0;
+                                    var image = new MagickImage(fs, ext.GetImageFileFormat());
+                                    while ((image.MetaChannelCount > 0 || CalcColorDepth(image) != OriginalDepth) && count < 10)
+                                    {
+                                        fs.Seek(0, SeekOrigin.Begin);
+                                        image = new MagickImage(fs, ext.GetImageFileFormat());
+                                        FixEndian(image, OriginalEndian);
+                                        count++;
+                                    }
+                                    Original = new MagickImage(image);
+                                    image.Dispose();
+                                }
                                 catch
                                 {
                                     if (fs.CanSeek) fs.Seek(0, SeekOrigin.Begin);

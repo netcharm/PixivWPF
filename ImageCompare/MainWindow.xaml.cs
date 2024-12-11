@@ -1068,6 +1068,9 @@ namespace ImageCompare
                     autocompare |= AutoComparing;
                     var exchanged = IsExchanged;
 
+                    if (image_s.Type == ImageType.None) image_s.Type = ImageType.Source;
+                    if (image_t.Type == ImageType.None) image_t.Type = ImageType.Target;
+                    if (image_r.Type == ImageType.None) image_r.Type = ImageType.Result;
 
                     source = IsImageNull(ImageSource);
                     target = IsImageNull(ImageTarget);

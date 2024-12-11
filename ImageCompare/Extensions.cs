@@ -1333,14 +1333,14 @@ namespace ImageCompare
             return (ret.ToArray());
         }
 
-        public static bool GuessAlpha(this MagickImage image, uint window = 3, int threshold = 255)
+        public static bool GuessAlpha(this MagickImage image, uint window = 3, int threshold = 255, bool force = false)
         {
             var result = false;
             try
             {
                 if (image is MagickImage && image.IsValidRead())
                 {
-                    var status = image?.HasAlpha ?? false;
+                    var status = force ? false : image?.HasAlpha ?? false;
                     if (status || image.IsPNG() || image.IsTIF() || image.IsBMP())
                     {
                         var w = image.Width;
