@@ -1646,7 +1646,7 @@ namespace ImageViewer
                     return (ret);
                 });
             }
-            return (result);
+            return (new MagickImage(result));
         }
         #endregion
     }

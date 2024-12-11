@@ -279,8 +279,8 @@
   <data name="ResultTipMode" xml:space="preserve">
     <value>模式 :</value>
   </data>
-  <data name="ResultTipDifference" xml:space="preserve">
-    <value>差异 :</value>
+  <data name="ResultTipSize" xml:space="preserve">
+    <value>预计文件 :</value>
   </data>
   <data name="ResultTipElapsed" xml:space="preserve">
     <value>用时 :</value>

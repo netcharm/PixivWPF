@@ -279,8 +279,8 @@
   <data name="ResultTipMode" xml:space="preserve">
     <value>モード :</value>
   </data>
-  <data name="ResultTipDifference" xml:space="preserve">
-    <value>違い   :</value>
+  <data name="ResultTipSize" xml:space="preserve">
+    <value>推定 :</value>
   </data>
   <data name="ResultTipElapsed" xml:space="preserve">
     <value>使用時 :</value>

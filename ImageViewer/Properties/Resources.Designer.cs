@@ -1339,15 +1339,6 @@ namespace ImageViewer.Properties {
         }
         
         /// <summary>
-        ///   查找类似 Difference : 的本地化字符串。
-        /// </summary>
-        public static string ResultTipDifference {
-            get {
-                return ResourceManager.GetString("ResultTipDifference", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 Elapsed    : 的本地化字符串。
         /// </summary>
         public static string ResultTipElapsed {
@@ -1362,6 +1353,15 @@ namespace ImageViewer.Properties {
         public static string ResultTipMode {
             get {
                 return ResourceManager.GetString("ResultTipMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 File : 的本地化字符串。
+        /// </summary>
+        public static string ResultTipSize {
+            get {
+                return ResourceManager.GetString("ResultTipSize", resourceCulture);
             }
         }
         

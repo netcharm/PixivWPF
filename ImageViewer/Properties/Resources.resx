@@ -279,8 +279,8 @@
   <data name="ResultTipMode" xml:space="preserve">
     <value>Mode       :</value>
   </data>
-  <data name="ResultTipDifference" xml:space="preserve">
-    <value>Difference :</value>
+  <data name="ResultTipSize" xml:space="preserve">
+    <value>File :</value>
   </data>
   <data name="ResultTipElapsed" xml:space="preserve">
     <value>Elapsed    :</value>

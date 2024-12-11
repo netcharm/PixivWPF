@@ -194,8 +194,9 @@
                 </StackPanel>
             </ToggleButton>
         </ToolBar>
-        <xctk:ChildWindow Grid.Row="1" x:Name="QualityChanger" x:Uid="QualityChanger" MaxWidth="320" MaxHeight="120" WindowStartupLocation="Center" CloseButtonClicked="QualityChanger_CloseButtonClicked" >
-            <Grid Margin="8" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+        <xctk:ChildWindow Grid.Row="1" x:Name="QualityChanger" x:Uid="QualityChanger" WindowStartupLocation="Manual" CloseButtonClicked="QualityChanger_CloseButtonClicked" 
+            HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,100" Grid.IsSharedSizeScope="True" >
+            <Grid Margin="8" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>

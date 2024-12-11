@@ -571,10 +571,6 @@
           <source>Reset Transforms</source>
           <target state="new">重置变换</target>
         </trans-unit>
-        <trans-unit id="ResultTipDifference" translate="yes" xml:space="preserve">
-          <source>Difference :</source>
-          <target state="new">差异 :</target>
-        </trans-unit>
         <trans-unit id="ResultTipElapsed" translate="yes" xml:space="preserve">
           <source>Elapsed    :</source>
           <target state="new">用时 :</target>
@@ -582,6 +578,10 @@
         <trans-unit id="ResultTipMode" translate="yes" xml:space="preserve">
           <source>Mode       :</source>
           <target state="new">模式 :</target>
+        </trans-unit>
+        <trans-unit id="ResultTipSize" translate="yes" xml:space="preserve">
+          <source>File :</source>
+          <target state="new">预计文件 :</target>
         </trans-unit>
         <trans-unit id="Rotate090.Header" translate="yes" xml:space="preserve">
           <source>Rotate +90</source>

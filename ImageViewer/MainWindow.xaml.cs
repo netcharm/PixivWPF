@@ -492,29 +492,12 @@ namespace ImageViewer
                     }
                     #endregion
 
-                    //if (ZoomFitAll.IsChecked ?? false)
-                    //{
-                    //    if (ImageViewer.Source != null)
-                    //    {
-                    //        ViewerBox.FitToBounds();
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    if (ImageViewer.Source != null)
-                    //    {
-                    //        ViewerBox.FillToBounds();
-                    //    }
-                    //}
-
                     if (ZoomFitNone.IsChecked ?? false) ZoomRatio.IsEnabled = true;
                     else ZoomRatio.IsEnabled = false;
                     ZoomRatioValue.IsEnabled = ZoomRatio.IsEnabled;
 
                     await Task.Delay(1);
                     DoEvents();
-
-                    AdjustQualityChangerPos();
                 });
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -579,11 +562,11 @@ namespace ImageViewer
         /// </summary>
         /// <param name="element"></param>
         /// <param name="image"></param>
-        private async void SetImageSource(Image element, ImageInformation image)
+        private async void SetImageSource(Image element, ImageInformation image, bool fit = true)
         {
             if (Ready && element is Image && image is ImageInformation)
             {
-                await element.Dispatcher.InvokeAsync(() => { element.Source = image.Source; ViewerBox.FitToBounds(); });
+                await element.Dispatcher.InvokeAsync(() => { element.Source = image.Source; if (fit) ViewerBox.FitToBounds(); });
                 var tooltip_s = image.ValidCurrent ? await image.GetImageInfo() : null;
                 SetToolTip(element, tooltip_s);
             }
@@ -878,28 +861,18 @@ namespace ImageViewer
                 files = files.Select(f => f.Trim()).Where(f => f.IsSupportedExt()).Where(f => !string.IsNullOrEmpty(f) && File.Exists(f)).ToArray();
                 if (files.Length > 0)
                 {
-                    _ = Task.Run(async () => await files.InitFileList());
-
-                    var load_type = ImageType.Source;
-
-                    var image_s = ImageViewer.GetInformation();
-
-                    var file_s = string.Empty;
-
-                    if (new ImageType[] { load_type, ImageType.All }.Contains(GetQualityChangerSource()))
-                    {
-                        CloseQualityChanger(source: load_type);
-                        await Task.Delay(1);
-                    }
+                    CloseQualityChanger();
+                    await Task.Delay(1);
 
                     IsLoadingViewer = true;
 
-                    var image  = image_s;
+                    _ = Task.Run(async () => await files.InitFileList());
+
+                    var image  = ImageViewer.GetInformation();
                     action |= await image.LoadImageFromFile(files.First());
-                    
+
                     if (action)
                     {
-                        _last_loading_ = load_type;
                         SetTitle(image.FileName);
                         RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                     }
@@ -1640,29 +1613,6 @@ namespace ImageViewer
             target.ContextMenu.ItemsSource = new ObservableCollection<FrameworkElement>(items);
         }
 
-        /// <summary>
-        ///
-        /// </summary>
-        private void AdjustQualityChangerPos()
-        {
-            QualityChanger.Dispatcher.InvokeAsync(() =>
-            {
-                if (QualityChanger.IsVisible && QualityChanger.Tag is ImageType)
-                {
-                    QualityChanger.WindowStartupLocation = Xceed.Wpf.Toolkit.WindowStartupLocation.Manual;
-                    var pw = ViewerBox.Viewport.Width;
-                    var ph = ViewerBox.Viewport.Height;
-                    var qw = QualityChanger.DesiredSize.Width;
-                    var qh = QualityChanger.DesiredSize.Height;
-                    var center_x = pw / 2f;
-                    var center_y = ph;
-                    QualityChanger.Left = center_x - ( qw / 2f);
-                    QualityChanger.Top = center_y - (qh * 1.5);
-                    QualityChanger.Show();
-                    QualityChanger.IsActive = true;
-                }
-            });
-        }
 
         private DispatcherTimer QualityChangerDelay = null;
 
@@ -1678,6 +1628,8 @@ namespace ImageViewer
             }
         }
 
+        private ImageInformation _quality_temp_ = null;
+
         /// <summary>
         ///
         /// </summary>
@@ -1686,9 +1638,9 @@ namespace ImageViewer
         private void QualityChangerDelay_Tick(object sender, EventArgs e)
         {
             QualityChangerDelay.Stop();
-            if (IsQualityChanger && QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
+            if (IsQualityChanger)
             {
-                var source = (ImageType)(QualityChanger.Tag);
+                //var source = (ImageType)(QualityChanger.Tag);
                 var quality = (uint)(QualityChangerSlider.Value);
 
                 RenderRun(async () =>
@@ -1697,24 +1649,27 @@ namespace ImageViewer
                     {
                         IsProcessingViewer = true;
 
-                        var image_s = ImageViewer.GetInformation();
-                        var image = image_s.Original;
-                        var quality_o = image_s.OriginalQuality;
+                        var info = ImageViewer.GetInformation();
+                        var image = new MagickImage(info.Current);
+                        var quality_o = info.OriginalQuality;
+
+                        var image_s = _quality_temp_ ?? new ImageInformation();
 
                         var result = quality < quality_o ? await ChangeQuality(image, quality) : new MagickImage(image);
-                        image_s.Current = new MagickImage(result);
+                        image_s.Original = new MagickImage(result);
+                        SetImageSource(ImageViewer, image_s, fit: false);
                         result.Dispose();
 
-                        UpdateImageViewer(LastOpIsComposite, assign: true, reload: false);
                         await Task.Delay(1);
 
-                        if (await UpdateImageViewerFinished(TaskTimeOutSeconds) && ImageViewer.GetInformation().ValidCurrent)
+                        if (info.ValidCurrent)
                         {
-                            var diff = ImageViewer.GetInformation().Current?.GetArtifact("compare:difference");
-                            SetQualityChangerTitle(string.IsNullOrEmpty(diff) ? null : $"{image_s.CurrentQuality}, {"ResultTipDifference".T()} {diff}");
+                            var size = image_s.Current?.GetArtifact("filesize");
+                            SetQualityChangerTitle(string.IsNullOrEmpty(size) ? null : $"{image_s.CurrentQuality}, {"ResultTipSize".T()} {size}");
                         }
                     }
                     catch (Exception ex) { ex.ShowMessage(); }
+                    finally { IsProcessingViewer = false; }
                 });
             }
         }
@@ -1725,7 +1680,7 @@ namespace ImageViewer
         ///
         /// </summary>
         /// <param name="info"></param>
-        private void OpenQualityChanger(ImageType source)
+        private void OpenQualityChanger(ImageType source = ImageType.None)
         {
             if (Ready && !IsQualityChanger)
             {
@@ -1739,23 +1694,21 @@ namespace ImageViewer
                         var quality = image.Quality();
                         var quality_str = quality > 0  ? $"{quality}" : "Unknown";
                         QualityChangeerTitle = $"{"InfoTipQuality".T().Trim('=').Trim()} : {quality_str}";
-                        QualityChanger.Tag = source;
                         QualityChanger.Caption = QualityChangeerTitle;
                         QualityChanger.FocusedElement = QualityChangerSlider;
                         QualityChangerSlider.Maximum = quality > 0 ? quality : 100;
                         QualityChangerSlider.Width = 300;
                         QualityChangerSlider.IsSnapToTickEnabled = true;
-                        QualityChangerSlider.Tag = new MagickImage(image);
                         QualityChangerSlider.Ticks = new DoubleCollection() { 10, 25, 30, 35, 55, 60, 65, 70, 75, 85, 95 };
                         QualityChangerSlider.TickPlacement = System.Windows.Controls.Primitives.TickPlacement.Both;
                         QualityChangerSlider.LargeChange = 5;
                         QualityChangerSlider.SmallChange = 1;
                         QualityChangerSlider.Value = quality > 0 ? quality : 100;
+                        QualityChanger.FocusedElement = QualityChangerSlider;
                         QualityChanger.Show();
 
                         await Task.Delay(1);
                         DoEvents();
-                        AdjustQualityChangerPos();
 
                         QualityChangerSlider.Focusable = true;
                         QualityChangerSlider.Focus();
@@ -1768,13 +1721,6 @@ namespace ImageViewer
                     }
                 });
             }
-            else if (Ready && IsQualityChanger)
-            {
-                QualityChanger.Dispatcher.InvokeAsync(() =>
-                {
-                    AdjustQualityChangerPos();
-                });
-            }
         }
 
         /// <summary>
@@ -1782,7 +1728,7 @@ namespace ImageViewer
         /// </summary>
         private void CloseQualityChanger(bool restore = false, ImageType source = ImageType.All)
         {
-            if (Ready && IsQualityChanger && (source == GetQualityChangerSource() || source == ImageType.All))
+            if (Ready && IsQualityChanger)
             {
                 QualityChanger.Dispatcher.InvokeAsync(() =>
                 {
@@ -1804,7 +1750,7 @@ namespace ImageViewer
         {
             QualityChanger.Dispatcher.InvokeAsync(() =>
             {
-                title = title.Trim();
+                title = title?.Trim();
                 QualityChanger.Caption = string.IsNullOrEmpty(title) ? $"{QualityChangeerTitle}" : $"{QualityChangeerTitle} => {title}";
             });
         }
@@ -2708,7 +2654,7 @@ namespace ImageViewer
                 try
                 {
                     e.Handled = false;
-                    if      (Keyboard.Modifiers == ModifierKeys.Control && (e.Key == Key.W || e.SystemKey == Key.W))
+                    if (Keyboard.Modifiers == ModifierKeys.Control && (e.Key == Key.W || e.SystemKey == Key.W))
                     {
                         e.Handled = true;
                         Close();
@@ -2868,7 +2814,7 @@ namespace ImageViewer
                 e.Handled = true;
                 if (e.ClickCount >= 1) CenterViewer();
             }
-            else if (e.ChangedButton == MouseButton.Middle)
+            else if (e.ChangedButton == MouseButton.Middle && Keyboard.Modifiers == ModifierKeys.None)
             {
                 e.Handled = true;
                 Close();
@@ -3075,7 +3021,7 @@ namespace ImageViewer
         private DateTime _last_quality_change = default;
         private void QualityChangerSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (Ready && IsQualityChanger && QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
+            if (Ready && IsQualityChanger)
             {
                 try
                 {
@@ -3083,19 +3029,18 @@ namespace ImageViewer
                     _last_quality_change = DateTime.Now;
                     if (delta < CountDownTimeOut) QualityChangerDelay.Stop();
 
-                    var source = (ImageType)(QualityChanger.Tag);
-
                     var image_s = ImageViewer.GetInformation();
-                    var image = image_s.Original;
-
-                    var quality_n = (uint)e.NewValue;
-                    var quality_o = image_s.OriginalQuality;
-
-                    if (e.NewValue != e.OldValue && quality_n <= quality_o && !IsBusy)
+                    if (image_s.ValidCurrent)
                     {
-                        e.Handled = true;
-                        SetQualityChangerTitle($"{quality_n}");
-                        QualityChangerDelay.Start();
+                        var quality_n = (uint)e.NewValue;
+                        var quality_o = image_s.OriginalQuality;
+
+                        if (e.NewValue != e.OldValue && quality_n <= quality_o && !IsBusy)
+                        {
+                            e.Handled = true;
+                            SetQualityChangerTitle($"{quality_n}");
+                            QualityChangerDelay.Start();
+                        }
                     }
 #if DEBUG
                     System.Diagnostics.Debug.WriteLine($"Key Interval: {delta}ms");
@@ -3107,29 +3052,19 @@ namespace ImageViewer
 
         private void QualityChanger_CloseButtonClicked(object sender, RoutedEventArgs e)
         {
-            if (QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
+            try
             {
-                try
+                var image_s = ImageViewer.GetInformation();
+                if (image_s.ValidCurrent)
                 {
-                    var source = (ImageType)(QualityChanger.Tag);
-
-                    var image_s = ImageViewer.GetInformation();
-                    if (image_s.ValidCurrent)
-                    {
-                        IsProcessingViewer = true;
-
-                        var image = QualityChangerSlider.Tag as MagickImage;
-                        RenderRun(() =>
-                        {
-                            ImageViewer.GetInformation().Current = image;
-                            UpdateImageViewer(LastOpIsComposite, assign: true, reload: false, reload_type: source);
-                        });
-                    }
-                    QualityChangerSlider.Tag = null;
+                    IsProcessingViewer = true;
+                    SetImageSource(ImageViewer, image_s, fit: false);
                 }
-                catch (Exception ex) { ex.ShowMessage(); }
+                QualityChangerSlider.Tag = null;
             }
-        }
+            catch (Exception ex) { ex.ShowMessage(); }
+            finally { IsProcessingViewer = false; }
+        } 
         #endregion
 
     }
