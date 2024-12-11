@@ -1,0 +1,118 @@
+﻿<Application x:Uid="Application_1" x:Class="ImageViewer.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:local="clr-namespace:ImageViewer"
+             StartupUri="MainWindow.xaml" Startup="Application_Startup" Exit="Application_Exit">
+    <Application.Resources>
+        <FontFamily x:Uid="MonoSpaceFamily" x:Key="MonoSpaceFamily">
+            霞骛文楷等宽, LXGW WenKai Mono, Sarasa Mono J, 等距更纱黑体 SC, Iosevka, Consolas, FontAwesome, Segoe UI Emoji, Segoe UI Symbol, Segoe MDL2 Assets, Twemoji Mozilla, EmojiOne Mozilla, Noto Color Emoji, Noto Emoji, 更纱黑体 SC, Segoe UI, Monospace
+        </FontFamily>
+        <FontFamily x:Key="SegoeIconFamily">
+            Segoe MDL2 Assets, Segoe UI Emoji, Segoe UI Symbol, 霞骛文楷, LXGW WenKai, FontAwesome, Twemoji Mozilla, EmojiOne Mozilla, EmojiOne Color, Noto Color Emoji, Noto Emoji, Sarasa Gothic J, 更纱黑体 SC, Segoe UI
+        </FontFamily>
+        <sys:Double x:Uid="MonoSpaceSize" x:Key="MonoSpaceSize">14</sys:Double>
+
+        <ScaleTransform x:Key="FlipX">
+            <ScaleTransform.CenterX>0.5</ScaleTransform.CenterX>
+            <ScaleTransform.CenterY>0.5</ScaleTransform.CenterY>
+            <ScaleTransform.ScaleX>-1</ScaleTransform.ScaleX>
+            <ScaleTransform.ScaleY>1</ScaleTransform.ScaleY>
+        </ScaleTransform>
+        <ScaleTransform x:Key="FlipY">
+            <ScaleTransform.CenterX>0.5</ScaleTransform.CenterX>
+            <ScaleTransform.CenterY>0.5</ScaleTransform.CenterY>
+            <ScaleTransform.ScaleX>1</ScaleTransform.ScaleX>
+            <ScaleTransform.ScaleY>-1</ScaleTransform.ScaleY>
+        </ScaleTransform>
+
+        <RotateTransform x:Key="RotateLeft">
+            <RotateTransform.CenterX>0.5</RotateTransform.CenterX>
+            <RotateTransform.CenterY>0.5</RotateTransform.CenterY>
+            <RotateTransform.Angle>-90</RotateTransform.Angle>
+        </RotateTransform>
+        <RotateTransform x:Key="RotateRight">
+            <RotateTransform.CenterX>0.5</RotateTransform.CenterX>
+            <RotateTransform.CenterY>0.5</RotateTransform.CenterY>
+            <RotateTransform.Angle>90</RotateTransform.Angle>
+        </RotateTransform>
+
+        <RotateTransform x:Key="Rotate045">
+            <RotateTransform.CenterX>0.5</RotateTransform.CenterX>
+            <RotateTransform.CenterY>0.5</RotateTransform.CenterY>
+            <RotateTransform.Angle>45</RotateTransform.Angle>
+        </RotateTransform>
+        <RotateTransform x:Key="Rotate090">
+            <RotateTransform.CenterX>0.5</RotateTransform.CenterX>
+            <RotateTransform.CenterY>0.5</RotateTransform.CenterY>
+            <RotateTransform.Angle>90</RotateTransform.Angle>
+        </RotateTransform>
+        <RotateTransform x:Key="Rotate135">
+            <RotateTransform.CenterX>0.5</RotateTransform.CenterX>
+            <RotateTransform.CenterY>0.5</RotateTransform.CenterY>
+            <RotateTransform.Angle>135</RotateTransform.Angle>
+        </RotateTransform>
+        <RotateTransform x:Key="Rotate180">
+            <RotateTransform.CenterX>0.5</RotateTransform.CenterX>
+            <RotateTransform.CenterY>0.5</RotateTransform.CenterY>
+            <RotateTransform.Angle>180</RotateTransform.Angle>
+        </RotateTransform>
+        <RotateTransform x:Key="Rotate225">
+            <RotateTransform.CenterX>0.5</RotateTransform.CenterX>
+            <RotateTransform.CenterY>0.5</RotateTransform.CenterY>
+            <RotateTransform.Angle>90</RotateTransform.Angle>
+        </RotateTransform>
+        <RotateTransform x:Key="Rotate270">
+            <RotateTransform.CenterX>0.5</RotateTransform.CenterX>
+            <RotateTransform.CenterY>0.5</RotateTransform.CenterY>
+            <RotateTransform.Angle>270</RotateTransform.Angle>
+        </RotateTransform>
+        <RotateTransform x:Key="Rotate315">
+            <RotateTransform.CenterX>0.5</RotateTransform.CenterX>
+            <RotateTransform.CenterY>0.5</RotateTransform.CenterY>
+            <RotateTransform.Angle>315</RotateTransform.Angle>
+        </RotateTransform>
+        
+        <Style x:Key="{x:Type TextBox}" TargetType="{x:Type TextBox}">
+            <Setter Property="FontFamily" Value="{DynamicResource MonoSpaceFamily}"/>
+            <Setter Property="FontSize" Value="{DynamicResource MonoSpaceSize}"/>
+        </Style>
+
+        <Style x:Key="{x:Type TextBlock}" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontFamily" Value="{DynamicResource MonoSpaceFamily}"/>
+            <Setter Property="FontSize" Value="{DynamicResource MonoSpaceSize}"/>
+        </Style>
+        
+        <!--Fixed Bug:[System.Windows.Data Error: 4 : Cannot find source for binding with reference...] When Dynamic add MenuItem to UI-->
+        <Style TargetType="MenuItem">
+            <Setter Property="FontFamily" Value="{DynamicResource MonoSpaceFamily}"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="MenuItemIcon" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontFamily" Value="{DynamicResource SegoeIconFamily}"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Foreground" Value="DimGray"/>
+            <!--<Setter Property="Margin" Value="4,0,0,0"/>-->
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Uid="ToolTipStyle" x:Key="{x:Type ToolTip}" TargetType="{x:Type ToolTip}">
+            <Setter Property="FontFamily" Value="{DynamicResource MonoSpaceFamily}"/>
+            <Setter Property="FontSize" Value="{DynamicResource MonoSpaceSize}"/>
+            <Setter Property="MaxWidth" Value="1024"/>
+            <Style.Resources>
+                <Style TargetType="ContentPresenter">
+                    <Style.Resources>
+                        <Style TargetType="TextBlock">
+                            <!--<Setter Property="MaxLength" Value="500" />-->
+                            <Setter Property="TextWrapping" Value="Wrap" />
+                            <Setter  Property="TextTrimming" Value="WordEllipsis" />
+                        </Style>
+                    </Style.Resources>
+                </Style>
+            </Style.Resources>
+        </Style>
+    </Application.Resources>
+</Application>

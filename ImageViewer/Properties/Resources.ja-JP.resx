@@ -1,0 +1,660 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="GaussianBlur" xml:space="preserve">
+    <value>ガウスぼかし</value>
+  </data>
+  <data name="ImageOpenLabel.Text" xml:space="preserve">
+    <value>開く</value>
+  </data>
+  <data name="ImagePasteLabel.Text" xml:space="preserve">
+    <value>貼り付け</value>
+  </data>
+  <data name="MainWindow.Title" xml:space="preserve">
+    <value>画像閲覧</value>
+  </data>
+  <data name="CopyImageInfo" xml:space="preserve">
+    <value>画像情報のコピー</value>
+  </data>
+  <data name="ImageOpen.ToolTip" xml:space="preserve">
+    <value>[F1] 画像を開く\n[Shift+F1] 前の画像ファイルを読み込む\n[Ctrl+F1] 後の画像ファイルを読み込む\n[Alt+F1] マスクカラーで新しいベタ画像を作成する</value>
+  </data>
+  <data name="ImagePaste.ToolTip" xml:space="preserve">
+    <value>[F3] 画像をペーストする</value>
+  </data>
+  <data name="ImageClear.ToolTip" xml:space="preserve">
+    <value>クリアソースと宛先画像</value>
+  </data>
+  <data name="UsedChannels.ToolTip" xml:space="preserve">
+    <value>画像チャンネルセレクタ</value>
+  </data>
+  <data name="ImageExchange.ToolTip" xml:space="preserve">
+    <value>[F10] ソースとターゲット画像を交換する</value>
+  </data>
+  <data name="ImageCompare.ToolTip" xml:space="preserve">
+    <value>[F5] ソースとターゲット画像を比較する\n[Shift+F 5] 比較モード選択</value>
+  </data>
+  <data name="Compare.Text" xml:space="preserve">
+    <value>比較する</value>
+  </data>
+  <data name="ImageCompose.ToolTip" xml:space="preserve">
+    <value>[F6] ソースとターゲット画像の作成\n[Shift+F 6] 合成モード選択</value>
+  </data>
+  <data name="Compose.Text" xml:space="preserve">
+    <value>合成</value>
+  </data>
+  <data name="ProcessStatus.ToolTip" xml:space="preserve">
+    <value>画像処理の進歩</value>
+  </data>
+  <data name="ImageCopyResult.ToolTip" xml:space="preserve">
+    <value>[F7] コピー結果画像</value>
+  </data>
+  <data name="ImageSaveResult.ToolTip" xml:space="preserve">
+    <value>[F8] 保存結果画像</value>
+  </data>
+  <data name="ZoomFitNone.ToolTip" xml:space="preserve">
+    <value>[F9] 画像を自由に表示</value>
+  </data>
+  <data name="ZoomFitAll.ToolTip" xml:space="preserve">
+    <value>[F9] 全画像表示</value>
+  </data>
+  <data name="ZoomFitWidth.ToolTip" xml:space="preserve">
+    <value>[F9] 画像表示の幅</value>
+  </data>
+  <data name="ZoomFitHeight.ToolTip" xml:space="preserve">
+    <value>[F9] 画像表示の高さ</value>
+  </data>
+  <data name="UseSmallerImage.ToolTip" xml:space="preserve">
+    <value>比較のためのより小さいイメージを使用して、ロードされたイメージの後、作曲する</value>
+  </data>
+  <data name="MaxCompareSizeValue.ToolTip" xml:space="preserve">
+    <value>小さな画像を使用するときの最大画像幅と高さのサイズ</value>
+  </data>
+  <data name="UseColorImage.ToolTip" xml:space="preserve">
+    <value>カラー画像を使用して強制的に比較し、画像をロード後に作成する</value>
+  </data>
+  <data name="HighlightColorPick.ToolTip" xml:space="preserve">
+    <value>差分領域の表示色</value>
+  </data>
+  <data name="LowlightColorPick.ToolTip" xml:space="preserve">
+    <value>同一エリアの表示色</value>
+  </data>
+  <data name="MasklightColorPick.ToolTip" xml:space="preserve">
+    <value>マスク領域の表示色</value>
+  </data>
+  <data name="UseWeakBlur.ToolTip" xml:space="preserve">
+    <value>低強度または高強度ぼかし</value>
+  </data>
+  <data name="UseWeakSharp.ToolTip" xml:space="preserve">
+    <value>低強度または高強度のシャープ化</value>
+  </data>
+  <data name="UseWeakEffects.ToolTip" xml:space="preserve">
+    <value>低強度または高強度フィルタ効果</value>
+  </data>
+  <data name="FlipX.Header" xml:space="preserve">
+    <value>フリップ水平</value>
+  </data>
+  <data name="FlipY.Header" xml:space="preserve">
+    <value>フリップ垂直</value>
+  </data>
+  <data name="Rotate090.Header" xml:space="preserve">
+    <value>右に90度回転します</value>
+  </data>
+  <data name="Rotate270.Header" xml:space="preserve">
+    <value>左に90度回転します</value>
+  </data>
+  <data name="Rotate180.Header" xml:space="preserve">
+    <value>180度回転します</value>
+  </data>
+  <data name="ResetTransforms.Header" xml:space="preserve">
+    <value>変換のリセット</value>
+  </data>
+  <data name="Grayscale.Header" xml:space="preserve">
+    <value>グレースケール画像</value>
+  </data>
+  <data name="GaussianBlur.Header" xml:space="preserve">
+    <value>ガウスぼかし</value>
+  </data>
+  <data name="UsmSharp.Header" xml:space="preserve">
+    <value>USMシャープ化</value>
+  </data>
+  <data name="MoreEffects.Header" xml:space="preserve">
+    <value>より多くのフィルタ効果</value>
+  </data>
+  <data name="CropBoundingBox.Header" xml:space="preserve">
+    <value>画像境界なしを切り取ります</value>
+  </data>
+  <data name="MatchSourceSize.Header" xml:space="preserve">
+    <value>マッチ元の画像サイズ</value>
+  </data>
+  <data name="MatchTargetSize.Header" xml:space="preserve">
+    <value>適合先画像サイズ</value>
+  </data>
+  <data name="SlicingX.Header" xml:space="preserve">
+    <value>水平分割画像</value>
+  </data>
+  <data name="SlicingY.Header" xml:space="preserve">
+    <value>垂直分割画像</value>
+  </data>
+  <data name="ReloadImage.Header" xml:space="preserve">
+    <value>画像を再読み込み</value>
+  </data>
+  <data name="CopyImageInfo.Header" xml:space="preserve">
+    <value>画像情報のコピー</value>
+  </data>
+  <data name="SaveAs.Header" xml:space="preserve">
+    <value>名前を付けて画像を保存 ...</value>
+  </data>
+  <data name="OilPaint.Header" xml:space="preserve">
+    <value>油絵の効果</value>
+  </data>
+  <data name="Charcoal.Header" xml:space="preserve">
+    <value>木炭画効果</value>
+  </data>
+  <data name="MeanShift.Header" xml:space="preserve">
+    <value>平均値ドリフトクラスター</value>
+  </data>
+  <data name="File" xml:space="preserve">
+    <value>ファイル</value>
+  </data>
+  <data name="AllSupportedImageFiles" xml:space="preserve">
+    <value>サポートされている画像ファイルのすべてのフォーマット</value>
+  </data>
+  <data name="ResultTipMode" xml:space="preserve">
+    <value>モード :</value>
+  </data>
+  <data name="ResultTipDifference" xml:space="preserve">
+    <value>違い   :</value>
+  </data>
+  <data name="ResultTipElapsed" xml:space="preserve">
+    <value>使用時 :</value>
+  </data>
+  <data name="InfoTipDimention" xml:space="preserve">
+    <value>表示サイズ         =</value>
+  </data>
+  <data name="InfoTipResolution" xml:space="preserve">
+    <value>解像度             =</value>
+  </data>
+  <data name="InfoTipAttributes" xml:space="preserve">
+    <value>属性               =</value>
+  </data>
+  <data name="InfoTipColorSpace" xml:space="preserve">
+    <value>カラースペース     =</value>
+  </data>
+  <data name="InfoTipFormatInfo" xml:space="preserve">
+    <value>フォーマット情報   =</value>
+  </data>
+  <data name="InfoTipMemoryUsage" xml:space="preserve">
+    <value>メモリ使用         =</value>
+  </data>
+  <data name="InfoTipDisplayMemory" xml:space="preserve">
+    <value>必要なメモリを表示 =</value>
+  </data>
+  <data name="InfoTipFileName" xml:space="preserve">
+    <value>ファイル名         =</value>
+  </data>
+  <data name="HighlightColorPick.AdvancedTabHeader" xml:space="preserve">
+    <value>カスタム</value>
+  </data>
+  <data name="HighlightColorPick.StandardTabHeader" xml:space="preserve">
+    <value>規格</value>
+  </data>
+  <data name="HighlightColorPick.AvailableColorsHeader" xml:space="preserve">
+    <value>カラーバリエーション</value>
+  </data>
+  <data name="HighlightColorPick.StandardColorsHeader" xml:space="preserve">
+    <value>標準色</value>
+  </data>
+  <data name="HighlightColorPick.RecentColorsHeader" xml:space="preserve">
+    <value>最近の色</value>
+  </data>
+  <data name="LowlightColorPick.AdvancedTabHeader" xml:space="preserve">
+    <value>カスタム</value>
+  </data>
+  <data name="LowlightColorPick.StandardTabHeader" xml:space="preserve">
+    <value>規格</value>
+  </data>
+  <data name="LowlightColorPick.AvailableColorsHeader" xml:space="preserve">
+    <value>カラーバリエーション</value>
+  </data>
+  <data name="LowlightColorPick.StandardColorsHeader" xml:space="preserve">
+    <value>標準色</value>
+  </data>
+  <data name="LowlightColorPick.RecentColorsHeader" xml:space="preserve">
+    <value>最近の色</value>
+  </data>
+  <data name="MasklightColorPick.AdvancedTabHeader" xml:space="preserve">
+    <value>カスタム</value>
+  </data>
+  <data name="MasklightColorPick.StandardTabHeader" xml:space="preserve">
+    <value>規格</value>
+  </data>
+  <data name="MasklightColorPick.AvailableColorsHeader" xml:space="preserve">
+    <value>カラーバリエーション</value>
+  </data>
+  <data name="MasklightColorPick.StandardColorsHeader" xml:space="preserve">
+    <value>標準色</value>
+  </data>
+  <data name="MasklightColorPick.RecentColorsHeader" xml:space="preserve">
+    <value>最近の色</value>
+  </data>
+  <data name="UILanguage.ToolTip" xml:space="preserve">
+    <value>UI言語セレクタ</value>
+  </data>
+  <data name="UILanguageEn.Header" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="UILanguageCn.Header" xml:space="preserve">
+    <value>简体中文</value>
+  </data>
+  <data name="UILanguageTw.Header" xml:space="preserve">
+    <value>繁體中文</value>
+  </data>
+  <data name="UILanguageJa.Header" xml:space="preserve">
+    <value>日本語</value>
+  </data>
+  <data name="FillBoundingBox.Header" xml:space="preserve">
+    <value>境界の空白を指定色で塗りつぶす</value>
+  </data>
+  <data name="InfoTipBounding" xml:space="preserve">
+    <value>境界サイズ         =</value>
+  </data>
+  <data name="AutoGamma.Header" xml:space="preserve">
+    <value>ガンマの自動調整</value>
+  </data>
+  <data name="AutoLevel.Header" xml:space="preserve">
+    <value>色の自動調整</value>
+  </data>
+  <data name="AutoThreshold.Header" xml:space="preserve">
+    <value>自動二値化画像</value>
+  </data>
+  <data name="BlueShift.Header" xml:space="preserve">
+    <value>夜の月光の効果をまねます</value>
+  </data>
+  <data name="AutoContrast.Header" xml:space="preserve">
+    <value>コントラストの自動調整</value>
+  </data>
+  <data name="AutoEnhance.Header" xml:space="preserve">
+    <value>自動画像効果の向上</value>
+  </data>
+  <data name="AutoEqualize.Header" xml:space="preserve">
+    <value>自動画像のバランス</value>
+  </data>
+  <data name="HaldClut.Header" xml:space="preserve">
+    <value>Hald色の検索表を適用する</value>
+  </data>
+  <data name="KmeansCluster.Header" xml:space="preserve">
+    <value>K-Means クラスター</value>
+  </data>
+  <data name="ReMapColor.Header" xml:space="preserve">
+    <value>画像色を再マッピング</value>
+  </data>
+  <data name="InfoTipColors" xml:space="preserve">
+    <value>表示色の数         =</value>
+  </data>
+  <data name="Waiting" xml:space="preserve">
+    <value>少々お待ちください ...</value>
+  </data>
+  <data name="AutoVignette.Header" xml:space="preserve">
+    <value>画像のエッジを徐々にぼかします</value>
+  </data>
+  <data name="AutoWhiteBalance.Header" xml:space="preserve">
+    <value>自動調整ホワイトバランス</value>
+  </data>
+  <data name="CopyToSource.Header" xml:space="preserve">
+    <value>ソースに画像をコピー</value>
+  </data>
+  <data name="CopyToTarget.Header" xml:space="preserve">
+    <value>画像をターゲットにコピー</value>
+  </data>
+  <data name="LoadNextImageFile.Header" xml:space="preserve">
+    <value>後の画像ファイルを読み込む</value>
+  </data>
+  <data name="LoadPrevImageFile.Header" xml:space="preserve">
+    <value>前の画像ファイルを読み込む</value>
+  </data>
+  <data name="Invert.Header" xml:space="preserve">
+    <value>画像の色を反転</value>
+  </data>
+  <data name="Polaroid.Header" xml:space="preserve">
+    <value>ポラロイドスタイルの画像</value>
+  </data>
+  <data name="Posterize.Header" xml:space="preserve">
+    <value>ポスタースタイルの画像</value>
+  </data>
+  <data name="MedianFilter.Header" xml:space="preserve">
+    <value>中間値フィルタノイズ低減</value>
+  </data>
+  <data name="CopyImage.Header" xml:space="preserve">
+    <value>画像をコピー</value>
+  </data>
+  <data name="CLUT.Header" xml:space="preserve">
+    <value>普通の色の検索表を適用します</value>
+  </data>
+  <data name="AutoReduceNoise.Header" xml:space="preserve">
+    <value>自動画像ノイズ低減</value>
+  </data>
+  <data name="InfoTipCompression" xml:space="preserve">
+    <value>圧縮方法           =</value>
+  </data>
+  <data name="InfoTipHasAlpha" xml:space="preserve">
+    <value>透明チャネルを含む =</value>
+  </data>
+  <data name="Included" xml:space="preserve">
+    <value>含まれる</value>
+  </data>
+  <data name="NotIncluded" xml:space="preserve">
+    <value>含まれない</value>
+  </data>
+  <data name="Undefined" xml:space="preserve">
+    <value>不確定の</value>
+  </data>
+  <data name="CreateColorImage.Header" xml:space="preserve">
+    <value>指定された色で画像を作成します</value>
+  </data>
+  <data name="SetColorToAlpha.Header" xml:space="preserve">
+    <value>色を透明チャンネルに設定する</value>
+  </data>
+  <data name="InfoTipColorMapsSize" xml:space="preserve">
+    <value>パレットの色数     =</value>
+  </data>
+  <data name="RepeatLastAction.ToolTip" xml:space="preserve">
+    <value>前の動作をもう一度実行します</value>
+  </data>
+  <data name="SetAlphaToColor.Header" xml:space="preserve">
+    <value>透明チャンネルを指定色に設定</value>
+  </data>
+  <data name="ResetImage.Header" xml:space="preserve">
+    <value>画像のリセット</value>
+  </data>
+  <data name="CopyFromResult.Header" xml:space="preserve">
+    <value>結果からイメージをコピー</value>
+  </data>
+  <data name="ImageLayout.ToolTip" xml:space="preserve">
+    <value>レイアウトの水平/垂直の切り替え</value>
+  </data>
+  <data name="MergeX.Header" xml:space="preserve">
+    <value>水平向のステッチ画像</value>
+  </data>
+  <data name="MergeY.Header" xml:space="preserve">
+    <value>縦方向のステッチ画像</value>
+  </data>
+  <data name="PencilPaint.Header" xml:space="preserve">
+    <value>ペンシルドラフト効果</value>
+  </data>
+  <data name="Stereo3D.Header" xml:space="preserve">
+    <value>赤と青の擬似3D効果</value>
+  </data>
+  <data name="InfoTipQuality" xml:space="preserve">
+    <value>画像品質           =</value>
+  </data>
+  <data name="InfoTipFileSize" xml:space="preserve">
+    <value>ファイルサイズ     =</value>
+  </data>
+  <data name="InfoTipDimentionOriginal" xml:space="preserve">
+    <value>元のサイズ         =</value>
+  </data>
+  <data name="AutoMatchSize.ToolTip" xml:space="preserve">
+    <value>画像サイズを自動的に合わせる</value>
+  </data>
+  <data name="CalcImageColors.Header" xml:space="preserve">
+    <value>統計的な色の情報</value>
+  </data>
+  <data name="InfoTipBackgroundColor" xml:space="preserve">
+    <value>表示画像の背景色   =</value>
+  </data>
+  <data name="InfoTipBackgroundColorOriginal" xml:space="preserve">
+    <value>元の画像の背景色   =</value>
+  </data>
+  <data name="InfoTipBorderColor" xml:space="preserve">
+    <value>表示境界線の色     =</value>
+  </data>
+  <data name="InfoTipBorderColorOriginal" xml:space="preserve">
+    <value>元の境界線の色     =</value>
+  </data>
+  <data name="InfoTipColorsOriginal" xml:space="preserve">
+    <value>元の画像の色の数   =</value>
+  </data>
+  <data name="InfoTipMatteColor" xml:space="preserve">
+    <value>表示マスクの色     =</value>
+  </data>
+  <data name="InfoTipMatteColorOriginal" xml:space="preserve">
+    <value>元のマスクの色     =</value>
+  </data>
+  <data name="InfoTipMemoryMode" xml:space="preserve">
+    <value>メモリモード       =</value>
+  </data>
+  <data name="InfoTipIdealMemoryUsage" xml:space="preserve">
+    <value>理想的なメモリ使用 =</value>
+  </data>
+  <data name="InfoTipColorChannelCount" xml:space="preserve">
+    <value>カラーチャンネル数 =</value>
+  </data>
+  <data name="ImageLoadHaldLut.ToolTip" xml:space="preserve">
+    <value>Haldカラールックアップテーブルファイルの読み込み</value>
+  </data>
+  <data name="ImageDenoiseResult.ToolTip" xml:space="preserve">
+    <value>結果画像のデノイズ</value>
+  </data>
+  <data name="Zoom Ratio" xml:space="preserve">
+    <value>ズーム比</value>
+  </data>
+  <data name="Tolerances" xml:space="preserve">
+    <value>容许偏差</value>
+  </data>
+  <data name="MatchSizeAlignBC.Header" xml:space="preserve">
+    <value>下部中央揃え</value>
+  </data>
+  <data name="MatchSizeAlignBL.Header" xml:space="preserve">
+    <value>左下隅に揃える</value>
+  </data>
+  <data name="MatchSizeAlignBR.Header" xml:space="preserve">
+    <value>右下揃に揃える</value>
+  </data>
+  <data name="MatchSizeAlignCC.Header" xml:space="preserve">
+    <value>完全中央揃え</value>
+  </data>
+  <data name="MatchSizeAlignCL.Header" xml:space="preserve">
+    <value>左側中央揃え</value>
+  </data>
+  <data name="MatchSizeAlignCR.Header" xml:space="preserve">
+    <value>右側中央揃え</value>
+  </data>
+  <data name="MatchSizeAlignTC.Header" xml:space="preserve">
+    <value>上部中央揃え</value>
+  </data>
+  <data name="MatchSizeAlignTL.Header" xml:space="preserve">
+    <value>左上隅に揃える</value>
+  </data>
+  <data name="MatchSizeAlignTR.Header" xml:space="preserve">
+    <value>右上隅に揃える</value>
+  </data>
+  <data name="CropImageEdge.Header" xml:space="preserve">
+    <value>画像の境界を切り取る</value>
+  </data>
+  <data name="CreateImageWithColorSource.Header" xml:space="preserve">
+    <value>カラーソース画像の作成</value>
+  </data>
+  <data name="CreateImageWithColorTarget.Header" xml:space="preserve">
+    <value>カラーターゲット画像の作成</value>
+  </data>
+  <data name="Edge.Header" xml:space="preserve">
+    <value>スクリプト効果</value>
+  </data>
+  <data name="Emboss.Header" xml:space="preserve">
+    <value>エンボス効果</value>
+  </data>
+  <data name="Morphology.Header" xml:space="preserve">
+    <value>形態学効果</value>
+  </data>
+  <data name="Segment.Header" xml:space="preserve">
+    <value>画像の色セグメント</value>
+  </data>
+  <data name="Quantize.Header" xml:space="preserve">
+    <value>画像の色を量子化する</value>
+  </data>
+  <data name="Solarize.Header" xml:space="preserve">
+    <value>シャボン玉効果</value>
+  </data>
+  <data name="InfoTipArtifacts" xml:space="preserve">
+    <value>機能ノート         =</value>
+  </data>
+  <data name="Blend" xml:space="preserve">
+    <value>混合スケール</value>
+  </data>
+  <data name="InfoTipOrientation" xml:space="preserve">
+    <value>画像の向き         =</value>
+  </data>
+  <data name="ExtentImageEdge.Header" xml:space="preserve">
+    <value>画像の境界を拡張する</value>
+  </data>
+  <data name="PanImageEdge.Header" xml:space="preserve">
+    <value>画像の境界をオフセットする</value>
+  </data>
+  <data name="AutoCompare.ToolTip" xml:space="preserve">
+    <value>比較/合成を自動的に実行</value>
+  </data>
+  <data name="SmallSizeModeIndep.Header" xml:space="preserve">
+    <value>個別スケーリング</value>
+  </data>
+  <data name="SmallSizeModeLink.Header" xml:space="preserve">
+    <value>連想スケーリング</value>
+  </data>
+  <data name="LoadingIndicator.BusyContent" xml:space="preserve">
+    <value>画像を読み込む...</value>
+  </data>
+  <data name="LoadingIndicatorTitle" xml:space="preserve">
+    <value>画像を読み込む...</value>
+  </data>
+  <data name="SavingIndicatorTitle" xml:space="preserve">
+    <value>画像の保存...</value>
+  </data>
+  <data name="ProcessingIndicatorTitle" xml:space="preserve">
+    <value>画像を処理する...</value>
+  </data>
+  <data name="AlwaysOnTop.ToolTip" xml:space="preserve">
+    <value>ウインドートッピング</value>
+  </data>
+  <data name="Magnifier.ToolTip" xml:space="preserve">
+    <value>画像拡大鏡</value>
+  </data>
+  <data name="ShowImageInfo.ToolTip" xml:space="preserve">
+    <value>画像情報の表示</value>
+  </data>
+</root>

@@ -1,0 +1,660 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="GaussianBlur" xml:space="preserve">
+    <value>Gaussian Blur</value>
+  </data>
+  <data name="MainWindow.Title" xml:space="preserve">
+    <value>Image Viewer</value>
+  </data>
+  <data name="ImageOpenLabel.Text" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="ImagePasteLabel.Text" xml:space="preserve">
+    <value>Paste</value>
+  </data>
+  <data name="CopyImageInfo" xml:space="preserve">
+    <value>Copy Image Info</value>
+  </data>
+  <data name="ImageOpen.ToolTip" xml:space="preserve">
+    <value>[F1] Open The Picture\n[Shift+F1] Load Prev Image File\n[Ctrl+F1] Load Next Image File\n[Alt+F1] Create Image With Masklight Color</value>
+  </data>
+  <data name="ImagePaste.ToolTip" xml:space="preserve">
+    <value>[F3] Paste The Picture</value>
+  </data>
+  <data name="ImageClear.ToolTip" xml:space="preserve">
+    <value>Clear Source and Target Pictures</value>
+  </data>
+  <data name="UsedChannels.ToolTip" xml:space="preserve">
+    <value>Picture Channels Selector</value>
+  </data>
+  <data name="ImageExchange.ToolTip" xml:space="preserve">
+    <value>[F10] Exchange Source and Target</value>
+  </data>
+  <data name="ImageCompare.ToolTip" xml:space="preserve">
+    <value>[F5] Compare Source and Target Picture\n[Shift+F5] Compare Mode Selector</value>
+  </data>
+  <data name="Compare.Text" xml:space="preserve">
+    <value>Compare</value>
+  </data>
+  <data name="ImageCompose.ToolTip" xml:space="preserve">
+    <value>[F6] Compose Source and Target Picture</value>
+  </data>
+  <data name="Compose.Text" xml:space="preserve">
+    <value>Compose</value>
+  </data>
+  <data name="ProcessStatus.ToolTip" xml:space="preserve">
+    <value>Picture Processing Progress</value>
+  </data>
+  <data name="ImageCopyResult.ToolTip" xml:space="preserve">
+    <value>[F7] Copy Result Picture</value>
+  </data>
+  <data name="ImageSaveResult.ToolTip" xml:space="preserve">
+    <value>[F8] Save Result Picture</value>
+  </data>
+  <data name="ZoomFitNone.ToolTip" xml:space="preserve">
+    <value>[F9] Picture Fit None</value>
+  </data>
+  <data name="ZoomFitAll.ToolTip" xml:space="preserve">
+    <value>[F9] Picture Fit All</value>
+  </data>
+  <data name="ZoomFitWidth.ToolTip" xml:space="preserve">
+    <value>[F9] Picture Fit Width</value>
+  </data>
+  <data name="ZoomFitHeight.ToolTip" xml:space="preserve">
+    <value>[F9] Picture Fit Height</value>
+  </data>
+  <data name="UseSmallerImage.ToolTip" xml:space="preserve">
+    <value>Using Smaller Image for Compare and Compose After Image Loaded</value>
+  </data>
+  <data name="MaxCompareSizeValue.ToolTip" xml:space="preserve">
+    <value>Max Image Width and Height Size When Using Smaller Image</value>
+  </data>
+  <data name="UseColorImage.ToolTip" xml:space="preserve">
+    <value>Force Using Color Image for Compare and Compose After Image Loaded</value>
+  </data>
+  <data name="HighlightColorPick.ToolTip" xml:space="preserve">
+    <value>Highlight Color</value>
+  </data>
+  <data name="LowlightColorPick.ToolTip" xml:space="preserve">
+    <value>Lowlight Color</value>
+  </data>
+  <data name="MasklightColorPick.ToolTip" xml:space="preserve">
+    <value>Masklight Color</value>
+  </data>
+  <data name="UseWeakBlur.ToolTip" xml:space="preserve">
+    <value>Low or High Intensity Blur</value>
+  </data>
+  <data name="UseWeakSharp.ToolTip" xml:space="preserve">
+    <value>Low or High Intensity Sharp</value>
+  </data>
+  <data name="UseWeakEffects.ToolTip" xml:space="preserve">
+    <value>Low or High Intensity Effects</value>
+  </data>
+  <data name="FlipX.Header" xml:space="preserve">
+    <value>Flip Horizontal</value>
+  </data>
+  <data name="FlipY.Header" xml:space="preserve">
+    <value>Flip Vertical</value>
+  </data>
+  <data name="Rotate090.Header" xml:space="preserve">
+    <value>Rotate +90</value>
+  </data>
+  <data name="Rotate180.Header" xml:space="preserve">
+    <value>Rotate 180</value>
+  </data>
+  <data name="Rotate270.Header" xml:space="preserve">
+    <value>Rotate -90</value>
+  </data>
+  <data name="ResetTransforms.Header" xml:space="preserve">
+    <value>Reset Transforms</value>
+  </data>
+  <data name="Grayscale.Header" xml:space="preserve">
+    <value>Grayscale</value>
+  </data>
+  <data name="GaussianBlur.Header" xml:space="preserve">
+    <value>Gaussian Blur</value>
+  </data>
+  <data name="UsmSharp.Header" xml:space="preserve">
+    <value>Unsharp Mask</value>
+  </data>
+  <data name="MoreEffects.Header" xml:space="preserve">
+    <value>More Effects</value>
+  </data>
+  <data name="CropBoundingBox.Header" xml:space="preserve">
+    <value>Crop BoundingBox</value>
+  </data>
+  <data name="MatchSourceSize.Header" xml:space="preserve">
+    <value>Match Source Size</value>
+  </data>
+  <data name="MatchTargetSize.Header" xml:space="preserve">
+    <value>Match Target Size</value>
+  </data>
+  <data name="SlicingX.Header" xml:space="preserve">
+    <value>Slicing Horizontal</value>
+  </data>
+  <data name="SlicingY.Header" xml:space="preserve">
+    <value>Slicing Vertical</value>
+  </data>
+  <data name="ReloadImage.Header" xml:space="preserve">
+    <value>Reload Image</value>
+  </data>
+  <data name="CopyImageInfo.Header" xml:space="preserve">
+    <value>Copy Image Info</value>
+  </data>
+  <data name="SaveAs.Header" xml:space="preserve">
+    <value>Save Image As ...</value>
+  </data>
+  <data name="OilPaint.Header" xml:space="preserve">
+    <value>Oil Paint</value>
+  </data>
+  <data name="Charcoal.Header" xml:space="preserve">
+    <value>Charcoal</value>
+  </data>
+  <data name="MeanShift.Header" xml:space="preserve">
+    <value>Mean Shift Cluster</value>
+  </data>
+  <data name="File" xml:space="preserve">
+    <value>File</value>
+  </data>
+  <data name="AllSupportedImageFiles" xml:space="preserve">
+    <value>All Supported Image Files</value>
+  </data>
+  <data name="ResultTipMode" xml:space="preserve">
+    <value>Mode       :</value>
+  </data>
+  <data name="ResultTipDifference" xml:space="preserve">
+    <value>Difference :</value>
+  </data>
+  <data name="ResultTipElapsed" xml:space="preserve">
+    <value>Elapsed    :</value>
+  </data>
+  <data name="InfoTipDimention" xml:space="preserve">
+    <value>Current Dimention  =</value>
+  </data>
+  <data name="InfoTipResolution" xml:space="preserve">
+    <value>Resolution         =</value>
+  </data>
+  <data name="InfoTipAttributes" xml:space="preserve">
+    <value>Attributes</value>
+  </data>
+  <data name="InfoTipColorSpace" xml:space="preserve">
+    <value>Color Space        =</value>
+  </data>
+  <data name="InfoTipFormatInfo" xml:space="preserve">
+    <value>Format Info        =</value>
+  </data>
+  <data name="InfoTipMemoryUsage" xml:space="preserve">
+    <value>Memory Usage       =</value>
+  </data>
+  <data name="InfoTipDisplayMemory" xml:space="preserve">
+    <value>Display Memory     =</value>
+  </data>
+  <data name="InfoTipFileName" xml:space="preserve">
+    <value>FileName           =</value>
+  </data>
+  <data name="HighlightColorPick.AdvancedTabHeader" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+  <data name="HighlightColorPick.StandardTabHeader" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="HighlightColorPick.AvailableColorsHeader" xml:space="preserve">
+    <value>Available Colors</value>
+  </data>
+  <data name="HighlightColorPick.StandardColorsHeader" xml:space="preserve">
+    <value>Standard Colors</value>
+  </data>
+  <data name="HighlightColorPick.RecentColorsHeader" xml:space="preserve">
+    <value>Recent Colors</value>
+  </data>
+  <data name="LowlightColorPick.AdvancedTabHeader" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+  <data name="LowlightColorPick.StandardTabHeader" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="LowlightColorPick.AvailableColorsHeader" xml:space="preserve">
+    <value>Available Colors</value>
+  </data>
+  <data name="LowlightColorPick.StandardColorsHeader" xml:space="preserve">
+    <value>Standard Colors</value>
+  </data>
+  <data name="LowlightColorPick.RecentColorsHeader" xml:space="preserve">
+    <value>Recent Colors</value>
+  </data>
+  <data name="MasklightColorPick.AdvancedTabHeader" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+  <data name="MasklightColorPick.StandardTabHeader" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="MasklightColorPick.AvailableColorsHeader" xml:space="preserve">
+    <value>Available Colors</value>
+  </data>
+  <data name="MasklightColorPick.StandardColorsHeader" xml:space="preserve">
+    <value>Standard Colors</value>
+  </data>
+  <data name="MasklightColorPick.RecentColorsHeader" xml:space="preserve">
+    <value>Recent Colors</value>
+  </data>
+  <data name="UILanguage.ToolTip" xml:space="preserve">
+    <value>UI Language Selector</value>
+  </data>
+  <data name="UILanguageEn.Header" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="UILanguageCn.Header" xml:space="preserve">
+    <value>简体中文</value>
+  </data>
+  <data name="UILanguageTw.Header" xml:space="preserve">
+    <value>繁體中文</value>
+  </data>
+  <data name="UILanguageJa.Header" xml:space="preserve">
+    <value>日本語</value>
+  </data>
+  <data name="FillBoundingBox.Header" xml:space="preserve">
+    <value>Fill BoundingBox</value>
+  </data>
+  <data name="InfoTipBounding" xml:space="preserve">
+    <value>Bounding Box       =</value>
+  </data>
+  <data name="AutoLevel.Header" xml:space="preserve">
+    <value>Auto Levels</value>
+  </data>
+  <data name="AutoGamma.Header" xml:space="preserve">
+    <value>Auto Gamma</value>
+  </data>
+  <data name="AutoThreshold.Header" xml:space="preserve">
+    <value>Auto Threshold</value>
+  </data>
+  <data name="BlueShift.Header" xml:space="preserve">
+    <value>Blue Shift (Moonlight Night)</value>
+  </data>
+  <data name="AutoContrast.Header" xml:space="preserve">
+    <value>Auto Contrast</value>
+  </data>
+  <data name="AutoEnhance.Header" xml:space="preserve">
+    <value>Auto Enhance</value>
+  </data>
+  <data name="AutoEqualize.Header" xml:space="preserve">
+    <value>Auto Equalize</value>
+  </data>
+  <data name="HaldClut.Header" xml:space="preserve">
+    <value>Apply Hald CLUT</value>
+  </data>
+  <data name="KmeansCluster.Header" xml:space="preserve">
+    <value>K-Means Cluster</value>
+  </data>
+  <data name="ReMapColor.Header" xml:space="preserve">
+    <value>Re-Map Color</value>
+  </data>
+  <data name="InfoTipColors" xml:space="preserve">
+    <value>Colors             =</value>
+  </data>
+  <data name="Waiting" xml:space="preserve">
+    <value>Waiting ...</value>
+  </data>
+  <data name="AutoVignette.Header" xml:space="preserve">
+    <value>Auto Vignette</value>
+  </data>
+  <data name="AutoWhiteBalance.Header" xml:space="preserve">
+    <value>Auto White Balance</value>
+  </data>
+  <data name="CopyToSource.Header" xml:space="preserve">
+    <value>Copy Image To Source</value>
+  </data>
+  <data name="CopyToTarget.Header" xml:space="preserve">
+    <value>Copy Image To Target</value>
+  </data>
+  <data name="LoadPrevImageFile.Header" xml:space="preserve">
+    <value>Load Prev Image File</value>
+  </data>
+  <data name="LoadNextImageFile.Header" xml:space="preserve">
+    <value>Load Next Image File</value>
+  </data>
+  <data name="Invert.Header" xml:space="preserve">
+    <value>Invert</value>
+  </data>
+  <data name="Polaroid.Header" xml:space="preserve">
+    <value>Polaroid</value>
+  </data>
+  <data name="Posterize.Header" xml:space="preserve">
+    <value>Posterize</value>
+  </data>
+  <data name="MedianFilter.Header" xml:space="preserve">
+    <value>Median Filter</value>
+  </data>
+  <data name="CopyImage.Header" xml:space="preserve">
+    <value>Copy Image</value>
+  </data>
+  <data name="CLUT.Header" xml:space="preserve">
+    <value>Apply CLUT</value>
+  </data>
+  <data name="AutoReduceNoise.Header" xml:space="preserve">
+    <value>Auto Reduce Noise</value>
+  </data>
+  <data name="InfoTipCompression" xml:space="preserve">
+    <value>Compression        =</value>
+  </data>
+  <data name="InfoTipHasAlpha" xml:space="preserve">
+    <value>Has Alpha          =</value>
+  </data>
+  <data name="Included" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="NotIncluded" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Undefined" xml:space="preserve">
+    <value>Undefined</value>
+  </data>
+  <data name="CreateColorImage.Header" xml:space="preserve">
+    <value>Create Color Image</value>
+  </data>
+  <data name="SetColorToAlpha.Header" xml:space="preserve">
+    <value>Set Color To Alpha</value>
+  </data>
+  <data name="InfoTipColorMapsSize" xml:space="preserve">
+    <value>ColorMaps Size     =</value>
+  </data>
+  <data name="RepeatLastAction.ToolTip" xml:space="preserve">
+    <value>Repeat Last Action</value>
+  </data>
+  <data name="SetAlphaToColor.Header" xml:space="preserve">
+    <value>Set Alpha To Color</value>
+  </data>
+  <data name="ResetImage.Header" xml:space="preserve">
+    <value>Reset Image</value>
+  </data>
+  <data name="CopyFromResult.Header" xml:space="preserve">
+    <value>Copy Image From Result</value>
+  </data>
+  <data name="ImageLayout.ToolTip" xml:space="preserve">
+    <value>Horizontal/Vertical Image Layout</value>
+  </data>
+  <data name="MergeX.Header" xml:space="preserve">
+    <value>Merge Horizontal</value>
+  </data>
+  <data name="MergeY.Header" xml:space="preserve">
+    <value>Merge Vertical</value>
+  </data>
+  <data name="PencilPaint.Header" xml:space="preserve">
+    <value>Pencil Paint</value>
+  </data>
+  <data name="Stereo3D.Header" xml:space="preserve">
+    <value>Stereo (Fake 3D)</value>
+  </data>
+  <data name="InfoTipQuality" xml:space="preserve">
+    <value>Image Quality      =</value>
+  </data>
+  <data name="InfoTipFileSize" xml:space="preserve">
+    <value>FileSize           =</value>
+  </data>
+  <data name="InfoTipDimentionOriginal" xml:space="preserve">
+    <value>Original Dimention =</value>
+  </data>
+  <data name="AutoMatchSize.ToolTip" xml:space="preserve">
+    <value>Automatic Match Image Size Before Image Compare/Composer</value>
+  </data>
+  <data name="CalcImageColors.Header" xml:space="preserve">
+    <value>Statistical Color Information</value>
+  </data>
+  <data name="InfoTipColorsOriginal" xml:space="preserve">
+    <value>Original Colors    =</value>
+  </data>
+  <data name="InfoTipBackgroundColorOriginal" xml:space="preserve">
+    <value>Original BG Color  =</value>
+  </data>
+  <data name="InfoTipBorderColorOriginal" xml:space="preserve">
+    <value>Original Border    =</value>
+  </data>
+  <data name="InfoTipMatteColorOriginal" xml:space="preserve">
+    <value>Original Matte     =</value>
+  </data>
+  <data name="InfoTipBackgroundColor" xml:space="preserve">
+    <value>Background Color   =</value>
+  </data>
+  <data name="InfoTipBorderColor" xml:space="preserve">
+    <value>Border Color       =</value>
+  </data>
+  <data name="InfoTipMatteColor" xml:space="preserve">
+    <value>Matte Color        =</value>
+  </data>
+  <data name="InfoTipMemoryMode" xml:space="preserve">
+    <value>Memory Mode        =</value>
+  </data>
+  <data name="InfoTipIdealMemoryUsage" xml:space="preserve">
+    <value>Ideal Memoy Usage  =</value>
+  </data>
+  <data name="InfoTipColorChannelCount" xml:space="preserve">
+    <value>Color Channels     =</value>
+  </data>
+  <data name="ImageLoadHaldLut.ToolTip" xml:space="preserve">
+    <value>Load Hald LUT File</value>
+  </data>
+  <data name="ImageDenoiseResult.ToolTip" xml:space="preserve">
+    <value>Denoise Result Picture</value>
+  </data>
+  <data name="Zoom Ratio" xml:space="preserve">
+    <value>Zoom Ratio</value>
+  </data>
+  <data name="Tolerances" xml:space="preserve">
+    <value>Tolerances</value>
+  </data>
+  <data name="MatchSizeAlignTL.Header" xml:space="preserve">
+    <value>Align To Top Left</value>
+  </data>
+  <data name="MatchSizeAlignTC.Header" xml:space="preserve">
+    <value>Align To Top Center</value>
+  </data>
+  <data name="MatchSizeAlignTR.Header" xml:space="preserve">
+    <value>Align To Top Right</value>
+  </data>
+  <data name="MatchSizeAlignCL.Header" xml:space="preserve">
+    <value>Align To Center Left</value>
+  </data>
+  <data name="MatchSizeAlignCC.Header" xml:space="preserve">
+    <value>Align To Center</value>
+  </data>
+  <data name="MatchSizeAlignCR.Header" xml:space="preserve">
+    <value>Align To Center Right</value>
+  </data>
+  <data name="MatchSizeAlignBL.Header" xml:space="preserve">
+    <value>Align To Bottom Left</value>
+  </data>
+  <data name="MatchSizeAlignBC.Header" xml:space="preserve">
+    <value>Align To Bottom Center</value>
+  </data>
+  <data name="MatchSizeAlignBR.Header" xml:space="preserve">
+    <value>Align To Bottom Right</value>
+  </data>
+  <data name="CropImageEdge.Header" xml:space="preserve">
+    <value>Crop Image Edge</value>
+  </data>
+  <data name="CreateImageWithColorSource.Header" xml:space="preserve">
+    <value>Create Color Source Image</value>
+  </data>
+  <data name="CreateImageWithColorTarget.Header" xml:space="preserve">
+    <value>Create Color Target Image</value>
+  </data>
+  <data name="Edge.Header" xml:space="preserve">
+    <value>Edge Line</value>
+  </data>
+  <data name="Emboss.Header" xml:space="preserve">
+    <value>Emboss</value>
+  </data>
+  <data name="Morphology.Header" xml:space="preserve">
+    <value>Morphology</value>
+  </data>
+  <data name="Segment.Header" xml:space="preserve">
+    <value>Segment</value>
+  </data>
+  <data name="Quantize.Header" xml:space="preserve">
+    <value>Quantize</value>
+  </data>
+  <data name="Solarize.Header" xml:space="preserve">
+    <value>Solarize</value>
+  </data>
+  <data name="InfoTipArtifacts" xml:space="preserve">
+    <value>Artifacts</value>
+  </data>
+  <data name="Blend" xml:space="preserve">
+    <value>Blend Ratio</value>
+  </data>
+  <data name="InfoTipOrientation" xml:space="preserve">
+    <value>Orientation        =</value>
+  </data>
+  <data name="ExtentImageEdge.Header" xml:space="preserve">
+    <value>Extend Image Edge</value>
+  </data>
+  <data name="PanImageEdge.Header" xml:space="preserve">
+    <value>Add Offset To Image Edge</value>
+  </data>
+  <data name="AutoCompare.ToolTip" xml:space="preserve">
+    <value>Auto Comparing/Compositing</value>
+  </data>
+  <data name="SmallSizeModeIndep.Header" xml:space="preserve">
+    <value>Independence Scale</value>
+  </data>
+  <data name="SmallSizeModeLink.Header" xml:space="preserve">
+    <value>Relative Scale</value>
+  </data>
+  <data name="LoadingIndicator.BusyContent" xml:space="preserve">
+    <value>Loading ...</value>
+  </data>
+  <data name="LoadingIndicatorTitle" xml:space="preserve">
+    <value>Loading ...</value>
+  </data>
+  <data name="SavingIndicatorTitle" xml:space="preserve">
+    <value>Saving ...</value>
+  </data>
+  <data name="ProcessingIndicatorTitle" xml:space="preserve">
+    <value>Processing ...</value>
+  </data>
+  <data name="AlwaysOnTop.ToolTip" xml:space="preserve">
+    <value>Always On Top</value>
+  </data>
+  <data name="Magnifier.ToolTip" xml:space="preserve">
+    <value>Image Magnifier</value>
+  </data>
+  <data name="ShowImageInfo.ToolTip" xml:space="preserve">
+    <value>how Image Information</value>
+  </data>
+</root>

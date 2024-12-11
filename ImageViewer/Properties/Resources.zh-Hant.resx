@@ -1,0 +1,660 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="GaussianBlur" xml:space="preserve">
+    <value>高斯模糊</value>
+  </data>
+  <data name="ImageOpenLabel.Text" xml:space="preserve">
+    <value>打開</value>
+  </data>
+  <data name="ImagePasteLabel.Text" xml:space="preserve">
+    <value>粘貼</value>
+  </data>
+  <data name="MainWindow.Title" xml:space="preserve">
+    <value>影像查看</value>
+  </data>
+  <data name="CopyImageInfo" xml:space="preserve">
+    <value>複製影像資訊</value>
+  </data>
+  <data name="ImageOpen.ToolTip" xml:space="preserve">
+    <value>[F1] 打開影像\n[Shift+F1] 載入前一個影像檔案\n[Ctrl+F1] 載入後一個影像檔案\n[Alt+F1] 以遮罩顏色新建純色影像</value>
+  </data>
+  <data name="ImagePaste.ToolTip" xml:space="preserve">
+    <value>[F3] 粘貼影像</value>
+  </data>
+  <data name="ImageClear.ToolTip" xml:space="preserve">
+    <value>清除源和目標影像</value>
+  </data>
+  <data name="UsedChannels.ToolTip" xml:space="preserve">
+    <value>影像通道選擇器</value>
+  </data>
+  <data name="ImageExchange.ToolTip" xml:space="preserve">
+    <value>[F10] 交換來源和目標圖片</value>
+  </data>
+  <data name="ImageCompare.ToolTip" xml:space="preserve">
+    <value>[F5] 比較來源影像和目標影像\n[Shift+F5] 比較模式選擇</value>
+  </data>
+  <data name="Compare.Text" xml:space="preserve">
+    <value>比較</value>
+  </data>
+  <data name="ImageCompose.ToolTip" xml:space="preserve">
+    <value>[F6] 合成來源影像和目標影像\n[Shift+F6] 合成模式選擇</value>
+  </data>
+  <data name="Compose.Text" xml:space="preserve">
+    <value>合成</value>
+  </data>
+  <data name="ProcessStatus.ToolTip" xml:space="preserve">
+    <value>影像處理進展</value>
+  </data>
+  <data name="ImageCopyResult.ToolTip" xml:space="preserve">
+    <value>[F7] 複製結果影像</value>
+  </data>
+  <data name="ImageSaveResult.ToolTip" xml:space="preserve">
+    <value>[F8] 保存結果影像</value>
+  </data>
+  <data name="ZoomFitNone.ToolTip" xml:space="preserve">
+    <value>[F9] 影像自由顯示</value>
+  </data>
+  <data name="ZoomFitAll.ToolTip" xml:space="preserve">
+    <value>[F9] 影像全部顯示</value>
+  </data>
+  <data name="ZoomFitWidth.ToolTip" xml:space="preserve">
+    <value>[F9] 影像顯示適合寬度</value>
+  </data>
+  <data name="ZoomFitHeight.ToolTip" xml:space="preserve">
+    <value>[F9] 影像顯示適合高度</value>
+  </data>
+  <data name="UseSmallerImage.ToolTip" xml:space="preserve">
+    <value>加載影像後使用較小的影像進行比較和合成</value>
+  </data>
+  <data name="MaxCompareSizeValue.ToolTip" xml:space="preserve">
+    <value>使用較小影像時的最大影像寬度和高度大小</value>
+  </data>
+  <data name="UseColorImage.ToolTip" xml:space="preserve">
+    <value>加載影像後強制使用彩色影像進行比較和合成</value>
+  </data>
+  <data name="HighlightColorPick.ToolTip" xml:space="preserve">
+    <value>差异區域顯示顏色</value>
+  </data>
+  <data name="LowlightColorPick.ToolTip" xml:space="preserve">
+    <value>相同區域顯示顏色</value>
+  </data>
+  <data name="MasklightColorPick.ToolTip" xml:space="preserve">
+    <value>遮罩區域顯示顏色</value>
+  </data>
+  <data name="UseWeakBlur.ToolTip" xml:space="preserve">
+    <value>低强度或高强度模糊</value>
+  </data>
+  <data name="UseWeakSharp.ToolTip" xml:space="preserve">
+    <value>低强度或高强度銳化</value>
+  </data>
+  <data name="UseWeakEffects.ToolTip" xml:space="preserve">
+    <value>低强度或高强度濾鏡效果</value>
+  </data>
+  <data name="FlipX.Header" xml:space="preserve">
+    <value>水准鏡像</value>
+  </data>
+  <data name="FlipY.Header" xml:space="preserve">
+    <value>垂直翻轉</value>
+  </data>
+  <data name="Rotate090.Header" xml:space="preserve">
+    <value>右轉90度</value>
+  </data>
+  <data name="Rotate270.Header" xml:space="preserve">
+    <value>左轉90度</value>
+  </data>
+  <data name="Rotate180.Header" xml:space="preserve">
+    <value>旋轉180度</value>
+  </data>
+  <data name="ResetTransforms.Header" xml:space="preserve">
+    <value>重置變換</value>
+  </data>
+  <data name="Grayscale.Header" xml:space="preserve">
+    <value>灰度影像</value>
+  </data>
+  <data name="GaussianBlur.Header" xml:space="preserve">
+    <value>高斯模糊</value>
+  </data>
+  <data name="UsmSharp.Header" xml:space="preserve">
+    <value>虛光蒙版銳化</value>
+  </data>
+  <data name="MoreEffects.Header" xml:space="preserve">
+    <value>更多濾鏡效果</value>
+  </data>
+  <data name="CropBoundingBox.Header" xml:space="preserve">
+    <value>裁剪無影像邊界</value>
+  </data>
+  <data name="MatchSourceSize.Header" xml:space="preserve">
+    <value>適配來源影像大小</value>
+  </data>
+  <data name="MatchTargetSize.Header" xml:space="preserve">
+    <value>適配目標影像大小</value>
+  </data>
+  <data name="SlicingX.Header" xml:space="preserve">
+    <value>水准對分影像</value>
+  </data>
+  <data name="SlicingY.Header" xml:space="preserve">
+    <value>垂直對分影像</value>
+  </data>
+  <data name="ReloadImage.Header" xml:space="preserve">
+    <value>重新載入影像</value>
+  </data>
+  <data name="CopyImageInfo.Header" xml:space="preserve">
+    <value>複製影像資訊</value>
+  </data>
+  <data name="SaveAs.Header" xml:space="preserve">
+    <value>影像另存為 ...</value>
+  </data>
+  <data name="OilPaint.Header" xml:space="preserve">
+    <value>油畫效果</value>
+  </data>
+  <data name="Charcoal.Header" xml:space="preserve">
+    <value>炭筆畫效果</value>
+  </data>
+  <data name="MeanShift.Header" xml:space="preserve">
+    <value>平均值漂移聚類</value>
+  </data>
+  <data name="File" xml:space="preserve">
+    <value>檔案</value>
+  </data>
+  <data name="AllSupportedImageFiles" xml:space="preserve">
+    <value>所有受支持的影像檔案格式</value>
+  </data>
+  <data name="ResultTipMode" xml:space="preserve">
+    <value>模式 :</value>
+  </data>
+  <data name="ResultTipDifference" xml:space="preserve">
+    <value>差异 :</value>
+  </data>
+  <data name="ResultTipElapsed" xml:space="preserve">
+    <value>用時 :</value>
+  </data>
+  <data name="InfoTipDimention" xml:space="preserve">
+    <value>顯示尺寸       =</value>
+  </data>
+  <data name="InfoTipResolution" xml:space="preserve">
+    <value>分辨率         =</value>
+  </data>
+  <data name="InfoTipAttributes" xml:space="preserve">
+    <value>屬性           =</value>
+  </data>
+  <data name="InfoTipColorSpace" xml:space="preserve">
+    <value>色彩空間       =</value>
+  </data>
+  <data name="InfoTipFormatInfo" xml:space="preserve">
+    <value>格式信息       =</value>
+  </data>
+  <data name="InfoTipMemoryUsage" xml:space="preserve">
+    <value>記憶體使用     =</value>
+  </data>
+  <data name="InfoTipDisplayMemory" xml:space="preserve">
+    <value>顯示所需記憶體 =</value>
+  </data>
+  <data name="InfoTipFileName" xml:space="preserve">
+    <value>檔案名稱       =</value>
+  </data>
+  <data name="HighlightColorPick.AdvancedTabHeader" xml:space="preserve">
+    <value>自定</value>
+  </data>
+  <data name="HighlightColorPick.StandardTabHeader" xml:space="preserve">
+    <value>標準</value>
+  </data>
+  <data name="HighlightColorPick.AvailableColorsHeader" xml:space="preserve">
+    <value>有效顏色</value>
+  </data>
+  <data name="HighlightColorPick.StandardColorsHeader" xml:space="preserve">
+    <value>標準顏色</value>
+  </data>
+  <data name="HighlightColorPick.RecentColorsHeader" xml:space="preserve">
+    <value>最近顏色</value>
+  </data>
+  <data name="LowlightColorPick.AdvancedTabHeader" xml:space="preserve">
+    <value>自定</value>
+  </data>
+  <data name="LowlightColorPick.StandardTabHeader" xml:space="preserve">
+    <value>標準</value>
+  </data>
+  <data name="LowlightColorPick.AvailableColorsHeader" xml:space="preserve">
+    <value>有效顏色</value>
+  </data>
+  <data name="LowlightColorPick.StandardColorsHeader" xml:space="preserve">
+    <value>標準顏色</value>
+  </data>
+  <data name="LowlightColorPick.RecentColorsHeader" xml:space="preserve">
+    <value>最近顏色</value>
+  </data>
+  <data name="MasklightColorPick.AdvancedTabHeader" xml:space="preserve">
+    <value>自定</value>
+  </data>
+  <data name="MasklightColorPick.StandardTabHeader" xml:space="preserve">
+    <value>標準</value>
+  </data>
+  <data name="MasklightColorPick.AvailableColorsHeader" xml:space="preserve">
+    <value>有效顏色</value>
+  </data>
+  <data name="MasklightColorPick.StandardColorsHeader" xml:space="preserve">
+    <value>標準顏色</value>
+  </data>
+  <data name="MasklightColorPick.RecentColorsHeader" xml:space="preserve">
+    <value>最近顏色</value>
+  </data>
+  <data name="UILanguage.ToolTip" xml:space="preserve">
+    <value>使用者介面語言選擇</value>
+  </data>
+  <data name="UILanguageEn.Header" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="UILanguageCn.Header" xml:space="preserve">
+    <value>简体中文</value>
+  </data>
+  <data name="UILanguageTw.Header" xml:space="preserve">
+    <value>繁體中文</value>
+  </data>
+  <data name="UILanguageJa.Header" xml:space="preserve">
+    <value>日本語</value>
+  </data>
+  <data name="FillBoundingBox.Header" xml:space="preserve">
+    <value>以指定顏色填充邊界空白</value>
+  </data>
+  <data name="InfoTipBounding" xml:space="preserve">
+    <value>邊界尺寸       =</value>
+  </data>
+  <data name="AutoGamma.Header" xml:space="preserve">
+    <value>自動調節伽瑪值</value>
+  </data>
+  <data name="AutoLevel.Header" xml:space="preserve">
+    <value>自動調節色階值</value>
+  </data>
+  <data name="AutoThreshold.Header" xml:space="preserve">
+    <value>自動二值化影像</value>
+  </data>
+  <data name="BlueShift.Header" xml:space="preserve">
+    <value>模仿夜間月光效果</value>
+  </data>
+  <data name="AutoContrast.Header" xml:space="preserve">
+    <value>自動調節對比度</value>
+  </data>
+  <data name="AutoEnhance.Header" xml:space="preserve">
+    <value>自動圖像增強</value>
+  </data>
+  <data name="AutoEqualize.Header" xml:space="preserve">
+    <value>自動影像均衡</value>
+  </data>
+  <data name="HaldClut.Header" xml:space="preserve">
+    <value>應用Hald顏色查找表</value>
+  </data>
+  <data name="KmeansCluster.Header" xml:space="preserve">
+    <value>K-Means 聚類</value>
+  </data>
+  <data name="ReMapColor.Header" xml:space="preserve">
+    <value>重映射影像顏色</value>
+  </data>
+  <data name="InfoTipColors" xml:space="preserve">
+    <value>顯示色彩數量   =</value>
+  </data>
+  <data name="Waiting" xml:space="preserve">
+    <value>請稍候 ...</value>
+  </data>
+  <data name="AutoVignette.Header" xml:space="preserve">
+    <value>漸暈柔化圖像邊緣</value>
+  </data>
+  <data name="AutoWhiteBalance.Header" xml:space="preserve">
+    <value>自動調節白平衡</value>
+  </data>
+  <data name="CopyToSource.Header" xml:space="preserve">
+    <value>複製影像到來源</value>
+  </data>
+  <data name="CopyToTarget.Header" xml:space="preserve">
+    <value>複製影像到目標</value>
+  </data>
+  <data name="LoadNextImageFile.Header" xml:space="preserve">
+    <value>載入後一個影像檔案</value>
+  </data>
+  <data name="LoadPrevImageFile.Header" xml:space="preserve">
+    <value>載入前一個影像檔案</value>
+  </data>
+  <data name="Invert.Header" xml:space="preserve">
+    <value>反轉影像顏色</value>
+  </data>
+  <data name="Polaroid.Header" xml:space="preserve">
+    <value>寶麗來風格影像</value>
+  </data>
+  <data name="Posterize.Header" xml:space="preserve">
+    <value>海報風格影像</value>
+  </data>
+  <data name="MedianFilter.Header" xml:space="preserve">
+    <value>中值過濾降噪</value>
+  </data>
+  <data name="CopyImage.Header" xml:space="preserve">
+    <value>複製當前影像</value>
+  </data>
+  <data name="CLUT.Header" xml:space="preserve">
+    <value>顏色查找錶</value>
+  </data>
+  <data name="AutoReduceNoise.Header" xml:space="preserve">
+    <value>自動影像降噪</value>
+  </data>
+  <data name="InfoTipCompression" xml:space="preserve">
+    <value>壓縮方法       =</value>
+  </data>
+  <data name="InfoTipHasAlpha" xml:space="preserve">
+    <value>包含透明通道   =</value>
+  </data>
+  <data name="Included" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="NotIncluded" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="Undefined" xml:space="preserve">
+    <value>未闡明</value>
+  </data>
+  <data name="CreateColorImage.Header" xml:space="preserve">
+    <value>以指定顏色創建影像</value>
+  </data>
+  <data name="SetColorToAlpha.Header" xml:space="preserve">
+    <value>指定顏色設為透明通道</value>
+  </data>
+  <data name="InfoTipColorMapsSize" xml:space="preserve">
+    <value>調色盤顏色數   =</value>
+  </data>
+  <data name="RepeatLastAction.ToolTip" xml:space="preserve">
+    <value>再次執行之前的動作</value>
+  </data>
+  <data name="SetAlphaToColor.Header" xml:space="preserve">
+    <value>透明通道設為指定顏色</value>
+  </data>
+  <data name="ResetImage.Header" xml:space="preserve">
+    <value>重置當前影像</value>
+  </data>
+  <data name="CopyFromResult.Header" xml:space="preserve">
+    <value>從結果複製影像</value>
+  </data>
+  <data name="ImageLayout.ToolTip" xml:space="preserve">
+    <value>切換 水平/垂直 查看佈局</value>
+  </data>
+  <data name="MergeX.Header" xml:space="preserve">
+    <value>水准拼接影像</value>
+  </data>
+  <data name="MergeY.Header" xml:space="preserve">
+    <value>垂直拼接影像</value>
+  </data>
+  <data name="PencilPaint.Header" xml:space="preserve">
+    <value>鉛筆草稿效果</value>
+  </data>
+  <data name="Stereo3D.Header" xml:space="preserve">
+    <value>紅藍偽3D效果</value>
+  </data>
+  <data name="InfoTipQuality" xml:space="preserve">
+    <value>圖像質量       =</value>
+  </data>
+  <data name="InfoTipFileSize" xml:space="preserve">
+    <value>檔案大小       =</value>
+  </data>
+  <data name="InfoTipDimentionOriginal" xml:space="preserve">
+    <value>原圖尺寸       =</value>
+  </data>
+  <data name="AutoMatchSize.ToolTip" xml:space="preserve">
+    <value>自動匹配圖像大小</value>
+  </data>
+  <data name="CalcImageColors.Header" xml:space="preserve">
+    <value>統計顏色信息</value>
+  </data>
+  <data name="InfoTipBackgroundColor" xml:space="preserve">
+    <value>顯示背景色     =</value>
+  </data>
+  <data name="InfoTipBackgroundColorOriginal" xml:space="preserve">
+    <value>原圖背景色     =</value>
+  </data>
+  <data name="InfoTipBorderColor" xml:space="preserve">
+    <value>顯示邊框色     =</value>
+  </data>
+  <data name="InfoTipBorderColorOriginal" xml:space="preserve">
+    <value>原圖邊框色     =</value>
+  </data>
+  <data name="InfoTipColorsOriginal" xml:space="preserve">
+    <value>原圖色彩數量   =</value>
+  </data>
+  <data name="InfoTipMatteColor" xml:space="preserve">
+    <value>顯示遮罩色     =</value>
+  </data>
+  <data name="InfoTipMatteColorOriginal" xml:space="preserve">
+    <value>原圖遮罩色     =</value>
+  </data>
+  <data name="InfoTipMemoryMode" xml:space="preserve">
+    <value>記憶體使用模式 =</value>
+  </data>
+  <data name="InfoTipIdealMemoryUsage" xml:space="preserve">
+    <value>理想記憶體佔用 =</value>
+  </data>
+  <data name="InfoTipColorChannelCount" xml:space="preserve">
+    <value>顏色通道数     =</value>
+  </data>
+  <data name="ImageLoadHaldLut.ToolTip" xml:space="preserve">
+    <value>载入Hald顏色查找表文件</value>
+  </data>
+  <data name="ImageDenoiseResult.ToolTip" xml:space="preserve">
+    <value>減少結果影像噪點</value>
+  </data>
+  <data name="Zoom Ratio" xml:space="preserve">
+    <value>縮放比例</value>
+  </data>
+  <data name="Tolerances" xml:space="preserve">
+    <value>容差</value>
+  </data>
+  <data name="MatchSizeAlignBC.Header" xml:space="preserve">
+    <value>底部中心對齊</value>
+  </data>
+  <data name="MatchSizeAlignBL.Header" xml:space="preserve">
+    <value>對齊到左下角</value>
+  </data>
+  <data name="MatchSizeAlignBR.Header" xml:space="preserve">
+    <value>對齊到右下角</value>
+  </data>
+  <data name="MatchSizeAlignCC.Header" xml:space="preserve">
+    <value>完全居中對齊</value>
+  </data>
+  <data name="MatchSizeAlignCL.Header" xml:space="preserve">
+    <value>左側居中對齊</value>
+  </data>
+  <data name="MatchSizeAlignCR.Header" xml:space="preserve">
+    <value>右側居中對齊</value>
+  </data>
+  <data name="MatchSizeAlignTC.Header" xml:space="preserve">
+    <value>頂部中心對齊</value>
+  </data>
+  <data name="MatchSizeAlignTL.Header" xml:space="preserve">
+    <value>對齊到左上角</value>
+  </data>
+  <data name="MatchSizeAlignTR.Header" xml:space="preserve">
+    <value>對齊到右上角</value>
+  </data>
+  <data name="CropImageEdge.Header" xml:space="preserve">
+    <value>裁剪影像的邊界</value>
+  </data>
+  <data name="CreateImageWithColorSource.Header" xml:space="preserve">
+    <value>以指定顏色創建來源影像</value>
+  </data>
+  <data name="CreateImageWithColorTarget.Header" xml:space="preserve">
+    <value>以指定顏色創建目標影像</value>
+  </data>
+  <data name="Edge.Header" xml:space="preserve">
+    <value>線稿效果</value>
+  </data>
+  <data name="Emboss.Header" xml:space="preserve">
+    <value>浮雕效果</value>
+  </data>
+  <data name="Morphology.Header" xml:space="preserve">
+    <value>形態學效果</value>
+  </data>
+  <data name="Segment.Header" xml:space="preserve">
+    <value>影像色彩分割</value>
+  </data>
+  <data name="Quantize.Header" xml:space="preserve">
+    <value>量化影像色彩</value>
+  </data>
+  <data name="Solarize.Header" xml:space="preserve">
+    <value>肥皂泡效果</value>
+  </data>
+  <data name="InfoTipArtifacts" xml:space="preserve">
+    <value>特性備注       =</value>
+  </data>
+  <data name="Blend" xml:space="preserve">
+    <value>混合比例</value>
+  </data>
+  <data name="InfoTipOrientation" xml:space="preserve">
+    <value>圖像方向       =</value>
+  </data>
+  <data name="ExtentImageEdge.Header" xml:space="preserve">
+    <value>擴展影像的邊界</value>
+  </data>
+  <data name="PanImageEdge.Header" xml:space="preserve">
+    <value>偏移影像的邊界</value>
+  </data>
+  <data name="AutoCompare.ToolTip" xml:space="preserve">
+    <value>自動執行比較/合成</value>
+  </data>
+  <data name="SmallSizeModeIndep.Header" xml:space="preserve">
+    <value>獨立縮放</value>
+  </data>
+  <data name="SmallSizeModeLink.Header" xml:space="preserve">
+    <value>關聯縮放</value>
+  </data>
+  <data name="LoadingIndicator.BusyContent" xml:space="preserve">
+    <value>正在載入影像中...</value>
+  </data>
+  <data name="LoadingIndicatorTitle" xml:space="preserve">
+    <value>正在載入影像中...</value>
+  </data>
+  <data name="SavingIndicatorTitle" xml:space="preserve">
+    <value>正在儲存影像中...</value>
+  </data>
+  <data name="ProcessingIndicatorTitle" xml:space="preserve">
+    <value>正在處理影像中...</value>
+  </data>
+  <data name="AlwaysOnTop.ToolTip" xml:space="preserve">
+    <value>視窗置頂</value>
+  </data>
+  <data name="Magnifier.ToolTip" xml:space="preserve">
+    <value>放大镜</value>
+  </data>
+  <data name="ShowImageInfo.ToolTip" xml:space="preserve">
+    <value>顯示影像資訊</value>
+  </data>
+</root>

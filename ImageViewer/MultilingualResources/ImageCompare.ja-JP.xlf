@@ -1,0 +1,737 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en-US" target-language="ja-JP" original="IMAGECOMPARE/PROPERTIES/RESOURCES.RESX">
+    <body>
+      <group id="IMAGECOMPARE/PROPERTIES/RESOURCES.RESX" datatype="resx">
+        <trans-unit id="AllSupportedImageFiles" translate="yes" xml:space="preserve">
+          <source>All Supported Image Files</source>
+          <target state="new">サポートされている画像ファイルのすべてのフォーマット</target>
+        </trans-unit>
+        <trans-unit id="AlwaysOnTop.ToolTip" translate="yes" xml:space="preserve">
+          <source>Always On Top</source>
+          <target state="new">ウインドートッピング</target>
+        </trans-unit>
+        <trans-unit id="AutoCompare.ToolTip" translate="yes" xml:space="preserve">
+          <source>Auto Comparing/Compositing</source>
+          <target state="new">比較/合成を自動的に実行</target>
+        </trans-unit>
+        <trans-unit id="AutoContrast.Header" translate="yes" xml:space="preserve">
+          <source>Auto Contrast</source>
+          <target state="new">コントラストの自動調整</target>
+        </trans-unit>
+        <trans-unit id="AutoEnhance.Header" translate="yes" xml:space="preserve">
+          <source>Auto Enhance</source>
+          <target state="new">自動画像効果の向上</target>
+        </trans-unit>
+        <trans-unit id="AutoEqualize.Header" translate="yes" xml:space="preserve">
+          <source>Auto Equalize</source>
+          <target state="new">自動画像のバランス</target>
+        </trans-unit>
+        <trans-unit id="AutoGamma.Header" translate="yes" xml:space="preserve">
+          <source>Auto Gamma</source>
+          <target state="new">ガンマの自動調整</target>
+        </trans-unit>
+        <trans-unit id="AutoLevel.Header" translate="yes" xml:space="preserve">
+          <source>Auto Levels</source>
+          <target state="new">色の自動調整</target>
+        </trans-unit>
+        <trans-unit id="AutoMatchSize.ToolTip" translate="yes" xml:space="preserve">
+          <source>Automatic Match Image Size Before Image Compare/Composer</source>
+          <target state="new">画像サイズを自動的に合わせる</target>
+        </trans-unit>
+        <trans-unit id="AutoReduceNoise.Header" translate="yes" xml:space="preserve">
+          <source>Auto Reduce Noise</source>
+          <target state="new">自動画像ノイズ低減</target>
+        </trans-unit>
+        <trans-unit id="AutoThreshold.Header" translate="yes" xml:space="preserve">
+          <source>Auto Threshold</source>
+          <target state="new">自動二値化画像</target>
+        </trans-unit>
+        <trans-unit id="AutoVignette.Header" translate="yes" xml:space="preserve">
+          <source>Auto Vignette</source>
+          <target state="new">画像のエッジを徐々にぼかします</target>
+        </trans-unit>
+        <trans-unit id="AutoWhiteBalance.Header" translate="yes" xml:space="preserve">
+          <source>Auto White Balance</source>
+          <target state="new">自動調整ホワイトバランス</target>
+        </trans-unit>
+        <trans-unit id="Blend" translate="yes" xml:space="preserve">
+          <source>Blend Ratio</source>
+          <target state="new">混合スケール</target>
+        </trans-unit>
+        <trans-unit id="BlueShift.Header" translate="yes" xml:space="preserve">
+          <source>Blue Shift (Moonlight Night)</source>
+          <target state="new">夜の月光の効果をまねます</target>
+        </trans-unit>
+        <trans-unit id="CLUT.Header" translate="yes" xml:space="preserve">
+          <source>Apply CLUT</source>
+          <target state="new">普通の色の検索表を適用します</target>
+        </trans-unit>
+        <trans-unit id="CalcImageColors.Header" translate="yes" xml:space="preserve">
+          <source>Statistical Color Information</source>
+          <target state="new">統計的な色の情報</target>
+        </trans-unit>
+        <trans-unit id="Charcoal.Header" translate="yes" xml:space="preserve">
+          <source>Charcoal</source>
+          <target state="new">木炭画効果</target>
+        </trans-unit>
+        <trans-unit id="Compare.Text" translate="yes" xml:space="preserve">
+          <source>Compare</source>
+          <target state="new">比較する</target>
+        </trans-unit>
+        <trans-unit id="Compose.Text" translate="yes" xml:space="preserve">
+          <source>Compose</source>
+          <target state="new">合成</target>
+        </trans-unit>
+        <trans-unit id="CopyFromResult.Header" translate="yes" xml:space="preserve">
+          <source>Copy Image From Result</source>
+          <target state="new">結果からイメージをコピー</target>
+        </trans-unit>
+        <trans-unit id="CopyImage.Header" translate="yes" xml:space="preserve">
+          <source>Copy Image</source>
+          <target state="new">画像をコピー</target>
+        </trans-unit>
+        <trans-unit id="CopyImageInfo" translate="yes" xml:space="preserve">
+          <source>Copy Image Info</source>
+          <target state="new">画像情報のコピー</target>
+        </trans-unit>
+        <trans-unit id="CopyImageInfo.Header" translate="yes" xml:space="preserve">
+          <source>Copy Image Info</source>
+          <target state="new">画像情報のコピー</target>
+        </trans-unit>
+        <trans-unit id="CopyToSource.Header" translate="yes" xml:space="preserve">
+          <source>Copy Image To Source</source>
+          <target state="new">ソースに画像をコピー</target>
+        </trans-unit>
+        <trans-unit id="CopyToTarget.Header" translate="yes" xml:space="preserve">
+          <source>Copy Image To Target</source>
+          <target state="new">画像をターゲットにコピー</target>
+        </trans-unit>
+        <trans-unit id="CreateColorImage.Header" translate="yes" xml:space="preserve">
+          <source>Create Color Image</source>
+          <target state="new">指定された色で画像を作成します</target>
+        </trans-unit>
+        <trans-unit id="CreateImageWithColorSource.Header" translate="yes" xml:space="preserve">
+          <source>Create Color Source Image</source>
+          <target state="new">カラーソース画像の作成</target>
+        </trans-unit>
+        <trans-unit id="CreateImageWithColorTarget.Header" translate="yes" xml:space="preserve">
+          <source>Create Color Target Image</source>
+          <target state="new">カラーターゲット画像の作成</target>
+        </trans-unit>
+        <trans-unit id="CropBoundingBox.Header" translate="yes" xml:space="preserve">
+          <source>Crop BoundingBox</source>
+          <target state="new">画像境界なしを切り取ります</target>
+        </trans-unit>
+        <trans-unit id="CropImageEdge.Header" translate="yes" xml:space="preserve">
+          <source>Crop Image Edge</source>
+          <target state="new">画像の境界を切り取る</target>
+        </trans-unit>
+        <trans-unit id="Edge.Header" translate="yes" xml:space="preserve">
+          <source>Edge Line</source>
+          <target state="new">スクリプト効果</target>
+        </trans-unit>
+        <trans-unit id="Emboss.Header" translate="yes" xml:space="preserve">
+          <source>Emboss</source>
+          <target state="new">エンボス効果</target>
+        </trans-unit>
+        <trans-unit id="ExtentImageEdge.Header" translate="yes" xml:space="preserve">
+          <source>Extend Image Edge</source>
+          <target state="new">画像の境界を拡張する</target>
+        </trans-unit>
+        <trans-unit id="File" translate="yes" xml:space="preserve">
+          <source>File</source>
+          <target state="new">ファイル</target>
+        </trans-unit>
+        <trans-unit id="FillBoundingBox.Header" translate="yes" xml:space="preserve">
+          <source>Fill BoundingBox</source>
+          <target state="new">境界の空白を指定色で塗りつぶす</target>
+        </trans-unit>
+        <trans-unit id="FlipX.Header" translate="yes" xml:space="preserve">
+          <source>Flip Horizontal</source>
+          <target state="new">フリップ水平</target>
+        </trans-unit>
+        <trans-unit id="FlipY.Header" translate="yes" xml:space="preserve">
+          <source>Flip Vertical</source>
+          <target state="new">フリップ垂直</target>
+        </trans-unit>
+        <trans-unit id="GaussianBlur" translate="yes" xml:space="preserve">
+          <source>Gaussian Blur</source>
+          <target state="new">ガウスぼかし</target>
+        </trans-unit>
+        <trans-unit id="GaussianBlur.Header" translate="yes" xml:space="preserve">
+          <source>Gaussian Blur</source>
+          <target state="new">ガウスぼかし</target>
+        </trans-unit>
+        <trans-unit id="Grayscale.Header" translate="yes" xml:space="preserve">
+          <source>Grayscale</source>
+          <target state="new">グレースケール画像</target>
+        </trans-unit>
+        <trans-unit id="HaldClut.Header" translate="yes" xml:space="preserve">
+          <source>Apply Hald CLUT</source>
+          <target state="new">Hald色の検索表を適用する</target>
+        </trans-unit>
+        <trans-unit id="HighlightColorPick.AdvancedTabHeader" translate="yes" xml:space="preserve">
+          <source>Advanced</source>
+          <target state="new">カスタム</target>
+        </trans-unit>
+        <trans-unit id="HighlightColorPick.AvailableColorsHeader" translate="yes" xml:space="preserve">
+          <source>Available Colors</source>
+          <target state="new">カラーバリエーション</target>
+        </trans-unit>
+        <trans-unit id="HighlightColorPick.RecentColorsHeader" translate="yes" xml:space="preserve">
+          <source>Recent Colors</source>
+          <target state="new">最近の色</target>
+        </trans-unit>
+        <trans-unit id="HighlightColorPick.StandardColorsHeader" translate="yes" xml:space="preserve">
+          <source>Standard Colors</source>
+          <target state="new">標準色</target>
+        </trans-unit>
+        <trans-unit id="HighlightColorPick.StandardTabHeader" translate="yes" xml:space="preserve">
+          <source>Standard</source>
+          <target state="new">規格</target>
+        </trans-unit>
+        <trans-unit id="HighlightColorPick.ToolTip" translate="yes" xml:space="preserve">
+          <source>Highlight Color</source>
+          <target state="new">差分領域の表示色</target>
+        </trans-unit>
+        <trans-unit id="ImageClear.ToolTip" translate="yes" xml:space="preserve">
+          <source>Clear Source and Target Pictures</source>
+          <target state="new">クリアソースと宛先画像</target>
+        </trans-unit>
+        <trans-unit id="ImageCompare.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F5] Compare Source and Target Picture\n[Shift+F5] Compare Mode Selector</source>
+          <target state="new">[F5] ソースとターゲット画像を比較する\n[Shift+F 5] 比較モード選択</target>
+        </trans-unit>
+        <trans-unit id="ImageCompose.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F6] Compose Source and Target Picture</source>
+          <target state="new">[F6] ソースとターゲット画像の作成\n[Shift+F 6] 合成モード選択</target>
+        </trans-unit>
+        <trans-unit id="ImageCopyResult.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F7] Copy Result Picture</source>
+          <target state="new">[F7] コピー結果画像</target>
+        </trans-unit>
+        <trans-unit id="ImageDenoiseResult.ToolTip" translate="yes" xml:space="preserve">
+          <source>Denoise Result Picture</source>
+          <target state="new">結果画像のデノイズ</target>
+        </trans-unit>
+        <trans-unit id="ImageExchange.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F10] Exchange Source and Target</source>
+          <target state="new">[F10] ソースとターゲット画像を交換する</target>
+        </trans-unit>
+        <trans-unit id="ImageLayout.ToolTip" translate="yes" xml:space="preserve">
+          <source>Horizontal/Vertical Image Layout</source>
+          <target state="new">レイアウトの水平/垂直の切り替え</target>
+        </trans-unit>
+        <trans-unit id="ImageLoadHaldLut.ToolTip" translate="yes" xml:space="preserve">
+          <source>Load Hald LUT File</source>
+          <target state="new">Haldカラールックアップテーブルファイルの読み込み</target>
+        </trans-unit>
+        <trans-unit id="ImageOpenSource.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F1] Open The Source Picture\n[Shift+F1] Load Prev Image File\n[Ctrl+F1] Load Next Image File\n[Alt+F1] Create Source Image With Masklight Color</source>
+          <target state="new">[F1] ソース画像を開く\n[Shift+F1] 前の画像ファイルを読み込む\n[Ctrl+F1] 後の画像ファイルを読み込む\n[Alt+F1] マスクライトの色でソース画像を作成する</target>
+        </trans-unit>
+        <trans-unit id="ImageOpenTarget.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F2] Open The Target Picture\n[Shift+F2] Load Prev Image File\n[Ctrl+F2] Load Next Image File\n[Alt+F2] Create Target Image With Masklight Color</source>
+          <target state="new">[F2] ターゲット画像を開く\n[Shift+F2] 前の画像ファイルを読み込む\n[Ctrl+F2] 後の画像ファイルを読み込む\n[Alt+F2] マスクライトの色でターゲット画像を作成</target>
+        </trans-unit>
+        <trans-unit id="ImagePasteSource.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F3] Paste The Source Picture</source>
+          <target state="new">[F3] ソース画像をペーストする</target>
+        </trans-unit>
+        <trans-unit id="ImagePasteTarget.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F4] Paste The Target Picture</source>
+          <target state="new">[F4] ターゲット画像をペーストする</target>
+        </trans-unit>
+        <trans-unit id="ImageSaveResult.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F8] Save Result Picture</source>
+          <target state="new">[F8] 保存結果画像</target>
+        </trans-unit>
+        <trans-unit id="Included" translate="yes" xml:space="preserve">
+          <source>Yes</source>
+          <target state="new">含まれる</target>
+        </trans-unit>
+        <trans-unit id="InfoTipArtifacts" translate="yes" xml:space="preserve">
+          <source>Artifacts</source>
+          <target state="new">機能ノート         =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipAttributes" translate="yes" xml:space="preserve">
+          <source>Attributes</source>
+          <target state="new">属性               =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipBackgroundColor" translate="yes" xml:space="preserve">
+          <source>Background Color   =</source>
+          <target state="new">表示画像の背景色   =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipBackgroundColorOriginal" translate="yes" xml:space="preserve">
+          <source>Original BG Color  =</source>
+          <target state="new">元の画像の背景色   =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipBorderColor" translate="yes" xml:space="preserve">
+          <source>Border Color       =</source>
+          <target state="new">表示境界線の色     =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipBorderColorOriginal" translate="yes" xml:space="preserve">
+          <source>Original Border    =</source>
+          <target state="new">元の境界線の色     =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipBounding" translate="yes" xml:space="preserve">
+          <source>Bounding Box       =</source>
+          <target state="new">境界サイズ         =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipColorChannelCount" translate="yes" xml:space="preserve">
+          <source>Color Channels     =</source>
+          <target state="new">カラーチャンネル数 =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipColorMapsSize" translate="yes" xml:space="preserve">
+          <source>ColorMaps Size     =</source>
+          <target state="new">パレットの色数     =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipColorSpace" translate="yes" xml:space="preserve">
+          <source>Color Space        =</source>
+          <target state="new">カラースペース     =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipColors" translate="yes" xml:space="preserve">
+          <source>Colors             =</source>
+          <target state="new">表示色の数         =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipColorsOriginal" translate="yes" xml:space="preserve">
+          <source>Original Colors    =</source>
+          <target state="new">元の画像の色の数   =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipCompression" translate="yes" xml:space="preserve">
+          <source>Compression        =</source>
+          <target state="new">圧縮方法           =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipDimention" translate="yes" xml:space="preserve">
+          <source>Current Dimention  =</source>
+          <target state="new">表示サイズ         =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipDimentionOriginal" translate="yes" xml:space="preserve">
+          <source>Original Dimention =</source>
+          <target state="new">元のサイズ         =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipDisplayMemory" translate="yes" xml:space="preserve">
+          <source>Display Memory     =</source>
+          <target state="new">必要なメモリを表示 =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipFileName" translate="yes" xml:space="preserve">
+          <source>FileName           =</source>
+          <target state="new">ファイル名         =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipFileSize" translate="yes" xml:space="preserve">
+          <source>FileSize           =</source>
+          <target state="new">ファイルサイズ     =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipFormatInfo" translate="yes" xml:space="preserve">
+          <source>Format Info        =</source>
+          <target state="new">フォーマット情報   =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipHasAlpha" translate="yes" xml:space="preserve">
+          <source>Has Alpha          =</source>
+          <target state="new">透明チャネルを含む =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipIdealMemoryUsage" translate="yes" xml:space="preserve">
+          <source>Ideal Memoy Usage  =</source>
+          <target state="new">理想的なメモリ使用 =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipMatteColor" translate="yes" xml:space="preserve">
+          <source>Matte Color        =</source>
+          <target state="new">表示マスクの色     =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipMatteColorOriginal" translate="yes" xml:space="preserve">
+          <source>Original Matte     =</source>
+          <target state="new">元のマスクの色     =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipMemoryMode" translate="yes" xml:space="preserve">
+          <source>Memory Mode        =</source>
+          <target state="new">メモリモード       =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipMemoryUsage" translate="yes" xml:space="preserve">
+          <source>Memory Usage       =</source>
+          <target state="new">メモリ使用         =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipOrientation" translate="yes" xml:space="preserve">
+          <source>Orientation        =</source>
+          <target state="new">画像の向き         =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipQuality" translate="yes" xml:space="preserve">
+          <source>Image Quality      =</source>
+          <target state="new">画像品質           =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipResolution" translate="yes" xml:space="preserve">
+          <source>Resolution         =</source>
+          <target state="new">解像度             =</target>
+        </trans-unit>
+        <trans-unit id="Invert.Header" translate="yes" xml:space="preserve">
+          <source>Invert</source>
+          <target state="new">画像の色を反転</target>
+        </trans-unit>
+        <trans-unit id="KmeansCluster.Header" translate="yes" xml:space="preserve">
+          <source>K-Means Cluster</source>
+          <target state="new">K-Means クラスター</target>
+        </trans-unit>
+        <trans-unit id="LoadNextImageFile.Header" translate="yes" xml:space="preserve">
+          <source>Load Next Image File</source>
+          <target state="new">後の画像ファイルを読み込む</target>
+        </trans-unit>
+        <trans-unit id="LoadPrevImageFile.Header" translate="yes" xml:space="preserve">
+          <source>Load Prev Image File</source>
+          <target state="new">前の画像ファイルを読み込む</target>
+        </trans-unit>
+        <trans-unit id="LoadingIndicator.BusyContent" translate="yes" xml:space="preserve">
+          <source>Loading ...</source>
+          <target state="new">画像を読み込む...</target>
+        </trans-unit>
+        <trans-unit id="LoadingIndicatorTitle" translate="yes" xml:space="preserve">
+          <source>Loading ...</source>
+          <target state="new">画像を読み込む...</target>
+        </trans-unit>
+        <trans-unit id="LowlightColorPick.AdvancedTabHeader" translate="yes" xml:space="preserve">
+          <source>Advanced</source>
+          <target state="new">カスタム</target>
+        </trans-unit>
+        <trans-unit id="LowlightColorPick.AvailableColorsHeader" translate="yes" xml:space="preserve">
+          <source>Available Colors</source>
+          <target state="new">カラーバリエーション</target>
+        </trans-unit>
+        <trans-unit id="LowlightColorPick.RecentColorsHeader" translate="yes" xml:space="preserve">
+          <source>Recent Colors</source>
+          <target state="new">最近の色</target>
+        </trans-unit>
+        <trans-unit id="LowlightColorPick.StandardColorsHeader" translate="yes" xml:space="preserve">
+          <source>Standard Colors</source>
+          <target state="new">標準色</target>
+        </trans-unit>
+        <trans-unit id="LowlightColorPick.StandardTabHeader" translate="yes" xml:space="preserve">
+          <source>Standard</source>
+          <target state="new">規格</target>
+        </trans-unit>
+        <trans-unit id="LowlightColorPick.ToolTip" translate="yes" xml:space="preserve">
+          <source>Lowlight Color</source>
+          <target state="new">同一エリアの表示色</target>
+        </trans-unit>
+        <trans-unit id="Magnifier.ToolTip" translate="yes" xml:space="preserve">
+          <source>Image Magnifier</source>
+          <target state="new">画像拡大鏡</target>
+        </trans-unit>
+        <trans-unit id="MainWindow.Title" translate="yes" xml:space="preserve">
+          <source>Image Compare</source>
+          <target state="new">画像の差異比較</target>
+        </trans-unit>
+        <trans-unit id="MasklightColorPick.AdvancedTabHeader" translate="yes" xml:space="preserve">
+          <source>Advanced</source>
+          <target state="new">カスタム</target>
+        </trans-unit>
+        <trans-unit id="MasklightColorPick.AvailableColorsHeader" translate="yes" xml:space="preserve">
+          <source>Available Colors</source>
+          <target state="new">カラーバリエーション</target>
+        </trans-unit>
+        <trans-unit id="MasklightColorPick.RecentColorsHeader" translate="yes" xml:space="preserve">
+          <source>Recent Colors</source>
+          <target state="new">最近の色</target>
+        </trans-unit>
+        <trans-unit id="MasklightColorPick.StandardColorsHeader" translate="yes" xml:space="preserve">
+          <source>Standard Colors</source>
+          <target state="new">標準色</target>
+        </trans-unit>
+        <trans-unit id="MasklightColorPick.StandardTabHeader" translate="yes" xml:space="preserve">
+          <source>Standard</source>
+          <target state="new">規格</target>
+        </trans-unit>
+        <trans-unit id="MasklightColorPick.ToolTip" translate="yes" xml:space="preserve">
+          <source>Masklight Color</source>
+          <target state="new">マスク領域の表示色</target>
+        </trans-unit>
+        <trans-unit id="MatchSizeAlignBC.Header" translate="yes" xml:space="preserve">
+          <source>Align To Bottom Center</source>
+          <target state="new">下部中央揃え</target>
+        </trans-unit>
+        <trans-unit id="MatchSizeAlignBL.Header" translate="yes" xml:space="preserve">
+          <source>Align To Bottom Left</source>
+          <target state="new">左下隅に揃える</target>
+        </trans-unit>
+        <trans-unit id="MatchSizeAlignBR.Header" translate="yes" xml:space="preserve">
+          <source>Align To Bottom Right</source>
+          <target state="new">右下揃に揃える</target>
+        </trans-unit>
+        <trans-unit id="MatchSizeAlignCC.Header" translate="yes" xml:space="preserve">
+          <source>Align To Center</source>
+          <target state="new">完全中央揃え</target>
+        </trans-unit>
+        <trans-unit id="MatchSizeAlignCL.Header" translate="yes" xml:space="preserve">
+          <source>Align To Center Left</source>
+          <target state="new">左側中央揃え</target>
+        </trans-unit>
+        <trans-unit id="MatchSizeAlignCR.Header" translate="yes" xml:space="preserve">
+          <source>Align To Center Right</source>
+          <target state="new">右側中央揃え</target>
+        </trans-unit>
+        <trans-unit id="MatchSizeAlignTC.Header" translate="yes" xml:space="preserve">
+          <source>Align To Top Center</source>
+          <target state="new">上部中央揃え</target>
+        </trans-unit>
+        <trans-unit id="MatchSizeAlignTL.Header" translate="yes" xml:space="preserve">
+          <source>Align To Top Left</source>
+          <target state="new">左上隅に揃える</target>
+        </trans-unit>
+        <trans-unit id="MatchSizeAlignTR.Header" translate="yes" xml:space="preserve">
+          <source>Align To Top Right</source>
+          <target state="new">右上隅に揃える</target>
+        </trans-unit>
+        <trans-unit id="MatchSourceSize.Header" translate="yes" xml:space="preserve">
+          <source>Match Source Size</source>
+          <target state="new">マッチ元の画像サイズ</target>
+        </trans-unit>
+        <trans-unit id="MatchTargetSize.Header" translate="yes" xml:space="preserve">
+          <source>Match Target Size</source>
+          <target state="new">適合先画像サイズ</target>
+        </trans-unit>
+        <trans-unit id="MaxCompareSizeValue.ToolTip" translate="yes" xml:space="preserve">
+          <source>Max Image Width and Height Size When Using Smaller Image</source>
+          <target state="new">小さな画像を使用するときの最大画像幅と高さのサイズ</target>
+        </trans-unit>
+        <trans-unit id="MeanShift.Header" translate="yes" xml:space="preserve">
+          <source>Mean Shift Cluster</source>
+          <target state="new">平均値ドリフトクラスター</target>
+        </trans-unit>
+        <trans-unit id="MedianFilter.Header" translate="yes" xml:space="preserve">
+          <source>Median Filter</source>
+          <target state="new">中間値フィルタノイズ低減</target>
+        </trans-unit>
+        <trans-unit id="MergeX.Header" translate="yes" xml:space="preserve">
+          <source>Merge Horizontal</source>
+          <target state="new">水平向のステッチ画像</target>
+        </trans-unit>
+        <trans-unit id="MergeY.Header" translate="yes" xml:space="preserve">
+          <source>Merge Vertical</source>
+          <target state="new">縦方向のステッチ画像</target>
+        </trans-unit>
+        <trans-unit id="MoreEffects.Header" translate="yes" xml:space="preserve">
+          <source>More Effects</source>
+          <target state="new">より多くのフィルタ効果</target>
+        </trans-unit>
+        <trans-unit id="Morphology.Header" translate="yes" xml:space="preserve">
+          <source>Morphology</source>
+          <target state="new">形態学効果</target>
+        </trans-unit>
+        <trans-unit id="NotIncluded" translate="yes" xml:space="preserve">
+          <source>No</source>
+          <target state="new">含まれない</target>
+        </trans-unit>
+        <trans-unit id="OilPaint.Header" translate="yes" xml:space="preserve">
+          <source>Oil Paint</source>
+          <target state="new">油絵の効果</target>
+        </trans-unit>
+        <trans-unit id="PanImageEdge.Header" translate="yes" xml:space="preserve">
+          <source>Add Offset To Image Edge</source>
+          <target state="new">画像の境界をオフセットする</target>
+        </trans-unit>
+        <trans-unit id="PencilPaint.Header" translate="yes" xml:space="preserve">
+          <source>Pencil Paint</source>
+          <target state="new">ペンシルドラフト効果</target>
+        </trans-unit>
+        <trans-unit id="Polaroid.Header" translate="yes" xml:space="preserve">
+          <source>Polaroid</source>
+          <target state="new">ポラロイドスタイルの画像</target>
+        </trans-unit>
+        <trans-unit id="Posterize.Header" translate="yes" xml:space="preserve">
+          <source>Posterize</source>
+          <target state="new">ポスタースタイルの画像</target>
+        </trans-unit>
+        <trans-unit id="ProcessStatus.ToolTip" translate="yes" xml:space="preserve">
+          <source>Picture Processing Progress</source>
+          <target state="new">画像処理の進歩</target>
+        </trans-unit>
+        <trans-unit id="ProcessingIndicatorTitle" translate="yes" xml:space="preserve">
+          <source>Processing ...</source>
+          <target state="new">画像を処理する...</target>
+        </trans-unit>
+        <trans-unit id="Quantize.Header" translate="yes" xml:space="preserve">
+          <source>Quantize</source>
+          <target state="new">画像の色を量子化する</target>
+        </trans-unit>
+        <trans-unit id="ReMapColor.Header" translate="yes" xml:space="preserve">
+          <source>Re-Map Color</source>
+          <target state="new">画像色を再マッピング</target>
+        </trans-unit>
+        <trans-unit id="ReloadImage.Header" translate="yes" xml:space="preserve">
+          <source>Reload Image</source>
+          <target state="new">画像を再読み込み</target>
+        </trans-unit>
+        <trans-unit id="RepeatLastAction.ToolTip" translate="yes" xml:space="preserve">
+          <source>Repeat Last Action</source>
+          <target state="new">前の動作をもう一度実行します</target>
+        </trans-unit>
+        <trans-unit id="ResetImage.Header" translate="yes" xml:space="preserve">
+          <source>Reset Image</source>
+          <target state="new">画像のリセット</target>
+        </trans-unit>
+        <trans-unit id="ResetTransforms.Header" translate="yes" xml:space="preserve">
+          <source>Reset Transforms</source>
+          <target state="new">変換のリセット</target>
+        </trans-unit>
+        <trans-unit id="ResultTipDifference" translate="yes" xml:space="preserve">
+          <source>Difference :</source>
+          <target state="new">違い   :</target>
+        </trans-unit>
+        <trans-unit id="ResultTipElapsed" translate="yes" xml:space="preserve">
+          <source>Elapsed    :</source>
+          <target state="new">使用時 :</target>
+        </trans-unit>
+        <trans-unit id="ResultTipMode" translate="yes" xml:space="preserve">
+          <source>Mode       :</source>
+          <target state="new">モード :</target>
+        </trans-unit>
+        <trans-unit id="Rotate090.Header" translate="yes" xml:space="preserve">
+          <source>Rotate +90</source>
+          <target state="new">右に90度回転します</target>
+        </trans-unit>
+        <trans-unit id="Rotate180.Header" translate="yes" xml:space="preserve">
+          <source>Rotate 180</source>
+          <target state="new">180度回転します</target>
+        </trans-unit>
+        <trans-unit id="Rotate270.Header" translate="yes" xml:space="preserve">
+          <source>Rotate -90</source>
+          <target state="new">左に90度回転します</target>
+        </trans-unit>
+        <trans-unit id="SaveAs.Header" translate="yes" xml:space="preserve">
+          <source>Save Image As ...</source>
+          <target state="new">名前を付けて画像を保存 ...</target>
+        </trans-unit>
+        <trans-unit id="SavingIndicatorTitle" translate="yes" xml:space="preserve">
+          <source>Saving ...</source>
+          <target state="new">画像の保存...</target>
+        </trans-unit>
+        <trans-unit id="Segment.Header" translate="yes" xml:space="preserve">
+          <source>Segment</source>
+          <target state="new">画像の色セグメント</target>
+        </trans-unit>
+        <trans-unit id="SetAlphaToColor.Header" translate="yes" xml:space="preserve">
+          <source>Set Alpha To Color</source>
+          <target state="new">透明チャンネルを指定色に設定</target>
+        </trans-unit>
+        <trans-unit id="SetColorToAlpha.Header" translate="yes" xml:space="preserve">
+          <source>Set Color To Alpha</source>
+          <target state="new">色を透明チャンネルに設定する</target>
+        </trans-unit>
+        <trans-unit id="ShowImageInfo.ToolTip" translate="yes" xml:space="preserve">
+          <source>how Image Information</source>
+          <target state="new">画像情報の表示</target>
+        </trans-unit>
+        <trans-unit id="SlicingX.Header" translate="yes" xml:space="preserve">
+          <source>Slicing Horizontal</source>
+          <target state="new">水平分割画像</target>
+        </trans-unit>
+        <trans-unit id="SlicingY.Header" translate="yes" xml:space="preserve">
+          <source>Slicing Vertical</source>
+          <target state="new">垂直分割画像</target>
+        </trans-unit>
+        <trans-unit id="SmallSizeModeIndep.Header" translate="yes" xml:space="preserve">
+          <source>Independence Scale</source>
+          <target state="new">個別スケーリング</target>
+        </trans-unit>
+        <trans-unit id="SmallSizeModeLink.Header" translate="yes" xml:space="preserve">
+          <source>Relative Scale</source>
+          <target state="new">連想スケーリング</target>
+        </trans-unit>
+        <trans-unit id="Solarize.Header" translate="yes" xml:space="preserve">
+          <source>Solarize</source>
+          <target state="new">シャボン玉効果</target>
+        </trans-unit>
+        <trans-unit id="Source.Text" translate="yes" xml:space="preserve">
+          <source>Source</source>
+          <target state="new">ソース</target>
+        </trans-unit>
+        <trans-unit id="Stereo3D.Header" translate="yes" xml:space="preserve">
+          <source>Stereo (Fake 3D)</source>
+          <target state="new">赤と青の擬似3D効果</target>
+        </trans-unit>
+        <trans-unit id="Target.Text" translate="yes" xml:space="preserve">
+          <source>Target</source>
+          <target state="new">ターゲット</target>
+        </trans-unit>
+        <trans-unit id="Tolerances" translate="yes" xml:space="preserve">
+          <source>Tolerances</source>
+          <target state="new">容许偏差</target>
+        </trans-unit>
+        <trans-unit id="UILanguage.ToolTip" translate="yes" xml:space="preserve">
+          <source>UI Language Selector</source>
+          <target state="new">UI言語セレクタ</target>
+        </trans-unit>
+        <trans-unit id="UILanguageCn.Header" translate="yes" xml:space="preserve">
+          <source>简体中文</source>
+          <target state="new">简体中文</target>
+        </trans-unit>
+        <trans-unit id="UILanguageEn.Header" translate="yes" xml:space="preserve">
+          <source>English</source>
+          <target state="new">English</target>
+        </trans-unit>
+        <trans-unit id="UILanguageJa.Header" translate="yes" xml:space="preserve">
+          <source>日本語</source>
+          <target state="new">日本語</target>
+        </trans-unit>
+        <trans-unit id="UILanguageTw.Header" translate="yes" xml:space="preserve">
+          <source>繁體中文</source>
+          <target state="new">繁體中文</target>
+        </trans-unit>
+        <trans-unit id="Undefined" translate="yes" xml:space="preserve">
+          <source>Undefined</source>
+          <target state="new">不確定の</target>
+        </trans-unit>
+        <trans-unit id="UseColorImage.ToolTip" translate="yes" xml:space="preserve">
+          <source>Force Using Color Image for Compare and Compose After Image Loaded</source>
+          <target state="new">カラー画像を使用して強制的に比較し、画像をロード後に作成する</target>
+        </trans-unit>
+        <trans-unit id="UseSmallerImage.ToolTip" translate="yes" xml:space="preserve">
+          <source>Using Smaller Image for Compare and Compose After Image Loaded</source>
+          <target state="new">比較のためのより小さいイメージを使用して、ロードされたイメージの後、作曲する</target>
+        </trans-unit>
+        <trans-unit id="UseWeakBlur.ToolTip" translate="yes" xml:space="preserve">
+          <source>Low or High Intensity Blur</source>
+          <target state="new">低強度または高強度ぼかし</target>
+        </trans-unit>
+        <trans-unit id="UseWeakEffects.ToolTip" translate="yes" xml:space="preserve">
+          <source>Low or High Intensity Effects</source>
+          <target state="new">低強度または高強度フィルタ効果</target>
+        </trans-unit>
+        <trans-unit id="UseWeakSharp.ToolTip" translate="yes" xml:space="preserve">
+          <source>Low or High Intensity Sharp</source>
+          <target state="new">低強度または高強度のシャープ化</target>
+        </trans-unit>
+        <trans-unit id="UsedChannels.ToolTip" translate="yes" xml:space="preserve">
+          <source>Picture Channels Selector</source>
+          <target state="new">画像チャンネルセレクタ</target>
+        </trans-unit>
+        <trans-unit id="UsmSharp.Header" translate="yes" xml:space="preserve">
+          <source>Unsharp Mask</source>
+          <target state="new">USMシャープ化</target>
+        </trans-unit>
+        <trans-unit id="Waiting" translate="yes" xml:space="preserve">
+          <source>Waiting ...</source>
+          <target state="new">少々お待ちください ...</target>
+        </trans-unit>
+        <trans-unit id="Zoom Ratio" translate="yes" xml:space="preserve">
+          <source>Zoom Ratio</source>
+          <target state="new">ズーム比</target>
+        </trans-unit>
+        <trans-unit id="ZoomFitAll.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F9] Picture Fit All</source>
+          <target state="new">[F9] 全画像表示</target>
+        </trans-unit>
+        <trans-unit id="ZoomFitHeight.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F9] Picture Fit Height</source>
+          <target state="new">[F9] 画像表示の高さ</target>
+        </trans-unit>
+        <trans-unit id="ZoomFitNone.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F9] Picture Fit None</source>
+          <target state="new">[F9] 画像を自由に表示</target>
+        </trans-unit>
+        <trans-unit id="ZoomFitWidth.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F9] Picture Fit Width</source>
+          <target state="new">[F9] 画像表示の幅</target>
+        </trans-unit>
+      </group>
+    </body>
+  </file>
+</xliff>

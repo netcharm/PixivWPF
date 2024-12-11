@@ -1,0 +1,729 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en-US" target-language="zh-Hans" original="IMAGEVIEWER/PROPERTIES/RESOURCES.RESX">
+    <body>
+      <group id="IMAGEVIEWER/PROPERTIES/RESOURCES.RESX" datatype="resx">
+        <trans-unit id="AllSupportedImageFiles" translate="yes" xml:space="preserve">
+          <source>All Supported Image Files</source>
+          <target state="new">所有受支持的图像文件格式</target>
+        </trans-unit>
+        <trans-unit id="AlwaysOnTop.ToolTip" translate="yes" xml:space="preserve">
+          <source>Always On Top</source>
+          <target state="new">窗口置顶</target>
+        </trans-unit>
+        <trans-unit id="AutoCompare.ToolTip" translate="yes" xml:space="preserve">
+          <source>Auto Comparing/Compositing</source>
+          <target state="new">自动执行比较/合成</target>
+        </trans-unit>
+        <trans-unit id="AutoContrast.Header" translate="yes" xml:space="preserve">
+          <source>Auto Contrast</source>
+          <target state="new">自动调节对比度</target>
+        </trans-unit>
+        <trans-unit id="AutoEnhance.Header" translate="yes" xml:space="preserve">
+          <source>Auto Enhance</source>
+          <target state="new">自动图像增强</target>
+        </trans-unit>
+        <trans-unit id="AutoEqualize.Header" translate="yes" xml:space="preserve">
+          <source>Auto Equalize</source>
+          <target state="new">自动图像均衡</target>
+        </trans-unit>
+        <trans-unit id="AutoGamma.Header" translate="yes" xml:space="preserve">
+          <source>Auto Gamma</source>
+          <target state="new">自动调节伽玛值</target>
+        </trans-unit>
+        <trans-unit id="AutoLevel.Header" translate="yes" xml:space="preserve">
+          <source>Auto Levels</source>
+          <target state="new">自动调节色阶值</target>
+        </trans-unit>
+        <trans-unit id="AutoMatchSize.ToolTip" translate="yes" xml:space="preserve">
+          <source>Automatic Match Image Size Before Image Compare/Composer</source>
+          <target state="new">自动匹配图像大小</target>
+        </trans-unit>
+        <trans-unit id="AutoReduceNoise.Header" translate="yes" xml:space="preserve">
+          <source>Auto Reduce Noise</source>
+          <target state="new">自动图像降噪</target>
+        </trans-unit>
+        <trans-unit id="AutoThreshold.Header" translate="yes" xml:space="preserve">
+          <source>Auto Threshold</source>
+          <target state="new">自动二值化图像</target>
+        </trans-unit>
+        <trans-unit id="AutoVignette.Header" translate="yes" xml:space="preserve">
+          <source>Auto Vignette</source>
+          <target state="new">渐晕柔化图像边缘</target>
+        </trans-unit>
+        <trans-unit id="AutoWhiteBalance.Header" translate="yes" xml:space="preserve">
+          <source>Auto White Balance</source>
+          <target state="new">自动调节白平衡</target>
+        </trans-unit>
+        <trans-unit id="Blend" translate="yes" xml:space="preserve">
+          <source>Blend Ratio</source>
+          <target state="new">混合比例</target>
+        </trans-unit>
+        <trans-unit id="BlueShift.Header" translate="yes" xml:space="preserve">
+          <source>Blue Shift (Moonlight Night)</source>
+          <target state="new">模仿夜间月光效果</target>
+        </trans-unit>
+        <trans-unit id="CLUT.Header" translate="yes" xml:space="preserve">
+          <source>Apply CLUT</source>
+          <target state="new">应用普通颜色查找表</target>
+        </trans-unit>
+        <trans-unit id="CalcImageColors.Header" translate="yes" xml:space="preserve">
+          <source>Statistical Color Information</source>
+          <target state="new">统计颜色信息</target>
+        </trans-unit>
+        <trans-unit id="Charcoal.Header" translate="yes" xml:space="preserve">
+          <source>Charcoal</source>
+          <target state="new">炭笔画效果</target>
+        </trans-unit>
+        <trans-unit id="Compare.Text" translate="yes" xml:space="preserve">
+          <source>Compare</source>
+          <target state="new">比较</target>
+        </trans-unit>
+        <trans-unit id="Compose.Text" translate="yes" xml:space="preserve">
+          <source>Compose</source>
+          <target state="new">合成</target>
+        </trans-unit>
+        <trans-unit id="CopyFromResult.Header" translate="yes" xml:space="preserve">
+          <source>Copy Image From Result</source>
+          <target state="new">从结果复制图像</target>
+        </trans-unit>
+        <trans-unit id="CopyImage.Header" translate="yes" xml:space="preserve">
+          <source>Copy Image</source>
+          <target state="new">复制当前图像</target>
+        </trans-unit>
+        <trans-unit id="CopyImageInfo" translate="yes" xml:space="preserve">
+          <source>Copy Image Info</source>
+          <target state="new">复制图像信息</target>
+        </trans-unit>
+        <trans-unit id="CopyImageInfo.Header" translate="yes" xml:space="preserve">
+          <source>Copy Image Info</source>
+          <target state="new">复制图像信息</target>
+        </trans-unit>
+        <trans-unit id="CopyToSource.Header" translate="yes" xml:space="preserve">
+          <source>Copy Image To Source</source>
+          <target state="new">复制图像到来源</target>
+        </trans-unit>
+        <trans-unit id="CopyToTarget.Header" translate="yes" xml:space="preserve">
+          <source>Copy Image To Target</source>
+          <target state="new">复制图像到目标</target>
+        </trans-unit>
+        <trans-unit id="CreateColorImage.Header" translate="yes" xml:space="preserve">
+          <source>Create Color Image</source>
+          <target state="new">以指定颜色创建图像</target>
+        </trans-unit>
+        <trans-unit id="CreateImageWithColorSource.Header" translate="yes" xml:space="preserve">
+          <source>Create Color Source Image</source>
+          <target state="new">以指定颜色创建来源图像</target>
+        </trans-unit>
+        <trans-unit id="CreateImageWithColorTarget.Header" translate="yes" xml:space="preserve">
+          <source>Create Color Target Image</source>
+          <target state="new">以指定颜色创建目标图像</target>
+        </trans-unit>
+        <trans-unit id="CropBoundingBox.Header" translate="yes" xml:space="preserve">
+          <source>Crop BoundingBox</source>
+          <target state="new">裁剪无图像边界</target>
+        </trans-unit>
+        <trans-unit id="CropImageEdge.Header" translate="yes" xml:space="preserve">
+          <source>Crop Image Edge</source>
+          <target state="new">裁剪图像的边界</target>
+        </trans-unit>
+        <trans-unit id="Edge.Header" translate="yes" xml:space="preserve">
+          <source>Edge Line</source>
+          <target state="new">线稿效果</target>
+        </trans-unit>
+        <trans-unit id="Emboss.Header" translate="yes" xml:space="preserve">
+          <source>Emboss</source>
+          <target state="new">浮雕效果</target>
+        </trans-unit>
+        <trans-unit id="ExtentImageEdge.Header" translate="yes" xml:space="preserve">
+          <source>Extend Image Edge</source>
+          <target state="new">扩展图像的边界</target>
+        </trans-unit>
+        <trans-unit id="File" translate="yes" xml:space="preserve">
+          <source>File</source>
+          <target state="new">文件</target>
+        </trans-unit>
+        <trans-unit id="FillBoundingBox.Header" translate="yes" xml:space="preserve">
+          <source>Fill BoundingBox</source>
+          <target state="new">以指定颜色填充边界</target>
+        </trans-unit>
+        <trans-unit id="FlipX.Header" translate="yes" xml:space="preserve">
+          <source>Flip Horizontal</source>
+          <target state="new">水平镜像</target>
+        </trans-unit>
+        <trans-unit id="FlipY.Header" translate="yes" xml:space="preserve">
+          <source>Flip Vertical</source>
+          <target state="new">垂直翻转</target>
+        </trans-unit>
+        <trans-unit id="GaussianBlur" translate="yes" xml:space="preserve">
+          <source>Gaussian Blur</source>
+          <target state="new">高斯模糊</target>
+        </trans-unit>
+        <trans-unit id="GaussianBlur.Header" translate="yes" xml:space="preserve">
+          <source>Gaussian Blur</source>
+          <target state="new">高斯模糊</target>
+        </trans-unit>
+        <trans-unit id="Grayscale.Header" translate="yes" xml:space="preserve">
+          <source>Grayscale</source>
+          <target state="new">灰度图像</target>
+        </trans-unit>
+        <trans-unit id="HaldClut.Header" translate="yes" xml:space="preserve">
+          <source>Apply Hald CLUT</source>
+          <target state="new">应用Hald颜色查找表</target>
+        </trans-unit>
+        <trans-unit id="HighlightColorPick.AdvancedTabHeader" translate="yes" xml:space="preserve">
+          <source>Advanced</source>
+          <target state="new">自定</target>
+        </trans-unit>
+        <trans-unit id="HighlightColorPick.AvailableColorsHeader" translate="yes" xml:space="preserve">
+          <source>Available Colors</source>
+          <target state="new">有效颜色</target>
+        </trans-unit>
+        <trans-unit id="HighlightColorPick.RecentColorsHeader" translate="yes" xml:space="preserve">
+          <source>Recent Colors</source>
+          <target state="new">最近颜色</target>
+        </trans-unit>
+        <trans-unit id="HighlightColorPick.StandardColorsHeader" translate="yes" xml:space="preserve">
+          <source>Standard Colors</source>
+          <target state="new">标准颜色</target>
+        </trans-unit>
+        <trans-unit id="HighlightColorPick.StandardTabHeader" translate="yes" xml:space="preserve">
+          <source>Standard</source>
+          <target state="new">标准</target>
+        </trans-unit>
+        <trans-unit id="HighlightColorPick.ToolTip" translate="yes" xml:space="preserve">
+          <source>Highlight Color</source>
+          <target state="new">差异区域显示颜色</target>
+        </trans-unit>
+        <trans-unit id="ImageClear.ToolTip" translate="yes" xml:space="preserve">
+          <source>Clear Source and Target Pictures</source>
+          <target state="new">清除来源和目标图像</target>
+        </trans-unit>
+        <trans-unit id="ImageCompare.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F5] Compare Source and Target Picture\n[Shift+F5] Compare Mode Selector</source>
+          <target state="new">[F5] 比较来源图像和目标图像\n[Shift+F5] 比较模式选择</target>
+        </trans-unit>
+        <trans-unit id="ImageCompose.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F6] Compose Source and Target Picture</source>
+          <target state="new">[F6] 合成来源图像和目标图像\n[Shift+F6] 合成模式选择</target>
+        </trans-unit>
+        <trans-unit id="ImageCopyResult.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F7] Copy Result Picture</source>
+          <target state="new">[F7] 复制结果图像</target>
+        </trans-unit>
+        <trans-unit id="ImageDenoiseResult.ToolTip" translate="yes" xml:space="preserve">
+          <source>Denoise Result Picture</source>
+          <target state="new">减少结果图像噪点</target>
+        </trans-unit>
+        <trans-unit id="ImageExchange.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F10] Exchange Source and Target</source>
+          <target state="new">[F10] 交换来源和目标图像</target>
+        </trans-unit>
+        <trans-unit id="ImageLayout.ToolTip" translate="yes" xml:space="preserve">
+          <source>Horizontal/Vertical Image Layout</source>
+          <target state="new">切换 水平/垂直 查看布局</target>
+        </trans-unit>
+        <trans-unit id="ImageLoadHaldLut.ToolTip" translate="yes" xml:space="preserve">
+          <source>Load Hald LUT File</source>
+          <target state="new">载入Hald颜色查找表文件</target>
+        </trans-unit>
+        <trans-unit id="ImageOpen.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F1] Open The Picture\n[Shift+F1] Load Prev Image File\n[Ctrl+F1] Load Next Image File\n[Alt+F1] Create Image With Masklight Color</source>
+          <target state="new">[F1] 打开图像\n[Shift+F1] 载入前一个图像文件\n[Ctrl+F1] 载入后一个图像文件\n[Alt+F1] 以遮罩颜色新建纯色图像</target>
+        </trans-unit>
+        <trans-unit id="ImageOpenLabel.Text" translate="yes" xml:space="preserve">
+          <source>Open</source>
+          <target state="new">打开</target>
+        </trans-unit>
+        <trans-unit id="ImagePaste.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F3] Paste The Picture</source>
+          <target state="new">[F3] 粘贴图像</target>
+        </trans-unit>
+        <trans-unit id="ImagePasteLabel.Text" translate="yes" xml:space="preserve">
+          <source>Paste</source>
+          <target state="new">粘贴</target>
+        </trans-unit>
+        <trans-unit id="ImageSaveResult.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F8] Save Result Picture</source>
+          <target state="new">[F8] 保存结果图像</target>
+        </trans-unit>
+        <trans-unit id="Included" translate="yes" xml:space="preserve">
+          <source>Yes</source>
+          <target state="new">是</target>
+        </trans-unit>
+        <trans-unit id="InfoTipArtifacts" translate="yes" xml:space="preserve">
+          <source>Artifacts</source>
+          <target state="new">特性备注     =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipAttributes" translate="yes" xml:space="preserve">
+          <source>Attributes</source>
+          <target state="new">属性         =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipBackgroundColor" translate="yes" xml:space="preserve">
+          <source>Background Color   =</source>
+          <target state="new">显示背景色   =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipBackgroundColorOriginal" translate="yes" xml:space="preserve">
+          <source>Original BG Color  =</source>
+          <target state="new">原图背景色   =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipBorderColor" translate="yes" xml:space="preserve">
+          <source>Border Color       =</source>
+          <target state="new">显示边框色   =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipBorderColorOriginal" translate="yes" xml:space="preserve">
+          <source>Original Border    =</source>
+          <target state="new">原图边框色   =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipBounding" translate="yes" xml:space="preserve">
+          <source>Bounding Box       =</source>
+          <target state="new">边界尺寸     =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipColorChannelCount" translate="yes" xml:space="preserve">
+          <source>Color Channels     =</source>
+          <target state="new">颜色通道数   =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipColorMapsSize" translate="yes" xml:space="preserve">
+          <source>ColorMaps Size     =</source>
+          <target state="new">调色盘颜色数 =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipColorSpace" translate="yes" xml:space="preserve">
+          <source>Color Space        =</source>
+          <target state="new">色彩空间     =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipColors" translate="yes" xml:space="preserve">
+          <source>Colors             =</source>
+          <target state="new">显示色彩数量 =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipColorsOriginal" translate="yes" xml:space="preserve">
+          <source>Original Colors    =</source>
+          <target state="new">原图色彩数量 =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipCompression" translate="yes" xml:space="preserve">
+          <source>Compression        =</source>
+          <target state="new">压缩方法     =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipDimention" translate="yes" xml:space="preserve">
+          <source>Current Dimention  =</source>
+          <target state="new">显示尺寸     =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipDimentionOriginal" translate="yes" xml:space="preserve">
+          <source>Original Dimention =</source>
+          <target state="new">原图尺寸     =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipDisplayMemory" translate="yes" xml:space="preserve">
+          <source>Display Memory     =</source>
+          <target state="new">显示内存占用 =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipFileName" translate="yes" xml:space="preserve">
+          <source>FileName           =</source>
+          <target state="new">文件名称     =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipFileSize" translate="yes" xml:space="preserve">
+          <source>FileSize           =</source>
+          <target state="new">文件大小     =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipFormatInfo" translate="yes" xml:space="preserve">
+          <source>Format Info        =</source>
+          <target state="new">格式信息     =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipHasAlpha" translate="yes" xml:space="preserve">
+          <source>Has Alpha          =</source>
+          <target state="new">包含透明通道 =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipIdealMemoryUsage" translate="yes" xml:space="preserve">
+          <source>Ideal Memoy Usage  =</source>
+          <target state="new">理想内存占用 =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipMatteColor" translate="yes" xml:space="preserve">
+          <source>Matte Color        =</source>
+          <target state="new">显示遮罩色   =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipMatteColorOriginal" translate="yes" xml:space="preserve">
+          <source>Original Matte     =</source>
+          <target state="new">原图遮罩色   =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipMemoryMode" translate="yes" xml:space="preserve">
+          <source>Memory Mode        =</source>
+          <target state="new">内存使用模式 =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipMemoryUsage" translate="yes" xml:space="preserve">
+          <source>Memory Usage       =</source>
+          <target state="new">原图内存占用 =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipOrientation" translate="yes" xml:space="preserve">
+          <source>Orientation        =</source>
+          <target state="new">图像方向     =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipQuality" translate="yes" xml:space="preserve">
+          <source>Image Quality      =</source>
+          <target state="new">图像质量     =</target>
+        </trans-unit>
+        <trans-unit id="InfoTipResolution" translate="yes" xml:space="preserve">
+          <source>Resolution         =</source>
+          <target state="new">分辨率       =</target>
+        </trans-unit>
+        <trans-unit id="Invert.Header" translate="yes" xml:space="preserve">
+          <source>Invert</source>
+          <target state="new">反转图像颜色</target>
+        </trans-unit>
+        <trans-unit id="KmeansCluster.Header" translate="yes" xml:space="preserve">
+          <source>K-Means Cluster</source>
+          <target state="new">K-Means 聚类</target>
+        </trans-unit>
+        <trans-unit id="LoadNextImageFile.Header" translate="yes" xml:space="preserve">
+          <source>Load Next Image File</source>
+          <target state="new">载入后一个图像文件</target>
+        </trans-unit>
+        <trans-unit id="LoadPrevImageFile.Header" translate="yes" xml:space="preserve">
+          <source>Load Prev Image File</source>
+          <target state="new">载入前一个图像文件</target>
+        </trans-unit>
+        <trans-unit id="LoadingIndicator.BusyContent" translate="yes" xml:space="preserve">
+          <source>Loading ...</source>
+          <target state="new">正在载入图像中...</target>
+        </trans-unit>
+        <trans-unit id="LoadingIndicatorTitle" translate="yes" xml:space="preserve">
+          <source>Loading ...</source>
+          <target state="new">正在载入图像中...</target>
+        </trans-unit>
+        <trans-unit id="LowlightColorPick.AdvancedTabHeader" translate="yes" xml:space="preserve">
+          <source>Advanced</source>
+          <target state="new">自定</target>
+        </trans-unit>
+        <trans-unit id="LowlightColorPick.AvailableColorsHeader" translate="yes" xml:space="preserve">
+          <source>Available Colors</source>
+          <target state="new">有效颜色</target>
+        </trans-unit>
+        <trans-unit id="LowlightColorPick.RecentColorsHeader" translate="yes" xml:space="preserve">
+          <source>Recent Colors</source>
+          <target state="new">最近颜色</target>
+        </trans-unit>
+        <trans-unit id="LowlightColorPick.StandardColorsHeader" translate="yes" xml:space="preserve">
+          <source>Standard Colors</source>
+          <target state="new">标准颜色</target>
+        </trans-unit>
+        <trans-unit id="LowlightColorPick.StandardTabHeader" translate="yes" xml:space="preserve">
+          <source>Standard</source>
+          <target state="new">标准</target>
+        </trans-unit>
+        <trans-unit id="LowlightColorPick.ToolTip" translate="yes" xml:space="preserve">
+          <source>Lowlight Color</source>
+          <target state="new">相同区域显示颜色</target>
+        </trans-unit>
+        <trans-unit id="Magnifier.ToolTip" translate="yes" xml:space="preserve">
+          <source>Image Magnifier</source>
+          <target state="new">放大镜</target>
+        </trans-unit>
+        <trans-unit id="MainWindow.Title" translate="yes" xml:space="preserve">
+          <source>Image Viewer</source>
+          <target state="new">图像查看</target>
+        </trans-unit>
+        <trans-unit id="MasklightColorPick.AdvancedTabHeader" translate="yes" xml:space="preserve">
+          <source>Advanced</source>
+          <target state="new">自定</target>
+        </trans-unit>
+        <trans-unit id="MasklightColorPick.AvailableColorsHeader" translate="yes" xml:space="preserve">
+          <source>Available Colors</source>
+          <target state="new">有效颜色</target>
+        </trans-unit>
+        <trans-unit id="MasklightColorPick.RecentColorsHeader" translate="yes" xml:space="preserve">
+          <source>Recent Colors</source>
+          <target state="new">最近颜色</target>
+        </trans-unit>
+        <trans-unit id="MasklightColorPick.StandardColorsHeader" translate="yes" xml:space="preserve">
+          <source>Standard Colors</source>
+          <target state="new">标准颜色</target>
+        </trans-unit>
+        <trans-unit id="MasklightColorPick.StandardTabHeader" translate="yes" xml:space="preserve">
+          <source>Standard</source>
+          <target state="new">标准</target>
+        </trans-unit>
+        <trans-unit id="MasklightColorPick.ToolTip" translate="yes" xml:space="preserve">
+          <source>Masklight Color</source>
+          <target state="new">遮罩区域显示颜色</target>
+        </trans-unit>
+        <trans-unit id="MatchSizeAlignBC.Header" translate="yes" xml:space="preserve">
+          <source>Align To Bottom Center</source>
+          <target state="new">底部中心对齐</target>
+        </trans-unit>
+        <trans-unit id="MatchSizeAlignBL.Header" translate="yes" xml:space="preserve">
+          <source>Align To Bottom Left</source>
+          <target state="new">对齐到左下角</target>
+        </trans-unit>
+        <trans-unit id="MatchSizeAlignBR.Header" translate="yes" xml:space="preserve">
+          <source>Align To Bottom Right</source>
+          <target state="new">对齐到右下角</target>
+        </trans-unit>
+        <trans-unit id="MatchSizeAlignCC.Header" translate="yes" xml:space="preserve">
+          <source>Align To Center</source>
+          <target state="new">完全居中对齐</target>
+        </trans-unit>
+        <trans-unit id="MatchSizeAlignCL.Header" translate="yes" xml:space="preserve">
+          <source>Align To Center Left</source>
+          <target state="new">左侧居中对齐</target>
+        </trans-unit>
+        <trans-unit id="MatchSizeAlignCR.Header" translate="yes" xml:space="preserve">
+          <source>Align To Center Right</source>
+          <target state="new">右侧居中对齐</target>
+        </trans-unit>
+        <trans-unit id="MatchSizeAlignTC.Header" translate="yes" xml:space="preserve">
+          <source>Align To Top Center</source>
+          <target state="new">顶部中心对齐</target>
+        </trans-unit>
+        <trans-unit id="MatchSizeAlignTL.Header" translate="yes" xml:space="preserve">
+          <source>Align To Top Left</source>
+          <target state="new">对齐到左上角</target>
+        </trans-unit>
+        <trans-unit id="MatchSizeAlignTR.Header" translate="yes" xml:space="preserve">
+          <source>Align To Top Right</source>
+          <target state="new">对齐到右上角</target>
+        </trans-unit>
+        <trans-unit id="MatchSourceSize.Header" translate="yes" xml:space="preserve">
+          <source>Match Source Size</source>
+          <target state="new">适配来源图像大小</target>
+        </trans-unit>
+        <trans-unit id="MatchTargetSize.Header" translate="yes" xml:space="preserve">
+          <source>Match Target Size</source>
+          <target state="new">适配目标图像大小</target>
+        </trans-unit>
+        <trans-unit id="MaxCompareSizeValue.ToolTip" translate="yes" xml:space="preserve">
+          <source>Max Image Width and Height Size When Using Smaller Image</source>
+          <target state="new">使用较小图像时的最大图像宽度和高度大小</target>
+        </trans-unit>
+        <trans-unit id="MeanShift.Header" translate="yes" xml:space="preserve">
+          <source>Mean Shift Cluster</source>
+          <target state="new">均值漂移聚类</target>
+        </trans-unit>
+        <trans-unit id="MedianFilter.Header" translate="yes" xml:space="preserve">
+          <source>Median Filter</source>
+          <target state="new">中值过滤降噪</target>
+        </trans-unit>
+        <trans-unit id="MergeX.Header" translate="yes" xml:space="preserve">
+          <source>Merge Horizontal</source>
+          <target state="new">水平拼接图像</target>
+        </trans-unit>
+        <trans-unit id="MergeY.Header" translate="yes" xml:space="preserve">
+          <source>Merge Vertical</source>
+          <target state="new">垂直拼接图像</target>
+        </trans-unit>
+        <trans-unit id="MoreEffects.Header" translate="yes" xml:space="preserve">
+          <source>More Effects</source>
+          <target state="new">更多滤镜效果</target>
+        </trans-unit>
+        <trans-unit id="Morphology.Header" translate="yes" xml:space="preserve">
+          <source>Morphology</source>
+          <target state="new">形态学效果</target>
+        </trans-unit>
+        <trans-unit id="NotIncluded" translate="yes" xml:space="preserve">
+          <source>No</source>
+          <target state="new">否</target>
+        </trans-unit>
+        <trans-unit id="OilPaint.Header" translate="yes" xml:space="preserve">
+          <source>Oil Paint</source>
+          <target state="new">油画效果</target>
+        </trans-unit>
+        <trans-unit id="PanImageEdge.Header" translate="yes" xml:space="preserve">
+          <source>Add Offset To Image Edge</source>
+          <target state="new">偏移图像的边界</target>
+        </trans-unit>
+        <trans-unit id="PencilPaint.Header" translate="yes" xml:space="preserve">
+          <source>Pencil Paint</source>
+          <target state="new">铅笔草稿效果</target>
+        </trans-unit>
+        <trans-unit id="Polaroid.Header" translate="yes" xml:space="preserve">
+          <source>Polaroid</source>
+          <target state="new">宝丽来风格图像</target>
+        </trans-unit>
+        <trans-unit id="Posterize.Header" translate="yes" xml:space="preserve">
+          <source>Posterize</source>
+          <target state="new">海报风格图像</target>
+        </trans-unit>
+        <trans-unit id="ProcessStatus.ToolTip" translate="yes" xml:space="preserve">
+          <source>Picture Processing Progress</source>
+          <target state="new">图像处理进展</target>
+        </trans-unit>
+        <trans-unit id="ProcessingIndicatorTitle" translate="yes" xml:space="preserve">
+          <source>Processing ...</source>
+          <target state="new">正在处理图像中...</target>
+        </trans-unit>
+        <trans-unit id="Quantize.Header" translate="yes" xml:space="preserve">
+          <source>Quantize</source>
+          <target state="new">量化图像色彩</target>
+        </trans-unit>
+        <trans-unit id="ReMapColor.Header" translate="yes" xml:space="preserve">
+          <source>Re-Map Color</source>
+          <target state="new">重映射图像颜色</target>
+        </trans-unit>
+        <trans-unit id="ReloadImage.Header" translate="yes" xml:space="preserve">
+          <source>Reload Image</source>
+          <target state="new">重新载入图像</target>
+        </trans-unit>
+        <trans-unit id="RepeatLastAction.ToolTip" translate="yes" xml:space="preserve">
+          <source>Repeat Last Action</source>
+          <target state="new">再次执行之前的动作</target>
+        </trans-unit>
+        <trans-unit id="ResetImage.Header" translate="yes" xml:space="preserve">
+          <source>Reset Image</source>
+          <target state="new">重置当前图像</target>
+        </trans-unit>
+        <trans-unit id="ResetTransforms.Header" translate="yes" xml:space="preserve">
+          <source>Reset Transforms</source>
+          <target state="new">重置变换</target>
+        </trans-unit>
+        <trans-unit id="ResultTipDifference" translate="yes" xml:space="preserve">
+          <source>Difference :</source>
+          <target state="new">差异 :</target>
+        </trans-unit>
+        <trans-unit id="ResultTipElapsed" translate="yes" xml:space="preserve">
+          <source>Elapsed    :</source>
+          <target state="new">用时 :</target>
+        </trans-unit>
+        <trans-unit id="ResultTipMode" translate="yes" xml:space="preserve">
+          <source>Mode       :</source>
+          <target state="new">模式 :</target>
+        </trans-unit>
+        <trans-unit id="Rotate090.Header" translate="yes" xml:space="preserve">
+          <source>Rotate +90</source>
+          <target state="new">右转90度</target>
+        </trans-unit>
+        <trans-unit id="Rotate180.Header" translate="yes" xml:space="preserve">
+          <source>Rotate 180</source>
+          <target state="new">旋转180度</target>
+        </trans-unit>
+        <trans-unit id="Rotate270.Header" translate="yes" xml:space="preserve">
+          <source>Rotate -90</source>
+          <target state="new">左转90度</target>
+        </trans-unit>
+        <trans-unit id="SaveAs.Header" translate="yes" xml:space="preserve">
+          <source>Save Image As ...</source>
+          <target state="new">图像另存为 ...</target>
+        </trans-unit>
+        <trans-unit id="SavingIndicatorTitle" translate="yes" xml:space="preserve">
+          <source>Saving ...</source>
+          <target state="new">正在保存图像中...</target>
+        </trans-unit>
+        <trans-unit id="Segment.Header" translate="yes" xml:space="preserve">
+          <source>Segment</source>
+          <target state="new">图像色彩分割</target>
+        </trans-unit>
+        <trans-unit id="SetAlphaToColor.Header" translate="yes" xml:space="preserve">
+          <source>Set Alpha To Color</source>
+          <target state="new">透明通道设为指定颜色</target>
+        </trans-unit>
+        <trans-unit id="SetColorToAlpha.Header" translate="yes" xml:space="preserve">
+          <source>Set Color To Alpha</source>
+          <target state="new">指定颜色设为透明通道</target>
+        </trans-unit>
+        <trans-unit id="ShowImageInfo.ToolTip" translate="yes" xml:space="preserve">
+          <source>how Image Information</source>
+          <target state="new">显示图像信息</target>
+        </trans-unit>
+        <trans-unit id="SlicingX.Header" translate="yes" xml:space="preserve">
+          <source>Slicing Horizontal</source>
+          <target state="new">水平对分图像</target>
+        </trans-unit>
+        <trans-unit id="SlicingY.Header" translate="yes" xml:space="preserve">
+          <source>Slicing Vertical</source>
+          <target state="new">垂直对分图像</target>
+        </trans-unit>
+        <trans-unit id="SmallSizeModeIndep.Header" translate="yes" xml:space="preserve">
+          <source>Independence Scale</source>
+          <target state="new">独立缩放</target>
+        </trans-unit>
+        <trans-unit id="SmallSizeModeLink.Header" translate="yes" xml:space="preserve">
+          <source>Relative Scale</source>
+          <target state="new">关联缩放</target>
+        </trans-unit>
+        <trans-unit id="Solarize.Header" translate="yes" xml:space="preserve">
+          <source>Solarize</source>
+          <target state="new">肥皂泡效果</target>
+        </trans-unit>
+        <trans-unit id="Stereo3D.Header" translate="yes" xml:space="preserve">
+          <source>Stereo (Fake 3D)</source>
+          <target state="new">红蓝伪3D效果</target>
+        </trans-unit>
+        <trans-unit id="Tolerances" translate="yes" xml:space="preserve">
+          <source>Tolerances</source>
+          <target state="new">容差</target>
+        </trans-unit>
+        <trans-unit id="UILanguage.ToolTip" translate="yes" xml:space="preserve">
+          <source>UI Language Selector</source>
+          <target state="new">用户界面语言选择</target>
+        </trans-unit>
+        <trans-unit id="UILanguageCn.Header" translate="yes" xml:space="preserve">
+          <source>简体中文</source>
+          <target state="new">简体中文</target>
+        </trans-unit>
+        <trans-unit id="UILanguageEn.Header" translate="yes" xml:space="preserve">
+          <source>English</source>
+          <target state="new">English</target>
+        </trans-unit>
+        <trans-unit id="UILanguageJa.Header" translate="yes" xml:space="preserve">
+          <source>日本語</source>
+          <target state="new">日本語</target>
+        </trans-unit>
+        <trans-unit id="UILanguageTw.Header" translate="yes" xml:space="preserve">
+          <source>繁體中文</source>
+          <target state="new">繁體中文</target>
+        </trans-unit>
+        <trans-unit id="Undefined" translate="yes" xml:space="preserve">
+          <source>Undefined</source>
+          <target state="new">未阐明</target>
+        </trans-unit>
+        <trans-unit id="UseColorImage.ToolTip" translate="yes" xml:space="preserve">
+          <source>Force Using Color Image for Compare and Compose After Image Loaded</source>
+          <target state="new">加载图像后强制使用彩色图像进行比较和合成</target>
+        </trans-unit>
+        <trans-unit id="UseSmallerImage.ToolTip" translate="yes" xml:space="preserve">
+          <source>Using Smaller Image for Compare and Compose After Image Loaded</source>
+          <target state="new">加载图像后使用较小的图像进行比较和合成</target>
+        </trans-unit>
+        <trans-unit id="UseWeakBlur.ToolTip" translate="yes" xml:space="preserve">
+          <source>Low or High Intensity Blur</source>
+          <target state="new">低强度或高强度模糊</target>
+        </trans-unit>
+        <trans-unit id="UseWeakEffects.ToolTip" translate="yes" xml:space="preserve">
+          <source>Low or High Intensity Effects</source>
+          <target state="new">低强度或高强度滤镜效果</target>
+        </trans-unit>
+        <trans-unit id="UseWeakSharp.ToolTip" translate="yes" xml:space="preserve">
+          <source>Low or High Intensity Sharp</source>
+          <target state="new">低强度或高强度锐化</target>
+        </trans-unit>
+        <trans-unit id="UsedChannels.ToolTip" translate="yes" xml:space="preserve">
+          <source>Picture Channels Selector</source>
+          <target state="new">图像通道选择器</target>
+        </trans-unit>
+        <trans-unit id="UsmSharp.Header" translate="yes" xml:space="preserve">
+          <source>Unsharp Mask</source>
+          <target state="new">虚光蒙版锐化</target>
+        </trans-unit>
+        <trans-unit id="Waiting" translate="yes" xml:space="preserve">
+          <source>Waiting ...</source>
+          <target state="new">请稍候 ...</target>
+        </trans-unit>
+        <trans-unit id="Zoom Ratio" translate="yes" xml:space="preserve">
+          <source>Zoom Ratio</source>
+          <target state="new">缩放比例</target>
+        </trans-unit>
+        <trans-unit id="ZoomFitAll.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F9] Picture Fit All</source>
+          <target state="new">[F9] 图像全部显示</target>
+        </trans-unit>
+        <trans-unit id="ZoomFitHeight.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F9] Picture Fit Height</source>
+          <target state="new">[F9] 图像显示适合高度</target>
+        </trans-unit>
+        <trans-unit id="ZoomFitNone.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F9] Picture Fit None</source>
+          <target state="new">[F9] 图像自由显示</target>
+        </trans-unit>
+        <trans-unit id="ZoomFitWidth.ToolTip" translate="yes" xml:space="preserve">
+          <source>[F9] Picture Fit Width</source>
+          <target state="new">[F9] 图像显示适合宽度</target>
+        </trans-unit>
+      </group>
+    </body>
+  </file>
+</xliff>

@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageAppletsCLI", "ImageApp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageSearch", "ImageSearch\ImageSearch.csproj", "{3FC7F523-5E19-44FB-8564-5D783DED05D0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageViewer", "ImageViewer\ImageViewer.csproj", "{C9525B29-E325-4B71-85C6-E909A8EDAE0C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -82,6 +84,14 @@ Global
 		{3FC7F523-5E19-44FB-8564-5D783DED05D0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3FC7F523-5E19-44FB-8564-5D783DED05D0}.Release|x64.ActiveCfg = Release|Any CPU
 		{3FC7F523-5E19-44FB-8564-5D783DED05D0}.Release|x64.Build.0 = Release|Any CPU
+		{C9525B29-E325-4B71-85C6-E909A8EDAE0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9525B29-E325-4B71-85C6-E909A8EDAE0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9525B29-E325-4B71-85C6-E909A8EDAE0C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C9525B29-E325-4B71-85C6-E909A8EDAE0C}.Debug|x64.Build.0 = Debug|Any CPU
+		{C9525B29-E325-4B71-85C6-E909A8EDAE0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9525B29-E325-4B71-85C6-E909A8EDAE0C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9525B29-E325-4B71-85C6-E909A8EDAE0C}.Release|x64.ActiveCfg = Release|Any CPU
+		{C9525B29-E325-4B71-85C6-E909A8EDAE0C}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

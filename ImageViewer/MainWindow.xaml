@@ -1,0 +1,235 @@
+﻿<Window x:Class="ImageViewer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:local="clr-namespace:ImageViewer"
+        mc:Ignorable="d"
+        RenderOptions.BitmapScalingMode="HighQuality"
+        RenderOptions.CachingHint="Cache"
+        RenderOptions.ClearTypeHint="Enabled"
+        RenderOptions.EdgeMode="Aliased"
+        TextOptions.TextFormattingMode="Display"
+        d:DesignHeight="520" d:DesignWidth="368"        
+        x:Uid="MainWindow" Title="Image Compare" 
+        Height="720" Width="1280" MinWidth="720" MinHeight="480"
+        LocationChanged="Window_LocationChanged" SizeChanged="Window_SizeChanged" StateChanged="Window_StateChanged" 
+        PreviewKeyDown="Window_KeyDown"
+        Loaded="Window_Loaded" Unloaded="Window_Unloaded" Closed="Window_Closed"
+        DragOver="Window_DragOver" Drop="Window_Drop" >
+
+    <Grid x:Uid="Canvas" x:Name="ImageCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" AllowDrop="True">
+        <Grid.RowDefinitions>
+            <RowDefinition x:Uid="CanvasRowDefinition_1" Height="Auto"/>
+            <RowDefinition x:Uid="CanvasRowDefinition_2" Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid.Background>
+            <ImageBrush x:Uid="CanvasBackImageBrush" ImageSource="pack://application:,,,/ImageViewer;component/Resources/CheckboardPattern_32.png" 
+                TileMode="Tile" Opacity="0.10" ViewportUnits="Absolute" Viewport="0,0,32,32"/>
+        </Grid.Background>
+
+        <Rectangle Grid.Row="0" x:Name="ImageToolBarBG" x:Uid="MainToolBarBG" Fill="{Binding ElementName=ImageToolBar, Path=Background, Mode=OneWay}"/>
+        <ToolBar Grid.Row="0" x:Name="ImageToolBar" x:Uid="MainToolBar" ToolBarTray.IsLocked="True"
+            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalContentAlignment="Left" VerticalContentAlignment="Center">
+            <ToolBar.Resources>
+                <Style x:Uid="ToolBarStyle" TargetType="{x:Type DockPanel}">
+                    <Setter x:Uid="ToolBarStyleSetter_1" Property="LastChildFill" Value="True" />
+                </Style>
+            </ToolBar.Resources>
+            <Button x:Name="ImageOpen" x:Uid="ImageOpen" ToolTip="Open Source Picture" ToolBar.OverflowMode="Never" Click="ImageActions_Click" >
+                <StackPanel x:Uid="ImageOpenPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ImageOpenIcon" Text="&#xE1A5;" Style="{DynamicResource MenuItemIcon}"/>
+                    <TextBlock x:Uid="ImageOpenLabel" Text="Open" Margin="0 0"/>
+                </StackPanel>
+            </Button>
+            <Button x:Name="ImagePaste" x:Uid="ImagePaste" ToolTip="Paste Source" ToolBar.OverflowMode="Never" Click="ImageActions_Click" >
+                <StackPanel x:Uid="ImagePastePanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ImagePasteIcon" Text="&#xE16D;" Style="{DynamicResource MenuItemIcon}"/>
+                    <TextBlock x:Uid="ImagePasteLabel" Text="Paste" Margin="2 0"/>
+                </StackPanel>
+            </Button>
+            <Separator x:Uid="Separator_2"/>
+            <Button x:Name="RepeatLastAction" x:Uid="RepeatLastAction" ToolTip="Repeat Last Action" Click="ImageActions_Click">
+                <StackPanel x:Uid="RepeatLastActionPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="RepeatLastActionIcon" Text="&#xE8ED;" Style="{DynamicResource MenuItemIcon}"/>
+                </StackPanel>
+            </Button>
+            <ProgressBar x:Uid="BusyNow" x:Name="BusyNow" ToolBar.OverflowMode="Never" ToolTip="Processing Progress" Margin="4,0,2,0" HorizontalAlignment="Right" Width="36" Height="20" />
+            <Separator x:Uid="Separator_3"/>
+            <ToggleButton x:Name="ZoomFitNone" x:Uid="ZoomFitNone" ToolTip="Fit None" ToolBar.OverflowMode="Never" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="ZoomFitNonePanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ZoomFitNoneIcon" Text="&#xE7C3;" Style="{DynamicResource MenuItemIcon}"/>
+                </StackPanel>
+            </ToggleButton>
+            <ToggleButton x:Name="ZoomFitAll" x:Uid="ZoomFitAll" ToolTip="Fit All" ToolBar.OverflowMode="Never" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="ZoomFitAllPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ZoomFitAllIcon" Text="&#xE9A6;" Style="{DynamicResource MenuItemIcon}"/>
+                </StackPanel>
+            </ToggleButton>
+             <Slider x:Name="ZoomRatio" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center"
+                    Value="1" Minimum="0.10" Maximum="10" 
+                    TickPlacement="None" Ticks="0.10, 0.25, 0.5, 1, 2, 5, 10" IsSnapToTickEnabled="False" ValueChanged="ZoomRatio_ValueChanged">
+                <Slider.ToolTip>
+                    <ToolTip x:Uid="ZoomRatioToolTip" Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}" ContentStringFormat="{}{0:F2} X" />
+                </Slider.ToolTip>
+            </Slider>
+            <TextBlock x:Name="ZoomRatioValue" Width="Auto"
+                       HorizontalAlignment="Right" VerticalAlignment="Center"
+                       Text="{Binding ElementName=ZoomRatio, Path=Value, StringFormat={}{0:F2}X}"
+                       ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>
+            <Separator x:Uid="Separator_4"/>
+            <xctk:ColorPicker x:Name="MasklightColorPick" x:Uid="MasklightColorPick" Height="24" Width="24" Margin="2 0" SelectedColor="Transparent" 
+                              ToolTip="Masklight Color" FontFamily="{DynamicResource MonoSpaceFamily}" 
+                              ShowDropDownButton="False" ShowAvailableColors="True" ShowRecentColors="True" 
+                              DisplayColorAndName="False" DisplayColorTooltip="True"
+                              SelectedColorChanged="ColorPick_SelectedColorChanged">
+                <xctk:ColorPicker.ContextMenu>
+                    <ContextMenu x:Name="CreateImageWithColor" x:Uid="CreateImageWithColor">
+                        <MenuItem x:Name="CreateImageWithColorSource" x:Uid="CreateImageWithColorSource" Header="Create Color Source Image" Click="ImageActions_Click">
+                            <MenuItem.Icon>
+                                <TextBlock x:Uid="CreateImageWithColorSourceIcon" Text="&#xE1A5;" Style="{DynamicResource MenuItemIcon}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="CreateImageWithColorTarget" x:Uid="CreateImageWithColorTarget" Header="Create Color Target Image" Click="ImageActions_Click">
+                            <MenuItem.Icon>
+                                <TextBlock x:Uid="CreateImageWithColorTargetIcon" Text="&#xE1A5;" Style="{DynamicResource MenuItemIcon}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </ContextMenu>
+                </xctk:ColorPicker.ContextMenu>
+            </xctk:ColorPicker>
+            <Separator x:Uid="Separator_5"/>
+            <Button x:Name="ImageLoadHaldLut" x:Uid="ImageLoadHaldLut" ToolTip="Load Hald LUT File" Click="ImageActions_Click" Drop="Window_Drop">
+                <StackPanel x:Uid="ImageLoadHaldLutPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ImageLoadHaldLutIcon" Text="&#xE771;" Style="{DynamicResource MenuItemIcon}"/>
+                </StackPanel>
+            </Button>
+            <Button x:Name="GrayMode" x:Uid="GrayMode" ToolTip="Grayscale Mode Selector" HorizontalAlignment="Right">
+                <StackPanel x:Uid="GrayModeImagePanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="GrayModeImageIcon" Text="&#xE790;" Style="{DynamicResource MenuItemIcon}"/>
+                </StackPanel>
+            </Button>
+            <ToggleButton x:Name="UseWeakBlur" x:Uid="UseWeakBlur" IsChecked="True"
+                          ToolTip="Low/High Intensity Blur" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="UseWeakBlurPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="UseWeakBlurIcon" Text="&#xEB42;" Style="{DynamicResource MenuItemIcon}" >
+                        <TextBlock.Effect>
+                            <BlurEffect x:Uid="UseWeakBlurEffect" Radius="2" KernelType="Gaussian"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+                </StackPanel>
+            </ToggleButton>
+            <ToggleButton x:Name="UseWeakSharp" x:Uid="UseWeakSharp" IsChecked="True"
+                          ToolTip="Low/High Intensity Sharp" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="UseWeakSharpPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="UseWeakSharpIcon" Text="&#xE879;" Style="{DynamicResource MenuItemIcon}"/>
+                </StackPanel>
+            </ToggleButton>
+            <ToggleButton x:Name="UseWeakEffects" x:Uid="UseWeakEffects" IsChecked="True"
+                          ToolTip="Low/High Intensity Effects" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="UseWeakEffectsPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="UseWeakEffectsIcon" Text="&#xE10C;" Style="{DynamicResource MenuItemIcon}"/>
+                </StackPanel>
+            </ToggleButton>
+            <Separator x:Uid="Separator_6"/>
+            <ToggleButton x:Name="MagnifierMode" x:Uid="Magnifier" IsChecked="False" ToolBar.OverflowMode="Never"
+                          ToolTip="Image Magnifier" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="MagnifierPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="MagnifierPanelIcon" Text="&#xE1A3;" Style="{DynamicResource MenuItemIcon}" />
+                </StackPanel>
+            </ToggleButton>
+            <ToggleButton x:Name="ShowImageInfo" x:Uid="ShowImageInfo" IsChecked="True" ToolBar.OverflowMode="Never"
+                          ToolTip="Show Image Information" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="ShowImageInfoPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ShowImageInfoPanelIcon" Text="&#xE783;" Style="{DynamicResource MenuItemIcon}" />
+                </StackPanel>
+            </ToggleButton>
+            <ToggleButton x:Name="DarkBackground" x:Uid="DarkBackground" IsChecked="False"
+                          ToolTip="Dark Background" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="DarkBackgroundPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="DarkBackgroundIcon" Text="&#xE793;" Style="{DynamicResource MenuItemIcon}"/>
+                </StackPanel>
+            </ToggleButton>
+            <ToggleButton x:Name="AlwaysOnTop" x:Uid="AlwaysOnTop" IsChecked="False" ToolBar.OverflowMode="Never"
+                          ToolTip="Always On Top" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="AlwaysOnTopPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="AlwaysOnTopIcon" Text="&#xE840;" Style="{DynamicResource MenuItemIcon}"/>
+                </StackPanel>
+            </ToggleButton>
+            <Button x:Name="UILanguage" x:Uid="UILanguage" ToolTip="UI Language Selector" ToolBar.OverflowMode="Never" Click="ImageActions_Click">
+                <StackPanel x:Uid="UILanguagePanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="UILanguageIcon" Text="&#xF2B7;" Style="{DynamicResource MenuItemIcon}"/>
+                </StackPanel>
+                <Button.ContextMenu>
+                    <ContextMenu Placement="Bottom">
+                        <MenuItem x:Name="UILanguageEn" x:Uid="UILanguageEn" Header="English" Click="ImageActions_Click">
+                            <MenuItem.Icon>
+                                <TextBlock x:Uid="UILanguageEnIcon" Text="&#xE8D2;" Style="{DynamicResource MenuItemIcon}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="UILanguageCn" x:Uid="UILanguageCn" Header="Chinese Simplified" Click="ImageActions_Click">
+                            <MenuItem.Icon>
+                                <TextBlock x:Uid="UILanguageCnIcon" Text="&#xE88D;" Style="{DynamicResource MenuItemIcon}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="UILanguageTw" x:Uid="UILanguageTw" Header="Chinese Traditional" Click="ImageActions_Click">
+                            <MenuItem.Icon>
+                                <TextBlock x:Uid="UILanguageTwIcon" Text="&#xE88C;" Style="{DynamicResource MenuItemIcon}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="UILanguageJa" x:Uid="UILanguageJa" Header="Japanese" Click="ImageActions_Click">
+                            <MenuItem.Icon>
+                                <TextBlock x:Uid="UILanguageJaIcon" Text="&#xEC45;" Style="{DynamicResource MenuItemIcon}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </ContextMenu>
+                </Button.ContextMenu>
+            </Button>
+            <ToggleButton x:Name="AutoSaveOptions" x:Uid="AutoSaveOptions" IsChecked="True"
+                          ToolTip="Auto Save Options" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="AutoSaveOptionsPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="AutoSaveOptionsIcon" Text="&#xE115;" Style="{DynamicResource MenuItemIcon}" Foreground="Gray"/>
+                </StackPanel>
+            </ToggleButton>
+        </ToolBar>
+        <xctk:ChildWindow Grid.Row="1" x:Name="QualityChanger" x:Uid="QualityChanger" MaxWidth="320" MaxHeight="120" WindowStartupLocation="Center" CloseButtonClicked="QualityChanger_CloseButtonClicked" >
+            <Grid Margin="8" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+                <Slider Grid.Row="0" Grid.Column="0" x:Name="QualityChangerSlider" x:Uid="QualityChangerSlider" Width="240"
+                    Minimum="1" Maximum="100" Value="75" TickFrequency="5" ValueChanged="QualityChangerSlider_ValueChanged" />
+                <xctk:UIntegerUpDown Grid.Row="0" Grid.Column="1" x:Name="QualityChangerValue" x:Uid="QualityChangerValue" 
+                    Margin="4,0,0,0" AutoSelectBehavior="Never" ClipValueToMinMax="True" TextAlignment="Center" 
+                    Value="{Binding ElementName=QualityChangerSlider, Path=Value, Mode=TwoWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}" />
+            </Grid>
+        </xctk:ChildWindow>
+        <!-- Image Viewer -->
+        <xctk:Zoombox Grid.Row="1" x:Name="ViewerBox" x:Uid="ViewBox" AllowDrop="True" Focusable="False" MinScale="0.1" MaxScale="10" 
+            DragOnPreview="False" ZoomOnPreview="False" IsAnimated="False" NavigateOnPreview="True" IsUsingScrollBars="False" KeepContentInBounds="True" 
+            ToolTipOpening="Image_ToolTipOpening" CurrentViewChanged="ViewerBox_CurrentViewChanged"
+            PreviewMouseMove="ViewerBox_PreviewMouseMove" PreviewMouseDown="ViewerBox_PreviewMouseDown" PreviewMouseWheel="ViewerBox_PreviewMouseWheel">
+            <Image x:Name="ImageViewer" x:Uid="ImageViewer" Stretch="None" ToolTipOpening="Image_ToolTipOpening"
+                HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                <Image.LayoutTransform>
+                    <TransformGroup x:Uid="ImageViewerTransformGroup">
+                        <ScaleTransform x:Name="ImageViewerScale" x:Uid="ImageViewerScale" ScaleX="1" ScaleY="1" CenterX="0.5" CenterY="0.5"/>
+                        <RotateTransform x:Name="ImageViewerRotate" x:Uid="ImageViewerRotate" Angle="0" />
+                    </TransformGroup>
+                </Image.LayoutTransform>
+            </Image>
+            <xctk:MagnifierManager.Magnifier>
+                <xctk:Magnifier Grid.Row="1" x:Name="ImageMagnifier" x:Uid="ImageMagnifier" BorderBrush="DimGray" BorderThickness="1" Radius="100" ZoomFactor="0.25" Visibility="Collapsed"/>
+            </xctk:MagnifierManager.Magnifier>
+        </xctk:Zoombox>
+        <xctk:BusyIndicator Grid.Row="1" x:Uid="LoadingIndicator" x:Name="IndicatorViewer"  BusyContent="Loading ..." Background="Transparent"
+                    HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" />
+    </Grid>
+</Window>
