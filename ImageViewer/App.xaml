@@ -101,6 +101,7 @@
         <Style x:Uid="ToolTipStyle" x:Key="{x:Type ToolTip}" TargetType="{x:Type ToolTip}">
             <Setter Property="FontFamily" Value="{DynamicResource MonoSpaceFamily}"/>
             <Setter Property="FontSize" Value="{DynamicResource MonoSpaceSize}"/>
+            <Setter Property="TextBlock.TextAlignment" Value="Left"/>
             <Setter Property="MaxWidth" Value="1024"/>
             <Style.Resources>
                 <Style TargetType="ContentPresenter">

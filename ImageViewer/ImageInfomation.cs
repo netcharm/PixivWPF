@@ -13,6 +13,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Ink;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -104,6 +105,8 @@ namespace ImageViewer
         public uint OriginalQuality => Original?.Quality() ?? 0;
         public uint OriginalDepth = 0;
         public Endian OriginalEndian = Endian.Undefined;
+        private string _simple_info_ = string.Empty;
+        public string SimpleInfo { get { return (_simple_info_); } }
 
         private MagickImage _current_ = null;
         public MagickImage Current
@@ -220,6 +223,7 @@ namespace ImageViewer
                         result = image.ToBitmapSourceWithDensity();
                         image.Dispose();
                     }
+                    catch (AccessViolationException) { }
                     catch (Exception ex) { ex.ShowMessage(); }
                 }
                 return (result);
@@ -401,16 +405,20 @@ namespace ImageViewer
         /// </summary>
         private void GetProfiles()
         {
-            if (ValidOriginal)
+            try
             {
-                foreach (var profile in Original.ProfileNames) { if (Original.HasProfile(profile)) Profiles[profile] = Original.GetProfile(profile); }
-                foreach (var attr in Original.AttributeNames) { Attributes[attr] = Original.GetAttribute(attr); }
+                if (ValidOriginal)
+                {
+                    foreach (var profile in Original.ProfileNames) { if (Original.HasProfile(profile)) Profiles[profile] = Original.GetProfile(profile); }
+                    foreach (var attr in Original.AttributeNames) { Attributes[attr] = Original.GetAttribute(attr); }
+                }
+                else if (ValidCurrent)
+                {
+                    foreach (var profile in Current.ProfileNames) { if (Current.HasProfile(profile)) Profiles[profile] = Current.GetProfile(profile); }
+                    foreach (var attr in Current.AttributeNames) { Attributes[attr] = Current.GetAttribute(attr); }
+                }
             }
-            else if (ValidCurrent)
-            {
-                foreach (var profile in Current.ProfileNames) { if (Current.HasProfile(profile)) Profiles[profile] = Current.GetProfile(profile); }
-                foreach (var attr in Current.AttributeNames) { Attributes[attr] = Current.GetAttribute(attr); }
-            }
+            catch { }
         }
 
         /// <summary>
@@ -418,6 +426,60 @@ namespace ImageViewer
         /// </summary>
         private bool IsGetInfo = false;
         CancellationTokenSource CancelGetInfo = new CancellationTokenSource();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public async Task<string> GetSimpleInfo()
+        {
+            if (!ValidCurrent) return (null);
+
+            if (!string.IsNullOrEmpty(_simple_info_)) return (_simple_info_);
+
+            var result = await Task.Run(async () =>
+            {
+                var ret = string.Empty;
+                try
+                {
+                    var info = new List<string>();
+
+                    if(!string.IsNullOrEmpty(FileName))
+                    {
+                        var files = await FileName.GetFileList();
+                        var index = files.IndexOf(FileName);
+                        var count = files.Count();
+                        info.Add($"{index + 1}/{count}");
+                    }
+
+                    var dims = $"{OriginalSize.Width:F0}x{OriginalSize.Height:F0}x{OriginalDepth:F0} BPP, {(long)OriginalSize.Width * OriginalSize.Height / 1000000:F2} MP, {OriginalEndian}";
+                    info.Add(dims);
+
+                    var DPI_UNIT = Current?.Density?.Units == DensityUnit.PixelsPerCentimeter ? " PPC" : (Current?.Density?.Units == DensityUnit.PixelsPerInch ? " PPI" : string.Empty);
+                    var DPI_TEXT = DPI_UNIT.Equals(" PPC") ? $"{Current?.Density?.X:F2}{DPI_UNIT} x {Current?.Density?.Y:F2}{DPI_UNIT}" : $"{Current?.Density?.X:F0}x{Current?.Density?.Y:F0}{DPI_UNIT}";
+                    if (Current?.Density?.Units != DensityUnit.PixelsPerInch)
+                    {
+                        var dpi = Current?.Density?.ChangeUnits(DensityUnit.PixelsPerInch);
+                        var dpi_text = $"{dpi.X:F0} PPI x {dpi.Y:F0} PPI";
+                        DPI_TEXT = $"{DPI_TEXT} [{dpi_text}]";
+                    }
+                    info.Add($"{DPI_TEXT}");
+
+                    if (ImageFileInfo is FileInfo)
+                    {
+                        var FileSize = ImageFileInfo.Exists && File.Exists(ImageFileInfo.FullName) ? ImageFileInfo.Length : -1;
+                        var FileDate = ImageFileInfo.LastWriteTime.ToString("yyyy/MM/dd HH:mm:ss zzz, dddd");
+                        info.Add($"{FileSize.SmartFileSize()}, {FileDate}");
+                    }
+
+                    ret = string.Join(", ", info);
+                }
+                catch (ObjectDisposedException) { }
+                catch (Exception ex) { ex.ShowMessage(); }
+                return(ret);
+            });
+            return (result);
+        }
 
         /// <summary>
         ///
@@ -448,8 +510,8 @@ namespace ImageViewer
                         }
                         if (CancelGetInfo.IsCancellationRequested) return (ret);
 
-                        var DPI_UNIT = Current?.Density?.Units == DensityUnit.PixelsPerCentimeter ? "PPC" : (Current?.Density?.Units == DensityUnit.PixelsPerInch ? "PPI" : string.Empty);
-                        DPI_TEXT = DPI_UNIT.Equals("PPC") ? $"{Current?.Density?.X:F2} {DPI_UNIT} x {Current?.Density?.Y:F2} {DPI_UNIT}" : $"{Current?.Density?.X:F0} {DPI_UNIT} x {Current?.Density?.Y:F0} {DPI_UNIT}";
+                        var DPI_UNIT = Current?.Density?.Units == DensityUnit.PixelsPerCentimeter ? " PPC" : (Current?.Density?.Units == DensityUnit.PixelsPerInch ? " PPI" : string.Empty);
+                        DPI_TEXT = DPI_UNIT.Equals(" PPC") ? $"{Current?.Density?.X:F2}{DPI_UNIT} x {Current?.Density?.Y:F2}{DPI_UNIT}" : $"{Current?.Density?.X:F0}{DPI_UNIT} x {Current?.Density?.Y:F0}{DPI_UNIT}";
                         if (Current?.Density?.Units != DensityUnit.PixelsPerInch)
                         {
                             if (CancelGetInfo.IsCancellationRequested) return (ret);
@@ -734,6 +796,7 @@ namespace ImageViewer
                         ret = string.Join(Environment.NewLine, tip);
                         if (CancelGetInfo.IsCancellationRequested) return (ret);
                     }
+                    catch (AccessViolationException) { }
                     catch (ObjectDisposedException) { }
                     catch (Exception ex) { ex.ShowMessage(); }
                     st.Stop();
@@ -871,7 +934,6 @@ namespace ImageViewer
                     if (!string.IsNullOrEmpty(FileName))
                     {
                         var file = FileName;
-                        //var files = file.GetFiles();
                         var files = await file.GetFileList();
                         if (files.Count() > 0 && !string.IsNullOrEmpty(file))
                         {
@@ -902,7 +964,6 @@ namespace ImageViewer
                     if (!string.IsNullOrEmpty(FileName))
                     {
                         var file = FileName;
-                        //var files = file.GetFiles();
                         var files = await file.GetFileList();
                         if (files.Count() > 0 && !string.IsNullOrEmpty(file))
                         {
@@ -928,6 +989,8 @@ namespace ImageViewer
             var result = false;
             if (File.Exists(file))
             {
+                _simple_info_ = string.Empty;
+
                 result = await Task.Run(() =>
                 {
                     var ret = false;
@@ -968,9 +1031,9 @@ namespace ImageViewer
                                     {
                                         fs.Seek(0, SeekOrigin.Begin);
                                         image = new MagickImage(fs, ext.GetImageFileFormat());
-                                        FixEndian(image, OriginalEndian);
                                         count++;
                                     }
+                                    FixEndian(image, OriginalEndian);
                                     Original = new MagickImage(image);
                                     image.Dispose();
                                 }
@@ -979,6 +1042,7 @@ namespace ImageViewer
                                     if (fs.CanSeek) fs.Seek(0, SeekOrigin.Begin);
                                     Original = new MagickImage(fs, MagickFormat.Unknown);
                                 }
+                                //_simple_info_ = GetSimpleInfo().Result;
                             }
 
                             ret = true;

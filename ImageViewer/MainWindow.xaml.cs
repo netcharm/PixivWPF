@@ -477,7 +477,20 @@ namespace ImageViewer
                     #region Re-Calc Scroll Viewer Size
                     if (ImageViewer.Source != null)
                     {
-                        ViewerBox.CenterContent();
+                        //ViewerBox.GoHome();
+                        var view = ViewerBox.CurrentView;
+                        if (view.ViewKind == ZoomboxViewKind.Absolute)
+                        {
+                            var vx = ViewerBox.Viewport.X;
+                            var vy = ViewerBox.Viewport.Y;
+                            var cx = (ViewerBox.ActualWidth - ImageViewer.Source.Width) / 2f;
+                            var cy = (ViewerBox.ActualHeight - ImageViewer.Source.Height) / 2f;
+                            view.Scale = ViewerBox.Scale;
+                            //view.Position = new Point(cx, cy);
+                        }                        
+                    
+                        //else if (ViewerBox.CurrentView.ViewKind == ZoomboxViewKind.Center) ViewerBox.GoHome();
+                        //else ViewerBox.CenterContent();
                     }
                     #endregion
 
@@ -557,18 +570,22 @@ namespace ImageViewer
             {
                 try
                 {
-                    await element.Dispatcher.InvokeAsync(() =>
+                    await element.Dispatcher.InvokeAsync(async () =>
                     {
-                        try { 
-                        element.Source = image.Source;
-                        if (fit) FitView();
+                        try
+                        {
+                            element.Source = image.Source;
+                            if (fit && element.Source != null) FitView();
+                            //ImageInfoBox.Text = image.SimpleInfo;
+                            ImageInfoBox.Text = await image.GetSimpleInfo();
                         }
                         catch { }
                     });
                     var tooltip_s = image.ValidCurrent ? await image.GetImageInfo() : null;
                     SetToolTip(element, tooltip_s);
+                    SetToolTip(ImageInfoBox, tooltip_s);
                 }
-                catch { } 
+                catch { }
             }
         }
 
@@ -833,6 +850,7 @@ namespace ImageViewer
 
                 if (ret) SetTitle(image.FileName);
                 if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
+                //if (ret && await UpdateImageViewerFinished()) FitView();
                 else IsLoadingViewer = false;
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -859,6 +877,7 @@ namespace ImageViewer
 
                 if (ret) SetTitle(image.FileName);
                 if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
+                //if (ret && await UpdateImageViewerFinished()) FitView();
                 else IsLoadingViewer = false;
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -1653,21 +1672,21 @@ namespace ImageViewer
         {
             ViewerBox.Dispatcher.Invoke(() =>
             {
-                //ViewerBox.ViewStackMode = ZoomboxViewStackMode.Disabled;
-                ImageViewer.Source = (ImageCanvas.Background as ImageBrush).ImageSource;
+                ViewerBox.ViewStackMode = ZoomboxViewStackMode.Disabled;
+                //ViewerBox.CenterContent();
+                ViewerBox.MaxScale = 1f;
+                //ImageViewer.Source = (ImageCanvas.Background as ImageBrush).ImageSource;
                 ViewerBox.MinScale = ZoomMin;
-                ViewerBox.MaxScale = 1.0;
-                //ViewerBox.MaxScale = ZoomMax;
+                ViewerBox.MaxScale = ZoomMax;
                 ViewerBox.Scale = 0.99;
                 ViewerBox.Focusable = true;
                 ViewerBox.ZoomOnPreview = false;
-                ViewerBox.CenterContent();
                 ViewerBox.RefocusView();
                 ViewerBox.Focus();
-                ImageViewer.Source = null;
-                ViewerBox.ViewStack?.Clear();
+                //ImageViewer.Source = null;
                 ViewerBox.ViewStackMode = ZoomboxViewStackMode.Auto;
-                ViewerBox.UpdateLayout();
+                ViewerBox.ViewStack?.Clear();
+                ViewerBox.CurrentView.Scale = 1f;
             });
         }
 
@@ -1693,6 +1712,7 @@ namespace ImageViewer
                 if (ImageViewer.Source != null)
                 {
                     ViewerBox.MaxScale = ZoomMax;
+                    //var view = ViewerBox.CurrentView;
 
                     var iw = ImageViewer.Source?.Width;
                     var ih = ImageViewer.Source?.Height;
@@ -1701,8 +1721,16 @@ namespace ImageViewer
                     var vh = ViewerBox.ActualHeight;
 
                     if (iw >= vw || ih >= vh) ViewerBox.FitToBounds();
-                    else ViewerBox.Scale = 1f;
-                    ViewerBox.CenterContent();
+                    else
+                    {
+                        var cx = (ViewerBox.ActualWidth - ImageViewer.Source.Width) / 2f;
+                        var cy = (ViewerBox.ActualHeight - ImageViewer.Source.Height) / 2f;
+                        var view = ViewerBox.CurrentView;
+                        view.Position = new Point(cx, cy);
+                        view.Scale = 1f;
+                        ViewerBox.Scale = 1;
+                        ViewerBox.ViewStack.Clear();
+                    }
                 }
             });
         }
@@ -2003,6 +2031,8 @@ namespace ImageViewer
                 {
                     element.ToolTip = null;
                 }
+                SetToolTipState(ImageViewer, ShowImageInfo.IsChecked ?? false);
+
                 await Task.Delay(1);
                 DoEvents();
                 ToolTipService.SetShowDuration(element, AutoHideToolTip ?? false ? ToolTipDuration : int.MaxValue);
@@ -2593,6 +2623,8 @@ namespace ImageViewer
             ChangeTheme();
             #endregion
 
+            ShowImageInfo.IsChecked = false;
+
             UILanguage.ContextMenu.PlacementTarget = UILanguage;
 
             #region Default Zoom Ratio
@@ -2983,11 +3015,6 @@ namespace ImageViewer
                 var view = e.NewValue;
                 if (view.ViewKind == ZoomboxViewKind.Fit) { ZoomFitAll.IsChecked = true; ZoomFitNone.IsChecked = false; }
                 else { ZoomFitAll.IsChecked = false; ZoomFitNone.IsChecked = true; }
-            }
-            else
-            {
-                ViewerBox.MaxScale = 1f;
-                ViewerBox.Scale = 1f;
             }
         }
 

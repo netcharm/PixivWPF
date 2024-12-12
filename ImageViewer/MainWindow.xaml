@@ -68,7 +68,7 @@
                     <TextBlock x:Uid="ZoomFitAllIcon" Text="&#xE9A6;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </ToggleButton>
-             <Slider x:Name="ZoomRatio" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center"
+            <Slider x:Name="ZoomRatio" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center"
                     Value="1" Minimum="0.10" Maximum="10" 
                     TickPlacement="None" Ticks="0.10, 0.25, 0.5, 1, 2, 5, 10" IsSnapToTickEnabled="False" ValueChanged="ZoomRatio_ValueChanged">
                 <Slider.ToolTip>
@@ -134,13 +134,13 @@
                 </StackPanel>
             </ToggleButton>
             <Separator x:Uid="Separator_6"/>
-            <ToggleButton x:Name="MagnifierMode" x:Uid="Magnifier" IsChecked="False" ToolBar.OverflowMode="Never"
+            <ToggleButton x:Name="MagnifierMode" x:Uid="Magnifier" IsChecked="False" 
                           ToolTip="Image Magnifier" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="MagnifierPanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="MagnifierPanelIcon" Text="&#xE1A3;" Style="{DynamicResource MenuItemIcon}" />
                 </StackPanel>
             </ToggleButton>
-            <ToggleButton x:Name="ShowImageInfo" x:Uid="ShowImageInfo" IsChecked="True" ToolBar.OverflowMode="Never"
+            <ToggleButton x:Name="ShowImageInfo" x:Uid="ShowImageInfo" IsChecked="True"
                           ToolTip="Show Image Information" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="ShowImageInfoPanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="ShowImageInfoPanelIcon" Text="&#xE783;" Style="{DynamicResource MenuItemIcon}" />
@@ -158,7 +158,7 @@
                     <TextBlock x:Uid="AlwaysOnTopIcon" Text="&#xE840;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </ToggleButton>
-            <Button x:Name="UILanguage" x:Uid="UILanguage" ToolTip="UI Language Selector" ToolBar.OverflowMode="Never" Click="ImageActions_Click">
+            <Button x:Name="UILanguage" x:Uid="UILanguage" ToolTip="UI Language Selector" ToolBar.OverflowMode="AsNeeded" Click="ImageActions_Click">
                 <StackPanel x:Uid="UILanguagePanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="UILanguageIcon" Text="&#xF2B7;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
@@ -193,6 +193,7 @@
                     <TextBlock x:Uid="AutoSaveOptionsIcon" Text="&#xE115;" Style="{DynamicResource MenuItemIcon}" Foreground="Gray"/>
                 </StackPanel>
             </ToggleButton>
+            <TextBlock x:Name="ImageInfoBox" x:Uid="ImageInfoBox" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="8,0,0,0" TextAlignment="Right" ToolBar.OverflowMode="Never" />
         </ToolBar>
         <xctk:ChildWindow Grid.Row="1" x:Name="QualityChanger" x:Uid="QualityChanger" WindowStartupLocation="Manual" CloseButtonClicked="QualityChanger_CloseButtonClicked" 
             HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,100" Grid.IsSharedSizeScope="True" >
