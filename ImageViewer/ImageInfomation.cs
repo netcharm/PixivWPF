@@ -778,6 +778,18 @@ namespace ImageViewer
         /// <returns></returns>
         public async Task<bool> LoadImageFromClipboard()
         {
+            IDataObject dataPackage = Application.Current.Dispatcher.Invoke(() => Clipboard.GetDataObject());
+            return (await LoadImageFromClipboard(dataPackage));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dataPackage"></param>
+        /// <returns></returns>
+        public async Task<bool> LoadImageFromClipboard(IDataObject dataPackage)
+        {
+            if (dataPackage is null) return (false);
             var result = await Task.Run(async () =>
             {
                 var ret = false;
@@ -785,7 +797,6 @@ namespace ImageViewer
                 try
                 {
                     var supported_fmts = new string[] { "PNG", "image/png", "image/tif", "image/tiff", "image/webp", "image/xpm", "image/ico", "image/cur", "image/jpg", "image/jpeg", "image/bmp", "DeviceIndependentBitmap", "image/wbmp", "Text" };
-                    IDataObject dataPackage = Application.Current.Dispatcher.Invoke(() => Clipboard.GetDataObject());
                     var fmts = await Application.Current.Dispatcher.InvokeAsync(() => dataPackage.GetFormats(true));
                     foreach (var fmt in supported_fmts)
                     {
@@ -796,14 +807,17 @@ namespace ImageViewer
                                 var text = await Application.Current.Dispatcher.InvokeAsync(() => dataPackage.GetData(fmt, true) as string);
                                 try
                                 {
-                                    var image = MagickImage.FromBase64(Regex.Replace(text, @"^data:.*?;base64,", "", RegexOptions.IgnoreCase));
-                                    Original = new MagickImage(image);
-                                    image.Dispose();
-                                    FileName = string.Empty;
-                                    ImageFileInfo = null;
-                                    OriginalModified = true;
-                                    ret = true;
-                                    break;
+                                    if (Regex.IsMatch(text, @"^data:.*?;base64,", RegexOptions.IgnoreCase))
+                                    {
+                                        var image = MagickImage.FromBase64(Regex.Replace(text, @"^data:.*?;base64,", "", RegexOptions.IgnoreCase));
+                                        Original = new MagickImage(image);
+                                        image.Dispose();
+                                        FileName = string.Empty;
+                                        ImageFileInfo = null;
+                                        OriginalModified = true;
+                                        ret = true;
+                                        break;
+                                    }
                                 }
 #if DEBUG
                                 catch (Exception ex) { exceptions.Add($"{fmt} : {ex.Message}"); Debug.WriteLine(ex.Message); }

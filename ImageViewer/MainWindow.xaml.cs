@@ -768,17 +768,42 @@ namespace ImageViewer
             var action = false;
             try
             {
+                CloseQualityChanger();
+                await Task.Delay(1);
+
                 var load_type = ImageType.Source;
                 IsLoadingViewer = true;
 
-                var image = ImageViewer.GetInformation();
-                action |= await image.LoadImageFromClipboard();
-
+                IDataObject dataPackage = Dispatcher.Invoke(() => Clipboard.GetDataObject());
+                if (dataPackage != null)
+                {
+                    var fmts = await Dispatcher.InvokeAsync(() => dataPackage.GetFormats(true));
+                    if (fmts.Contains("Text"))
+                    {
+                        var text = await Dispatcher.InvokeAsync(() => dataPackage.GetData("Text", true) as string);
+                        if (Regex.IsMatch(text, @"^data:.*?;base64,", RegexOptions.IgnoreCase))
+                        {
+                            var image = ImageViewer.GetInformation();
+                            action |= await image.LoadImageFromClipboard(dataPackage);
+                        }
+                        else
+                        {
+                            var files = text.Split(new string[]{ Environment.NewLine, "\n\r", "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries);
+                            files = files.Where(f => File.Exists(f)).ToArray();
+                            if (files.Any())
+                            {
+                                await LoadImageFromFiles(files);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var image = ImageViewer.GetInformation();
+                        action |= await image.LoadImageFromClipboard(dataPackage);
+                    }
+                }
                 if (action)
                 {
-                    CloseQualityChanger();
-                    await Task.Delay(1);
-
                     _last_loading_ = load_type;
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                 }
