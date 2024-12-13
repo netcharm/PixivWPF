@@ -570,32 +570,32 @@ namespace ImageSearch
         {
             if (files is not null && files.Length > 0)
             {
+                var cmd_info = string.IsNullOrEmpty(settings.ImageInfoViewerCmd) || !File.Exists(settings.ImageInfoViewerCmd) ? "explorer.exe" : settings.ImageInfoViewerCmd;
+                var cmd_view = string.IsNullOrEmpty(settings.ImageViewerCmd) || !File.Exists(settings.ImageViewerCmd) ? "explorer.exe" : settings.ImageViewerCmd;
+                
                 files = files.Where(f => File.Exists(f)).Select(f => $"{f}").ToArray();
 
-                foreach (var file in files)
+                if (openwith) Process.Start("openwith.exe", files);
+                else
                 {
-                    Task.Run(() =>
+                    foreach (var file in files)
                     {
-                        try
+                        Task.Run(() =>
                         {
-                            if (openwith) Process.Start("openwith.exe", file);
-                            else if (viewinfo)
+                            try
                             {
-                                if (string.IsNullOrEmpty(settings.ImageInfoViewerCmd) || !File.Exists(settings.ImageInfoViewerCmd))
-                                    Process.Start("explorer.exe", file);
+                                if (viewinfo)
+                                {
+                                    Process.Start(cmd_info, file);
+                                }
                                 else
-                                    Process.Start(settings.ImageInfoViewerCmd, [settings.ImageInfoViewerOpt, file]);
+                                {
+                                    Process.Start(cmd_view, file);
+                                }
                             }
-                            else
-                            {
-                                if (system || string.IsNullOrEmpty(settings.ImageViewerCmd) || !File.Exists(settings.ImageViewerCmd))
-                                    Process.Start("explorer.exe", file);
-                                else
-                                    Process.Start(settings.ImageViewerCmd, [settings.ImageViewerOpt, file]);
-                            }
-                        }
-                        catch (Exception ex) { ReportMessage(ex); }
-                    });
+                            catch (Exception ex) { ReportMessage(ex); }
+                        });
+                    }
                 }
             }
         }
@@ -1061,6 +1061,7 @@ namespace ImageSearch
             var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
             var alt = Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
             var win = Keyboard.Modifiers.HasFlag(ModifierKeys.Windows);
+
             try
             {
                 if (e.Key == Key.Enter)
