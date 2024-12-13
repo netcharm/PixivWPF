@@ -12,7 +12,7 @@
         RenderOptions.EdgeMode="Aliased"
         TextOptions.TextFormattingMode="Display"
         d:DesignHeight="520" d:DesignWidth="368"        
-        x:Uid="MainWindow" Title="Image Compare" 
+        x:Uid="MainWindow" Title="Image Viewer" 
         Height="720" Width="1280" MinWidth="720" MinHeight="480"
         LocationChanged="Window_LocationChanged" SizeChanged="Window_SizeChanged" StateChanged="Window_StateChanged" 
         PreviewKeyDown="Window_KeyDown"
@@ -66,6 +66,16 @@
             <ToggleButton x:Name="ZoomFitAll" x:Uid="ZoomFitAll" ToolTip="Fit All" ToolBar.OverflowMode="Never" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="ZoomFitAllPanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="ZoomFitAllIcon" Text="&#xE9A6;" Style="{DynamicResource MenuItemIcon}"/>
+                </StackPanel>
+            </ToggleButton>
+            <ToggleButton x:Name="ZoomFitWidth" x:Uid="ZoomFitWidth" ToolTip="Fit Width" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="ZoomFitWidthPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ZoomFitWidthIcon" Text="&#xF617;" Style="{DynamicResource MenuItemIcon}"/>
+                </StackPanel>
+            </ToggleButton>
+            <ToggleButton x:Name="ZoomFitHeight" x:Uid="ZoomFitHeight" ToolTip="Fit Height" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="ZoomFitHeightPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ZoomFitHeightIcon" Text="&#xF616;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </ToggleButton>
             <Slider x:Name="ZoomRatio" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center"
@@ -195,45 +205,49 @@
             </ToggleButton>
             <TextBlock x:Name="ImageInfoBox" x:Uid="ImageInfoBox" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="8,0,0,0" TextAlignment="Right" ToolBar.OverflowMode="Never" />
         </ToolBar>
-        <xctk:ChildWindow Grid.Row="1" x:Name="QualityChanger" x:Uid="QualityChanger" WindowStartupLocation="Manual" CloseButtonClicked="QualityChanger_CloseButtonClicked" 
-            HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,100" Grid.IsSharedSizeScope="True" >
-            <Grid Margin="8" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="auto"/>
-                </Grid.ColumnDefinitions>
-                <Slider Grid.Row="0" Grid.Column="0" x:Name="QualityChangerSlider" x:Uid="QualityChangerSlider" Width="240"
+        <!-- Image Viewer -->
+        <DockPanel Grid.Row="1" x:Name="ImageViewerPanel" x:Uid="ImageViewerPanel" Dock="Top" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <ScrollViewer x:Name="ImageViewerScroll" x:Uid="ImageTargetScroll" AllowDrop="True" Focusable="False" 
+                ScrollChanged="ImageScroll_ScrollChanged" PreviewMouseWheel="ImageBox_MouseWheel"
+                MouseDown="ImageScroll_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
+                <Viewbox x:Name="ImageViewerBox" x:Uid="ImageViewerBox" Stretch="Uniform" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                    MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave">
+                    <Image x:Name="ImageViewer" x:Uid="ImageViewer" Stretch="None" ToolTipOpening="Image_ToolTipOpening" 
+                        HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                        <Image.LayoutTransform>
+                            <TransformGroup x:Uid="ImageViewerTransformGroup">
+                                <ScaleTransform x:Name="ImageViewerScale" x:Uid="ImageViewerScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}" CenterX="0.5" CenterY="0.5"/>
+                                <RotateTransform x:Name="ImageViewerRotate" x:Uid="ImageViewerRotate" Angle="0" />
+                            </TransformGroup>
+                        </Image.LayoutTransform>
+                    </Image>
+                    <xctk:MagnifierManager.Magnifier>
+                        <xctk:Magnifier Grid.Row="1" x:Name="ImageMagnifier" x:Uid="ImageMagnifier" BorderBrush="DimGray" BorderThickness="1" Radius="100" ZoomFactor="0.25" Visibility="Collapsed"/>
+                    </xctk:MagnifierManager.Magnifier>
+                </Viewbox>
+            </ScrollViewer>
+            <xctk:ChildWindow Grid.Row="1" x:Name="QualityChanger" x:Uid="QualityChanger" WindowStartupLocation="Manual" CloseButtonClicked="QualityChanger_CloseButtonClicked" 
+                HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,100" Grid.IsSharedSizeScope="True" >
+                <Grid Margin="8" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Slider Grid.Row="0" Grid.Column="0" x:Name="QualityChangerSlider" x:Uid="QualityChangerSlider" Width="240"
                     Minimum="1" Maximum="100" Value="75" TickFrequency="5" ValueChanged="QualityChangerSlider_ValueChanged" />
-                <xctk:UIntegerUpDown Grid.Row="0" Grid.Column="1" x:Name="QualityChangerValue" x:Uid="QualityChangerValue" 
+                    <xctk:UIntegerUpDown Grid.Row="0" Grid.Column="1" x:Name="QualityChangerValue" x:Uid="QualityChangerValue" 
                     Margin="4,0,0,0" AutoSelectBehavior="Never" ClipValueToMinMax="True" TextAlignment="Center" 
                     Value="{Binding ElementName=QualityChangerSlider, Path=Value, Mode=TwoWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}" />
-            </Grid>
-        </xctk:ChildWindow>
-        <!-- Image Viewer -->
-        <xctk:Zoombox Grid.Row="1" x:Name="ViewerBox" x:Uid="ViewBox" AllowDrop="True" Focusable="False" IsAnimated="False" 
-            AutoWrapContentWithViewbox="True"  DragOnPreview="False" ZoomOnPreview="False" NavigateOnPreview="True" IsUsingScrollBars="False" KeepContentInBounds="False" 
-            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-            MinScale="0.1" MaxScale="10" Scale="{Binding ElementName=ZoomRatio, Path=Value, Mode=TwoWay}"
-            ToolTipOpening="Image_ToolTipOpening" CurrentViewChanged="ViewerBox_CurrentViewChanged"
-            PreviewMouseMove="ViewerBox_PreviewMouseMove" PreviewMouseDown="ViewerBox_PreviewMouseDown" PreviewMouseWheel="ViewerBox_PreviewMouseWheel">
-            <Image x:Name="ImageViewer" x:Uid="ImageViewer" Stretch="None" StretchDirection="DownOnly" ToolTipOpening="Image_ToolTipOpening" 
-                HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
-                <Image.LayoutTransform>
-                    <TransformGroup x:Uid="ImageViewerTransformGroup">
-                        <ScaleTransform x:Name="ImageViewerScale" x:Uid="ImageViewerScale" ScaleX="1" ScaleY="1" CenterX="0.5" CenterY="0.5"/>
-                        <RotateTransform x:Name="ImageViewerRotate" x:Uid="ImageViewerRotate" Angle="0" />
-                    </TransformGroup>
-                </Image.LayoutTransform>
-            </Image>
-            <xctk:MagnifierManager.Magnifier>
-                <xctk:Magnifier Grid.Row="1" x:Name="ImageMagnifier" x:Uid="ImageMagnifier" BorderBrush="DimGray" BorderThickness="1" Radius="100" ZoomFactor="0.25" Visibility="Collapsed"/>
-            </xctk:MagnifierManager.Magnifier>
-        </xctk:Zoombox>
-        <xctk:BusyIndicator Grid.Row="1" x:Uid="LoadingIndicator" x:Name="IndicatorViewer"  BusyContent="Loading ..." Background="Transparent"
-                    HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" />
+                </Grid>
+            </xctk:ChildWindow>
+            <xctk:BusyIndicator Grid.Row="1" x:Uid="LoadingIndicator" x:Name="IndicatorViewer"  BusyContent="Loading ..." Background="Transparent"
+                HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" />
+        </DockPanel>
     </Grid>
 </Window>

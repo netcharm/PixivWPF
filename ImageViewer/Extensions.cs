@@ -1531,7 +1531,7 @@ namespace ImageViewer
 
         public static async Task<List<string>> GetFileList(this object file)
         {
-            if (_file_list_.Any() && _file_list_.Count() != _file_list_storage_.Count) await UpdateFileList();
+            if (_file_list_.Count == 0 || (_file_list_.Any() && _file_list_.Count() != _file_list_storage_.Count)) await UpdateFileList();
             var result = new List<string>();
             if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(30)))
             {

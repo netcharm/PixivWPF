@@ -12,6 +12,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Resources;
 using System.Runtime.CompilerServices;
+using System.Security.Permissions;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -143,25 +144,6 @@ namespace ImageViewer
         private Action LastAction { get; set; } = null;
         private BackgroundWorker RenderWorker = null;
 
-        private ImageType GetImageType(object sender)
-        {
-            var result = ImageType.None;
-            try
-            {
-                if (sender is UIElement)
-                {
-                    var host = sender is MenuItem ? (sender as UIElement).GetContextMenuHost() : sender as UIElement;
-                    if (host is UIElement)
-                    {
-                        var ui_source = new UIElement[] { ViewerBox, ImageViewer };
-                        if (ui_source.Contains(host)) result = ImageType.Source;
-                    }
-                }
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-            return (result);
-        }
-
         private void InitRenderWorker()
         {
             if (RenderWorker == null)
@@ -190,8 +172,7 @@ namespace ImageViewer
             if (RenderWorker is BackgroundWorker && !RenderWorker.IsBusy && !IsBusy && action is Action)
             {
                 IsBusy = true;
-                var sender_source = GetImageType(sender);
-                if (sender_source == ImageType.Source) IsProcessingViewer = true;
+                IsProcessingViewer = true;
                 RenderWorker.RunWorkerAsync(action);
             }
         }
@@ -288,36 +269,6 @@ namespace ImageViewer
         private static readonly string DefaultWaitingString = "Waiting";
         private string WaitingString = DefaultWaitingString;
 
-        private ZoomFitMode CurrentZoomFitMode
-        {
-            get
-            {
-                return (Dispatcher.Invoke(() =>
-                {
-                    var value = ZoomFitMode.All;
-                    if (ZoomFitNone.IsChecked ?? false) value = ZoomFitMode.None;
-                    else if (ZoomFitAll.IsChecked ?? false) value = ZoomFitMode.All;
-                    return (value);
-                }));
-            }
-            set
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    if (value == ZoomFitMode.None)
-                    {
-                        ZoomFitNone.IsChecked = true; ZoomFitAll.IsChecked = false;
-                    }
-                    else if (value == ZoomFitMode.All)
-                    {
-                        ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = true;
-                    }
-
-                    //CalcDisplay(set_ratio: true);
-                });
-            }
-        }
-
         private bool? AutoHideToolTip { get; set; } = false;
         private int ToolTipDuration { get; set; } = 5000;
 
@@ -330,6 +281,9 @@ namespace ImageViewer
         private readonly Dictionary<Color, string> ColorNames = new Dictionary<Color, string>();
 
         private Point? _last_viewer_pos_ = null;
+
+        private Point mouse_start;
+        private Point mouse_origin;
 
         private double ZoomMin = 0.1;
         private double ZoomMax = 10.0;
@@ -465,46 +419,10 @@ namespace ImageViewer
         }
 
         /// <summary>
-        ///
+        /// 
         /// </summary>
-        /// <param name="set_ratio"></param>
-        private void CalcDisplay(bool set_ratio = true)
-        {
-            try
-            {
-                Dispatcher.InvokeAsync(async () =>
-                {
-                    #region Re-Calc Scroll Viewer Size
-                    if (ImageViewer.Source != null)
-                    {
-                        //ViewerBox.GoHome();
-                        var view = ViewerBox.CurrentView;
-                        if (view.ViewKind == ZoomboxViewKind.Absolute)
-                        {
-                            var vx = ViewerBox.Viewport.X;
-                            var vy = ViewerBox.Viewport.Y;
-                            var cx = (ViewerBox.ActualWidth - ImageViewer.Source.Width) / 2f;
-                            var cy = (ViewerBox.ActualHeight - ImageViewer.Source.Height) / 2f;
-                            view.Scale = ViewerBox.Scale;
-                            //view.Position = new Point(cx, cy);
-                        }                        
-                    
-                        //else if (ViewerBox.CurrentView.ViewKind == ZoomboxViewKind.Center) ViewerBox.GoHome();
-                        //else ViewerBox.CenterContent();
-                    }
-                    #endregion
-
-                    if (ZoomFitNone.IsChecked ?? false) ZoomRatio.IsEnabled = true;
-                    else ZoomRatio.IsEnabled = false;
-                    ZoomRatioValue.IsEnabled = ZoomRatio.IsEnabled;
-
-                    await Task.Delay(1);
-                    DoEvents();
-                });
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-        }
-
+        /// <param name="element"></param>
+        /// <returns></returns>
         private Size? GetImageSize(Image element)
         {
             Size? result = null;
@@ -524,7 +442,7 @@ namespace ImageViewer
         private Image GetImageControl(FrameworkElement element)
         {
             Image result = null;
-            if (element == ImageViewer || element == ViewerBox)
+            if (element == ImageViewer || element == ImageViewerBox || element == ImageViewerScroll)
             {
                 result = ImageViewer;
             }
@@ -921,7 +839,6 @@ namespace ImageViewer
                         SetTitle(image.FileName);
                         RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                         await Task.Delay(1);
-                        //if (await UpdateImageViewerFinished() && is_null) FitView();
                         if (await UpdateImageViewerFinished()) FitView();
                     }
                     else IsLoadingViewer = false;
@@ -1109,7 +1026,7 @@ namespace ImageViewer
 
             Title = $"{Uid}.Title".T(culture) ?? Title;
             ImageToolBar.Locale();
-            ViewerBox.Locale();
+            ImageViewerBox.Locale();
 
             DefaultWindowTitle = Title;
 
@@ -1120,11 +1037,11 @@ namespace ImageViewer
             ZoomRatio.ToolTip = $"{"Zoom Ratio".T(culture)}: {ZoomRatio.Value:F2}X";
 
             WaitingString = DefaultWaitingString.T(culture);
-            ViewerBox.ToolTip = null;
-            SetToolTipState(ViewerBox, false);
+            ImageViewerBox.ToolTip = null;
+            SetToolTipState(ImageViewerBox, false);
 
             #region Create Image Flip/Rotate/Effects Menu
-            CreateImageOpMenu(ViewerBox);
+            CreateImageOpMenu(ImageViewerBox);
             //CreateImageOpMenu(ImageTargetScroll);
             #endregion
         }
@@ -1664,29 +1581,265 @@ namespace ImageViewer
         }
         #endregion
 
-        #region ZoomBox Helper
+        #region Image Viewer Helper
         /// <summary>
         /// 
         /// </summary>
-        private void InitZoomBox()
+        private ZoomFitMode CurrentZoomFitMode
         {
-            ViewerBox.Dispatcher.Invoke(() =>
+            get
             {
-                ViewerBox.ViewStackMode = ZoomboxViewStackMode.Disabled;
-                //ViewerBox.CenterContent();
-                ViewerBox.MaxScale = 1f;
-                //ImageViewer.Source = (ImageCanvas.Background as ImageBrush).ImageSource;
-                ViewerBox.MinScale = ZoomMin;
-                ViewerBox.MaxScale = ZoomMax;
-                ViewerBox.Scale = 0.99;
-                ViewerBox.Focusable = true;
-                ViewerBox.ZoomOnPreview = false;
-                ViewerBox.RefocusView();
-                ViewerBox.Focus();
-                //ImageViewer.Source = null;
-                ViewerBox.ViewStackMode = ZoomboxViewStackMode.Auto;
-                ViewerBox.ViewStack?.Clear();
-                ViewerBox.CurrentView.Scale = 1f;
+                return (Dispatcher.Invoke(() =>
+                {
+                    var value = ZoomFitMode.All;
+                    if (ZoomFitNone.IsChecked ?? false) value = ZoomFitMode.None;
+                    else if (ZoomFitAll.IsChecked ?? false) value = ZoomFitMode.All;
+                    else if (ZoomFitWidth.IsChecked ?? false) value = ZoomFitMode.Width;
+                    else if (ZoomFitHeight.IsChecked ?? false) value = ZoomFitMode.Height;
+                    return (value);
+                }));
+            }
+            set
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (value == ZoomFitMode.None)
+                    {
+                        ZoomFitNone.IsChecked = true; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = false;
+                        ImageViewerBox.Stretch = Stretch.None;
+                    }
+                    else if (value == ZoomFitMode.All)
+                    {
+                        ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = true; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = false;
+                        ImageViewerBox.Stretch = Stretch.Uniform;
+                    }
+                    else if (value == ZoomFitMode.Width)
+                    {
+                        ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = true; ZoomFitHeight.IsChecked = false;
+                        ImageViewerBox.Stretch = Stretch.None;
+                    }
+                    else if (value == ZoomFitMode.Height)
+                    {
+                        ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = true;
+                        ImageViewerBox.Stretch = Stretch.None;
+                    }
+                    CalcDisplay(set_ratio: true);
+                    CenterViewer();
+                });
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private FrameworkElement CurrentZoomControl
+        {
+            get
+            {
+                FrameworkElement result = null;
+
+                var mode  = CurrentZoomFitMode;
+                if (mode == ZoomFitMode.None) result = ZoomFitNone;
+                else if (mode == ZoomFitMode.All) result = ZoomFitAll;
+                else if (mode == ZoomFitMode.Width) result = ZoomFitWidth;
+                else if (mode == ZoomFitMode.Height) result = ZoomFitHeight;
+
+                return (result);
+            }
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="set_ratio"></param>
+        private void CalcDisplay(bool set_ratio = true, Size? size = null)
+        {
+            try
+            {
+                Dispatcher.InvokeAsync(async () =>
+                {
+                    #region Re-Calc Scroll Viewer Size
+                    var cw = ImageCanvas.ActualWidth;
+                    var ch = ImageCanvas.ActualHeight - ImageToolBar.ActualHeight;
+                    ImageViewerPanel.MaxWidth = cw;
+                    ImageViewerPanel.MaxHeight = ch;
+                    ImageViewerPanel.MinWidth = cw;
+                    ImageViewerPanel.MinHeight = ch;
+                    ImageViewerPanel.RenderSize = new Size(cw, ch);
+
+                    ImageViewerScroll.Width = cw;
+                    ImageViewerScroll.Height = ch;
+                    ImageViewerScroll.MaxWidth = cw;
+                    ImageViewerScroll.MaxHeight = ch;
+                    #endregion
+
+                    if (CurrentZoomFitMode == ZoomFitMode.All)
+                    {
+                        ImageViewerBox.Width = cw;
+                        ImageViewerBox.Height = ch;
+
+                        if (set_ratio)
+                        {
+                            LastZoomRatio = ZoomRatio.Value;
+                            ZoomRatio.Value = 1;
+                        }
+                    }
+                    else
+                    {
+                        var image_s = ImageViewer.GetInformation();
+                        if (image_s.ValidCurrent && ImageViewer.Source != null)
+                        {
+                            ImageViewerBox.Width = ImageViewer.Source.Width;
+                            ImageViewerBox.Height = ImageViewer.Source.Height;
+                        }
+                        ZoomRatio.Value = LastZoomRatio;
+                    }
+
+                    if (ZoomFitNone.IsChecked ?? false) ZoomRatio.IsEnabled = true;
+                    else ZoomRatio.IsEnabled = false;
+                    ZoomRatioValue.IsEnabled = ZoomRatio.IsEnabled;
+
+                    CalcZoomRatio();
+
+                    await Task.Delay(1);
+                    DoEvents();
+                });
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void CalcZoomRatio(Size? size = null)
+        {
+            try
+            {
+                var image_s = ImageViewer.GetInformation();
+                if (image_s.ValidCurrent)
+                {
+                    var scroll  = ImageViewerScroll;
+                    var image  = image_s.Current;
+
+                    var width = image.Width;
+                    var height = image.Height;
+
+                    if (CurrentZoomFitMode == ZoomFitMode.All)
+                    {
+                        ZoomRatio.Minimum = ZoomMin;
+                        ZoomRatio.Value = Math.Min(scroll.ActualWidth / width, scroll.ActualHeight / height);
+                    }
+                    else if (CurrentZoomFitMode == ZoomFitMode.None)
+                    {
+                        ZoomRatio.Minimum = ZoomMin;
+                    }
+                    else if (CurrentZoomFitMode == ZoomFitMode.Width)
+                    {
+                        if (scroll.ActualWidth > width)
+                        {
+                            ZoomRatio.Minimum = ZoomMin;
+                            ZoomRatio.Value = 1;
+                        }
+                        else
+                        {
+                            var targetX = width;
+                            var targetY = height;
+                            var ratio = scroll.ActualWidth / targetX;
+                            var delta = scroll.VerticalScrollBarVisibility == ScrollBarVisibility.Hidden || targetY * ratio <= scroll.ActualHeight ? 0 : 14;
+                            var value = (scroll.ActualWidth - delta) / targetX;
+                            ZoomRatio.Minimum = value < ZoomMin ? value : ZoomMin;
+                            ZoomRatio.Value = value;
+                            var zw = value * ImageViewer.Source.Width;
+                            var zh = value * ImageViewer.Source.Height;
+                            ImageViewerBox.MaxWidth = scroll.ActualWidth - delta;
+                            ImageViewerBox.MaxHeight = zh <= scroll.ActualHeight ? scroll.ActualHeight : targetY * value - delta;
+                        }
+                    }
+                    else if (CurrentZoomFitMode == ZoomFitMode.Height)
+                    {
+                        if (scroll.ActualHeight > height)
+                        {
+                            ZoomRatio.Minimum = ZoomMin;
+                            ZoomRatio.Value = 1;
+                        }
+                        else
+                        {
+                            var targetX = width;
+                            var targetY = height;
+                            var ratio = scroll.ActualHeight / targetY;
+                            var delta = scroll.HorizontalScrollBarVisibility == ScrollBarVisibility.Hidden || targetX * ratio <= scroll.ActualWidth ? 0 : 14;
+                            var value = (scroll.ActualHeight - delta) / targetY;
+                            var zw = value * ImageViewer.Source.Width;
+                            var zh = value * ImageViewer.Source.Height;
+                            ZoomRatio.Minimum = value < ZoomMin ? value : ZoomMin;
+                            ZoomRatio.Value = value;
+                            ImageViewerBox.MaxWidth = zw <= scroll.ActualWidth ? scroll.ActualWidth : targetX * value - delta;
+                            ImageViewerBox.MaxHeight = scroll.ActualHeight - delta;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <returns></returns>
+        private Point GetScrollOffset(FrameworkElement sender)
+        {
+            double offset_x = -1, offset_y = -1;
+            if (sender == ImageViewerBox || sender == ImageViewerScroll)
+            {
+                if (ImageViewerBox.Stretch == Stretch.None)
+                {
+                    offset_x = ImageViewerScroll.HorizontalOffset;
+                    offset_y = ImageViewerScroll.VerticalOffset;
+                }
+            }
+            return (new Point(offset_x, offset_y));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        private Point CalcScrollOffset(FrameworkElement sender, MouseEventArgs e)
+        {
+            double offset_x = -1, offset_y = -1;
+            if (sender == ImageViewerBox || sender == ImageViewerScroll)
+            {
+                if (ImageViewerBox.Stretch == Stretch.None && ImageViewer.GetInformation().ValidCurrent)
+                {
+                    Point factor = new Point(ImageViewerScroll.ExtentWidth/ImageViewerScroll.ActualWidth, ImageViewerScroll.ExtentHeight/ImageViewerScroll.ActualHeight);
+                    Vector v = mouse_start - e.GetPosition(ImageViewerScroll);
+                    offset_x = mouse_origin.X + v.X * factor.X;
+                    offset_y = mouse_origin.Y + v.Y * factor.Y;
+                }
+            }
+            return (new Point(offset_x, offset_y));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="offset"></param>
+        private void SyncScrollOffset(Point offset)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (offset.X >= 0)
+                {
+                    ImageViewerScroll.ScrollToHorizontalOffset(offset.X);
+                }
+                if (offset.Y >= 0)
+                {
+                    ImageViewerScroll.ScrollToVerticalOffset(offset.Y);
+                }
             });
         }
 
@@ -1697,7 +1850,8 @@ namespace ImageViewer
         {
             Dispatcher.Invoke(() =>
             {
-                ViewerBox.CenterContent();
+                ImageViewerScroll.ScrollToVerticalOffset(ImageViewerScroll.ScrollableHeight / 2);
+                ImageViewerScroll.ScrollToHorizontalOffset(ImageViewerScroll.ScrollableWidth / 2);
                 DoEvents();
             });
         }
@@ -1707,29 +1861,25 @@ namespace ImageViewer
         /// </summary>
         private void FitView()
         {
-            ViewerBox.Dispatcher.Invoke(() =>
+            ImageViewerBox.Dispatcher.Invoke(() =>
             {
                 if (ImageViewer.Source != null)
                 {
-                    ViewerBox.MaxScale = ZoomMax;
-                    //var view = ViewerBox.CurrentView;
-
                     var iw = ImageViewer.Source?.Width;
                     var ih = ImageViewer.Source?.Height;
 
-                    var vw = ViewerBox.ActualWidth;
-                    var vh = ViewerBox.ActualHeight;
+                    var vw = ImageViewerPanel.ActualWidth;
+                    var vh = ImageViewerPanel.ActualHeight;
 
-                    if (iw >= vw || ih >= vh) ViewerBox.FitToBounds();
+                    if (iw >= vw || ih >= vh)
+                    {
+                        var r_x = vw / iw;
+                        var r_y = vh / ih;
+                        ZoomRatio.Value = Math.Max(r_x ?? 1, r_y ?? 1);
+                    }
                     else
                     {
-                        var cx = (ViewerBox.ActualWidth - ImageViewer.Source.Width) / 2f;
-                        var cy = (ViewerBox.ActualHeight - ImageViewer.Source.Height) / 2f;
-                        var view = ViewerBox.CurrentView;
-                        view.Position = new Point(cx, cy);
-                        view.Scale = 1f;
-                        ViewerBox.Scale = 1;
-                        ViewerBox.ViewStack.Clear();
+                        ZoomRatio.Value = 1;
                     }
                 }
             });
@@ -2683,8 +2833,6 @@ namespace ImageViewer
 
             ToolTipService.SetShowOnDisabled(ImageViewer, false);
 
-            InitZoomBox();
-
             SyncColorLighting();
             DoEvents();
 
@@ -2723,7 +2871,7 @@ namespace ImageViewer
                 LastPositionSize = new Rect(Left, Top, e.NewSize.Width, e.NewSize.Height);
             else
                 LastPositionSize = new Rect(Left, Top, LastPositionSize.Width, LastPositionSize.Height);
-            CalcDisplay(set_ratio: true);
+            CalcDisplay(size: e.NewSize);
         }
 
         private void Window_StateChanged(object sender, EventArgs e)
@@ -2790,7 +2938,7 @@ namespace ImageViewer
                     else if (Keyboard.Modifiers == ModifierKeys.Alt && (e.Key == Key.T || e.SystemKey == Key.T))
                     {
                         e.Handled = true;
-                        ViewerBox.ContextMenu.IsOpen = true;
+                        ImageViewerBox.ContextMenu.IsOpen = true;
                     }
                     else if (e.Key == Key.Escape || e.SystemKey == Key.Escape)
                     {
@@ -2895,6 +3043,184 @@ namespace ImageViewer
         }
         #endregion
 
+        #region ImageScroll Events
+        private void ImageScroll_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+
+        }
+
+        private async void ImageScroll_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Middle && e.XButton1 == MouseButtonState.Pressed)
+            {
+                e.Handled = true;
+                if (e.ClickCount >= 1) CenterViewer();
+            }
+            else if (e.ChangedButton == MouseButton.Middle && Keyboard.Modifiers == ModifierKeys.None)
+            {
+                e.Handled = true;
+                Close();
+            }
+            else if (e.ChangedButton == MouseButton.XButton1 && e.ClickCount >= 2)
+            {
+                e.Handled = true;
+                var action = await LoadImageFromNextFile();
+                if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true));
+            }
+            else if (e.ChangedButton == MouseButton.XButton2 && e.ClickCount >= 2)
+            {
+                e.Handled = true;
+                var action = await LoadImageFromPrevFile();
+                if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true));
+            }
+            else ImageBox_MouseDown(sender, e);
+        }
+        #endregion
+
+        #region ImageBox Events
+        private void ImageBox_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (ZoomFitNone.IsChecked ?? false && (ImageViewer.Source != null))
+            {
+                e.Handled = true;
+                ZoomRatio.Value += e.Delta < 0 ? -1 * ZoomRatio.SmallChange : ZoomRatio.SmallChange;
+                if (sender is Viewbox || sender is ScrollViewer)
+                {
+                    SyncScrollOffset(GetScrollOffset(sender as FrameworkElement));
+                }
+            }
+        }
+
+        private void ImageBox_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            e.Handled = false;
+            try
+            {
+                if (e.Device is MouseDevice)
+                {
+                    if (e.ChangedButton == MouseButton.Left && e.XButton1 == MouseButtonState.Pressed)
+                    {
+                        e.Handled = true;
+                        if (e.ClickCount == 1)
+                        {
+                            ZoomRatio.Value = ZoomRatio.Value == 1 ? ZoomRatio.Maximum : 1.0;
+                            DoEvents();
+                        }
+                    }
+                    else if (e.ChangedButton == MouseButton.Left && e.ClickCount >= 2)
+                    {
+                        e.Handled = true;
+                        ToggleMagnifier(change_state: true);
+                    }
+                    else if (e.ChangedButton == MouseButton.Left)
+                    {
+                        var image_s = ImageViewer.GetInformation();
+
+                        if (sender == ImageViewerBox || sender == ImageViewerScroll)
+                        {
+                            e.Handled = true;
+                            mouse_start = e.GetPosition(ImageViewerScroll);
+                            mouse_origin = new Point(ImageViewerScroll.HorizontalOffset, ImageViewerScroll.VerticalOffset);
+                            var pos = e.GetPosition(ImageViewer);
+                            ImageViewer.GetInformation().LastClickPos = new PointD(pos.X, pos.Y);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage("MouseClick"); }
+        }
+
+        private void ImageBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            try
+            {
+                if (e.XButton1 == MouseButtonState.Pressed)
+                {
+                    if (CurrentZoomFitMode == ZoomFitMode.None)
+                    {
+                        var pos = e.GetPosition(ImageViewerScroll);
+                        if (_last_viewer_pos_ is null) _last_viewer_pos_ = pos;
+                        else
+                        {
+                            var dx = pos.X - _last_viewer_pos_.Value.X;
+                            if (dx > 0)
+                                ZoomRatio.Value += 0.033;
+                            else if (dx < 0)
+                                ZoomRatio.Value -= 0.033;
+                        }
+                        _last_viewer_pos_ = pos;
+                    }
+                }
+                else if (e.LeftButton == MouseButtonState.Pressed)
+                {
+                    e.Handled = true;
+                    var offset = sender is Viewbox || sender is ScrollViewer ? CalcScrollOffset(sender as FrameworkElement, e) : new Point(-1, -1);
+#if DEBUG
+                    Debug.WriteLine($"Original : [{mouse_origin.X:F0}, {mouse_origin.Y:F0}], Start : [{mouse_start.X:F0}, {mouse_start.Y:F0}] => Move : [{offset.X:F0}, {offset.Y:F0}]");
+                    //Debug.WriteLine($"Move Y: {offset_y}");
+#endif
+                    SyncScrollOffset(offset);
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage("MouseMove"); }
+        }
+
+        private void ImageBox_MouseEnter(object sender, MouseEventArgs e)
+        {
+            try
+            {
+                if (e.LeftButton == MouseButtonState.Pressed)
+                {
+                    if (sender == ImageViewerBox || sender == ImageViewerScroll)
+                    {
+                        if (ImageViewer.GetInformation().ValidCurrent)
+                        {
+                            e.Handled = true;
+                            mouse_start = e.GetPosition(ImageViewerScroll);
+                            mouse_origin = new Point(ImageViewerScroll.HorizontalOffset, ImageViewerScroll.VerticalOffset);
+                        }
+                    }
+                }
+                else if (sender is FrameworkElement)
+                {
+                    //var tooltip_opened = false;
+                    //foreach (var element in new FrameworkElement[] { ImageViewer })
+                    //{
+                    //    if (element.ToolTip is ToolTip && (element.ToolTip as ToolTip).IsOpen)
+                    //    {
+                    //        (element.ToolTip as ToolTip).IsOpen = false;
+                    //        tooltip_opened = true;
+                    //        break;
+                    //    }
+                    //}
+                    //if (tooltip_opened)
+                    //{
+                    //    var image = GetImageControl(sender as FrameworkElement);
+                    //    var tooltip = GetToolTip(image);
+                    //    if (image?.Source != null && !string.IsNullOrEmpty(tooltip) && image.ToolTip is ToolTip)
+                    //    {
+                    //        (image.ToolTip as ToolTip).IsOpen = true;
+                    //    }
+                    //}
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage("MouseEnter"); }
+        }
+
+        private void ImageBox_MouseLeave(object sender, MouseEventArgs e)
+        {
+            try
+            {
+                if (e.LeftButton == MouseButtonState.Pressed)
+                {
+                    e.Handled = true;
+                    var offset = sender is Viewbox || sender is ScrollViewer ? CalcScrollOffset(sender as FrameworkElement, e) : new Point(-1, -1);
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage("MouseLeave"); }
+        }
+        #endregion
+
         #region Image & ContextMenu Events
         private async void Image_ToolTipOpening(object sender, ToolTipEventArgs e)
         {
@@ -2964,16 +3290,16 @@ namespace ImageViewer
                 e.Handled = true;
                 if (e.ClickCount == 1)
                 {
-                    if (ViewerBox.Viewport.Width < ImageViewer.Source.Width || ViewerBox.Viewport.Height < ImageViewer.Source.Height)
-                    {
-                        if (ViewerBox.CurrentView.ViewKind == ZoomboxViewKind.Fit) ViewerBox.Scale = 1;
-                        else ViewerBox.FitToBounds();
-                    }
-                    else
-                    {
-                        if (ViewerBox.Scale == 1) ViewerBox.FitToBounds();
-                        else ViewerBox.Scale = 1;
-                    }
+                    //if (ImageViewerScroll.ViewportWidth < ImageViewer.Source.Width || ImageViewerScroll.ViewportHeight < ImageViewer.Source.Height)
+                    //{
+                    //    if (ViewerBox.CurrentView.ViewKind == ZoomboxViewKind.Fit) ViewerBox.Scale = 1;
+                    //    else ViewerBox.FitToBounds();
+                    //}
+                    //else
+                    //{
+                    //    if (ImageViewerScroll.Scale == 1) ImageViewerScroll.FitToBounds();
+                    //    else ImageViewerScroll.Scale = 1;
+                    //}
                     DoEvents();
                 }
             }
@@ -2990,7 +3316,7 @@ namespace ImageViewer
                 if (e.XButton1 == MouseButtonState.Pressed)
                 {
                     e.Handled = true;
-                    var pos = e.GetPosition(ViewerBox);
+                    var pos = e.GetPosition(ImageViewerScroll);
                     if (_last_viewer_pos_ is null) _last_viewer_pos_ = pos;
                     else
                     {
@@ -3009,13 +3335,13 @@ namespace ImageViewer
         private void ViewerBox_CurrentViewChanged(object sender, ZoomboxViewChangedEventArgs e)
         {
             if (!Ready) return;
-            if (ViewerBox.CurrentView != null && ImageViewer.Source != null)
-            {
-                ViewerBox.MaxScale = ZoomMax;
-                var view = e.NewValue;
-                if (view.ViewKind == ZoomboxViewKind.Fit) { ZoomFitAll.IsChecked = true; ZoomFitNone.IsChecked = false; }
-                else { ZoomFitAll.IsChecked = false; ZoomFitNone.IsChecked = true; }
-            }
+            //if (ViewerBox.CurrentView != null && ImageViewer.Source != null)
+            //{
+            //    ViewerBox.MaxScale = ZoomMax;
+            //    var view = e.NewValue;
+            //    if (view.ViewKind == ZoomboxViewKind.Fit) { ZoomFitAll.IsChecked = true; ZoomFitNone.IsChecked = false; }
+            //    else { ZoomFitAll.IsChecked = false; ZoomFitNone.IsChecked = true; }
+            //}
         }
 
         private void ImageActions_Click(object sender, RoutedEventArgs e)
@@ -3095,19 +3421,19 @@ namespace ImageViewer
 
             else if (sender == ZoomFitNone)
             {
-                ZoomFitNone.IsChecked = true;
-                ZoomFitAll.IsChecked = false;
                 CurrentZoomFitMode = ZoomFitMode.None;
-                //ViewerBox.FillToBounds();
-                CalcDisplay();
             }
             else if (sender == ZoomFitAll)
             {
-                ZoomFitNone.IsChecked = false;
-                ZoomFitAll.IsChecked = true;
                 CurrentZoomFitMode = ZoomFitMode.All;
-                FitView();
-                CalcDisplay();
+            }
+            else if (sender == ZoomFitWidth)
+            {
+                CurrentZoomFitMode = ZoomFitMode.Width;
+            }
+            else if (sender == ZoomFitHeight)
+            {
+                CurrentZoomFitMode = ZoomFitMode.Height;
             }
 
             else if (sender == ImageLoadHaldLut)
@@ -3140,6 +3466,15 @@ namespace ImageViewer
                     e.Handled = true;
                     ZoomRatio.ToolTip = $"{"Zoom Ratio".T(DefaultCultureInfo)}: {e.NewValue:F2}X";
                     LastZoomRatio = e.NewValue;
+                    if (CurrentZoomFitMode == ZoomFitMode.None)
+                    {
+                        var zw = e.NewValue * ImageViewer.Source.Width;
+                        var zh = e.NewValue * ImageViewer.Source.Height;
+                        ImageViewerBox.MaxWidth = zw <= ImageViewerScroll.ActualWidth ? ImageViewerScroll.ActualWidth : zw;
+                        ImageViewerBox.MaxHeight = zh <= ImageViewerScroll.ActualHeight ? ImageViewerScroll.ActualHeight : zh;
+                        ImageViewerBox.Width = zw <= ImageViewerScroll.ActualWidth ? ImageViewerScroll.ActualWidth : zw;
+                        ImageViewerBox.Height = zh <= ImageViewerScroll.ActualHeight ? ImageViewerScroll.ActualHeight : zh;
+                    }
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
