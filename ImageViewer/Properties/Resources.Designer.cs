@@ -349,6 +349,15 @@ namespace ImageViewer.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Dark/Light Background 的本地化字符串。
+        /// </summary>
+        public static string DarkBackground_ToolTip {
+            get {
+                return ResourceManager.GetString("DarkBackground.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Edge Line 的本地化字符串。
         /// </summary>
         public static string Edge_Header {

@@ -660,4 +660,7 @@
   <data name="AutoSaveOptions.ToolTip" xml:space="preserve">
     <value>設定の自動保存</value>
   </data>
+  <data name="DarkBackground.ToolTip" xml:space="preserve">
+    <value>暗い/明るい背景</value>
+  </data>
 </root>

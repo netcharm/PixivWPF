@@ -131,6 +131,10 @@
           <source>Crop Image Edge</source>
           <target state="new">画像の境界を切り取る</target>
         </trans-unit>
+        <trans-unit id="DarkBackground.ToolTip" translate="yes" xml:space="preserve">
+          <source>Dark/Light Background</source>
+          <target state="new">暗い/明るい背景</target>
+        </trans-unit>
         <trans-unit id="Edge.Header" translate="yes" xml:space="preserve">
           <source>Edge Line</source>
           <target state="new">スクリプト効果</target>

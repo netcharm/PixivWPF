@@ -660,4 +660,7 @@
   <data name="AutoSaveOptions.ToolTip" xml:space="preserve">
     <value>Auto Save Options</value>
   </data>
+  <data name="DarkBackground.ToolTip" xml:space="preserve">
+    <value>Dark/Light Background</value>
+  </data>
 </root>

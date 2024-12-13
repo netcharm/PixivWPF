@@ -131,6 +131,10 @@
           <source>Crop Image Edge</source>
           <target state="new">裁剪图像的边界</target>
         </trans-unit>
+        <trans-unit id="DarkBackground.ToolTip" translate="yes" xml:space="preserve">
+          <source>Dark/Light Background</source>
+          <target state="new">深色/浅色背景</target>
+        </trans-unit>
         <trans-unit id="Edge.Header" translate="yes" xml:space="preserve">
           <source>Edge Line</source>
           <target state="new">线稿效果</target>
