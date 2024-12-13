@@ -3078,9 +3078,11 @@ namespace ImageViewer
         #endregion
 
         #region ImageBox Events
-        private void ImageBox_MouseWheel(object sender, MouseWheelEventArgs e)
+        private async void ImageBox_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (ZoomFitNone.IsChecked ?? false && (ImageViewer.Source != null))
+            if (!Ready || IsImageNull(ImageViewer)) return;
+
+            if (ZoomFitNone.IsChecked ?? false && Keyboard.Modifiers == ModifierKeys.Control)
             {
                 e.Handled = true;
                 ZoomRatio.Value += e.Delta < 0 ? -1 * ZoomRatio.SmallChange : ZoomRatio.SmallChange;
@@ -3088,6 +3090,12 @@ namespace ImageViewer
                 {
                     SyncScrollOffset(GetScrollOffset(sender as FrameworkElement));
                 }
+            }
+            else if (Keyboard.Modifiers == ModifierKeys.None)
+            {
+                e.Handled = true;
+                if (e.Delta > 0) await LoadImageFromPrevFile();
+                else if (e.Delta < 0) await LoadImageFromNextFile();
             }
         }
 
@@ -3101,7 +3109,7 @@ namespace ImageViewer
                     if (e.ChangedButton == MouseButton.Left && e.XButton1 == MouseButtonState.Pressed)
                     {
                         e.Handled = true;
-                        if (e.ClickCount == 1)
+                        if (e.ClickCount == 1 && CurrentZoomFitMode == ZoomFitMode.None)
                         {
                             ZoomRatio.Value = ZoomRatio.Value == 1 ? ZoomRatio.Maximum : 1.0;
                             DoEvents();
