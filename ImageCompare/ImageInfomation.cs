@@ -47,6 +47,7 @@ namespace ImageCompare
             {
                 if (_original_ is MagickImage) { _original_.Dispose(); _original_ = null; }
                 _original_ = value;
+                FixDPI(_original_, use_system: true);
                 _OriginalModified_ = true;
                 DenoiseCount = 0;
                 DenoiseLevel = 0;
