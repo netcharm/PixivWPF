@@ -123,13 +123,13 @@
           <source>Create Color Target Image</source>
           <target state="new">以指定顏色創建目標影像</target>
         </trans-unit>
-        <trans-unit id="CropBoundingBox.Header" translate="yes" xml:space="preserve">
-          <source>Crop BoundingBox</source>
-          <target state="new">裁剪無影像邊界</target>
-        </trans-unit>
         <trans-unit id="CropImageEdge.Header" translate="yes" xml:space="preserve">
           <source>Crop Image Edge</source>
           <target state="new">裁剪影像的邊界</target>
+        </trans-unit>
+        <trans-unit id="DarkBackground.ToolTip" translate="yes" xml:space="preserve">
+          <source>Dark/Light Background</source>
+          <target state="new">深色/浅色背景</target>
         </trans-unit>
         <trans-unit id="Edge.Header" translate="yes" xml:space="preserve">
           <source>Edge Line</source>

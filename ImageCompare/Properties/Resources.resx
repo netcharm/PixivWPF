@@ -243,9 +243,6 @@
   <data name="MoreEffects.Header" xml:space="preserve">
     <value>More Effects</value>
   </data>
-  <data name="CropBoundingBox.Header" xml:space="preserve">
-    <value>Crop BoundingBox</value>
-  </data>
   <data name="MatchSourceSize.Header" xml:space="preserve">
     <value>Match Source Size</value>
   </data>
@@ -659,6 +656,9 @@
   </data>
   <data name="Magnifier.ToolTip" xml:space="preserve">
     <value>Image Magnifier</value>
+  </data>
+  <data name="DarkBackground.ToolTip" xml:space="preserve">
+    <value>Dark/Light Background</value>
   </data>
   <data name="ShowImageInfo.ToolTip" xml:space="preserve">
     <value>how Image Information</value>

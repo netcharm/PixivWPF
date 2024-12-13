@@ -331,20 +331,20 @@ namespace ImageCompare.Properties {
         }
         
         /// <summary>
-        ///   查找类似 Crop BoundingBox 的本地化字符串。
-        /// </summary>
-        public static string CropBoundingBox_Header {
-            get {
-                return ResourceManager.GetString("CropBoundingBox.Header", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 Crop Image Edge 的本地化字符串。
         /// </summary>
         public static string CropImageEdge_Header {
             get {
                 return ResourceManager.GetString("CropImageEdge.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Dark/Light Background 的本地化字符串。
+        /// </summary>
+        public static string DarkBackground_ToolTip {
+            get {
+                return ResourceManager.GetString("DarkBackground.ToolTip", resourceCulture);
             }
         }
         

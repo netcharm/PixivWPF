@@ -243,9 +243,6 @@
   <data name="MoreEffects.Header" xml:space="preserve">
     <value>更多濾鏡效果</value>
   </data>
-  <data name="CropBoundingBox.Header" xml:space="preserve">
-    <value>裁剪無影像邊界</value>
-  </data>
   <data name="MatchSourceSize.Header" xml:space="preserve">
     <value>適配來源影像大小</value>
   </data>
@@ -659,6 +656,9 @@
   </data>
   <data name="Magnifier.ToolTip" xml:space="preserve">
     <value>放大镜</value>
+  </data>
+  <data name="DarkBackground.ToolTip" xml:space="preserve">
+    <value>深色/浅色背景</value>
   </data>
   <data name="ShowImageInfo.ToolTip" xml:space="preserve">
     <value>顯示影像資訊</value>
