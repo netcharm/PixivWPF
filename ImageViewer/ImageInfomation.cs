@@ -981,6 +981,11 @@ namespace ImageViewer
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        private SemaphoreSlim _loading_image_ = new SemaphoreSlim(1);
+
+        /// <summary>
         ///
         /// </summary>
         /// <param name="file"></param>
@@ -988,7 +993,7 @@ namespace ImageViewer
         public async Task<bool> LoadImageFromFile(string file)
         {
             var result = false;
-            if (File.Exists(file))
+            if (File.Exists(file) && await _loading_image_.WaitAsync(TimeSpan.FromSeconds(10)))
             {
                 _simple_info_ = string.Empty;
 
@@ -1045,11 +1050,11 @@ namespace ImageViewer
                                 }
                                 //_simple_info_ = GetSimpleInfo().Result;
                             }
-
-                            ret = true;
+                            ret = Original.IsValidRead();
                         }
                     }
                     catch (Exception ex) { ex.ShowMessage(); }
+                    finally { _loading_image_.Release(); }
                     return (ret);
                 });
             }

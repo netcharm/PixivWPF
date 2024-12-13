@@ -127,12 +127,8 @@ namespace ImageViewer
             {
                 try
                 {
-                    var src = ImageViewer;
-                    var tooltip = await src.GetInformation().GetImageInfo(include_colorinfo: true);
-                    if (!string.IsNullOrEmpty(tooltip)) SetToolTip(src, tooltip);
-
+                    await UpdateImageTooltip(colors: true);
                     UpdateIndaicatorState(false, true);
-
                     DoEvents();
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
@@ -151,8 +147,7 @@ namespace ImageViewer
 
                 if (string.IsNullOrEmpty(tooltip) || tooltip.StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    tooltip = await src.GetInformation().GetImageInfo();
-                    if (!string.IsNullOrEmpty(tooltip)) SetToolTip(src, tooltip);
+                    tooltip = await UpdateImageTooltip();
                 }
 
                 DataObject dataPackage = new DataObject();
@@ -281,9 +276,7 @@ namespace ImageViewer
                 var size = 0;
                 if (info_only)
                 {
-                    ImageViewer.GetInformation().RefreshImageFileInfo();
-                    var tooltip = await ImageViewer.GetInformation().GetImageInfo();
-                    if (!string.IsNullOrEmpty(tooltip)) SetToolTip(ImageViewer, tooltip);
+                    await UpdateImageTooltip();
                 }
                 else
                 {

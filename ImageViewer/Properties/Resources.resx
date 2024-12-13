@@ -657,4 +657,7 @@
   <data name="ShowImageInfo.ToolTip" xml:space="preserve">
     <value>how Image Information</value>
   </data>
+  <data name="AutoSaveOptions.ToolTip" xml:space="preserve">
+    <value>Auto Save Options</value>
+  </data>
 </root>

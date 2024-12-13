@@ -494,17 +494,28 @@ namespace ImageViewer
                         {
                             element.Source = image.Source;
                             if (fit && element.Source != null) FitView();
-                            //ImageInfoBox.Text = image.SimpleInfo;
-                            ImageInfoBox.Text = await image.GetSimpleInfo();
+                            await UpdateImageTooltip();
                         }
                         catch { }
                     });
-                    var tooltip_s = image.ValidCurrent ? await image.GetImageInfo() : null;
-                    SetToolTip(element, tooltip_s);
-                    SetToolTip(ImageInfoBox, tooltip_s);
                 }
                 catch { }
             }
+        }
+
+        private async Task<string> UpdateImageTooltip(bool colors = false)
+        {
+            var result = string.Empty;
+            if (Ready && ImageViewer is Image)
+            {
+                var image = ImageViewer.GetInformation();
+                await ImageInfoBox.Dispatcher.InvokeAsync(async () => { ImageInfoBox.Text = await image.GetSimpleInfo(); });
+                var tooltip = image.ValidCurrent ? await image.GetImageInfo(include_colorinfo: colors) : null;
+                SetToolTip(ImageViewer, tooltip);
+                SetToolTip(ImageInfoBox, tooltip);
+                result = tooltip;
+            }
+            return (result);
         }
 
         /// <summary>
@@ -3242,14 +3253,7 @@ namespace ImageViewer
                         var tooltip = GetToolTip(image);
                         if (string.IsNullOrEmpty(tooltip) || tooltip.StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            tooltip = await image.GetInformation().GetImageInfo();
-                            await Task.Delay(1);
-                            DoEvents();
-                            if (!string.IsNullOrEmpty(tooltip))
-                            {
-                                SetToolTip(image, tooltip);
-                                //SetToolTipState(e.Source as FrameworkElement, false);
-                            }
+                            await UpdateImageTooltip();
                         }
                     }
                     else SetToolTipState(e.Source as FrameworkElement, false);

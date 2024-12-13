@@ -43,6 +43,10 @@
           <source>Auto Reduce Noise</source>
           <target state="new">自動影像降噪</target>
         </trans-unit>
+        <trans-unit id="AutoSaveOptions.ToolTip" translate="yes" xml:space="preserve">
+          <source>Auto Save Options</source>
+          <target state="new">自動保存設定</target>
+        </trans-unit>
         <trans-unit id="AutoThreshold.Header" translate="yes" xml:space="preserve">
           <source>Auto Threshold</source>
           <target state="new">自動二值化影像</target>
