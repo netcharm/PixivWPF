@@ -663,4 +663,7 @@
   <data name="ShowImageInfo.ToolTip" xml:space="preserve">
     <value>顯示影像資訊</value>
   </data>
+  <data name="AutoSaveOptions.ToolTip" xml:space="preserve">
+    <value>自動保存設定</value>
+  </data>
 </root>

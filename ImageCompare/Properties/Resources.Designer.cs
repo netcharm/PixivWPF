@@ -151,6 +151,15 @@ namespace ImageCompare.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Auto Save Options 的本地化字符串。
+        /// </summary>
+        public static string AutoSaveOptions_ToolTip {
+            get {
+                return ResourceManager.GetString("AutoSaveOptions.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Auto Threshold 的本地化字符串。
         /// </summary>
         public static string AutoThreshold_Header {
