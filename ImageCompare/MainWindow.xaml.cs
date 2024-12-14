@@ -712,7 +712,7 @@ namespace ImageCompare
         {
             try
             {
-                Dispatcher.InvokeAsync(async () =>
+                Dispatcher.InvokeAsync(() =>
                 {
                     #region Re-Calc Scroll Viewer Size
                     ViewerPanel.MaxWidth = ImageCanvas.ActualWidth;
@@ -1272,7 +1272,7 @@ namespace ImageCompare
         /// <param name="source"></param>
         private void CopyImageFromResult(bool source = true)
         {
-            Task.Run(async () =>
+            Task.Run(() =>
             {
                 try
                 {
@@ -1309,7 +1309,7 @@ namespace ImageCompare
         /// <param name="source"></param>
         private void CopyImageToOpposite(bool source = true)
         {
-            Task.Run(async () =>
+            Task.Run(() =>
             {
                 try
                 {
@@ -2710,7 +2710,7 @@ namespace ImageCompare
             if (Ready && !IsQualityChanger)
             {
                 InitCoutDownTimer();
-                QualityChanger.Dispatcher.InvokeAsync(async () =>
+                QualityChanger.Dispatcher.InvokeAsync(() =>
                 {
                     var info = source == ImageType.Source ? ImageSource.GetInformation() : (source == ImageType.Target ? ImageTarget.GetInformation() : new ImageInformation());
                     if (info.ValidCurrent)
