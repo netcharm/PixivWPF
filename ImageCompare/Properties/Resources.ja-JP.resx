@@ -243,6 +243,9 @@
   <data name="MoreEffects.Header" xml:space="preserve">
     <value>より多くのフィルタ効果</value>
   </data>
+  <data name="CropBoundingBox.Header" xml:space="preserve">
+    <value>画像境界なしを切り取ります</value>
+  </data>
   <data name="MatchSourceSize.Header" xml:space="preserve">
     <value>マッチ元の画像サイズ</value>
   </data>
@@ -663,7 +666,13 @@
   <data name="ShowImageInfo.ToolTip" xml:space="preserve">
     <value>画像情報の表示</value>
   </data>
+  <data name="GrayMode.ToolTip" xml:space="preserve">
+    <value>グレースケールアルゴリズム</value>
+  </data>
   <data name="AutoSaveOptions.ToolTip" xml:space="preserve">
     <value>設定の自動保存</value>
+  </data>
+  <data name="BusyNow.ToolTip" xml:space="preserve">
+    <value>処理の進行状況</value>
   </data>
 </root>

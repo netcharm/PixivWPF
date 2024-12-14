@@ -67,6 +67,10 @@
           <source>Blue Shift (Moonlight Night)</source>
           <target state="new">夜の月光の効果をまねます</target>
         </trans-unit>
+        <trans-unit id="BusyNow.ToolTip" translate="yes" xml:space="preserve">
+          <source>Processing Progress</source>
+          <target state="new">処理の進行状況</target>
+        </trans-unit>
         <trans-unit id="CLUT.Header" translate="yes" xml:space="preserve">
           <source>Apply CLUT</source>
           <target state="new">普通の色の検索表を適用します</target>
@@ -123,6 +127,10 @@
           <source>Create Color Target Image</source>
           <target state="new">カラーターゲット画像の作成</target>
         </trans-unit>
+        <trans-unit id="CropBoundingBox.Header" translate="yes" xml:space="preserve">
+          <source>Crop BoundingBox</source>
+          <target state="new">画像境界なしを切り取ります</target>
+        </trans-unit>
         <trans-unit id="CropImageEdge.Header" translate="yes" xml:space="preserve">
           <source>Crop Image Edge</source>
           <target state="new">画像の境界を切り取る</target>
@@ -166,6 +174,10 @@
         <trans-unit id="GaussianBlur.Header" translate="yes" xml:space="preserve">
           <source>Gaussian Blur</source>
           <target state="new">ガウスぼかし</target>
+        </trans-unit>
+        <trans-unit id="GrayMode.ToolTip" translate="yes" xml:space="preserve">
+          <source>Grayscale Algorithm Selector</source>
+          <target state="new">グレースケールアルゴリズム</target>
         </trans-unit>
         <trans-unit id="Grayscale.Header" translate="yes" xml:space="preserve">
           <source>Grayscale</source>

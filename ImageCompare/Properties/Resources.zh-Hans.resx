@@ -243,6 +243,9 @@
   <data name="MoreEffects.Header" xml:space="preserve">
     <value>更多滤镜效果</value>
   </data>
+  <data name="CropBoundingBox.Header" xml:space="preserve">
+    <value>裁剪无图像边界</value>
+  </data>
   <data name="MatchSourceSize.Header" xml:space="preserve">
     <value>适配来源图像大小</value>
   </data>
@@ -663,7 +666,13 @@
   <data name="ShowImageInfo.ToolTip" xml:space="preserve">
     <value>显示图像信息</value>
   </data>
+  <data name="GrayMode.ToolTip" xml:space="preserve">
+    <value>灰度算法模式</value>
+  </data>
   <data name="AutoSaveOptions.ToolTip" xml:space="preserve">
     <value>自动保存设定</value>
+  </data>
+  <data name="BusyNow.ToolTip" xml:space="preserve">
+    <value>处理进度</value>
   </data>
 </root>

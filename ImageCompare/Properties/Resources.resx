@@ -243,6 +243,9 @@
   <data name="MoreEffects.Header" xml:space="preserve">
     <value>More Effects</value>
   </data>
+  <data name="CropBoundingBox.Header" xml:space="preserve">
+    <value>Crop BoundingBox</value>
+  </data>
   <data name="MatchSourceSize.Header" xml:space="preserve">
     <value>Match Source Size</value>
   </data>
@@ -663,7 +666,13 @@
   <data name="ShowImageInfo.ToolTip" xml:space="preserve">
     <value>how Image Information</value>
   </data>
+  <data name="GrayMode.ToolTip" xml:space="preserve">
+    <value>Grayscale Algorithm Selector</value>
+  </data>
   <data name="AutoSaveOptions.ToolTip" xml:space="preserve">
     <value>Auto Save Options</value>
+  </data>
+  <data name="BusyNow.ToolTip" xml:space="preserve">
+    <value>Processing Progress</value>
   </data>
 </root>
