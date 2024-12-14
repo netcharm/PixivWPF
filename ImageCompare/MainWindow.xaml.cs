@@ -154,7 +154,7 @@ namespace ImageCompare
                     }
                     catch (Exception)
                     {
-                        await Task.Delay(1);
+                        //await Task.Delay(1);
                     }
                 }
                 finally
@@ -795,8 +795,6 @@ namespace ImageCompare
                     ZoomRatioValue.IsEnabled = ZoomRatio.IsEnabled;
 
                     CalcZoomRatio();
-
-                    await Task.Delay(1);
                     DoEvents();
 
                     AdjustQualityChangerPos();
@@ -1285,7 +1283,6 @@ namespace ImageCompare
                     if (image_r.ValidCurrent)
                     {
                         CloseQualityChanger(source: source ? ImageType.Source : ImageType.Target);
-                        await Task.Delay(1);
                         if (source)
                         {
                             IsLoadingSource = true;
@@ -1322,7 +1319,6 @@ namespace ImageCompare
                     if (image_s.ValidCurrent)
                     {
                         CloseQualityChanger(source: source ? ImageType.Target : ImageType.Source);
-                        await Task.Delay(1);
                         if (source) IsProcessingSource = true;
                         else IsProcessingTarget = true;
 
@@ -1483,7 +1479,6 @@ namespace ImageCompare
                 if (action)
                 {
                     CloseQualityChanger(source: source is null ? ImageType.All : source ?? ImageType.All);
-                    await Task.Delay(1);
 
                     _last_loading_ = load_type;
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: load_type));
@@ -1509,7 +1504,6 @@ namespace ImageCompare
             try
             {
                 CloseQualityChanger(source: source ? ImageType.Source : ImageType.Target);
-                await Task.Delay(1);
 
                 if (source) IsLoadingSource = true;
                 else IsLoadingTarget = true;
@@ -1539,7 +1533,6 @@ namespace ImageCompare
             try
             {
                 CloseQualityChanger(source: source ? ImageType.Source : ImageType.Target);
-                await Task.Delay(1);
 
                 if (source) IsLoadingSource = true;
                 else IsLoadingTarget = true;
@@ -1590,7 +1583,6 @@ namespace ImageCompare
                     if (count >= 2)
                     {
                         CloseQualityChanger();
-                        await Task.Delay(1);
 
                         IsLoadingSource = true;
                         IsLoadingTarget = true;
@@ -1607,7 +1599,6 @@ namespace ImageCompare
                         if (new ImageType[] { load_type, ImageType.All }.Contains(GetQualityChangerSource()))
                         {
                             CloseQualityChanger(source: load_type);
-                            await Task.Delay(1);
                         }
 
                         if (load_type == ImageType.Source) IsLoadingSource = true;
@@ -2696,7 +2687,6 @@ namespace ImageCompare
                         result.Dispose();
                         
                         UpdateImageViewer(LastOpIsComposite, assign: true, reload: false, reload_type: source);
-                        await Task.Delay(1);
 
                         if (await UpdateImageViewerFinished(TaskTimeOutSeconds) && ImageResult.GetInformation().ValidCurrent)
                         {
@@ -2743,7 +2733,6 @@ namespace ImageCompare
                         QualityChangerSlider.Value = quality > 0 ? quality : 100;
                         QualityChanger.Show();
 
-                        await Task.Delay(1);
                         DoEvents();
                         AdjustQualityChangerPos();
 
@@ -2929,7 +2918,7 @@ namespace ImageCompare
         /// <param name="tooltip"></param>
         private void SetToolTip(FrameworkElement element, string tooltip)
         {
-            Dispatcher.Invoke(async () =>
+            Dispatcher.Invoke(() =>
             {
                 if (element?.ToolTip is string)
                 {
@@ -2947,7 +2936,6 @@ namespace ImageCompare
                 {
                     element.ToolTip = null;
                 }
-                await Task.Delay(1);
                 DoEvents();
                 ToolTipService.SetShowDuration(element, AutoHideToolTip ?? false ? ToolTipDuration : int.MaxValue);
             });
@@ -4333,7 +4321,6 @@ namespace ImageCompare
                         if (string.IsNullOrEmpty(tooltip) || tooltip.StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
                         {
                             tooltip = await image.GetInformation().GetImageInfo();
-                            await Task.Delay(1);
                             DoEvents();
                             if (!string.IsNullOrEmpty(tooltip)) SetToolTip(image, tooltip);
                         }

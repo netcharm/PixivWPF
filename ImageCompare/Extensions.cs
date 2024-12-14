@@ -484,7 +484,7 @@ namespace ImageCompare
                 {
                     if (Application.Current.Dispatcher.CheckAccess())
                     {
-                        await Dispatcher.Yield(DispatcherPriority.Render);
+                        await Dispatcher.Yield(DispatcherPriority.Normal);
                         //await System.Windows.Threading.Dispatcher.Yield();
 
                         //DispatcherFrame frame = new DispatcherFrame();
@@ -510,7 +510,7 @@ namespace ImageCompare
                     }
                     catch (Exception)
                     {
-                        await Task.Delay(1);
+                        //await Task.Delay(1);
                     }
                 }
                 finally
@@ -537,7 +537,6 @@ namespace ImageCompare
                 if (element is FrameworkElement)
                 {
                     element.DoEvents();
-                    await Task.Delay(1);
                     await element.Dispatcher.InvokeAsync(action, realtime ? DispatcherPriority.Normal : DispatcherPriority.Background);
                 }
             }

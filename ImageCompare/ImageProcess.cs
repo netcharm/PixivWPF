@@ -266,8 +266,6 @@ namespace ImageCompare
             try
             {
                 CloseQualityChanger(source: source ? ImageType.Source : ImageType.Target);
-                //await Task.Delay(1);
-
                 UpdateIndaicatorState(source, true, true);
 
                 var action = false;
@@ -291,8 +289,6 @@ namespace ImageCompare
             try
             {
                 CloseQualityChanger(source: source ? ImageType.Source : ImageType.Target);
-                await Task.Delay(1);
-
                 UpdateIndaicatorState(source, true, true);
 
                 var reload = ImageType.None;
@@ -326,8 +322,6 @@ namespace ImageCompare
             try
             {
                 CloseQualityChanger(source: source ? ImageType.Source : ImageType.Target);
-                await Task.Delay(1);
-
                 UpdateIndaicatorState(source, true, true);
 
                 var reload = ImageType.None;
@@ -380,8 +374,6 @@ namespace ImageCompare
             try
             {
                 CloseQualityChanger(source: source ? ImageType.Source : ImageType.Target);
-                //await Task.Delay(1);
-
                 UpdateIndaicatorState(source, true, true);
 
                 var action = false;
@@ -463,7 +455,6 @@ namespace ImageCompare
             try
             {
                 CloseQualityChanger(source: source ? ImageType.Source : ImageType.Target);
-                await Task.Delay(1);
 
                 var action = false;
 
@@ -505,7 +496,6 @@ namespace ImageCompare
             try
             {
                 CloseQualityChanger(source: sendto ? ImageType.Source : ImageType.Target);
-                //await Task.Delay(1);
 
                 var action = false;
 
@@ -554,7 +544,6 @@ namespace ImageCompare
             try
             {
                 CloseQualityChanger(source: sendto ? ImageType.Source : ImageType.Target);
-                //await Task.Delay(1);
 
                 var action = false;
 
@@ -625,7 +614,6 @@ namespace ImageCompare
             try
             {
                 CloseQualityChanger(source: source is null ? ImageType.All : source ?? false ? ImageType.Source : ImageType.Target);
-                await Task.Delay(1);
 
                 var action = false;
 
@@ -682,7 +670,6 @@ namespace ImageCompare
             try
             {
                 CloseQualityChanger(source: source is null ? ImageType.All : source ?? false ? ImageType.Source : ImageType.Target);
-                await Task.Delay(1);
 
                 var action = false;
 
@@ -738,7 +725,6 @@ namespace ImageCompare
             try
             {
                 CloseQualityChanger(source: source ? ImageType.Source : ImageType.Target);
-                //await Task.Delay(1);
 
                 var action = false;
 
@@ -776,7 +762,6 @@ namespace ImageCompare
             try
             {
                 CloseQualityChanger(source: source ? ImageType.Source : ImageType.Target);
-                //await Task.Delay(1);
 
                 var action = false;
                 var factor = WeakEffects ? 1u : 5u;
@@ -834,7 +819,6 @@ namespace ImageCompare
             try
             {
                 CloseQualityChanger(source: source ? ImageType.Source : ImageType.Target);
-                //await Task.Delay(1);
 
                 var action = false;
                 var factor = WeakEffects ? 1u : 5u;
@@ -911,7 +895,6 @@ namespace ImageCompare
             try
             {
                 //CloseQualityChanger(source: source ? ImageType.Source : ImageType.Target);
-                //await Task.Delay(1);
 
                 var action = false;
                 var factor = WeakEffects ? 1 : 5;
