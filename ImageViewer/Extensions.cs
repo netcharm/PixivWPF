@@ -488,7 +488,8 @@ namespace ImageViewer
                 {
                     if (Application.Current.Dispatcher.CheckAccess())
                     {
-                        await Dispatcher.Yield(DispatcherPriority.Render);
+                        //await Dispatcher.Yield(DispatcherPriority.Render);
+                        await Dispatcher.Yield(DispatcherPriority.Normal);
                         //await System.Windows.Threading.Dispatcher.Yield();
 
                         //DispatcherFrame frame = new DispatcherFrame();
@@ -514,7 +515,7 @@ namespace ImageViewer
                     }
                     catch (Exception)
                     {
-                        await Task.Delay(1);
+                        //await Task.Delay(1);
                     }
                 }
                 finally
@@ -541,7 +542,7 @@ namespace ImageViewer
                 if (element is FrameworkElement)
                 {
                     element.DoEvents();
-                    await Task.Delay(1);
+                    //await Task.Delay(1);
                     await element.Dispatcher.InvokeAsync(action, realtime ? DispatcherPriority.Normal : DispatcherPriority.Background);
                 }
             }

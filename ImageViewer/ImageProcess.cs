@@ -240,7 +240,6 @@ namespace ImageViewer
             try
             {
                 CloseQualityChanger();
-                await Task.Delay(1);
 
                 UpdateIndaicatorState(true, true);
 
@@ -268,7 +267,6 @@ namespace ImageViewer
             try
             {
                 CloseQualityChanger();
-                await Task.Delay(1);
 
                 UpdateIndaicatorState(true, true);
 
@@ -382,7 +380,6 @@ namespace ImageViewer
             try
             {
                 CloseQualityChanger();
-                await Task.Delay(1);
 
                 var action = false;
 
@@ -457,7 +454,6 @@ namespace ImageViewer
             try
             {
                 CloseQualityChanger(source: source is null ? ImageType.All : source ?? false ? ImageType.Source : ImageType.Target);
-                await Task.Delay(1);
 
                 var action = false;
 
@@ -487,7 +483,6 @@ namespace ImageViewer
             try
             {
                 CloseQualityChanger(source: source is null ? ImageType.All : source ?? false ? ImageType.Source : ImageType.Target);
-                await Task.Delay(1);
 
                 var action = false;
 

@@ -128,7 +128,7 @@ namespace ImageViewer
                     }
                     catch (Exception)
                     {
-                        await Task.Delay(1);
+                        //await Task.Delay(1);
                     }
                 }
                 finally
@@ -715,7 +715,6 @@ namespace ImageViewer
             try
             {
                 CloseQualityChanger();
-                await Task.Delay(1);
 
                 var load_type = ImageType.Source;
                 IsLoadingViewer = true;
@@ -770,7 +769,6 @@ namespace ImageViewer
             try
             {
                 CloseQualityChanger();
-                await Task.Delay(1);
 
                 IsLoadingViewer = true;
 
@@ -797,7 +795,6 @@ namespace ImageViewer
             try
             {
                 CloseQualityChanger();
-                await Task.Delay(1);
 
                 IsLoadingViewer = true;
 
@@ -835,7 +832,6 @@ namespace ImageViewer
                 if (files.Length > 0)
                 {
                     CloseQualityChanger();
-                    await Task.Delay(1);
 
                     IsLoadingViewer = true;
                     var is_null = IsImageNull(ImageViewer);
@@ -849,7 +845,6 @@ namespace ImageViewer
                     {
                         SetTitle(image.FileName);
                         RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
-                        await Task.Delay(1);
                         if (await UpdateImageViewerFinished()) FitView();
                     }
                     else IsLoadingViewer = false;
@@ -1033,7 +1028,6 @@ namespace ImageViewer
         private void LocaleUI(CultureInfo culture = null)
         {
             var lang = (culture ?? CultureInfo.CurrentCulture).IetfLanguageTag;
-            Language = System.Windows.Markup.XmlLanguage.GetLanguage(lang);
 
             Title = $"{Uid}.Title".T(culture) ?? Title;
             ImageToolBar.Locale();
@@ -1668,7 +1662,7 @@ namespace ImageViewer
         {
             try
             {
-                Dispatcher.InvokeAsync(async () =>
+                Dispatcher.InvokeAsync(() =>
                 {
                     #region Re-Calc Scroll Viewer Size
                     var cw = ImageCanvas.ActualWidth;
@@ -1712,8 +1706,6 @@ namespace ImageViewer
                     ZoomRatioValue.IsEnabled = ZoomRatio.IsEnabled;
 
                     CalcZoomRatio();
-
-                    await Task.Delay(1);
                     DoEvents();
                 });
             }
@@ -1944,8 +1936,6 @@ namespace ImageViewer
                         SetImageSource(ImageViewer, image_s, fit: false);
                         result.Dispose();
 
-                        await Task.Delay(1);
-
                         if (info.ValidCurrent)
                         {
                             var size = image_s.Current?.GetArtifact("filesize");
@@ -1969,7 +1959,7 @@ namespace ImageViewer
             if (Ready && !IsQualityChanger)
             {
                 InitCoutDownTimer();
-                QualityChanger.Dispatcher.InvokeAsync(async () =>
+                QualityChanger.Dispatcher.InvokeAsync(() =>
                 {
                     var info = ImageViewer.GetInformation();
                     if (info.ValidCurrent)
@@ -1991,7 +1981,6 @@ namespace ImageViewer
                         QualityChanger.FocusedElement = QualityChangerSlider;
                         QualityChanger.Show();
 
-                        await Task.Delay(1);
                         DoEvents();
 
                         QualityChangerSlider.Focusable = true;
@@ -2174,7 +2163,7 @@ namespace ImageViewer
         /// <param name="tooltip"></param>
         private void SetToolTip(FrameworkElement element, string tooltip)
         {
-            Dispatcher.Invoke(async () =>
+            Dispatcher.Invoke(() =>
             {
                 if (element?.ToolTip is string)
                 {
@@ -2194,7 +2183,6 @@ namespace ImageViewer
                 }
                 SetToolTipState(ImageViewer, ShowImageInfo.IsChecked ?? false);
 
-                await Task.Delay(1);
                 DoEvents();
                 ToolTipService.SetShowDuration(element, AutoHideToolTip ?? false ? ToolTipDuration : int.MaxValue);
             });
@@ -2779,24 +2767,21 @@ namespace ImageViewer
             InitMagickNet();
 
             #region Some Default UI Settings
-            BusyNow.Opacity = 0.66;
             Icon = new BitmapImage(new Uri("pack://application:,,,/ImageViewer;component/Resources/Image.ico"));
+            ToolTipService.SetShowOnDisabled(ImageViewer, false);
+            UILanguage.ContextMenu.PlacementTarget = UILanguage;
+            ShowImageInfo.IsChecked = false;
+            BusyNow.Opacity = 0.66;
             ChangeTheme();
             #endregion
 
-            ShowImageInfo.IsChecked = false;
-
-            UILanguage.ContextMenu.PlacementTarget = UILanguage;
-
             #region Default Zoom Ratio
-            //ZoomFitAll.IsChecked = true;
-            //ImageActions_Click(ZoomFitAll, e);
             ZoomMin = ZoomRatio.Minimum;
             ZoomMax = ZoomRatio.Maximum;
-            #endregion
-
+            ZoomRatio.Value = 1.0;
             ZoomRatio.MouseWheel += Slider_MouseWheel;
             QualityChangerSlider.MouseWheel += Slider_MouseWheel;
+            #endregion
 
             LocaleUI(DefaultCultureInfo);
 
@@ -2842,12 +2827,8 @@ namespace ImageViewer
             ImageMagnifier.ZoomFactor = ImageMagnifierZoomFactor;
             #endregion
 
-            ToolTipService.SetShowOnDisabled(ImageViewer, false);
-
             SyncColorLighting();
             DoEvents();
-
-            ZoomRatio.Value = 1.0;
 
             var opts = this.GetCmdLineOpts();
             var args = opts.Args.ToArray();
@@ -3157,6 +3138,7 @@ namespace ImageViewer
                 {
                     if (CurrentZoomFitMode == ZoomFitMode.None)
                     {
+                        e.Handled = true;
                         var pos = e.GetPosition(ImageViewerScroll);
                         if (_last_viewer_pos_ is null) _last_viewer_pos_ = pos;
                         else
