@@ -205,6 +205,15 @@ namespace ImageViewer.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Processing Progress 的本地化字符串。
+        /// </summary>
+        public static string BusyNow_ToolTip {
+            get {
+                return ResourceManager.GetString("BusyNow.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Statistical Color Information 的本地化字符串。
         /// </summary>
         public static string CalcImageColors_Header {
@@ -435,6 +444,15 @@ namespace ImageViewer.Properties {
         public static string GaussianBlur_Header {
             get {
                 return ResourceManager.GetString("GaussianBlur.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Grayscale Algorithm Selector 的本地化字符串。
+        /// </summary>
+        public static string GrayMode_ToolTip {
+            get {
+                return ResourceManager.GetString("GrayMode.ToolTip", resourceCulture);
             }
         }
         

@@ -67,6 +67,10 @@
           <source>Blue Shift (Moonlight Night)</source>
           <target state="new">模仿夜間月光效果</target>
         </trans-unit>
+        <trans-unit id="BusyNow.ToolTip" translate="yes" xml:space="preserve">
+          <source>Processing Progress</source>
+          <target state="new">處理進度</target>
+        </trans-unit>
         <trans-unit id="CLUT.Header" translate="yes" xml:space="preserve">
           <source>Apply CLUT</source>
           <target state="new">顏色查找錶</target>
@@ -170,6 +174,10 @@
         <trans-unit id="GaussianBlur.Header" translate="yes" xml:space="preserve">
           <source>Gaussian Blur</source>
           <target state="new">高斯模糊</target>
+        </trans-unit>
+        <trans-unit id="GrayMode.ToolTip" translate="yes" xml:space="preserve">
+          <source>Grayscale Algorithm Selector</source>
+          <target state="new">灰階演算模式</target>
         </trans-unit>
         <trans-unit id="Grayscale.Header" translate="yes" xml:space="preserve">
           <source>Grayscale</source>

@@ -67,6 +67,10 @@
           <source>Blue Shift (Moonlight Night)</source>
           <target state="new">夜の月光の効果をまねます</target>
         </trans-unit>
+        <trans-unit id="BusyNow.ToolTip" translate="yes" xml:space="preserve">
+          <source>Processing Progress</source>
+          <target state="new">処理の進行状況</target>
+        </trans-unit>
         <trans-unit id="CLUT.Header" translate="yes" xml:space="preserve">
           <source>Apply CLUT</source>
           <target state="new">普通の色の検索表を適用します</target>
@@ -170,6 +174,10 @@
         <trans-unit id="GaussianBlur.Header" translate="yes" xml:space="preserve">
           <source>Gaussian Blur</source>
           <target state="new">ガウスぼかし</target>
+        </trans-unit>
+        <trans-unit id="GrayMode.ToolTip" translate="yes" xml:space="preserve">
+          <source>Grayscale Algorithm Selector</source>
+          <target state="new">グレースケールアルゴリズム</target>
         </trans-unit>
         <trans-unit id="Grayscale.Header" translate="yes" xml:space="preserve">
           <source>Grayscale</source>

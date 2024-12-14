@@ -663,4 +663,10 @@
   <data name="DarkBackground.ToolTip" xml:space="preserve">
     <value>深色/浅色背景</value>
   </data>
+  <data name="GrayMode.ToolTip" xml:space="preserve">
+    <value>灰階演算模式</value>
+  </data>
+  <data name="BusyNow.ToolTip" xml:space="preserve">
+    <value>處理進度</value>
+  </data>
 </root>
