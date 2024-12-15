@@ -262,7 +262,6 @@ namespace ImageViewer
             CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
             #endregion
         }
-
         #endregion
 
         #region Image Display Helper
@@ -835,7 +834,6 @@ namespace ImageViewer
                     CloseQualityChanger();
 
                     IsLoadingViewer = true;
-                    var is_null = IsImageNull(ImageViewer);
 
                     _ = Task.Run(async () => await files.InitFileList());
 
@@ -3074,12 +3072,18 @@ namespace ImageViewer
         #region ImageBox Events
         private async void ImageBox_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (!Ready || IsImageNull(ImageViewer)) return;
+            if (!Ready || IsImageNull(ImageViewer) || e.Delta == 0) return;
 
-            if (ZoomFitNone.IsChecked ?? false && Keyboard.Modifiers == ModifierKeys.Control)
+            if (CurrentZoomFitMode == ZoomFitMode.None && Keyboard.Modifiers == ModifierKeys.Control)
             {
                 e.Handled = true;
-                ZoomRatio.Value += e.Delta < 0 ? -1 * ZoomRatio.SmallChange : ZoomRatio.SmallChange;
+                var zoom_old = ZoomRatio.Value;
+                //var zoom_new = e.Delta < 0 ? -1 * ZoomRatio.SmallChange : ZoomRatio.SmallChange;
+                var zoom_new = zoom_old + (e.Delta < 0 ? -0.033 : 0.033);
+                if ((zoom_new < 1 && zoom_old > 1) || (zoom_new > 1 && zoom_old < 1))
+                    ZoomRatio.Value = 1f;
+                else
+                    ZoomRatio.Value = zoom_new;
                 if (sender is Viewbox || sender is ScrollViewer)
                 {
                     SyncScrollOffset(GetScrollOffset(sender as FrameworkElement));
@@ -3115,11 +3119,6 @@ namespace ImageViewer
                                 CurrentZoomFitMode = ZoomFitMode.None;
                             }
                         }
-                        //if (e.ClickCount == 1 && CurrentZoomFitMode == ZoomFitMode.None)
-                        //{
-                        //    ZoomRatio.Value = ZoomRatio.Value == 1 ? ZoomRatio.Maximum : 1.0;
-                        //    DoEvents();
-                        //}
                     }
                     else if (e.ChangedButton == MouseButton.Left && e.ClickCount >= 2)
                     {
@@ -3158,10 +3157,15 @@ namespace ImageViewer
                         else
                         {
                             var dx = pos.X - _last_viewer_pos_.Value.X;
-                            if (dx > 0)
-                                ZoomRatio.Value += 0.033;
-                            else if (dx < 0)
-                                ZoomRatio.Value -= 0.033;
+                            if(dx != 0)
+                            {
+                                var zoom_old = ZoomRatio.Value;
+                                var zoom_new = zoom_old + (dx < 0 ? -0.033 : 0.033);
+                                if ((zoom_new < 1 && zoom_old > 1) || (zoom_new > 1 && zoom_old < 1))
+                                    ZoomRatio.Value = 1f;
+                                else
+                                    ZoomRatio.Value = zoom_new;
+                            }
                         }
                         _last_viewer_pos_ = pos;
                     }
