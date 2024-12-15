@@ -209,7 +209,7 @@
             <TextBlock x:Name="ImageInfoBox" x:Uid="ImageInfoBox" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="4,0,0,0" TextAlignment="Right" ToolBar.OverflowMode="Never" />
         </ToolBar>
         <!-- Image Viewer -->
-        <DockPanel Grid.Row="1" x:Name="ImageViewerPanel" x:Uid="ImageViewerPanel" Dock="Top" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Grid Grid.Row="1" x:Name="ImageViewerPanel" x:Uid="ImageViewerPanel" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MinWidth="240">
             <ScrollViewer x:Name="ImageViewerScroll" x:Uid="ImageTargetScroll" AllowDrop="True" Focusable="False" 
                 ScrollChanged="ImageScroll_ScrollChanged" PreviewMouseWheel="ImageBox_MouseWheel"
                 MouseDown="ImageScroll_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave"
@@ -231,6 +231,8 @@
                     </xctk:MagnifierManager.Magnifier>
                 </Viewbox>
             </ScrollViewer>
+            <xctk:BusyIndicator x:Name="IndicatorViewer" x:Uid="IndicatorViewer" BusyContent="Loading ..." Background="Transparent"
+                HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" />
             <xctk:ChildWindow Grid.Row="1" x:Name="QualityChanger" x:Uid="QualityChanger" WindowStartupLocation="Manual" CloseButtonClicked="QualityChanger_CloseButtonClicked" 
                 HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,100" Grid.IsSharedSizeScope="True" >
                 <Grid Margin="8" VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -243,14 +245,12 @@
                         <ColumnDefinition Width="auto"/>
                     </Grid.ColumnDefinitions>
                     <Slider Grid.Row="0" Grid.Column="0" x:Name="QualityChangerSlider" x:Uid="QualityChangerSlider" Width="240"
-                    Minimum="1" Maximum="100" Value="75" TickFrequency="5" ValueChanged="QualityChangerSlider_ValueChanged" />
+                Minimum="1" Maximum="100" Value="75" TickFrequency="5" ValueChanged="QualityChangerSlider_ValueChanged" />
                     <xctk:UIntegerUpDown Grid.Row="0" Grid.Column="1" x:Name="QualityChangerValue" x:Uid="QualityChangerValue" 
-                    Margin="4,0,0,0" AutoSelectBehavior="Never" ClipValueToMinMax="True" TextAlignment="Center" 
-                    Value="{Binding ElementName=QualityChangerSlider, Path=Value, Mode=TwoWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}" />
+                Margin="4,0,0,0" AutoSelectBehavior="Never" ClipValueToMinMax="True" TextAlignment="Center" 
+                Value="{Binding ElementName=QualityChangerSlider, Path=Value, Mode=TwoWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}" />
                 </Grid>
             </xctk:ChildWindow>
-            <xctk:BusyIndicator Grid.Row="1" x:Uid="LoadingIndicator" x:Name="IndicatorViewer"  BusyContent="Loading ..." Background="Transparent"
-                HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" />
-        </DockPanel>
+        </Grid>
     </Grid>
 </Window>

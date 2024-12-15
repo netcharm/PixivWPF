@@ -1258,7 +1258,7 @@ namespace ImageViewer
                 item_load_prev.Click += (obj, evt) => { RenderRun(async () => { await LoadImageFromPrevFile(); }, target); };
                 item_load_next.Click += (obj, evt) => { RenderRun(async () => { await LoadImageFromNextFile(); }, target); };
 
-                item_reset_image.Click += (obj, evt) => { RenderRun(() => { ResetImage(MenuHost(obj)); }, target); };
+                //item_reset_image.Click += (obj, evt) => { RenderRun(() => { ResetImage(MenuHost(obj)); }, target); };
                 item_reload.Click += (obj, evt) => { var shift = Keyboard.Modifiers == ModifierKeys.Shift; RenderRun(() => { ReloadImage(MenuHost(obj), info_only: shift); }, target); };
 
                 item_colorcalc.Click += (obj, evt) => { RenderRun(() => { CalcImageColors(MenuHost(obj)); }, target); };
@@ -1289,7 +1289,7 @@ namespace ImageViewer
                 items.Add(item_load_prev);
                 items.Add(item_load_next);
                 items.Add(new Separator());
-                items.Add(item_reset_image);
+                //items.Add(item_reset_image);
                 items.Add(item_reload);
                 items.Add(new Separator());
                 items.Add(item_colorcalc);
@@ -2773,6 +2773,7 @@ namespace ImageViewer
             UILanguage.ContextMenu.PlacementTarget = UILanguage;
             ShowImageInfo.IsChecked = false;
             BusyNow.Opacity = 0.66;
+            //IndicatorViewer.DisplayAfter = TimeSpan.FromMilliseconds(50);
             ChangeTheme();
             #endregion
 

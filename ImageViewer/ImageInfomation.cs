@@ -56,6 +56,7 @@ namespace ImageViewer
                 DenoiseLevel = 0;
                 if (ValidOriginal)
                 {
+                    _original_thumb_ = CreateThumbnail(_original_, ThumbSize);
                     _original_.FilterType = ResizeFilter;
                     Dispatcher.CurrentDispatcher.Invoke(async () => { await Reload(); });
                 }
@@ -63,6 +64,9 @@ namespace ImageViewer
 
             }
         }
+        private MagickImage _original_thumb_ = null;
+        public Size ThumbSize { get; set; } = new Size(250, 250);
+        public MagickImage Thumbnail { get { return (_original_thumb_); } }
         public Size OriginalSize { get { return (ValidOriginal ? new Size((double)(Original?.Width), (double)(Original?.Height)) : new Size(0, 0)); } }
         public long OriginalRealMemoryUsage
         {
@@ -300,19 +304,19 @@ namespace ImageViewer
         /// <param name="use_system"></param>
         public void FixDPI(MagickImage image = null, bool use_system = false)
         {
-            if (image == null) image = Current;
+            if (image == null) image = Current ?? Original ?? null;
             if (ValidImage(image))
             {
                 var dpi = Application.Current.GetSystemDPI();
-                if (image.Density is Density && image.Density.X > 0 && image.Density.Y > 0)
+                if (image?.Density?.X > 0 && image?.Density?.Y > 0)
                 {
-                    var unit = image.Density.ChangeUnits(DensityUnit.PixelsPerInch);
+                    var unit = image?.Density?.ChangeUnits(DensityUnit.PixelsPerInch);
                     if (use_system || unit.X <= 0 || unit.Y <= 0)
                         image.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
                     else
                         image.Density = new Density(Math.Round(unit.X), Math.Round(unit.Y), DensityUnit.PixelsPerInch);
                 }
-                else Current.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
+                else image.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
             }
         }
 
@@ -424,6 +428,111 @@ namespace ImageViewer
         public void FixEndian(MagickImage image, Endian endian)
         {
             if (image.Endian == Endian.Undefined && endian != Endian.Undefined) image.Endian = endian;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        public MagickImage CreateThumbnail(MagickImage image, double size = 10f)
+        {
+            MagickImage result = null;
+            if (image.IsValidRead() && size > 0 && size <= 1)
+            {
+                try
+                {
+                    result = new MagickImage(image);
+                    result.Thumbnail(new Percentage(size * 100));
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        public MagickImage CreateThumbnail(MagickImage image, Percentage size)
+        {
+            MagickImage result = null;
+            if (image.IsValidRead() && size > new Percentage(0))
+            {
+                try
+                {
+                    result = new MagickImage(image);
+                    result.Thumbnail(size);
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        public MagickImage CreateThumbnail(MagickImage image, uint size = 250)
+        {
+            MagickImage result = null;
+            if (image.IsValidRead() && size > 0 && size < image.Width && size < image.Height)
+            {
+                try
+                {
+                    result = new MagickImage(image);
+                    result.Thumbnail(size, size);
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        public MagickImage CreateThumbnail(MagickImage image, Size size)
+        {
+            MagickImage result = null;
+            if (image.IsValidRead() && size.Width > 0 && size.Height > 0 && size.Width < image.Width && size.Height < image.Height)
+            {
+                try
+                {
+                    result = new MagickImage(image);
+                    result.Thumbnail(new MagickGeometry($"{size.Width}x{size.Height}>"));
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        public MagickImage CreateThumbnail(MagickImage image, MagickGeometry size)
+        {
+            MagickImage result = null;
+            if (image.IsValidRead())
+            {
+                try
+                {
+                    result = new MagickImage(image);
+                    result.Thumbnail(size);
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
+            }
+            return (result);
         }
 
         /// <summary>
@@ -562,12 +671,10 @@ namespace ImageViewer
                         var tip = new List<string>
                         {
                             $"{"InfoTipDimentionOriginal".T()} {OriginalSize.Width:F0}x{OriginalSize.Height:F0}x{original_depth:F0}, {(long)OriginalSize.Width * OriginalSize.Height / 1000000:F2}MP",
-                            $"{"InfoTipDimention".T()} {CurrentSize.Width:F0}x{CurrentSize.Height:F0}x{current_depth:F0}, {(long)CurrentSize.Width * CurrentSize.Height / 1000000:F2}MP"
+                            $"{"InfoTipDimention".T()} {CurrentSize.Width:F0}x{CurrentSize.Height:F0}x{current_depth:F0}, {(long)CurrentSize.Width * CurrentSize.Height / 1000000:F2}MP",
+                            $"{"InfoTipOrientation".T()} {Original?.Orientation}",
+                            $"{"InfoTipResolution".T()} {DPI_TEXT}",
                         };
-                        var box = Current?.BoundingBox == null || Current?.BoundingBox?.Width <= 0 || Current?.BoundingBox?.Height <= 0  ? Current?.CalcBoundingBox() : Current?.BoundingBox;
-                        tip.Add($"{"InfoTipBounding".T()} {box?.Width:F0}x{box?.Height:F0}");
-                        tip.Add($"{"InfoTipOrientation".T()} {Original?.Orientation}");
-                        tip.Add($"{"InfoTipResolution".T()} {DPI_TEXT}");
                         if (CancelGetInfo.IsCancellationRequested) return (ret);
 
                         if (include_colorinfo) tip.Add(await GetTotalColors(cancel: CancelGetInfo.Token));
@@ -582,15 +689,12 @@ namespace ImageViewer
                                 if (CancelGetInfo.IsCancellationRequested) return (ret);
                                 if (Original?.Endian == Endian.Undefined) Original.Endian = DetectFileEndian(fi.FullName);
                                 if (CancelGetInfo.IsCancellationRequested) return (ret);
-                                //if (Current?.Endian == Endian.Undefined) Current.Endian = Original?.Endian;
-                                //if (CancelGetInfo.IsCancellationRequested) return (ret);
                             }
                             else if (Type == ImageType.Result && Current?.Endian == Endian.Undefined)
                             {
                                 Current.Endian = BitConverter.IsLittleEndian ? Endian.LSB : Endian.MSB;
                                 if (CancelGetInfo.IsCancellationRequested) return (ret);
                             }
-                            if (CancelGetInfo.IsCancellationRequested) return (ret);
 
                             if (Current?.ArtifactNames?.Count() > 0)
                             {
