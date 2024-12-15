@@ -509,6 +509,7 @@ namespace ImageViewer
             if (Ready && ImageViewer is Image)
             {
                 var image = ImageViewer.GetInformation();
+                await ImageIndexBox.Dispatcher.InvokeAsync(async () => ImageIndexBox.Text = await image.GetIndexInfo());
                 await ImageInfoBox.Dispatcher.InvokeAsync(async () => { ImageInfoBox.Text = await image.GetSimpleInfo(); });
                 var tooltip = image.ValidCurrent ? await image.GetImageInfo(include_colorinfo: colors) : null;
                 SetToolTip(ImageViewer, tooltip);
@@ -3101,11 +3102,23 @@ namespace ImageViewer
                     if (e.ChangedButton == MouseButton.Left && e.XButton1 == MouseButtonState.Pressed)
                     {
                         e.Handled = true;
-                        if (e.ClickCount == 1 && CurrentZoomFitMode == ZoomFitMode.None)
+                        if (e.ClickCount == 1)
                         {
-                            ZoomRatio.Value = ZoomRatio.Value == 1 ? ZoomRatio.Maximum : 1.0;
-                            DoEvents();
+                            if (CurrentZoomFitMode == ZoomFitMode.None)
+                            {
+                                CurrentZoomFitMode = ZoomFitMode.All;
+                            }
+                            else if (CurrentZoomFitMode == ZoomFitMode.All)
+                            {
+                                ZoomRatio.Value = 1f;
+                                CurrentZoomFitMode = ZoomFitMode.None;
+                            }
                         }
+                        //if (e.ClickCount == 1 && CurrentZoomFitMode == ZoomFitMode.None)
+                        //{
+                        //    ZoomRatio.Value = ZoomRatio.Value == 1 ? ZoomRatio.Maximum : 1.0;
+                        //    DoEvents();
+                        //}
                     }
                     else if (e.ChangedButton == MouseButton.Left && e.ClickCount >= 2)
                     {

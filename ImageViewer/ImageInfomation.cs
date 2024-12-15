@@ -5,6 +5,7 @@ using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -231,8 +232,8 @@ namespace ImageViewer
             }
         }
 
-        public bool ValidCurrent { get { return (Current is MagickImage); } }
-        public bool ValidOriginal { get { return (Original is MagickImage); } }
+        public bool ValidCurrent { get { return (Current.IsValidRead()); } }
+        public bool ValidOriginal { get { return (Original.IsValidRead()); } }
 
         public bool OriginalIsFile { get { return (!string.IsNullOrEmpty(FileName) && File.Exists(LastFileName)); } }
 
@@ -313,6 +314,54 @@ namespace ImageViewer
                 }
                 else Current.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="image"></param>
+        /// <returns></returns>
+        public string GetDPI(MagickImage image = null)
+        {
+            var result = string.Empty;
+            if (image.IsValidRead())
+            {
+                if (image?.Density == null || image?.Density?.X <= 0 || image?.Density?.Y <= 0)
+                {
+                    if (CancelGetInfo.IsCancellationRequested) return (result);
+                    var dpi = Application.Current.GetSystemDPI();
+                    image.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
+                }
+
+                var DPI_UNIT = image?.Density?.Units == DensityUnit.PixelsPerCentimeter ? " PPC" : (image?.Density?.Units == DensityUnit.PixelsPerInch ? " PPI" : string.Empty);
+                var DPI_TEXT = DPI_UNIT.Equals(" PPC") ? $"{image?.Density?.X:F2}{DPI_UNIT} x {image?.Density?.Y:F2}{DPI_UNIT}" : $"{image?.Density?.X:F0}x{image?.Density?.Y:F0}{DPI_UNIT}";
+                if (image?.Density?.Units != DensityUnit.PixelsPerInch)
+                {
+                    var dpi = image?.Density?.ChangeUnits(DensityUnit.PixelsPerInch);
+                    var dpi_text = $"{dpi.X:F0}x{dpi.Y:F0} PPI";
+                    DPI_TEXT = $"{DPI_TEXT} [{dpi_text}]";
+                }
+                result = DPI_TEXT;
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public string GetOriginalDPI()
+        {
+            return (GetDPI(Original));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public string GetCurrentDPI()
+        {
+            return (GetDPI(Current));
         }
 
         /// <summary>
@@ -428,6 +477,19 @@ namespace ImageViewer
         private bool IsGetInfo = false;
         CancellationTokenSource CancelGetInfo = new CancellationTokenSource();
 
+        public async Task<string> GetIndexInfo()
+        {
+            var result = "1/1";
+            if (!string.IsNullOrEmpty(FileName))
+            {
+                var files = await FileName.GetFileList();
+                var index = files.IndexOf(FileName);
+                var count = files.Count();
+                result = $"{index + 1}/{count}";
+            }
+            return (result);
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -438,38 +500,27 @@ namespace ImageViewer
 
             if (!string.IsNullOrEmpty(_simple_info_)) return (_simple_info_);
 
-            var result = await Task.Run(async () =>
+            var result = await Task.Run(() =>
             {
                 var ret = string.Empty;
                 try
                 {
                     var info = new List<string>();
 
-                    if(!string.IsNullOrEmpty(FileName))
-                    {
-                        var files = await FileName.GetFileList();
-                        var index = files.IndexOf(FileName);
-                        var count = files.Count();
-                        info.Add($"{index + 1}/{count}");
-                    }
-
                     var dims = $"{OriginalSize.Width:F0}x{OriginalSize.Height:F0}x{OriginalDepth:F0} BPP, {(long)OriginalSize.Width * OriginalSize.Height / 1000000:F2} MP, {OriginalEndian}";
                     info.Add(dims);
 
-                    var DPI_UNIT = Current?.Density?.Units == DensityUnit.PixelsPerCentimeter ? " PPC" : (Current?.Density?.Units == DensityUnit.PixelsPerInch ? " PPI" : string.Empty);
-                    var DPI_TEXT = DPI_UNIT.Equals(" PPC") ? $"{Current?.Density?.X:F2}{DPI_UNIT} x {Current?.Density?.Y:F2}{DPI_UNIT}" : $"{Current?.Density?.X:F0}x{Current?.Density?.Y:F0}{DPI_UNIT}";
-                    if (Current?.Density?.Units != DensityUnit.PixelsPerInch)
-                    {
-                        var dpi = Current?.Density?.ChangeUnits(DensityUnit.PixelsPerInch);
-                        var dpi_text = $"{dpi.X:F0} PPI x {dpi.Y:F0} PPI";
-                        DPI_TEXT = $"{DPI_TEXT} [{dpi_text}]";
-                    }
-                    info.Add($"{DPI_TEXT}");
+                    var DPI_TEXT = GetCurrentDPI();
+                    if (!string.IsNullOrEmpty(DPI_TEXT)) info.Add($"{DPI_TEXT}");
+
+                    var fmt = Original.GetFormatInfo();
+                    info.Add(fmt.MimeType);
+                    if (Original.IsJPG() || Original.IsTIF()) info.Add($"Q:{OriginalQuality}");
 
                     if (ImageFileInfo is FileInfo)
                     {
                         var FileSize = ImageFileInfo.Exists && File.Exists(ImageFileInfo.FullName) ? ImageFileInfo.Length : -1;
-                        var FileDate = ImageFileInfo.LastWriteTime.ToString("yyyy/MM/dd HH:mm:ss zzz, dddd");
+                        var FileDate = ImageFileInfo.LastWriteTime.ToString("yyyy/MM/dd HH:mm:ss zzz dddd");
                         info.Add($"{FileSize.SmartFileSize()}, {FileDate}");
                     }
 
@@ -502,24 +553,7 @@ namespace ImageViewer
                     var st = Stopwatch.StartNew();
                     try
                     {
-                        var DPI_TEXT = string.Empty;
-                        if (Current?.Density == null || Current?.Density?.X <= 0 || Current?.Density?.Y <= 0)
-                        {
-                            if (CancelGetInfo.IsCancellationRequested) return (ret);
-                            var dpi = Application.Current.GetSystemDPI();
-                            Current.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
-                        }
-                        if (CancelGetInfo.IsCancellationRequested) return (ret);
-
-                        var DPI_UNIT = Current?.Density?.Units == DensityUnit.PixelsPerCentimeter ? " PPC" : (Current?.Density?.Units == DensityUnit.PixelsPerInch ? " PPI" : string.Empty);
-                        DPI_TEXT = DPI_UNIT.Equals(" PPC") ? $"{Current?.Density?.X:F2}{DPI_UNIT} x {Current?.Density?.Y:F2}{DPI_UNIT}" : $"{Current?.Density?.X:F0}{DPI_UNIT} x {Current?.Density?.Y:F0}{DPI_UNIT}";
-                        if (Current?.Density?.Units != DensityUnit.PixelsPerInch)
-                        {
-                            if (CancelGetInfo.IsCancellationRequested) return (ret);
-                            var dpi = Current?.Density?.ChangeUnits(DensityUnit.PixelsPerInch);
-                            var dpi_text = $"{dpi.X:F0} PPI x {dpi.Y:F0} PPI";
-                            DPI_TEXT = $"{DPI_TEXT} [{dpi_text}]";
-                        }
+                        var DPI_TEXT = GetCurrentDPI();
                         if (CancelGetInfo.IsCancellationRequested) return (ret);
 
                         var original_depth = CalcColorDepth(Original);

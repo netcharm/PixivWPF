@@ -203,7 +203,10 @@
                     <TextBlock x:Uid="AutoSaveOptionsIcon" Text="&#xE115;" Style="{DynamicResource MenuItemIcon}" Foreground="Gray"/>
                 </StackPanel>
             </ToggleButton>
-            <TextBlock x:Name="ImageInfoBox" x:Uid="ImageInfoBox" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="8,0,0,0" TextAlignment="Right" ToolBar.OverflowMode="Never" />
+            <Separator/>
+            <TextBlock x:Name="ImageIndexBox" x:Uid="ImageIndexBox" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="4,0,4,0" TextAlignment="Center" ToolBar.OverflowMode="Never" />
+            <Separator/>
+            <TextBlock x:Name="ImageInfoBox" x:Uid="ImageInfoBox" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="4,0,0,0" TextAlignment="Right" ToolBar.OverflowMode="Never" />
         </ToolBar>
         <!-- Image Viewer -->
         <DockPanel Grid.Row="1" x:Name="ImageViewerPanel" x:Uid="ImageViewerPanel" Dock="Top" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
