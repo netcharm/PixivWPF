@@ -295,20 +295,68 @@ namespace ImageCompare
         /// <param name="use_system"></param>
         public void FixDPI(MagickImage image = null, bool use_system = false)
         {
-            if (image == null) image = Current;
+            if (image == null) image = Current ?? Original;
             if (ValidImage(image))
             {
                 var dpi = Application.Current.GetSystemDPI();
-                if (image.Density is Density && image.Density.X > 0 && image.Density.Y > 0)
+                if (image?.Density?.X > 0 && image?.Density?.Y > 0)
                 {
-                    var unit = image.Density.ChangeUnits(DensityUnit.PixelsPerInch);
+                    var unit = image?.Density.ChangeUnits(DensityUnit.PixelsPerInch);
                     if (use_system || unit.X <= 0 || unit.Y <= 0)
                         image.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
                     else
                         image.Density = new Density(Math.Round(unit.X), Math.Round(unit.Y), DensityUnit.PixelsPerInch);
                 }
-                else Current.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
+                else image.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="image"></param>
+        /// <returns></returns>
+        public string GetDPI(MagickImage image = null)
+        {
+            var result = string.Empty;
+            if (image.IsValidRead())
+            {
+                if (image?.Density == null || image?.Density?.X <= 0 || image?.Density?.Y <= 0)
+                {
+                    if (CancelGetInfo.IsCancellationRequested) return (result);
+                    var dpi = Application.Current.GetSystemDPI();
+                    image.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
+                }
+
+                var DPI_UNIT = image?.Density?.Units == DensityUnit.PixelsPerCentimeter ? " PPC" : (image?.Density?.Units == DensityUnit.PixelsPerInch ? " PPI" : string.Empty);
+                var DPI_TEXT = DPI_UNIT.Equals(" PPC") ? $"{image?.Density?.X:F2}{DPI_UNIT} x {image?.Density?.Y:F2}{DPI_UNIT}" : $"{image?.Density?.X:F0}x{image?.Density?.Y:F0}{DPI_UNIT}";
+                if (image?.Density?.Units != DensityUnit.PixelsPerInch)
+                {
+                    var dpi = image?.Density?.ChangeUnits(DensityUnit.PixelsPerInch);
+                    var dpi_text = $"{dpi.X:F0}x{dpi.Y:F0} PPI";
+                    DPI_TEXT = $"{DPI_TEXT} [{dpi_text}]";
+                }
+                result = DPI_TEXT;
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public string GetOriginalDPI()
+        {
+            return (GetDPI(Original));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public string GetCurrentDPI()
+        {
+            return (GetDPI(Current));
         }
 
         /// <summary>
@@ -439,21 +487,7 @@ namespace ImageCompare
                     var st = Stopwatch.StartNew();
                     try
                     {
-                        var DPI_TEXT = string.Empty;
-                        if (Current?.Density == null || Current?.Density?.X <= 0 || Current?.Density?.Y <= 0)
-                        {
-                            var dpi = Application.Current.GetSystemDPI();
-                            Current.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
-                        }
-                        var DPI_UNIT = Current?.Density?.Units == DensityUnit.PixelsPerCentimeter ? "PPC" : (Current?.Density?.Units == DensityUnit.PixelsPerInch ? "PPI" : string.Empty);
-                        DPI_TEXT = DPI_UNIT.Equals("PPC") ? $"{Current?.Density?.X:F2} {DPI_UNIT} x {Current?.Density?.Y:F2} {DPI_UNIT}" : $"{Current?.Density?.X:F0} {DPI_UNIT} x {Current?.Density?.Y:F0} {DPI_UNIT}";
-                        if (Current?.Density?.Units != DensityUnit.PixelsPerInch)
-                        {
-                            var dpi = Current?.Density?.ChangeUnits(DensityUnit.PixelsPerInch);
-                            var dpi_text = $"{dpi.X:F0} PPI x {dpi.Y:F0} PPI";
-                            DPI_TEXT = $"{DPI_TEXT} [{dpi_text}]";
-                        }
-
+                        var DPI_TEXT = GetCurrentDPI();
                         var original_depth = CalcColorDepth(Original);
                         var current_depth = CalcColorDepth(Current);
 
