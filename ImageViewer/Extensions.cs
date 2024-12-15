@@ -1536,7 +1536,7 @@ namespace ImageViewer
             var result = new List<string>();
             if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(30)))
             {
-                result = _file_list_;
+                result = _file_watcher_ is FileSystemWatcher ? _file_list_ : _file_list_.Where(f => File.Exists(f)).ToList();
                 _file_list_updating_.Release();
             }
             return (result);
@@ -1599,6 +1599,7 @@ namespace ImageViewer
             {
                 if (files.Count() > 1)
                 {
+                    ReleaseWatcher(null);
                     _file_list_storage_.Clear();
                     foreach (var file in files) _file_list_storage_[file] = null;
                     await UpdateFileList();
@@ -1639,8 +1640,7 @@ namespace ImageViewer
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         public static void ReleaseWatcher(this FrameworkElement element)
         {
-            if (_file_watcher_ is FileSystemWatcher) _file_watcher_.Dispose();
-            //if (_file_list_ is ConcurrentDictionary<string, DateTime>) _file_list_.Clear();
+            _file_watcher_?.Dispose();
         }
 
         private static async void OnFSChanged(object source, FileSystemEventArgs e)
