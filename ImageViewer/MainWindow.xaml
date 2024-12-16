@@ -221,7 +221,7 @@
                         HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                         <Image.LayoutTransform>
                             <TransformGroup x:Uid="ImageViewerTransformGroup">
-                                <ScaleTransform x:Name="ImageViewerScale" x:Uid="ImageViewerScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}" CenterX="0.5" CenterY="0.5"/>
+                                <ScaleTransform x:Name="ImageViewerScale" x:Uid="ImageViewerScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value, Mode=OneWay}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value, Mode=OneWay}" CenterX="0.5" CenterY="0.5"/>
                                 <RotateTransform x:Name="ImageViewerRotate" x:Uid="ImageViewerRotate" Angle="0" />
                             </TransformGroup>
                         </Image.LayoutTransform>

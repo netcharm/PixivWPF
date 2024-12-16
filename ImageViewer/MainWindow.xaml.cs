@@ -1921,8 +1921,11 @@ namespace ImageViewer
         {
             ImageViewerScale.Dispatcher.InvokeAsync(() =>
             {
+                var scale = ZoomRatio.Value;
                 ImageViewerRotate.Angle = 0;
-                ZoomRatio.Value = Math.Abs(ImageViewerScale.ScaleX);
+                ImageViewerScale.ScaleX = scale;
+                ImageViewerScale.ScaleY = scale;
+                ZoomRatio.Value = scale;
                 if (calcdisplay) CalcDisplay();
             });
         }
@@ -3441,6 +3444,7 @@ namespace ImageViewer
                     ZoomRatio.ToolTip = $"{"Zoom Ratio".T(DefaultCultureInfo)}: {zoom_new:F2}X";
                     LastZoomRatio = zoom_new;
 
+
                     var zw = zoom_new * ImageViewer.Source.Width;
                     var zh = zoom_new * ImageViewer.Source.Height;
                     ImageViewerBox.MaxWidth = zw <= ImageViewerScroll.ActualWidth ? ImageViewerScroll.ActualWidth : zw;
@@ -3448,6 +3452,8 @@ namespace ImageViewer
                     ImageViewerBox.Width = zw <= ImageViewerScroll.ActualWidth ? ImageViewerScroll.ActualWidth : zw;
                     ImageViewerBox.Height = zh <= ImageViewerScroll.ActualHeight ? ImageViewerScroll.ActualHeight : zh;
                 }
+                ImageViewerScale.ScaleX = ZoomRatio.Value;
+                ImageViewerScale.ScaleY = ZoomRatio.Value;
                 CalcDisplay();
             }
             catch (Exception ex) { ex.ShowMessage(); }
