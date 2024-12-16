@@ -28,7 +28,6 @@ using System.Windows.Threading;
 
 using ImageMagick;
 using Xceed.Wpf.Toolkit;
-using Xceed.Wpf.Toolkit.Zoombox;
 
 namespace ImageViewer
 {
@@ -293,8 +292,6 @@ namespace ImageViewer
 
         private double ZoomMin = 0.1;
         private double ZoomMax = 10.0;
-
-        private ImageType _last_loading_ = ImageType.None;
 
         /// <summary>
         ///
@@ -743,8 +740,8 @@ namespace ImageViewer
             try
             {
                 CloseQualityChanger();
+                ResetViewTransform(calcdisplay: false);
 
-                var load_type = ImageType.Source;
                 IsLoadingViewer = true;
 
                 IDataObject dataPackage = Dispatcher.Invoke(() => Clipboard.GetDataObject());
@@ -777,7 +774,6 @@ namespace ImageViewer
                 }
                 if (action)
                 {
-                    _last_loading_ = load_type;
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                 }
                 else IsLoadingViewer = false;
@@ -797,6 +793,7 @@ namespace ImageViewer
             try
             {
                 CloseQualityChanger();
+                ResetViewTransform(calcdisplay: false);
 
                 IsLoadingViewer = true;
 
@@ -823,6 +820,7 @@ namespace ImageViewer
             try
             {
                 CloseQualityChanger();
+                ResetViewTransform(calcdisplay: false);
 
                 IsLoadingViewer = true;
 
@@ -860,6 +858,7 @@ namespace ImageViewer
                 if (files.Length > 0)
                 {
                     CloseQualityChanger();
+                    ResetViewTransform(calcdisplay: false);
 
                     IsLoadingViewer = true;
 
@@ -1071,7 +1070,7 @@ namespace ImageViewer
             SetToolTipState(ImageViewerBox, false);
 
             #region Create Image Flip/Rotate/Effects Menu
-            CreateImageOpMenu(ImageViewerBox);
+            CreateImageOpMenu(ImageViewerScroll);
             //CreateImageOpMenu(ImageTargetScroll);
             #endregion
         }
@@ -1737,20 +1736,20 @@ namespace ImageViewer
                     var width = rotate ? image.Height : image.Width;
                     var height = rotate ? image.Width : image.Height;
 
-                    if (CurrentZoomFitMode == ZoomFitMode.All)
+                    if (CurrentZoomFitMode == ZoomFitMode.None)
                     {
-                        var scale = Math.Min(scroll.ActualWidth / width, scroll.ActualHeight / height);
-                        ZoomRatio.Minimum = ZoomMin;
-                        ZoomRatio.Value = scale;
-                        ImageViewerBox.MaxWidth = scale * width;
-                        ImageViewerBox.MaxHeight = scale * height;
-                    }
-                    else if (CurrentZoomFitMode == ZoomFitMode.None)
-                    {
-                        ZoomRatio.Minimum = ZoomMin;
-                        ZoomRatio.Value = LastZoomRatio;
+                        if (ZoomRatio.Value != LastZoomRatio) ZoomRatio.Value = LastZoomRatio;
+                        ZoomRatio.Minimum = LastZoomRatio < ZoomMin ? LastZoomRatio : ZoomMin;
                         ImageViewerBox.MaxWidth = LastZoomRatio * width;
                         ImageViewerBox.MaxHeight = LastZoomRatio * height;
+                    }
+                    else if (CurrentZoomFitMode == ZoomFitMode.All)
+                    {
+                        var scale = Math.Min(scroll.ActualWidth / width, scroll.ActualHeight / height);
+                        ZoomRatio.Value = scale;
+                        ZoomRatio.Minimum = scale < ZoomMin ? scale : ZoomMin;
+                        ImageViewerBox.MaxWidth = scale * width;
+                        ImageViewerBox.MaxHeight = scale * height;
                     }
                     else if (CurrentZoomFitMode == ZoomFitMode.Width)
                     {
@@ -1759,10 +1758,10 @@ namespace ImageViewer
                         var scale = (scroll.ActualWidth - delta) / width;
                         var scale_w = scale * width;
                         var scale_h = scale * height;
+                        if (ZoomRatio.Value != scale) ZoomRatio.Value = scale;
                         ZoomRatio.Minimum = scale < ZoomMin ? scale : ZoomMin;
-                        ZoomRatio.Value = scale;
                         ImageViewerBox.MaxWidth = scroll.ActualWidth;
-                        ImageViewerBox.MaxHeight = scale_h <= scroll.ActualHeight ? scroll.ActualHeight : height * scale - delta;
+                        ImageViewerBox.MaxHeight = scale_h <= scroll.ActualHeight ? scroll.ActualHeight : scale_h - delta;
                     }
                     else if (CurrentZoomFitMode == ZoomFitMode.Height)
                     {
@@ -1771,11 +1770,14 @@ namespace ImageViewer
                         var scale = (scroll.ActualHeight - delta) / height;
                         var scale_w = scale * width;
                         var scale_h = scale * height;
+                        if (ZoomRatio.Value != scale) ZoomRatio.Value = scale;
                         ZoomRatio.Minimum = scale < ZoomMin ? scale : ZoomMin;
-                        ZoomRatio.Value = scale;
-                        ImageViewerBox.MaxWidth = scale_w <= scroll.ActualWidth ? scroll.ActualWidth : width * scale - delta;
+                        ImageViewerBox.MaxWidth = scale_w <= scroll.ActualWidth ? scroll.ActualWidth : scale_w - delta;
                         ImageViewerBox.MaxHeight = scroll.ActualHeight;
                     }
+                    ImageViewer.UpdateLayout();
+                    ImageViewerBox.UpdateLayout();
+                    ImageViewerScroll.UpdateLayout();
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -1908,21 +1910,21 @@ namespace ImageViewer
         private void RotateView(double  angle)
         {
             if (IsImageNull(ImageViewer)) return;
-            ImageViewerScale.Dispatcher.InvokeAsync(() => ImageViewerRotate.Angle += angle);
+            ImageViewerScale.Dispatcher.InvokeAsync(() => ImageViewerRotate.Angle = (ImageViewerRotate.Angle + angle) % 360);
             CalcDisplay();
         }
 
         /// <summary>
         /// 
         /// </summary>
-        private void ResetViewTransform()
+        private void ResetViewTransform(bool calcdisplay = true)
         {
             ImageViewerScale.Dispatcher.InvokeAsync(() =>
             {
-                ZoomRatio.Value = LastZoomRatio;
                 ImageViewerRotate.Angle = 0;
+                ZoomRatio.Value = Math.Abs(ImageViewerScale.ScaleX);
+                if (calcdisplay) CalcDisplay();
             });
-            CalcDisplay();
         }
         #endregion
 
@@ -3177,6 +3179,14 @@ namespace ImageViewer
                             ImageViewer.GetInformation().LastClickPos = new PointD(pos.X, pos.Y);
                         }
                     }
+                    //else if (e.ChangedButton == MouseButton.XButton1 && Keyboard.Modifiers == ModifierKeys.None && e.ClickCount <= 2)
+                    //{
+                    //    await LoadImageFromNextFile();
+                    //}
+                    //else if (e.ChangedButton == MouseButton.XButton2 && Keyboard.Modifiers == ModifierKeys.None && e.ClickCount <= 2)
+                    //{
+                    //    await LoadImageFromPrevFile();
+                    //}
                 }
             }
             catch (Exception ex) { ex.ShowMessage("MouseClick"); }

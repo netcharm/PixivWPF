@@ -83,8 +83,8 @@ namespace ImageViewer
         /// </summary>
         private void CleanImage()
         {
-            _last_loading_ = ImageType.None;
             CloseQualityChanger();
+            ResetViewTransform(calcdisplay: false);
 
             IsProcessingViewer = true;
 
