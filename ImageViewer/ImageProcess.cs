@@ -127,7 +127,7 @@ namespace ImageViewer
             {
                 try
                 {
-                    await UpdateImageTooltip(colors: true);
+                    await UpdateImageTooltip(calc_colors: true);
                     UpdateIndaicatorState(false, true);
                     DoEvents();
                 }
