@@ -25,6 +25,10 @@ using Xceed.Wpf.Toolkit;
 
 namespace ImageViewer
 {
+#pragma warning disable IDE0039
+#pragma warning disable IDE0044
+#pragma warning disable IDE0060
+
     public static class Extensions
     {
         #region Locale Resource Helper
@@ -1420,7 +1424,7 @@ namespace ImageViewer
                                 var lb = GetMatrix(bmp, 0, h - m, m, m).Count(c => c.A < threshold);
                                 var rb = GetMatrix(bmp, w - m, h - m, m, m).Count(c => c.A < threshold);
                                 var ct = GetMatrix(bmp, (int)(w / 2.0 - m / 2.0) , (int)(h / 2.0 - m / 2.0), m, m).Count(c => c.A < threshold);
-                                status = (lt > mt || rt > mt || lb > mt || rb > mt || ct > mt) ? true : false;
+                                status = lt > mt || rt > mt || lb > mt || rb > mt || ct > mt;
                             }
                         }
                     }
@@ -1534,32 +1538,44 @@ namespace ImageViewer
         {
             if (_file_list_.Count == 0 || (_file_list_.Any() && _file_list_.Count() != _file_list_storage_.Count)) await UpdateFileList();
             var result = new List<string>();
-            if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(30)))
+            if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(15)))
             {
-                result = _file_watcher_ is FileSystemWatcher ? _file_list_ : _file_list_.Where(f => File.Exists(f)).ToList();
-                _file_list_updating_.Release();
+                try
+                {
+                    // result = _FS_Change_Type_ == WatcherChangeTypes.All ? _file_list_ : _file_list_.Where(f => File.Exists(f)).ToList();
+                    result = _file_list_;
+                }
+                finally { _file_list_updating_.Release(); }
             }
             return (result);
         }
 
-        private static async Task<bool> UpdateFileList()
+        private static async Task<bool> UpdateFileList(EventArgs e = null)
         {
             var result = false;
             if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(1)))
             {
                 result = await  Task.Run(() =>
                 {
-                    _file_list_ = _file_list_storage_.Keys.Distinct().NaturalSort().ToList();
-                    return(true);
+                    try
+                    {
+                        _file_list_ = _file_list_storage_.Keys.Distinct().NaturalSort().ToList();
+                        Application.Current.Dispatcher.Invoke(() => 
+                        { 
+                            var mainwindow = Application.Current.MainWindow as MainWindow;
+                            mainwindow?.UpdateInfoBox(e: e);
+                        });
+                        return (true);
+                    }
+                    finally { _file_list_updating_.Release(); }
                 });
-                _file_list_updating_.Release();
             }
             return(result);
         }
 
         private static List<string> _path_list_ = new List<string>();
-        private static FileSystemWatcher _file_watcher_ = null;
-        private static WatcherChangeTypes last_FS_Change_Type_ = WatcherChangeTypes.All;
+        private static List<FileSystemWatcher> _file_watcher_ = new List<FileSystemWatcher>();
+        private static WatcherChangeTypes _FS_Change_Type_ = WatcherChangeTypes.All;
 
         public static async Task<bool> InitFileList(this string path)
         {
@@ -1595,17 +1611,28 @@ namespace ImageViewer
         public static async Task<bool> InitFileList(this IEnumerable<string> files)
         {
             var result = false;
-            if(files is IEnumerable<string>)
+            if (files is IEnumerable<string> && files.Any())
             {
-                if (files.Count() > 1)
+                result = await Task.Run(async () =>
                 {
-                    ReleaseWatcher(null);
-                    _file_list_storage_.Clear();
-                    foreach (var file in files) _file_list_storage_[file] = null;
-                    await UpdateFileList();
-                    result = true;
-                }
-                else result = await InitFileList(Path.GetDirectoryName(files.FirstOrDefault()));
+                    var ret = false;
+                    if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(1)))
+                    {
+                        try
+                        {
+                            ReleaseWatcher(null);
+                            _file_list_storage_.Clear();
+                            _FS_Change_Type_ = files.Count() > 1 ? WatcherChangeTypes.Renamed | WatcherChangeTypes.Deleted : WatcherChangeTypes.All;
+                            var paths = files.Select(f => Path.GetDirectoryName(Path.GetFullPath(f))).Distinct().OrderBy(d => d);
+                            foreach (var file in files) _file_list_storage_[file] = null;
+                            ret &= await UpdateFileList();
+                            ret &= await InitWatcher(paths);
+                            ret = true;
+                        }
+                        finally { _file_list_updating_.Release(); }
+                    }
+                    return (ret);
+                });
             }
             return (result);
         }
@@ -1619,17 +1646,48 @@ namespace ImageViewer
                 var ret = false;
                 if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
                 {
-                    if (_file_watcher_ is FileSystemWatcher) ReleaseWatcher(null);
-                    _file_watcher_ = new FileSystemWatcher(path, "*.*")
+                    var _watcher_ = new FileSystemWatcher(path, "*.*")
                     {
                         EnableRaisingEvents = true,
                         IncludeSubdirectories = false,
                         NotifyFilter = NotifyFilters.Size | NotifyFilters.FileName,
                     };
-                    _file_watcher_.Created += OnFSChanged;
-                    _file_watcher_.Changed += OnFSChanged;
-                    _file_watcher_.Deleted += OnFSChanged;
-                    _file_watcher_.Renamed += OnFSRenamed;
+                    if (_FS_Change_Type_ == WatcherChangeTypes.All) _watcher_.Created += OnFSChanged;
+                    _watcher_.Changed += OnFSChanged;
+                    _watcher_.Deleted += OnFSChanged;
+                    _watcher_.Renamed += OnFSRenamed;
+                    _file_watcher_.Add(_watcher_);
+                    ret = true;
+                }
+                return (ret);
+            });
+            return (result);
+        }
+
+        [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
+        public static async Task<bool> InitWatcher(IEnumerable<string> paths)
+        {
+            var result = false;
+            result = await Task.Run(() =>
+            {
+                var ret = false;
+                if (_file_watcher_ is List<FileSystemWatcher>) ReleaseWatcher(null);
+                foreach (var path in paths.Where(d => Directory.Exists(d)))
+                {
+                    if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
+                    {
+                        var _watcher_ = new FileSystemWatcher(path, "*.*")
+                        {
+                            EnableRaisingEvents = true,
+                            IncludeSubdirectories = false,
+                            NotifyFilter = NotifyFilters.Size | NotifyFilters.FileName,
+                        };
+                        _watcher_.Created += OnFSChanged;
+                        _watcher_.Changed += OnFSChanged;
+                        _watcher_.Deleted += OnFSChanged;
+                        _watcher_.Renamed += OnFSRenamed;
+                        _file_watcher_.Add(_watcher_);
+                    }
                     ret = true;
                 }
                 return (ret);
@@ -1640,7 +1698,11 @@ namespace ImageViewer
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         public static void ReleaseWatcher(this FrameworkElement element)
         {
-            _file_watcher_?.Dispose();
+            foreach (var watcher in _file_watcher_)
+            {
+                watcher?.Dispose();
+            }
+            _file_watcher_.Clear();
         }
 
         private static async void OnFSChanged(object source, FileSystemEventArgs e)
@@ -1649,6 +1711,7 @@ namespace ImageViewer
             {
                 if (e.ChangeType == WatcherChangeTypes.Created)
                 {
+                    if (_FS_Change_Type_ != WatcherChangeTypes.All) return;
                     if (File.Exists(e.FullPath))
                     {
                         var ext = Path.GetExtension(e.Name).ToLower();
@@ -1672,10 +1735,9 @@ namespace ImageViewer
                     }
                 }
             }
-            catch (Exception ex) { ex.ShowMessage("FilesySystemWather"); }
+            catch (Exception ex) { ex.ShowMessage("FileSystemWatcher"); }
             finally
             {
-                last_FS_Change_Type_ = e.ChangeType;
             }
         }
 
@@ -1693,14 +1755,13 @@ namespace ImageViewer
                             _file_list_storage_[e.FullPath] = null;// File.GetLastWriteTime(e.FullPath);
                             _file_list_storage_.TryRemove(e.OldFullPath, out DateTime? _);
                         }
-                        await UpdateFileList();
+                        await UpdateFileList(e);
                     }
                 }
             }
             catch (Exception ex) { ex.ShowMessage("FilesySystemWather"); }
             finally
             {
-                last_FS_Change_Type_ = e.ChangeType;
             }
         }
         #endregion

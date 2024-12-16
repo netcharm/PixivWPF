@@ -32,6 +32,12 @@ using Xceed.Wpf.Toolkit.Zoombox;
 
 namespace ImageViewer
 {
+#pragma warning disable IDE0039
+#pragma warning disable IDE0044
+#pragma warning disable IDE0051
+#pragma warning disable IDE0052
+#pragma warning disable IDE0060
+
     public enum ImageType { All = 0, Source = 1, Target = 2, Result = 3, None = 255 }
     public enum ZoomFitMode { None = 0, All = 1, Width = 2, Height = 3 }
     public enum ImageOpMode { None = 0, Compare = 1, Compose = 2 }
@@ -45,8 +51,8 @@ namespace ImageViewer
         #region Application Infomations
         private static readonly string AppExec = Application.ResourceAssembly.CodeBase.ToString().Replace("file:///", "").Replace("/", "\\");
         private static readonly string AppPath = Path.GetDirectoryName(AppExec);
-        private static readonly string AppName = Path.GetFileNameWithoutExtension(AppPath);
-        private static readonly string AppFullName = Application.ResourceAssembly.FullName.Split(',').First().Trim();
+        //private static readonly string AppName = Path.GetFileNameWithoutExtension(AppPath);
+        //private static readonly string AppFullName = Application.ResourceAssembly.FullName.Split(',').First().Trim();
         private static string CachePath =  "cache";
 
         private bool Ready => Dispatcher.Invoke(() => IsLoaded);
@@ -184,7 +190,7 @@ namespace ImageViewer
         private MagickGeometry CompareResizeGeometry = null;
 
         private double LastZoomRatio = 1;
-        private bool LastOpIsComposite = false;
+        private readonly bool LastOpIsComposite = false;
         //private ImageType LastImageType = ImageType.Result;
         //private double ImageDistance = 0;
 
@@ -503,6 +509,23 @@ namespace ImageViewer
             }
         }
 
+        public void UpdateInfoBox(ImageInformation image = null, EventArgs e = null)
+        {
+            if (Ready)
+            {
+                Dispatcher.Invoke(async () =>
+                {
+                    if (image is null) image = ImageViewer.GetInformation();
+                    if (e is RenamedEventArgs && (e as RenamedEventArgs).OldName.Equals(image.FileName, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        image.RefreshImageFileInfo((e as RenamedEventArgs).Name);
+                    }
+                    ImageIndexBox.Text = await image.GetIndexInfo();
+                    ImageInfoBox.Text = await image.GetSimpleInfo();
+                });
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -514,8 +537,7 @@ namespace ImageViewer
             if (Ready && ImageViewer is Image)
             {
                 var image = ImageViewer.GetInformation();
-                await ImageIndexBox.Dispatcher.InvokeAsync(async () => ImageIndexBox.Text = await image.GetIndexInfo());
-                await ImageInfoBox.Dispatcher.InvokeAsync(async () => ImageInfoBox.Text = await image.GetSimpleInfo());
+                UpdateInfoBox(image);
                 var tooltip = image.ValidCurrent ? await image.GetImageInfo(include_colorinfo: calc_colors) : null;
                 SetToolTip(ImageViewer, tooltip);
                 SetToolTip(ImageInfoBox, tooltip);
@@ -1032,8 +1054,6 @@ namespace ImageViewer
         /// <param name="culture"></param>
         private void LocaleUI(CultureInfo culture = null)
         {
-            var lang = (culture ?? CultureInfo.CurrentCulture).IetfLanguageTag;
-
             Title = $"{Uid}.Title".T(culture) ?? Title;
             ImageToolBar.Locale();
             ImageViewerBox.Locale();

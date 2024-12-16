@@ -23,6 +23,10 @@ using ImageMagick;
 
 namespace ImageViewer
 {
+#pragma warning disable IDE0079
+#pragma warning disable IDE0039
+#pragma warning disable IDE0060
+
     public enum ImageTarget { None, Source, Target, Result, All };
 
     public class SourceParam
@@ -1121,7 +1125,7 @@ namespace ImageViewer
         /// <summary>
         /// 
         /// </summary>
-        private SemaphoreSlim _loading_image_ = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _loading_image_ = new SemaphoreSlim(1);
 
         /// <summary>
         ///
@@ -1581,9 +1585,14 @@ namespace ImageViewer
         /// <summary>
         ///
         /// </summary>
-        public bool RefreshImageFileInfo()
+        public bool RefreshImageFileInfo(string file = "")
         {
             var result = false;
+            if (!string.IsNullOrEmpty(file) && File.Exists(file))
+            {
+                FileName = file;
+                ImageFileInfo = new FileInfo(FileName);
+            }
             if (ImageFileInfo is null && !string.IsNullOrEmpty(FileName))
             {
                 ImageFileInfo = new FileInfo(FileName);
