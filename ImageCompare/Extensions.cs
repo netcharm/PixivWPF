@@ -1457,20 +1457,26 @@ namespace ImageCompare
 #endregion
 
         #region Misc
-        public static IList<string> NaturalSort(this IList<string> list, int padding = 16)
+        public static IList<string> NaturalSort(this IList<string> list, int padding = 16, bool ascendin = true)
         {
             try
             {
-                return (list is IList<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
+                if (ascendin)
+                    return (list is IList<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
+                else
+                    return (list is IList<string> ? list.OrderByDescending(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
             }
             catch (Exception ex) { ex.ShowMessage(); return (list); }
         }
 
-        public static IEnumerable<string> NaturalSort(this IEnumerable<string> list, int padding = 16)
+        public static IEnumerable<string> NaturalSort(this IEnumerable<string> list, int padding = 16, bool ascendin = true)
         {
             try
             {
-                return (list is IEnumerable<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
+                if (ascendin)
+                    return (list is IEnumerable<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
+                else
+                    return (list is IEnumerable<string> ? list.OrderByDescending(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
             }
             catch (Exception ex) { ex.ShowMessage(); return (list); }
         }
