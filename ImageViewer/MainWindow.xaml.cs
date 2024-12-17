@@ -28,6 +28,7 @@ using System.Windows.Threading;
 
 using ImageMagick;
 using Xceed.Wpf.Toolkit;
+using Xceed.Wpf.Toolkit.PropertyGrid;
 
 namespace ImageViewer
 {
@@ -678,7 +679,20 @@ namespace ImageViewer
             IsProcessingViewer = true;
             result = await Task.Run(async () =>
             {
-                var ret = await ImageViewer.GetInformation().CopyToClipboard().ContinueWith(t => { UpdateIndaicatorState(false, true); return(t.Result); });
+                var ret = false;
+                var image = ImageViewer.GetInformation();
+                if (image.ValidCurrent)
+                {
+                    if (IsQualityChanger)
+                    {
+                        var quality = QualityChangerValue?.Dispatcher.Invoke(() => QualityChangerValue?.Value) ?? image.CurrentQuality;
+                        using (var target = new MagickImage(image.Current) { Quality = quality })
+                        {
+                            ret = await image.CopyToClipboard(target).ContinueWith(t => { UpdateIndaicatorState(false, true); return (t.Result); });
+                        }
+                    }
+                    else ret = await image.CopyToClipboard().ContinueWith(t => { UpdateIndaicatorState(false, true); return (t.Result); });
+                }
                 return (ret);
             });
             return (result);
@@ -702,7 +716,7 @@ namespace ImageViewer
         /// <returns></returns>
         private async Task<bool> SaveImageAs()
         {
-            var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+            var ctrl = this.IsCtrlPressed(exclude: true);
             var result = await SaveImageAs(overwrite: ctrl);
             return (result);
         }
@@ -719,7 +733,20 @@ namespace ImageViewer
             IsSavingViewer = true;
             result = await Task.Run(() =>
             {
-                var ret = ImageViewer.GetInformation().Save(overwrite: overwrite);
+                var ret = false;
+                var image = ImageViewer.GetInformation();
+                if (image.ValidCurrent)
+                {
+                    if (IsQualityChanger)
+                    {
+                        var quality = QualityChangerValue?.Dispatcher.Invoke(() => QualityChangerValue?.Value) ?? image.CurrentQuality;
+                        using (var target = new MagickImage(image.Current) { Quality = quality })
+                        {
+                            ret = image.Save(target, overwrite: overwrite);
+                        }
+                    }
+                    else ret = image.Save(overwrite: overwrite);
+                }
                 IsSavingViewer = false;
                 return (ret);
             });
@@ -784,6 +811,32 @@ namespace ImageViewer
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
+        private async Task<bool> LoadImageFromFirstFile()
+        {
+            var ret = false;
+            try
+            {
+                CloseQualityChanger();
+                IsLoadingViewer = true;
+
+                var image =  ImageViewer.GetInformation();
+                ret = await image.LoadImageFromFirstFile();
+                if (ret) ClearImage();
+                if (ret) ResetViewTransform(calcdisplay: false);
+                if (ret) SetTitle(image.FileName);
+                if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
+                //if (ret && await UpdateImageViewerFinished()) FitView();
+                else IsLoadingViewer = false;
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+            return (ret);
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
         private async Task<bool> LoadImageFromPrevFile()
         {
             var ret = false;
@@ -820,6 +873,32 @@ namespace ImageViewer
 
                 var image = ImageViewer.GetInformation();
                 ret = await image.LoadImageFromNextFile();
+                if (ret) ClearImage();
+                if (ret) ResetViewTransform(calcdisplay: false);
+                if (ret) SetTitle(image.FileName);
+                if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
+                //if (ret && await UpdateImageViewerFinished()) FitView();
+                else IsLoadingViewer = false;
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+            return (ret);
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        private async Task<bool> LoadImageFromLastFile()
+        {
+            var ret = false;
+            try
+            {
+                CloseQualityChanger();
+                IsLoadingViewer = true;
+
+                var image =  ImageViewer.GetInformation();
+                ret = await image.LoadImageFromLastFile();
                 if (ret) ClearImage();
                 if (ret) ResetViewTransform(calcdisplay: false);
                 if (ret) SetTitle(image.FileName);
@@ -1278,7 +1357,7 @@ namespace ImageViewer
                 item_colorcalc.Click += (obj, evt) => { RenderRun(() => { CalcImageColors(MenuHost(obj)); }, target); };
                 item_copyinfo.Click += (obj, evt) => { RenderRun(() => { CopyImageInfo(); }, target); };
                 item_copyimage.Click += (obj, evt) => { RenderRun(async () => { await CopyImage(); }, target); };
-                item_saveas.Click += async (obj, evt) => await SaveImageAs(MenuHost(obj));
+                item_saveas.Click += async (obj, evt) => await SaveImageAs();
                 #endregion
                 #region Add MenuItems to ContextMenu
                 items.Add(item_fh);
@@ -2016,6 +2095,7 @@ namespace ImageViewer
                         QualityChangerSlider.Value = quality > 0 ? quality : 100;
                         QualityChanger.FocusedElement = QualityChangerSlider;
                         QualityChanger.Show();
+                        //QualityChanger.UpdateLayout();
 
                         DoEvents();
 
@@ -2961,6 +3041,7 @@ namespace ImageViewer
                 try
                 {
                     e.Handled = false;
+                    //var shift = 
                     if (Keyboard.Modifiers == ModifierKeys.Control && (e.Key == Key.W || e.SystemKey == Key.W))
                     {
                         e.Handled = true;
@@ -3061,17 +3142,46 @@ namespace ImageViewer
                         OpenQualityChanger(ImageType.Source);
                     }
 
+                    else if (e.Key == Key.Home || e.SystemKey == Key.Home)
+                    {
+                        if (!IsQualityChanger) await LoadImageFromFirstFile();
+                    }
                     else if (e.Key == Key.Left || e.SystemKey == Key.Left)
                     {
-                        await LoadImageFromPrevFile();
+                        if (!IsQualityChanger) await LoadImageFromPrevFile();
                     }
                     else if (e.Key == Key.Right || e.SystemKey == Key.Right)
                     {
-                        await LoadImageFromNextFile();
+                        if (!IsQualityChanger) await LoadImageFromNextFile();
+                    }
+                    else if (e.Key == Key.End || e.SystemKey == Key.End)
+                    {
+                        if (!IsQualityChanger) await LoadImageFromLastFile();
                     }
 
+                    else if (e.Key == Key.Add || e.SystemKey == Key.Add || e.Key == Key.OemPlus || e.SystemKey == Key.OemPlus)
+                    {
+                        CurrentZoomFitMode = ZoomFitMode.None;
+                        ZoomRatio.Value += ZoomRatio.SmallChange;
+                    }
+                    else if (e.Key == Key.Subtract || e.SystemKey == Key.Subtract || e.Key == Key.OemMinus || e.Key == Key.OemMinus)
+                    {
+                        CurrentZoomFitMode = ZoomFitMode.None;
+                        ZoomRatio.Value -= ZoomRatio.SmallChange;
+                    }
+                    else if (e.Key == Key.Multiply || e.Key == Key.Multiply)
+                    {
+                        CurrentZoomFitMode = ZoomFitMode.None;
+                        ZoomRatio.Value = 1f;
+                    }
+                    else if (e.Key == Key.Divide || e.Key == Key.Divide)
+                    {
+                        CurrentZoomFitMode = ZoomFitMode.All;
+                    }
+                    
                     _last_key_ = e.Key;
                     _last_key_time_ = DateTime.Now;
+                    //Debug.WriteLine(e.Key);
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }

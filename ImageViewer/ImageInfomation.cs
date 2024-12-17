@@ -28,6 +28,7 @@ namespace ImageViewer
 #pragma warning disable IDE0060
 
     public enum ImageTarget { None, Source, Target, Result, All };
+    public enum ListPosition { First, Prev, Next, Last };
 
     public class SourceParam
     {
@@ -656,7 +657,7 @@ namespace ImageViewer
             if (IsGetInfo && CancelGetInfo != null) CancelGetInfo.Cancel();
 
             string result = string.Empty;
-            if (ValidCurrent && !IsGetInfo)
+            if (ValidCurrent && !IsGetInfo && await _loading_image_.WaitAsync(0))
             {
                 IsGetInfo = true;
                 CancelGetInfo = new CancellationTokenSource();
@@ -942,6 +943,7 @@ namespace ImageViewer
                     catch (AccessViolationException) { }
                     catch (ObjectDisposedException) { }
                     catch (Exception ex) { ex.ShowMessage(); }
+                    finally { _loading_image_.Release(); }
                     st.Stop();
 #if DEBUG
                     Debug.WriteLine($"{TimeSpan.FromTicks(st.ElapsedTicks).TotalSeconds:F4}s");
@@ -1066,29 +1068,19 @@ namespace ImageViewer
         ///
         /// </summary>
         /// <returns></returns>
+        public async Task<bool> LoadImageFromFirstFile()
+        {
+            var result = await LoadImageFromIndex(ListPosition.First);
+            return (result);
+        }
+        
+        /// <summary>
+        ///
+        /// </summary>
+        /// <returns></returns>
         public async Task<bool> LoadImageFromPrevFile()
         {
-            var result = false;
-            result = await Task.Run(async () =>
-            {
-                bool ret = false;
-                try
-                {
-                    if (!string.IsNullOrEmpty(FileName))
-                    {
-                        var file = FileName;
-                        var files = await file.GetFileList();
-                        if (files.Count() > 0 && !string.IsNullOrEmpty(file))
-                        {
-                            var file_n = files.Where(f => f.EndsWith(file, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
-                            var idx = files.IndexOf(file_n);
-                            if (idx > 0) ret = await LoadImageFromFile(files[idx - 1]);
-                        }
-                    }
-                }
-                catch (Exception ex) { ex.ShowMessage(); }
-                return (ret);
-            });
+            var result = await LoadImageFromIndex(ListPosition.Prev);
             return (result);
         }
 
@@ -1098,6 +1090,44 @@ namespace ImageViewer
         /// <returns></returns>
         public async Task<bool> LoadImageFromNextFile()
         {
+            var result = await LoadImageFromIndex(ListPosition.Next);
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public async Task<bool> LoadImageFromLastFile()
+        {
+            var result = await LoadImageFromIndex(ListPosition.Last);
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public async Task<bool> LoadImageFromIndex(ListPosition pos)
+        {
+            var idx = 0;
+            var rel = false;
+            if (pos == ListPosition.First) idx = 0;
+            else if (pos == ListPosition.Prev) { rel = true; idx = -1; }
+            else if (pos == ListPosition.Next) { rel = true; idx = 1; }
+            else if (pos == ListPosition.Last) idx = int.MaxValue;
+            return (await LoadImageFromIndex(idx, relative: rel));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="relative"></param>
+        /// <returns></returns>
+        public async Task<bool> LoadImageFromIndex(int index, bool relative = false)
+        {
             var result = false;
             result = await Task.Run(async () =>
             {
@@ -1106,13 +1136,13 @@ namespace ImageViewer
                 {
                     if (!string.IsNullOrEmpty(FileName))
                     {
-                        var file = FileName;
-                        var files = await file.GetFileList();
-                        if (files.Count() > 0 && !string.IsNullOrEmpty(file))
+                        var files = await FileName.GetFileList();
+                        if (files.Any() && !string.IsNullOrEmpty(FileName))
                         {
-                            var file_n = files.Where(f => f.EndsWith(file, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
-                            var idx = files.IndexOf(file_n);
-                            if (idx < files.Count - 1) ret = await LoadImageFromFile(files[idx + 1]);
+                            var file_n = files.Where(f => f.EndsWith(FileName, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
+                            var idx_o = files.IndexOf(file_n);
+                            var idx_n = (int)Math.Max(0, Math.Min(files.Count - 1, relative ? idx_o + index : index));
+                            if (idx_n != idx_o) ret = await LoadImageFromFile(files[idx_n]);
                         }
                     }
                 }
@@ -1233,35 +1263,35 @@ namespace ImageViewer
         }
 
         /// <summary>
-        ///
+        /// 
         /// </summary>
+        /// <param name="image"></param>
         /// <returns></returns>
-        public async Task<bool> CopyToClipboard()
+        public async Task<bool> CopyToClipboard(MagickImage image)
         {
             var result = false;
-            if (ValidCurrent)
+            if (image.Valid())
             {
                 result = await Task.Run(async () =>
                 {
                     var ret = false;
                     try
                     {
-                        var bs = Current.ToBitmapSource();
-
                         DataObject dataPackage = new DataObject();
                         MemoryStream ms = null;
 
                         #region Copy Standard Bitmap date to Clipboard
+                        var bs = image.ToBitmapSource();
                         dataPackage.SetImage(bs);
                         #endregion
                         #region Copy other MIME format data to Clipboard
-                        string[] fmts = Current.IsJPG() ? new string[] { "image/jpg", "image/jpeg", "CF_DIBV5" } : new string[] { "PNG", "image/png", "image/bmp", "image/jpg", "image/jpeg", "CF_DIBV5" };
+                        string[] fmts = image.IsJPG() ? new string[] { "image/jpg", "image/jpeg", "CF_DIBV5" } : new string[] { "PNG", "image/png", "image/bmp", "image/jpg", "image/jpeg", "CF_DIBV5" };
                         foreach (var fmt in fmts)
                         {
                             if (fmt.Equals("CF_DIBV5", StringComparison.CurrentCultureIgnoreCase))
                             {
-                                //if (Current.ColorSpace == ColorSpace.scRGB) Current.ColorSpace = ColorSpace.sRGB;
-                                byte[] arr = Current.ToByteArray(MagickFormat.Bmp3);
+                                //if (image.ColorSpace == ColorSpace.scRGB) image.ColorSpace = ColorSpace.sRGB;
+                                byte[] arr = image.ToByteArray(MagickFormat.Bmp3);
                                 byte[] dib = arr.Skip(14).ToArray();
                                 ms = new MemoryStream(dib);
                                 dataPackage.SetData(fmt, ms);
@@ -1272,8 +1302,8 @@ namespace ImageViewer
                                 var mfmt = fmt.GetMagickFormat();
                                 if (mfmt != MagickFormat.Unknown)
                                 {
-                                    //if (Current.ColorSpace == ColorSpace.scRGB) Current.ColorSpace = ColorSpace.sRGB;
-                                    byte[] arr = Current.ToByteArray(mfmt);
+                                    //if (image.ColorSpace == ColorSpace.scRGB) image.ColorSpace = ColorSpace.sRGB;
+                                    byte[] arr = image.ToByteArray(mfmt);
                                     ms = new MemoryStream(arr);
                                     dataPackage.SetData(fmt, ms);
                                     await ms.FlushAsync();
@@ -1291,6 +1321,20 @@ namespace ImageViewer
                     catch (Exception ex) { ex.ShowMessage(); }
                     return (ret);
                 });
+            }
+            return (result);
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <returns></returns>
+        public async Task<bool> CopyToClipboard()
+        {
+            var result = false;
+            if (ValidCurrent)
+            {
+                result = await CopyToClipboard(Current);
             }
             return (result);
         }
@@ -1320,14 +1364,15 @@ namespace ImageViewer
         }
 
         /// <summary>
-        ///
+        /// 
         /// </summary>
         /// <param name="file"></param>
+        /// <param name="image"></param>
         /// <returns></returns>
-        public bool SaveTopazMask(string file)
+        public bool SaveTopazMask(string file, MagickImage image)
         {
             var result = false;
-            if (ValidCurrent)
+            if (image.Valid())
             {
                 try
                 {
@@ -1338,39 +1383,125 @@ namespace ImageViewer
                     var fm = "-mask";
                     file = fn.ToLower().Contains(fm) ? Path.Combine(fd, $"{fn}.tiff") : Path.Combine(fd, $"{fn}{fm}.tiff");
 
-                    using (var image = new MagickImage(Current) { BackgroundColor = MagickColors.Black, MatteColor = new MagickColor(MasklightColor.R, MasklightColor.G, MasklightColor.B) })
+                    using (var target = new MagickImage(image) { BackgroundColor = MagickColors.Black, MatteColor = new MagickColor(MasklightColor.R, MasklightColor.G, MasklightColor.B) })
                     {
                         var threshold_color = new MagickColor(HighlightColor.R, HighlightColor.G, HighlightColor.B);
-                        FixDPI(image, use_system: true);
+                        FixDPI(target, use_system: true);
                         if (OpMode == ImageOpMode.Compose)
                         {
-                            image.Grayscale();
-                            image.LevelColors(MagickColors.White, MagickColors.Black);
-                            if (LowlightColor.HasAlpha() || LowlightColor == null) image.ColorAlpha(MagickColors.White);
-                            image.Threshold(new Percentage(100 - ColorFuzzy.ToDouble() - 5.0));
+                            target.Grayscale();
+                            target.LevelColors(MagickColors.White, MagickColors.Black);
+                            if (LowlightColor.HasAlpha() || LowlightColor == null) target.ColorAlpha(MagickColors.White);
+                            target.Threshold(new Percentage(100 - ColorFuzzy.ToDouble() - 5.0));
                         }
                         else if (HighlightColor.HasAlpha() || LowlightColor.HasAlpha() || MasklightColor.HasAlpha())
                         {
-                            image.Grayscale();
-                            image.ColorAlpha(MagickColors.White);
-                            image.LevelColors(MagickColors.Black, MagickColors.White);
-                            image.AutoThreshold(AutoThresholdMethod.OTSU);
+                            target.Grayscale();
+                            target.ColorAlpha(MagickColors.White);
+                            target.LevelColors(MagickColors.Black, MagickColors.White);
+                            target.AutoThreshold(AutoThresholdMethod.OTSU);
                         }
                         else
                         {
-                            image.ColorThreshold(threshold_color, threshold_color);
-                            image.LevelColors(MagickColors.White, MagickColors.Black);
+                            target.ColorThreshold(threshold_color, threshold_color);
+                            target.LevelColors(MagickColors.White, MagickColors.Black);
                         }
-                        image.Format = format;
-                        image.SetCompression(CompressionMethod.Zip);
-                        image.Settings.Compression = CompressionMethod.Zip;
-                        image.ColorType = ColorType.Palette;
-                        image.ColorSpace = ColorSpace.Gray;
-                        image.Depth = 8;
+                        target.Format = format;
+                        target.SetCompression(CompressionMethod.Zip);
+                        target.Settings.Compression = CompressionMethod.Zip;
+                        target.ColorType = ColorType.Palette;
+                        target.ColorSpace = ColorSpace.Gray;
+                        target.Depth = 8;
 
-                        image.Write(file, format);
+                        target.Write(file, format);
                         result = true;
                     }
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
+            }
+            return (result);
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public bool SaveTopazMask(string file)
+        {
+            var result = false;
+            if (ValidCurrent)
+            {
+                result = SaveTopazMask(file, Current);
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="image"></param>
+        /// <param name="ext"></param>
+        /// <param name="format"></param>
+        /// <returns></returns>
+        public bool Save(string file, MagickImage image, string ext = ".png", MagickFormat format = MagickFormat.Unknown)
+        {
+            var result = false;
+            if (image.Valid())
+            {
+                try
+                {
+                    var e = Path.GetExtension(file).ToLower();
+                    if (string.IsNullOrEmpty(e)) file = $"{file}{ext}";
+
+                    FixDPI(image);
+
+                    if (e.Equals(".png8", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        //if (image.ColorSpace == ColorSpace.scRGB) image.ColorSpace = ColorSpace.sRGB;
+                        image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                        image.Write(Path.ChangeExtension(file, ".png"), MagickFormat.Png8);
+                    }
+                    else
+                    {
+                        var fmt_no_alpha = new MagickFormat[] { MagickFormat.Jpg, MagickFormat.Jpeg, MagickFormat.Jpe, MagickFormat.Bmp2, MagickFormat.Bmp3 };
+                        var ext_no_alpha = new string[] { ".jpg", ".jpeg", ".jpe", ".bmp" };
+                        if (image.HasAlpha && (fmt_no_alpha.Contains(format) || ext_no_alpha.Contains(e)))
+                        {
+                            var target = image.Clone();
+                            //if (target.ColorSpace == ColorSpace.scRGB) target.ColorSpace = ColorSpace.sRGB;
+                            target.ColorAlpha(MasklightColor ?? target.BackgroundColor);
+                            target.BackgroundColor = MasklightColor ?? target.BackgroundColor;
+                            target.MatteColor = MasklightColor ?? target.BackgroundColor;
+                            foreach (var profile in image.ProfileNames) { if (image.HasProfile(profile)) target.SetProfile(image.GetProfile(profile)); }
+                            target.Write(file, format);
+                        }
+                        else
+                        {
+                            if (format == MagickFormat.Tif || format == MagickFormat.Tiff || format == MagickFormat.Tiff64 || e.Equals(".tif") || e.Equals(".tiff"))
+                            {
+                                image.SetCompression(CompressionMethod.Zip);
+                                image.Settings.Compression = CompressionMethod.Zip;
+                            }
+                            else if (format == MagickFormat.Gif || format == MagickFormat.Gif87 || e.Equals(".gif"))
+                            {
+                                image.GifDisposeMethod = GifDisposeMethod.Background;
+                                image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                            }
+                            else if (format == MagickFormat.WebP || format == MagickFormat.WebM || e.Equals(".webp") || e.Equals(".webm"))
+                            {
+                                image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                            }
+                            else if (format == MagickFormat.Bmp || e.Equals(".bmp"))
+                            {
+                                image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                            }
+                            //if (image.ColorSpace == ColorSpace.scRGB) image.ColorSpace = ColorSpace.sRGB;
+                            image.Write(file, format);
+                        }
+                    }
+                    result = true;
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }
@@ -1389,79 +1520,27 @@ namespace ImageViewer
             var result = false;
             if (ValidCurrent)
             {
-                try
-                {
-                    var e = Path.GetExtension(file).ToLower();
-                    if (string.IsNullOrEmpty(e)) file = $"{file}{ext}";
-
-                    FixDPI();
-
-                    if (e.Equals(".png8", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        //if (Current.ColorSpace == ColorSpace.scRGB) Current.ColorSpace = ColorSpace.sRGB;
-                        Current.VirtualPixelMethod = VirtualPixelMethod.Transparent;
-                        Current.Write(Path.ChangeExtension(file, ".png"), MagickFormat.Png8);
-                    }
-                    else
-                    {
-                        var fmt_no_alpha = new MagickFormat[] { MagickFormat.Jpg, MagickFormat.Jpeg, MagickFormat.Jpe, MagickFormat.Bmp2, MagickFormat.Bmp3 };
-                        var ext_no_alpha = new string[] { ".jpg", ".jpeg", ".jpe", ".bmp" };
-                        if (Current.HasAlpha && (fmt_no_alpha.Contains(format) || ext_no_alpha.Contains(e)))
-                        {
-                            var target = Current.Clone();
-                            //if (target.ColorSpace == ColorSpace.scRGB) target.ColorSpace = ColorSpace.sRGB;
-                            target.ColorAlpha(MasklightColor ?? target.BackgroundColor);
-                            target.BackgroundColor = MasklightColor ?? target.BackgroundColor;
-                            target.MatteColor = MasklightColor ?? target.BackgroundColor;
-                            foreach (var profile in Current.ProfileNames) { if (Current.HasProfile(profile)) target.SetProfile(Current.GetProfile(profile)); }
-                            target.Write(file, format);
-                        }
-                        else
-                        {
-                            if (format == MagickFormat.Tif || format == MagickFormat.Tiff || format == MagickFormat.Tiff64 || e.Equals(".tif") || e.Equals(".tiff"))
-                            {
-                                Current.SetCompression(CompressionMethod.Zip);
-                                Current.Settings.Compression = CompressionMethod.Zip;
-                            }
-                            else if (format == MagickFormat.Gif || format == MagickFormat.Gif87 || e.Equals(".gif"))
-                            {
-                                Current.GifDisposeMethod = GifDisposeMethod.Background;
-                                Current.VirtualPixelMethod = VirtualPixelMethod.Transparent;
-                            }
-                            else if (format == MagickFormat.WebP || format == MagickFormat.WebM || e.Equals(".webp") || e.Equals(".webm"))
-                            {
-                                Current.VirtualPixelMethod = VirtualPixelMethod.Transparent;
-                            }
-                            else if (format == MagickFormat.Bmp || e.Equals(".bmp"))
-                            {
-                                Current.VirtualPixelMethod = VirtualPixelMethod.Transparent;
-                            }
-                            //if (Current.ColorSpace == ColorSpace.scRGB) Current.ColorSpace = ColorSpace.sRGB;
-                            Current.Write(file, format);
-                        }
-                    }
-                    result = true;
-                }
-                catch (Exception ex) { ex.ShowMessage(); }
+                result = Save(file, Current, ext, format);
             }
             return (result);
         }
 
         /// <summary>
-        ///
+        /// 
         /// </summary>
+        /// <param name="image"></param>
         /// <param name="overwrite"></param>
         /// <returns></returns>
-        public bool Save(bool overwrite = false)
+        public bool Save(MagickImage image, bool overwrite = false)
         {
             var result = false;
-            if (ValidCurrent)
+            if (image.Valid())
             {
-                try
+               try
                 {
                     if (overwrite && ValidOriginal && !string.IsNullOrEmpty(FileName) && File.Exists(FileName))
                     {
-                        result = Save(FileName, format: Original.Format);
+                        result = Save(FileName, image, format: Original.Format);
                     }
                     else
                     {
@@ -1502,12 +1581,27 @@ namespace ImageViewer
                             }
                             else
                             {
-                                result = Save(file, format: fmt);
+                                result = Save(file, image, format: fmt);
                             }
                         }
                     }
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
+            }
+            return (result);
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="overwrite"></param>
+        /// <returns></returns>
+        public bool Save(bool overwrite = false)
+        {
+            var result = false;
+            if (ValidCurrent)
+            {
+                result = Save(Current, overwrite);
             }
             return (result);
         }

@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -997,7 +998,7 @@ namespace ImageViewer
 
         public static bool Valid(this MagickImage image)
         {
-            return (image is MagickImage && image.Width > 0 && image.Height > 0);
+            return (image.IsValidRead() && image.Width > 0 && image.Height > 0);
         }
 
         public static bool Invalided(this MagickImage image)
@@ -1471,6 +1472,151 @@ namespace ImageViewer
         }
         #endregion
 
+        #region Keyboard Modifier
+        /// <summary>
+        /// 
+        /// </summary>
+        public class Modifier
+        {
+            public bool Shift { get; set; } = false;
+            public bool Ctrl { get; set; } = false;
+            public bool Alt { get; set; } = false;
+            public bool Win { get; set; } = false;
+
+            public bool OnlyShift { get; set; } = false;
+            public bool OnlyCtrl { get; set; } = false;
+            public bool OnlyAlt { get; set; } = false;
+            public bool OnlyWin { get; set; } = false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        /// <returns></returns>
+        public static async Task<Modifier> GetModifierAsync(this Application app)
+        {
+            var result = new Modifier();
+            var modifiers = await app.Dispatcher.InvokeAsync(() => Keyboard.Modifiers);
+            result.Shift = modifiers.HasFlag(ModifierKeys.Shift);
+            result.Ctrl = modifiers.HasFlag(ModifierKeys.Control);
+            result.Alt = modifiers.HasFlag(ModifierKeys.Alt);
+            result.Win = modifiers.HasFlag(ModifierKeys.Windows);
+            result.OnlyShift = modifiers == ModifierKeys.Shift;
+            result.OnlyCtrl = modifiers == ModifierKeys.Control;
+            result.OnlyAlt = modifiers == ModifierKeys.Alt;
+            result.OnlyWin = modifiers == ModifierKeys.Windows;
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        public static Modifier GetModifier(this FrameworkElement element)
+        {
+            var result = new Modifier();
+            var modifiers = element?.Dispatcher.Invoke(() => Keyboard.Modifiers) ?? ModifierKeys.None;
+            result.Shift = modifiers.HasFlag(ModifierKeys.Shift);
+            result.Ctrl = modifiers.HasFlag(ModifierKeys.Control);
+            result.Alt = modifiers.HasFlag(ModifierKeys.Alt);
+            result.Win = modifiers.HasFlag(ModifierKeys.Windows);
+            result.OnlyShift = modifiers == ModifierKeys.Shift;
+            result.OnlyCtrl = modifiers == ModifierKeys.Control;
+            result.OnlyAlt = modifiers == ModifierKeys.Alt;
+            result.OnlyWin = modifiers == ModifierKeys.Windows;
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="key"></param>
+        /// <param name="exclude"></param>
+        /// <returns></returns>
+        public static bool IsModifierPressed(this FrameworkElement element, ModifierKeys key, bool exclude = true)
+        {
+            var result = false;
+            var keys = GetModifier(element);
+            if (exclude)
+            {
+                if (key == ModifierKeys.Shift) result = keys.OnlyShift; // keys.Shift && !keys.Alt && !keys.Ctrl && !keys.Win;
+                else if (key == ModifierKeys.Alt) result = keys.OnlyAlt; // !keys.Shift && keys.Alt && !keys.Ctrl && !keys.Win;
+                else if (key == ModifierKeys.Control) result = keys.OnlyCtrl; // !keys.Shift && !keys.Alt && keys.Ctrl && !keys.Win;
+                else if (key == ModifierKeys.Windows) result = keys.OnlyWin; // !keys.Shift && !keys.Alt && !keys.Ctrl && keys.Win;
+            }
+            else
+            {
+                if (key == ModifierKeys.Shift) result = keys.Shift;
+                else if (key == ModifierKeys.Alt) result = keys.Alt;
+                else if (key == ModifierKeys.Control) result = keys.Ctrl;
+                else if (key == ModifierKeys.Windows) result = keys.Win;
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="exclude"></param>
+        /// <returns></returns>
+        public static bool IsShiftPressed(this FrameworkElement element, bool exclude = true)
+        {
+            return (IsModifierPressed(element, ModifierKeys.Shift, exclude));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="exclude"></param>
+        /// <returns></returns>
+        public static bool IsCtrlPressed(this FrameworkElement element, bool exclude = true)
+        {
+            return (IsModifierPressed(element, ModifierKeys.Control, exclude));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="exclude"></param>
+        /// <returns></returns>
+        public static bool IsAltPressed(this FrameworkElement element, bool exclude = true)
+        {
+            return (IsModifierPressed(element, ModifierKeys.Alt, exclude));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="exclude"></param>
+        /// <returns></returns>
+        public static bool IsWinPressed(this FrameworkElement element, bool exclude = true)
+        {
+            return (IsModifierPressed(element, ModifierKeys.Windows, exclude));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="child"></param>
+        /// <returns></returns>
+        //public static ModifierKeys GetModifiderKeys(this Application app)
+        //{
+        //    var result = Application.Current.Dispatcher.BeginInvoke(new Func<ModifierKeys>(delegate
+        //    {
+        //        return (Keyboard.Modifiers);
+        //    }));
+        //   return (result.Dispatcher.re);
+        //}
+        #endregion
+
         #region Misc
         public static T FindParent<T>(this DependencyObject child) where T : DependencyObject
         {
@@ -1501,20 +1647,26 @@ namespace ImageViewer
             return (result);
         }
 
-        public static IList<string> NaturalSort(this IList<string> list, int padding = 16)
+        public static IList<string> NaturalSort(this IList<string> list, int padding = 16, bool ascendin = true)
         {
             try
             {
-                return (list is IList<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
+                if (ascendin)
+                    return (list is IList<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
+                else
+                    return (list is IList<string> ? list.OrderByDescending(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
             }
             catch (Exception ex) { ex.ShowMessage(); return (list); }
         }
 
-        public static IEnumerable<string> NaturalSort(this IEnumerable<string> list, int padding = 16)
+        public static IEnumerable<string> NaturalSort(this IEnumerable<string> list, int padding = 16, bool ascendin = true)
         {
             try
             {
-                return (list is IEnumerable<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
+                if (ascendin)
+                    return (list is IEnumerable<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
+                else
+                    return (list is IEnumerable<string> ? list.OrderByDescending(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
             }
             catch (Exception ex) { ex.ShowMessage(); return (list); }
         }
@@ -1615,10 +1767,23 @@ namespace ImageViewer
                         try
                         {
                             ReleaseWatcher(null);
+                            _file_list_.Clear();
                             _file_list_storage_.Clear();
                             _FS_Change_Type_ = files.Count() > 1 ? WatcherChangeTypes.Renamed | WatcherChangeTypes.Deleted : WatcherChangeTypes.All;
                             var paths = files.Select(f => Path.GetDirectoryName(Path.GetFullPath(f))).Distinct().OrderBy(d => d);
                             foreach (var file in files) _file_list_storage_[file] = null;
+                            foreach(var path in paths)
+                            {
+                                if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
+                                {
+                                    //foreach (var file in Directory.EnumerateFiles(path, "*.*").Where(f => SupportedExt(f)))
+                                    foreach (var file in Directory.GetFiles(path, "*.*").Where(f => SupportedExt(f)))
+                                    {
+                                        _file_list_storage_[file] = null;//File.GetLastWriteTime(file);
+                                    }
+                                    ret = true;
+                                }
+                            }
                             ret &= await UpdateFileList();
                             ret &= await InitWatcher(paths);
                             ret = true;
@@ -1676,7 +1841,7 @@ namespace ImageViewer
                             IncludeSubdirectories = false,
                             NotifyFilter = NotifyFilters.Size | NotifyFilters.FileName,
                         };
-                        _watcher_.Created += OnFSChanged;
+                        if (_FS_Change_Type_ == WatcherChangeTypes.All) _watcher_.Created += OnFSChanged;
                         _watcher_.Changed += OnFSChanged;
                         _watcher_.Deleted += OnFSChanged;
                         _watcher_.Renamed += OnFSRenamed;
