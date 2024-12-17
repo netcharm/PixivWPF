@@ -984,7 +984,7 @@ namespace ImageViewer
         /// <returns></returns>
         public async Task<bool> LoadImageFromClipboard()
         {
-            IDataObject dataPackage = Application.Current.Dispatcher.Invoke(() => Clipboard.GetDataObject());
+            IDataObject dataPackage = Application.Current?.Dispatcher?.Invoke(() => Clipboard.GetDataObject());
             return (await LoadImageFromClipboard(dataPackage));
         }
 
@@ -1003,14 +1003,14 @@ namespace ImageViewer
                 try
                 {
                     var supported_fmts = new string[] { "PNG", "image/png", "image/tif", "image/tiff", "image/webp", "image/xpm", "image/ico", "image/cur", "image/jpg", "image/jpeg", "image/bmp", "DeviceIndependentBitmap", "image/wbmp", "Text" };
-                    var fmts = await Application.Current.Dispatcher.InvokeAsync(() => dataPackage.GetFormats(true));
+                    var fmts = await Application.Current?.Dispatcher?.InvokeAsync(() => dataPackage.GetFormats(true));
                     foreach (var fmt in supported_fmts)
                     {
-                        if (fmts.Contains(fmt) && await Application.Current.Dispatcher.InvokeAsync(() => dataPackage.GetDataPresent(fmt, true)))
+                        if (fmts.Contains(fmt) && await Application.Current?.Dispatcher?.InvokeAsync(() => dataPackage.GetDataPresent(fmt, true)))
                         {
                             if (fmt.Equals("Text", StringComparison.CurrentCultureIgnoreCase))
                             {
-                                var text = await Application.Current.Dispatcher.InvokeAsync(() => dataPackage.GetData(fmt, true) as string);
+                                var text = await Application.Current?.Dispatcher?.InvokeAsync(() => dataPackage.GetData(fmt, true) as string);
                                 try
                                 {
                                     if (Regex.IsMatch(text, @"^data:.*?;base64,", RegexOptions.IgnoreCase))
@@ -1035,7 +1035,7 @@ namespace ImageViewer
                             {
                                 try
                                 {
-                                    var obj = await Application.Current.Dispatcher.InvokeAsync(() => dataPackage.GetData(fmt, true));
+                                    var obj = await Application.Current?.Dispatcher?.InvokeAsync(() => dataPackage.GetData(fmt, true));
                                     if (obj is MemoryStream)
                                     {
                                         Original = new MagickImage(obj as MemoryStream);
@@ -1281,7 +1281,7 @@ namespace ImageViewer
                             }
                         }
                         #endregion
-                        await Application.Current.Dispatcher.InvokeAsync(() =>
+                        await Application.Current?.Dispatcher?.InvokeAsync(() =>
                         {
                             //Clipboard.Clear();
                             Clipboard.SetDataObject(dataPackage, false);
@@ -1302,7 +1302,7 @@ namespace ImageViewer
         public async Task<bool> SetImage()
         {
             var result = false;
-            result = await Application.Current.Dispatcher.InvokeAsync(() =>
+            result = await Application.Current?.Dispatcher?.InvokeAsync(() =>
             {
                 var ret = false;
                 try

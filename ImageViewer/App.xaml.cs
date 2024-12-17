@@ -22,7 +22,7 @@ namespace ImageViewer
 
         private static void ReportMessage(Exception ex)
         {
-            Current?.Dispatcher.Invoke(() =>
+            Current?.Dispatcher?.Invoke(() =>
             {
                 if (Current?.MainWindow?.IsLoaded ?? false)
                 {
@@ -138,17 +138,17 @@ namespace ImageViewer
                             {
                                 var contents = sw.ReadToEnd().Trim();
                                 if (string.IsNullOrEmpty(contents))
-                                    Current.Dispatcher.Invoke(() => { Current?.MainWindow?.Activate(); });
+                                    Current?.Dispatcher?.Invoke(() => { Current?.MainWindow?.Activate(); });
                                 else
                                 {
                                     var content = new NamedPipeContent() { Command = "compare", Args = contents.Split(new string[]{ Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries) };
                                     if (content != null)
                                     {
                                         if (content.Command.Equals("active", StringComparison.CurrentCultureIgnoreCase))
-                                            Current?.Dispatcher.Invoke(() => { Current?.MainWindow?.Activate(); });
+                                            Current?.Dispatcher?.Invoke(() => { Current?.MainWindow?.Activate(); });
                                         else if (content.Command.Equals("compare", StringComparison.CurrentCultureIgnoreCase))
                                         {
-                                            Current?.Dispatcher.Invoke(async () =>
+                                            Current?.Dispatcher?.Invoke(async () =>
                                             {
                                                 if (Current?.MainWindow is MainWindow && content.Args.Length > 0)
                                                 {
@@ -168,7 +168,7 @@ namespace ImageViewer
             catch (Exception ex) { ReportMessage(ex); }
             finally
             {
-                Current?.Dispatcher.Invoke(() =>
+                Current?.Dispatcher?.Invoke(() =>
                 {
                     if (Current?.MainWindow?.WindowState == System.Windows.WindowState.Minimized)
                     {
@@ -237,7 +237,7 @@ namespace ImageViewer
                 }
                 else
                 {
-                    var content = new NamedPipeContent(){ Command = "active" };
+                    //var content = new NamedPipeContent(){ Command = "active" };
                     //SendToPipeServer(Newtonsoft.Json.JsonConvert.SerializeObject(content, Newtonsoft.Json.Formatting.Indented).ToString());
                     SendToPipeServer("");
                 }

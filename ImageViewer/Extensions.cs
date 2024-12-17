@@ -403,7 +403,7 @@ namespace ImageViewer
 
         public static void ShowMessage(this string text, string prefix = "")
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            Application.Current?.Dispatcher?.Invoke(() =>
             {
                 try
                 {
@@ -441,7 +441,7 @@ namespace ImageViewer
         public static void ShowMessage(this Exception exception, string prefix = "")
         {
             if (exception == null) return;
-            Application.Current.Dispatcher.Invoke(() =>
+            Application.Current?.Dispatcher?.Invoke(() =>
             {
                 try
                 {
@@ -486,18 +486,18 @@ namespace ImageViewer
         private static readonly SemaphoreSlim CanDoEvents = new SemaphoreSlim(1, 1);
         public static async void DoEvents()
         {
-            if (await CanDoEvents.WaitAsync(0))
+            if (await CanDoEvents?.WaitAsync(0))
             {
                 try
                 {
-                    if (Application.Current.Dispatcher.CheckAccess())
+                    if (Application.Current?.Dispatcher?.CheckAccess() ?? false)
                     {
                         //await Dispatcher.Yield(DispatcherPriority.Render);
                         await Dispatcher.Yield(DispatcherPriority.Normal);
                         //await System.Windows.Threading.Dispatcher.Yield();
 
                         //DispatcherFrame frame = new DispatcherFrame();
-                        //await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
+                        //await Application.Current?.Dispatcher?.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
                         //Dispatcher.PushFrame(frame);
                     }
                 }
@@ -505,7 +505,7 @@ namespace ImageViewer
                 {
                     try
                     {
-                        if (Application.Current.Dispatcher.CheckAccess())
+                        if (Application.Current?.Dispatcher?.CheckAccess() ?? false)
                         {
                             DispatcherFrame frame = new DispatcherFrame();
                             //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new Action(delegate { }));
@@ -513,7 +513,7 @@ namespace ImageViewer
 
                             //await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(ExitFrame), frame);
                             //await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
-                            await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
+                            await Application.Current?.Dispatcher?.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
                             Dispatcher.PushFrame(frame);
                         }
                     }
@@ -525,7 +525,7 @@ namespace ImageViewer
                 finally
                 {
                     //CanDoEvents.Release(max: 1);
-                    if (CanDoEvents is SemaphoreSlim && CanDoEvents.CurrentCount <= 0) CanDoEvents.Release();
+                    if (CanDoEvents?.CurrentCount <= 0) CanDoEvents?.Release();
                 }
             }
         }
@@ -543,12 +543,9 @@ namespace ImageViewer
         {
             try
             {
-                if (element is FrameworkElement)
-                {
-                    element.DoEvents();
-                    //await Task.Delay(1);
-                    await element.Dispatcher.InvokeAsync(action, realtime ? DispatcherPriority.Normal : DispatcherPriority.Background);
-                }
+                element?.DoEvents();
+                //await Task.Delay(1);
+                await element?.Dispatcher?.InvokeAsync(action, realtime ? DispatcherPriority.Normal : DispatcherPriority.Background);
             }
             catch { }
         }
@@ -1465,14 +1462,11 @@ namespace ImageViewer
         public static ImageInformation GetInformation(this FrameworkElement element)
         {
             var result = new ImageInformation() { Tagetment = element };
-            if (element is FrameworkElement)
+            element?.Dispatcher.Invoke(() =>
             {
-                element.Dispatcher.Invoke(() =>
-                {
-                    if (element.Tag is ImageInformation) result = element.Tag as ImageInformation;
-                    else element.Tag = result;
-                });
-            }
+                if (element.Tag is ImageInformation) result = element.Tag as ImageInformation;
+                else element.Tag = result;
+            });
             return (result);
         }
         #endregion
@@ -1560,7 +1554,7 @@ namespace ImageViewer
                     try
                     {
                         _file_list_ = _file_list_storage_.Keys.Distinct().NaturalSort().ToList();
-                        Application.Current.Dispatcher.Invoke(() => 
+                        Application.Current?.Dispatcher?.Invoke(() => 
                         { 
                             var mainwindow = Application.Current.MainWindow as MainWindow;
                             mainwindow?.UpdateInfoBox(e: e);

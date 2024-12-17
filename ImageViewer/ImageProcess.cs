@@ -90,7 +90,7 @@ namespace ImageViewer
 
             ImageViewer.GetInformation().Dispose();
 
-            Dispatcher.InvokeAsync(() =>
+            Dispatcher?.InvokeAsync(() =>
             {
                 if (ImageViewer.Source != null) { ImageViewer.Source = null; }
 
@@ -105,6 +105,28 @@ namespace ImageViewer
 
             IsProcessingViewer = false;
             IsBusy = false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void ClearImage()
+        {
+            Dispatcher?.InvokeAsync(() =>
+            {
+                if (ImageViewer.Source != null) { ImageViewer.Source = null; }
+
+                if (ImageViewer.ToolTip is ToolTip) { (ImageViewer.ToolTip as ToolTip).IsOpen = false; (ImageViewer.ToolTip as ToolTip).Content = null; }
+                
+                ResetViewTransform(calcdisplay: false);
+                ImageViewer.ToolTip = null;
+                ImageInfoBox.ToolTip = null;
+                ImageIndexBox.ToolTip = null;
+            });
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.WaitForFullGCComplete();
         }
 
         /// <summary>
@@ -152,7 +174,7 @@ namespace ImageViewer
 
                 DataObject dataPackage = new DataObject();
                 dataPackage.SetText(tooltip);
-                await Application.Current.Dispatcher.InvokeAsync(() =>
+                await Application.Current?.Dispatcher?.InvokeAsync(() =>
                 {
                     //Clipboard.Clear();
                     Clipboard.SetDataObject(dataPackage, false);

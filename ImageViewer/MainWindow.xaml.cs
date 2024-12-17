@@ -54,7 +54,7 @@ namespace ImageViewer
         //private static readonly string AppFullName = Application.ResourceAssembly.FullName.Split(',').First().Trim();
         private static string CachePath =  "cache";
 
-        private bool Ready => Dispatcher.Invoke(() => IsLoaded);
+        private bool Ready => Dispatcher?.Invoke(() => IsLoaded) ?? false;
 
         private double TaskTimeOutSeconds = 60;
         private double CountDownTimeOut = 500;
@@ -65,8 +65,8 @@ namespace ImageViewer
         /// </summary>
         private bool AutoSaveConfig
         {
-            get { return (AutoSaveOptions.Dispatcher.Invoke(() => AutoSaveOptions.IsChecked ?? true)); }
-            set { AutoSaveOptions.Dispatcher.Invoke(() => AutoSaveOptions.IsChecked = value); }
+            get { return (AutoSaveOptions?.Dispatcher?.Invoke(() => AutoSaveOptions.IsChecked ?? true) ?? false); }
+            set { AutoSaveOptions?.Dispatcher?.Invoke(() => AutoSaveOptions.IsChecked = value); }
         }
 
         /// <summary>
@@ -74,8 +74,8 @@ namespace ImageViewer
         /// </summary>
         private bool DarkTheme
         {
-            get { return (DarkBackground.Dispatcher.Invoke(() => DarkBackground.IsChecked ?? true)); }
-            set { DarkBackground.Dispatcher.Invoke(() => DarkBackground.IsChecked = value); }
+            get { return (DarkBackground?.Dispatcher?.Invoke(() => DarkBackground.IsChecked ?? true) ?? false); }
+            set { DarkBackground?.Dispatcher?.Invoke(() => DarkBackground.IsChecked = value); }
         }
 
         private readonly FontFamily CustomMonoFontFamily = new FontFamily();
@@ -102,11 +102,11 @@ namespace ImageViewer
         private static readonly SemaphoreSlim CanDoEvents = new SemaphoreSlim(1, 1);
         public static async void DoEvents()
         {
-            if (await CanDoEvents.WaitAsync(0))
+            if (await CanDoEvents?.WaitAsync(0))
             {
                 try
                 {
-                    if (Application.Current.Dispatcher.CheckAccess())
+                    if (Application.Current?.Dispatcher?.CheckAccess() ?? false)
                     {
                         await Dispatcher.Yield(DispatcherPriority.Normal);
                         //await System.Windows.Threading.Dispatcher.Yield();
@@ -120,7 +120,7 @@ namespace ImageViewer
                 {
                     try
                     {
-                        if (Application.Current.Dispatcher.CheckAccess())
+                        if (Application.Current?.Dispatcher?.CheckAccess() ?? false)
                         {
                             DispatcherFrame frame = new DispatcherFrame();
                             //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new Action(delegate { }));
@@ -128,7 +128,7 @@ namespace ImageViewer
 
                             //await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(ExitFrame), frame);
                             //await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
-                            await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
+                            await Application.Current?.Dispatcher?.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
                             Dispatcher.PushFrame(frame);
                         }
                     }
@@ -140,7 +140,7 @@ namespace ImageViewer
                 finally
                 {
                     //CanDoEvents.Release(max: 1);
-                    if (CanDoEvents is SemaphoreSlim && CanDoEvents.CurrentCount <= 0) CanDoEvents.Release();
+                    if (CanDoEvents?.CurrentCount <= 0) CanDoEvents?.Release();
                 }
             }
         }
@@ -175,7 +175,7 @@ namespace ImageViewer
         private void RenderRun(Action action, object sender = null)
         {
             InitRenderWorker();
-            if (RenderWorker is BackgroundWorker && !RenderWorker.IsBusy && !IsBusy && action is Action)
+            if (!(RenderWorker?.IsBusy ?? true) && !IsBusy && action is Action)
             {
                 IsBusy = true;
                 IsProcessingViewer = true;
@@ -210,9 +210,9 @@ namespace ImageViewer
         private string LastHaldFolder { get; set; } = string.Empty;
         private string LastHaldFile { get; set; } = string.Empty;
 
-        private bool WeakBlur { get { return (UseWeakBlur.Dispatcher.Invoke(() => UseWeakBlur.IsChecked ?? false)); } }
-        private bool WeakSharp { get { return (UseWeakSharp.Dispatcher.Invoke(() => UseWeakSharp.IsChecked ?? false)); } }
-        private bool WeakEffects { get { return (UseWeakEffects.Dispatcher.Invoke(() => UseWeakEffects.IsChecked ?? false)); } }
+        private bool WeakBlur { get { return (UseWeakBlur.Dispatcher?.Invoke(() => UseWeakBlur.IsChecked ?? false) ?? true); } }
+        private bool WeakSharp { get { return (UseWeakSharp.Dispatcher?.Invoke(() => UseWeakSharp.IsChecked ?? false) ?? true); } }
+        private bool WeakEffects { get { return (UseWeakEffects.Dispatcher?.Invoke(() => UseWeakEffects.IsChecked ?? false) ?? true); } }
 
         private const ulong GB = 1024 * 1024 * 1024;
         private const ulong MB = 1024 * 1024;
@@ -370,7 +370,7 @@ namespace ImageViewer
         {
             if (colors is IEnumerable<Color> && colors.Count() > 0)
             {
-                Dispatcher.Invoke(() =>
+                Dispatcher?.Invoke(() =>
                 {
                     picker.RecentColors.Clear();
                     var ct = Colors.Transparent;
@@ -410,14 +410,11 @@ namespace ImageViewer
         {
             if (Ready)
             {
-                if (ImageViewer is Image)
+                ImageViewer?.Dispatcher?.Invoke(() =>
                 {
-                    ImageViewer.Dispatcher.Invoke(() =>
-                    {
-                        if (ImageViewer.Tag == null) ImageViewer.Tag = new ImageInformation() { Tagetment = ImageViewer, HighlightColor = HighlightColor, LowlightColor = LowlightColor, MasklightColor = MasklightColor };
-                        else if (ImageViewer.Tag is ImageInformation) { var info = ImageViewer.Tag as ImageInformation; info.Tagetment = ImageViewer; info.HighlightColor = HighlightColor; info.LowlightColor = LowlightColor; info.MasklightColor = MasklightColor; }
-                    });
-                }
+                    if (ImageViewer.Tag == null) ImageViewer.Tag = new ImageInformation() { Tagetment = ImageViewer, HighlightColor = HighlightColor, LowlightColor = LowlightColor, MasklightColor = MasklightColor };
+                    else if (ImageViewer.Tag is ImageInformation) { var info = ImageViewer.Tag as ImageInformation; info.Tagetment = ImageViewer; info.HighlightColor = HighlightColor; info.LowlightColor = LowlightColor; info.MasklightColor = MasklightColor; }
+                });
             }
         }
 
@@ -431,8 +428,8 @@ namespace ImageViewer
             Size? result = null;
             if (element is Image)
             {
-                var size = element.Dispatcher.Invoke(() => element.RenderSize);
-                if (size.Width > 0 && size.Height > 0) result = size;
+                var size = element?.Dispatcher?.Invoke(() => element?.RenderSize);
+                if (size?.Width > 0 && size?.Height > 0) result = size;
             }
             return (result);
         }
@@ -460,9 +457,9 @@ namespace ImageViewer
         private bool IsImageNull(Image element)
         {
             var result = false;
-            if (Ready && element is Image)
+            if (Ready)
             {
-                result = element.Dispatcher.Invoke(() => element.Source == null);
+                result = element?.Dispatcher?.Invoke(() => element.Source == null) ?? false;
             }
             return (result);
         }
@@ -474,9 +471,9 @@ namespace ImageViewer
         /// <param name="image"></param>
         private async void SetImageSource(Image element, ImageSource image)
         {
-            if (Ready && element is Image && image is ImageSource)
+            if (Ready && image is ImageSource)
             {
-                await element.Dispatcher.InvokeAsync(() => { try { element.Source = image; } catch { } });
+                await element?.Dispatcher?.InvokeAsync(() => { try { element.Source = image; } catch { } });
             }
         }
 
@@ -487,11 +484,11 @@ namespace ImageViewer
         /// <param name="image"></param>
         private async void SetImageSource(Image element, ImageInformation image, bool fit = false)
         {
-            if (Ready && element is Image && image is ImageInformation)
+            if (Ready && image is ImageInformation)
             {
                 try
                 {
-                    await element.Dispatcher.InvokeAsync(async () =>
+                    await element?.Dispatcher?.InvokeAsync(async () =>
                     {
                         try
                         {
@@ -510,7 +507,7 @@ namespace ImageViewer
         {
             if (Ready)
             {
-                Dispatcher.Invoke(async () =>
+                Dispatcher?.Invoke(async () =>
                 {
                     if (image is null) image = ImageViewer.GetInformation();
                     if (e is RenamedEventArgs && (e as RenamedEventArgs).OldName.Equals(image.FileName, StringComparison.InvariantCultureIgnoreCase))
@@ -536,8 +533,8 @@ namespace ImageViewer
                 var image = ImageViewer.GetInformation();
                 UpdateInfoBox(image);
                 var tooltip = image.ValidCurrent ? await image.GetImageInfo(include_colorinfo: calc_colors) : null;
-                SetToolTip(ImageViewer, tooltip);
                 SetToolTip(ImageInfoBox, tooltip);
+                //SetToolTip(ImageViewer, tooltip);
                 result = tooltip;
             }
             return (result);
@@ -630,7 +627,7 @@ namespace ImageViewer
 
                     DoEvents();
 
-                    if (_CanUpdate_ is SemaphoreSlim && _CanUpdate_.CurrentCount < 1) _CanUpdate_.Release();
+                    if (_CanUpdate_?.CurrentCount < 1) _CanUpdate_?.Release();
                 }
             }
         }
@@ -744,13 +741,13 @@ namespace ImageViewer
 
                 IsLoadingViewer = true;
 
-                IDataObject dataPackage = Dispatcher.Invoke(() => Clipboard.GetDataObject());
+                IDataObject dataPackage = Dispatcher?.Invoke(() => Clipboard.GetDataObject());
                 if (dataPackage != null)
                 {
-                    var fmts = await Dispatcher.InvokeAsync(() => dataPackage.GetFormats(true));
+                    var fmts = await Dispatcher?.InvokeAsync(() => dataPackage.GetFormats(true));
                     if (fmts.Contains("Text"))
                     {
-                        var text = await Dispatcher.InvokeAsync(() => dataPackage.GetData("Text", true) as string);
+                        var text = await Dispatcher?.InvokeAsync(() => dataPackage.GetData("Text", true) as string);
                         if (Regex.IsMatch(text, @"^data:.*?;base64,", RegexOptions.IgnoreCase))
                         {
                             var image = ImageViewer.GetInformation();
@@ -793,13 +790,12 @@ namespace ImageViewer
             try
             {
                 CloseQualityChanger();
-                ResetViewTransform(calcdisplay: false);
-
                 IsLoadingViewer = true;
 
                 var image =  ImageViewer.GetInformation();
                 ret = await image.LoadImageFromPrevFile();
-
+                if (ret) ClearImage();
+                if (ret) ResetViewTransform(calcdisplay: false);
                 if (ret) SetTitle(image.FileName);
                 if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                 //if (ret && await UpdateImageViewerFinished()) FitView();
@@ -820,13 +816,12 @@ namespace ImageViewer
             try
             {
                 CloseQualityChanger();
-                ResetViewTransform(calcdisplay: false);
-
                 IsLoadingViewer = true;
 
                 var image = ImageViewer.GetInformation();
                 ret = await image.LoadImageFromNextFile();
-
+                if (ret) ClearImage();
+                if (ret) ResetViewTransform(calcdisplay: false);
                 if (ret) SetTitle(image.FileName);
                 if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                 //if (ret && await UpdateImageViewerFinished()) FitView();
@@ -851,33 +846,29 @@ namespace ImageViewer
         /// <returns></returns>
         private async Task<bool> LoadImageFromFiles(string[] files)
         {
-            var action = false;
+            var ret = false;
             try
             {
                 files = files.Select(f => f.Trim().Trim('\"')).Where(f => f.IsSupportedExt()).Where(f => !string.IsNullOrEmpty(f) && File.Exists(f)).ToArray();
                 if (files.Length > 0)
                 {
                     CloseQualityChanger();
-                    ResetViewTransform(calcdisplay: false);
-
                     IsLoadingViewer = true;
 
                     _ = Task.Run(async () => await files.InitFileList());
 
                     var image  = ImageViewer.GetInformation();
-                    action |= await image.LoadImageFromFile(files.First());
-
-                    if (action)
-                    {
-                        SetTitle(image.FileName);
-                        RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
-                        if (await UpdateImageViewerFinished()) FitView();
-                    }
+                    ret |= await image.LoadImageFromFile(files.First());
+                    if (ret) ClearImage();
+                    if (ret) ResetViewTransform(calcdisplay: false);
+                    if (ret) SetTitle(image.FileName);
+                    if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
+                    //if (ret && await UpdateImageViewerFinished()) FitView();
                     else IsLoadingViewer = false;
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
-            return (action);
+            return (ret);
         }
 
         /// <summary>
@@ -898,8 +889,8 @@ namespace ImageViewer
         /// </summary>
         private bool IsBusy
         {
-            get => BusyNow.Dispatcher.Invoke(() => { return (BusyNow.IsIndeterminate); });
-            set => BusyNow.Dispatcher.Invoke(() =>
+            get => BusyNow?.Dispatcher?.Invoke(() => { return (BusyNow.IsIndeterminate); }) ?? false;
+            set => BusyNow?.Dispatcher?.Invoke(() =>
             {
                 BusyNow.IsIndeterminate = value;
                 BusyNow.Value = value ? 0 : 100;
@@ -916,8 +907,8 @@ namespace ImageViewer
         /// </summary>
         private bool IsLoadingViewer
         {
-            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorViewer.IsBusy); });
-            set => BusyNow.Dispatcher.Invoke(() => { IndicatorViewer.BusyContent = LoadingWaitingStr; IndicatorViewer.IsBusy = value; DoEvents(); });
+            get => BusyNow?.Dispatcher?.Invoke(() => { return (IndicatorViewer.IsBusy); }) ?? false;
+            set => BusyNow?.Dispatcher?.Invoke(() => { IndicatorViewer.BusyContent = LoadingWaitingStr; IndicatorViewer.IsBusy = value; DoEvents(); });
         }
 
         /// <summary>
@@ -925,8 +916,8 @@ namespace ImageViewer
         /// </summary>
         private bool IsSavingViewer
         {
-            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorViewer.IsBusy); });
-            set => BusyNow.Dispatcher.Invoke(() => { IndicatorViewer.BusyContent = SavingWaitingStr; IndicatorViewer.IsBusy = value; DoEvents(); });
+            get => BusyNow?.Dispatcher?.Invoke(() => { return (IndicatorViewer.IsBusy); }) ?? false;
+            set => BusyNow?.Dispatcher?.Invoke(() => { IndicatorViewer.BusyContent = SavingWaitingStr; IndicatorViewer.IsBusy = value; DoEvents(); });
         }
 
         /// <summary>
@@ -934,8 +925,8 @@ namespace ImageViewer
         /// </summary>
         private bool IsProcessingViewer
         {
-            get => BusyNow.Dispatcher.Invoke(() => { return (IndicatorViewer.IsBusy); });
-            set => BusyNow.Dispatcher.Invoke(() => { IndicatorViewer.BusyContent = ProcessingWaitingStr; IndicatorViewer.IsBusy = value; DoEvents(); });
+            get => BusyNow?.Dispatcher?.Invoke(() => { return (IndicatorViewer.IsBusy); }) ?? false;
+            set => BusyNow?.Dispatcher?.Invoke(() => { IndicatorViewer.BusyContent = ProcessingWaitingStr; IndicatorViewer.IsBusy = value; DoEvents(); });
         }
 
         /// <summary>
@@ -943,8 +934,8 @@ namespace ImageViewer
         /// </summary>
         private bool IsMagnifier
         {
-            get => ImageMagnifier.Dispatcher.Invoke(() => { return (ImageMagnifier.IsEnabled); });
-            set => ImageMagnifier.Dispatcher.Invoke(() => { ImageMagnifier.IsEnabled = value; });
+            get => ImageMagnifier?.Dispatcher?.Invoke(() => { return (ImageMagnifier.IsEnabled); }) ?? false;
+            set => ImageMagnifier?.Dispatcher?.Invoke(() => { ImageMagnifier.IsEnabled = value; });
         }
 
         /// <summary>
@@ -952,7 +943,7 @@ namespace ImageViewer
         /// </summary>
         private bool IsQualityChanger
         {
-            get => QualityChanger.Dispatcher.Invoke(() => { return (QualityChanger.IsVisible); });
+            get => QualityChanger?.Dispatcher?.Invoke(() => { return (QualityChanger.IsVisible); }) ?? false;
         }
         #endregion
 
@@ -1095,7 +1086,7 @@ namespace ImageViewer
             if (items != null) items.Clear();
             else items = new List<FrameworkElement>();
 
-            Func<object, bool> MenuHost = (obj) => Dispatcher.Invoke(() => (bool)(obj as MenuItem).Tag);
+            Func<object, bool> MenuHost = (obj) => Dispatcher?.Invoke(() => (bool)(obj as MenuItem).Tag) ?? false;
 
             if (items.Count <= 0)
             {
@@ -1618,7 +1609,7 @@ namespace ImageViewer
         {
             get
             {
-                return (Dispatcher.Invoke(() =>
+                return (Dispatcher?.Invoke(() =>
                 {
                     var value = ZoomFitMode.All;
                     if (ZoomFitNone.IsChecked ?? false) value = ZoomFitMode.None;
@@ -1626,11 +1617,11 @@ namespace ImageViewer
                     else if (ZoomFitWidth.IsChecked ?? false) value = ZoomFitMode.Width;
                     else if (ZoomFitHeight.IsChecked ?? false) value = ZoomFitMode.Height;
                     return (value);
-                }));
+                }) ?? ZoomFitMode.All);
             }
             set
             {
-                Dispatcher.Invoke(() =>
+                Dispatcher?.Invoke(() =>
                 {
                     if (value == ZoomFitMode.None)
                     {
@@ -1687,33 +1678,36 @@ namespace ImageViewer
             if (!Ready) return;
             try
             {
-                Dispatcher.InvokeAsync(() =>
+                Dispatcher?.InvokeAsync(() =>
                 {
-                    #region Re-Calc Scroll Viewer Size
-                    var nw = size?.Width;
-                    var nh = size?.Height;
-                    var cw = ImageCanvas.ActualWidth;
-                    var ch = ImageCanvas.ActualHeight - ImageToolBar.ActualHeight;
-                    ImageViewerPanel.MaxWidth = cw;
-                    ImageViewerPanel.MaxHeight = ch;
-                    ImageViewerPanel.MinWidth = cw;
-                    ImageViewerPanel.MinHeight = ch;
-                    ImageViewerPanel.RenderSize = new Size(cw, ch);
-                    ImageViewerPanel.UpdateLayout();
+                    using (var d = Dispatcher?.DisableProcessing())
+                    {
+                        #region Re-Calc Scroll Viewer Size
+                        var nw = size?.Width;
+                        var nh = size?.Height;
+                        var cw = ImageCanvas.ActualWidth;
+                        var ch = ImageCanvas.ActualHeight - ImageToolBar.ActualHeight;
+                        ImageViewerPanel.MaxWidth = cw;
+                        ImageViewerPanel.MaxHeight = ch;
+                        ImageViewerPanel.MinWidth = cw;
+                        ImageViewerPanel.MinHeight = ch;
+                        ImageViewerPanel.RenderSize = new Size(cw, ch);
+                        ImageViewerPanel.UpdateLayout();
 
-                    ImageViewerScroll.Width = cw;
-                    ImageViewerScroll.Height = ch;
-                    ImageViewerScroll.MaxWidth = cw;
-                    ImageViewerScroll.MaxHeight = ch;
-                    ImageViewerScroll.UpdateLayout();
-                    #endregion
+                        ImageViewerScroll.Width = cw;
+                        ImageViewerScroll.Height = ch;
+                        ImageViewerScroll.MaxWidth = cw;
+                        ImageViewerScroll.MaxHeight = ch;
+                        ImageViewerScroll.UpdateLayout();
+                        #endregion
 
-                    if (ZoomFitNone.IsChecked ?? false) ZoomRatio.IsEnabled = true;
-                    else ZoomRatio.IsEnabled = false;
-                    ZoomRatioValue.IsEnabled = ZoomRatio.IsEnabled;
+                        if (ZoomFitNone.IsChecked ?? false) ZoomRatio.IsEnabled = true;
+                        else ZoomRatio.IsEnabled = false;
+                        ZoomRatioValue.IsEnabled = ZoomRatio.IsEnabled;
 
-                    CalcZoomRatio();
-                    DoEvents();
+                        CalcZoomRatio();
+                        DoEvents();
+                    }
                 });
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -1830,7 +1824,7 @@ namespace ImageViewer
         /// <param name="offset"></param>
         private void SyncScrollOffset(Point offset)
         {
-            Dispatcher.Invoke(() =>
+            Dispatcher?.Invoke(() =>
             {
                 if (offset.X >= 0)
                 {
@@ -1848,7 +1842,7 @@ namespace ImageViewer
         /// </summary>
         private void CenterViewer()
         {
-            Dispatcher.Invoke(() =>
+            Dispatcher?.Invoke(() =>
             {
                 ImageViewerScroll.ScrollToVerticalOffset(ImageViewerScroll.ScrollableHeight / 2);
                 ImageViewerScroll.ScrollToHorizontalOffset(ImageViewerScroll.ScrollableWidth / 2);
@@ -1861,15 +1855,15 @@ namespace ImageViewer
         /// </summary>
         private void FitView()
         {
-            ImageViewerBox.Dispatcher.Invoke(() =>
+            ImageViewerBox?.Dispatcher?.Invoke(() =>
             {
-                if (ImageViewer.Source != null)
+                if (ImageViewer?.Source != null)
                 {
-                    var iw = ImageViewer.Source?.Width;
-                    var ih = ImageViewer.Source?.Height;
+                    var iw = ImageViewer?.Source?.Width;
+                    var ih = ImageViewer?.Source?.Height;
 
-                    var vw = ImageViewerPanel.ActualWidth;
-                    var vh = ImageViewerPanel.ActualHeight;
+                    var vw = ImageViewerPanel?.ActualWidth;
+                    var vh = ImageViewerPanel?.ActualHeight;
 
                     if (iw >= vw || ih >= vh)
                     {
@@ -1891,7 +1885,7 @@ namespace ImageViewer
         private void FlipView()
         {
             if (IsImageNull(ImageViewer)) return;
-            ImageViewerScale.Dispatcher.InvokeAsync(() => ImageViewerScale.ScaleY *= -1);
+            ImageViewerScale?.Dispatcher?.InvokeAsync(() => ImageViewerScale.ScaleY *= -1);
         }
 
         /// <summary>
@@ -1900,7 +1894,7 @@ namespace ImageViewer
         private void FlopView()
         {
             if (IsImageNull(ImageViewer)) return;
-            ImageViewerScale.Dispatcher.InvokeAsync(() => ImageViewerScale.ScaleX *= -1);
+            ImageViewerScale?.Dispatcher?.InvokeAsync(() => ImageViewerScale.ScaleX *= -1);
         }
 
         /// <summary>
@@ -1910,7 +1904,7 @@ namespace ImageViewer
         private void RotateView(double  angle)
         {
             if (IsImageNull(ImageViewer)) return;
-            ImageViewerScale.Dispatcher.InvokeAsync(() => ImageViewerRotate.Angle = (ImageViewerRotate.Angle + angle) % 360);
+            ImageViewerScale?.Dispatcher?.InvokeAsync(() => ImageViewerRotate.Angle = (ImageViewerRotate.Angle + angle) % 360);
             CalcDisplay();
         }
 
@@ -1919,7 +1913,7 @@ namespace ImageViewer
         /// </summary>
         private void ResetViewTransform(bool calcdisplay = true)
         {
-            ImageViewerScale.Dispatcher.InvokeAsync(() =>
+            ImageViewerScale?.Dispatcher?.InvokeAsync(() =>
             {
                 var scale = ZoomRatio.Value;
                 ImageViewerRotate.Angle = 0;
@@ -2001,7 +1995,7 @@ namespace ImageViewer
             if (Ready && !IsQualityChanger)
             {
                 InitCoutDownTimer();
-                QualityChanger.Dispatcher.InvokeAsync(() =>
+                QualityChanger?.Dispatcher?.InvokeAsync(() =>
                 {
                     var info = ImageViewer.GetInformation();
                     if (info.ValidCurrent)
@@ -2045,7 +2039,7 @@ namespace ImageViewer
         {
             if (Ready && IsQualityChanger)
             {
-                QualityChanger.Dispatcher.InvokeAsync(() =>
+                QualityChanger?.Dispatcher?.InvokeAsync(() =>
                 {
                     if (restore)
                         QualityChanger_CloseButtonClicked(QualityChanger, null);
@@ -2063,7 +2057,7 @@ namespace ImageViewer
         /// <param name="title"></param>
         private void SetQualityChangerTitle(string title = null)
         {
-            QualityChanger.Dispatcher.InvokeAsync(() =>
+            QualityChanger?.Dispatcher?.InvokeAsync(() =>
             {
                 title = title?.Trim();
                 QualityChanger.Caption = string.IsNullOrEmpty(title) ? $"{QualityChangeerTitle}" : $"{QualityChangeerTitle} => {title}";
@@ -2078,7 +2072,7 @@ namespace ImageViewer
         {
             if (IsQualityChanger && !string.IsNullOrEmpty(diff))
             {
-                QualityChanger.Dispatcher.InvokeAsync(() =>
+                QualityChanger?.Dispatcher?.InvokeAsync(() =>
                 {
                     if (Regex.IsMatch(QualityChanger.Caption, $"{"ResultTipDifference".T()}", RegexOptions.IgnoreCase))
                     {
@@ -2096,7 +2090,7 @@ namespace ImageViewer
         {
             if (IsQualityChanger && diff != null && diff != double.NaN)
             {
-                QualityChanger.Dispatcher.InvokeAsync(() =>
+                QualityChanger?.Dispatcher?.InvokeAsync(() =>
                 {
                     if (Regex.IsMatch(QualityChanger.Caption, $"{"ResultTipDifference".T()}", RegexOptions.IgnoreCase))
                     {
@@ -2113,7 +2107,7 @@ namespace ImageViewer
         private ImageType GetQualityChangerSource()
         {
             var result = ImageType.None;
-            result = QualityChanger.Dispatcher.Invoke(() =>
+            result = QualityChanger?.Dispatcher?.Invoke(() =>
             {
                 var source = ImageType.None;
                 if (IsQualityChanger && QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
@@ -2121,7 +2115,7 @@ namespace ImageViewer
                     source = (ImageType)(QualityChanger.Tag ?? ImageType.None);
                 }
                 return (source);
-            });
+            }) ?? ImageType.None;
             return (result);
         }
         #endregion
@@ -2133,7 +2127,7 @@ namespace ImageViewer
         /// <param name="change_state"></param>
         private void ToggleMagnifier(bool? state = null, bool change_state = false)
         {
-            ImageMagnifier.Dispatcher.Invoke(() =>
+            ImageMagnifier?.Dispatcher?.Invoke(() =>
             {
                 if (ImageViewer.Source == null) return;
 
@@ -2164,11 +2158,11 @@ namespace ImageViewer
             {
                 if (element?.ToolTip is string)
                 {
-                    result = Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).IsOpen);
+                    result = Dispatcher?.Invoke(() => (element?.ToolTip as ToolTip).IsOpen) ?? false;
                 }
                 else if (element?.ToolTip is ToolTip && (element?.ToolTip as ToolTip).Content is string)
                 {
-                    result = Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).IsOpen);
+                    result = Dispatcher?.Invoke(() => (element?.ToolTip as ToolTip).IsOpen) ?? false;
                 }
             }
             catch { }
@@ -2182,7 +2176,7 @@ namespace ImageViewer
         /// <returns></returns>
         private string GetToolTip(FrameworkElement element)
         {
-            var result = Dispatcher.Invoke(() =>
+            var result = Dispatcher?.Invoke(() =>
             {
                 var ret = string.Empty;
                 if (element?.ToolTip is string)
@@ -2205,7 +2199,7 @@ namespace ImageViewer
         /// <param name="tooltip"></param>
         private void SetToolTip(FrameworkElement element, string tooltip)
         {
-            Dispatcher.Invoke(() =>
+            Dispatcher?.Invoke(() =>
             {
                 if (element?.ToolTip is string)
                 {
@@ -2236,7 +2230,7 @@ namespace ImageViewer
         /// <param name="element"></param>
         private void OpenToolTip(FrameworkElement element)
         {
-            element?.Dispatcher.InvokeAsync(() =>
+            element?.Dispatcher?.InvokeAsync(() =>
             {
                 try
                 {
@@ -2259,7 +2253,7 @@ namespace ImageViewer
         /// <param name="element"></param>
         private void CloseToolTip(FrameworkElement element)
         {
-            element?.Dispatcher.Invoke(() =>
+            element?.Dispatcher?.Invoke(() =>
             {
                 try
                 {
@@ -2293,7 +2287,7 @@ namespace ImageViewer
         /// <param name="element"></param>
         private void ShowToolTip(FrameworkElement element)
         {
-            element?.Dispatcher.InvokeAsync(() =>
+            element?.Dispatcher?.InvokeAsync(() =>
             {
                 if (element?.ToolTip is string)
                 {
@@ -2312,7 +2306,7 @@ namespace ImageViewer
         /// <param name="element"></param>
         private void HideToolTip(FrameworkElement element)
         {
-            element?.Dispatcher.InvokeAsync(() =>
+            element?.Dispatcher?.InvokeAsync(() =>
             {
                 if (element?.ToolTip is string)
                 {
@@ -2341,16 +2335,16 @@ namespace ImageViewer
         /// </summary>
         private void ToggleToolTipState()
         {
-            ShowImageInfo.Dispatcher.InvokeAsync(() =>
+            ShowImageInfo?.Dispatcher?.InvokeAsync(() =>
             {
                 try
                 {
                     var info = ShowImageInfo.IsChecked ?? false;
                     if (!info)
                     {
-                        CloseToolTip(ImageViewer);
+                        CloseToolTip(ImageInfoBox);
                     }
-                    SetToolTipState(ImageViewer, info);
+                    SetToolTipState(ImageInfoBox, info);
                 }
                 catch { }
             });
@@ -2366,7 +2360,7 @@ namespace ImageViewer
         {
             try
             {
-                Dispatcher.Invoke(() =>
+                Dispatcher?.Invoke(() =>
                 {
                     Cursor = cursor;
                     DoEvents();
@@ -2403,7 +2397,7 @@ namespace ImageViewer
         /// <param name="text"></param>
         private void SetTitle(string text = null)
         {
-            Dispatcher.InvokeAsync(() =>
+            Dispatcher?.InvokeAsync(() =>
             {
                 if (string.IsNullOrEmpty(text))
                 {
@@ -2875,7 +2869,7 @@ namespace ImageViewer
 
             var opts = this.GetCmdLineOpts();
             var args = opts.Args.ToArray();
-            if (args.Length > 0) Dispatcher.InvokeAsync(async () => await LoadImageFromFiles(args));
+            if (args.Length > 0) Dispatcher?.InvokeAsync(async () => await LoadImageFromFiles(args));
         }
 
         private void Window_Unloaded(object sender, RoutedEventArgs e)
@@ -2940,7 +2934,7 @@ namespace ImageViewer
                     if (sender == ImageLoadHaldLut)
                         LoadHaldLutFile((files as IEnumerable<string>).Where(f => File.Exists(f)).First());
                     else
-                        Dispatcher.InvokeAsync(async () => await LoadImageFromFiles((files as IEnumerable<string>).ToArray()));
+                        Dispatcher?.InvokeAsync(async () => await LoadImageFromFiles((files as IEnumerable<string>).ToArray()));
                 }
             }
             else if (e.Data.GetDataPresent("Text"))
@@ -2951,7 +2945,7 @@ namespace ImageViewer
                     if (sender == ImageLoadHaldLut)
                         LoadHaldLutFile(files.Where(f => File.Exists(f)).First());
                     else
-                        Dispatcher.InvokeAsync(async () => await LoadImageFromFiles(files as IEnumerable<string>));
+                        Dispatcher?.InvokeAsync(async () => await LoadImageFromFiles(files as IEnumerable<string>));
                 }
             }
             e.Handled = true;
@@ -3017,13 +3011,17 @@ namespace ImageViewer
                         e.Handled = true;
                         if (Keyboard.Modifiers == ModifierKeys.Shift)
                         {
-                            if (ZoomFitNone.IsChecked ?? false) { ZoomFitAll.IsChecked = true; ImageActions_Click(ZoomFitAll, e); }
-                            else if (ZoomFitAll.IsChecked ?? false) { ZoomFitNone.IsChecked = true; ImageActions_Click(ZoomFitNone, e); }
+                            if      (CurrentZoomFitMode == ZoomFitMode.Height) CurrentZoomFitMode = ZoomFitMode.Width;
+                            else if (CurrentZoomFitMode == ZoomFitMode.Width) CurrentZoomFitMode = ZoomFitMode.All;
+                            else if (CurrentZoomFitMode == ZoomFitMode.All) CurrentZoomFitMode = ZoomFitMode.None;
+                            else if (CurrentZoomFitMode == ZoomFitMode.None) CurrentZoomFitMode = ZoomFitMode.Height;
                         }
                         else
                         {
-                            if (ZoomFitNone.IsChecked ?? false) { ZoomFitAll.IsChecked = true; ImageActions_Click(ZoomFitAll, e); }
-                            else if (ZoomFitAll.IsChecked ?? false) { ZoomFitNone.IsChecked = true; ImageActions_Click(ZoomFitNone, e); }
+                            if (CurrentZoomFitMode == ZoomFitMode.None) CurrentZoomFitMode = ZoomFitMode.All;
+                            else if (CurrentZoomFitMode == ZoomFitMode.All) CurrentZoomFitMode = ZoomFitMode.Width;
+                            else if (CurrentZoomFitMode == ZoomFitMode.Width) CurrentZoomFitMode = ZoomFitMode.Height;
+                            else if (CurrentZoomFitMode == ZoomFitMode.Height) CurrentZoomFitMode = ZoomFitMode.None;
                         }
                     }
                     else if (Keyboard.Modifiers == ModifierKeys.Control && (e.Key == Key.C || e.SystemKey == Key.C))
@@ -3036,7 +3034,7 @@ namespace ImageViewer
                     }
                     else if (e.Key == Key.I || e.SystemKey == Key.I)
                     {
-                        ToggleToolTip(ImageViewer);
+                        ToggleToolTip(ImageInfoBox);
                     }
                     else if (e.Key == Key.M || e.SystemKey == Key.M)
                     {
@@ -3140,7 +3138,8 @@ namespace ImageViewer
             }
         }
 
-        private void ImageBox_MouseDown(object sender, MouseButtonEventArgs e)
+        private long _last_timestamp_ = 0;
+        private async void ImageBox_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (!Ready) return;
             e.Handled = false;
@@ -3172,7 +3171,6 @@ namespace ImageViewer
                     else if (e.ChangedButton == MouseButton.Left)
                     {
                         var image_s = ImageViewer.GetInformation();
-
                         if (sender == ImageViewerBox || sender == ImageViewerScroll)
                         {
                             e.Handled = true;
@@ -3182,14 +3180,19 @@ namespace ImageViewer
                             ImageViewer.GetInformation().LastClickPos = new PointD(pos.X, pos.Y);
                         }
                     }
-                    //else if (e.ChangedButton == MouseButton.XButton1 && Keyboard.Modifiers == ModifierKeys.None && e.ClickCount <= 2)
-                    //{
-                    //    await LoadImageFromNextFile();
-                    //}
-                    //else if (e.ChangedButton == MouseButton.XButton2 && Keyboard.Modifiers == ModifierKeys.None && e.ClickCount <= 2)
-                    //{
-                    //    await LoadImageFromPrevFile();
-                    //}
+                    else if (e.ChangedButton == MouseButton.XButton1 && Keyboard.Modifiers == ModifierKeys.None && e.ClickCount <= 2)
+                    {
+                        e.Handled = true;
+                        if (e.Timestamp - _last_timestamp_ > 100)
+                            await LoadImageFromNextFile();
+                    }
+                    else if (e.ChangedButton == MouseButton.XButton2 && Keyboard.Modifiers == ModifierKeys.None && e.ClickCount <= 2)
+                    {
+                        e.Handled = true;
+                        if (e.Timestamp - _last_timestamp_ > 100)
+                            await LoadImageFromPrevFile();
+                    }
+                    _last_timestamp_ = e.Timestamp;
                 }
             }
             catch (Exception ex) { ex.ShowMessage("MouseClick"); }
@@ -3420,7 +3423,7 @@ namespace ImageViewer
             if (sender is Slider)
             {
                 var slider = sender as Slider;
-                slider.Dispatcher.Invoke(() =>
+                slider?.Dispatcher?.Invoke(() =>
                 {
                     if (e.Delta < 0) slider.Value -= slider.SmallChange;
                     if (e.Delta > 0) slider.Value += slider.SmallChange;
@@ -3430,31 +3433,40 @@ namespace ImageViewer
 
         private void ZoomRatio_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
+            if (!Ready) return;
             try
             {
-                if (Ready && CurrentZoomFitMode == ZoomFitMode.None && LastZoomRatio != e.NewValue)
+                using (var d = Dispatcher?.DisableProcessing())
                 {
-                    e.Handled = true;
-                    var zoom_old = LastZoomRatio;
-                    var zoom_new = e.NewValue;
-                    zoom_new = Math.Min(ZoomMax, Math.Max(ZoomMin, zoom_new));
-                    if (zoom_new - zoom_old <= ZoomRatio.SmallChange && ((zoom_new < 1 && zoom_old > 1) || (zoom_new > 1 && zoom_old < 1)))
-                        zoom_new = 1f;
+                    if (Ready && CurrentZoomFitMode == ZoomFitMode.None && LastZoomRatio != e.NewValue)
+                    {
+                        e.Handled = true;
+                        var zoom_old = LastZoomRatio;
+                        var zoom_new = e.NewValue;
+                        zoom_new = Math.Min(ZoomMax, Math.Max(ZoomMin, zoom_new));
+                        if (zoom_new - zoom_old <= ZoomRatio.SmallChange && ((zoom_new < 1 && zoom_old > 1) || (zoom_new > 1 && zoom_old < 1)))
+                            zoom_new = 1f;
 
-                    ZoomRatio.ToolTip = $"{"Zoom Ratio".T(DefaultCultureInfo)}: {zoom_new:F2}X";
-                    LastZoomRatio = zoom_new;
+                        ZoomRatio.ToolTip = $"{"Zoom Ratio".T(DefaultCultureInfo)}: {zoom_new:F2}X";
+                        LastZoomRatio = zoom_new;
 
-
-                    var zw = zoom_new * ImageViewer.Source.Width;
-                    var zh = zoom_new * ImageViewer.Source.Height;
-                    ImageViewerBox.MaxWidth = zw <= ImageViewerScroll.ActualWidth ? ImageViewerScroll.ActualWidth : zw;
-                    ImageViewerBox.MaxHeight = zh <= ImageViewerScroll.ActualHeight ? ImageViewerScroll.ActualHeight : zh;
-                    ImageViewerBox.Width = zw <= ImageViewerScroll.ActualWidth ? ImageViewerScroll.ActualWidth : zw;
-                    ImageViewerBox.Height = zh <= ImageViewerScroll.ActualHeight ? ImageViewerScroll.ActualHeight : zh;
+                        if (!IsImageNull(ImageViewer))
+                        {
+                            var zw = zoom_new * ImageViewer.Source.Width;
+                            var zh = zoom_new * ImageViewer.Source.Height;
+                            ImageViewerBox.MaxWidth = zw <= ImageViewerScroll.ActualWidth ? ImageViewerScroll.ActualWidth : zw;
+                            ImageViewerBox.MaxHeight = zh <= ImageViewerScroll.ActualHeight ? ImageViewerScroll.ActualHeight : zh;
+                            ImageViewerBox.Width = zw <= ImageViewerScroll.ActualWidth ? ImageViewerScroll.ActualWidth : zw;
+                            ImageViewerBox.Height = zh <= ImageViewerScroll.ActualHeight ? ImageViewerScroll.ActualHeight : zh;
+                        }
+                    }
+                    if (Ready)
+                    {
+                        ImageViewerScale.ScaleX = ZoomRatio.Value;
+                        ImageViewerScale.ScaleY = ZoomRatio.Value;
+                        CalcDisplay();
+                    }
                 }
-                ImageViewerScale.ScaleX = ZoomRatio.Value;
-                ImageViewerScale.ScaleY = ZoomRatio.Value;
-                CalcDisplay();
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
