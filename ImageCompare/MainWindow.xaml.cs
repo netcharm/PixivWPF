@@ -2732,6 +2732,7 @@ namespace ImageCompare
                         QualityChangerSlider.SmallChange = 1;
                         QualityChangerSlider.Value = quality > 0 ? quality : 100;
                         QualityChanger.Show();
+                        QualityChanger.UpdateLayout();
 
                         DoEvents();
                         AdjustQualityChangerPos();

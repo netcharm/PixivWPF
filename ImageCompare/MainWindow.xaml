@@ -474,7 +474,7 @@
                 <xctk:Magnifier x:Name="ImageMagnifier" x:Uid="ImageMagnifier" BorderBrush="DimGray" BorderThickness="1" Radius="100" ZoomFactor="0.25" Visibility="Collapsed" />
             </xctk:MagnifierManager.Magnifier>
         </StackPanel>
-        <xctk:ChildWindow Grid.Row="1" x:Name="QualityChanger" x:Uid="QualityChanger" CloseButtonClicked="QualityChanger_CloseButtonClicked" WindowStartupLocation="Center">
+        <xctk:ChildWindow Grid.Row="1" x:Name="QualityChanger" x:Uid="QualityChanger" CloseButtonClicked="QualityChanger_CloseButtonClicked" >
             <Grid Margin="8">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
