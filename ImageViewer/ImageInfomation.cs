@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
+using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -1125,6 +1126,8 @@ namespace ImageViewer
             return (await LoadImageFromIndex(idx, relative: rel));
         }
 
+        private int? _last_file_index_ = null;
+
         /// <summary>
         /// 
         /// </summary>
@@ -1146,8 +1149,10 @@ namespace ImageViewer
                         {
                             var file_n = files.Where(f => f.EndsWith(FileName, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
                             var idx_o = files.IndexOf(file_n);
+                            if (idx_o < 0) idx_o = _last_file_index_ ?? int.MaxValue;
                             var idx_n = (int)Math.Max(0, Math.Min(files.Count - 1, relative ? idx_o + index : index));
                             if (idx_n != idx_o) ret = await LoadImageFromFile(files[idx_n]);
+                            _last_file_index_ = idx_n;
                         }
                     }
                 }

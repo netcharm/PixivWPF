@@ -1754,8 +1754,8 @@ namespace ImageViewer
         public static async Task<List<string>> GetFileList(this object file)
         {
             var result = new List<string>();
-            var ret = (_file_list_.Count == 0 || (_file_list_.Any() && _file_list_.Count() != _file_list_storage_.Count)) ? await UpdateFileList() : true;
-            if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(5)) && ret)
+            //var ret = (_file_list_.Count == 0 || (_file_list_.Any() && _file_list_.Count() != _file_list_storage_.Count)) ? await UpdateFileList() : true;
+            if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(10)))// && ret)
             {
                 try
                 {
@@ -1835,7 +1835,8 @@ namespace ImageViewer
                         return Task.FromResult((ret));
                     });
                 }
-                //result &= await UpdateFileList();
+                result &= await UpdateFileList();
+                if (result) UpdateInfoBox();
                 result &= await InitWatcher(paths);
             }
             return (result);
