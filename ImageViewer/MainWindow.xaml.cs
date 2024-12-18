@@ -291,6 +291,9 @@ namespace ImageViewer
         private Point mouse_start;
         private Point mouse_origin;
 
+        private Point mouse_start_birdseye;
+        private Point mouse_origin_birdseye;
+
         private double ZoomMin = 0.1;
         private double ZoomMax = 10.0;
 
@@ -300,26 +303,6 @@ namespace ImageViewer
         private void GetColorNames()
         {
             typeof(Colors).GetProperties();
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <returns></returns>
-        private Point GetSystemDPI()
-        {
-            var result = new Point(96, 96);
-            try
-            {
-                System.Reflection.BindingFlags flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static;
-                var dpiXProperty = typeof(SystemParameters).GetProperty("DpiX", flags);
-                //var dpiYProperty = typeof(SystemParameters).GetProperty("DpiY", flags);
-                var dpiYProperty = typeof(SystemParameters).GetProperty("Dpi", flags);
-                if (dpiXProperty != null) { result.X = (int)dpiXProperty.GetValue(null, null); }
-                if (dpiYProperty != null) { result.Y = (int)dpiYProperty.GetValue(null, null); }
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-            return (result);
         }
 
         /// <summary>
@@ -856,11 +839,11 @@ namespace ImageViewer
 
                 var image = ImageViewer.GetInformation();
                 ret = await image.LoadImageFromNextFile();
+                
                 if (ret) ClearImage();
                 if (ret) ResetViewTransform(calcdisplay: false);
                 if (ret) SetTitle(image.FileName);
                 if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
-                //if (ret && await UpdateImageViewerFinished()) FitView();
                 else IsLoadingViewer = false;
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -925,7 +908,6 @@ namespace ImageViewer
                     if (ret) ResetViewTransform(calcdisplay: false);
                     if (ret) SetTitle(image.FileName);
                     if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
-                    //if (ret && await UpdateImageViewerFinished()) FitView();
                     else IsLoadingViewer = false;
                 }
             }
@@ -1834,6 +1816,10 @@ namespace ImageViewer
                     ImageViewer.UpdateLayout();
                     ImageViewerBox.UpdateLayout();
                     ImageViewerScroll.UpdateLayout();
+
+                    var outbox = ImageViewerBox.ActualWidth > ImageViewerScroll.ActualWidth || ImageViewerBox.ActualHeight > ImageViewerScroll.ActualHeight;
+                    SetBirdView(outbox);
+                    UpdateBirdView();
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -1886,6 +1872,7 @@ namespace ImageViewer
         /// <param name="offset"></param>
         private void SyncScrollOffset(Point offset)
         {
+            if (offset.X < 0 || offset.Y < 0) return;
             Dispatcher?.Invoke(() =>
             {
                 if (offset.X >= 0)
@@ -1896,6 +1883,7 @@ namespace ImageViewer
                 {
                     ImageViewerScroll.ScrollToVerticalOffset(offset.Y);
                 }
+                UpdateBirdViewArea();
             });
         }
 
@@ -1995,8 +1983,9 @@ namespace ImageViewer
         {
             if (Ready)
             {
-                Dispatcher?.Invoke(async () =>
+                Dispatcher?.InvokeAsync(async () =>
                 {
+                    ImageIndexBox.Text = "-/-";
                     if (image is null) image = ImageViewer.GetInformation();
                     if (e is RenamedEventArgs && (e as RenamedEventArgs).OldName.Equals(image.FileName, StringComparison.InvariantCultureIgnoreCase))
                     {
@@ -2091,7 +2080,7 @@ namespace ImageViewer
                         QualityChanger.Caption = QualityChangeerTitle;
                         QualityChanger.FocusedElement = QualityChangerSlider;
                         QualityChangerSlider.Maximum = quality > 0 ? quality : 100;
-                        QualityChangerSlider.Width = 300;
+                        QualityChangerSlider.Width = 360;
                         QualityChangerSlider.IsSnapToTickEnabled = true;
                         QualityChangerSlider.Ticks = new DoubleCollection() { 10, 25, 30, 35, 55, 60, 65, 70, 75, 85, 95 };
                         QualityChangerSlider.TickPlacement = System.Windows.Controls.Primitives.TickPlacement.Both;
@@ -2202,6 +2191,91 @@ namespace ImageViewer
                 return (source);
             }) ?? ImageType.None;
             return (result);
+        }
+        #endregion
+
+        #region Bird View Helper
+
+        private void ShowBirdView()
+        {
+            BirdViewPanel.Dispatcher.Invoke(() => BirdViewPanel.Visibility = Visibility.Visible);
+        }
+
+        private void HideBirdView()
+        {
+            BirdViewPanel.Dispatcher.Invoke(() => BirdViewPanel.Visibility = Visibility.Hidden);
+        }
+
+        private void SetBirdView(bool state)
+        {
+            if (state) ShowBirdView();
+            else HideBirdView();
+        }
+
+        private void UpdateBirdViewArea()
+        {
+            BirdViewPanel.Dispatcher.InvokeAsync(() =>
+            {
+                var src = ImageViewer;
+                var scroll = ImageViewerScroll;
+                var ratio = Math.Min(250f / (src.DesiredSize.Width), 250f / (src.DesiredSize.Height));
+
+                var aw = (src.DesiredSize.Width < scroll.ViewportWidth ? src.DesiredSize.Width : scroll.ViewportWidth) * ratio;
+                var ah = (src.DesiredSize.Height < scroll.ViewportHeight ? src.DesiredSize.Height : scroll.ViewportHeight) * ratio;
+                var tx = scroll.HorizontalOffset * ratio;
+                var ty = scroll.VerticalOffset * ratio;
+                BirdViewArea.Width = aw;
+                BirdViewArea.Height = ah;
+                Canvas.SetLeft(BirdViewArea, tx);
+                Canvas.SetTop(BirdViewArea, ty);
+            });
+        }
+
+        private void UpdateBirdView()
+        {
+            BirdViewPanel.Dispatcher.InvokeAsync(() => 
+            {
+                if (ImageViewer.Source == null) BirdView.Source = null;
+                else
+                {
+                    try
+                    {
+                        var src = ImageViewer;
+                        var ratio = Math.Min(250f / src.ActualWidth, 250f / src.ActualHeight);
+                        var tw = src.ActualWidth * ratio;
+                        var th = src.ActualHeight * ratio;
+                        BirdViewPanel.Width = tw;
+                        BirdViewPanel.Height = th;
+                        BirdViewBorder.Width = tw;
+                        BirdViewBorder.Height = th;
+                        BirdView.Source = ImageViewer.ToBitmapSource(new Size(tw, th));
+                        
+                        UpdateBirdViewArea();
+                    }
+                    catch (Exception ex) { ex.ShowMessage(); }
+                }
+            });
+        }
+
+        private Point CalcBirdViewOffset(FrameworkElement sender, MouseEventArgs e)
+        {
+            double offset_x = -1, offset_y = -1;
+            if (sender == BirdView || sender == BirdViewCanvas || sender == BirdViewArea)
+            {
+                if (BirdView.Source != null)
+                {
+                    try
+                    {
+                        var src = ImageViewer;
+                        var ratio = Math.Max(src.ActualWidth / 250f, src.ActualHeight / 250f);
+                        Vector v = mouse_start_birdseye - e.GetPosition(BirdView);
+                        offset_x = mouse_origin_birdseye.X - v.X * ratio;
+                        offset_y = mouse_origin_birdseye.Y - v.Y * ratio;
+                    }
+                    catch { }
+                }
+            }
+            return (new Point(offset_x, offset_y));
         }
         #endregion
 
@@ -2894,7 +2968,9 @@ namespace ImageViewer
             ShowImageInfo.IsChecked = false;
             BusyNow.Opacity = 0.66;
             //IndicatorViewer.DisplayAfter = TimeSpan.FromMilliseconds(50);
+            HideBirdView();
             ChangeTheme();
+            QualityChangerSlider.MouseWheel += Slider_MouseWheel;
             #endregion
 
             #region Default Zoom Ratio
@@ -2902,7 +2978,6 @@ namespace ImageViewer
             ZoomMax = ZoomRatio.Maximum;
             ZoomRatio.Value = 1.0;
             ZoomRatio.MouseWheel += Slider_MouseWheel;
-            QualityChangerSlider.MouseWheel += Slider_MouseWheel;
             #endregion
 
             LocaleUI(DefaultCultureInfo);
@@ -3278,7 +3353,6 @@ namespace ImageViewer
                     }
                     else if (e.ChangedButton == MouseButton.Left)
                     {
-                        var image_s = ImageViewer.GetInformation();
                         if (sender == ImageViewerBox || sender == ImageViewerScroll)
                         {
                             e.Handled = true;
@@ -3333,7 +3407,7 @@ namespace ImageViewer
                 }
                 else if (e.LeftButton == MouseButtonState.Pressed)
                 {
-                    e.Handled = true;
+                    //e.Handled = true;
                     var offset = sender is Viewbox || sender is ScrollViewer ? CalcScrollOffset(sender as FrameworkElement, e) : new Point(-1, -1);
 #if DEBUG
                     Debug.WriteLine($"Original : [{mouse_origin.X:F0}, {mouse_origin.Y:F0}], Start : [{mouse_start.X:F0}, {mouse_start.Y:F0}] => Move : [{offset.X:F0}, {offset.Y:F0}]");
@@ -3362,28 +3436,6 @@ namespace ImageViewer
                         }
                     }
                 }
-                else if (sender is FrameworkElement)
-                {
-                    //var tooltip_opened = false;
-                    //foreach (var element in new FrameworkElement[] { ImageViewer })
-                    //{
-                    //    if (element.ToolTip is ToolTip && (element.ToolTip as ToolTip).IsOpen)
-                    //    {
-                    //        (element.ToolTip as ToolTip).IsOpen = false;
-                    //        tooltip_opened = true;
-                    //        break;
-                    //    }
-                    //}
-                    //if (tooltip_opened)
-                    //{
-                    //    var image = GetImageControl(sender as FrameworkElement);
-                    //    var tooltip = GetToolTip(image);
-                    //    if (image?.Source != null && !string.IsNullOrEmpty(tooltip) && image.ToolTip is ToolTip)
-                    //    {
-                    //        (image.ToolTip as ToolTip).IsOpen = true;
-                    //    }
-                    //}
-                }
             }
             catch (Exception ex) { ex.ShowMessage("MouseEnter"); }
         }
@@ -3397,6 +3449,60 @@ namespace ImageViewer
                 {
                     e.Handled = true;
                     var offset = sender is Viewbox || sender is ScrollViewer ? CalcScrollOffset(sender as FrameworkElement, e) : new Point(-1, -1);
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage("MouseLeave"); }
+        }
+        
+        private void BirdView_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!Ready) return;
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                if (sender == BirdView || sender == BirdViewCanvas || sender == BirdViewArea)
+                {
+                    e.Handled = true;
+                    mouse_start_birdseye = e.GetPosition(BirdView);
+                    mouse_origin_birdseye = new Point(ImageViewerScroll.HorizontalOffset, ImageViewerScroll.VerticalOffset);
+                }
+            }
+        }
+
+        private void BirdView_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (!Ready) return;
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                e.Handled = true;
+                var offset = CalcBirdViewOffset(sender as FrameworkElement, e);
+                SyncScrollOffset(offset);
+            }
+        }
+
+        private void BirdView_MouseEnter(object sender, MouseEventArgs e)
+        {
+            if (!Ready) return;
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                if (sender == BirdView || sender == BirdViewCanvas || sender == BirdViewArea)
+                {
+                    e.Handled = true;
+                    mouse_start_birdseye = e.GetPosition(BirdView);
+                    mouse_origin_birdseye = new Point(ImageViewerScroll.HorizontalOffset, ImageViewerScroll.VerticalOffset);
+                }
+            }
+        }
+
+        private void BirdView_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (!Ready) return;
+            try
+            {
+                if (e.LeftButton == MouseButtonState.Pressed)
+                {
+                    e.Handled = true;
+                    var offset = CalcBirdViewOffset(sender as FrameworkElement, e);
+                    SyncScrollOffset(offset);
                 }
             }
             catch (Exception ex) { ex.ShowMessage("MouseLeave"); }
@@ -3636,8 +3742,9 @@ namespace ImageViewer
             }
             catch (Exception ex) { ex.ShowMessage(); }
             finally { IsProcessingViewer = false; }
-        } 
+        }
         #endregion
+
 
     }
 }

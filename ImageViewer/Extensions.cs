@@ -302,7 +302,7 @@ namespace ImageViewer
             //{ "64", "Run As 64Bits Application", v => { runas64 = v != null; } },
         };
 
-        public static MyOptions GetCmdLineOpts(this Application app)
+        public static MyOptions GetCmdLineOpts(this DispatcherObject element)
         {
             if (myoptions == null)
             {
@@ -314,32 +314,12 @@ namespace ImageViewer
             return (myoptions ?? new MyOptions());
         }
 
-        public static MyOptions GetCmdLineOpts(this Window app)
-        {
-            return (GetCmdLineOpts(Application.Current));
-        }
-
-        public static MyOptions GetCmdLineOpts(this MainWindow app)
-        {
-            return (GetCmdLineOpts(Application.Current));
-        }
-
-        public static bool IsRunAs32Bits(this Application app)
+        public static bool IsRunAs32Bits(this DispatcherObject element)
         {
             return (System.Environment.Is64BitProcess || IntPtr.Size == 4);
         }
 
-        public static bool IsRunAs32Bits(this Window app)
-        {
-            return (IsRunAs32Bits(Application.Current));
-        }
-
-        public static bool IsRunAs32Bits(this MainWindow app)
-        {
-            return (IsRunAs32Bits(Application.Current));
-        }
-
-        private static Point GetDpi()
+        public static Point GetDpi()
         {
             var result = new Point(96, 96);
             IntPtr desktopWnd = IntPtr.Zero;
@@ -358,7 +338,7 @@ namespace ImageViewer
             return (result);
         }
 
-        private static int GetColorDepth()
+        public static int GetColorDepth()
         {
             var result = 0;
             IntPtr desktopWnd = IntPtr.Zero;
@@ -375,7 +355,7 @@ namespace ImageViewer
             return (result);
         }
 
-        public static Point GetSystemDPI(this Application app)
+        public static Point GetSystemDPI(this DispatcherObject element)
         {
             var result = new Point(96, 96);
             try
@@ -392,7 +372,7 @@ namespace ImageViewer
             return (result);
         }
 
-        public static int GetSystemColorDepth(this Application app)
+        public static int GetSystemColorDepth(this DispatcherObject element)
         {
             var result = 0;
             try
@@ -550,24 +530,6 @@ namespace ImageViewer
                 await element?.Dispatcher?.InvokeAsync(action, realtime ? DispatcherPriority.Normal : DispatcherPriority.Background);
             }
             catch { }
-        }
-
-        public static IList<string> GetFiles(this string file)
-        {
-            var files = new List<string>();
-            if (!string.IsNullOrEmpty(file))
-            {
-                try
-                {
-                    var dir = Path.GetDirectoryName(Path.IsPathRooted(file) ? file : Path.Combine(Directory.GetCurrentDirectory(), file));
-                    if (Directory.Exists(dir))
-                    {
-                        files.AddRange(Directory.EnumerateFiles(dir, "*.*").Where(f => SupportedExt(f)).NaturalSort());
-                    }
-                }
-                catch (Exception ex) { ex.ShowMessage(); }
-            }
-            return (files.Distinct().ToList());
         }
         #endregion
 
@@ -1473,6 +1435,96 @@ namespace ImageViewer
         }
         #endregion
 
+        #region Bitmap Source
+        public static BitmapSource ToBitmapSource(this ImageSource source, Size size = default(Size))
+        {
+            BitmapSource result = source is BitmapSource ? source as BitmapSource : null;
+            try
+            {
+                if (source is ImageSource && source.Width > 0 && source.Height > 0 && size.Width > 0 && size.Height > 0 && (source.Width != size.Width || source.Height != size.Height))
+                {
+                    var dpi = GetSystemDPI(Application.Current);
+                    RenderTargetBitmap target = null;
+                    if (size != default(Size) && size.Width > 0 && size.Height > 0)
+                        target = new RenderTargetBitmap((int)(size.Width), (int)(size.Height), dpi.X, dpi.Y, PixelFormats.Pbgra32);
+                    else
+                        target = new RenderTargetBitmap((int)(source.Width), (int)(source.Height), dpi.X, dpi.Y, PixelFormats.Pbgra32);
+
+                    DrawingVisual drawingVisual = new DrawingVisual();
+                    using (DrawingContext drawingContext = drawingVisual.RenderOpen())
+                    {
+                        drawingContext.DrawImage(source, new Rect(0, 0, target.Width, target.Height));
+                    }
+                    target.Render(drawingVisual);
+
+                    int width = target.PixelWidth;
+                    int height = target.PixelHeight;
+                    var palette = target.Palette;
+                    int stride = width * ((target.Format.BitsPerPixel + 31) / 32 * 4);
+                    byte[] pixelData = new byte[stride * height];
+                    target.CopyPixels(pixelData, stride, 0);
+
+                    result = BitmapSource.Create(width, height,
+                                                target.DpiX, target.DpiY,
+                                                target.Format, target.Palette,
+                                                pixelData, stride);
+                    pixelData = null;
+                    target = null;
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage("ToBitmapSource"); }
+            return (result);
+        }
+
+        public static BitmapSource ToBitmapSource(this FrameworkElement element, int width, int height)
+        {
+            BitmapSource result = null;
+            try
+            {
+                if (element is FrameworkElement && element.Width > 0 && element.Height > 0 && width > 0 && height > 0)
+                {
+                    var dpi = GetSystemDPI(Application.Current);
+                    Rect bounds = VisualTreeHelper.GetDescendantBounds(element);
+                    RenderTargetBitmap rtb = new RenderTargetBitmap((int)(width * dpi.X / 96.0), (int)(height * dpi.Y / 96.0), dpi.X,  dpi.Y, PixelFormats.Pbgra32);
+                    DrawingVisual dv = new DrawingVisual();
+                    using (DrawingContext ctx = dv.RenderOpen())
+                    {
+                        VisualBrush vb = new VisualBrush(element);
+                        ctx.DrawRectangle(vb, null, new Rect(new Point(), new Size(width, height)));
+                    }
+                    rtb.Render(dv);
+                    return rtb;
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage("ToBitmapSource"); }
+            return (result);
+        }
+
+        public static BitmapSource ToBitmapSource(this FrameworkElement element, Size size = default(Size))
+        {
+            BitmapSource result = null;
+            try
+            {
+                if (element is FrameworkElement && element.ActualWidth > 0 && element.ActualHeight > 0 && size.Width > 0 && size.Height > 0 && (element.Width != size.Width || element.Height != size.Height))
+                {
+                    var dpi = GetSystemDPI(Application.Current);
+                    Rect bounds = VisualTreeHelper.GetDescendantBounds(element);
+                    RenderTargetBitmap rtb = new RenderTargetBitmap((int)(size.Width * dpi.X / 96.0), (int)(size.Height * dpi.Y / 96.0), dpi.X,  dpi.Y, PixelFormats.Pbgra32);
+                    DrawingVisual dv = new DrawingVisual();
+                    using (DrawingContext ctx = dv.RenderOpen())
+                    {
+                        VisualBrush vb = new VisualBrush(element);
+                        ctx.DrawRectangle(vb, null, new Rect(new Point(), size));
+                    }
+                    rtb.Render(dv);
+                    result = rtb;
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage("ToBitmapSource"); }
+            return (result);
+        }
+        #endregion
+
         #region Keyboard Modifier
         /// <summary>
         /// 
@@ -1681,11 +1733,29 @@ namespace ImageViewer
         private static List<string> _file_list_ = new List<string>();
         private static SemaphoreSlim _file_list_updating_ = new SemaphoreSlim(1);
 
+        public static IList<string> GetFiles(this string file)
+        {
+            var files = new List<string>();
+            if (!string.IsNullOrEmpty(file))
+            {
+                try
+                {
+                    var dir = Path.GetDirectoryName(Path.IsPathRooted(file) ? file : Path.Combine(Directory.GetCurrentDirectory(), file));
+                    if (Directory.Exists(dir))
+                    {
+                        files.AddRange(Directory.EnumerateFiles(dir, "*.*").Where(f => SupportedExt(f)).NaturalSort());
+                    }
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
+            }
+            return (files.Distinct().ToList());
+        }
+
         public static async Task<List<string>> GetFileList(this object file)
         {
             var result = new List<string>();
             var ret = (_file_list_.Count == 0 || (_file_list_.Any() && _file_list_.Count() != _file_list_storage_.Count)) ? await UpdateFileList() : true;
-            if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(10)) && ret)
+            if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(5)) && ret)
             {
                 try
                 {
@@ -1700,7 +1770,7 @@ namespace ImageViewer
         private static async Task<bool> UpdateFileList()
         {
             var result = false;
-            if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(10)))
+            if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(5)))
             {
                 result = await  Task.Run(() =>
                 {
@@ -1730,37 +1800,6 @@ namespace ImageViewer
         private static List<FileSystemWatcher> _file_watcher_ = new List<FileSystemWatcher>();
         private static WatcherChangeTypes _FS_Change_Type_ = WatcherChangeTypes.All;
 
-        public static async Task<bool> InitFileList(this string path)
-        {
-            var result = false;
-            if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(1)))
-            {
-                result = await Task.Run(async () =>
-                {
-                    var ret = false;
-                    try
-                    {
-                        if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
-                        {
-                            _file_list_.Clear();
-                            _file_list_storage_.Clear();
-                            foreach (var file in Directory.GetFiles(path, "*.*").Where(f => SupportedExt(f)))
-                            //foreach (var file in Directory.EnumerateFiles(path, "*.*").Where(f => SupportedExt(f)))
-                            {
-                                _file_list_storage_[file] = null;//File.GetLastWriteTime(file);
-                            }
-                            ret = true;
-                        }
-                    }
-                    finally { _file_list_updating_.Release(); }
-                    return (ret);
-                });
-            }
-            result &= await UpdateFileList();
-            result &= await InitWatcher(path);
-            return (result);
-        }
-
         public static async Task<bool> InitFileList(this IEnumerable<string> files)
         {
             var result = false;
@@ -1769,7 +1808,7 @@ namespace ImageViewer
                 var paths = files.Select(f => Path.GetDirectoryName(Path.GetFullPath(f))).Distinct().OrderBy(d => d);
                 if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(1)))
                 {
-                    result = await Task.Run(async () =>
+                    result = await Task.Run(() =>
                     {
                         var ret = false;
                         try
@@ -1788,45 +1827,17 @@ namespace ImageViewer
                                     {
                                         _file_list_storage_[file] = null;//File.GetLastWriteTime(file);
                                     }
-                                    ret = true;
                                 }
                             }
                             ret = true;
                         }
                         finally { _file_list_updating_.Release(); }
-                        return (ret);
+                        return Task.FromResult((ret));
                     });
                 }
-                result &= await UpdateFileList();
+                //result &= await UpdateFileList();
                 result &= await InitWatcher(paths);
             }
-            return (result);
-        }
-
-        [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-        public static async Task<bool> InitWatcher(string path)
-        {
-            var result = false;
-            result = await Task.Run(() =>
-            {
-                var ret = false;
-                if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
-                {
-                    var _watcher_ = new FileSystemWatcher(path, "*.*")
-                    {
-                        EnableRaisingEvents = true,
-                        IncludeSubdirectories = false,
-                        NotifyFilter = NotifyFilters.Size | NotifyFilters.FileName,
-                    };
-                    if (_FS_Change_Type_ == WatcherChangeTypes.All) _watcher_.Created += OnFSChanged;
-                    _watcher_.Changed += OnFSChanged;
-                    _watcher_.Deleted += OnFSChanged;
-                    _watcher_.Renamed += OnFSRenamed;
-                    _file_watcher_.Add(_watcher_);
-                    ret = true;
-                }
-                return (ret);
-            });
             return (result);
         }
 
@@ -1932,6 +1943,5 @@ namespace ImageViewer
             }
         }
         #endregion
-
     }
 }

@@ -231,6 +231,23 @@
                     </xctk:MagnifierManager.Magnifier>
                 </Viewbox>
             </ScrollViewer>
+            <Grid Grid.Row="1" x:Name="BirdViewPanel" x:Uid="BirdViewPanel" Width="250" Height="250" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="16">
+                <Border x:Name="BirdViewBorder" x:Uid="BirdViewPanelBorder" BorderThickness="2" BorderBrush="DarkGray">
+                    <Border.Effect>
+                        <!--<DropShadowEffect BlurRadius="5" ShadowDepth="5" Direction="0" Color="DarkGray"/>-->
+                        <BlurEffect Radius="5" KernelType="Gaussian" />
+                    </Border.Effect>
+                </Border>
+                <Image x:Name="BirdView" x:Uid="BirdView" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"
+                       MouseDown="BirdView_MouseDown" MouseMove="BirdView_MouseMove" MouseEnter="BirdView_MouseEnter" MouseLeave="BirdView_MouseLeave" />
+                <Canvas x:Name="BirdViewCanvas" x:Uid="BirdViewCanvas" Width="{Binding Width, ElementName=BirdViewBorder, Mode=TwoWay}" Height="{Binding Height, ElementName=BirdViewBorder, Mode=TwoWay}">
+                    <Rectangle x:Name="BirdViewArea" x:Uid="BirdViewArea" Stroke="Coral" StrokeThickness="1" >
+                        <Rectangle.RenderTransform>
+                            <TranslateTransform x:Name="BirdViewAreaTrans" x:Uid="BirdViewAreaTrans"/>
+                        </Rectangle.RenderTransform>
+                    </Rectangle>
+                </Canvas>
+            </Grid>
             <xctk:BusyIndicator x:Name="IndicatorViewer" x:Uid="IndicatorViewer" BusyContent="Loading ..." Background="Transparent"
                 HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" />
             <xctk:ChildWindow Grid.Row="1" x:Name="QualityChanger" x:Uid="QualityChanger" WindowStartupLocation="Manual" CloseButtonClicked="QualityChanger_CloseButtonClicked" 
