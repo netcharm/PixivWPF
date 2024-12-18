@@ -21,6 +21,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 using ImageMagick;
+using ImageMagick.Drawing;
 using Mono.Options;
 using Xceed.Wpf.Toolkit;
 
@@ -1682,9 +1683,9 @@ namespace ImageViewer
 
         public static async Task<List<string>> GetFileList(this object file)
         {
-            if (_file_list_.Count == 0 || (_file_list_.Any() && _file_list_.Count() != _file_list_storage_.Count)) await UpdateFileList();
             var result = new List<string>();
-            if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(15)))
+            var ret = (_file_list_.Count == 0 || (_file_list_.Any() && _file_list_.Count() != _file_list_storage_.Count)) ? await UpdateFileList() : true;
+            if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(10)) && ret)
             {
                 try
                 {
@@ -1696,27 +1697,33 @@ namespace ImageViewer
             return (result);
         }
 
-        private static async Task<bool> UpdateFileList(EventArgs e = null)
+        private static async Task<bool> UpdateFileList()
         {
             var result = false;
-            if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(1)))
+            if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(10)))
             {
                 result = await  Task.Run(() =>
                 {
+                    var ret = false;
                     try
                     {
                         _file_list_ = _file_list_storage_.Keys.Distinct().NaturalSort().ToList();
-                        Application.Current?.Dispatcher?.Invoke(() => 
-                        { 
-                            var mainwindow = Application.Current.MainWindow as MainWindow;
-                            mainwindow?.UpdateInfoBox(e: e);
-                        });
-                        return (true);
+                        ret = true;
                     }
                     finally { _file_list_updating_.Release(); }
+                    return (ret);
                 });
             }
             return(result);
+        }
+
+        private static void UpdateInfoBox(EventArgs e = null)
+        {
+            Application.Current?.Dispatcher?.InvokeAsync(() =>
+            {
+                var mainwindow = Application.Current.MainWindow as MainWindow;
+                mainwindow?.UpdateInfoBox(e: e);
+            });
         }
 
         private static List<string> _path_list_ = new List<string>();
@@ -1726,11 +1733,11 @@ namespace ImageViewer
         public static async Task<bool> InitFileList(this string path)
         {
             var result = false;
-            result = await Task.Run(async () =>
+            if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(1)))
             {
-                var ret = false;
-                if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(1)))
+                result = await Task.Run(async () =>
                 {
+                    var ret = false;
                     try
                     {
                         if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
@@ -1745,10 +1752,10 @@ namespace ImageViewer
                             ret = true;
                         }
                     }
-                    finally { _file_list_updating_.Release(); }                    
-                }
-                return (ret);
-            });
+                    finally { _file_list_updating_.Release(); }
+                    return (ret);
+                });
+            }
             result &= await UpdateFileList();
             result &= await InitWatcher(path);
             return (result);
@@ -1757,22 +1764,22 @@ namespace ImageViewer
         public static async Task<bool> InitFileList(this IEnumerable<string> files)
         {
             var result = false;
-            if (files is IEnumerable<string> && files.Any())
+            if (files?.Any() ?? false)
             {
-                result = await Task.Run(async () =>
+                var paths = files.Select(f => Path.GetDirectoryName(Path.GetFullPath(f))).Distinct().OrderBy(d => d);
+                if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(1)))
                 {
-                    var ret = false;
-                    if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(1)))
+                    result = await Task.Run(async () =>
                     {
+                        var ret = false;
                         try
                         {
                             ReleaseWatcher(null);
                             _file_list_.Clear();
                             _file_list_storage_.Clear();
                             _FS_Change_Type_ = files.Count() > 1 ? WatcherChangeTypes.Renamed | WatcherChangeTypes.Deleted : WatcherChangeTypes.All;
-                            var paths = files.Select(f => Path.GetDirectoryName(Path.GetFullPath(f))).Distinct().OrderBy(d => d);
                             foreach (var file in files) _file_list_storage_[file] = null;
-                            foreach(var path in paths)
+                            foreach (var path in paths)
                             {
                                 if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
                                 {
@@ -1784,14 +1791,14 @@ namespace ImageViewer
                                     ret = true;
                                 }
                             }
-                            ret &= await UpdateFileList();
-                            ret &= await InitWatcher(paths);
                             ret = true;
                         }
                         finally { _file_list_updating_.Release(); }
-                    }
-                    return (ret);
-                });
+                        return (ret);
+                    });
+                }
+                result &= await UpdateFileList();
+                result &= await InitWatcher(paths);
             }
             return (result);
         }
@@ -1877,12 +1884,13 @@ namespace ImageViewer
                         if (ext_imgs.Contains(ext) || ext_movs.Contains(ext))
                         {
                             if (!_file_list_storage_.ContainsKey(e.FullPath)) _file_list_storage_[e.FullPath] = null;// File.GetLastWriteTime(e.FullPath);
-                            await UpdateFileList();
+                            if (await UpdateFileList()) UpdateInfoBox();
                         }
                     }
                 }
                 else if (e.ChangeType == WatcherChangeTypes.Changed)
                 {
+                    UpdateInfoBox();
                 }
                 else if (e.ChangeType == WatcherChangeTypes.Deleted)
                 {
@@ -1890,7 +1898,7 @@ namespace ImageViewer
                     if (ext_imgs.Contains(ext) || ext_movs.Contains(ext))
                     {
                         if (_file_list_storage_.ContainsKey(e.FullPath)) _file_list_storage_.TryRemove(e.FullPath, out DateTime? _);
-                        await UpdateFileList();
+                        if (await UpdateFileList()) UpdateInfoBox();
                     }
                 }
             }
@@ -1914,7 +1922,7 @@ namespace ImageViewer
                             _file_list_storage_[e.FullPath] = null;// File.GetLastWriteTime(e.FullPath);
                             _file_list_storage_.TryRemove(e.OldFullPath, out DateTime? _);
                         }
-                        await UpdateFileList(e);
+                        if (await UpdateFileList()) UpdateInfoBox(e);
                     }
                 }
             }

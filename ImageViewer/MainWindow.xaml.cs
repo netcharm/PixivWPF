@@ -504,23 +504,6 @@ namespace ImageViewer
             }
         }
 
-        public void UpdateInfoBox(ImageInformation image = null, EventArgs e = null)
-        {
-            if (Ready)
-            {
-                Dispatcher?.Invoke(async () =>
-                {
-                    if (image is null) image = ImageViewer.GetInformation();
-                    if (e is RenamedEventArgs && (e as RenamedEventArgs).OldName.Equals(image.FileName, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        image.RefreshImageFileInfo((e as RenamedEventArgs).Name);
-                    }
-                    ImageIndexBox.Text = await image.GetIndexInfo();
-                    ImageInfoBox.Text = await image.GetSimpleInfo();
-                });
-            }
-        }
-
         /// <summary>
         /// 
         /// </summary>
@@ -2002,6 +1985,28 @@ namespace ImageViewer
                 if (calcdisplay) CalcDisplay();
             });
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="e"></param>
+        public void UpdateInfoBox(ImageInformation image = null, EventArgs e = null)
+        {
+            if (Ready)
+            {
+                Dispatcher?.Invoke(async () =>
+                {
+                    if (image is null) image = ImageViewer.GetInformation();
+                    if (e is RenamedEventArgs && (e as RenamedEventArgs).OldName.Equals(image.FileName, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        image.RefreshImageFileInfo((e as RenamedEventArgs).Name);
+                    }
+                    ImageInfoBox.Text = await image.GetSimpleInfo();
+                    ImageIndexBox.Text = await image.GetIndexInfo();
+                });
+            }
+        }
         #endregion
 
         #region Quality Changer Helper
@@ -3040,39 +3045,33 @@ namespace ImageViewer
             {
                 try
                 {
-                    e.Handled = false;
-                    //var shift = 
-                    if (Keyboard.Modifiers == ModifierKeys.Control && (e.Key == Key.W || e.SystemKey == Key.W))
+                    e.Handled = true;
+                    var km = this.GetModifier();
+                    if (km.OnlyCtrl && (e.Key == Key.W || e.SystemKey == Key.W))
                     {
-                        e.Handled = true;
                         Close();
                     }
-                    else if (Keyboard.Modifiers == ModifierKeys.Alt && (e.Key == Key.T || e.SystemKey == Key.T))
+                    else if (km.OnlyAlt && (e.Key == Key.T || e.SystemKey == Key.T))
                     {
-                        e.Handled = true;
-                        ImageViewerBox.ContextMenu.IsOpen = true;
+                        if (ImageViewerScroll.ContextMenu != null) ImageViewerScroll.ContextMenu.IsOpen = true;
                     }
                     else if (e.Key == Key.Escape || e.SystemKey == Key.Escape)
                     {
                         if (IsMagnifier)
                         {
-                            e.Handled = true;
                             ToggleMagnifier(state: false, change_state: true);
                         }
                         else if (IsQualityChanger)
                         {
-                            e.Handled = true;
                             CloseQualityChanger(restore: true);
                         }
                         else if (_last_key_ == Key.Escape && (DateTime.Now - _last_key_time_).TotalMilliseconds < 200)
                         {
-                            e.Handled = true;
                             Close();
                         }
                     }
                     else if (e.Key == Key.F1 || e.SystemKey == Key.F1)
                     {
-                        e.Handled = true;
                         if (Keyboard.Modifiers == ModifierKeys.Shift)
                             await LoadImageFromPrevFile();
                         else if (Keyboard.Modifiers == ModifierKeys.Control)
@@ -3084,12 +3083,10 @@ namespace ImageViewer
                     }
                     else if (e.Key == Key.F3 || e.SystemKey == Key.F3)
                     {
-                        e.Handled = true;
                         ImageActions_Click(ImagePaste, e);
                     }
                     else if (e.Key == Key.F9 || e.SystemKey == Key.F9)
                     {
-                        e.Handled = true;
                         if (Keyboard.Modifiers == ModifierKeys.Shift)
                         {
                             if      (CurrentZoomFitMode == ZoomFitMode.Height) CurrentZoomFitMode = ZoomFitMode.Width;
@@ -3105,11 +3102,11 @@ namespace ImageViewer
                             else if (CurrentZoomFitMode == ZoomFitMode.Height) CurrentZoomFitMode = ZoomFitMode.None;
                         }
                     }
-                    else if (Keyboard.Modifiers == ModifierKeys.Control && (e.Key == Key.C || e.SystemKey == Key.C))
+                    else if (km.OnlyCtrl && (e.Key == Key.C || e.SystemKey == Key.C))
                     {
                         await CopyImageToClipboard();
                     }
-                    else if (Keyboard.Modifiers == ModifierKeys.Control && (e.Key == Key.V || e.SystemKey == Key.V))
+                    else if (km.OnlyCtrl && (e.Key == Key.V || e.SystemKey == Key.V))
                     {
                         await LoadImageFromClipboard();
                     }
@@ -3179,6 +3176,7 @@ namespace ImageViewer
                         CurrentZoomFitMode = ZoomFitMode.All;
                     }
                     
+                    else e.Handled = false;
                     _last_key_ = e.Key;
                     _last_key_time_ = DateTime.Now;
                     //Debug.WriteLine(e.Key);

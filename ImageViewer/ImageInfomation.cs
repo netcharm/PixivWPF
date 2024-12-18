@@ -591,6 +591,10 @@ namespace ImageViewer
         private bool IsGetInfo = false;
         CancellationTokenSource CancelGetInfo = new CancellationTokenSource();
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public async Task<string> GetIndexInfo()
         {
             var result = "1/1";
@@ -599,7 +603,7 @@ namespace ImageViewer
                 var files = await FileName.GetFileList();
                 var index = files.IndexOf(FileName);
                 var count = files.Count();
-                result = $"{index + 1}/{count}";
+                if (count > 0) result = $"{index + 1}/{count}";
             }
             return (result);
         }
@@ -633,6 +637,7 @@ namespace ImageViewer
 
                     if (ImageFileInfo is FileInfo)
                     {
+                        ImageFileInfo.Refresh();
                         var FileSize = ImageFileInfo.Exists && File.Exists(ImageFileInfo.FullName) ? ImageFileInfo.Length : -1;
                         var FileDate = ImageFileInfo.LastWriteTime.ToString("yyyy/MM/dd HH:mm:ss zzz dddd");
                         info.Add($"{FileSize.SmartFileSize()}, {FileDate}");
