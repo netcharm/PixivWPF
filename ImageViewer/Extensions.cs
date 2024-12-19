@@ -277,6 +277,263 @@ namespace ImageViewer
         }
         #endregion
 
+        #region Shell File op
+        public enum FileFuncFlags : uint
+        {
+            FO_MOVE = 0x1,
+            FO_COPY = 0x2,
+            FO_DELETE = 0x3,
+            FO_RENAME = 0x4
+        }
+
+        [Flags]
+        public enum FILEOP_FLAGS : ushort
+        {
+            FOF_MULTIDESTFILES         = 0x1,
+            FOF_CONFIRMMOUSE           = 0x2,
+            /// <summary>
+            /// Don't create progress/report
+            /// </summary>
+            FOF_SILENT                 = 0x4,
+            FOF_RENAMEONCOLLISION      = 0x8,
+            /// <summary>
+            /// Don't prompt the user.
+            /// </summary>
+            FOF_NOCONFIRMATION         = 0x10,
+            /// <summary>
+            /// Fill in SHFILEOPSTRUCT.hNameMappings.
+            /// Must be freed using SHFreeNameMappings
+            /// </summary>
+            FOF_WANTMAPPINGHANDLE      = 0x20,
+            FOF_ALLOWUNDO              = 0x40,
+            /// <summary>
+            /// On *.*, do only files
+            /// </summary>
+            FOF_FILESONLY              = 0x80,
+            /// <summary>
+            /// Don't show names of files
+            /// </summary>
+            FOF_SIMPLEPROGRESS         = 0x100,
+            /// <summary>
+            /// Don't confirm making any needed dirs
+            /// </summary>
+            FOF_NOCONFIRMMKDIR         = 0x200,
+            /// <summary>
+            /// Don't put up error UI
+            /// </summary>
+            FOF_NOERRORUI              = 0x400,
+            /// <summary>
+            /// Dont copy NT file Security Attributes
+            /// </summary>
+            FOF_NOCOPYSECURITYATTRIBS  = 0x800,
+            /// <summary>
+            /// Don't recurse into directories.
+            /// </summary>
+            FOF_NORECURSION            = 0x1000,
+            /// <summary>
+            /// Don't operate on connected elements.
+            /// </summary>
+            FOF_NO_CONNECTED_ELEMENTS  = 0x2000,
+            /// <summary>
+            /// During delete operation,
+            /// warn if nuking instead of recycling (partially overrides FOF_NOCONFIRMATION)
+            /// </summary>
+            FOF_WANTNUKEWARNING        = 0x4000,
+            /// <summary>
+            /// Treat reparse points as objects, not containers
+            /// </summary>
+            FOF_NORECURSEREPARSE       = 0x8000
+        }
+
+        private const int FO_MOVE = 0x1;
+        private const int FO_COPY = 0x2;
+        private const int FO_DELETE = 0x3;
+        private const ushort FOF_NOCONFIRMATION = 0x10;
+        private const ushort FOF_ALLOWUNDO = 0x40;
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Auto)]
+        private struct SHFILEOPSTRUCT32
+        {
+            public IntPtr hwnd;
+
+            /// <summary>
+            /// 设置操作方式，移动：FO_MOVE，复制：FO_COPY，删除：FO_DELETE
+            /// </summary>
+            public uint wFunc;
+
+            /// <summary>
+            /// 源文件路径
+            /// </summary>
+            [MarshalAs(UnmanagedType.LPTStr)]
+            public string pFrom;
+
+            /// <summary>
+            /// 目标文件路径
+            /// </summary>
+            [MarshalAs(UnmanagedType.LPTStr)]
+            public string pTo;
+
+            /// <summary>
+            /// 允许恢复
+            /// </summary>
+            public ushort fFlags;
+
+            /// <summary>
+            /// 监测有无中止
+            /// </summary>
+            public bool fAnyOperationsAborted;
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public IntPtr hNameMappings;
+
+            /// <summary>
+            /// 设置标题
+            /// </summary>
+            [MarshalAs(UnmanagedType.LPTStr)]
+            public string lpszProgressTitle;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        private struct SHFILEOPSTRUCT64
+        {
+            /// <summary>
+            /// 
+            /// </summary>
+            public IntPtr hwnd;
+
+            /// <summary>
+            /// 设置操作方式，移动：FO_MOVE，复制：FO_COPY，删除：FO_DELETE
+            /// </summary>
+            public uint wFunc;
+
+            /// <summary>
+            /// 源文件路径
+            /// </summary>
+            [MarshalAs(UnmanagedType.LPTStr)]
+            public string pFrom;
+
+            /// <summary>
+            /// 目标文件路径
+            /// </summary>
+            [MarshalAs(UnmanagedType.LPTStr)]
+            public string pTo;
+
+            /// <summary>
+            /// 允许恢复
+            /// </summary>
+            public ushort fFlags;
+
+            /// <summary>
+            /// 监测有无中止
+            /// </summary>
+            public bool fAnyOperationsAborted;
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public IntPtr hNameMappings;
+
+            /// <summary>
+            /// 设置标题
+            /// </summary>
+            [MarshalAs(UnmanagedType.LPTStr)]
+            public string lpszProgressTitle;
+        }
+
+        [DllImport("shell32.dll", EntryPoint = "SHFileOperation", CharSet = CharSet.Auto, SetLastError = true, ThrowOnUnmappableChar = true)]
+        private static extern int SHFileOperation32(ref SHFILEOPSTRUCT32 lpFileOp);
+
+        [DllImport("shell32.dll", EntryPoint = "SHFileOperation", CharSet = CharSet.Auto, SetLastError = true, ThrowOnUnmappableChar = true)]
+        private static extern int SHFileOperation64(ref SHFILEOPSTRUCT64 lpFileOp);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public static int FileDelete(this string file)
+        {
+            var result = -1;
+            if (!string.IsNullOrEmpty(file) && File.Exists(file))
+            {
+                bool recycle = !IsShiftPressed(null, exclude: true);
+                if (ShowConfirm($"{file} {"will be deleted?".T()}", $"{"Delete".T()}?"))
+                {
+                    var handle = Process.GetCurrentProcess().MainWindowHandle;
+                    var flags = recycle ? FILEOP_FLAGS.FOF_ALLOWUNDO : FILEOP_FLAGS.FOF_NOCONFIRMATION;
+                    flags |= FILEOP_FLAGS.FOF_CONFIRMMOUSE;
+                    if (IsRunAs64Bits(null))
+                    {
+                        SHFILEOPSTRUCT64 sh_file64 = new SHFILEOPSTRUCT64() { hwnd = handle, wFunc = (uint)FileFuncFlags.FO_DELETE, pFrom = file + '\0', fFlags = (ushort)flags };
+                        result = SHFileOperation64(ref sh_file64);
+                    }
+                    else
+                    {
+                        SHFILEOPSTRUCT32 sh_file32 = new SHFILEOPSTRUCT32() { hwnd = handle, wFunc = (uint)FileFuncFlags.FO_DELETE, pFrom = file + '\0', fFlags = (ushort)flags };
+                        result = SHFileOperation32(ref sh_file32);
+                    }
+                }
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="dst"></param>
+        /// <returns></returns>
+        public static int FileMove(this string src, string dst)
+        {
+            var result = 0;
+            if (!string.IsNullOrEmpty(src) && !string.IsNullOrEmpty(dst) && File.Exists(src) && Directory.Exists(Path.GetDirectoryName(dst)))
+            {
+                var handle = Process.GetCurrentProcess().MainWindowHandle;
+                var flags = FILEOP_FLAGS.FOF_ALLOWUNDO;
+                if (IsRunAs64Bits(null))
+                {
+                    SHFILEOPSTRUCT64 sh_file64 = new SHFILEOPSTRUCT64() { hwnd = handle, wFunc = (uint)FileFuncFlags.FO_MOVE, pFrom = src + '\0', pTo = dst + '\0', fFlags = (ushort)flags };
+                    result = SHFileOperation64(ref sh_file64);
+                }
+                else
+                {
+                    SHFILEOPSTRUCT32 sh_file32 = new SHFILEOPSTRUCT32() { hwnd = handle, wFunc = (uint)FileFuncFlags.FO_MOVE, pFrom = src + '\0', pTo = dst + '\0', fFlags = (ushort)flags };
+                    result = SHFileOperation32(ref sh_file32);
+                }
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="dst"></param>
+        /// <returns></returns>
+        public static int FileCopy(this string src, string dst)
+        {
+            var result = 0;
+            if (!string.IsNullOrEmpty(src) && !string.IsNullOrEmpty(dst) && File.Exists(src) && Directory.Exists(Path.GetDirectoryName(dst)))
+            {
+                var handle = Process.GetCurrentProcess().MainWindowHandle;
+                var flags = FILEOP_FLAGS.FOF_ALLOWUNDO;
+                if (IsRunAs64Bits(null))
+                {
+                    SHFILEOPSTRUCT64 sh_file64 = new SHFILEOPSTRUCT64() { hwnd = handle, wFunc = (uint)FileFuncFlags.FO_COPY, pFrom = src + '\0', pTo = dst + '\0', fFlags = (ushort)flags };
+                    result = SHFileOperation64(ref sh_file64);
+                }
+                else
+                {
+                    SHFILEOPSTRUCT32 sh_file32 = new SHFILEOPSTRUCT32() { hwnd = handle, wFunc = (uint)FileFuncFlags.FO_COPY, pFrom = src + '\0', pTo = dst + '\0', fFlags = (ushort)flags };
+                    result = SHFileOperation32(ref sh_file32);
+                }
+            }
+            return (result);
+        }
+        #endregion
+
         #region Application Helper
         public class MyOptions
         {
@@ -314,9 +571,14 @@ namespace ImageViewer
             return (myoptions ?? new MyOptions());
         }
 
+        public static bool IsRunAs64Bits(this DispatcherObject element)
+        {
+            return (System.Environment.Is64BitProcess || IntPtr.Size == 8);
+        }
+
         public static bool IsRunAs32Bits(this DispatcherObject element)
         {
-            return (System.Environment.Is64BitProcess || IntPtr.Size == 4);
+            return (!System.Environment.Is64BitProcess || IntPtr.Size == 4);
         }
 
         public static Point GetDpi()
@@ -381,6 +643,45 @@ namespace ImageViewer
             }
             catch (Exception ex) { ex.ShowMessage(); }
             return (result);
+        }
+
+        public static bool ShowConfirm(this string text, string caption = "")
+        {
+            var result = Application.Current?.Dispatcher?.Invoke(() =>
+            {
+                var ret = MessageBoxResult.No;
+                try
+                {
+                    (Application.Current.MainWindow as MainWindow)?.UpdateIndaicatorState(ImageType.All, state: false, busy: true);
+                    if (Application.Current.MainWindow.IsVisible)
+                    {
+                        if (string.IsNullOrEmpty(caption))
+                            ret = Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text, "Confirm?", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Yes);
+                        else
+                            ret = Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text, caption, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Yes);
+                    }
+                    else
+                    {
+                        if (string.IsNullOrEmpty(caption))
+                            ret = Xceed.Wpf.Toolkit.MessageBox.Show(text, "Confirm?", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Yes);
+                        else
+                            ret = Xceed.Wpf.Toolkit.MessageBox.Show(text, caption, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Yes);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (Application.Current.MainWindow.IsVisible)
+                    {
+                        Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message);
+                    }
+                    else
+                    {
+                        Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message);
+                    }
+                }
+                return(ret == MessageBoxResult.Yes);
+            });
+            return (result ?? false);
         }
 
         public static void ShowMessage(this string text, string prefix = "")
@@ -519,6 +820,11 @@ namespace ImageViewer
                 DoEvents();
             }
             catch { }
+        }
+
+        public static bool IsVisiable(this FrameworkElement element)
+        {
+            return (element?.Dispatcher?.Invoke(() => element?.Visibility == Visibility.Visible) ?? false);
         }
 
         public static async void InvokeAsync(this FrameworkElement element, Action action, bool realtime = false)
@@ -1653,76 +1959,6 @@ namespace ImageViewer
         {
             return (IsModifierPressed(element, ModifierKeys.Windows, exclude));
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="child"></param>
-        /// <returns></returns>
-        //public static ModifierKeys GetModifiderKeys(this Application app)
-        //{
-        //    var result = Application.Current.Dispatcher.BeginInvoke(new Func<ModifierKeys>(delegate
-        //    {
-        //        return (Keyboard.Modifiers);
-        //    }));
-        //   return (result.Dispatcher.re);
-        //}
-        #endregion
-
-        #region Misc
-        public static T FindParent<T>(this DependencyObject child) where T : DependencyObject
-        {
-            //get parent item
-            DependencyObject parentObject = VisualTreeHelper.GetParent(child);
-
-            //we've reached the end of the tree
-            if (parentObject == null) return null;
-
-            //check if the parent matches the type we're looking for
-            if (parentObject is T parent)
-                return parent;
-            else
-                return FindParent<T>(parentObject);
-        }
-
-        public static UIElement GetContextMenuHost(this UIElement item)
-        {
-            UIElement result = null;
-            if (item is MenuItem)
-            {
-                var parent = FindParent<ContextMenu>(item);
-                if (parent is ContextMenu)
-                {
-                    result = parent.PlacementTarget;
-                }
-            }
-            return (result);
-        }
-
-        public static IList<string> NaturalSort(this IList<string> list, int padding = 16, bool ascendin = true)
-        {
-            try
-            {
-                if (ascendin)
-                    return (list is IList<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
-                else
-                    return (list is IList<string> ? list.OrderByDescending(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
-            }
-            catch (Exception ex) { ex.ShowMessage(); return (list); }
-        }
-
-        public static IEnumerable<string> NaturalSort(this IEnumerable<string> list, int padding = 16, bool ascendin = true)
-        {
-            try
-            {
-                if (ascendin)
-                    return (list is IEnumerable<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
-                else
-                    return (list is IEnumerable<string> ? list.OrderByDescending(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
-            }
-            catch (Exception ex) { ex.ShowMessage(); return (list); }
-        }
         #endregion
 
         #region File List && File System Watcher
@@ -1754,12 +1990,10 @@ namespace ImageViewer
         public static async Task<List<string>> GetFileList(this object file)
         {
             var result = new List<string>();
-            //var ret = (_file_list_.Count == 0 || (_file_list_.Any() && _file_list_.Count() != _file_list_storage_.Count)) ? await UpdateFileList() : true;
-            if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(10)))// && ret)
+            if (await _file_list_updating_.WaitAsync(TimeSpan.FromMilliseconds(250)))
             {
                 try
                 {
-                    // result = _FS_Change_Type_ == WatcherChangeTypes.All ? _file_list_ : _file_list_.Where(f => File.Exists(f)).ToList();
                     result = _file_list_;
                 }
                 finally { _file_list_updating_.Release(); }
@@ -1778,6 +2012,7 @@ namespace ImageViewer
                     try
                     {
                         _file_list_ = _file_list_storage_.Keys.Distinct().NaturalSort().ToList();
+                        UpdateInfoBox();
                         ret = true;
                     }
                     finally { _file_list_updating_.Release(); }
@@ -1836,7 +2071,6 @@ namespace ImageViewer
                     });
                 }
                 result &= await UpdateFileList();
-                if (result) UpdateInfoBox();
                 result &= await InitWatcher(paths);
             }
             return (result);
@@ -1896,7 +2130,7 @@ namespace ImageViewer
                         if (ext_imgs.Contains(ext) || ext_movs.Contains(ext))
                         {
                             if (!_file_list_storage_.ContainsKey(e.FullPath)) _file_list_storage_[e.FullPath] = null;// File.GetLastWriteTime(e.FullPath);
-                            if (await UpdateFileList()) UpdateInfoBox();
+                            await UpdateFileList();
                         }
                     }
                 }
@@ -1910,7 +2144,7 @@ namespace ImageViewer
                     if (ext_imgs.Contains(ext) || ext_movs.Contains(ext))
                     {
                         if (_file_list_storage_.ContainsKey(e.FullPath)) _file_list_storage_.TryRemove(e.FullPath, out DateTime? _);
-                        if (await UpdateFileList()) UpdateInfoBox();
+                        await UpdateFileList();
                     }
                 }
             }
@@ -1934,7 +2168,7 @@ namespace ImageViewer
                             _file_list_storage_[e.FullPath] = null;// File.GetLastWriteTime(e.FullPath);
                             _file_list_storage_.TryRemove(e.OldFullPath, out DateTime? _);
                         }
-                        if (await UpdateFileList()) UpdateInfoBox(e);
+                        await UpdateFileList();
                     }
                 }
             }
@@ -1944,5 +2178,61 @@ namespace ImageViewer
             }
         }
         #endregion
+
+        #region Misc
+        public static T FindParent<T>(this DependencyObject child) where T : DependencyObject
+        {
+            //get parent item
+            DependencyObject parentObject = VisualTreeHelper.GetParent(child);
+
+            //we've reached the end of the tree
+            if (parentObject == null) return null;
+
+            //check if the parent matches the type we're looking for
+            if (parentObject is T parent)
+                return parent;
+            else
+                return FindParent<T>(parentObject);
+        }
+
+        public static UIElement GetContextMenuHost(this UIElement item)
+        {
+            UIElement result = null;
+            if (item is MenuItem)
+            {
+                var parent = FindParent<ContextMenu>(item);
+                if (parent is ContextMenu)
+                {
+                    result = parent.PlacementTarget;
+                }
+            }
+            return (result);
+        }
+
+        public static IList<string> NaturalSort(this IList<string> list, int padding = 16, bool ascendin = true)
+        {
+            try
+            {
+                if (ascendin)
+                    return (list is IList<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
+                else
+                    return (list is IList<string> ? list.OrderByDescending(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
+            }
+            catch (Exception ex) { ex.ShowMessage(); return (list); }
+        }
+
+        public static IEnumerable<string> NaturalSort(this IEnumerable<string> list, int padding = 16, bool ascendin = true)
+        {
+            try
+            {
+                if (ascendin)
+                    return (list is IEnumerable<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
+                else
+                    return (list is IEnumerable<string> ? list.OrderByDescending(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
+            }
+            catch (Exception ex) { ex.ShowMessage(); return (list); }
+        }
+        #endregion
+
     }
 }

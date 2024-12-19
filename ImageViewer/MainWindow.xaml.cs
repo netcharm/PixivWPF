@@ -501,7 +501,6 @@ namespace ImageViewer
                 UpdateInfoBox(image);
                 var tooltip = image.ValidCurrent ? await image.GetImageInfo(include_colorinfo: calc_colors) : null;
                 SetToolTip(ImageInfoBox, tooltip);
-                //SetToolTip(ImageViewer, tooltip);
                 result = tooltip;
             }
             return (result);
@@ -1817,6 +1816,9 @@ namespace ImageViewer
                     ImageViewerBox.UpdateLayout();
                     ImageViewerScroll.UpdateLayout();
 
+                    ImageViewerScale.ScaleX = ZoomRatio.Value;
+                    ImageViewerScale.ScaleY = ZoomRatio.Value;
+
                     var outbox = ImageViewerBox.ActualWidth > ImageViewerScroll.ActualWidth || ImageViewerBox.ActualHeight > ImageViewerScroll.ActualHeight;
                     SetBirdView(outbox);
                     UpdateBirdView();
@@ -2209,23 +2211,44 @@ namespace ImageViewer
         #endregion
 
         #region Bird View Helper
-
+        /// <summary>
+        /// 
+        /// </summary>
         private void ShowBirdView()
         {
-            BirdViewPanel.Dispatcher.Invoke(() => BirdViewPanel.Visibility = Visibility.Visible);
+            BirdViewPanel?.Dispatcher?.Invoke(() => BirdViewPanel.Visibility = Visibility.Visible);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void HideBirdView()
         {
-            BirdViewPanel.Dispatcher.Invoke(() => BirdViewPanel.Visibility = Visibility.Hidden);
+            BirdViewPanel?.Dispatcher?.Invoke(() => BirdViewPanel.Visibility = Visibility.Hidden);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="state"></param>
         private void SetBirdView(bool state)
         {
             if (state) ShowBirdView();
             else HideBirdView();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        private void ToggleBirdView()
+        {
+            if (BirdViewPanel.IsVisiable()) HideBirdView();
+            else ShowBirdView();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         private void UpdateBirdViewArea()
         {
             BirdViewPanel.Dispatcher.InvokeAsync(() =>
@@ -2245,6 +2268,9 @@ namespace ImageViewer
             });
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void UpdateBirdView()
         {
             BirdViewPanel.Dispatcher.InvokeAsync(() => 
@@ -2273,6 +2299,12 @@ namespace ImageViewer
             });
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
         private Point CalcBirdViewOffset(FrameworkElement sender, MouseEventArgs e)
         {
             double offset_x = -1, offset_y = -1;
@@ -3165,6 +3197,13 @@ namespace ImageViewer
                             Close();
                         }
                     }
+
+                    else if (e.Key == Key.Delete || e.SystemKey == Key.Delete)
+                    {
+                        var file = ImageViewer.GetInformation().FileName;
+                        if (file.FileDelete() == 0) await LoadImageFromNextFile();
+                    }
+
                     else if (e.Key == Key.F1 || e.SystemKey == Key.F1)
                     {
                         if (Keyboard.Modifiers == ModifierKeys.Shift)
@@ -3232,6 +3271,10 @@ namespace ImageViewer
                     else if (e.Key == Key.Q || e.SystemKey == Key.Q)
                     {
                         OpenQualityChanger(ImageType.Source);
+                    }
+                    else if (e.Key == Key.B || e.SystemKey == Key.B)
+                    {
+                        ToggleBirdView();
                     }
 
                     else if (e.Key == Key.Home || e.SystemKey == Key.Home)
@@ -3683,12 +3726,7 @@ namespace ImageViewer
                             ImageViewerBox.Height = zh <= ImageViewerScroll.ActualHeight ? ImageViewerScroll.ActualHeight : zh;
                         }
                     }
-                    if (Ready)
-                    {
-                        ImageViewerScale.ScaleX = ZoomRatio.Value;
-                        ImageViewerScale.ScaleY = ZoomRatio.Value;
-                        CalcDisplay();
-                    }
+                    if (Ready) CalcDisplay();
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }

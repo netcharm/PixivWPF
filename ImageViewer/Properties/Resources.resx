@@ -669,4 +669,10 @@
   <data name="BusyNow.ToolTip" xml:space="preserve">
     <value>Processing Progress</value>
   </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="will be deleted?" xml:space="preserve">
+    <value>will be deleted?</value>
+  </data>
 </root>

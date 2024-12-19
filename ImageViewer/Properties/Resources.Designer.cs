@@ -367,6 +367,15 @@ namespace ImageViewer.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Delete 的本地化字符串。
+        /// </summary>
+        public static string Delete {
+            get {
+                return ResourceManager.GetString("Delete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Edge Line 的本地化字符串。
         /// </summary>
         public static string Edge_Header {
@@ -1668,6 +1677,15 @@ namespace ImageViewer.Properties {
         public static string Waiting {
             get {
                 return ResourceManager.GetString("Waiting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 will be deleted? 的本地化字符串。
+        /// </summary>
+        public static string will_be_deleted_ {
+            get {
+                return ResourceManager.GetString("will be deleted?", resourceCulture);
             }
         }
         

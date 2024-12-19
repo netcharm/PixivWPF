@@ -669,4 +669,10 @@
   <data name="BusyNow.ToolTip" xml:space="preserve">
     <value>处理进度</value>
   </data>
+  <data name="Delete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="will be deleted?" xml:space="preserve">
+    <value>将被删除?</value>
+  </data>
 </root>
