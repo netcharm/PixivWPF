@@ -607,7 +607,12 @@ namespace ImageViewer
         ///
         /// </summary>
         private bool IsGetInfo = false;
+        private readonly SemaphoreSlim _refresh_info_ = new SemaphoreSlim(1);
         CancellationTokenSource CancelGetInfo = new CancellationTokenSource();
+
+        private int? _last_file_index_ = null;
+        private int? _last_file_count_ = null;
+        private readonly List<string> _last_file_list_ = new List<string>();
 
         /// <summary>
         /// 
@@ -631,20 +636,40 @@ namespace ImageViewer
         /// 
         /// </summary>
         /// <returns></returns>
+        public async Task<(int, int)> GetIndex()
+        {
+            int index = 0, count = 0;
+            if (!string.IsNullOrEmpty(FileName))
+            {
+                var files = await FileName.GetFileList();
+                index = files.IndexOf(FileName);
+                count = files.Count();
+                if (count > 0)
+                {
+                    _last_file_index_ = index;
+                    _last_file_list_.Clear();
+                    _last_file_list_.AddRange(files);
+                }
+            }
+            return (index, count);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public async Task<string> GetIndexInfo()
         {
             var result = "1/1";
             if (!string.IsNullOrEmpty(FileName))
             {
-                var files = await FileName.GetFileList();
-                var index = files.IndexOf(FileName);
-                var count = files.Count();
+                int index, count;
+                (index, count) = await GetIndex();
                 if (count > 0) result = $"{index + 1}/{count}";
             }
             return (result);
         }
 
-        private readonly SemaphoreSlim _refresh_info_ = new SemaphoreSlim(1);
         /// <summary>
         /// 
         /// </summary>
@@ -1140,42 +1165,46 @@ namespace ImageViewer
         }
 
         /// <summary>
-        ///
+        /// 
         /// </summary>
+        /// <param name="refresh"></param>
         /// <returns></returns>
-        public async Task<bool> LoadImageFromFirstFile()
+        public async Task<bool> LoadImageFromFirstFile(bool refresh = true)
         {
-            var result = await LoadImageFromIndex(ListPosition.First);
+            var result = refresh ? await LoadImageFromIndex(ListPosition.First) : await LoadImageFromIndex(0, refresh: refresh);
             return (result);
         }
         
         /// <summary>
-        ///
+        /// 
         /// </summary>
+        /// <param name="refresh"></param>
         /// <returns></returns>
-        public async Task<bool> LoadImageFromPrevFile()
+        public async Task<bool> LoadImageFromPrevFile(bool refresh = true)
         {
-            var result = await LoadImageFromIndex(ListPosition.Prev);
-            return (result);
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <returns></returns>
-        public async Task<bool> LoadImageFromNextFile()
-        {
-            var result = await LoadImageFromIndex(ListPosition.Next);
+            var result = refresh ? await LoadImageFromIndex(ListPosition.Prev) : await LoadImageFromIndex(_last_file_index_ - 1 ?? _last_file_count_ ?? int.MaxValue, refresh: refresh);
             return (result);
         }
 
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="refresh"></param>
         /// <returns></returns>
-        public async Task<bool> LoadImageFromLastFile()
+        public async Task<bool> LoadImageFromNextFile(bool refresh = true)
         {
-            var result = await LoadImageFromIndex(ListPosition.Last);
+            var result = refresh ? await LoadImageFromIndex(ListPosition.Next) : await LoadImageFromIndex(_last_file_index_ + 1 ?? _last_file_count_ ?? int.MaxValue, refresh: refresh);
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="refresh"></param>
+        /// <returns></returns>
+        public async Task<bool> LoadImageFromLastFile(bool refresh = true)
+        {
+            var result = refresh ? await LoadImageFromIndex(ListPosition.Last) : await LoadImageFromIndex(_last_file_count_ ?? int.MaxValue, refresh: refresh);
             return (result);
         }
 
@@ -1195,16 +1224,14 @@ namespace ImageViewer
             return (await LoadImageFromIndex(idx, relative: rel));
         }
 
-        private int? _last_file_index_ = null;
-        private int? _last_file_count_ = null;
-
         /// <summary>
         /// 
         /// </summary>
         /// <param name="index"></param>
         /// <param name="relative"></param>
+        /// <param name="refresh"></param>
         /// <returns></returns>
-        public async Task<bool> LoadImageFromIndex(int index, bool relative = false)
+        public async Task<bool> LoadImageFromIndex(int index, bool relative = false, bool refresh = true)
         {
             var result = false;
             result = await Task.Run(async () =>
@@ -1214,7 +1241,7 @@ namespace ImageViewer
                 {
                     if (!string.IsNullOrEmpty(FileName))
                     {
-                        var files = await FileName.GetFileList();
+                        var files = refresh ? await FileName.GetFileList() : _last_file_list_ ?? await FileName.GetFileList();
                         if (files.Any() && !string.IsNullOrEmpty(FileName))
                         {
                             var file_n = files.Where(f => f.EndsWith(FileName, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();

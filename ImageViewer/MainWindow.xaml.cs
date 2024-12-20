@@ -776,17 +776,17 @@ namespace ImageViewer
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
-        private async Task<bool> LoadImageFromFirstFile()
+        private async Task<bool> LoadImageFromFirstFile(bool refresh = true)
         {
             var ret = false;
             try
             {
-                if (this.IsUpdatingFileList()) return (false);
+                if (refresh && this.IsUpdatingFileList()) return (false);
                 CloseQualityChanger();
                 IsLoadingViewer = true;
 
                 var image =  ImageViewer.GetInformation();
-                ret = await image.LoadImageFromFirstFile();
+                ret = await image.LoadImageFromFirstFile(refresh);
                 if (ret) ClearImage();
                 if (ret) ResetViewTransform(calcdisplay: false);
                 if (ret) SetTitle(image.FileName);
@@ -803,17 +803,17 @@ namespace ImageViewer
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
-        private async Task<bool> LoadImageFromPrevFile()
+        private async Task<bool> LoadImageFromPrevFile(bool refresh = true)
         {
             var ret = false;
             try
             {
-                if (this.IsUpdatingFileList()) return (false);
+                if (refresh && this.IsUpdatingFileList()) return (false);
                 CloseQualityChanger();
                 IsLoadingViewer = true;
 
                 var image =  ImageViewer.GetInformation();
-                ret = await image.LoadImageFromPrevFile();
+                ret = await image.LoadImageFromPrevFile(refresh);
                 if (ret) ClearImage();
                 if (ret) ResetViewTransform(calcdisplay: false);
                 if (ret) SetTitle(image.FileName);
@@ -830,17 +830,17 @@ namespace ImageViewer
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
-        private async Task<bool> LoadImageFromNextFile()
+        private async Task<bool> LoadImageFromNextFile(bool refresh = true)
         {
             var ret = false;
             try
             {
-                if (this.IsUpdatingFileList()) return (false);
+                if (refresh && this.IsUpdatingFileList()) return (false);
                 CloseQualityChanger();
                 IsLoadingViewer = true;
 
                 var image = ImageViewer.GetInformation();
-                ret = await image.LoadImageFromNextFile();
+                ret = await image.LoadImageFromNextFile(refresh);
                 
                 if (ret) ClearImage();
                 if (ret) ResetViewTransform(calcdisplay: false);
@@ -857,17 +857,17 @@ namespace ImageViewer
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
-        private async Task<bool> LoadImageFromLastFile()
+        private async Task<bool> LoadImageFromLastFile(bool refresh = true)
         {
             var ret = false;
             try
             {
-                if (this.IsUpdatingFileList()) return (false);
+                if (refresh && this.IsUpdatingFileList()) return (false);
                 CloseQualityChanger();
                 IsLoadingViewer = true;
 
                 var image =  ImageViewer.GetInformation();
-                ret = await image.LoadImageFromLastFile();
+                ret = await image.LoadImageFromLastFile(refresh);
                 if (ret) ClearImage();
                 if (ret) ResetViewTransform(calcdisplay: false);
                 if (ret) SetTitle(image.FileName);
@@ -1696,12 +1696,16 @@ namespace ImageViewer
                         ImageViewerBox.MaxWidth = scale_w <= scroll.ActualWidth ? scroll.ActualWidth : scale_w - delta;
                         ImageViewerBox.MaxHeight = scroll.ActualHeight;
                     }
-                    ImageViewerScale.ScaleX = ZoomRatio.Value;
-                    ImageViewerScale.ScaleY = ZoomRatio.Value;
-
+                    DoEvents();
+                    
                     ImageViewer.UpdateLayout();
                     ImageViewerBox.UpdateLayout();
                     ImageViewerScroll.UpdateLayout();
+                    DoEvents();
+
+                    ImageViewerScale.ScaleX = ZoomRatio.Value;
+                    ImageViewerScale.ScaleY = ZoomRatio.Value;
+                    DoEvents();
 
                     var outbox = ImageViewer.DesiredSize.Width > ImageViewerScroll.DesiredSize.Width || ImageViewer.DesiredSize.Height > ImageViewerScroll.DesiredSize.Height;
                     SetBirdView(outbox);
@@ -1987,8 +1991,10 @@ namespace ImageViewer
                         var quality = image.Quality();
                         var quality_str = quality > 0  ? $"{quality}" : "Unknown";
                         QualityChangeerTitle = $"{"InfoTipQuality".T().Trim('=').Trim()} : {quality_str}";
+                        QualityChanger.Focusable = true;
                         QualityChanger.Caption = QualityChangeerTitle;
                         QualityChanger.FocusedElement = QualityChangerSlider;
+                        QualityChangerSlider.Focusable = true;
                         QualityChangerSlider.Maximum = quality > 0 ? quality : 100;
                         QualityChangerSlider.Width = 360;
                         QualityChangerSlider.IsSnapToTickEnabled = true;
@@ -2003,7 +2009,7 @@ namespace ImageViewer
 
                         DoEvents();
 
-                        QualityChangerSlider.Focusable = true;
+                        QualityChanger.FocusedElement = QualityChangerSlider;
                         QualityChangerSlider.Focus();
 
                         if (QualityChangerDelay is DispatcherTimer)
@@ -3218,8 +3224,8 @@ namespace ImageViewer
                         var ret = file.FileDelete() == 0;
                         if (ret)
                         {
-                            ret = await LoadImageFromNextFile();
-                            if (!ret) ret = await LoadImageFromPrevFile();
+                            ret = await LoadImageFromNextFile(refresh: false);
+                            if (!ret) ret = await LoadImageFromPrevFile(refresh: false);
                             if (!ret) IsLoadingViewer = false;
                         }
                     }
@@ -3303,11 +3309,13 @@ namespace ImageViewer
                     }
                     else if (e.Key == Key.Left || e.SystemKey == Key.Left)
                     {
-                        if (!IsQualityChanger) await LoadImageFromPrevFile();
+                        if (IsQualityChanger) e.Handled = false;
+                        else await LoadImageFromPrevFile();
                     }
                     else if (e.Key == Key.Right || e.SystemKey == Key.Right)
                     {
-                        if (!IsQualityChanger) await LoadImageFromNextFile();
+                        if (IsQualityChanger) e.Handled = false;
+                        else await LoadImageFromNextFile();
                     }
                     else if (e.Key == Key.End || e.SystemKey == Key.End)
                     {
