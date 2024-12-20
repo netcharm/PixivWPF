@@ -155,6 +155,10 @@
           <source>Extend Image Edge</source>
           <target state="new">擴展影像的邊界</target>
         </trans-unit>
+        <trans-unit id="Favorited" translate="yes" xml:space="preserve">
+          <source>Favorited</source>
+          <target state="new">已收藏</target>
+        </trans-unit>
         <trans-unit id="File" translate="yes" xml:space="preserve">
           <source>File</source>
           <target state="new">檔案</target>

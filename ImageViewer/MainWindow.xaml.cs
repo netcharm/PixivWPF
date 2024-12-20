@@ -781,6 +781,7 @@ namespace ImageViewer
             var ret = false;
             try
             {
+                if (this.IsUpdatingFileList()) return (false);
                 CloseQualityChanger();
                 IsLoadingViewer = true;
 
@@ -807,6 +808,7 @@ namespace ImageViewer
             var ret = false;
             try
             {
+                if (this.IsUpdatingFileList()) return (false);
                 CloseQualityChanger();
                 IsLoadingViewer = true;
 
@@ -833,6 +835,7 @@ namespace ImageViewer
             var ret = false;
             try
             {
+                if (this.IsUpdatingFileList()) return (false);
                 CloseQualityChanger();
                 IsLoadingViewer = true;
 
@@ -859,6 +862,7 @@ namespace ImageViewer
             var ret = false;
             try
             {
+                if (this.IsUpdatingFileList()) return (false);
                 CloseQualityChanger();
                 IsLoadingViewer = true;
 
@@ -987,126 +991,6 @@ namespace ImageViewer
         private bool IsQualityChanger
         {
             get => QualityChanger?.Dispatcher?.Invoke(() => { return (QualityChanger.IsVisible); }) ?? false;
-        }
-        #endregion
-
-        #region UI Helper
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="topmost"></param>
-        public void TopMostWindow(bool? topmost)
-        {
-            if (Ready) Topmost = topmost ?? false;
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        public void ChangeTheme()
-        {
-            try
-            {
-                var source = new Uri(@"pack://application:,,,/ImageViewer;component/Resources/CheckboardPattern_32.png", UriKind.RelativeOrAbsolute);
-                var sri = Application.GetResourceStream(source);
-                if (sri is System.Windows.Resources.StreamResourceInfo && sri.ContentType.Equals("image/png") && sri.Stream is Stream && sri.Stream.CanRead && sri.Stream.Length > 0)
-                {
-                    //var bg = ImageCanvas.Background;
-                    var opacity = 0.1;
-                    var pattern = new MagickImage(sri.Stream);
-                    if (DarkTheme)
-                    {
-                        pattern.Negate(Channels.RGB);
-                        pattern.Opaque(MagickColors.Black, new MagickColor("#202020"));
-                        pattern.Opaque(MagickColors.White, new MagickColor("#303030"));
-                        opacity = 1.0;
-                    }
-                    ImageCanvas.Background = new ImageBrush(pattern.ToBitmapSource()) { TileMode = TileMode.Tile, Opacity = opacity, ViewportUnits = BrushMappingMode.Absolute, Viewport = new Rect(0, 0, 32, 32) };
-                    ImageCanvas.InvalidateVisual();
-                }
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="font"></param>
-        /// <param name="fonts"></param>
-        public void ChangeResourceFonts(FontFamily font = null, string fonts = "")
-        {
-            var customfamilies = new Dictionary<string, FontFamily>() {
-                { "MonoSpaceFamily", CustomMonoFontFamily },
-                { "SegoeIconFamily", CustomIconFontFamily },
-            };
-
-            if (font == null) { font = new FontFamily(); }
-
-            foreach (var family in font is FontFamily ? customfamilies.Where(f => f.Value.Equals(font)) : customfamilies)
-            {
-                var old_family = FindResource(family.Key);
-                if (old_family is FontFamily && font is FontFamily && !string.IsNullOrEmpty(fonts))
-                {
-                    try
-                    {
-                        font = new FontFamily(fonts);
-                        var old_fonts = (old_family as FontFamily).Source.Trim().Trim('"').Split(',').Select(f => f.Trim());
-                        var new_fonts = fonts.Trim().Trim('"').Split(',').Select(f => f.Trim());
-                        var source = new_fonts.Union(old_fonts);
-                        var new_family = new FontFamily(string.Join(", ", source));
-                        Resources.Remove(family.Key);
-                        Resources.Add(family.Key, new_family);
-                    }
-                    catch (Exception ex) { ex.ShowMessage(); }
-                }
-            }
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        private void RestoreWindowLocationSize()
-        {
-            Top = LastPositionSize.Top;
-            Left = LastPositionSize.Left;
-            Width = Math.Min(MaxWidth, Math.Max(MinWidth, LastPositionSize.Width));
-            Height = Math.Min(MaxHeight, Math.Max(MinHeight, LastPositionSize.Height));
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        private void RestoreWindowState()
-        {
-            if (Ready && LastWinState == System.Windows.WindowState.Maximized) WindowState = LastWinState;
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="culture"></param>
-        private void LocaleUI(CultureInfo culture = null)
-        {
-            Title = $"{Uid}.Title".T(culture) ?? Title;
-            ImageToolBar.Locale();
-            ImageViewerBox.Locale();
-
-            DefaultWindowTitle = Title;
-
-            LoadingWaitingStr = "LoadingIndicatorTitle".T(culture);
-            SavingWaitingStr = "SavingIndicatorTitle".T(culture);
-            ProcessingWaitingStr = "ProcessingIndicatorTitle".T(culture);
-
-            ZoomRatio.ToolTip = $"{"Zoom Ratio".T(culture)}: {ZoomRatio.Value:F2}X";
-
-            WaitingString = DefaultWaitingString.T(culture);
-            ImageViewerBox.ToolTip = null;
-            SetToolTipState(ImageViewerBox, false);
-
-            #region Create Image Flip/Rotate/Effects Menu
-            CreateImageOpMenu(ImageViewerScroll);
-            //CreateImageOpMenu(ImageTargetScroll);
-            #endregion
         }
         #endregion
 
@@ -1812,14 +1696,14 @@ namespace ImageViewer
                         ImageViewerBox.MaxWidth = scale_w <= scroll.ActualWidth ? scroll.ActualWidth : scale_w - delta;
                         ImageViewerBox.MaxHeight = scroll.ActualHeight;
                     }
+                    ImageViewerScale.ScaleX = ZoomRatio.Value;
+                    ImageViewerScale.ScaleY = ZoomRatio.Value;
+
                     ImageViewer.UpdateLayout();
                     ImageViewerBox.UpdateLayout();
                     ImageViewerScroll.UpdateLayout();
 
-                    ImageViewerScale.ScaleX = ZoomRatio.Value;
-                    ImageViewerScale.ScaleY = ZoomRatio.Value;
-
-                    var outbox = ImageViewerBox.ActualWidth > ImageViewerScroll.ActualWidth || ImageViewerBox.ActualHeight > ImageViewerScroll.ActualHeight;
+                    var outbox = ImageViewer.DesiredSize.Width > ImageViewerScroll.DesiredSize.Width || ImageViewer.DesiredSize.Height > ImageViewerScroll.DesiredSize.Height;
                     SetBirdView(outbox);
                     UpdateBirdView();
                 }
@@ -1857,7 +1741,7 @@ namespace ImageViewer
             double offset_x = -1, offset_y = -1;
             try
             {
-                if (sender == ImageViewerBox || sender == ImageViewerScroll)
+                if (sender == ImageViewer || sender == ImageViewerBox || sender == ImageViewerScroll)
                 {
                     if (ImageViewerBox.Stretch == Stretch.None && ImageViewer.GetInformation().ValidCurrent)
                     {
@@ -1995,20 +1879,30 @@ namespace ImageViewer
         /// </summary>
         /// <param name="image"></param>
         /// <param name="e"></param>
-        public void UpdateInfoBox(ImageInformation image = null, EventArgs e = null)
+        public void UpdateInfoBox(ImageInformation image = null, EventArgs e = null, bool index = true)
         {
             if (Ready)
             {
                 Dispatcher?.InvokeAsync(async () =>
                 {
-                    ImageIndexBox.Text = "-/-";
+                    var refresh = false;
+                    if (index) ImageIndexBox.Text = "-/-";
                     if (image is null) image = ImageViewer.GetInformation();
-                    if (e is RenamedEventArgs && (e as RenamedEventArgs).OldName.Equals(image.FileName, StringComparison.InvariantCultureIgnoreCase))
+                    if (e is FileSystemEventArgs)
                     {
-                        image.RefreshImageFileInfo((e as RenamedEventArgs).Name);
+                        Debug.WriteLine($"{e?.GetType()}");
+                        var fs = e as FileSystemEventArgs;
+                        if (fs.ChangeType == WatcherChangeTypes.Changed || fs.ChangeType == WatcherChangeTypes.Created || fs.ChangeType == WatcherChangeTypes.Renamed)
+                        {
+                            refresh = true;
+                        }
+                        else if (e is RenamedEventArgs || (e as RenamedEventArgs).OldName.Equals(image.FileName, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            image.RefreshImageFileInfo((e as RenamedEventArgs).FullPath);
+                        }
                     }
-                    ImageInfoBox.Text = await image.GetSimpleInfo();
-                    ImageIndexBox.Text = await image.GetIndexInfo();
+                    ImageInfoBox.Text = await image.GetSimpleInfo(refresh: refresh);
+                    if (index) ImageIndexBox.Text = await image.GetIndexInfo();
                 });
             }
         }
@@ -2620,6 +2514,126 @@ namespace ImageViewer
         }
         #endregion
 
+        #region Main Window Helper
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="topmost"></param>
+        public void TopMostWindow(bool? topmost)
+        {
+            if (Ready) Topmost = topmost ?? false;
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        public void ChangeTheme()
+        {
+            try
+            {
+                var source = new Uri(@"pack://application:,,,/ImageViewer;component/Resources/CheckboardPattern_32.png", UriKind.RelativeOrAbsolute);
+                var sri = Application.GetResourceStream(source);
+                if (sri is System.Windows.Resources.StreamResourceInfo && sri.ContentType.Equals("image/png") && sri.Stream is Stream && sri.Stream.CanRead && sri.Stream.Length > 0)
+                {
+                    //var bg = ImageCanvas.Background;
+                    var opacity = 0.1;
+                    var pattern = new MagickImage(sri.Stream);
+                    if (DarkTheme)
+                    {
+                        pattern.Negate(Channels.RGB);
+                        pattern.Opaque(MagickColors.Black, new MagickColor("#202020"));
+                        pattern.Opaque(MagickColors.White, new MagickColor("#303030"));
+                        opacity = 1.0;
+                    }
+                    ImageCanvas.Background = new ImageBrush(pattern.ToBitmapSource()) { TileMode = TileMode.Tile, Opacity = opacity, ViewportUnits = BrushMappingMode.Absolute, Viewport = new Rect(0, 0, 32, 32) };
+                    ImageCanvas.InvalidateVisual();
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="font"></param>
+        /// <param name="fonts"></param>
+        public void ChangeResourceFonts(FontFamily font = null, string fonts = "")
+        {
+            var customfamilies = new Dictionary<string, FontFamily>() {
+                { "MonoSpaceFamily", CustomMonoFontFamily },
+                { "SegoeIconFamily", CustomIconFontFamily },
+            };
+
+            if (font == null) { font = new FontFamily(); }
+
+            foreach (var family in font is FontFamily ? customfamilies.Where(f => f.Value.Equals(font)) : customfamilies)
+            {
+                var old_family = FindResource(family.Key);
+                if (old_family is FontFamily && font is FontFamily && !string.IsNullOrEmpty(fonts))
+                {
+                    try
+                    {
+                        font = new FontFamily(fonts);
+                        var old_fonts = (old_family as FontFamily).Source.Trim().Trim('"').Split(',').Select(f => f.Trim());
+                        var new_fonts = fonts.Trim().Trim('"').Split(',').Select(f => f.Trim());
+                        var source = new_fonts.Union(old_fonts);
+                        var new_family = new FontFamily(string.Join(", ", source));
+                        Resources.Remove(family.Key);
+                        Resources.Add(family.Key, new_family);
+                    }
+                    catch (Exception ex) { ex.ShowMessage(); }
+                }
+            }
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        private void RestoreWindowLocationSize()
+        {
+            Top = LastPositionSize.Top;
+            Left = LastPositionSize.Left;
+            Width = Math.Min(MaxWidth, Math.Max(MinWidth, LastPositionSize.Width));
+            Height = Math.Min(MaxHeight, Math.Max(MinHeight, LastPositionSize.Height));
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        private void RestoreWindowState()
+        {
+            if (Ready && LastWinState == System.Windows.WindowState.Maximized) WindowState = LastWinState;
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="culture"></param>
+        private void LocaleUI(CultureInfo culture = null)
+        {
+            Title = $"{Uid}.Title".T(culture) ?? Title;
+            ImageToolBar.Locale();
+            ImageViewerBox.Locale();
+
+            DefaultWindowTitle = Title;
+
+            LoadingWaitingStr = "LoadingIndicatorTitle".T(culture);
+            SavingWaitingStr = "SavingIndicatorTitle".T(culture);
+            ProcessingWaitingStr = "ProcessingIndicatorTitle".T(culture);
+
+            ZoomRatio.ToolTip = $"{"Zoom Ratio".T(culture)}: {ZoomRatio.Value:F2}X";
+
+            WaitingString = DefaultWaitingString.T(culture);
+            ImageViewerBox.ToolTip = null;
+            SetToolTipState(ImageViewerBox, false);
+
+            #region Create Image Flip/Rotate/Effects Menu
+            CreateImageOpMenu(ImageViewerScroll);
+            //CreateImageOpMenu(ImageTargetScroll);
+            #endregion
+        }
+        #endregion
+
         #region Config Load/Save Helper
         /// <summary>
         ///
@@ -3201,7 +3215,13 @@ namespace ImageViewer
                     else if (e.Key == Key.Delete || e.SystemKey == Key.Delete)
                     {
                         var file = ImageViewer.GetInformation().FileName;
-                        if (file.FileDelete() == 0) await LoadImageFromNextFile();
+                        var ret = file.FileDelete() == 0;
+                        if (ret)
+                        {
+                            ret = await LoadImageFromNextFile();
+                            if (!ret) ret = await LoadImageFromPrevFile();
+                            if (!ret) IsLoadingViewer = false;
+                        }
                     }
 
                     else if (e.Key == Key.F1 || e.SystemKey == Key.F1)
@@ -3332,8 +3352,24 @@ namespace ImageViewer
 
         private async void ImageScroll_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (!Ready) return;
-            if (e.ChangedButton == MouseButton.Middle && e.XButton1 == MouseButtonState.Pressed)
+            if (!Ready || IsImageNull(ImageViewer)) return;
+            if (e.ChangedButton == MouseButton.Left && e.XButton1 == MouseButtonState.Pressed)
+            {
+                e.Handled = true;
+                if (e.ClickCount == 1)
+                {
+                    if (CurrentZoomFitMode == ZoomFitMode.None)
+                    {
+                        CurrentZoomFitMode = ZoomFitMode.All;
+                    }
+                    else if (CurrentZoomFitMode == ZoomFitMode.All)
+                    {
+                        ZoomRatio.Value = 1f;
+                        CurrentZoomFitMode = ZoomFitMode.None;
+                    }
+                }
+            }
+            else if (e.ChangedButton == MouseButton.Middle && e.XButton1 == MouseButtonState.Pressed)
             {
                 e.Handled = true;
                 if (e.ClickCount >= 1) CenterViewer();
@@ -3387,29 +3423,13 @@ namespace ImageViewer
         private long _last_timestamp_ = 0;
         private void ImageBox_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (!Ready) return;
+            if (!Ready || IsImageNull(ImageViewer)) return;
             e.Handled = false;
             try
             {
                 if (e.Device is MouseDevice)
                 {
-                    if (e.ChangedButton == MouseButton.Left && e.XButton1 == MouseButtonState.Pressed)
-                    {
-                        e.Handled = true;
-                        if (e.ClickCount == 1)
-                        {
-                            if (CurrentZoomFitMode == ZoomFitMode.None)
-                            {
-                                CurrentZoomFitMode = ZoomFitMode.All;
-                            }
-                            else if (CurrentZoomFitMode == ZoomFitMode.All)
-                            {
-                                ZoomRatio.Value = 1f;
-                                CurrentZoomFitMode = ZoomFitMode.None;
-                            }
-                        }
-                    }
-                    else if (e.ChangedButton == MouseButton.Left && e.ClickCount >= 2)
+                    if (e.ChangedButton == MouseButton.Left && e.ClickCount >= 2)
                     {
                         e.Handled = true;
                         ToggleMagnifier(change_state: true);
@@ -3779,13 +3799,28 @@ namespace ImageViewer
             if (!Ready) return;
             try
             {
-                var image_s = ImageViewer.GetInformation();
-                if (image_s.ValidCurrent)
+                if (sender == QualityChangerOK)
                 {
-                    IsProcessingViewer = true;
-                    SetImageSource(ImageViewer, image_s, fit: false);
+                    var image = ImageViewer.GetInformation();
+                    var quality = (uint)QualityChangerSlider.Value;
+                    if (image?.ValidCurrent ?? false && quality < image?.OriginalQuality)
+                    {
+                        image.Current.Quality = quality;
+                    }
+                    QualityChanger.Close();
+                }
+                else
+                {
+                    var image_s = ImageViewer.GetInformation();
+                    if (image_s.ValidCurrent)
+                    {
+                        IsProcessingViewer = true;
+                        SetImageSource(ImageViewer, image_s, fit: false);
+                    }
                 }
                 QualityChangerSlider.Tag = null;
+                _quality_temp_?.Dispose();
+                _quality_temp_ = null;
             }
             catch (Exception ex) { ex.ShowMessage(); }
             finally { IsProcessingViewer = false; }

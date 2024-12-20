@@ -6,6 +6,7 @@ using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Permissions;
 using System.Text;
@@ -1427,10 +1428,10 @@ namespace ImageViewer
                         if (profile is ExifProfile)
                         {
                             var exif = profile as ExifProfile;
-                            Debug.WriteLine(exif.GetValue(ExifTag.XPTitle));
-                            Debug.WriteLine(exif.GetValue(ExifTag.XPAuthor));
-                            Debug.WriteLine(exif.GetValue(ExifTag.XPKeywords));
-                            Debug.WriteLine(exif.GetValue(ExifTag.XPComment));
+                            Debug.WriteLine(BytesToString(exif.GetValue(ExifTag.XPTitle)?.Value));
+                            Debug.WriteLine(BytesToString(exif.GetValue(ExifTag.XPAuthor)?.Value));
+                            Debug.WriteLine(BytesToString(exif.GetValue(ExifTag.XPKeywords)?.Value));
+                            Debug.WriteLine(BytesToString(exif.GetValue(ExifTag.XPComment)?.Value));
                         }
                         else if (profile is IptcProfile)
                         {
@@ -1742,7 +1743,7 @@ namespace ImageViewer
         #endregion
 
         #region Bitmap Source
-        public static BitmapSource ToBitmapSource(this ImageSource source, Size size = default(Size))
+        public static BitmapSource ToBitmapSource(this ImageSource source, Size size = default)
         {
             BitmapSource result = source is BitmapSource ? source as BitmapSource : null;
             try
@@ -1751,7 +1752,7 @@ namespace ImageViewer
                 {
                     var dpi = GetSystemDPI(Application.Current);
                     RenderTargetBitmap target = null;
-                    if (size != default(Size) && size.Width > 0 && size.Height > 0)
+                    if (size != default && size.Width > 0 && size.Height > 0)
                         target = new RenderTargetBitmap((int)(size.Width), (int)(size.Height), dpi.X, dpi.Y, PixelFormats.Pbgra32);
                     else
                         target = new RenderTargetBitmap((int)(source.Width), (int)(source.Height), dpi.X, dpi.Y, PixelFormats.Pbgra32);
@@ -1806,7 +1807,7 @@ namespace ImageViewer
             return (result);
         }
 
-        public static BitmapSource ToBitmapSource(this FrameworkElement element, Size size = default(Size))
+        public static BitmapSource ToBitmapSource(this FrameworkElement element, Size size = default)
         {
             BitmapSource result = null;
             try
@@ -1969,6 +1970,17 @@ namespace ImageViewer
         private static List<string> _file_list_ = new List<string>();
         private static SemaphoreSlim _file_list_updating_ = new SemaphoreSlim(1);
 
+        public static bool IsUpdatingFileList(this object obj)
+        {
+            var result = _file_list_updating_?.CurrentCount == 0;
+            if (_file_list_updating_?.Wait(0) ?? result)
+            {
+                try { result = false; }
+                finally { _file_list_updating_.Release(); }
+            }
+            return (result);
+        }
+
         public static IList<string> GetFiles(this string file)
         {
             var files = new List<string>();
@@ -1990,7 +2002,7 @@ namespace ImageViewer
         public static async Task<List<string>> GetFileList(this object file)
         {
             var result = new List<string>();
-            if (await _file_list_updating_.WaitAsync(TimeSpan.FromMilliseconds(250)))
+            if (await _file_list_updating_.WaitAsync(TimeSpan.FromMilliseconds(333)))
             {
                 try
                 {
@@ -2001,7 +2013,7 @@ namespace ImageViewer
             return (result);
         }
 
-        private static async Task<bool> UpdateFileList()
+        private static async Task<bool> UpdateFileList(EventArgs e = null)
         {
             var result = false;
             if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(5)))
@@ -2012,7 +2024,7 @@ namespace ImageViewer
                     try
                     {
                         _file_list_ = _file_list_storage_.Keys.Distinct().NaturalSort().ToList();
-                        UpdateInfoBox();
+                        UpdateInfoBox(e: e);
                         ret = true;
                     }
                     finally { _file_list_updating_.Release(); }
@@ -2022,12 +2034,12 @@ namespace ImageViewer
             return(result);
         }
 
-        private static void UpdateInfoBox(EventArgs e = null)
+        private static void UpdateInfoBox(EventArgs e = null, bool index = true)
         {
             Application.Current?.Dispatcher?.InvokeAsync(() =>
             {
                 var mainwindow = Application.Current.MainWindow as MainWindow;
-                mainwindow?.UpdateInfoBox(e: e);
+                mainwindow?.UpdateInfoBox(e: e, index: index);
             });
         }
 
@@ -2053,25 +2065,32 @@ namespace ImageViewer
                             _file_list_storage_.Clear();
                             _FS_Change_Type_ = files.Count() > 1 ? WatcherChangeTypes.Renamed | WatcherChangeTypes.Deleted : WatcherChangeTypes.All;
                             foreach (var file in files) _file_list_storage_[file] = null;
-                            foreach (var path in paths)
+                            if (files.Count() == 1)
                             {
-                                if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
+                                foreach (var path in paths)
                                 {
-                                    //foreach (var file in Directory.EnumerateFiles(path, "*.*").Where(f => SupportedExt(f)))
-                                    foreach (var file in Directory.GetFiles(path, "*.*").Where(f => SupportedExt(f)))
+                                    if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
                                     {
-                                        _file_list_storage_[file] = null;//File.GetLastWriteTime(file);
+                                        //foreach (var file in Directory.EnumerateFiles(path, "*.*").Where(f => SupportedExt(f)))
+                                        foreach (var file in Directory.GetFiles(path, "*.*").Where(f => SupportedExt(f)))
+                                        {
+                                            _file_list_storage_[file] = null;//File.GetLastWriteTime(file);
+                                        }
                                     }
                                 }
                             }
                             ret = true;
                         }
                         finally { _file_list_updating_.Release(); }
-                        return Task.FromResult((ret));
+                        return (ret);
+                        //return Task.FromResult((ret));
                     });
                 }
-                result &= await UpdateFileList();
-                result &= await InitWatcher(paths);
+                if (result)
+                {
+                    result &= await UpdateFileList();
+                    result &= await InitWatcher(paths);
+                }
             }
             return (result);
         }
@@ -2098,6 +2117,7 @@ namespace ImageViewer
                         _watcher_.Changed += OnFSChanged;
                         _watcher_.Deleted += OnFSChanged;
                         _watcher_.Renamed += OnFSRenamed;
+                        _watcher_.Error += OnFSError;
                         _file_watcher_.Add(_watcher_);
                     }
                     ret = true;
@@ -2124,19 +2144,20 @@ namespace ImageViewer
                 if (e.ChangeType == WatcherChangeTypes.Created)
                 {
                     if (_FS_Change_Type_ != WatcherChangeTypes.All) return;
-                    if (File.Exists(e.FullPath))
+                    var ext = Path.GetExtension(e.Name).ToLower();
+                    if (ext_imgs.Contains(ext) || ext_movs.Contains(ext))
                     {
-                        var ext = Path.GetExtension(e.Name).ToLower();
-                        if (ext_imgs.Contains(ext) || ext_movs.Contains(ext))
-                        {
-                            if (!_file_list_storage_.ContainsKey(e.FullPath)) _file_list_storage_[e.FullPath] = null;// File.GetLastWriteTime(e.FullPath);
-                            await UpdateFileList();
-                        }
+                        if (!_file_list_storage_.ContainsKey(e.FullPath)) _file_list_storage_[e.FullPath] = null;// File.GetLastWriteTime(e.FullPath);
+                        await UpdateFileList(e: e);
                     }
                 }
                 else if (e.ChangeType == WatcherChangeTypes.Changed)
                 {
-                    UpdateInfoBox();
+                    var ext = Path.GetExtension(e.Name).ToLower();
+                    if (ext_imgs.Contains(ext) || ext_movs.Contains(ext))
+                    {
+                        UpdateInfoBox(e: e, index: false);
+                    }
                 }
                 else if (e.ChangeType == WatcherChangeTypes.Deleted)
                 {
@@ -2168,7 +2189,7 @@ namespace ImageViewer
                             _file_list_storage_[e.FullPath] = null;// File.GetLastWriteTime(e.FullPath);
                             _file_list_storage_.TryRemove(e.OldFullPath, out DateTime? _);
                         }
-                        await UpdateFileList();
+                        await UpdateFileList(e: e);
                     }
                 }
             }
@@ -2176,6 +2197,12 @@ namespace ImageViewer
             finally
             {
             }
+        }
+        
+        private static void OnFSError(object sender, ErrorEventArgs e)
+        {
+            var ex = e.GetException();
+            ex?.ShowMessage();
         }
         #endregion
 

@@ -117,6 +117,23 @@ namespace ImageViewer
         public uint OriginalQuality => Original?.Quality() ?? 0;
         public uint OriginalDepth = 0;
         public Endian OriginalEndian = Endian.Undefined;
+        public int Rating 
+        { 
+            get 
+            {
+                var result = -1;
+                if (ValidOriginal)
+                {
+                    try
+                    {
+                        foreach (var tag in Original?.GetExifProfile()?.Values.Where(v => v.Tag.Equals(ExifTag.Rating))) { result = (ushort)tag.GetValue(); break; }
+                    }
+                    catch { }
+                }
+                return (result);
+            } 
+        }
+        
         private string _simple_info_ = string.Empty;
         public string SimpleInfo { get { return (_simple_info_); } }
 
@@ -232,7 +249,8 @@ namespace ImageViewer
                     try
                     {
                         var image = new MagickImage(Current) { FilterType = ResizeFilter };
-                        result = image.ToBitmapSourceWithDensity();
+                        //result = image.ToBitmapSourceWithDensity();
+                        result = image.ToBitmapSource();
                         image.Dispose();
                     }
                     catch (AccessViolationException) { }
@@ -314,7 +332,7 @@ namespace ImageViewer
             if (ValidImage(image))
             {
                 var dpi = Application.Current.GetSystemDPI();
-                if (image?.Density?.X > 0 && image?.Density?.Y > 0)
+                if (image?.Density?.X > 0 && image?.Density?.Y > 0 && image?.Density.Units != DensityUnit.PixelsPerInch)
                 {
                     var unit = image?.Density?.ChangeUnits(DensityUnit.PixelsPerInch);
                     if (use_system || unit.X <= 0 || unit.Y <= 0)
@@ -322,7 +340,6 @@ namespace ImageViewer
                     else
                         image.Density = new Density(Math.Round(unit.X), Math.Round(unit.Y), DensityUnit.PixelsPerInch);
                 }
-                else image.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
             }
         }
 
@@ -596,6 +613,24 @@ namespace ImageViewer
         /// 
         /// </summary>
         /// <returns></returns>
+        public bool IsFirstFile()
+        {
+            return (_last_file_index_ == 0);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public bool IsLastFile()
+        {
+            return (_last_file_index_ == _last_file_count_);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public async Task<string> GetIndexInfo()
         {
             var result = "1/1";
@@ -609,32 +644,64 @@ namespace ImageViewer
             return (result);
         }
 
+        private readonly SemaphoreSlim _refresh_info_ = new SemaphoreSlim(1);
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        public async Task<string> GetSimpleInfo()
+        public async Task<string> GetSimpleInfo(bool refresh = false)
         {
             if (!ValidCurrent) return (null);
 
             if (!string.IsNullOrEmpty(_simple_info_)) return (_simple_info_);
 
-            var result = await Task.Run(() =>
+            var result = await Task.Run(async () =>
             {
                 var ret = string.Empty;
                 try
                 {
+                    var size = OriginalSize;
+                    var endian = OriginalEndian;
+                    var fmt = Original.GetFormatInfo().MimeType;
+                    var DPI_TEXT = GetCurrentDPI();
+                    var has_q = Original.IsJPG() || Original.IsTIF();
+                    var quality = OriginalQuality;
+                    var rating = Rating;
+
+                    if (refresh && await _refresh_info_.WaitAsync(50))
+                    {
+                        try
+                        {
+                            if (File.Exists(ImageFileInfo.FullName))
+                            {
+                                var exif = new CompactExifLib.ExifData(ImageFileInfo.FullName);
+                                size.Width = exif.Width;
+                                size.Height = exif.Height;
+                                endian = exif.ByteOrder == CompactExifLib.ExifByteOrder.BigEndian ? Endian.MSB : Endian.LSB;
+                                fmt = exif.ImageMime;
+                                has_q = exif.ImageType == CompactExifLib.ImageType.Jpeg || exif.ImageType == CompactExifLib.ImageType.Tiff;
+                                quality = (uint)exif.JpegQuality;
+                                var dpiX = exif.ResolutionX;
+                                var dpiY = exif.ResolutionY;
+                                DPI_TEXT = $"{dpiX:F0}x{dpiY:F0} PPI";
+                                exif.GetTagValue(CompactExifLib.ExifTag.Rating, out rating);
+                                await Task.Delay(150);
+                            }
+                        }
+                        catch { }
+                        finally { _refresh_info_.Release(); }
+                    }
+
                     var info = new List<string>();
 
-                    var dims = $"{OriginalSize.Width:F0}x{OriginalSize.Height:F0}x{OriginalDepth:F0} BPP, {(long)OriginalSize.Width * OriginalSize.Height / 1000000:F2} MP, {OriginalEndian}";
+                    var dims = $"{size.Width:F0}x{size.Height:F0}x{size:F0} BPP, {(long)size.Width * size.Height / 1000000:F2} MP, {endian}";
                     info.Add(dims);
 
-                    var DPI_TEXT = GetCurrentDPI();
                     if (!string.IsNullOrEmpty(DPI_TEXT)) info.Add($"{DPI_TEXT}");
 
-                    var fmt = Original.GetFormatInfo();
-                    info.Add(fmt.MimeType);
-                    if (Original.IsJPG() || Original.IsTIF()) info.Add($"Q:{OriginalQuality}");
+                    info.Add(fmt);
+
+                    if (has_q) info.Add($"Q:{quality}");
 
                     if (ImageFileInfo is FileInfo)
                     {
@@ -643,6 +710,8 @@ namespace ImageViewer
                         var FileDate = ImageFileInfo.LastWriteTime.ToString("yyyy/MM/dd HH:mm:ss zzz dddd");
                         info.Add($"{FileSize.SmartFileSize()}, {FileDate}");
                     }
+
+                    if (rating > 3) info.Add("Favorited".T());
 
                     ret = string.Join(", ", info);
                 }
@@ -1127,6 +1196,7 @@ namespace ImageViewer
         }
 
         private int? _last_file_index_ = null;
+        private int? _last_file_count_ = null;
 
         /// <summary>
         /// 
@@ -1152,7 +1222,8 @@ namespace ImageViewer
                             if (idx_o < 0) idx_o = _last_file_index_ ?? int.MaxValue;
                             var idx_n = (int)Math.Max(0, Math.Min(files.Count - 1, relative ? idx_o + index : index));
                             if (idx_n != idx_o) ret = await LoadImageFromFile(files[idx_n]);
-                            _last_file_index_ = idx_n;
+                            if (ret) _last_file_index_ = idx_n;
+                            _last_file_count_ = files.Count;
                         }
                     }
                 }

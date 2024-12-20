@@ -403,6 +403,15 @@ namespace ImageViewer.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Favorited 的本地化字符串。
+        /// </summary>
+        public static string Favorited {
+            get {
+                return ResourceManager.GetString("Favorited", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 File 的本地化字符串。
         /// </summary>
         public static string File {
