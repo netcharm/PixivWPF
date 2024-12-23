@@ -1972,12 +1972,12 @@ namespace ImageViewer
 
         public static bool IsUpdatingFileList(this object obj)
         {
-            var result = _file_list_updating_?.CurrentCount == 0;
-            if (_file_list_updating_?.Wait(0) ?? result)
-            {
-                try { result = false; }
-                finally { _file_list_updating_.Release(); }
-            }
+            var result = _file_list_updating_?.CurrentCount <= 0;
+            //if (_file_list_updating_?.Wait(0) ?? result)
+            //{
+            //    try { result = false; }
+            //    finally { _file_list_updating_.Release(); }
+            //}
             return (result);
         }
 

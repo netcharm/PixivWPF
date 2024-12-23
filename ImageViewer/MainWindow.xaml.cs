@@ -24,8 +24,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
+using System.Windows.Shell;
 using System.Windows.Threading;
-
+using System.Xml.Serialization;
 using ImageMagick;
 using Xceed.Wpf.Toolkit;
 using Xceed.Wpf.Toolkit.PropertyGrid;
@@ -51,7 +52,7 @@ namespace ImageViewer
         #region Application Infomations
         private static readonly string AppExec = Application.ResourceAssembly.CodeBase.ToString().Replace("file:///", "").Replace("/", "\\");
         private static readonly string AppPath = Path.GetDirectoryName(AppExec);
-        //private static readonly string AppName = Path.GetFileNameWithoutExtension(AppPath);
+        private static readonly string AppName = Path.GetFileNameWithoutExtension(AppExec);
         //private static readonly string AppFullName = Application.ResourceAssembly.FullName.Split(',').First().Trim();
         private static string CachePath =  "cache";
 
@@ -91,6 +92,74 @@ namespace ImageViewer
         //private Screen screens = Screen..AllScreens;
 
         private CultureInfo DefaultCultureInfo = CultureInfo.CurrentCulture;
+        #endregion
+
+        #region Shell Jump List
+        private static string jumplist_tasks_file = $"{AppName}_JumpTasks.xml";
+        private List<JumpTask> jumplist_tasks = new List<JumpTask>();
+
+        private void LoadJumpList(string tasks = null)
+        {
+            if (tasks == null) tasks = jumplist_tasks_file;
+            if (!Path.IsPathRooted(tasks)) tasks = Path.GetFullPath(Path.Combine(AppPath, tasks));
+            if (!string.IsNullOrEmpty(tasks) && File.Exists(tasks))
+            {
+                using (StreamReader txt = new StreamReader(tasks, true))
+                {
+                    try
+                    {
+                        XmlSerializer xml = new XmlSerializer(typeof(List<JumpTask>));
+                        jumplist_tasks = (List<JumpTask>)xml.Deserialize(txt);
+                        InitJumpList(jumplist_tasks);
+                    }
+                    catch (Exception ex) { ex.ShowMessage(); }
+                }
+            }
+        }
+
+        private void SaveJumpList(string tasks)
+        {
+            if (tasks == null) tasks = jumplist_tasks_file;
+            if (!Path.IsPathRooted(tasks)) tasks = Path.GetFullPath(Path.Combine(AppPath, tasks));
+            if (!string.IsNullOrEmpty(tasks))
+            {
+                using (StreamWriter txt = new StreamWriter(tasks, false, Encoding.UTF8))
+                {
+                    try
+                    {
+                        if (!jumplist_tasks.Any()) jumplist_tasks.Add(new JumpTask() { ApplicationPath = "", Arguments = "", CustomCategory = "", Description = "", IconResourceIndex = 0, IconResourcePath = "", Title = "", WorkingDirectory = "" });
+
+                        XmlSerializer xml = new XmlSerializer(typeof(List<JumpTask>));
+                        xml.Serialize(txt, jumplist_tasks, new XmlSerializerNamespaces());
+                    }
+                    catch (Exception ex) { ex.ShowMessage(); }
+                }
+            }
+        }
+
+        private void InitJumpList(IEnumerable<JumpTask> tasks = null)
+        {
+            Application.Current.Dispatcher.Invoke(() => 
+            {
+                var jumpList = JumpList.GetJumpList(Application.Current);
+                jumpList?.JumpItems?.Clear();
+                jumpList?.Apply();
+
+                if (tasks?.Any() ?? false)
+                {
+                    jumpList = new JumpList();
+
+                    foreach(var task in tasks)
+                    {
+                        if (string.IsNullOrEmpty(task.IconResourcePath)) task.IconResourcePath = task.ApplicationPath;
+                        jumpList?.JumpItems.Add(task);
+                    }
+
+                    jumpList?.Apply();
+                    JumpList.SetJumpList(Application.Current, jumpList);
+                }
+            });
+        }
         #endregion
 
         #region DoEvent Helper
@@ -786,12 +855,14 @@ namespace ImageViewer
                 IsLoadingViewer = true;
 
                 var image =  ImageViewer.GetInformation();
-                ret = await image.LoadImageFromFirstFile(refresh);
-                if (ret) ClearImage();
-                if (ret) ResetViewTransform(calcdisplay: false);
-                if (ret) SetTitle(image.FileName);
-                if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
-                //if (ret && await UpdateImageViewerFinished()) FitView();
+                if (await image.LoadImageFromFirstFile(refresh))
+                {
+                    ClearImage();
+                    ResetViewTransform(calcdisplay: false);
+                    SetTitle(image.FileName);
+                    RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
+                    //if (await UpdateImageViewerFinished()) FitView();
+                }
                 else IsLoadingViewer = false;
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -813,12 +884,14 @@ namespace ImageViewer
                 IsLoadingViewer = true;
 
                 var image =  ImageViewer.GetInformation();
-                ret = await image.LoadImageFromPrevFile(refresh);
-                if (ret) ClearImage();
-                if (ret) ResetViewTransform(calcdisplay: false);
-                if (ret) SetTitle(image.FileName);
-                if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
-                //if (ret && await UpdateImageViewerFinished()) FitView();
+                if (await image.LoadImageFromPrevFile(refresh))
+                {
+                    ClearImage();
+                    ResetViewTransform(calcdisplay: false);
+                    SetTitle(image.FileName);
+                    RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
+                    //if (await UpdateImageViewerFinished()) FitView();
+                }
                 else IsLoadingViewer = false;
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -840,12 +913,13 @@ namespace ImageViewer
                 IsLoadingViewer = true;
 
                 var image = ImageViewer.GetInformation();
-                ret = await image.LoadImageFromNextFile(refresh);
-                
-                if (ret) ClearImage();
-                if (ret) ResetViewTransform(calcdisplay: false);
-                if (ret) SetTitle(image.FileName);
-                if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
+                if (await image.LoadImageFromNextFile(refresh))
+                {
+                    ClearImage();
+                    ResetViewTransform(calcdisplay: false);
+                    SetTitle(image.FileName);
+                    RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
+                }
                 else IsLoadingViewer = false;
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -867,12 +941,14 @@ namespace ImageViewer
                 IsLoadingViewer = true;
 
                 var image =  ImageViewer.GetInformation();
-                ret = await image.LoadImageFromLastFile(refresh);
-                if (ret) ClearImage();
-                if (ret) ResetViewTransform(calcdisplay: false);
-                if (ret) SetTitle(image.FileName);
-                if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
-                //if (ret && await UpdateImageViewerFinished()) FitView();
+                if (await image.LoadImageFromLastFile(refresh))
+                {
+                    ClearImage();
+                    ResetViewTransform(calcdisplay: false);
+                    SetTitle(image.FileName);
+                    RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
+                    //if (await UpdateImageViewerFinished()) FitView();
+                }
                 else IsLoadingViewer = false;
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -897,21 +973,43 @@ namespace ImageViewer
             var ret = false;
             try
             {
-                files = files.Select(f => f.Trim().Trim('\"')).Where(f => f.IsSupportedExt()).Where(f => !string.IsNullOrEmpty(f) && File.Exists(f)).ToArray();
-                if (files.Length > 0)
+                if (files == null || files.Length == 0)
                 {
                     CloseQualityChanger();
                     IsLoadingViewer = true;
 
-                    _ = Task.Run(async () => await files.InitFileList());
-
                     var image  = ImageViewer.GetInformation();
-                    ret |= await image.LoadImageFromFile(files.First());
-                    if (ret) ClearImage();
-                    if (ret) ResetViewTransform(calcdisplay: false);
-                    if (ret) SetTitle(image.FileName);
-                    if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
-                    else IsLoadingViewer = false;
+                    if (await image.LoadImageFromFile())
+                    {
+                        files = new string[] { image.FileName };
+                        _ = Task.Run(async () => await files.InitFileList());
+
+                        ClearImage();
+                        ResetViewTransform(calcdisplay: false);
+                        SetTitle(image.FileName);
+                        RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
+                    }
+                }
+                else
+                {
+                    files = files.Select(f => f.Trim().Trim('\"')).Where(f => f.IsSupportedExt()).Where(f => !string.IsNullOrEmpty(f) && File.Exists(f)).ToArray();
+                    if (files.Length > 0)
+                    {
+                        CloseQualityChanger();
+                        IsLoadingViewer = true;
+
+                        _ = Task.Run(async () => await files.InitFileList());
+
+                        var image  = ImageViewer.GetInformation();
+                        if (await image.LoadImageFromFile(files.First()))
+                        {
+                            ClearImage();
+                            ResetViewTransform(calcdisplay: false);
+                            SetTitle(image.FileName);
+                            RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
+                        }
+                        else IsLoadingViewer = false;
+                    }
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -1449,7 +1547,12 @@ namespace ImageViewer
 
                 item_more_blueshift.Click += (obj, evt) => { RenderRun(() => { BlueShiftImage(MenuHost(obj)); }, target); };
                 item_more_autothreshold.Click += (obj, evt) => { RenderRun(() => { AutoThresholdImage(MenuHost(obj)); }, target); };
-                item_more_haldclut.Click += (obj, evt) => { var shift = Keyboard.Modifiers == ModifierKeys.Shift; RenderRun(() => { HaldClutImage(MenuHost(obj), shift); }, target); };
+                item_more_haldclut.Click += (obj, evt) => 
+                { 
+                    var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+                    if (!string.IsNullOrEmpty(LastHaldFile) && File.Exists(LastHaldFile))
+                        RenderRun(() => { HaldClutImage(MenuHost(obj), shift); }, target); 
+                };
 
                 item_more_meanshift.Click += (obj, evt) => { RenderRun(() => { MeanShiftImage(MenuHost(obj)); }, target); };
                 item_more_kmeans.Click += (obj, evt) => { RenderRun(() => { KmeansImage(MenuHost(obj)); }, target); };
@@ -1663,6 +1766,8 @@ namespace ImageViewer
                         ZoomRatio.Minimum = LastZoomRatio < ZoomMin ? LastZoomRatio : ZoomMin;
                         ImageViewerBox.MaxWidth = LastZoomRatio * width;
                         ImageViewerBox.MaxHeight = LastZoomRatio * height;
+                        ImageViewerBox.Width = ImageViewerBox.MaxWidth;
+                        ImageViewerBox.Height = ImageViewerBox.MaxHeight;
                     }
                     else if (CurrentZoomFitMode == ZoomFitMode.All)
                     {
@@ -1671,6 +1776,8 @@ namespace ImageViewer
                         ZoomRatio.Minimum = scale < ZoomMin ? scale : ZoomMin;
                         ImageViewerBox.MaxWidth = scale * width;
                         ImageViewerBox.MaxHeight = scale * height;
+                        ImageViewerBox.Width = ImageViewerBox.MaxWidth;
+                        ImageViewerBox.Height = ImageViewerBox.MaxHeight;
                     }
                     else if (CurrentZoomFitMode == ZoomFitMode.Width)
                     {
@@ -1683,6 +1790,8 @@ namespace ImageViewer
                         ZoomRatio.Minimum = scale < ZoomMin ? scale : ZoomMin;
                         ImageViewerBox.MaxWidth = scroll.ActualWidth;
                         ImageViewerBox.MaxHeight = scale_h <= scroll.ActualHeight ? scroll.ActualHeight : scale_h - delta;
+                        ImageViewerBox.Width = ImageViewerBox.MaxWidth;
+                        ImageViewerBox.Height = ImageViewerBox.MaxHeight;
                     }
                     else if (CurrentZoomFitMode == ZoomFitMode.Height)
                     {
@@ -1695,6 +1804,8 @@ namespace ImageViewer
                         ZoomRatio.Minimum = scale < ZoomMin ? scale : ZoomMin;
                         ImageViewerBox.MaxWidth = scale_w <= scroll.ActualWidth ? scroll.ActualWidth : scale_w - delta;
                         ImageViewerBox.MaxHeight = scroll.ActualHeight;
+                        ImageViewerBox.Width = ImageViewerBox.MaxWidth;
+                        ImageViewerBox.Height = ImageViewerBox.MaxHeight;
                     }
                     DoEvents();
                     
@@ -1707,8 +1818,10 @@ namespace ImageViewer
                     ImageViewerScale.ScaleY = ZoomRatio.Value;
                     DoEvents();
 
-                    var outbox = ImageViewer.DesiredSize.Width > ImageViewerScroll.DesiredSize.Width || ImageViewer.DesiredSize.Height > ImageViewerScroll.DesiredSize.Height;
-                    SetBirdView(outbox);
+                    var dw = Math.Round(Math.Max(ImageViewer.DesiredSize.Width, ImageViewerBox.DesiredSize.Width) - ImageViewerScroll.DesiredSize.Width, 1, MidpointRounding.AwayFromZero);
+                    var dh = Math.Round(Math.Max(ImageViewer.DesiredSize.Height, ImageViewerBox.DesiredSize.Height) - ImageViewerScroll.DesiredSize.Height, 1, MidpointRounding.AwayFromZero);
+
+                    SetBirdView(dw > 0 || dh > 0);
                     UpdateBirdView();
                 }
             }
@@ -2034,9 +2147,7 @@ namespace ImageViewer
                     if (restore)
                         QualityChanger_CloseButtonClicked(QualityChanger, null);
                     else
-                        QualityChangerSlider.Tag = null;
-
-                    QualityChanger.Close();
+                        QualityChanger_CloseButtonClicked(null, null);
                 });
             }
         }
@@ -2214,13 +2325,15 @@ namespace ImageViewer
                 {
                     try
                     {
-                        var src = ImageViewer;
+                        var src = ImageViewerBox;
                         var ratio = Math.Max(src.DesiredSize.Width / 250f, src.DesiredSize.Height / 250f);
                         var pos = e.GetPosition(BirdView);
                         var aw = BirdViewArea.DesiredSize.Width;
                         var ah = BirdViewArea.DesiredSize.Height;
-                        offset_x = Math.Max(0, (pos.X - aw / 2f) * ratio);
-                        offset_y = Math.Max(0, (pos.Y - ah / 2f) * ratio);
+                        offset_x = Math.Max(pos.X, (pos.X - aw / 2f) * ratio);
+                        offset_y = Math.Max(pos.Y, (pos.Y - ah / 2f) * ratio);
+                        if (offset_x == 0) offset_x = ImageViewerScroll.HorizontalOffset;
+                        if (offset_y == 0) offset_x = ImageViewerScroll.VerticalOffset;
                     }
                     catch { }
                 }
@@ -2650,6 +2763,9 @@ namespace ImageViewer
             AppSettingsSection appSection = appCfg.AppSettings;
             try
             {
+                if (appSection.Settings.AllKeys.Contains("JumpTasks"))
+                    jumplist_tasks_file = appSection.Settings["JumpTasks"].Value.ToString();
+
                 if (appSection.Settings.AllKeys.Contains("AutoSaveOptions"))
                 {
                     var value = AutoSaveOptions.IsChecked ?? true;
@@ -2848,6 +2964,13 @@ namespace ImageViewer
                 else
                     appSection.Settings.Add("AutoSaveOptions", AutoSaveConfig.ToString());
 
+                if (!string.IsNullOrEmpty(jumplist_tasks_file))
+                {
+                    if (!appSection.Settings.AllKeys.Contains("JumpTasks"))
+                        appSection.Settings.Add("JumpTasks", jumplist_tasks_file);
+                    if (!File.Exists(jumplist_tasks_file)) SaveJumpList(jumplist_tasks_file);
+                }
+
                 if (AutoSaveConfig)
                 {
                     if (appSection.Settings.AllKeys.Contains("TaskTimeOutSeconds"))
@@ -3027,6 +3150,8 @@ namespace ImageViewer
             RestoreWindowLocationSize();
             RestoreWindowState();
 
+            LoadJumpList();
+
             InitCoutDownTimer();
 
             InitMagickNet();
@@ -3098,6 +3223,8 @@ namespace ImageViewer
 
             SyncColorLighting();
             DoEvents();
+
+
 
             var opts = this.GetCmdLineOpts();
             var args = opts.Args.ToArray();
@@ -3361,7 +3488,7 @@ namespace ImageViewer
         private async void ImageScroll_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (!Ready || IsImageNull(ImageViewer)) return;
-            if (e.ChangedButton == MouseButton.Left && e.XButton1 == MouseButtonState.Pressed)
+            if      (e.ChangedButton == MouseButton.Left && e.XButton1 == MouseButtonState.Pressed)
             {
                 e.Handled = true;
                 if (e.ClickCount == 1)
@@ -3382,10 +3509,19 @@ namespace ImageViewer
                 e.Handled = true;
                 if (e.ClickCount >= 1) CenterViewer();
             }
-            else if (e.ChangedButton == MouseButton.Middle && Keyboard.Modifiers == ModifierKeys.None)
+            else if (e.ChangedButton == MouseButton.Middle && Keyboard.Modifiers == ModifierKeys.Control)
             {
                 e.Handled = true;
                 Close();
+            }
+            else if (e.ChangedButton == MouseButton.Middle && Keyboard.Modifiers == ModifierKeys.None)
+            {
+                e.Handled = true;
+#if DEBUG
+                Close();
+#else
+                WindowState = System.Windows.WindowState.Minimized;
+#endif
             }
             else if (e.ChangedButton == MouseButton.XButton1 && e.ClickCount >= 2)
             {
@@ -3399,7 +3535,6 @@ namespace ImageViewer
                 var action = await LoadImageFromPrevFile();
                 if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true));
             }
-            //else ImageBox_MouseDown(sender, e);
         }
         #endregion
 
@@ -3437,7 +3572,34 @@ namespace ImageViewer
             {
                 if (e.Device is MouseDevice)
                 {
-                    if (e.ChangedButton == MouseButton.Left && e.ClickCount >= 2)
+                    if      (e.ChangedButton == MouseButton.Left && e.XButton1 == MouseButtonState.Pressed)
+                    {
+                        e.Handled = true;
+                        if (e.ClickCount == 1)
+                        {
+                            if (CurrentZoomFitMode == ZoomFitMode.None)
+                            {
+                                CurrentZoomFitMode = ZoomFitMode.All;
+                            }
+                            else if (CurrentZoomFitMode == ZoomFitMode.All)
+                            {
+                                ZoomRatio.Value = 1f;
+                                CurrentZoomFitMode = ZoomFitMode.None;
+                            }
+                        }
+                    }
+                    else if (e.ChangedButton == MouseButton.Left && Keyboard.Modifiers == ModifierKeys.Shift)
+                    {
+                        e.Handled = true;
+                        var dp = new DataObject();
+                        var image = ImageViewer.GetInformation();
+                        if (!string.IsNullOrEmpty(image.FileName) && File.Exists(image.FileName))
+                            dp.SetFileDropList(new System.Collections.Specialized.StringCollection() { image.FileName });
+                        else
+                            dp.SetImage((BitmapSource)ImageViewer.Source);
+                        DragDrop.DoDragDrop(this, dp, DragDropEffects.Copy);
+                    }
+                    else if (e.ChangedButton == MouseButton.Left && e.ClickCount >= 2)
                     {
                         e.Handled = true;
                         ToggleMagnifier(change_state: true);
@@ -3484,13 +3646,14 @@ namespace ImageViewer
                 }
                 else if (e.LeftButton == MouseButtonState.Pressed)
                 {
-                    //e.Handled = true;
-                    var offset = sender is Viewbox || sender is ScrollViewer ? CalcScrollOffset(sender as FrameworkElement, e) : new Point(-1, -1);
+                    if (sender is Viewbox || sender is ScrollViewer)
+                    {
+                        var offset = CalcScrollOffset(sender as FrameworkElement, e);
 #if DEBUG
-                    Debug.WriteLine($"Original : [{mouse_origin.X:F0}, {mouse_origin.Y:F0}], Start : [{mouse_start.X:F0}, {mouse_start.Y:F0}] => Move : [{offset.X:F0}, {offset.Y:F0}]");
-                    //Debug.WriteLine($"Move Y: {offset_y}");
+                        Debug.WriteLine($"Original : [{mouse_origin.X:F0}, {mouse_origin.Y:F0}], Start : [{mouse_start.X:F0}, {mouse_start.Y:F0}] => Move : [{offset.X:F0}, {offset.Y:F0}]");
 #endif
-                    SyncScrollOffset(offset);
+                        SyncScrollOffset(offset);
+                    }
                 }
                 else
                 {
@@ -3506,18 +3669,14 @@ namespace ImageViewer
             if (!Ready) return;
             try
             {
-                //if (e.LeftButton == MouseButtonState.Pressed)
-                //{
-                //    if (sender == ImageViewerBox || sender == ImageViewerScroll)
-                //    {
-                //        if (ImageViewer.GetInformation().ValidCurrent)
-                //        {
-                //            e.Handled = true;
-                //            mouse_start = e.GetPosition(ImageViewerScroll);
-                //            mouse_origin = new Point(ImageViewerScroll.HorizontalOffset, ImageViewerScroll.VerticalOffset);
-                //        }
-                //    }
-                //}
+                if (sender == ImageViewerBox || sender == ImageViewerScroll)
+                {
+                    if (!IsImageNull(ImageViewer))
+                    {
+                        mouse_start = e.GetPosition(ImageViewerScroll);
+                        mouse_origin = new Point(ImageViewerScroll.HorizontalOffset, ImageViewerScroll.VerticalOffset);
+                    }
+                }
             }
             catch (Exception ex) { ex.ShowMessage("MouseEnter"); }
         }
@@ -3527,11 +3686,6 @@ namespace ImageViewer
             if (!Ready) return;
             try
             {
-                //if (e.LeftButton == MouseButtonState.Pressed)
-                //{
-                //    e.Handled = true;
-                //    var offset = sender is Viewbox || sender is ScrollViewer ? CalcScrollOffset(sender as FrameworkElement, e) : new Point(-1, -1);
-                //}
             }
             catch (Exception ex) { ex.ShowMessage("MouseLeave"); }
         }
@@ -3814,10 +3968,13 @@ namespace ImageViewer
                     if (image?.ValidCurrent ?? false && quality < image?.OriginalQuality)
                     {
                         image.Current.Quality = quality;
-                    }
-                    QualityChanger.Close();
+                    }                    
                 }
-                else
+                else if (sender == null && e == null)
+                {
+
+                }
+                else 
                 {
                     var image_s = ImageViewer.GetInformation();
                     if (image_s.ValidCurrent)
@@ -3828,10 +3985,10 @@ namespace ImageViewer
                 }
                 QualityChangerSlider.Tag = null;
                 _quality_temp_?.Dispose();
-                _quality_temp_ = null;
+                _quality_temp_ = null;                
             }
             catch (Exception ex) { ex.ShowMessage(); }
-            finally { IsProcessingViewer = false; }
+            finally { QualityChanger.Close(); IsProcessingViewer = false; }
         }
         #endregion
 

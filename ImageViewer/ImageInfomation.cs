@@ -613,6 +613,7 @@ namespace ImageViewer
         private int? _last_file_index_ = null;
         private int? _last_file_count_ = null;
         private readonly List<string> _last_file_list_ = new List<string>();
+        private readonly Dictionary<int, string> _last_file_cache_list_ = new Dictionary<int, string>();
 
         /// <summary>
         /// 
@@ -641,14 +642,45 @@ namespace ImageViewer
             int index = 0, count = 0;
             if (!string.IsNullOrEmpty(FileName))
             {
-                var files = await FileName.GetFileList();
-                index = files.IndexOf(FileName);
-                count = files.Count();
-                if (count > 0)
+                if (FileName.IsUpdatingFileList())
                 {
-                    _last_file_index_ = index;
-                    _last_file_list_.Clear();
-                    _last_file_list_.AddRange(files);
+                    index = _last_file_list_.IndexOf(FileName);
+                    count = _last_file_list_.Count();
+                    if (count > 0)
+                    {
+                        _last_file_index_ = index;
+                        _last_file_count_ = count;
+
+                        var range_s = Math.Max(index - 100, 0);
+                        var range_e = Math.Min(index + 100, count - 1);
+                        _last_file_cache_list_.Clear();
+                        for (var i = range_s; i < range_e; i++)
+                        {
+                            _last_file_cache_list_[range_s] = _last_file_list_[range_s];
+                        }
+                    }
+                }
+                else
+                {
+                    var files = await FileName.GetFileList();
+                    index = files.IndexOf(FileName);
+                    count = files.Count();
+                    if (count > 0)
+                    {
+                        _last_file_index_ = index;
+                        _last_file_count_ = count;
+
+                        var range_s = Math.Max(index - 100, 0);
+                        var range_e = Math.Min(index + 100, count - 1);
+                        _last_file_cache_list_.Clear();
+                        for (var i = range_s; i < range_e; i++)
+                        {
+                            _last_file_cache_list_[range_s] = files[range_s];
+                        }
+
+                        _last_file_list_.Clear();
+                        _last_file_list_.AddRange(files);
+                    }
                 }
             }
             return (index, count);
@@ -669,7 +701,7 @@ namespace ImageViewer
             }
             return (result);
         }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -686,6 +718,7 @@ namespace ImageViewer
                 try
                 {
                     var size = OriginalSize;
+                    var depth = OriginalDepth;
                     var endian = OriginalEndian;
                     var fmt = Original.GetFormatInfo().MimeType;
                     var DPI_TEXT = GetCurrentDPI();
@@ -693,7 +726,7 @@ namespace ImageViewer
                     var quality = OriginalQuality;
                     var rating = Rating;
 
-                    if (refresh && await _refresh_info_.WaitAsync(50))
+                    if (refresh && await _refresh_info_.WaitAsync(150))
                     {
                         try
                         {
@@ -702,6 +735,7 @@ namespace ImageViewer
                                 var exif = new CompactExifLib.ExifData(ImageFileInfo.FullName);
                                 size.Width = exif.Width;
                                 size.Height = exif.Height;
+                                depth = (uint)exif.ColorDepth;
                                 endian = exif.ByteOrder == CompactExifLib.ExifByteOrder.BigEndian ? Endian.MSB : Endian.LSB;
                                 fmt = exif.ImageMime;
                                 has_q = exif.ImageType == CompactExifLib.ImageType.Jpeg || exif.ImageType == CompactExifLib.ImageType.Tiff;
@@ -717,28 +751,28 @@ namespace ImageViewer
                         finally { _refresh_info_.Release(); }
                     }
 
-                    var info = new List<string>();
-
-                    var dims = $"{size.Width:F0}x{size.Height:F0}x{size:F0} BPP, {(long)size.Width * size.Height / 1000000:F2} MP, {endian}";
-                    info.Add(dims);
-
-                    if (!string.IsNullOrEmpty(DPI_TEXT)) info.Add($"{DPI_TEXT}");
-
-                    info.Add(fmt);
-
-                    if (has_q) info.Add($"Q:{quality}");
+                    var info = new List<string>
+                    {
+                        $"{size.Width:F0}x{size.Height:F0}x{depth:F0} BPP",
+                        $"{(long)size.Width * size.Height / 1000000:F2} MP",
+                        $"{DPI_TEXT}",
+                        fmt,
+                        has_q ? $"Q:{quality}" : string.Empty,
+                        $"{endian}"
+                    };
 
                     if (ImageFileInfo is FileInfo)
                     {
                         ImageFileInfo.Refresh();
                         var FileSize = ImageFileInfo.Exists && File.Exists(ImageFileInfo.FullName) ? ImageFileInfo.Length : -1;
                         var FileDate = ImageFileInfo.LastWriteTime.ToString("yyyy/MM/dd HH:mm:ss zzz dddd");
-                        info.Add($"{FileSize.SmartFileSize()}, {FileDate}");
+                        info.Add($"{FileSize.SmartFileSize()}");
+                        info.Add($"{FileDate}");
                     }
 
-                    if (rating > 3) info.Add("Favorited".T());
+                    info.Add(rating > 3 ? "Favorited".T() : string.Empty);
 
-                    ret = string.Join(", ", info);
+                    ret = string.Join(", ", info.Where(i => !string.IsNullOrWhiteSpace(i.Trim())));
                 }
                 catch (ObjectDisposedException) { }
                 catch (Exception ex) { ex.ShowMessage(); }
@@ -1003,7 +1037,8 @@ namespace ImageViewer
                         if (Original?.ColormapSize > 0) tip.Add($"{"InfoTipColorMapsSize".T()} {Original?.ColormapSize}");
                         tip.Add($"{"InfoTipCompression".T()} {Original?.Compression}");
                         //tip.Add($"{"InfoTipQuality".T()} {(Original?.Compression == CompressionMethod.JPEG || Original?.Quality > 0 ? $"{Original?.Quality}" : "Unknown")}");
-                        tip.Add($"{"InfoTipQuality".T()} {(Original?.Compression == CompressionMethod.JPEG ? $"{Original?.Quality()}" : "Unknown")}");
+                        var quality = Original?.Compression == CompressionMethod.JPEG ? $"{Original?.Quality()}" : "Unknown";
+                        tip.Add($"{"InfoTipQuality".T()} {quality}");
                         tip.Add($"{"InfoTipMemoryMode".T()} {MemoryUsageMode}");
                         tip.Add($"{"InfoTipIdealMemoryUsage".T()} {(ValidOriginal ? OriginalIdealMemoryUsage.SmartFileSize() : CurrentIdealMemoryUsage.SmartFileSize())}");
                         tip.Add($"{"InfoTipMemoryUsage".T()} {(ValidOriginal ? OriginalRealMemoryUsage.SmartFileSize() : CurrentRealMemoryUsage.SmartFileSize())}");
@@ -1241,16 +1276,16 @@ namespace ImageViewer
                 {
                     if (!string.IsNullOrEmpty(FileName))
                     {
-                        var files = refresh ? await FileName.GetFileList() : _last_file_list_ ?? await FileName.GetFileList();
+                        //var files = refresh || !FileName.IsUpdatingFileList() ? await FileName.GetFileList() : _last_file_list_ ?? await FileName.GetFileList();
+                        var files = _last_file_list_ ?? await FileName.GetFileList();
                         if (files.Any() && !string.IsNullOrEmpty(FileName))
                         {
-                            var file_n = files.Where(f => f.EndsWith(FileName, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
+                            var file_n = Path.IsPathRooted(FileName) ? FileName : files.Where(f => f.EndsWith(FileName, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
                             var idx_o = files.IndexOf(file_n);
                             if (idx_o < 0) idx_o = _last_file_index_ ?? int.MaxValue;
                             var idx_n = (int)Math.Max(0, Math.Min(files.Count - 1, relative ? idx_o + index : index));
                             if (idx_n != idx_o) ret = await LoadImageFromFile(files[idx_n]);
                             if (ret) _last_file_index_ = idx_n;
-                            _last_file_count_ = files.Count;
                         }
                     }
                 }
