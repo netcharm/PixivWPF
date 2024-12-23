@@ -50,6 +50,12 @@
                     <TextBlock x:Uid="ImagePasteLabel" Text="Paste" Margin="2 0"/>
                 </StackPanel>
             </Button>
+            <Separator/>
+            <Button x:Name="ImageReload" x:Uid="ImageReload" ToolTip="Reload Image" Click="ImageActions_Click">
+                <StackPanel x:Uid="ImageReloadPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="RepeatLastActionIcon" Text="&#xE117;" Style="{DynamicResource MenuItemIcon}"/>
+                </StackPanel>
+            </Button>
             <Separator x:Uid="Separator_2"/>
             <Button x:Name="RepeatLastAction" x:Uid="RepeatLastAction" ToolTip="Repeat Last Action" Click="ImageActions_Click">
                 <StackPanel x:Uid="RepeatLastActionPanel" Orientation="Horizontal" Margin="2">
@@ -272,7 +278,7 @@
                         Margin="8,0,0,0" Padding="8,2,8,2" HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
                 </Grid>
             </xctk:ChildWindow>
-            <xctk:ChildWindow Grid.Row="1" x:Name="SizeChanger" x:Uid="SizeChanger" WindowStartupLocation="Manual" WindowStyle="ToolWindow" CloseButtonClicked="QualityChanger_CloseButtonClicked" 
+            <xctk:ChildWindow Grid.Row="1" x:Name="SizeChanger" x:Uid="SizeChanger" WindowStartupLocation="Manual" WindowStyle="ToolWindow"
                 HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,100" Grid.IsSharedSizeScope="True">
                 <Grid Margin="8">
                     <Grid.RowDefinitions>
@@ -286,48 +292,48 @@
                         <ColumnDefinition/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
-                    <ToggleButton Grid.Row="0" Grid.Column="0" x:Name="SizeChangeAlignLT" x:Uid="SizeChangeAlignLT" Width="24" Height="24" Margin="2"
+                    <ToggleButton Grid.Row="0" Grid.Column="0" x:Name="SizeChangeAlignTL" x:Uid="SizeChangeAlignLT" Width="24" Height="24" Margin="2" Click="SizeChangeAction_Click"
                                   HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
-                        <TextBlock x:Uid="SizeChangeAlignLTIcon" Text="&#xE742;" Style="{DynamicResource MenuItemIcon}"/>
+                        <TextBlock x:Uid="SizeChangeAlignTLIcon" Text="&#xE742;" Style="{DynamicResource MenuItemIcon}"/>
                     </ToggleButton>
-                    <ToggleButton Grid.Row="0" Grid.Column="1" x:Name="SizeChangeAlignCT" x:Uid="SizeChangeAlignCT" Width="24" Height="24" Margin="2"
+                    <ToggleButton Grid.Row="0" Grid.Column="1" x:Name="SizeChangeAlignTC" x:Uid="SizeChangeAlignCT" Width="24" Height="24" Margin="2" Click="SizeChangeAction_Click"
                                   HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
-                        <TextBlock x:Uid="SizeChangeAlignCTIcon" Text="&#xE7EB;" Style="{DynamicResource MenuItemIcon}"/>
+                        <TextBlock x:Uid="SizeChangeAlignTCIcon" Text="&#xE7EB;" Style="{DynamicResource MenuItemIcon}"/>
                     </ToggleButton>
-                    <ToggleButton Grid.Row="0" Grid.Column="2" x:Name="SizeChangeAlignRT" x:Uid="SizeChangeAlignRT" Width="24" Height="24" Margin="2"
+                    <ToggleButton Grid.Row="0" Grid.Column="2" x:Name="SizeChangeAlignTR" x:Uid="SizeChangeAlignRT" Width="24" Height="24" Margin="2" Click="SizeChangeAction_Click"
                                   HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
-                        <TextBlock x:Uid="SizeChangeAlignRTIcon" Text="&#xE742;" Style="{DynamicResource MenuItemIcon}" LayoutTransform="{DynamicResource FlipX}"/>
+                        <TextBlock x:Uid="SizeChangeAlignTRIcon" Text="&#xE742;" Style="{DynamicResource MenuItemIcon}" LayoutTransform="{DynamicResource FlipX}"/>
                     </ToggleButton>
-                    <ToggleButton Grid.Row="1" Grid.Column="0" x:Name="SizeChangeAlignLC" x:Uid="SizeChangeAlignLC" Width="24" Height="24" Margin="2"
+                    <ToggleButton Grid.Row="1" Grid.Column="0" x:Name="SizeChangeAlignCL" x:Uid="SizeChangeAlignLC" Width="24" Height="24" Margin="2" Click="SizeChangeAction_Click"
                                   HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
-                        <TextBlock x:Uid="SizeChangeAlignLCIcon" Text="&#xEA62;" Style="{DynamicResource MenuItemIcon}" LayoutTransform="{DynamicResource FlipX}"/>
+                        <TextBlock x:Uid="SizeChangeAlignCLIcon" Text="&#xEA62;" Style="{DynamicResource MenuItemIcon}" LayoutTransform="{DynamicResource FlipX}"/>
                     </ToggleButton>
-                    <ToggleButton Grid.Row="1" Grid.Column="1" x:Name="SizeChangeAlignCC" x:Uid="SizeChangeAlignCC" Width="24" Height="24" Margin="2"
+                    <ToggleButton Grid.Row="1" Grid.Column="1" x:Name="SizeChangeAlignCC" x:Uid="SizeChangeAlignCC" Width="24" Height="24" Margin="2" Click="SizeChangeAction_Click"
                                   HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                         <TextBlock x:Uid="SizeChangeAlignCCIcon" Text="&#xE14E;" Style="{DynamicResource MenuItemIcon}"/>
                     </ToggleButton>
-                    <ToggleButton Grid.Row="1" Grid.Column="2" x:Name="SizeChangeAlignRC" x:Uid="SizeChangeAlignRC" Width="24" Height="24" Margin="2"
+                    <ToggleButton Grid.Row="1" Grid.Column="2" x:Name="SizeChangeAlignCR" x:Uid="SizeChangeAlignRC" Width="24" Height="24" Margin="2" Click="SizeChangeAction_Click"
                                   HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
-                        <TextBlock x:Uid="SizeChangeAlignRCIcon" Text="&#xEA62;" Style="{DynamicResource MenuItemIcon}"/>
+                        <TextBlock x:Uid="SizeChangeAlignCRIcon" Text="&#xEA62;" Style="{DynamicResource MenuItemIcon}"/>
                     </ToggleButton>
-                    <ToggleButton Grid.Row="2" Grid.Column="0" x:Name="SizeChangeAlignLB" x:Uid="SizeChangeAlignLB" Width="24" Height="24" Margin="2"
+                    <ToggleButton Grid.Row="2" Grid.Column="0" x:Name="SizeChangeAlignBL" x:Uid="SizeChangeAlignLB" Width="24" Height="24" Margin="2" Click="SizeChangeAction_Click"
                                   HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
-                        <TextBlock x:Uid="SizeChangeAlignLBIcon" Text="&#xE741;" Style="{DynamicResource MenuItemIcon}" LayoutTransform="{DynamicResource FlipX}"/>
+                        <TextBlock x:Uid="SizeChangeAlignBLIcon" Text="&#xE741;" Style="{DynamicResource MenuItemIcon}" LayoutTransform="{DynamicResource FlipX}"/>
                     </ToggleButton>
-                    <ToggleButton Grid.Row="2" Grid.Column="1" x:Name="SizeChangeAlignCB" x:Uid="SizeChangeAlignCB" Width="24" Height="24" Margin="2"
+                    <ToggleButton Grid.Row="2" Grid.Column="1" x:Name="SizeChangeAlignBC" x:Uid="SizeChangeAlignCB" Width="24" Height="24" Margin="2" Click="SizeChangeAction_Click"
                                   HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
-                        <TextBlock x:Uid="SizeChangeAlignCBIcon" Text="&#xE7EB;" Style="{DynamicResource MenuItemIcon}" LayoutTransform="{DynamicResource FlipY}"/>
+                        <TextBlock x:Uid="SizeChangeAlignBCIcon" Text="&#xE7EB;" Style="{DynamicResource MenuItemIcon}" LayoutTransform="{DynamicResource FlipY}"/>
                     </ToggleButton>
-                    <ToggleButton Grid.Row="2" Grid.Column="2" x:Name="SizeChangeAlignRB" x:Uid="SizeChangeAlignRB" Width="24" Height="24" Margin="2"
+                    <ToggleButton Grid.Row="2" Grid.Column="2" x:Name="SizeChangeAlignBR" x:Uid="SizeChangeAlignRB" Width="24" Height="24" Margin="2" Click="SizeChangeAction_Click"
                                   HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                         <TextBlock x:Uid="SizeChangeAlignRRIcon" Text="&#xE741;" Style="{DynamicResource MenuItemIcon}"/>
                     </ToggleButton>
 
-                    <Button Grid.Row="0" Grid.Column="3" x:Name="SizeChangeExtend" x:Uid="SizeChangeExtend" Width="64" Margin="8,4,8,4" Content="Extend"
+                    <Button Grid.Row="0" Grid.Column="3" x:Name="SizeChangeExtent" x:Uid="SizeChangeExtent" Width="64" Margin="8,4,8,4" Content="Extent" Click="SizeChangeAction_Click"
                         HorizontalAlignment="Right" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
-                    <xctk:UIntegerUpDown Grid.Row="1" Grid.Column="3" Width="64" x:Name="SizeChangeValue" x:Uid="SizeChangeValue"  Margin="8,4,8,4"
-                        HorizontalAlignment="Right" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
-                    <Button Grid.Row="2" Grid.Column="3" Width="64" x:Name="SizeChangeCrop" x:Uid="SizeChangeCrop" Margin="8,4,8,4" Content="Crop"
+                    <xctk:UIntegerUpDown Grid.Row="1" Grid.Column="3" Width="64" x:Name="SizeChangeValue" x:Uid="SizeChangeValue"  Margin="8,4,8,4" Value="1"
+                        HorizontalAlignment="Right" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" TextAlignment="Center"/>
+                    <Button Grid.Row="2" Grid.Column="3" Width="64" x:Name="SizeChangeCrop" x:Uid="SizeChangeCrop" Margin="8,4,8,4" Content="Crop" Click="SizeChangeAction_Click"
                         HorizontalAlignment="Right" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
                 </Grid>
             </xctk:ChildWindow>

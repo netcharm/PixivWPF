@@ -152,7 +152,7 @@
           <target state="new">エンボス効果</target>
         </trans-unit>
         <trans-unit id="ExtentImageEdge.Header" translate="yes" xml:space="preserve">
-          <source>Extend Image Edge</source>
+          <source>Extent Image Edge</source>
           <target state="new">画像の境界を拡張する</target>
         </trans-unit>
         <trans-unit id="Favorited" translate="yes" xml:space="preserve">
@@ -266,6 +266,10 @@
         <trans-unit id="ImagePasteLabel.Text" translate="yes" xml:space="preserve">
           <source>Paste</source>
           <target state="new">貼り付け</target>
+        </trans-unit>
+        <trans-unit id="ImageReload.ToolTip" translate="yes" xml:space="preserve">
+          <source>Reload Image</source>
+          <target state="new">画像を再読み込み</target>
         </trans-unit>
         <trans-unit id="ImageSaveResult.ToolTip" translate="yes" xml:space="preserve">
           <source>[F8] Save Result Picture</source>
@@ -467,42 +471,6 @@
           <source>Masklight Color</source>
           <target state="new">マスク領域の表示色</target>
         </trans-unit>
-        <trans-unit id="MatchSizeAlignBC.Header" translate="yes" xml:space="preserve">
-          <source>Align To Bottom Center</source>
-          <target state="new">下部中央揃え</target>
-        </trans-unit>
-        <trans-unit id="MatchSizeAlignBL.Header" translate="yes" xml:space="preserve">
-          <source>Align To Bottom Left</source>
-          <target state="new">左下隅に揃える</target>
-        </trans-unit>
-        <trans-unit id="MatchSizeAlignBR.Header" translate="yes" xml:space="preserve">
-          <source>Align To Bottom Right</source>
-          <target state="new">右下揃に揃える</target>
-        </trans-unit>
-        <trans-unit id="MatchSizeAlignCC.Header" translate="yes" xml:space="preserve">
-          <source>Align To Center</source>
-          <target state="new">完全中央揃え</target>
-        </trans-unit>
-        <trans-unit id="MatchSizeAlignCL.Header" translate="yes" xml:space="preserve">
-          <source>Align To Center Left</source>
-          <target state="new">左側中央揃え</target>
-        </trans-unit>
-        <trans-unit id="MatchSizeAlignCR.Header" translate="yes" xml:space="preserve">
-          <source>Align To Center Right</source>
-          <target state="new">右側中央揃え</target>
-        </trans-unit>
-        <trans-unit id="MatchSizeAlignTC.Header" translate="yes" xml:space="preserve">
-          <source>Align To Top Center</source>
-          <target state="new">上部中央揃え</target>
-        </trans-unit>
-        <trans-unit id="MatchSizeAlignTL.Header" translate="yes" xml:space="preserve">
-          <source>Align To Top Left</source>
-          <target state="new">左上隅に揃える</target>
-        </trans-unit>
-        <trans-unit id="MatchSizeAlignTR.Header" translate="yes" xml:space="preserve">
-          <source>Align To Top Right</source>
-          <target state="new">右上隅に揃える</target>
-        </trans-unit>
         <trans-unit id="MatchSourceSize.Header" translate="yes" xml:space="preserve">
           <source>Match Source Size</source>
           <target state="new">マッチ元の画像サイズ</target>
@@ -570,6 +538,10 @@
         <trans-unit id="ProcessingIndicatorTitle" translate="yes" xml:space="preserve">
           <source>Processing ...</source>
           <target state="new">画像を処理する...</target>
+        </trans-unit>
+        <trans-unit id="QualityChangerOK.Content" translate="yes" xml:space="preserve">
+          <source>OK</source>
+          <target state="new">確定</target>
         </trans-unit>
         <trans-unit id="Quantize.Header" translate="yes" xml:space="preserve">
           <source>Quantize</source>
@@ -642,6 +614,62 @@
         <trans-unit id="ShowImageInfo.ToolTip" translate="yes" xml:space="preserve">
           <source>how Image Information</source>
           <target state="new">画像情報の表示</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignBC.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Bottom Center</source>
+          <target state="new">下部中央揃え</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignBL.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Bottom Left</source>
+          <target state="new">左下隅に揃える</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignBR.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Bottom Right</source>
+          <target state="new">右下揃に揃える</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignCC.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Center</source>
+          <target state="new">完全中央揃え</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignCL.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Center Left</source>
+          <target state="new">左側中央揃え</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignCR.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Center Right</source>
+          <target state="new">右側中央揃え</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignTC.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Top Center</source>
+          <target state="new">上部中央揃え</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignTL.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Top Left</source>
+          <target state="new">左上隅に揃える</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignTR.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Top Right</source>
+          <target state="new">右上隅に揃える</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeCrop.Content" translate="yes" xml:space="preserve">
+          <source>Crop</source>
+          <target state="new">裁ち境界</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeCrop.ToolTip" translate="yes" xml:space="preserve">
+          <source>Crop Image Edge</source>
+          <target state="new">画像の境界を切り取る</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeExtent.Content" translate="yes" xml:space="preserve">
+          <source>Extent</source>
+          <target state="new">境界を拡張</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeExtent.ToolTip" translate="yes" xml:space="preserve">
+          <source>Extent Image Edge</source>
+          <target state="new">画像の境界を拡張する</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeValue.Tooltip" translate="yes" xml:space="preserve">
+          <source>Image Changing Size</source>
+          <target state="new">ピクセルのサイズが変わる</target>
         </trans-unit>
         <trans-unit id="SlicingX.Header" translate="yes" xml:space="preserve">
           <source>Slicing Horizontal</source>

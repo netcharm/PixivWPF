@@ -152,7 +152,7 @@
           <target state="new">浮雕效果</target>
         </trans-unit>
         <trans-unit id="ExtentImageEdge.Header" translate="yes" xml:space="preserve">
-          <source>Extend Image Edge</source>
+          <source>Extent Image Edge</source>
           <target state="new">扩展图像的边界</target>
         </trans-unit>
         <trans-unit id="Favorited" translate="yes" xml:space="preserve">
@@ -266,6 +266,10 @@
         <trans-unit id="ImagePasteLabel.Text" translate="yes" xml:space="preserve">
           <source>Paste</source>
           <target state="new">粘贴</target>
+        </trans-unit>
+        <trans-unit id="ImageReload.ToolTip" translate="yes" xml:space="preserve">
+          <source>Reload Image</source>
+          <target state="new">重新载入图像</target>
         </trans-unit>
         <trans-unit id="ImageSaveResult.ToolTip" translate="yes" xml:space="preserve">
           <source>[F8] Save Result Picture</source>
@@ -467,42 +471,6 @@
           <source>Masklight Color</source>
           <target state="new">遮罩区域显示颜色</target>
         </trans-unit>
-        <trans-unit id="MatchSizeAlignBC.Header" translate="yes" xml:space="preserve">
-          <source>Align To Bottom Center</source>
-          <target state="new">底部中心对齐</target>
-        </trans-unit>
-        <trans-unit id="MatchSizeAlignBL.Header" translate="yes" xml:space="preserve">
-          <source>Align To Bottom Left</source>
-          <target state="new">对齐到左下角</target>
-        </trans-unit>
-        <trans-unit id="MatchSizeAlignBR.Header" translate="yes" xml:space="preserve">
-          <source>Align To Bottom Right</source>
-          <target state="new">对齐到右下角</target>
-        </trans-unit>
-        <trans-unit id="MatchSizeAlignCC.Header" translate="yes" xml:space="preserve">
-          <source>Align To Center</source>
-          <target state="new">完全居中对齐</target>
-        </trans-unit>
-        <trans-unit id="MatchSizeAlignCL.Header" translate="yes" xml:space="preserve">
-          <source>Align To Center Left</source>
-          <target state="new">左侧居中对齐</target>
-        </trans-unit>
-        <trans-unit id="MatchSizeAlignCR.Header" translate="yes" xml:space="preserve">
-          <source>Align To Center Right</source>
-          <target state="new">右侧居中对齐</target>
-        </trans-unit>
-        <trans-unit id="MatchSizeAlignTC.Header" translate="yes" xml:space="preserve">
-          <source>Align To Top Center</source>
-          <target state="new">顶部中心对齐</target>
-        </trans-unit>
-        <trans-unit id="MatchSizeAlignTL.Header" translate="yes" xml:space="preserve">
-          <source>Align To Top Left</source>
-          <target state="new">对齐到左上角</target>
-        </trans-unit>
-        <trans-unit id="MatchSizeAlignTR.Header" translate="yes" xml:space="preserve">
-          <source>Align To Top Right</source>
-          <target state="new">对齐到右上角</target>
-        </trans-unit>
         <trans-unit id="MatchSourceSize.Header" translate="yes" xml:space="preserve">
           <source>Match Source Size</source>
           <target state="new">适配来源图像大小</target>
@@ -570,6 +538,10 @@
         <trans-unit id="ProcessingIndicatorTitle" translate="yes" xml:space="preserve">
           <source>Processing ...</source>
           <target state="new">正在处理图像中...</target>
+        </trans-unit>
+        <trans-unit id="QualityChangerOK.Content" translate="yes" xml:space="preserve">
+          <source>OK</source>
+          <target state="new">确定</target>
         </trans-unit>
         <trans-unit id="Quantize.Header" translate="yes" xml:space="preserve">
           <source>Quantize</source>
@@ -642,6 +614,62 @@
         <trans-unit id="ShowImageInfo.ToolTip" translate="yes" xml:space="preserve">
           <source>how Image Information</source>
           <target state="new">显示图像信息</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignBC.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Bottom Center</source>
+          <target state="new">底部中心对齐</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignBL.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Bottom Left</source>
+          <target state="new">对齐到左下角</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignBR.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Bottom Right</source>
+          <target state="new">对齐到右下角</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignCC.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Center</source>
+          <target state="new">完全居中对齐</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignCL.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Center Left</source>
+          <target state="new">左侧居中对齐</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignCR.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Center Right</source>
+          <target state="new">右侧居中对齐</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignTC.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Top Center</source>
+          <target state="new">顶部中心对齐</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignTL.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Top Left</source>
+          <target state="new">对齐到左上角</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignTR.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Top Right</source>
+          <target state="new">对齐到右上角</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeCrop.Content" translate="yes" xml:space="preserve">
+          <source>Crop</source>
+          <target state="new">裁剪边界</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeCrop.ToolTip" translate="yes" xml:space="preserve">
+          <source>Crop Image Edge</source>
+          <target state="new">裁剪图像的边界</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeExtent.Content" translate="yes" xml:space="preserve">
+          <source>Extent</source>
+          <target state="new">扩展边界</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeExtent.ToolTip" translate="yes" xml:space="preserve">
+          <source>Extent Image Edge</source>
+          <target state="new">扩展图像的边界</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeValue.Tooltip" translate="yes" xml:space="preserve">
+          <source>Image Changing Size</source>
+          <target state="new">尺寸改变的像素大小</target>
         </trans-unit>
         <trans-unit id="SlicingX.Header" translate="yes" xml:space="preserve">
           <source>Slicing Horizontal</source>

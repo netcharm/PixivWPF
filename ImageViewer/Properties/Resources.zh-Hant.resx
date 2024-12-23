@@ -558,31 +558,31 @@
   <data name="Tolerances" xml:space="preserve">
     <value>容差</value>
   </data>
-  <data name="MatchSizeAlignBC.Header" xml:space="preserve">
+  <data name="SizeChangeAlignBC.ToolTip" xml:space="preserve">
     <value>底部中心對齊</value>
   </data>
-  <data name="MatchSizeAlignBL.Header" xml:space="preserve">
+  <data name="SizeChangeAlignBL.ToolTip" xml:space="preserve">
     <value>對齊到左下角</value>
   </data>
-  <data name="MatchSizeAlignBR.Header" xml:space="preserve">
+  <data name="SizeChangeAlignBR.ToolTip" xml:space="preserve">
     <value>對齊到右下角</value>
   </data>
-  <data name="MatchSizeAlignCC.Header" xml:space="preserve">
+  <data name="SizeChangeAlignCC.ToolTip" xml:space="preserve">
     <value>完全居中對齊</value>
   </data>
-  <data name="MatchSizeAlignCL.Header" xml:space="preserve">
+  <data name="SizeChangeAlignCL.ToolTip" xml:space="preserve">
     <value>左側居中對齊</value>
   </data>
-  <data name="MatchSizeAlignCR.Header" xml:space="preserve">
+  <data name="SizeChangeAlignCR.ToolTip" xml:space="preserve">
     <value>右側居中對齊</value>
   </data>
-  <data name="MatchSizeAlignTC.Header" xml:space="preserve">
+  <data name="SizeChangeAlignTC.ToolTip" xml:space="preserve">
     <value>頂部中心對齊</value>
   </data>
-  <data name="MatchSizeAlignTL.Header" xml:space="preserve">
+  <data name="SizeChangeAlignTL.ToolTip" xml:space="preserve">
     <value>對齊到左上角</value>
   </data>
-  <data name="MatchSizeAlignTR.Header" xml:space="preserve">
+  <data name="SizeChangeAlignTR.ToolTip" xml:space="preserve">
     <value>對齊到右上角</value>
   </data>
   <data name="CropImageEdge.Header" xml:space="preserve">
@@ -677,5 +677,26 @@
   </data>
   <data name="Favorited" xml:space="preserve">
     <value>已收藏</value>
+  </data>
+  <data name="ImageReload.ToolTip" xml:space="preserve">
+    <value>重新載入影像</value>
+  </data>
+  <data name="SizeChangeExtent.Content" xml:space="preserve">
+    <value>擴展邊界</value>
+  </data>
+  <data name="SizeChangeExtent.ToolTip" xml:space="preserve">
+    <value>擴展影像的邊界</value>
+  </data>
+  <data name="SizeChangeCrop.ToolTip" xml:space="preserve">
+    <value>裁剪影像的邊界</value>
+  </data>
+  <data name="SizeChangeCrop.Content" xml:space="preserve">
+    <value>裁剪邊界</value>
+  </data>
+  <data name="SizeChangeValue.Tooltip" xml:space="preserve">
+    <value>尺寸改變的點數大小</value>
+  </data>
+  <data name="QualityChangerOK.Content" xml:space="preserve">
+    <value>確定</value>
   </data>
 </root>

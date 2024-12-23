@@ -126,7 +126,11 @@ namespace ImageViewer
                 {
                     try
                     {
-                        foreach (var tag in Original?.GetExifProfile()?.Values.Where(v => v.Tag.Equals(ExifTag.Rating))) { result = (ushort)tag.GetValue(); break; }
+                        var exif = Original?.GetExifProfile();
+                        if (exif is ExifProfile)
+                        {
+                            foreach (var tag in exif?.Values?.Where(v => v.Tag.Equals(ExifTag.Rating))) { result = (ushort)tag.GetValue(); break; }
+                        }
                     }
                     catch { }
                 }
@@ -726,12 +730,14 @@ namespace ImageViewer
                     var quality = OriginalQuality;
                     var rating = Rating;
 
-                    if (refresh && await _refresh_info_.WaitAsync(150))
+                    if (refresh && await _refresh_info_.WaitAsync(25))
                     {
                         try
                         {
+                            Debug.WriteLine($"=> refresh simple iamge info");
                             if (File.Exists(ImageFileInfo.FullName))
                             {
+                                Debug.WriteLine($"=> updating simple iamge info");
                                 var exif = new CompactExifLib.ExifData(ImageFileInfo.FullName);
                                 size.Width = exif.Width;
                                 size.Height = exif.Height;
@@ -744,7 +750,7 @@ namespace ImageViewer
                                 var dpiY = exif.ResolutionY;
                                 DPI_TEXT = $"{dpiX:F0}x{dpiY:F0} PPI";
                                 exif.GetTagValue(CompactExifLib.ExifTag.Rating, out rating);
-                                await Task.Delay(150);
+                                await Task.Delay(100);
                             }
                         }
                         catch { }

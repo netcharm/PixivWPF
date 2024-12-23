@@ -28,6 +28,7 @@ using System.Windows.Shell;
 using System.Windows.Threading;
 using System.Xml.Serialization;
 using ImageMagick;
+using Microsoft.Win32;
 using Xceed.Wpf.Toolkit;
 using Xceed.Wpf.Toolkit.PropertyGrid;
 
@@ -85,7 +86,7 @@ namespace ImageViewer
 
         private string DefaultWindowTitle = string.Empty;
 
-        private Gravity DefaultMatchAlign = Gravity.Center;
+        private Gravity DefaultAlign = Gravity.Center;
 
         private Rect LastPositionSize = new Rect();
         private System.Windows.WindowState LastWinState = System.Windows.WindowState.Normal;
@@ -635,7 +636,7 @@ namespace ImageViewer
                             foreach (var image in new ImageInformation[] { image_s })
                             {
                                 image.SourceParams.Geometry = ShowGeometry;
-                                image.SourceParams.Align = DefaultMatchAlign;
+                                image.SourceParams.Align = DefaultAlign;
                                 image.SourceParams.FillColor = MasklightColor;
                             }
 
@@ -798,8 +799,6 @@ namespace ImageViewer
             try
             {
                 CloseQualityChanger();
-                ResetViewTransform(calcdisplay: false);
-
                 IsLoadingViewer = true;
 
                 IDataObject dataPackage = Dispatcher?.Invoke(() => Clipboard.GetDataObject());
@@ -817,7 +816,7 @@ namespace ImageViewer
                         else
                         {
                             var files = text.Split(new string[]{ Environment.NewLine, "\n\r", "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries);
-                            files = files.Where(f => File.Exists(f)).ToArray();
+                            files = files.Select(f => f.Trim('"')).Where(f => File.Exists(f)).ToArray();
                             if (files.Any())
                             {
                                 await LoadImageFromFiles(files);
@@ -1285,24 +1284,24 @@ namespace ImageViewer
                 item_r270.Click += (obj, evt) => RotateView(270);
                 item_reset_transform.Click += (obj, evt) => ResetViewTransform();
 
-                item_gray.Click += (obj, evt) => { RenderRun(() => { GrayscaleImage(MenuHost(obj)); }, target); };
-                item_blur.Click += (obj, evt) => { RenderRun(() => { BlurImage(MenuHost(obj)); }, target); };
-                item_sharp.Click += (obj, evt) => { RenderRun(() => { SharpImage(MenuHost(obj)); }, target); };
+                item_gray.Click += (obj, evt) => RenderRun(() => GrayscaleImage(MenuHost(obj)), target);
+                item_blur.Click += (obj, evt) => RenderRun(() => BlurImage(MenuHost(obj)), target);
+                item_sharp.Click += (obj, evt) => RenderRun(() => SharpImage(MenuHost(obj)), target);
 
-                item_size_crop.Click += (obj, evt) => { RenderRun(() => { CropImage(MenuHost(obj)); }, target); };
-                item_size_cropedge.Click += (obj, evt) => { RenderRun(() => { CropImageEdge(MenuHost(obj), 1, 1, DefaultMatchAlign); }, target); };
-                item_size_extentedge.Click += (obj, evt) => { RenderRun(() => { ExtentImageEdge(MenuHost(obj), 1, 1, DefaultMatchAlign); }, target); };
-                item_size_panedge.Click += (obj, evt) => { RenderRun(() => { PanImageEdge(MenuHost(obj), 1, 1, DefaultMatchAlign); }, target); };
+                item_size_crop.Click += (obj, evt) => RenderRun(() => { CropImage(MenuHost(obj)); }, target);
+                item_size_cropedge.Click += (obj, evt) => OpenSizeChanger(item_size_cropedge.Uid);
+                item_size_extentedge.Click += (obj, evt) => OpenSizeChanger(item_size_extentedge.Uid);
+                item_size_panedge.Click += (obj, evt) => OpenSizeChanger(item_size_panedge.Uid);
 
-                item_load_prev.Click += (obj, evt) => { RenderRun(async () => { await LoadImageFromPrevFile(); }, target); };
-                item_load_next.Click += (obj, evt) => { RenderRun(async () => { await LoadImageFromNextFile(); }, target); };
+                item_load_prev.Click += (obj, evt) => RenderRun(async () => await LoadImageFromPrevFile(), target);
+                item_load_next.Click += (obj, evt) => RenderRun(async () => await LoadImageFromNextFile(), target);
 
                 //item_reset_image.Click += (obj, evt) => { RenderRun(() => { ResetImage(MenuHost(obj)); }, target); };
-                item_reload.Click += (obj, evt) => { var shift = Keyboard.Modifiers == ModifierKeys.Shift; RenderRun(() => { ReloadImage(MenuHost(obj), info_only: shift); }, target); };
+                item_reload.Click += (obj, evt) => { var shift = Keyboard.Modifiers == ModifierKeys.Shift; RenderRun(() => ReloadImage(MenuHost(obj), info_only: shift), target); };
 
-                item_colorcalc.Click += (obj, evt) => { RenderRun(() => { CalcImageColors(MenuHost(obj)); }, target); };
-                item_copyinfo.Click += (obj, evt) => { RenderRun(() => { CopyImageInfo(); }, target); };
-                item_copyimage.Click += (obj, evt) => { RenderRun(async () => { await CopyImage(); }, target); };
+                item_colorcalc.Click += (obj, evt) => RenderRun(() => CalcImageColors(MenuHost(obj)), target);
+                item_copyinfo.Click += (obj, evt) => RenderRun(() => CopyImageInfo(), target);
+                item_copyimage.Click += (obj, evt) => RenderRun(async () => await CopyImage(), target);
                 item_saveas.Click += async (obj, evt) => await SaveImageAs();
                 #endregion
                 #region Add MenuItems to ContextMenu
@@ -2025,6 +2024,97 @@ namespace ImageViewer
         }
         #endregion
 
+        #region Size Changer Helper
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="uid"></param>
+        /// <param name="align"></param>
+        /// <param name="size"></param>
+        private void ChangeImageSize(string uid, Size size, Gravity align)
+        {
+            var w = (uint)size.Width;
+            var h = (uint)size.Height;
+            ChangeImageSize(uid, w, h, align);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="uid"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="align"></param>
+        private async void ChangeImageSize(string uid, uint x, uint y, Gravity align)
+        {
+            if (string.IsNullOrEmpty(uid) || x < 0 || y < 0) return;
+            else if (uid.Equals("CropImageEdge"))
+            {
+                RenderRun(() => { CropImageEdge(true, x, y, align); });
+                if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
+            }
+            else if (uid.Equals("ExtentImageEdge"))
+            {
+                RenderRun(() => { ExtentImageEdge(true, x, y, align); });
+                if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
+            }
+            else if (uid.Equals("PanImageEdge"))
+            {
+                RenderRun(() => { PanImageEdge(true, x, y, align); });
+                if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
+            }
+            else if (uid.Equals("RollImageEdge"))
+            {
+
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="uid"></param>
+        private void OpenSizeChanger(string uid)
+        {
+            SizeChanger.Dispatcher.Invoke(() => 
+            {
+                SizeChanger.UpdateLayout();
+                if (!string.IsNullOrEmpty(uid))
+                {
+                    if (uid == "CropImageEdge") { SizeChangeCrop.Focus(); }
+                    else if (uid == "ExtentImageEdge") { SizeChangeExtent.Focus(); }
+                    else if (uid == "PanImageEdge") { }
+                }
+                SizeChanger.Show();
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        private void ApplySizeChanger(FrameworkElement sender)
+        {
+            var size = SizeChangeValue.Value ?? 1;
+            if (sender == SizeChangeExtent) 
+                ChangeImageSize("ExtentImageEdge", size, size, DefaultAlign);
+            else if (sender == SizeChangeCrop) 
+                ChangeImageSize("CropImageEdge", size, size, DefaultAlign);
+            //else if (sender == SizeChangeExtend)
+            //    ChangeImageSize("ExtentImageEdge", size, size, DefaultAlign);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void CloseSizeChanger()
+        {
+            SizeChanger.Dispatcher.Invoke(() => 
+            { 
+                SizeChanger.Close(); 
+            });            
+        }
+        #endregion
+
         #region Quality Changer Helper
         private DispatcherTimer QualityChangerDelay = null;
 
@@ -2733,6 +2823,9 @@ namespace ImageViewer
             Title = $"{Uid}.Title".T(culture) ?? Title;
             ImageToolBar.Locale();
             ImageViewerBox.Locale();
+
+            QualityChanger.Locale();
+            SizeChanger.Locale();
 
             DefaultWindowTitle = Title;
 
@@ -3826,6 +3919,12 @@ namespace ImageViewer
                 RenderRun(async () => await LoadImageFromClipboard());
             }
 
+            else if (sender == ImageReload)
+            {
+                var shift = Keyboard.Modifiers == ModifierKeys.Shift; 
+                RenderRun(() => { ReloadImage(true, info_only: shift); });
+            }
+
             else if (sender == RepeatLastAction)
             {
                 RenderRun(LastAction);
@@ -3990,8 +4089,46 @@ namespace ImageViewer
             catch (Exception ex) { ex.ShowMessage(); }
             finally { QualityChanger.Close(); IsProcessingViewer = false; }
         }
+
         #endregion
 
+        #region SizeChanger Events
+        private void SizeChangeAction_Click(object sender, RoutedEventArgs e)
+        {
+            var alignlist = new List<ToggleButton>()
+            {
+                SizeChangeAlignTL, SizeChangeAlignTC, SizeChangeAlignTR,
+                SizeChangeAlignCL, SizeChangeAlignCC, SizeChangeAlignCR,
+                SizeChangeAlignBL, SizeChangeAlignBC, SizeChangeAlignBR,
+            };
+            var actionlist = new List<Button>()
+            {
+                SizeChangeCrop, SizeChangeExtent,
+            };
 
+            if (alignlist.Contains(sender))
+            {
+                foreach (var btn in alignlist)
+                {
+                    btn.IsChecked = btn == sender;
+                }
+                if (sender == SizeChangeAlignTL) { DefaultAlign = Gravity.Northwest; }
+                else if (sender == SizeChangeAlignTC) { DefaultAlign = Gravity.North; }
+                else if (sender == SizeChangeAlignTR) { DefaultAlign = Gravity.Northeast; }
+
+                else if (sender == SizeChangeAlignCL) { DefaultAlign = Gravity.West; }
+                else if (sender == SizeChangeAlignCC) { DefaultAlign = Gravity.Center; }
+                else if (sender == SizeChangeAlignCR) { DefaultAlign = Gravity.East; }
+
+                else if (sender == SizeChangeAlignBL) { DefaultAlign = Gravity.Southwest; }
+                else if (sender == SizeChangeAlignBC) { DefaultAlign = Gravity.South; }
+                else if (sender == SizeChangeAlignBR) { DefaultAlign = Gravity.Southeast; }
+            }
+            else if (actionlist.Contains(sender))
+            {
+                ApplySizeChanger(sender as FrameworkElement);
+            }
+        }
+        #endregion
     }
 }
