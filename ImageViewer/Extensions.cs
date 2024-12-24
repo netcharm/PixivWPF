@@ -1838,6 +1838,8 @@ namespace ImageViewer
         /// </summary>
         public class Modifier
         {
+            public bool None { get; set; } = true;
+
             public bool Shift { get; set; } = false;
             public bool Ctrl { get; set; } = false;
             public bool Alt { get; set; } = false;
@@ -1852,12 +1854,11 @@ namespace ImageViewer
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="app"></param>
+        /// <param name="modifiers"></param>
         /// <returns></returns>
-        public static async Task<Modifier> GetModifierAsync(this Application app)
+        private static Modifier CalcModifier(ModifierKeys modifiers)
         {
             var result = new Modifier();
-            var modifiers = await app.Dispatcher.InvokeAsync(() => Keyboard.Modifiers);
             result.Shift = modifiers.HasFlag(ModifierKeys.Shift);
             result.Ctrl = modifiers.HasFlag(ModifierKeys.Control);
             result.Alt = modifiers.HasFlag(ModifierKeys.Alt);
@@ -1866,6 +1867,20 @@ namespace ImageViewer
             result.OnlyCtrl = modifiers == ModifierKeys.Control;
             result.OnlyAlt = modifiers == ModifierKeys.Alt;
             result.OnlyWin = modifiers == ModifierKeys.Windows;
+            result.None = modifiers == ModifierKeys.None;
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="app"></param>
+        /// <returns></returns>
+        public static async Task<Modifier> GetModifierAsync(this Application app)
+        {
+            var result = new Modifier();
+            var modifiers = await app.Dispatcher.InvokeAsync(() => Keyboard.Modifiers);
+            result = CalcModifier(modifiers);
             return (result);
         }
 
@@ -1878,14 +1893,7 @@ namespace ImageViewer
         {
             var result = new Modifier();
             var modifiers = element?.Dispatcher.Invoke(() => Keyboard.Modifiers) ?? ModifierKeys.None;
-            result.Shift = modifiers.HasFlag(ModifierKeys.Shift);
-            result.Ctrl = modifiers.HasFlag(ModifierKeys.Control);
-            result.Alt = modifiers.HasFlag(ModifierKeys.Alt);
-            result.Win = modifiers.HasFlag(ModifierKeys.Windows);
-            result.OnlyShift = modifiers == ModifierKeys.Shift;
-            result.OnlyCtrl = modifiers == ModifierKeys.Control;
-            result.OnlyAlt = modifiers == ModifierKeys.Alt;
-            result.OnlyWin = modifiers == ModifierKeys.Windows;
+            result = CalcModifier(modifiers);
             return (result);
         }
 
@@ -1959,6 +1967,17 @@ namespace ImageViewer
         public static bool IsWinPressed(this FrameworkElement element, bool exclude = true)
         {
             return (IsModifierPressed(element, ModifierKeys.Windows, exclude));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public static bool NoModifier(this FrameworkElement element)
+        {
+            return (GetModifier(element).None);
         }
         #endregion
 

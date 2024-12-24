@@ -86,8 +86,6 @@ namespace ImageViewer
 
         private string DefaultWindowTitle = string.Empty;
 
-        private Gravity DefaultAlign = Gravity.Center;
-
         private Rect LastPositionSize = new Rect();
         private System.Windows.WindowState LastWinState = System.Windows.WindowState.Normal;
         //private Screen screens = Screen..AllScreens;
@@ -344,6 +342,8 @@ namespace ImageViewer
         #region Image Display Helper
         private static readonly string DefaultWaitingString = "Waiting";
         private string WaitingString = DefaultWaitingString;
+
+        private Gravity DefaultAlign = Gravity.Center;
 
         private bool? AutoHideToolTip { get; set; } = false;
         private int ToolTipDuration { get; set; } = 5000;
@@ -1105,10 +1105,12 @@ namespace ImageViewer
         /// <summary>
         ///
         /// </summary>
-        private bool IsQualityChanger
-        {
-            get => QualityChanger?.Dispatcher?.Invoke(() => { return (QualityChanger.IsVisible); }) ?? false;
-        }
+        private bool IsQualityChanger { get => QualityChanger?.Dispatcher?.Invoke(() => { return (QualityChanger.IsVisible); }) ?? false; }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        private bool IsSizeChanger { get => SizeChanger?.Dispatcher?.Invoke(() => { return (SizeChanger.IsVisible); }) ?? false; }
         #endregion
 
         #region Context Menu Helper
@@ -1317,7 +1319,7 @@ namespace ImageViewer
                 item_load_next.Click += (obj, evt) => RenderRun(async () => await LoadImageFromNextFile(), target);
 
                 //item_reset_image.Click += (obj, evt) => { RenderRun(() => { ResetImage(MenuHost(obj)); }, target); };
-                item_reload.Click += (obj, evt) => { var shift = Keyboard.Modifiers == ModifierKeys.Shift; RenderRun(() => ReloadImage(MenuHost(obj), info_only: shift), target); };
+                item_reload.Click += (obj, evt) => { var shift = this.IsShiftPressed(true); RenderRun(() => ReloadImage(MenuHost(obj), info_only: shift), target); };
 
                 item_colorcalc.Click += (obj, evt) => RenderRun(() => CalcImageColors(MenuHost(obj)), target);
                 item_copyinfo.Click += (obj, evt) => RenderRun(() => CopyImageInfo(), target);
@@ -1542,46 +1544,41 @@ namespace ImageViewer
                 };
                 #endregion
                 #region MoreEffects MenuItem Click event handles
-                item_more_oil.Click += (obj, evt) => { RenderRun(() => { OilImage(MenuHost(obj)); }, target); };
-                item_more_charcoal.Click += (obj, evt) => { RenderRun(() => { CharcoalImage(MenuHost(obj)); }, target); };
-                item_more_pencil.Click += (obj, evt) => { RenderRun(() => { PencilImage(MenuHost(obj)); }, target); };
-                item_more_edge.Click += (obj, evt) => { RenderRun(() => { EdgeImage(MenuHost(obj)); }, target); };
-                item_more_emboss.Click += (obj, evt) => { RenderRun(() => { EmbossImage(MenuHost(obj)); }, target); };
-                item_more_morph.Click += (obj, evt) => { RenderRun(() => { MorphologyImage(MenuHost(obj)); }, target); };
+                item_more_oil.Click += (obj, evt) => RenderRun(() => OilImage(MenuHost(obj)), target);
+                item_more_charcoal.Click += (obj, evt) => RenderRun(() => CharcoalImage(MenuHost(obj)), target);
+                item_more_pencil.Click += (obj, evt) => RenderRun(() => PencilImage(MenuHost(obj)), target);
+                item_more_edge.Click += (obj, evt) => RenderRun(() => EdgeImage(MenuHost(obj)), target);
+                item_more_emboss.Click += (obj, evt) => RenderRun(() => EmbossImage(MenuHost(obj)), target);
+                item_more_morph.Click += (obj, evt) => RenderRun(() => MorphologyImage(MenuHost(obj)), target);
 
-                item_more_autoequalize.Click += (obj, evt) => { RenderRun(() => { AutoEqualizeImage(MenuHost(obj)); }, target); };
-                item_more_autoreducenoise.Click += (obj, evt) => { RenderRun(() => { ReduceNoiseImage(MenuHost(obj)); }, target); };
-                item_more_autoenhance.Click += (obj, evt) => { RenderRun(() => { AutoEnhanceImage(MenuHost(obj)); }, target); };
-                item_more_autolevel.Click += (obj, evt) => { RenderRun(() => { AutoLevelImage(MenuHost(obj)); }, target); };
-                item_more_autocontrast.Click += (obj, evt) => { RenderRun(() => { AutoContrastImage(MenuHost(obj)); }, target); };
-                item_more_autowhitebalance.Click += (obj, evt) => { RenderRun(() => { AutoWhiteBalanceImage(MenuHost(obj)); }, target); };
-                item_more_autogamma.Click += (obj, evt) => { RenderRun(() => { AutoGammaImage(MenuHost(obj)); }, target); };
+                item_more_autoequalize.Click += (obj, evt) => RenderRun(() => AutoEqualizeImage(MenuHost(obj)), target);
+                item_more_autoreducenoise.Click += (obj, evt) => RenderRun(() => ReduceNoiseImage(MenuHost(obj)), target);
+                item_more_autoenhance.Click += (obj, evt) => RenderRun(() => AutoEnhanceImage(MenuHost(obj)), target);
+                item_more_autolevel.Click += (obj, evt) => RenderRun(() => AutoLevelImage(MenuHost(obj)), target);
+                item_more_autocontrast.Click += (obj, evt) => RenderRun(() => AutoContrastImage(MenuHost(obj)), target);
+                item_more_autowhitebalance.Click += (obj, evt) => RenderRun(() => AutoWhiteBalanceImage(MenuHost(obj)), target);
+                item_more_autogamma.Click += (obj, evt) => RenderRun(() => AutoGammaImage(MenuHost(obj)), target);
 
-                item_more_autovignette.Click += (obj, evt) => { RenderRun(() => { AutoVignetteImage(MenuHost(obj)); }, target); };
-                item_more_invert.Click += (obj, evt) => { RenderRun(() => { InvertImage(MenuHost(obj)); }, target); };
-                item_more_solarize.Click += (obj, evt) => { RenderRun(() => { SolarizeImage(MenuHost(obj)); }, target); };
-                item_more_polaroid.Click += (obj, evt) => { RenderRun(() => { PolaroidImage(MenuHost(obj)); }, target); };
-                item_more_posterize.Click += (obj, evt) => { RenderRun(() => { PosterizeImage(MenuHost(obj)); }, target); };
-                item_more_medianfilter.Click += (obj, evt) => { RenderRun(() => { MedianFilterImage(MenuHost(obj)); }, target); };
+                item_more_autovignette.Click += (obj, evt) => RenderRun(() => AutoVignetteImage(MenuHost(obj)), target);
+                item_more_invert.Click += (obj, evt) => RenderRun(() => InvertImage(MenuHost(obj)), target);
+                item_more_solarize.Click += (obj, evt) => RenderRun(() => SolarizeImage(MenuHost(obj)), target);
+                item_more_polaroid.Click += (obj, evt) => RenderRun(() => PolaroidImage(MenuHost(obj)), target);
+                item_more_posterize.Click += (obj, evt) => RenderRun(() => PosterizeImage(MenuHost(obj)), target);
+                item_more_medianfilter.Click += (obj, evt) => RenderRun(() => MedianFilterImage(MenuHost(obj)), target);
 
-                item_more_blueshift.Click += (obj, evt) => { RenderRun(() => { BlueShiftImage(MenuHost(obj)); }, target); };
-                item_more_autothreshold.Click += (obj, evt) => { RenderRun(() => { AutoThresholdImage(MenuHost(obj)); }, target); };
-                item_more_haldclut.Click += (obj, evt) => 
-                { 
-                    var shift = Keyboard.Modifiers == ModifierKeys.Shift;
-                    if (!string.IsNullOrEmpty(LastHaldFile) && File.Exists(LastHaldFile))
-                        RenderRun(() => { HaldClutImage(MenuHost(obj), shift); }, target); 
-                };
+                item_more_blueshift.Click += (obj, evt) => RenderRun(() => BlueShiftImage(MenuHost(obj)), target);
+                item_more_autothreshold.Click += (obj, evt) => RenderRun(() => AutoThresholdImage(MenuHost(obj)), target);
+                item_more_haldclut.Click += (obj, evt) => RenderRun(() => HaldClutImage(MenuHost(obj)), target);
 
-                item_more_meanshift.Click += (obj, evt) => { RenderRun(() => { MeanShiftImage(MenuHost(obj)); }, target); };
-                item_more_kmeans.Click += (obj, evt) => { RenderRun(() => { KmeansImage(MenuHost(obj)); }, target); };
-                item_more_segment.Click += (obj, evt) => { RenderRun(() => { SegmentImage(MenuHost(obj)); }, target); };
-                item_more_quantize.Click += (obj, evt) => { RenderRun(() => { QuantizeImage(MenuHost(obj)); }, target); };
+                item_more_meanshift.Click += (obj, evt) => RenderRun(() => MeanShiftImage(MenuHost(obj)), target);
+                item_more_kmeans.Click += (obj, evt) => RenderRun(() => KmeansImage(MenuHost(obj)), target);
+                item_more_segment.Click += (obj, evt) => RenderRun(() => SegmentImage(MenuHost(obj)), target);
+                item_more_quantize.Click += (obj, evt) => RenderRun(() => QuantizeImage(MenuHost(obj)), target);
 
-                item_more_fillflood.Click += (obj, evt) => { RenderRun(() => { FillOutBoundBoxImage(MenuHost(obj)); }, target); };
-                item_more_setalphatocolor.Click += (obj, evt) => { RenderRun(() => { SetAlphaToColorImage(MenuHost(obj)); }, target); };
-                item_more_setcolortoalpha.Click += (obj, evt) => { RenderRun(() => { SetColorToAlphaImage(MenuHost(obj)); }, target); };
-                item_more_createcolorimage.Click += (obj, evt) => { var shift = Keyboard.Modifiers == ModifierKeys.Shift; RenderRun(() => { CreateColorImage(MenuHost(obj)); }, target); };
+                item_more_fillflood.Click += (obj, evt) => RenderRun(() => FillOutBoundBoxImage(MenuHost(obj)), target);
+                item_more_setalphatocolor.Click += (obj, evt) => RenderRun(() => SetAlphaToColorImage(MenuHost(obj)), target);
+                item_more_setcolortoalpha.Click += (obj, evt) => RenderRun(() => SetColorToAlphaImage(MenuHost(obj)), target);
+                item_more_createcolorimage.Click += (obj, evt) => RenderRun(() => CreateColorImage(MenuHost(obj)), target);
                 #endregion
                 #region Add MoreEffects MenuItems to MoreEffects
                 item_more.Items.Add(item_more_autoenhance);
@@ -2095,7 +2092,7 @@ namespace ImageViewer
         /// 
         /// </summary>
         /// <param name="uid"></param>
-        private void OpenSizeChanger(string uid)
+        private void OpenSizeChanger(string uid = null)
         {
             SizeChanger.Dispatcher.Invoke(() => 
             {
@@ -3280,6 +3277,7 @@ namespace ImageViewer
             //IndicatorViewer.DisplayAfter = TimeSpan.FromMilliseconds(50);
             HideBirdView();
             ChangeTheme();
+            SizeChangeAlignCC.IsChecked = true;
             QualityChangerSlider.MouseWheel += Slider_MouseWheel;
             //ImageViewerScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
             //ImageViewerScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
@@ -3454,6 +3452,10 @@ namespace ImageViewer
                         {
                             CloseQualityChanger(restore: true);
                         }
+                        else if (IsSizeChanger)
+                        {
+                            CloseSizeChanger();
+                        }
                         else if (_last_key_ == Key.Escape && (DateTime.Now - _last_key_time_).TotalMilliseconds < 200)
                         {
                             Close();
@@ -3474,11 +3476,11 @@ namespace ImageViewer
 
                     else if (e.Key == Key.F1 || e.SystemKey == Key.F1)
                     {
-                        if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        if (km.OnlyShift)
                             await LoadImageFromPrevFile();
-                        else if (Keyboard.Modifiers == ModifierKeys.Control)
+                        else if (km.OnlyCtrl)
                             await LoadImageFromNextFile();
-                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        else if (km.OnlyAlt)
                             CreateColorImage(true);
                         else
                             ImageActions_Click(ImageOpen, e);
@@ -3489,7 +3491,7 @@ namespace ImageViewer
                     }
                     else if (e.Key == Key.F9 || e.SystemKey == Key.F9)
                     {
-                        if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        if (km.OnlyShift)
                         {
                             if      (CurrentZoomFitMode == ZoomFitMode.Height) CurrentZoomFitMode = ZoomFitMode.Width;
                             else if (CurrentZoomFitMode == ZoomFitMode.Width) CurrentZoomFitMode = ZoomFitMode.All;
@@ -3504,6 +3506,7 @@ namespace ImageViewer
                             else if (CurrentZoomFitMode == ZoomFitMode.Height) CurrentZoomFitMode = ZoomFitMode.None;
                         }
                     }
+
                     else if (km.OnlyCtrl && (e.Key == Key.C || e.SystemKey == Key.C))
                     {
                         await CopyImageToClipboard();
@@ -3511,6 +3514,11 @@ namespace ImageViewer
                     else if (km.OnlyCtrl && (e.Key == Key.V || e.SystemKey == Key.V))
                     {
                         await LoadImageFromClipboard();
+                    }
+
+                    else if (e.Key == Key.B || e.SystemKey == Key.B)
+                    {
+                        ToggleBirdView();
                     }
                     else if (e.Key == Key.I || e.SystemKey == Key.I)
                     {
@@ -3522,15 +3530,15 @@ namespace ImageViewer
                     }
                     else if (e.Key == Key.R || e.SystemKey == Key.R)
                     {
-                        if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        if (km.OnlyShift)
                         {
                             ResetImage(true);
                         }
-                        else if (Keyboard.Modifiers == ModifierKeys.Control)
+                        else if (km.OnlyCtrl)
                         {
                             ReloadImage(true);
                         }
-                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        else if (km.OnlyAlt)
                         {
                             ReloadImage(true, info_only: true);
                         }
@@ -3540,9 +3548,9 @@ namespace ImageViewer
                     {
                         OpenQualityChanger(ImageType.Source);
                     }
-                    else if (e.Key == Key.B || e.SystemKey == Key.B)
+                    else if (e.Key == Key.Z || e.SystemKey == Key.Z)
                     {
-                        ToggleBirdView();
+                        OpenSizeChanger();
                     }
 
                     else if (e.Key == Key.Home || e.SystemKey == Key.Home)
@@ -3603,6 +3611,7 @@ namespace ImageViewer
         private async void ImageScroll_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (!Ready || IsImageNull(ImageViewer)) return;
+            var km = this.GetModifier();
             if      (e.ChangedButton == MouseButton.Left && e.XButton1 == MouseButtonState.Pressed)
             {
                 e.Handled = true;
@@ -3624,12 +3633,12 @@ namespace ImageViewer
                 e.Handled = true;
                 if (e.ClickCount >= 1) CenterViewer();
             }
-            else if (e.ChangedButton == MouseButton.Middle && Keyboard.Modifiers == ModifierKeys.Control)
+            else if (e.ChangedButton == MouseButton.Middle && km.OnlyCtrl)
             {
                 e.Handled = true;
                 Close();
             }
-            else if (e.ChangedButton == MouseButton.Middle && Keyboard.Modifiers == ModifierKeys.None)
+            else if (e.ChangedButton == MouseButton.Middle && km.None)
             {
                 e.Handled = true;
 #if DEBUG
@@ -3657,8 +3666,8 @@ namespace ImageViewer
         private async void ImageBox_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (!Ready || IsImageNull(ImageViewer) || e.Delta == 0) return;
-
-            if (CurrentZoomFitMode == ZoomFitMode.None && Keyboard.Modifiers == ModifierKeys.Control)
+            var km = this.GetModifier();
+            if (CurrentZoomFitMode == ZoomFitMode.None && km.OnlyCtrl)
             {
                 e.Handled = true;
                 var zoom_old = ZoomRatio.Value;
@@ -3670,7 +3679,7 @@ namespace ImageViewer
                     SyncScrollOffset(GetScrollOffset(sender as FrameworkElement));
                 }
             }
-            else if (Keyboard.Modifiers == ModifierKeys.None)
+            else if (km.None)
             {
                 e.Handled = true;
                 if (e.Delta > 0) await LoadImageFromPrevFile();
@@ -3687,6 +3696,7 @@ namespace ImageViewer
             {
                 if (e.Device is MouseDevice)
                 {
+                    var km = this.GetModifier();
                     if      (e.ChangedButton == MouseButton.Left && e.XButton1 == MouseButtonState.Pressed)
                     {
                         e.Handled = true;
@@ -3703,7 +3713,7 @@ namespace ImageViewer
                             }
                         }
                     }
-                    else if (e.ChangedButton == MouseButton.Left && Keyboard.Modifiers == ModifierKeys.Shift)
+                    else if (e.ChangedButton == MouseButton.Left && km.OnlyShift)
                     {
                         e.Handled = true;
                         var dp = new DataObject();
@@ -3885,6 +3895,7 @@ namespace ImageViewer
             if (!Ready) return;
 
             e.Handled = true;
+            var km = this.GetModifier();
             if (sender == UILanguage)
             {
                 if (UILanguage.ContextMenu is ContextMenu) { UILanguage.ContextMenu.IsOpen = true; }
@@ -3943,8 +3954,7 @@ namespace ImageViewer
 
             else if (sender == ImageReload)
             {
-                var shift = Keyboard.Modifiers == ModifierKeys.Shift; 
-                RenderRun(() => { ReloadImage(true, info_only: shift); });
+                RenderRun(() => { ReloadImage(true, info_only: km.OnlyShift); });
             }
 
             else if (sender == RepeatLastAction)

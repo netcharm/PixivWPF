@@ -241,7 +241,7 @@
                 <Border x:Name="BirdViewBorder" x:Uid="BirdViewPanelBorder" BorderThickness="2" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}">
                     <Border.Effect>
                         <!--<DropShadowEffect BlurRadius="5" ShadowDepth="5" Direction="0" Color="DarkGray"/>-->
-                        <BlurEffect Radius="7" KernelType="Gaussian" />
+                        <BlurEffect Radius="5" KernelType="Gaussian" />
                     </Border.Effect>
                 </Border>
                 <Image x:Name="BirdView" x:Uid="BirdView" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"

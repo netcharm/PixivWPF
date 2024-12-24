@@ -1284,12 +1284,12 @@ namespace ImageViewer
         ///
         /// </summary>
         /// <param name="source"></param>
-        private void HaldClutImage(bool source, bool opposite)
+        private void HaldClutImage(bool source)
         {
             try
             {
                 var action = false;
-                var exists = File.Exists(LastHaldFile);
+                var exists = !string.IsNullOrEmpty(LastHaldFile) && File.Exists(LastHaldFile);
 
                 var image_s = ImageViewer.GetInformation();
                  if (image_s.ValidCurrent && exists)
