@@ -772,6 +772,26 @@ namespace ImageViewer
                 var image = ImageViewer.GetInformation();
                 if (image.ValidCurrent)
                 {
+
+                    var angle = ImageViewerRotate.Dispatcher?.Invoke(() => ImageViewerRotate.Angle) ?? 0;
+                    var flipx = ImageViewerScale.Dispatcher?.Invoke(() => ImageViewerScale.ScaleX < 0) ?? false;
+                    var flipy = ImageViewerScale.Dispatcher?.Invoke(() => ImageViewerScale.ScaleY < 0) ?? false;
+
+                    if (angle % 360 != 0)
+                    {
+                        image.Rotated = angle % 360;
+                        image.Current?.Rotate(image.Rotated);
+                    }
+                    if (flipx)
+                    {
+                        image.FlipX = flipx;
+                        image.Current?.Flop();
+                    }
+                    if (flipy)
+                    {
+                        image.FlipY = flipy;
+                        image.Current?.Flip();
+                    }
                     if (IsQualityChanger)
                     {
                         var quality = QualityChangerValue?.Dispatcher.Invoke(() => QualityChangerValue?.Value) ?? image.CurrentQuality;
@@ -1981,6 +2001,8 @@ namespace ImageViewer
         {
             ImageViewerScale?.Dispatcher?.InvokeAsync(() =>
             {
+                ImageViewer?.GetInformation()?.ResetTransform();
+
                 var scale = ZoomRatio.Value;
                 ImageViewerRotate.Angle = 0;
                 ImageViewerScale.ScaleX = scale;
