@@ -454,17 +454,15 @@ namespace ImageViewer
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        public static int FileDelete(this string file)
+        public static int FileDelete(this string file, bool recycle = true)
         {
             var result = -1;
             if (!string.IsNullOrEmpty(file) && File.Exists(file))
             {
-                bool recycle = !IsShiftPressed(null, exclude: true);
                 if (ShowConfirm($"{file} {"will be deleted?".T()}", $"{"Delete".T()}?"))
                 {
                     var handle = Process.GetCurrentProcess().MainWindowHandle;
                     var flags = recycle ? FILEOP_FLAGS.FOF_ALLOWUNDO : FILEOP_FLAGS.FOF_NOCONFIRMATION;
-                    flags |= FILEOP_FLAGS.FOF_CONFIRMMOUSE;
                     if (IsRunAs64Bits(null))
                     {
                         SHFILEOPSTRUCT64 sh_file64 = new SHFILEOPSTRUCT64() { hwnd = handle, wFunc = (uint)FileFuncFlags.FO_DELETE, pFrom = file + '\0', fFlags = (ushort)flags };
@@ -486,13 +484,13 @@ namespace ImageViewer
         /// <param name="src"></param>
         /// <param name="dst"></param>
         /// <returns></returns>
-        public static int FileMove(this string src, string dst)
+        public static int FileMove(this string src, string dst, bool recycle = true)
         {
             var result = 0;
             if (!string.IsNullOrEmpty(src) && !string.IsNullOrEmpty(dst) && File.Exists(src) && Directory.Exists(Path.GetDirectoryName(dst)))
             {
                 var handle = Process.GetCurrentProcess().MainWindowHandle;
-                var flags = FILEOP_FLAGS.FOF_ALLOWUNDO;
+                var flags = recycle ? FILEOP_FLAGS.FOF_ALLOWUNDO : FILEOP_FLAGS.FOF_NOCONFIRMATION;
                 if (IsRunAs64Bits(null))
                 {
                     SHFILEOPSTRUCT64 sh_file64 = new SHFILEOPSTRUCT64() { hwnd = handle, wFunc = (uint)FileFuncFlags.FO_MOVE, pFrom = src + '\0', pTo = dst + '\0', fFlags = (ushort)flags };
@@ -513,13 +511,13 @@ namespace ImageViewer
         /// <param name="src"></param>
         /// <param name="dst"></param>
         /// <returns></returns>
-        public static int FileCopy(this string src, string dst)
+        public static int FileCopy(this string src, string dst, bool recycle = true)
         {
             var result = 0;
             if (!string.IsNullOrEmpty(src) && !string.IsNullOrEmpty(dst) && File.Exists(src) && Directory.Exists(Path.GetDirectoryName(dst)))
             {
                 var handle = Process.GetCurrentProcess().MainWindowHandle;
-                var flags = FILEOP_FLAGS.FOF_ALLOWUNDO;
+                var flags = recycle ? FILEOP_FLAGS.FOF_ALLOWUNDO : FILEOP_FLAGS.FOF_NOCONFIRMATION;
                 if (IsRunAs64Bits(null))
                 {
                     SHFILEOPSTRUCT64 sh_file64 = new SHFILEOPSTRUCT64() { hwnd = handle, wFunc = (uint)FileFuncFlags.FO_COPY, pFrom = src + '\0', pTo = dst + '\0', fFlags = (ushort)flags };

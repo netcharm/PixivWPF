@@ -3486,7 +3486,7 @@ namespace ImageViewer
                     else if (e.Key == Key.Delete || e.SystemKey == Key.Delete)
                     {
                         var file = ImageViewer.GetInformation().FileName;
-                        var ret = file.FileDelete() == 0;
+                        var ret = file.FileDelete(recycle: !km.Shift) == 0;
                         if (ret)
                         {
                             ret = await LoadImageFromNextFile(refresh: false);
