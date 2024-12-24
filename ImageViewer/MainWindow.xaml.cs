@@ -671,6 +671,27 @@ namespace ImageViewer
 
         #region Image Load/Save Helper
         /// <summary>
+        /// 
+        /// </summary>
+        private void OpenImageWith()
+        {
+            if (!Ready) return;
+            var image = ImageViewer.GetInformation();
+            if (IsImageNull(ImageViewer) || !image.OriginalIsFile) return;
+            var km = this.GetModifier();
+            //var cmd = "";
+            //var args = "";
+            if (km.OnlyShift)
+            {
+                Process.Start("OpenWith.exe", image.FileName);
+            }
+            else
+            {
+                Process.Start(image.FileName);
+            }
+        }
+
+        /// <summary>
         ///
         /// </summary>
         /// <param name="hald"></param>
@@ -3528,6 +3549,10 @@ namespace ImageViewer
                     {
                         ToggleMagnifier(change_state: true);
                     }
+                    else if (e.Key == Key.O || e.SystemKey == Key.O)
+                    {
+                        OpenImageWith();
+                    }
                     else if (e.Key == Key.R || e.SystemKey == Key.R)
                     {
                         if (km.OnlyShift)
@@ -3543,6 +3568,11 @@ namespace ImageViewer
                             ReloadImage(true, info_only: true);
                         }
                         else RenderRun(LastAction);
+                    }
+                    else if (e.Key == Key.S || e.SystemKey == Key.S)
+                    {
+                        if (km.OnlyCtrl) await SaveImageAs(overwrite: false);
+                        else if (km.OnlyShift) await SaveImageAs(overwrite: true);
                     }
                     else if (e.Key == Key.Q || e.SystemKey == Key.Q)
                     {
@@ -4098,6 +4128,7 @@ namespace ImageViewer
                     var quality = (uint)QualityChangerSlider.Value;
                     if (image?.ValidCurrent ?? false && quality < image?.OriginalQuality)
                     {
+                        image.Current.Format = MagickFormat.Jpeg;
                         image.Current.Quality = quality;
                     }                    
                 }

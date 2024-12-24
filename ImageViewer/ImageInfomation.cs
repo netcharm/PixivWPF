@@ -1623,6 +1623,9 @@ namespace ImageViewer
                             target.ColorAlpha(MasklightColor ?? target.BackgroundColor);
                             target.BackgroundColor = MasklightColor ?? target.BackgroundColor;
                             target.MatteColor = MasklightColor ?? target.BackgroundColor;
+                            target.Density = image.Density;
+                            target.Format = image.Format;
+                            target.Quality = image.Quality;
                             foreach (var profile in image.ProfileNames) { if (image.HasProfile(profile)) target.SetProfile(image.GetProfile(profile)); }
                             target.Write(file, format);
                         }
