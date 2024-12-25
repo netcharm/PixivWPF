@@ -243,11 +243,11 @@ namespace ImageViewer
         private ColorSpace _last_colorspace_ = ColorSpace.Undefined;
 
         public SourceParam SourceParams { get; set; } = new SourceParam();
-        public ImageSource Source
+        public BitmapSource Source
         {
             get
             {
-                ImageSource result = null;
+                BitmapSource result = null;
                 if (ValidCurrent)
                 {
                     try

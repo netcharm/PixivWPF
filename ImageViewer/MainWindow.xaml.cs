@@ -519,15 +519,28 @@ namespace ImageViewer
         }
 
         /// <summary>
-        ///
+        /// 
         /// </summary>
         /// <param name="element"></param>
         /// <param name="image"></param>
-        private async void SetImageSource(Image element, ImageSource image)
+        /// <param name="fit"></param>
+        private async void SetImageSource(Image element, ImageSource image, bool fit = false)
         {
-            if (Ready && image is ImageSource)
+            if (Ready && image is BitmapSource)
             {
-                await element?.Dispatcher?.InvokeAsync(() => { try { element.Source = image; } catch { } });
+                try
+                {
+                    await element?.Dispatcher?.InvokeAsync(() =>
+                    {
+                        try
+                        {
+                            element.Source = image;
+                            if (fit && element.Source != null) FitView();
+                        }
+                        catch { }
+                    });
+                }
+                catch { }
             }
         }
 
@@ -675,9 +688,9 @@ namespace ImageViewer
         /// </summary>
         private void OpenImageWith()
         {
-            if (!Ready) return;
+            if (!Ready || IsImageNull(ImageViewer)) return;
             var image = ImageViewer.GetInformation();
-            if (IsImageNull(ImageViewer) || !image.OriginalIsFile) return;
+            if (!image.OriginalIsFile) return;
             var km = this.GetModifier();
             //var cmd = "";
             //var args = "";
@@ -2170,7 +2183,8 @@ namespace ImageViewer
             }
         }
 
-        private ImageInformation _quality_temp_ = null;
+        private BitmapSource _quality_orig_ = null;
+        private ImageInformation _quality_info_ = new ImageInformation();
 
         /// <summary>
         ///
@@ -2192,20 +2206,19 @@ namespace ImageViewer
                         IsProcessingViewer = true;
 
                         var info = ImageViewer.GetInformation();
-                        var image = new MagickImage(info.Current);
-                        var quality_o = info.OriginalQuality;
-
-                        var image_s = _quality_temp_ ?? new ImageInformation();
-
-                        var result = quality < quality_o ? await ChangeQuality(image, quality) : new MagickImage(image);
-                        image_s.Original = new MagickImage(result);
-                        SetImageSource(ImageViewer, image_s, fit: false);
-                        result.Dispose();
-
                         if (info.ValidCurrent)
                         {
-                            var size = image_s.Current?.GetArtifact("filesize");
-                            SetQualityChangerTitle(string.IsNullOrEmpty(size) ? null : $"{image_s.CurrentQuality}, {"ResultTipSize".T()} {size}");
+                            var image = new MagickImage(info.Current);
+                            var quality_o = info.OriginalQuality;
+
+                            var result = quality < quality_o ? await ChangeQuality(image, quality) : new MagickImage(image);
+                            _quality_info_.Original = new MagickImage(result);
+                            SetImageSource(ImageViewer, _quality_info_);
+                            result.Dispose();
+
+                            var size = _quality_info_.Current?.GetArtifact("filesize");
+                            SetQualityChangerTitle(string.IsNullOrEmpty(size) ? null : $"{_quality_info_.CurrentQuality}, {"ResultTipSize".T()} {size}");
+                            result.Dispose();
                         }
                     }
                     catch (Exception ex) { ex.ShowMessage(); }
@@ -2220,7 +2233,7 @@ namespace ImageViewer
         ///
         /// </summary>
         /// <param name="info"></param>
-        private void OpenQualityChanger(ImageType source = ImageType.None)
+        private void OpenQualityChanger()
         {
             if (Ready && !IsQualityChanger)
             {
@@ -2233,6 +2246,8 @@ namespace ImageViewer
                         var image = info?.Current;
                         var quality = image.Quality();
                         var quality_str = quality > 0  ? $"{quality}" : "Unknown";
+                        _quality_orig_ = info?.Source;
+                        _quality_info_ = new ImageInformation();
                         QualityChangeerTitle = $"{"InfoTipQuality".T().Trim('=').Trim()} : {quality_str}";
                         QualityChanger.Focusable = true;
                         QualityChanger.Caption = QualityChangeerTitle;
@@ -2242,13 +2257,13 @@ namespace ImageViewer
                         QualityChangerSlider.Width = 360;
                         QualityChangerSlider.IsSnapToTickEnabled = true;
                         QualityChangerSlider.Ticks = new DoubleCollection() { 10, 25, 30, 35, 55, 60, 65, 70, 75, 85, 95 };
-                        QualityChangerSlider.TickPlacement = System.Windows.Controls.Primitives.TickPlacement.Both;
+                        QualityChangerSlider.TickPlacement = TickPlacement.Both;
                         QualityChangerSlider.LargeChange = 5;
                         QualityChangerSlider.SmallChange = 1;
                         QualityChangerSlider.Value = quality > 0 ? quality : 100;
                         QualityChanger.FocusedElement = QualityChangerSlider;
+                        QualityChanger.UpdateLayout();
                         QualityChanger.Show();
-                        //QualityChanger.UpdateLayout();
 
                         DoEvents();
 
@@ -2268,16 +2283,43 @@ namespace ImageViewer
         /// <summary>
         ///
         /// </summary>
-        private void CloseQualityChanger(bool restore = false, ImageType source = ImageType.All)
+        private void CloseQualityChanger(bool restore = false)
         {
             if (Ready && IsQualityChanger)
             {
                 QualityChanger?.Dispatcher?.InvokeAsync(() =>
                 {
-                    if (restore)
-                        QualityChanger_CloseButtonClicked(QualityChanger, null);
-                    else
-                        QualityChanger_CloseButtonClicked(null, null);
+                    try
+                    {
+                        var image_s = ImageViewer.GetInformation();
+                        if (image_s.ValidCurrent)
+                        {
+                            if (restore)
+                            {
+                                IsProcessingViewer = true;
+                                SetImageSource(ImageViewer, image_s, fit: false);
+                            }
+                            else
+                            {
+                                var quality = (uint)QualityChangerSlider.Value;
+                                if (quality < image_s.OriginalQuality)
+                                {
+                                    image_s.Current.Format = MagickFormat.Jpeg;
+                                    image_s.Current.Quality = quality;
+                                    UpdateInfoBox();
+                                }
+                            }
+                        }
+                        QualityChangerSlider.Tag = null;
+                    }
+                    catch (Exception ex) { ex.ShowMessage(); }
+                    finally
+                    {
+                        QualityChanger.Close();
+                        IsProcessingViewer = false;
+                        _quality_orig_ = null;
+                        _quality_info_.Dispose();
+                    }
                 });
             }
         }
@@ -3576,7 +3618,7 @@ namespace ImageViewer
                     }
                     else if (e.Key == Key.Q || e.SystemKey == Key.Q)
                     {
-                        OpenQualityChanger(ImageType.Source);
+                        OpenQualityChanger();
                     }
                     else if (e.Key == Key.Z || e.SystemKey == Key.Z)
                     {
@@ -3821,16 +3863,13 @@ namespace ImageViewer
 
         private void ImageBox_MouseEnter(object sender, MouseEventArgs e)
         {
-            if (!Ready) return;
+            if (!Ready || IsImageNull(ImageViewer)) return;
             try
             {
                 if (sender == ImageViewerBox || sender == ImageViewerScroll)
                 {
-                    if (!IsImageNull(ImageViewer))
-                    {
-                        mouse_start = e.GetPosition(ImageViewerScroll);
-                        mouse_origin = new Point(ImageViewerScroll.HorizontalOffset, ImageViewerScroll.VerticalOffset);
-                    }
+                    mouse_start = e.GetPosition(ImageViewerScroll);
+                    mouse_origin = new Point(ImageViewerScroll.HorizontalOffset, ImageViewerScroll.VerticalOffset);
                 }
             }
             catch (Exception ex) { ex.ShowMessage("MouseEnter"); }
@@ -4042,7 +4081,7 @@ namespace ImageViewer
 
         private void ZoomRatio_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (!Ready) return;
+            if (!Ready || IsImageNull(ImageViewer)) return;
             try
             {
                 using (var d = Dispatcher?.DisableProcessing())
@@ -4059,15 +4098,12 @@ namespace ImageViewer
                         ZoomRatio.ToolTip = $"{"Zoom Ratio".T(DefaultCultureInfo)}: {zoom_new:F2}X";
                         LastZoomRatio = zoom_new;
 
-                        if (!IsImageNull(ImageViewer))
-                        {
-                            var zw = zoom_new * ImageViewer.Source.Width;
-                            var zh = zoom_new * ImageViewer.Source.Height;
-                            ImageViewerBox.MaxWidth = zw <= ImageViewerScroll.ActualWidth ? ImageViewerScroll.ActualWidth : zw;
-                            ImageViewerBox.MaxHeight = zh <= ImageViewerScroll.ActualHeight ? ImageViewerScroll.ActualHeight : zh;
-                            ImageViewerBox.Width = zw <= ImageViewerScroll.ActualWidth ? ImageViewerScroll.ActualWidth : zw;
-                            ImageViewerBox.Height = zh <= ImageViewerScroll.ActualHeight ? ImageViewerScroll.ActualHeight : zh;
-                        }
+                        var zw = zoom_new * ImageViewer.Source.Width;
+                        var zh = zoom_new * ImageViewer.Source.Height;
+                        ImageViewerBox.MaxWidth = zw <= ImageViewerScroll.ActualWidth ? ImageViewerScroll.ActualWidth : zw;
+                        ImageViewerBox.MaxHeight = zh <= ImageViewerScroll.ActualHeight ? ImageViewerScroll.ActualHeight : zh;
+                        ImageViewerBox.Width = zw <= ImageViewerScroll.ActualWidth ? ImageViewerScroll.ActualWidth : zw;
+                        ImageViewerBox.Height = zh <= ImageViewerScroll.ActualHeight ? ImageViewerScroll.ActualHeight : zh;
                     }
                     if (Ready) CalcDisplay();
                 }
@@ -4124,35 +4160,27 @@ namespace ImageViewer
             {
                 if (sender == QualityChangerOK)
                 {
-                    var image = ImageViewer.GetInformation();
-                    var quality = (uint)QualityChangerSlider.Value;
-                    if (image?.ValidCurrent ?? false && quality < image?.OriginalQuality)
-                    {
-                        image.Current.Format = MagickFormat.Jpeg;
-                        image.Current.Quality = quality;
-                    }                    
+                    CloseQualityChanger(restore: false);
                 }
-                else if (sender == null && e == null)
+                else
                 {
-
+                    CloseQualityChanger(restore: true);
                 }
-                else 
-                {
-                    var image_s = ImageViewer.GetInformation();
-                    if (image_s.ValidCurrent)
-                    {
-                        IsProcessingViewer = true;
-                        SetImageSource(ImageViewer, image_s, fit: false);
-                    }
-                }
-                QualityChangerSlider.Tag = null;
-                _quality_temp_?.Dispose();
-                _quality_temp_ = null;                
             }
             catch (Exception ex) { ex.ShowMessage(); }
-            finally { QualityChanger.Close(); IsProcessingViewer = false; }
         }
 
+        private void QualityChangerCompare_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!Ready || !(_quality_info_?.ValidCurrent ?? false)) return;
+            SetImageSource(ImageViewer, _quality_orig_ ?? null);
+        }
+
+        private void QualityChangerCompare_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (!Ready || !(_quality_info_?.ValidCurrent ?? false)) return;
+            SetImageSource(ImageViewer, _quality_info_ ?? null);
+        }
         #endregion
 
         #region SizeChanger Events
@@ -4193,5 +4221,6 @@ namespace ImageViewer
             }
         }
         #endregion
+
     }
 }

@@ -475,7 +475,7 @@ namespace ImageViewer
         {
             try
             {
-                CloseQualityChanger(source: source is null ? ImageType.All : source ?? false ? ImageType.Source : ImageType.Target);
+                CloseQualityChanger();
 
                 var action = false;
 
@@ -504,7 +504,7 @@ namespace ImageViewer
         {
             try
             {
-                CloseQualityChanger(source: source is null ? ImageType.All : source ?? false ? ImageType.Source : ImageType.Target);
+                CloseQualityChanger();
 
                 var action = false;
 

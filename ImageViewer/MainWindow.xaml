@@ -267,6 +267,7 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="auto"/>
                         <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
                     </Grid.ColumnDefinitions>
                     <Slider Grid.Row="0" Grid.Column="0" x:Name="QualityChangerSlider" x:Uid="QualityChangerSlider" Width="240"
                         Minimum="1" Maximum="100" Value="75" TickFrequency="5" ValueChanged="QualityChangerSlider_ValueChanged" />
@@ -274,7 +275,12 @@
                         Margin="4,0,0,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                         AutoSelectBehavior="Never" ClipValueToMinMax="True" TextAlignment="Center" 
                         Value="{Binding ElementName=QualityChangerSlider, Path=Value, Mode=TwoWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}" />
-                    <Button Grid.Row="0" Grid.Column="2" x:Name="QualityChangerOK" x:Uid="QualityChangerOK" Content="OK" Click="QualityChanger_CloseButtonClicked"
+                    <Button Grid.Row="0" Grid.Column="2" x:Name="QualityChangerCompare" x:Uid="QualityChangerOK" Width="24" Height="24"
+                        PreviewMouseDown="QualityChangerCompare_MouseDown" PreviewMouseUp="QualityChangerCompare_MouseUp"
+                        Margin="8,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                        <TextBlock x:Uid="QualityChangerCompareIcon" Text="&#xE89A;" Style="{DynamicResource MenuItemIcon}" Foreground="Gray"/>
+                    </Button>
+                    <Button Grid.Row="0" Grid.Column="3" x:Name="QualityChangerOK" x:Uid="QualityChangerOK" Content="OK" Click="QualityChanger_CloseButtonClicked"
                         Margin="8,0,0,0" Padding="8,2,8,2" HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
                 </Grid>
             </xctk:ChildWindow>
