@@ -1196,23 +1196,6 @@ namespace ImageViewer
             catch { return (MagickFormatInfo.Create(MagickFormat.Unknown)); }
         }
 
-        public static bool IsPNG(this MagickFormat format)
-        {
-            var fmts = new MagickFormat[] { MagickFormat.APng, MagickFormat.Png, MagickFormat.Png8, MagickFormat.Png00, MagickFormat.Png24, MagickFormat.Png32, MagickFormat.Png48, MagickFormat.Png64, MagickFormat.Pnm };
-            var result = fmts.Contains(format);
-            return (result);
-        }
-
-        public static bool IsPNG(this MagickImage image)
-        {
-            var result = false;
-            if (image is MagickImage)
-            {
-                result = IsPNG(image.Format) || GetFormatInfo(image).MimeType.Equals("image/png", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("png", StringComparison.CurrentCultureIgnoreCase);
-            }
-            return (result);
-        }
-
         public static bool IsBMP(this MagickFormat format)
         {
             var fmts = new MagickFormat[] { MagickFormat.Bmp, MagickFormat.Bmp2, MagickFormat.Bmp3 };
@@ -1226,6 +1209,57 @@ namespace ImageViewer
             if (image is MagickImage)
             {
                 result = IsBMP(image.Format) || GetFormatInfo(image).MimeType.Equals("image/bmp", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("bmp", StringComparison.CurrentCultureIgnoreCase);
+            }
+            return (result);
+        }
+
+        public static bool IsGIF(this MagickFormat format)
+        {
+            var fmts = new MagickFormat[] { MagickFormat.Gif, MagickFormat.Gif87 };
+            var result = fmts.Contains(format);
+            return (result);
+        }
+
+        public static bool IsGIF(this MagickImage image)
+        {
+            var result = false;
+            if (image is MagickImage)
+            {
+                result = IsGIF(image.Format) || GetFormatInfo(image).MimeType.Equals("image/gif", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("gif", StringComparison.CurrentCultureIgnoreCase);
+            }
+            return (result);
+        }
+
+        public static bool IsJPG(this MagickFormat format)
+        {
+            var fmts = new MagickFormat[] { MagickFormat.J2c, MagickFormat.J2k, MagickFormat.Jng, MagickFormat.Jp2, MagickFormat.Jpc, MagickFormat.Jpe, MagickFormat.Jpeg, MagickFormat.Jpg, MagickFormat.Jpm, MagickFormat.Jps, MagickFormat.Jpt };
+            var result = fmts.Contains(format);
+            return (result);
+        }
+
+        public static bool IsJPG(this MagickImage image)
+        {
+            var result = false;
+            if (image is MagickImage)
+            {
+                result = IsJPG(image.Format) || GetFormatInfo(image).MimeType.Equals("image/jpeg", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("jp");
+            }
+            return (result);
+        }
+
+        public static bool IsPNG(this MagickFormat format)
+        {
+            var fmts = new MagickFormat[] { MagickFormat.APng, MagickFormat.Png, MagickFormat.Png8, MagickFormat.Png00, MagickFormat.Png24, MagickFormat.Png32, MagickFormat.Png48, MagickFormat.Png64, MagickFormat.Pnm };
+            var result = fmts.Contains(format);
+            return (result);
+        }
+
+        public static bool IsPNG(this MagickImage image)
+        {
+            var result = false;
+            if (image is MagickImage)
+            {
+                result = IsPNG(image.Format) || GetFormatInfo(image).MimeType.Equals("image/png", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("png", StringComparison.CurrentCultureIgnoreCase);
             }
             return (result);
         }
@@ -1247,19 +1281,19 @@ namespace ImageViewer
             return (result);
         }
 
-        public static bool IsJPG(this MagickFormat format)
+        public static bool IsWEBP(this MagickFormat format)
         {
-            var fmts = new MagickFormat[] { MagickFormat.J2c, MagickFormat.J2k, MagickFormat.Jng, MagickFormat.Jp2, MagickFormat.Jpc, MagickFormat.Jpe, MagickFormat.Jpeg, MagickFormat.Jpg, MagickFormat.Jpm, MagickFormat.Jps, MagickFormat.Jpt };
+            var fmts = new MagickFormat[] { MagickFormat.WebP, MagickFormat.WebM };
             var result = fmts.Contains(format);
             return (result);
         }
 
-        public static bool IsJPG(this MagickImage image)
+        public static bool IsWEBP(this MagickImage image)
         {
             var result = false;
             if (image is MagickImage)
             {
-                result = IsJPG(image.Format) || GetFormatInfo(image).MimeType.Equals("image/jpeg", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("jp");
+                result = IsWEBP(image.Format) || GetFormatInfo(image).MimeType.StartsWith("image/web", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("web");
             }
             return (result);
         }
@@ -1382,7 +1416,7 @@ namespace ImageViewer
             return (png);
         }
 
-        private static readonly List<string> _auto_formats_ = new List<string>() { ".jpg", ".jpeg", ".png", ".bmp" };
+        private static readonly List<string> _auto_formats_ = new List<string>() { ".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff" };
         private static readonly Dictionary<string, MagickFormat> _supported_formats_ = new Dictionary<string, MagickFormat>();
         public static MagickFormat GetImageFileFormat(this string ext)
         {

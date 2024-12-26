@@ -1631,21 +1631,28 @@ namespace ImageViewer
                         }
                         else
                         {
-                            if (format == MagickFormat.Tif || format == MagickFormat.Tiff || format == MagickFormat.Tiff64 || e.Equals(".tif") || e.Equals(".tiff"))
+                            if (format.IsPNG() || e.StartsWith(".png"))
                             {
                                 image.SetCompression(CompressionMethod.Zip);
                                 image.Settings.Compression = CompressionMethod.Zip;
+                                image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
                             }
-                            else if (format == MagickFormat.Gif || format == MagickFormat.Gif87 || e.Equals(".gif"))
+                            else if (format.IsTIF() || e.StartsWith(".tif"))
+                            {
+                                image.SetCompression(CompressionMethod.Zip);
+                                image.Settings.Compression = CompressionMethod.Zip;
+                                image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                            }
+                            else if (format.IsGIF() || e.StartsWith(".gif"))
                             {
                                 image.GifDisposeMethod = GifDisposeMethod.Background;
                                 image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
                             }
-                            else if (format == MagickFormat.WebP || format == MagickFormat.WebM || e.Equals(".webp") || e.Equals(".webm"))
+                            else if (format.IsWEBP() || e.Equals(".webp") || e.Equals(".webm"))
                             {
                                 image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
                             }
-                            else if (format == MagickFormat.Bmp || e.Equals(".bmp"))
+                            else if (format.IsBMP() || e.Equals(".bmp"))
                             {
                                 image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
                             }

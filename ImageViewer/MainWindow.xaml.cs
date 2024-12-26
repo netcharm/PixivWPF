@@ -549,7 +549,7 @@ namespace ImageViewer
         /// </summary>
         /// <param name="element"></param>
         /// <param name="image"></param>
-        private async void SetImageSource(Image element, ImageInformation image, bool fit = false)
+        private async void SetImageSource(Image element, ImageInformation image, bool fit = false, bool update_tooltip = true)
         {
             if (Ready && image is ImageInformation)
             {
@@ -561,7 +561,7 @@ namespace ImageViewer
                         {
                             element.Source = image.Source;
                             if (fit && element.Source != null) FitView();
-                            await UpdateImageTooltip();
+                            if (update_tooltip) await UpdateImageToolTip();
                         }
                         catch { }
                     });
@@ -575,7 +575,7 @@ namespace ImageViewer
         /// </summary>
         /// <param name="calc_colors"></param>
         /// <returns></returns>
-        private async Task<string> UpdateImageTooltip(bool calc_colors = false)
+        private async Task<string> UpdateImageToolTip(bool calc_colors = false)
         {
             var result = string.Empty;
             if (Ready && ImageViewer is Image)
@@ -800,7 +800,7 @@ namespace ImageViewer
         {
             var result = false;
             IsSavingViewer = true;
-            result = await Task.Run(() =>
+            result = await Task.Run(async () =>
             {
                 var ret = false;
                 var image = ImageViewer.GetInformation();
@@ -835,6 +835,7 @@ namespace ImageViewer
                         }
                     }
                     else ret = image.Save(overwrite: overwrite);
+                    if (ret) await UpdateImageToolTip();
                 }
                 IsSavingViewer = false;
                 return (ret);
@@ -3950,7 +3951,7 @@ namespace ImageViewer
                         var tooltip = GetToolTip(image);
                         if (string.IsNullOrEmpty(tooltip) || tooltip.StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            await UpdateImageTooltip();
+                            await UpdateImageToolTip();
                         }
                     }
                     else SetToolTipState(e.Source as FrameworkElement, false);
@@ -4179,7 +4180,7 @@ namespace ImageViewer
         private void QualityChangerCompare_MouseUp(object sender, MouseButtonEventArgs e)
         {
             if (!Ready || !(_quality_info_?.ValidCurrent ?? false)) return;
-            SetImageSource(ImageViewer, _quality_info_ ?? null);
+            SetImageSource(ImageViewer, _quality_info_ ?? null, update_tooltip: false);
         }
         #endregion
 

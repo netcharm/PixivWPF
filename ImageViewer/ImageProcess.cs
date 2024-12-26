@@ -149,7 +149,7 @@ namespace ImageViewer
             {
                 try
                 {
-                    await UpdateImageTooltip(calc_colors: true);
+                    await UpdateImageToolTip(calc_colors: true);
                     UpdateIndaicatorState(false, true);
                     DoEvents();
                 }
@@ -169,7 +169,7 @@ namespace ImageViewer
 
                 if (string.IsNullOrEmpty(tooltip) || tooltip.StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    tooltip = await UpdateImageTooltip();
+                    tooltip = await UpdateImageToolTip();
                 }
 
                 DataObject dataPackage = new DataObject();
@@ -296,7 +296,7 @@ namespace ImageViewer
                 var size = 0;
                 if (info_only)
                 {
-                    await UpdateImageTooltip();
+                    await UpdateImageToolTip();
                 }
                 else
                 {
