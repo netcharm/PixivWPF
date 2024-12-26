@@ -697,7 +697,7 @@ namespace ImageViewer
         public async Task<string> GetIndexInfo()
         {
             var result = "1/1";
-            if (!string.IsNullOrEmpty(FileName))
+            if (!string.IsNullOrEmpty(FileName) && File.Exists(FileName))
             {
                 int index, count;
                 (index, count) = await GetIndex();
@@ -1119,6 +1119,21 @@ namespace ImageViewer
                 colors.Add($"{"InfoTipMatteColor".T()} {Current?.MatteColor.ToHexString()}");
             }
             return (colors.Count > 0 ? string.Join(Environment.NewLine, colors) : string.Empty);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public async Task<int> IndexOf(string file)
+        {
+            var result = _last_file_index_ ?? int.MaxValue;
+            if (!string.IsNullOrEmpty(file) && File.Exists(file))
+            {
+                result = await Task.Run(() => { return(_last_file_list_?.IndexOf(file) ?? _last_file_index_ ?? int.MaxValue); });
+            }
+            return (result);
         }
 
         /// <summary>

@@ -2020,6 +2020,7 @@ namespace ImageViewer
         private static ConcurrentDictionary<string, DateTime?> _file_list_storage_ = new ConcurrentDictionary<string, DateTime?>();
         private static List<string> _file_list_ = new List<string>();
         private static SemaphoreSlim _file_list_updating_ = new SemaphoreSlim(1);
+        private static CancellationTokenSource _file_list_updating_cancel_ = new CancellationTokenSource();
 
         public static bool IsUpdatingFileList(this object obj)
         {
@@ -2069,18 +2070,22 @@ namespace ImageViewer
             var result = false;
             if (await _file_list_updating_.WaitAsync(TimeSpan.FromSeconds(5)))
             {
+                _file_list_updating_cancel_?.Cancel();
+                _file_list_updating_cancel_ = new CancellationTokenSource();
+
                 result = await  Task.Run(() =>
                 {
                     var ret = false;
                     try
                     {
                         _file_list_ = _file_list_storage_.Keys.Distinct().NaturalSort().ToList();
+                        if (_file_list_updating_cancel_.Token.IsCancellationRequested) return (ret);
                         UpdateInfoBox(e: e);
                         ret = true;
                     }
                     finally { _file_list_updating_.Release(); }
                     return (ret);
-                });
+                }, _file_list_updating_cancel_.Token);
             }
             return(result);
         }

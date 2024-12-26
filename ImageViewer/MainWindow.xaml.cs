@@ -1052,10 +1052,19 @@ namespace ImageViewer
                         CloseQualityChanger();
                         IsLoadingViewer = true;
 
-                        _ = Task.Run(async () => await files.InitFileList());
-
                         var image  = ImageViewer.GetInformation();
-                        if (await image.LoadImageFromFile(files.First()))
+                        if (files.Length == 1)
+                        {
+                            var idx = await image.IndexOf(files[0]);
+                            if (idx >= 0) ret = await image.LoadImageFromIndex(idx);
+                        }
+                        if (!ret)
+                        {
+                            _ = Task.Run(async () => await files.InitFileList());
+                            ret = await image.LoadImageFromFile(files.First());
+                        }
+
+                        if (ret)
                         {
                             ClearImage();
                             ResetViewTransform(calcdisplay: false);
