@@ -129,7 +129,40 @@ namespace ImageViewer
                         var exif = Original?.GetExifProfile();
                         if (exif is ExifProfile)
                         {
-                            foreach (var tag in exif?.Values?.Where(v => v.Tag.Equals(ExifTag.Rating))) { result = (ushort)tag.GetValue(); break; }
+                            var tag_rating = new ExifTag[] { ExifTag.Rating, ExifTag.RatingPercent };
+                            foreach (var tag in exif?.Values?.Where(v => tag_rating.Contains(v.Tag)))
+                            {
+                                if (tag.Tag == ExifTag.Rating) { result = (ushort)tag.GetValue(); break; }
+                                else if (tag.Tag == ExifTag.RatingPercent )
+                                {
+                                    var rating_value = (ushort)tag.GetValue();
+                                    if (rating_value >= 99) result = 5;
+                                    else if (rating_value >= 75) result = 4;
+                                    else if (rating_value >= 50) result = 3;
+                                    else if (rating_value >= 25) result = 2;
+                                    else if (rating_value >= 01) result = 1;
+                                    else if (rating_value <= 00) result = 0;
+                                    break;
+                                }
+                            }
+                        }
+                        else if (Original?.AttributeNames.Contains("xmp:Rating") ?? false)
+                        {
+                            var rating = Original?.GetAttribute("xmp:Rating");
+                            if (int.TryParse(rating, out int rating_value)) result = rating_value;
+                        }
+                        else if (Original?.AttributeNames.Contains("MicrosoftPhoto:Rating") ?? false)
+                        {
+                            var rating = Original?.GetAttribute("MicrosoftPhoto:Rating");
+                            if (int.TryParse(rating, out int rating_value))
+                            {
+                                if      (rating_value >= 99) result = 5;
+                                else if (rating_value >= 75) result = 4;
+                                else if (rating_value >= 50) result = 3;
+                                else if (rating_value >= 25) result = 2;
+                                else if (rating_value >= 01) result = 1;
+                                else if (rating_value <= 00) result = 0;
+                            }
                         }
                     }
                     catch { }
@@ -141,33 +174,30 @@ namespace ImageViewer
         private string _simple_info_ = string.Empty;
         public string SimpleInfo { get { return (_simple_info_); } }
 
-        private MagickImage _current_ = null;
         public MagickImage Current
         {
             get { return (_original_); }
             set
             {
                 CancelGetInfo?.Cancel();
-                if (_current_ is MagickImage) { _current_.Dispose(); _current_ = null; }
-                _current_ = value;
-                _CurrentModified_ = true;
-                if (ValidCurrent)
+                if (_original_ is MagickImage) { _original_?.Dispose(); _original_ = null; }
+                if (value != null)
                 {
-                    _current_.FilterType = ResizeFilter;
-                    if (ValidOriginal && !string.IsNullOrEmpty(FileName))
+                    _original_ = value;
+                    _CurrentModified_ = true;
+                    if (_original_ is MagickImage)
                     {
-                        if (_original_.Endian == Endian.Undefined) _original_.Endian = DetectFileEndian(FileName);
-                        if (_current_.Endian == Endian.Undefined) _current_.Endian = _original_.Endian;
+                        _original_.FilterType = ResizeFilter;
+                        if (ValidOriginal && !string.IsNullOrEmpty(FileName))
+                        {
+                            if (_original_.Endian == Endian.Undefined) _original_.Endian = DetectFileEndian(FileName);
+                        }
                     }
-                    else
-                    {
-                        if (_current_.Endian == Endian.Undefined) _current_.Endian = BitConverter.IsLittleEndian ? Endian.LSB : Endian.MSB;
-                    }
+                    GetProfiles();
                 }
-                GetProfiles();
             }
         }
-        public Size CurrentSize { get { return (ValidCurrent ? new Size(Current.Width, Current.Height) : new Size(0, 0)); } }
+        public Size CurrentSize { get { return (ValidCurrent ? new Size(Current?.Width ?? 0, Current?.Height ?? 0) : new Size(0, 0)); } }
         public long CurrentRealMemoryUsage
         {
             get
@@ -207,7 +237,7 @@ namespace ImageViewer
                 else return (-1);
             }
         }
-        public IMagickFormatInfo CurrentFormatInfo { get { return (ValidCurrent ? MagickFormatInfo.Create(_current_.Format) : null); } }
+        public IMagickFormatInfo CurrentFormatInfo { get { return (ValidCurrent ? MagickFormatInfo.Create(_original_?.Format ?? MagickFormat.Unknown) : null); } }
         public uint CurrentQuality => Current?.Quality() ?? 0;
 
 #if Q16HDRI
@@ -264,8 +294,8 @@ namespace ImageViewer
             }
         }
 
-        public bool ValidCurrent { get { return (Current.IsValidRead()); } }
-        public bool ValidOriginal { get { return (Original.IsValidRead()); } }
+        public bool ValidCurrent { get { return (Current?.IsValidRead() ?? false); } }
+        public bool ValidOriginal { get { return (Original?.IsValidRead() ?? false); } }
 
         public bool OriginalIsFile { get { return (!string.IsNullOrEmpty(FileName) && File.Exists(LastFileName)); } }
 
@@ -1816,26 +1846,26 @@ namespace ImageViewer
         ///
         /// </summary>
         /// <returns></returns>
-        public bool ResetTransform()
+        public bool ResetTransform(bool restore = true)
         {
             CurrentModified = false;
-            if (ValidCurrent)
+            if (restore && ValidCurrent)
             {
                 if (FlipX)
                 {
-                    Current.Flop();
+                    Current?.Flop();
                     FlipX = false;
                     CurrentModified = true;
                 }
                 if (FlipY)
                 {
-                    Current.Flip();
+                    Current?.Flip();
                     FlipY = false;
                     CurrentModified = true;
                 }
                 if (Rotated % 360 != 0)
                 {
-                    Current.Rotate(-Rotated);
+                    Current?.Rotate(-Rotated);
                     Rotated = 0;
                     CurrentModified = true;
                 }
@@ -1971,9 +2001,9 @@ namespace ImageViewer
         /// </summary>
         public void Dispose()
         {
-            if (ValidCurrent) { Current.Dispose(); Current = null; FileName = string.Empty; }
-            if (ValidOriginal) { Original?.Dispose(); Original = null; FileName = string.Empty; }
-            ResetTransform();
+            Current?.Dispose(); Current = null; FileName = string.Empty;
+            Original?.Dispose(); Original = null; FileName = string.Empty;
+            ResetTransform(restore: false);
         }
     }
 }

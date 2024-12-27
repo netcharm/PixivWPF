@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Security.Permissions;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -1310,7 +1311,7 @@ namespace ImageViewer
 
         public static bool IsValidRead(this MagickImage image)
         {
-            return (image is MagickImage && MagickFormatInfo.Create(image.Format).SupportsReading);
+            return (image is MagickImage && MagickFormatInfo.Create(image?.Format ?? MagickFormat.Unknown).SupportsReading);
         }
 
         public static Func<MagickImage, uint> FuncTotalColors = (i) => { return ((i is MagickImage) ? i.TotalColors : 0); };
@@ -1455,6 +1456,8 @@ namespace ImageViewer
                             profiles[pn] = image.GetIptcProfile();
                         else if (pn.Equals("xmp", StringComparison.CurrentCultureIgnoreCase))
                             profiles[pn] = image.GetXmpProfile();
+                        else if (pn.Equals("8bim", StringComparison.CurrentCultureIgnoreCase))
+                            profiles[pn] = image.Get8BimProfile();
 #if DEBUG
                         var profile = profiles[pn];
                         if (profile is ExifProfile)
@@ -1479,6 +1482,12 @@ namespace ImageViewer
                         {
                             var xmp = profile as XmpProfile;
                             var xml = Encoding.UTF8.GetString(xmp.ToByteArray());
+                            //image.SetAttribute()
+                        }
+                        else if (profile is EightBimProfile)
+                        {
+                            var bim = profile as EightBimProfile;
+                            var xml = Encoding.UTF8.GetString(bim.ToByteArray());
                             //image.SetAttribute()
                         }
 #endif
@@ -1770,6 +1779,253 @@ namespace ImageViewer
                 if (element.Tag is ImageInformation) result = element.Tag as ImageInformation;
                 else element.Tag = result;
             });
+            return (result);
+        }
+
+        public static bool ReTouchMetaAlt(Stream stream)
+        {
+            var result = false;
+            try
+            {
+                if ((stream?.CanRead ?? false) && (stream?.CanSeek ?? false))
+                {
+                    stream.Seek(0, SeekOrigin.Begin);
+                    var exif = new CompactExifLib.ExifData(stream);
+                    if (exif is CompactExifLib.ExifData)
+                    {
+                        #region CompactExifLib Update EXIF Metadata
+                        //DateTime date = dm;
+                        //if (exif.GetTagValue(CompactExifLib.ExifTag.DateTimeOriginal, out date))
+                        //{
+                        //    if (date.Ticks != dm.Ticks) exif.SetDateTaken(dm);
+                        //}
+                        //else exif.SetDateTaken(dm);
+                        //if (exif.GetTagValue(CompactExifLib.ExifTag.DateTimeDigitized, out date))
+                        //{
+                        //    if (date.Ticks != dm.Ticks) exif.SetDateDigitized(dm);
+                        //}
+                        //else exif.SetDateDigitized(dm);
+                        //if (exif.GetTagValue(CompactExifLib.ExifTag.DateTime, out date))
+                        //{
+                        //    if (date.Ticks != dm.Ticks) exif.SetDateChanged(dm);
+                        //}
+                        //else exif.SetDateChanged(dm);
+
+                        //if (string.IsNullOrEmpty(meta.Title))
+                        //{
+                        //    exif.RemoveTag(CompactExifLib.ExifTag.XpTitle);
+                        //    exif.RemoveTag(CompactExifLib.ExifTag.ImageDescription);
+                        //}
+                        //else
+                        //{
+                        //    exif.SetTagRawData(CompactExifLib.ExifTag.XpTitle, CompactExifLib.ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Title), Encoding.Unicode.GetBytes(meta.Title));
+                        //    exif.SetTagValue(CompactExifLib.ExifTag.ImageDescription, meta.Title, CompactExifLib.StrCoding.Utf8);
+                        //}
+
+                        //if (string.IsNullOrEmpty(meta.Subject))
+                        //{
+                        //    exif.RemoveTag(CompactExifLib.ExifTag.XpSubject);
+                        //}
+                        //else
+                        //{
+                        //    exif.SetTagRawData(CompactExifLib.ExifTag.XpSubject, CompactExifLib.ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Subject), Encoding.Unicode.GetBytes(meta.Subject));
+                        //}
+
+                        //if (string.IsNullOrEmpty(meta.Keywords))
+                        //{
+                        //    exif.RemoveTag(CompactExifLib.ExifTag.XpKeywords);
+                        //}
+                        //else
+                        //{
+                        //    exif.SetTagRawData(CompactExifLib.ExifTag.XpKeywords, CompactExifLib.ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Keywords), Encoding.Unicode.GetBytes(meta.Keywords));
+                        //}
+
+                        //if (string.IsNullOrEmpty(meta.Authors))
+                        //{
+                        //    exif.RemoveTag(CompactExifLib.ExifTag.XpAuthor);
+                        //    exif.RemoveTag(CompactExifLib.ExifTag.Artist);
+                        //}
+                        //else
+                        //{
+                        //    exif.SetTagRawData(CompactExifLib.ExifTag.XpAuthor, CompactExifLib.ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Authors), Encoding.Unicode.GetBytes(meta.Authors));
+                        //    exif.SetTagValue(CompactExifLib.ExifTag.Artist, meta.Authors, CompactExifLib.StrCoding.Utf8);
+                        //}
+
+                        //if (string.IsNullOrEmpty(meta.Copyrights))
+                        //{
+                        //    exif.RemoveTag(CompactExifLib.ExifTag.Copyright);
+                        //}
+                        //else
+                        //{
+                        //    exif.SetTagValue(CompactExifLib.ExifTag.Copyright, meta.Copyrights, CompactExifLib.StrCoding.Utf8);
+                        //}
+
+                        //if (string.IsNullOrEmpty(meta.Comment))
+                        //{
+                        //    exif.RemoveTag(CompactExifLib.ExifTag.XpComment);
+                        //    exif.RemoveTag(CompactExifLib.ExifTag.UserComment);
+                        //}
+                        //else
+                        //{
+                        //    exif.SetTagRawData(CompactExifLib.ExifTag.XpComment, CompactExifLib.ExifTagType.Byte, Encoding.Unicode.GetByteCount(meta.Comment), Encoding.Unicode.GetBytes(meta.Comment));
+                        //    exif.SetTagValue(CompactExifLib.ExifTag.UserComment, meta.Comment, CompactExifLib.StrCoding.IdCode_Utf16);
+                        //}
+
+                        //if (string.IsNullOrEmpty(meta.Make ?? string.Empty))
+                        //{
+                        //    exif.RemoveTag(CompactExifLib.ExifTag.Make);
+                        //}
+                        //else
+                        //{
+                        //    exif.SetTagValue(CompactExifLib.ExifTag.Make, meta.Make, CompactExifLib.StrCoding.Utf8);
+                        //}
+
+                        //if (string.IsNullOrEmpty(meta.Model ?? string.Empty))
+                        //{
+                        //    exif.RemoveTag(CompactExifLib.ExifTag.Model);
+                        //}
+                        //else
+                        //{
+                        //    exif.SetTagValue(CompactExifLib.ExifTag.Model, meta.Model, CompactExifLib.StrCoding.Utf8);
+                        //}
+
+                        //if (exif.TagExists(CompactExifLib.ExifTag.MakerNote) && !exif.TagExists(CompactExifLib.ExifTag.Software))
+                        //{
+                        //    CompactExifLib.ExifTagType type;
+                        //    int count;
+                        //    byte[] value;
+                        //    string note = string.Empty;
+                        //    //if (exif.GetTagValue(CompactExifLib.ExifTag.MakerNote, out note, StrCoding.Utf16Le_Byte))
+                        //    if (exif.GetTagRawData(CompactExifLib.ExifTag.MakerNote, out type, out count, out value))
+                        //    {
+                        //        if (type == CompactExifLib.ExifTagType.Ascii || type == CompactExifLib.ExifTagType.Byte || type == CompactExifLib.ExifTagType.SByte)
+                        //            note = Encoding.UTF8.GetString(value);
+                        //        else if (type == CompactExifLib.ExifTagType.Undefined && value is byte[] && value.Length > 0)
+                        //        {
+                        //            try
+                        //            {
+                        //                if (value.Length >= 2 && value[1] == 0x00)
+                        //                    note = Encoding.Unicode.GetString(value);
+                        //                else
+                        //                    note = Encoding.UTF8.GetString(value);
+                        //            }
+                        //            catch { note = Encoding.UTF8.GetString(value.Where(c => c != 0x00).ToArray()); }
+                        //        }
+                        //        if (!string.IsNullOrEmpty(note)) exif.SetTagValue(CompactExifLib.ExifTag.Software, note, CompactExifLib.StrCoding.Utf8);
+                        //    }
+                        //}
+                        //else if (!string.IsNullOrEmpty(meta.Software) && !exif.TagExists(CompactExifLib.ExifTag.Software))
+                        //{
+                        //    exif.SetTagValue(CompactExifLib.ExifTag.Software, meta.Software, CompactExifLib.StrCoding.Utf8);
+                        //}
+
+                        //exif.SetTagValue(CompactExifLib.ExifTag.Rating, meta.Rating ?? 0, TagType: CompactExifLib.ExifTagType.UShort);
+                        //exif.SetTagValue(CompactExifLib.ExifTag.RatingPercent, meta.RatingPercent ?? 0, TagType: CompactExifLib.ExifTagType.UShort);
+
+                        //exif.SetTagValue(CompactExifLib.ExifTag.ExifVersion, meta.ExifVersion, CompactExifLib.StrCoding.UsAscii_Undef);
+                        #endregion
+
+                        #region CompactExifLib Update XMP RAW data, not profile
+                        var xmp = string.Empty;
+                        exif.GetTagValue(CompactExifLib.ExifTag.XmpMetadata, out xmp, CompactExifLib.StrCoding.Utf8);
+                        if (string.IsNullOrEmpty(xmp))
+                        {
+                            CompactExifLib.ExifTagType type;
+                            int bytecount;
+                            byte[] bytes;
+                            exif.GetTagRawData(CompactExifLib.ExifTag.XmpMetadata, out type, out bytecount, out bytes);
+                            if (bytes is byte[] && bytecount > 0) xmp = Encoding.UTF8.GetString(bytes);
+                        }
+                        //xmp = TouchXMP(xmp, fi, meta);
+                        exif.SetTagRawData(CompactExifLib.ExifTag.XmpMetadata, CompactExifLib.ExifTagType.Byte, Encoding.UTF8.GetByteCount(xmp), Encoding.UTF8.GetBytes(xmp));
+                        #endregion
+
+                        //exif.Save(file);
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+            return (result);
+        }
+
+        private static Dictionary<string, CompactExifLib.ExifTag> ExifTagTable = new Dictionary<string, CompactExifLib.ExifTag>();
+
+        private static void InitMagicImageAttrToExifTagsTable()
+        {
+            foreach(var tag in typeof(ExifTag).GetProperties())
+            {
+                if (Enum.TryParse(tag.Name, out CompactExifLib.ExifTag tag_o))
+                    ExifTagTable[$"exif:{tag.Name}"] = tag_o;
+            }
+        }
+
+        public static async Task<bool> ReTouchMetaAltAsync(MagickImage image)
+        {
+            var result = false;
+            try
+            {
+                if (image.Valid())
+                {
+                    if (ExifTagTable.Count == 0) InitMagicImageAttrToExifTagsTable();
+
+                    var dc = image.GetAttributes("date:create");
+                    var dm = image.GetAttributes("date:modify");
+                    var da = image.GetAttributes("date:timestamp");
+
+                    using (MemoryStream stream = new MemoryStream())
+                    {
+                        var exif_profile = image.GetExifProfile() ?? new ExifProfile();
+
+                        await image.WriteAsync(stream, image.Format);                        
+                        stream.Seek(0, SeekOrigin.Begin);
+                        var exif = new CompactExifLib.ExifData(stream);
+                        foreach (var attr in image.AttributeNames)
+                        {
+                            //exif.SetTagValue();
+                        }
+                        if (exif_profile is ExifProfile)
+                        {
+                            foreach (var tag in exif_profile.Values)
+                            {
+                                var value = tag.GetValue();
+                                //exif.SetTagRawData(ExifTagTable[$"exif:{tag.Tag}"], CompactExifLib.ExifTagType. 
+                            }
+
+                        }
+
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+            return (result);
+        }
+
+        public static bool ReTouchMetaAlt(string file)
+        {
+            var result = false;
+            try
+            {
+                if (File.Exists(file))
+                {
+                    var fi = new FileInfo(file);
+                    var dc = fi.CreationTime;
+                    var dm = fi.LastWriteTime;
+                    var da = fi.LastAccessTime;
+
+                    using (MemoryStream stream = new MemoryStream(File.ReadAllBytes(file)))
+                    {
+                        stream.Seek(0, SeekOrigin.Begin);
+                        var exif = new CompactExifLib.ExifData(stream);
+
+
+                    }
+
+                    fi.CreationTime = dc;
+                    fi.LastWriteTime = dm;
+                    fi.LastAccessTime = da;                    
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
             return (result);
         }
         #endregion

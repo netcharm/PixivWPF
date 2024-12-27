@@ -361,8 +361,8 @@ namespace ImageViewer
         private Point mouse_start;
         private Point mouse_origin;
 
-        private Point mouse_start_birdseye;
-        private Point mouse_origin_birdseye;
+        //private Point mouse_start_birdseye;
+        //private Point mouse_origin_birdseye;
 
         private double ZoomMin = 0.1;
         private double ZoomMax = 10.0;
@@ -909,11 +909,11 @@ namespace ImageViewer
                 IsLoadingViewer = true;
 
                 var image =  ImageViewer.GetInformation();
-                if (await image.LoadImageFromFirstFile(refresh))
+                if (await image?.LoadImageFromFirstFile(refresh))
                 {
                     ClearImage();
                     ResetViewTransform(calcdisplay: false);
-                    SetTitle(image.FileName);
+                    SetTitle(image?.FileName);
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                     //if (await UpdateImageViewerFinished()) FitView();
                 }
@@ -938,11 +938,11 @@ namespace ImageViewer
                 IsLoadingViewer = true;
 
                 var image =  ImageViewer.GetInformation();
-                if (await image.LoadImageFromPrevFile(refresh))
+                if (await image?.LoadImageFromPrevFile(refresh))
                 {
                     ClearImage();
                     ResetViewTransform(calcdisplay: false);
-                    SetTitle(image.FileName);
+                    SetTitle(image?.FileName);
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                     //if (await UpdateImageViewerFinished()) FitView();
                 }
@@ -967,11 +967,11 @@ namespace ImageViewer
                 IsLoadingViewer = true;
 
                 var image = ImageViewer.GetInformation();
-                if (await image.LoadImageFromNextFile(refresh))
+                if (await image?.LoadImageFromNextFile(refresh))
                 {
                     ClearImage();
                     ResetViewTransform(calcdisplay: false);
-                    SetTitle(image.FileName);
+                    SetTitle(image?.FileName);
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                 }
                 else IsLoadingViewer = false;
@@ -995,11 +995,11 @@ namespace ImageViewer
                 IsLoadingViewer = true;
 
                 var image =  ImageViewer.GetInformation();
-                if (await image.LoadImageFromLastFile(refresh))
+                if (await image?.LoadImageFromLastFile(refresh))
                 {
                     ClearImage();
                     ResetViewTransform(calcdisplay: false);
-                    SetTitle(image.FileName);
+                    SetTitle(image?.FileName);
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                     //if (await UpdateImageViewerFinished()) FitView();
                 }
@@ -1706,6 +1706,7 @@ namespace ImageViewer
                     else if (ZoomFitAll.IsChecked ?? false) value = ZoomFitMode.All;
                     else if (ZoomFitWidth.IsChecked ?? false) value = ZoomFitMode.Width;
                     else if (ZoomFitHeight.IsChecked ?? false) value = ZoomFitMode.Height;
+                    else ZoomFitAll.IsChecked = true;
                     return (value);
                 }) ?? ZoomFitMode.All);
             }
@@ -1943,8 +1944,8 @@ namespace ImageViewer
         /// <param name="offset"></param>
         private void SyncScrollOffset(Point offset)
         {
-            if (offset.X < 0 || offset.Y < 0) return;
-            Dispatcher?.Invoke(() =>
+            if (!Ready) return;
+            ImageViewerScroll.Dispatcher?.Invoke(() =>
             {
                 if (offset.X >= 0 && ImageViewerScroll.HorizontalOffset != offset.X)
                 {
@@ -1969,6 +1970,7 @@ namespace ImageViewer
         /// </summary>
         private void CenterViewer()
         {
+            if (IsImageNull(ImageViewer)) return;
             Dispatcher?.Invoke(() =>
             {
                 ImageViewerScroll.ScrollToVerticalOffset(ImageViewerScroll.ScrollableHeight / 2);
@@ -2082,6 +2084,8 @@ namespace ImageViewer
                     }
                     ImageInfoBox.Text = await image.GetSimpleInfo(refresh: refresh);
                     if (index) ImageIndexBox.Text = await image.GetIndexInfo();
+                    ImageInfoBoxSep.Visibility = Visibility.Visible;
+                    ImageIndexBoxSep.Visibility = Visibility.Visible;
                 });
             }
         }
@@ -2206,7 +2210,6 @@ namespace ImageViewer
             QualityChangerDelay.Stop();
             if (IsQualityChanger)
             {
-                //var source = (ImageType)(QualityChanger.Tag);
                 var quality = (uint)(QualityChangerSlider.Value);
 
                 RenderRun(async () =>
@@ -2228,7 +2231,6 @@ namespace ImageViewer
 
                             var size = _quality_info_.Current?.GetArtifact("filesize");
                             SetQualityChangerTitle(string.IsNullOrEmpty(size) ? null : $"{_quality_info_.CurrentQuality}, {"ResultTipSize".T()} {size}");
-                            result.Dispose();
                         }
                     }
                     catch (Exception ex) { ex.ShowMessage(); }
@@ -2500,25 +2502,30 @@ namespace ImageViewer
         /// <returns></returns>
         private Point CalcBirdViewOffset(FrameworkElement sender, MouseEventArgs e)
         {
-            double offset_x = -1, offset_y = -1;
-            if (sender == BirdView || sender == BirdViewCanvas || sender == BirdViewArea)
+            double offset_x = ImageViewerScroll.Dispatcher.Invoke(() => ImageViewerScroll.HorizontalOffset);
+            double offset_y = ImageViewerScroll.Dispatcher.Invoke(() => ImageViewerScroll.VerticalOffset);
+            if (Ready && BirdView.Source != null && (sender == BirdView || sender == BirdViewCanvas || sender == BirdViewArea))
             {
-                if (BirdView.Source != null)
+                try
                 {
-                    try
+                    sender.Dispatcher.Invoke(() =>
                     {
                         var src = ImageViewerBox;
                         var ratio = Math.Max(src.DesiredSize.Width / 250f, src.DesiredSize.Height / 250f);
-                        var pos = e.GetPosition(BirdView);
+
+                        //var ax = Canvas.GetLeft(BirdViewArea);
+                        //var ay = Canvas.GetTop(BirdViewArea);
                         var aw = BirdViewArea.DesiredSize.Width;
                         var ah = BirdViewArea.DesiredSize.Height;
-                        offset_x = Math.Max(pos.X, (pos.X - aw / 2f) * ratio);
-                        offset_y = Math.Max(pos.Y, (pos.Y - ah / 2f) * ratio);
-                        if (offset_x == 0) offset_x = ImageViewerScroll.HorizontalOffset;
-                        if (offset_y == 0) offset_x = ImageViewerScroll.VerticalOffset;
-                    }
-                    catch { }
+                        var acw = aw / 2f;
+                        var ach = ah / 2f;
+
+                        var pos = e.GetPosition(BirdView);
+                        offset_x = (pos.X - acw) * ratio;
+                        offset_y = (pos.Y - ach) * ratio;
+                    });
                 }
+                catch { }
             }
             return (new Point(offset_x, offset_y));
         }
@@ -3692,7 +3699,7 @@ namespace ImageViewer
 
         private async void ImageScroll_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (!Ready || IsImageNull(ImageViewer)) return;
+            if (!Ready) return;
             var km = this.GetModifier();
             if      (e.ChangedButton == MouseButton.Left && e.XButton1 == MouseButtonState.Pressed)
             {
@@ -3732,14 +3739,12 @@ namespace ImageViewer
             else if (e.ChangedButton == MouseButton.XButton1 && e.ClickCount >= 2)
             {
                 e.Handled = true;
-                var action = await LoadImageFromNextFile();
-                if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true));
+                if (await LoadImageFromNextFile()) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true));
             }
             else if (e.ChangedButton == MouseButton.XButton2 && e.ClickCount >= 2)
             {
                 e.Handled = true;
-                var action = await LoadImageFromPrevFile();
-                if (action) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true));
+                if (await LoadImageFromPrevFile()) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true));
             }
         }
         #endregion
@@ -3910,11 +3915,11 @@ namespace ImageViewer
                 var offset = CalcBirdViewOffset(sender as FrameworkElement, e);
                 SyncScrollOffset(offset);
             }
-            else
-            {
-                mouse_start_birdseye = e.GetPosition(BirdView);
-                mouse_origin_birdseye = new Point(ImageViewerScroll.HorizontalOffset, ImageViewerScroll.VerticalOffset);
-            }
+            //else
+            //{
+            //    mouse_start_birdseye = e.GetPosition(BirdView);
+            //    mouse_origin_birdseye = new Point(ImageViewerScroll.HorizontalOffset, ImageViewerScroll.VerticalOffset);
+            //}
         }
 
         private void BirdView_MouseEnter(object sender, MouseEventArgs e)
