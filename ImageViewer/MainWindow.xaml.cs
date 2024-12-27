@@ -2268,7 +2268,7 @@ namespace ImageViewer
                         QualityChangerSlider.Maximum = quality > 0 ? quality : 100;
                         QualityChangerSlider.Width = 360;
                         QualityChangerSlider.IsSnapToTickEnabled = true;
-                        QualityChangerSlider.Ticks = new DoubleCollection() { 10, 25, 30, 35, 55, 60, 65, 70, 75, 85, 95 };
+                        QualityChangerSlider.Ticks = new DoubleCollection() { 10, 25, 30, 35, 50, 55, 60, 65, 70, 75, 85, 95 };
                         QualityChangerSlider.TickPlacement = TickPlacement.Both;
                         QualityChangerSlider.LargeChange = 5;
                         QualityChangerSlider.SmallChange = 1;
@@ -3373,7 +3373,7 @@ namespace ImageViewer
             LocaleUI(DefaultCultureInfo);
 
             #region Create Grayscale Mode Selector
-            cm_grayscale_mode = new ContextMenu() { IsTextSearchEnabled = true, Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom, PlacementTarget = GrayMode };
+            cm_grayscale_mode = new ContextMenu() { IsTextSearchEnabled = true, Placement = PlacementMode.Bottom, PlacementTarget = GrayMode };
             foreach (var v in Enum.GetValues(typeof(PixelIntensityMethod)))
             {
                 var item = new MenuItem()
@@ -3416,8 +3416,6 @@ namespace ImageViewer
 
             SyncColorLighting();
             DoEvents();
-
-
 
             var opts = this.GetCmdLineOpts();
             var args = opts.Args.ToArray();
@@ -3602,7 +3600,10 @@ namespace ImageViewer
                     }
                     else if (e.Key == Key.I || e.SystemKey == Key.I)
                     {
-                        ToggleToolTip(ImageInfoBox);
+                        if (km.OnlyCtrl) 
+                            ImageViewer.GetInformation().FileName.ShowProperties();
+                        else if (km.None) 
+                            ToggleToolTip(ImageInfoBox);
                     }
                     else if (e.Key == Key.M || e.SystemKey == Key.M)
                     {
