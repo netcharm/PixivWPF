@@ -4086,11 +4086,12 @@ namespace ImageViewer
             if (!Ready) return;
             if (sender is Slider)
             {
+                var km = this.GetModifier();
                 var slider = sender as Slider;
                 slider?.Dispatcher?.Invoke(() =>
                 {
-                    if (e.Delta < 0) slider.Value -= slider.SmallChange;
-                    if (e.Delta > 0) slider.Value += slider.SmallChange;
+                    if (e.Delta < 0) slider.Value -= km.OnlyCtrl ? slider.LargeChange : slider.SmallChange;
+                    if (e.Delta > 0) slider.Value += km.OnlyCtrl ? slider.LargeChange : slider.SmallChange;
                 });
             }
         }

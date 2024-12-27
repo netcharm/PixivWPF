@@ -56,7 +56,7 @@ namespace ImageViewer
                 CancelGetInfo?.Cancel();
                 if (_original_ is MagickImage) { _original_.Dispose(); _original_ = null; }
                 _original_ = value;
-                FixDPI(_original_, use_system: true);
+                FixDPI(_original_);
                 _OriginalModified_ = true;
                 DenoiseCount = 0;
                 DenoiseLevel = 0;
@@ -1329,14 +1329,23 @@ namespace ImageViewer
                     {
                         //var files = refresh || !FileName.IsUpdatingFileList() ? await FileName.GetFileList() : _last_file_list_ ?? await FileName.GetFileList();
                         var files = _last_file_list_ ?? await FileName.GetFileList();
-                        if (files.Any() && !string.IsNullOrEmpty(FileName))
+                        if (files.Any())
                         {
-                            var file_n = Path.IsPathRooted(FileName) ? FileName : files.Where(f => f.EndsWith(FileName, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
-                            var idx_o = files.IndexOf(file_n);
-                            if (idx_o < 0) idx_o = _last_file_index_ ?? int.MaxValue;
-                            var idx_n = (int)Math.Max(0, Math.Min(files.Count - 1, relative ? idx_o + index : index));
-                            if (idx_n != idx_o) ret = await LoadImageFromFile(files[idx_n]);
-                            if (ret) _last_file_index_ = idx_n;
+                            if (refresh)
+                            {
+                                var file_n = Path.IsPathRooted(FileName) ? FileName : files.Where(f => f.EndsWith(FileName, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
+                                var idx_o = files.IndexOf(file_n);
+                                if (idx_o < 0) idx_o = _last_file_index_ ?? int.MaxValue;
+                                var idx_n = Math.Max(0, Math.Min(files.Count - 1, relative ? idx_o + index : index));
+                                if (idx_n != idx_o) ret = await LoadImageFromFile(files[idx_n]);
+                                if (ret) _last_file_index_ = idx_n;
+                            }
+                            else
+                            {
+                                var idx_n = Math.Max(0, Math.Min(files.Count - 1, relative ? (_last_file_index_ + index) ?? int.MaxValue : index));
+                                ret = await LoadImageFromFile(files[idx_n]);
+                                if (ret) _last_file_index_ = idx_n;
+                            }
                         }
                     }
                 }
