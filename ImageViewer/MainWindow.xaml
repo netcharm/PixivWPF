@@ -215,7 +215,7 @@
             <TextBlock x:Name="ImageInfoBox" x:Uid="ImageInfoBox" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="4,0,0,0" TextAlignment="Right" ToolBar.OverflowMode="Never" />
         </ToolBar>
         <!-- Image Viewer -->
-        <Grid Grid.Row="1" x:Name="ImageViewerPanel" x:Uid="ImageViewerPanel" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MinWidth="240">
+        <Grid Grid.Row="1" x:Name="ImageViewerPanel" x:Uid="ImageViewerPanel" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MinWidth="240" SnapsToDevicePixels="True">
             <ScrollViewer x:Name="ImageViewerScroll" x:Uid="ImageTargetScroll" AllowDrop="True" Focusable="False" 
                 ScrollChanged="ImageScroll_ScrollChanged" PreviewMouseWheel="ImageBox_MouseWheel"
                 MouseDown="ImageScroll_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave"
@@ -238,21 +238,23 @@
                 </Viewbox>
             </ScrollViewer>
             <Grid Grid.Row="1" x:Name="BirdViewPanel" x:Uid="BirdViewPanel" Width="250" Height="250" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="16">
-                <Border x:Name="BirdViewBorder" x:Uid="BirdViewPanelBorder" BorderThickness="2" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}">
+                <Border x:Name="BirdViewBorder" x:Uid="BirdViewPanelBorder" BorderThickness="1" BorderBrush="DarkGray">
                     <Border.Effect>
-                        <!--<DropShadowEffect BlurRadius="5" ShadowDepth="5" Direction="0" Color="DarkGray"/>-->
-                        <BlurEffect Radius="5" KernelType="Gaussian" />
+                        <DropShadowEffect Color="WhiteSmoke" BlurRadius="3" Opacity="1" ShadowDepth="0"/>
+                        <!--<BlurEffect Radius="5" KernelType="Gaussian" />-->
                     </Border.Effect>
+                    <Grid>
+                        <Image x:Name="BirdView" x:Uid="BirdView" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin="0.5,0.5" SnapsToDevicePixels="True"
+                            MouseDown="BirdView_MouseDown" MouseMove="BirdView_MouseMove" MouseEnter="BirdView_MouseEnter" MouseLeave="BirdView_MouseLeave" />
+                        <Canvas x:Name="BirdViewCanvas" x:Uid="BirdViewCanvas" Width="{Binding Width, ElementName=BirdView, Mode=TwoWay}" Height="{Binding Height, ElementName=BirdView, Mode=TwoWay}" SnapsToDevicePixels="True">
+                            <Rectangle x:Name="BirdViewArea" x:Uid="BirdViewArea" Stroke="Coral" StrokeThickness="1" >
+                                <Rectangle.RenderTransform>
+                                    <TranslateTransform x:Name="BirdViewAreaTrans" x:Uid="BirdViewAreaTrans"/>
+                                </Rectangle.RenderTransform>
+                            </Rectangle>
+                        </Canvas>
+                    </Grid>
                 </Border>
-                <Image x:Name="BirdView" x:Uid="BirdView" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"
-                       MouseDown="BirdView_MouseDown" MouseMove="BirdView_MouseMove" MouseEnter="BirdView_MouseEnter" MouseLeave="BirdView_MouseLeave" />
-                <Canvas x:Name="BirdViewCanvas" x:Uid="BirdViewCanvas" Width="{Binding Width, ElementName=BirdViewBorder, Mode=TwoWay}" Height="{Binding Height, ElementName=BirdViewBorder, Mode=TwoWay}">
-                    <Rectangle x:Name="BirdViewArea" x:Uid="BirdViewArea" Stroke="Coral" StrokeThickness="1" >
-                        <Rectangle.RenderTransform>
-                            <TranslateTransform x:Name="BirdViewAreaTrans" x:Uid="BirdViewAreaTrans"/>
-                        </Rectangle.RenderTransform>
-                    </Rectangle>
-                </Canvas>
             </Grid>
             <xctk:BusyIndicator x:Name="IndicatorViewer" x:Uid="IndicatorViewer" BusyContent="Loading ..." Background="Transparent"
                 HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" />

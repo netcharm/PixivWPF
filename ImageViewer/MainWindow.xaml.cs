@@ -1879,8 +1879,10 @@ namespace ImageViewer
                     ImageViewerScale.ScaleY = ZoomRatio.Value;
                     DoEvents();
 
-                    var dw = Math.Round(Math.Max(ImageViewer.DesiredSize.Width, ImageViewerBox.DesiredSize.Width) - ImageViewerScroll.DesiredSize.Width, 1, MidpointRounding.AwayFromZero);
-                    var dh = Math.Round(Math.Max(ImageViewer.DesiredSize.Height, ImageViewerBox.DesiredSize.Height) - ImageViewerScroll.DesiredSize.Height, 1, MidpointRounding.AwayFromZero);
+                    //var dw = Math.Round(Math.Min(ImageViewer.DesiredSize.Width, ImageViewerBox.DesiredSize.Width) - ImageViewerScroll.DesiredSize.Width, 1, MidpointRounding.AwayFromZero);
+                    //var dh = Math.Round(Math.Min(ImageViewer.DesiredSize.Height, ImageViewerBox.DesiredSize.Height) - ImageViewerScroll.DesiredSize.Height, 1, MidpointRounding.AwayFromZero);
+                    var dw = ImageViewerScroll.ScrollableWidth;
+                    var dh = ImageViewerScroll.ScrollableHeight;
 
                     SetBirdView(dw > 0 || dh > 0);
                     UpdateBirdView();
@@ -2478,15 +2480,26 @@ namespace ImageViewer
                         var src = ImageViewer;
                         var iw = src.DesiredSize.Width;
                         var ih = src.DesiredSize.Height;
-                        var ratio = Math.Min(250f / iw, 250f / ih);
+                        var ratio = 250f / Math.Max(iw, ih);
                         var tw = iw * ratio;
                         var th = ih * ratio;
-                        BirdViewPanel.Width = tw;
-                        BirdViewPanel.Height = th;
-                        BirdViewBorder.Width = tw;
-                        BirdViewBorder.Height = th;
+                        var bw = BirdViewBorder.BorderThickness.Left + BirdViewBorder.BorderThickness.Right;
+                        var bh = BirdViewBorder.BorderThickness.Top + BirdViewBorder.BorderThickness.Bottom;
+
+                        BirdViewCanvas.Width = tw;
+                        BirdViewCanvas.Height = th;
+                        BirdViewPanel.Width = tw + bw;
+                        BirdViewPanel.Height = th + bh;
+                        BirdViewBorder.Width = tw + bw;
+                        BirdViewBorder.Height = th + bh;
+
                         BirdView.Source = ImageViewer.ToBitmapSource(new Size(tw, th));
-                        
+
+                        BirdView.UpdateLayout();
+                        BirdViewCanvas.UpdateLayout();
+                        BirdViewPanel.UpdateLayout();
+                        BirdViewBorder.UpdateLayout();
+
                         UpdateBirdViewArea();
                     }
                     catch (Exception ex) { ex.ShowMessage(); }
@@ -2523,6 +2536,8 @@ namespace ImageViewer
                         var pos = e.GetPosition(BirdView);
                         offset_x = (pos.X - acw) * ratio;
                         offset_y = (pos.Y - ach) * ratio;
+                        if (offset_x <= ratio / 2f) offset_x = 0;
+                        if (offset_y <= ratio / 2f) offset_y = 0;
                     });
                 }
                 catch { }
