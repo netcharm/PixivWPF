@@ -1753,7 +1753,18 @@ namespace ImageViewer
                 {
                     if (overwrite && ValidOriginal && !string.IsNullOrEmpty(FileName) && File.Exists(FileName))
                     {
+                        var fi = new FileInfo(FileName);
+                        var dc = fi.CreationTime;
+                        var dm = fi.LastWriteTime;
+                        var da = fi.LastAccessTime;
                         result = Save(FileName, image, format: Original.Format);
+                        if (result)
+                        {
+                            fi.CreationTime = dc;
+                            fi.LastWriteTime = dm;
+                            fi.LastAccessTime = da;
+                            fi.Refresh();
+                        }
                     }
                     else
                     {
@@ -1788,6 +1799,12 @@ namespace ImageViewer
                             else if (filter.StartsWith("webp", StringComparison.CurrentCultureIgnoreCase)) fmt = MagickFormat.WebP;
 
                             var topaz = filter.StartsWith("Topaz", StringComparison.CurrentCultureIgnoreCase);
+
+                            var fi = new FileInfo(FileName);
+                            var dc = fi.Exists ? fi.CreationTime : DateTime.Now;
+                            var dm = fi.Exists ? fi.LastWriteTime : DateTime.Now;
+                            var da = fi.Exists ? fi.LastAccessTime : DateTime.Now;
+
                             if (topaz)
                             {
                                 result = SaveTopazMask(file);
@@ -1795,6 +1812,14 @@ namespace ImageViewer
                             else
                             {
                                 result = Save(file, image, format: fmt);
+                            }
+
+                            if (result && !string.IsNullOrEmpty(FileName) && file.Equals(FileName, StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                fi.CreationTime = dc;
+                                fi.LastWriteTime = dm;
+                                fi.LastAccessTime = da;
+                                fi.Refresh();
                             }
                         }
                     }
