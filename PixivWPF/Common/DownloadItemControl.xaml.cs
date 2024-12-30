@@ -1660,15 +1660,22 @@ namespace PixivWPF.Common
         {
             setting = Application.Current.LoadSetting();
             var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+            var shift = Keyboard.Modifiers == ModifierKeys.Shift;
             var multiple = Application.Current.DownloadManagerHasMultiSelected();
             var highlight_word = Info.State == DownloadItemState.Finished ? Info.IllustID.ToString() : null;
             if ((sender == miCopyIllustID || sender == PART_CopyIllustID) && !string.IsNullOrEmpty(Url))
             {
-                Commands.CopyArtworkIDs.Execute(Url);
+                if (shift)
+                    Commands.CopyText.Execute(Info.FileName);
+                else
+                    Commands.CopyArtworkIDs.Execute(Url);
             }
             else if (sender == miCopyDonwnloadInfo)
             {
-                Commands.CopyDownloadInfo.Execute(Info);
+                if (shift)
+                    Commands.CopyText.Execute(Info.FileName);
+                else
+                    Commands.CopyDownloadInfo.Execute(Info);
             }
             else if (sender == miRefreshThumb || sender == PART_ThumbnailWait)
             {

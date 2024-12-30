@@ -4338,10 +4338,13 @@ namespace PixivWPF.Pages
 
         private void IllustDownloaded_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            var shift = Keyboard.Modifiers == ModifierKeys.Shift;
             if (e.ChangedButton == MouseButton.Left)
             {
                 e.Handled = true;
-                if (IllustDownloaded.Tag is string)
+                if (shift && IllustDownloaded.Tag is string && !string.IsNullOrEmpty(IllustDownloaded.Tag as string) && System.IO.File.Exists(IllustDownloaded.Tag as string)) 
+                    this.DragOut(IllustDownloaded.Tag as string);
+                else if (IllustDownloaded.Tag is string)
                     Commands.ShellOpenFile.Execute(IllustDownloaded.Tag);
             }
             else if (e.ChangedButton == MouseButton.Right)
