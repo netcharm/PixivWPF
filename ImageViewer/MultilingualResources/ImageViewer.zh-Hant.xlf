@@ -543,6 +543,10 @@
           <source>OK</source>
           <target state="new">確定</target>
         </trans-unit>
+        <trans-unit id="QualityImage.Header" translate="yes" xml:space="preserve">
+          <source>Change Image Quality</source>
+          <target state="new">改變畫質因數</target>
+        </trans-unit>
         <trans-unit id="Quantize.Header" translate="yes" xml:space="preserve">
           <source>Quantize</source>
           <target state="new">量化影像色彩</target>

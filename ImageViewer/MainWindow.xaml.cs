@@ -1029,20 +1029,7 @@ namespace ImageViewer
             {
                 if (files == null || files.Length == 0)
                 {
-                    CloseQualityChanger();
-                    IsLoadingViewer = true;
-
-                    var image  = ImageViewer.GetInformation();
-                    if (await image.LoadImageFromFile())
-                    {
-                        files = new string[] { image.FileName };
-                        _ = Task.Run(async () => await files.InitFileList());
-
-                        ClearImage();
-                        ResetViewTransform(calcdisplay: false);
-                        SetTitle(image.FileName);
-                        RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
-                    }
+                    return (ret);
                 }
                 else
                 {
@@ -1299,6 +1286,14 @@ namespace ImageViewer
                     Icon = new TextBlock() { Text = "\uE1A5", Style = style }
                 };
 
+                var item_quality_image = new MenuItem()
+                {
+                    Header = "Change Image Quality",
+                    Uid = "QualityImage",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE91B", Style = style }
+                };
+
                 var item_reset_image = new MenuItem()
                 {
                     Header = "Reset Image",
@@ -1363,6 +1358,7 @@ namespace ImageViewer
                 item_load_next.Click += (obj, evt) => RenderRun(async () => await LoadImageFromNextFile(), target);
 
                 //item_reset_image.Click += (obj, evt) => { RenderRun(() => { ResetImage(MenuHost(obj)); }, target); };
+                item_quality_image.Click += (obj, evt) => OpenQualityChanger();
                 item_reload.Click += (obj, evt) => { var shift = this.IsShiftPressed(true); RenderRun(() => ReloadImage(MenuHost(obj), info_only: shift), target); };
 
                 item_colorcalc.Click += (obj, evt) => RenderRun(() => CalcImageColors(MenuHost(obj)), target);
@@ -1394,6 +1390,7 @@ namespace ImageViewer
                 items.Add(item_load_next);
                 items.Add(new Separator());
                 //items.Add(item_reset_image);
+                items.Add(item_quality_image);
                 items.Add(item_reload);
                 items.Add(new Separator());
                 items.Add(item_colorcalc);
@@ -3499,7 +3496,7 @@ namespace ImageViewer
                     if (sender == ImageLoadHaldLut)
                         LoadHaldLutFile((files as IEnumerable<string>).Where(f => File.Exists(f)).First());
                     else
-                        Dispatcher?.InvokeAsync(async () => await LoadImageFromFiles((files as IEnumerable<string>).ToArray()));
+                        Dispatcher?.InvokeAsync(async () => await LoadImageFromFiles(files as IEnumerable<string>));
                 }
             }
             else if (e.Data.GetDataPresent("Text"))
@@ -3510,7 +3507,7 @@ namespace ImageViewer
                     if (sender == ImageLoadHaldLut)
                         LoadHaldLutFile(files.Where(f => File.Exists(f)).First());
                     else
-                        Dispatcher?.InvokeAsync(async () => await LoadImageFromFiles(files as IEnumerable<string>));
+                        Dispatcher?.InvokeAsync(async () => await LoadImageFromFiles(files));
                 }
             }
             e.Handled = true;
@@ -3917,11 +3914,6 @@ namespace ImageViewer
         #endregion
 
         #region Birds Eye View
-        private void BirdView_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if (!Ready) return;
-        }
-
         private void BirdView_MouseMove(object sender, MouseEventArgs e)
         {
             if (!Ready) return;
@@ -3931,40 +3923,6 @@ namespace ImageViewer
                 var offset = CalcBirdViewOffset(sender as FrameworkElement, e);
                 SyncScrollOffset(offset);
             }
-            //else
-            //{
-            //    mouse_start_birdseye = e.GetPosition(BirdView);
-            //    mouse_origin_birdseye = new Point(ImageViewerScroll.HorizontalOffset, ImageViewerScroll.VerticalOffset);
-            //}
-        }
-
-        private void BirdView_MouseEnter(object sender, MouseEventArgs e)
-        {
-            if (!Ready) return;
-            //if (e.LeftButton == MouseButtonState.Pressed)
-            //{
-            //    if (sender == BirdView || sender == BirdViewCanvas || sender == BirdViewArea)
-            //    {
-            //        e.Handled = true;
-            //        mouse_start_birdseye = e.GetPosition(BirdView);
-            //        mouse_origin_birdseye = new Point(ImageViewerScroll.HorizontalOffset, ImageViewerScroll.VerticalOffset);
-            //    }
-            //}
-        }
-
-        private void BirdView_MouseLeave(object sender, MouseEventArgs e)
-        {
-            if (!Ready) return;
-            //try
-            //{
-            //    if (e.LeftButton == MouseButtonState.Pressed)
-            //    {
-            //        e.Handled = true;
-            //        var offset = CalcBirdViewOffset(sender as FrameworkElement, e);
-            //        //SyncScrollOffset(offset);
-            //    }
-            //}
-            //catch (Exception ex) { ex.ShowMessage("MouseLeave"); }
         }
         #endregion
 
@@ -4178,7 +4136,7 @@ namespace ImageViewer
                         }
                     }
 #if DEBUG
-                    System.Diagnostics.Debug.WriteLine($"Key Interval: {delta}ms");
+                    Debug.WriteLine($"Key Interval: {delta}ms");
 #endif
                 }
                 catch (Exception ex) { ex.ShowMessage(); }

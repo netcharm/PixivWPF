@@ -699,4 +699,7 @@
   <data name="QualityChangerOK.Content" xml:space="preserve">
     <value>确定</value>
   </data>
+  <data name="QualityImage.Header" xml:space="preserve">
+    <value>改变画质因子</value>
+  </data>
 </root>

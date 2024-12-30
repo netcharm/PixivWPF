@@ -608,11 +608,10 @@ namespace ImageViewer
                     pdtobj.SetData("FileName", Files, true);
                     pdtobj.SetData("FileNameW", Files, true);
                     pdtobj.SetFileDropList(Files);
-                    Debug.WriteLine(Files[0]);
                     if (SHMultiFileProperties(pdtobj, 0) == 0 /*S_OK*/) result = true;
                 }
             }
-            catch (Exception ex) { ex.ShowMessage(); Debug.WriteLine($"ShowFileProperties: {ex.Message}"); }
+            catch (Exception ex) { ex.ShowMessage(); }
             return (result);
         }
 

@@ -699,4 +699,7 @@
   <data name="QualityChangerOK.Content" xml:space="preserve">
     <value>確定</value>
   </data>
+  <data name="QualityImage.Header" xml:space="preserve">
+    <value>画質定量化の変更</value>
+  </data>
 </root>

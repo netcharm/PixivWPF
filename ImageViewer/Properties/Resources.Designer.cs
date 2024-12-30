@@ -1276,6 +1276,15 @@ namespace ImageViewer.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Change Image Quality 的本地化字符串。
+        /// </summary>
+        public static string QualityImage_Header {
+            get {
+                return ResourceManager.GetString("QualityImage.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Quantize 的本地化字符串。
         /// </summary>
         public static string Quantize_Header {

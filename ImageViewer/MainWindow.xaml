@@ -241,13 +241,25 @@
                 <Border x:Name="BirdViewBorder" x:Uid="BirdViewPanelBorder" BorderThickness="1" BorderBrush="DarkGray">
                     <Border.Effect>
                         <DropShadowEffect Color="WhiteSmoke" BlurRadius="3" Opacity="1" ShadowDepth="0"/>
-                        <!--<BlurEffect Radius="5" KernelType="Gaussian" />-->
                     </Border.Effect>
                     <Grid>
-                        <Image x:Name="BirdView" x:Uid="BirdView" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin="0.5,0.5" SnapsToDevicePixels="True"
-                            MouseDown="BirdView_MouseDown" MouseMove="BirdView_MouseMove" MouseEnter="BirdView_MouseEnter" MouseLeave="BirdView_MouseLeave" />
-                        <Canvas x:Name="BirdViewCanvas" x:Uid="BirdViewCanvas" Width="{Binding Width, ElementName=BirdView, Mode=TwoWay}" Height="{Binding Height, ElementName=BirdView, Mode=TwoWay}" SnapsToDevicePixels="True">
-                            <Rectangle x:Name="BirdViewArea" x:Uid="BirdViewArea" Stroke="Coral" StrokeThickness="1" >
+                        <Image x:Name="BirdView" x:Uid="BirdView" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" SnapsToDevicePixels="True"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                            MouseMove="BirdView_MouseMove"/>
+                        <Canvas x:Name="BirdViewCanvas" x:Uid="BirdViewCanvas" SnapsToDevicePixels="True" Background="#00000000" MouseMove="BirdView_MouseMove"
+                            Width="{Binding Width, ElementName=BirdView, Mode=TwoWay}" Height="{Binding Height, ElementName=BirdView, Mode=TwoWay}">
+                            <!--<Canvas.OpacityMask>
+                                <VisualBrush Stretch="None" ViewboxUnits="Absolute">
+                                    <VisualBrush.Visual>
+                                        <Rectangle x:Name="BirdViewArea" x:Uid="BirdViewArea" Stroke="Coral" StrokeThickness="1" SnapsToDevicePixels="True">
+                                            <Rectangle.RenderTransform>
+                                                <TranslateTransform x:Name="BirdViewAreaTrans" x:Uid="BirdViewAreaTrans"/>
+                                            </Rectangle.RenderTransform>
+                                        </Rectangle>
+                                    </VisualBrush.Visual>
+                                </VisualBrush>
+                            </Canvas.OpacityMask>-->
+                            <Rectangle x:Name="BirdViewArea" x:Uid="BirdViewArea" Stroke="Coral" StrokeThickness="1" SnapsToDevicePixels="True">
                                 <Rectangle.RenderTransform>
                                     <TranslateTransform x:Name="BirdViewAreaTrans" x:Uid="BirdViewAreaTrans"/>
                                 </Rectangle.RenderTransform>
