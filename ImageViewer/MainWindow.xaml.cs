@@ -806,31 +806,32 @@ namespace ImageViewer
                 var image = ImageViewer.GetInformation();
                 if (image.ValidCurrent)
                 {
-
-                    var angle = ImageViewerRotate.Dispatcher?.Invoke(() => ImageViewerRotate.Angle) ?? 0;
+                    var angle = ImageViewerRotate.Dispatcher?.Invoke(() => ImageViewerRotate.Angle % 360) ?? 0;
                     var flipx = ImageViewerScale.Dispatcher?.Invoke(() => ImageViewerScale.ScaleX < 0) ?? false;
                     var flipy = ImageViewerScale.Dispatcher?.Invoke(() => ImageViewerScale.ScaleY < 0) ?? false;
+                    if (angle % 180 == 0) { }
+                    else if (angle % 90 == 0) { (flipx, flipy) = (flipy, flipx); }
 
-                    if (angle % 360 != 0)
-                    {
-                        image.Rotated = angle % 360;
-                        image.Current?.Rotate(image.Rotated);
-                    }
-                    if (flipx)
-                    {
-                        image.FlipX = flipx;
-                        image.Current?.Flop();
-                    }
-                    if (flipy)
-                    {
-                        image.FlipY = flipy;
-                        image.Current?.Flip();
-                    }
                     if (IsQualityChanger)
                     {
                         var quality = QualityChangerValue?.Dispatcher.Invoke(() => QualityChangerValue?.Value) ?? image.CurrentQuality;
                         using (var target = new MagickImage(image.Current) { Quality = quality })
                         {
+                            if (angle != 0) target.Rotate(angle);
+                            if (flipx) target.Flop();
+                            if (flipy) target.Flip();
+
+                            ret = image.Save(target, overwrite: overwrite);
+                        }
+                    }
+                    else if (angle != 0 || flipx || flipy)
+                    {
+                        using (var target = new MagickImage(image.Current))
+                        {
+                            if (angle != 0) target.Rotate(angle);
+                            if (flipx) target.Flop();
+                            if (flipy) target.Flip();
+
                             ret = image.Save(target, overwrite: overwrite);
                         }
                     }
@@ -1078,6 +1079,875 @@ namespace ImageViewer
         }
         #endregion
 
+        #region Image Viewer Helper
+        /// <summary>
+        /// 
+        /// </summary>
+        private ZoomFitMode CurrentZoomFitMode
+        {
+            get
+            {
+                return (Dispatcher?.Invoke(() =>
+                {
+                    var value = ZoomFitMode.All;
+                    if (ZoomFitNone.IsChecked ?? false) value = ZoomFitMode.None;
+                    else if (ZoomFitAll.IsChecked ?? false) value = ZoomFitMode.All;
+                    else if (ZoomFitWidth.IsChecked ?? false) value = ZoomFitMode.Width;
+                    else if (ZoomFitHeight.IsChecked ?? false) value = ZoomFitMode.Height;
+                    else ZoomFitAll.IsChecked = true;
+                    return (value);
+                }) ?? ZoomFitMode.All);
+            }
+            set
+            {
+                Dispatcher?.Invoke(() =>
+                {
+                    if (value == ZoomFitMode.None)
+                    {
+                        ZoomFitNone.IsChecked = true; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = false;
+                        ImageViewerBox.Stretch = Stretch.None;
+                    }
+                    else if (value == ZoomFitMode.All)
+                    {
+                        ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = true; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = false;
+                        ImageViewerBox.Stretch = Stretch.Uniform;
+                    }
+                    else if (value == ZoomFitMode.Width)
+                    {
+                        ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = true; ZoomFitHeight.IsChecked = false;
+                        ImageViewerBox.Stretch = Stretch.None;
+                    }
+                    else if (value == ZoomFitMode.Height)
+                    {
+                        ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = true;
+                        ImageViewerBox.Stretch = Stretch.None;
+                    }
+                    CalcDisplay();
+                    //CenterViewer();
+                });
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private FrameworkElement CurrentZoomControl
+        {
+            get
+            {
+                FrameworkElement result = null;
+
+                var mode  = CurrentZoomFitMode;
+                if (mode == ZoomFitMode.None) result = ZoomFitNone;
+                else if (mode == ZoomFitMode.All) result = ZoomFitAll;
+                else if (mode == ZoomFitMode.Width) result = ZoomFitWidth;
+                else if (mode == ZoomFitMode.Height) result = ZoomFitHeight;
+
+                return (result);
+            }
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="set_ratio"></param>
+        private void CalcDisplay(Size? size = null)
+        {
+            if (!Ready) return;
+            try
+            {
+                Dispatcher?.InvokeAsync(() =>
+                {
+                    using (var d = Dispatcher?.DisableProcessing())
+                    {
+                        #region Re-Calc Scroll Viewer Size
+                        var nw = size?.Width;
+                        var nh = size?.Height;
+                        var cw = ImageCanvas.ActualWidth;
+                        var ch = ImageCanvas.ActualHeight - ImageToolBar.ActualHeight;
+                        ImageViewerPanel.MaxWidth = cw;
+                        ImageViewerPanel.MaxHeight = ch;
+                        ImageViewerPanel.MinWidth = cw;
+                        ImageViewerPanel.MinHeight = ch;
+                        ImageViewerPanel.RenderSize = new Size(cw, ch);
+                        ImageViewerPanel.UpdateLayout();
+
+                        ImageViewerScroll.Width = cw;
+                        ImageViewerScroll.Height = ch;
+                        ImageViewerScroll.MaxWidth = cw;
+                        ImageViewerScroll.MaxHeight = ch;
+                        ImageViewerScroll.UpdateLayout();
+                        #endregion
+
+                        if (ZoomFitNone.IsChecked ?? false) ZoomRatio.IsEnabled = true;
+                        else ZoomRatio.IsEnabled = false;
+                        ZoomRatioValue.IsEnabled = ZoomRatio.IsEnabled;
+
+                        CalcZoomRatio();
+                        DoEvents();
+                    }
+                });
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void CalcZoomRatio(Size? size = null)
+        {
+            try
+            {
+                var image_s = ImageViewer.GetInformation();
+                if (image_s.ValidCurrent)
+                {
+                    var scroll  = ImageViewerScroll;
+                    var image  = image_s.Current;
+
+                    var rotate = ImageViewerRotate.Angle % 180 != 0;
+                    var width = rotate ? image.Height : image.Width;
+                    var height = rotate ? image.Width : image.Height;
+
+                    if (CurrentZoomFitMode == ZoomFitMode.None)
+                    {
+                        if (ZoomRatio.Value != LastZoomRatio) ZoomRatio.Value = LastZoomRatio;
+                        ZoomRatio.Minimum = LastZoomRatio < ZoomMin ? LastZoomRatio : ZoomMin;
+                        ImageViewerBox.MaxWidth = LastZoomRatio * width;
+                        ImageViewerBox.MaxHeight = LastZoomRatio * height;
+                        ImageViewerBox.Width = ImageViewerBox.MaxWidth;
+                        ImageViewerBox.Height = ImageViewerBox.MaxHeight;
+                    }
+                    else if (CurrentZoomFitMode == ZoomFitMode.All)
+                    {
+                        var scale = Math.Min(scroll.ActualWidth / width, scroll.ActualHeight / height);
+                        ZoomRatio.Value = scale;
+                        ZoomRatio.Minimum = scale < ZoomMin ? scale : ZoomMin;
+                        ImageViewerBox.MaxWidth = scale * width;
+                        ImageViewerBox.MaxHeight = scale * height;
+                        ImageViewerBox.Width = ImageViewerBox.MaxWidth;
+                        ImageViewerBox.Height = ImageViewerBox.MaxHeight;
+                    }
+                    else if (CurrentZoomFitMode == ZoomFitMode.Width)
+                    {
+                        var ratio = scroll.ActualWidth / width;
+                        var delta = scroll.VerticalScrollBarVisibility == ScrollBarVisibility.Hidden || height * ratio <= scroll.ActualHeight ? 0 : SystemParameters.VerticalScrollBarWidth;
+                        var scale = (scroll.ActualWidth - delta) / width;
+                        var scale_w = scale * width;
+                        var scale_h = scale * height;
+                        if (ZoomRatio.Value != scale) ZoomRatio.Value = scale;
+                        ZoomRatio.Minimum = scale < ZoomMin ? scale : ZoomMin;
+                        ImageViewerBox.MaxWidth = scroll.ActualWidth;
+                        ImageViewerBox.MaxHeight = scale_h <= scroll.ActualHeight ? scroll.ActualHeight : scale_h - delta;
+                        ImageViewerBox.Width = ImageViewerBox.MaxWidth;
+                        ImageViewerBox.Height = ImageViewerBox.MaxHeight;
+                    }
+                    else if (CurrentZoomFitMode == ZoomFitMode.Height)
+                    {
+                        var ratio = scroll.ActualHeight / height;
+                        var delta = scroll.HorizontalScrollBarVisibility == ScrollBarVisibility.Hidden || width * ratio <= scroll.ActualWidth ? 0 : SystemParameters.HorizontalScrollBarHeight;
+                        var scale = (scroll.ActualHeight - delta) / height;
+                        var scale_w = scale * width;
+                        var scale_h = scale * height;
+                        if (ZoomRatio.Value != scale) ZoomRatio.Value = scale;
+                        ZoomRatio.Minimum = scale < ZoomMin ? scale : ZoomMin;
+                        ImageViewerBox.MaxWidth = scale_w <= scroll.ActualWidth ? scroll.ActualWidth : scale_w - delta;
+                        ImageViewerBox.MaxHeight = scroll.ActualHeight;
+                        ImageViewerBox.Width = ImageViewerBox.MaxWidth;
+                        ImageViewerBox.Height = ImageViewerBox.MaxHeight;
+                    }
+                    DoEvents();
+
+                    ImageViewerScale.ScaleX = ImageViewerScale.ScaleX < 0 ? -1 * ZoomRatio.Value : ZoomRatio.Value;
+                    ImageViewerScale.ScaleY = ImageViewerScale.ScaleY < 0 ? -1 * ZoomRatio.Value : ZoomRatio.Value;
+                    DoEvents();
+
+                    ImageViewer.UpdateLayout();
+                    ImageViewerBox.UpdateLayout();
+                    ImageViewerScroll.UpdateLayout();
+                    DoEvents();
+
+                    //var dw = Math.Round(Math.Min(ImageViewer.DesiredSize.Width, ImageViewerBox.DesiredSize.Width) - ImageViewerScroll.DesiredSize.Width, 1, MidpointRounding.AwayFromZero);
+                    //var dh = Math.Round(Math.Min(ImageViewer.DesiredSize.Height, ImageViewerBox.DesiredSize.Height) - ImageViewerScroll.DesiredSize.Height, 1, MidpointRounding.AwayFromZero);
+                    var dw = ImageViewerScroll.ScrollableWidth;
+                    var dh = ImageViewerScroll.ScrollableHeight;
+
+                    SetBirdView(dw > 0 || dh > 0);
+                    UpdateBirdView();
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <returns></returns>
+        private Point GetScrollOffset(FrameworkElement sender)
+        {
+            double offset_x = -1, offset_y = -1;
+            if (sender == ImageViewerBox || sender == ImageViewerScroll)
+            {
+                if (ImageViewerBox.Stretch == Stretch.None)
+                {
+                    offset_x = ImageViewerScroll.HorizontalOffset;
+                    offset_y = ImageViewerScroll.VerticalOffset;
+                }
+            }
+            return (new Point(offset_x, offset_y));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        private Point CalcScrollOffset(FrameworkElement sender, MouseEventArgs e)
+        {
+            double offset_x = -1, offset_y = -1;
+            try
+            {
+                if (sender == ImageViewer || sender == ImageViewerBox || sender == ImageViewerScroll)
+                {
+                    if (ImageViewerBox.Stretch == Stretch.None && ImageViewer.GetInformation().ValidCurrent)
+                    {
+                        try
+                        {
+                            Point factor = new Point(ImageViewerScroll.ExtentWidth/ImageViewerScroll.ViewportWidth, ImageViewerScroll.ExtentHeight/ImageViewerScroll.ViewportHeight);
+                            Vector v = mouse_start - e.GetPosition(ImageViewerScroll);
+                            offset_x = Math.Max(0, mouse_origin.X + v.X * factor.X);
+                            offset_y = Math.Max(0, mouse_origin.Y + v.Y * factor.Y);
+                        }
+                        catch { }
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+            return (new Point(offset_x, offset_y));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="offset"></param>
+        private void SyncScrollOffset(Point offset)
+        {
+            if (!Ready) return;
+            ImageViewerScroll.Dispatcher?.Invoke(() =>
+            {
+                if (offset.X >= 0 && ImageViewerScroll.HorizontalOffset != offset.X)
+                {
+                    ImageViewerScroll.ScrollToHorizontalOffset(offset.X);
+                    //mouse_start.X = offset.X;
+                }
+                if (offset.Y >= 0 && ImageViewerScroll.VerticalOffset != offset.Y)
+                {
+                    ImageViewerScroll.ScrollToVerticalOffset(offset.Y);
+                    //mouse_start.Y = offset.Y;
+                }
+#if DEBUG
+                Debug.WriteLine($"Scroll : [{ImageViewerScroll.HorizontalOffset:F0}, {ImageViewerScroll.VerticalOffset:F0}], Offset : [{offset.X:F0}, {offset.Y:F0}]");
+                //Debug.WriteLine($"Move Y: {offset_y}");
+#endif
+                UpdateBirdViewArea();
+            });
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        private void CenterViewer()
+        {
+            if (IsImageNull(ImageViewer)) return;
+            Dispatcher?.Invoke(() =>
+            {
+                ImageViewerScroll.ScrollToVerticalOffset(ImageViewerScroll.ScrollableHeight / 2);
+                ImageViewerScroll.ScrollToHorizontalOffset(ImageViewerScroll.ScrollableWidth / 2);
+                DoEvents();
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void FitView()
+        {
+            ImageViewerBox?.Dispatcher?.Invoke(() =>
+            {
+                if (ImageViewer?.Source != null)
+                {
+                    var iw = ImageViewer?.Source?.Width;
+                    var ih = ImageViewer?.Source?.Height;
+
+                    var vw = ImageViewerPanel?.ActualWidth;
+                    var vh = ImageViewerPanel?.ActualHeight;
+
+                    if (iw >= vw || ih >= vh)
+                    {
+                        var r_x = vw / iw;
+                        var r_y = vh / ih;
+                        ZoomRatio.Value = Math.Max(r_x ?? 1, r_y ?? 1);
+                    }
+                    else
+                    {
+                        ZoomRatio.Value = 1;
+                    }
+                }
+            });
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        private void FlipView()
+        {
+            if (IsImageNull(ImageViewer)) return;
+            var angle = ImageViewerRotate.Dispatcher?.Invoke(() => ImageViewerRotate.Angle % 360) ?? 0;
+            var flipx = ImageViewerScale.Dispatcher?.Invoke(() => ImageViewerScale.ScaleX < 0) ?? false;
+            var flipy = ImageViewerScale.Dispatcher?.Invoke(() => ImageViewerScale.ScaleY < 0) ?? false;
+            if (angle % 180 == 0)
+                ImageViewerScale?.Dispatcher?.InvokeAsync(() => ImageViewerScale.ScaleY *= -1);
+            else if (angle % 90 == 0)
+                ImageViewerScale?.Dispatcher?.InvokeAsync(() => ImageViewerScale.ScaleX *= -1);
+            CalcDisplay();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void FlopView()
+        {
+            if (IsImageNull(ImageViewer)) return;
+            var angle = ImageViewerRotate.Dispatcher?.Invoke(() => ImageViewerRotate.Angle % 360) ?? 0;
+            var flipx = ImageViewerScale.Dispatcher?.Invoke(() => ImageViewerScale.ScaleX < 0) ?? false;
+            var flipy = ImageViewerScale.Dispatcher?.Invoke(() => ImageViewerScale.ScaleY < 0) ?? false;
+            if (angle % 180 == 0)
+                ImageViewerScale?.Dispatcher?.InvokeAsync(() => ImageViewerScale.ScaleX *= -1);
+            else if (angle % 90 == 0)
+                ImageViewerScale?.Dispatcher?.InvokeAsync(() => ImageViewerScale.ScaleY *= -1);
+            CalcDisplay();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="angle"></param>
+        private void RotateView(double  angle)
+        {
+            if (IsImageNull(ImageViewer)) return;
+            ImageViewerScale?.Dispatcher?.InvokeAsync(() => ImageViewerRotate.Angle = (ImageViewerRotate.Angle + angle) % 360);
+            CalcDisplay();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void ResetViewTransform(bool calcdisplay = true)
+        {
+            ImageViewerScale?.Dispatcher?.InvokeAsync(() =>
+            {
+                ImageViewer?.GetInformation()?.ResetTransform();
+
+                var scale = ZoomRatio.Value;
+                ImageViewerRotate.Angle = 0;
+                ImageViewerScale.ScaleX = scale;
+                ImageViewerScale.ScaleY = scale;
+                ZoomRatio.Value = scale;
+                if (calcdisplay) CalcDisplay();
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="e"></param>
+        public void UpdateInfoBox(ImageInformation image = null, EventArgs e = null, bool index = true)
+        {
+            if (Ready)
+            {
+                Dispatcher?.InvokeAsync(async () =>
+                {
+                    var refresh = false;
+                    if (index) ImageIndexBox.Text = "-/-";
+                    if (image is null) image = ImageViewer.GetInformation();
+                    if (e is FileSystemEventArgs)
+                    {
+                        Debug.WriteLine($"{e?.GetType()}");
+                        var fs = e as FileSystemEventArgs;
+                        if (fs.ChangeType == WatcherChangeTypes.Changed || fs.ChangeType == WatcherChangeTypes.Created || fs.ChangeType == WatcherChangeTypes.Renamed)
+                        {
+                            refresh = true;
+                        }
+                        else if (e is RenamedEventArgs || (e as RenamedEventArgs).OldName.Equals(image.FileName, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            image.RefreshImageFileInfo((e as RenamedEventArgs).FullPath);
+                        }
+                    }
+                    ImageInfoBox.Text = await image.GetSimpleInfo(refresh: refresh);
+                    if (index) ImageIndexBox.Text = await image.GetIndexInfo();
+                    ImageInfoBoxSep.Visibility = Visibility.Visible;
+                    ImageIndexBoxSep.Visibility = Visibility.Visible;
+                });
+            }
+        }
+        #endregion
+
+        #region Size Changer Helper
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="uid"></param>
+        /// <param name="align"></param>
+        /// <param name="size"></param>
+        private void ChangeImageSize(string uid, Size size, Gravity align)
+        {
+            var w = (uint)size.Width;
+            var h = (uint)size.Height;
+            ChangeImageSize(uid, w, h, align);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="uid"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="align"></param>
+        private async void ChangeImageSize(string uid, uint x, uint y, Gravity align)
+        {
+            if (string.IsNullOrEmpty(uid) || x < 0 || y < 0) return;
+            else if (uid.Equals("CropImageEdge"))
+            {
+                RenderRun(() => { CropImageEdge(true, x, y, align); });
+                if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
+            }
+            else if (uid.Equals("ExtentImageEdge"))
+            {
+                RenderRun(() => { ExtentImageEdge(true, x, y, align); });
+                if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
+            }
+            else if (uid.Equals("PanImageEdge"))
+            {
+                RenderRun(() => { PanImageEdge(true, x, y, align); });
+                if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
+            }
+            else if (uid.Equals("RollImageEdge"))
+            {
+
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="uid"></param>
+        private void OpenSizeChanger(string uid = null)
+        {
+            SizeChanger.Dispatcher.Invoke(() => 
+            {
+                SizeChanger.UpdateLayout();
+                if (!string.IsNullOrEmpty(uid))
+                {
+                    if (uid == "CropImageEdge") { SizeChangeCrop.Focus(); }
+                    else if (uid == "ExtentImageEdge") { SizeChangeExtent.Focus(); }
+                    else if (uid == "PanImageEdge") { }
+                }
+                SizeChanger.Show();
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        private void ApplySizeChanger(FrameworkElement sender)
+        {
+            var size = SizeChangeValue.Value ?? 1;
+            if (sender == SizeChangeExtent) 
+                ChangeImageSize("ExtentImageEdge", size, size, DefaultAlign);
+            else if (sender == SizeChangeCrop) 
+                ChangeImageSize("CropImageEdge", size, size, DefaultAlign);
+            //else if (sender == SizeChangeExtend)
+            //    ChangeImageSize("ExtentImageEdge", size, size, DefaultAlign);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void CloseSizeChanger()
+        {
+            SizeChanger.Dispatcher.Invoke(() => 
+            { 
+                SizeChanger.Close(); 
+            });            
+        }
+        #endregion
+
+        #region Quality Changer Helper
+        private DispatcherTimer QualityChangerDelay = null;
+
+        /// <summary>
+        ///
+        /// </summary>
+        private void InitCoutDownTimer()
+        {
+            if (QualityChangerDelay == null)
+            {
+                QualityChangerDelay = new DispatcherTimer(DispatcherPriority.Normal) { IsEnabled = false, Interval = TimeSpan.FromMilliseconds(CountDownTimeOut) };
+                QualityChangerDelay.Tick += QualityChangerDelay_Tick;
+            }
+        }
+
+        private BitmapSource _quality_orig_ = null;
+        private ImageInformation _quality_info_ = new ImageInformation();
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void QualityChangerDelay_Tick(object sender, EventArgs e)
+        {
+            QualityChangerDelay.Stop();
+            if (IsQualityChanger)
+            {
+                var quality = (uint)(QualityChangerSlider.Value);
+
+                RenderRun(async () =>
+                {
+                    try
+                    {
+                        IsProcessingViewer = true;
+
+                        var info = ImageViewer.GetInformation();
+                        if (info.ValidCurrent)
+                        {
+                            var image = new MagickImage(info.Current);
+                            var quality_o = info.OriginalQuality;
+
+                            var result = quality < quality_o ? await ChangeQuality(image, quality) : new MagickImage(image);
+                            _quality_info_.Original = new MagickImage(result);
+                            SetImageSource(ImageViewer, _quality_info_);
+                            result.Dispose();
+
+                            var size = _quality_info_.Current?.GetArtifact("filesize");
+                            SetQualityChangerTitle(string.IsNullOrEmpty(size) ? null : $"{_quality_info_.CurrentQuality}, {"ResultTipSize".T()} {size}");
+                        }
+                    }
+                    catch (Exception ex) { ex.ShowMessage(); }
+                    finally { IsProcessingViewer = false; }
+                });
+            }
+        }
+
+        private string QualityChangeerTitle = string.Empty;
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="info"></param>
+        private void OpenQualityChanger()
+        {
+            if (Ready && !IsQualityChanger)
+            {
+                InitCoutDownTimer();
+                QualityChanger?.Dispatcher?.InvokeAsync(() =>
+                {
+                    var info = ImageViewer.GetInformation();
+                    if (info.ValidCurrent)
+                    {
+                        var image = info?.Current;
+                        var quality = image.Quality();
+                        var quality_str = quality > 0  ? $"{quality}" : "Unknown";
+                        _quality_orig_ = info?.Source;
+                        _quality_info_ = new ImageInformation();
+                        QualityChangeerTitle = $"{"InfoTipQuality".T().Trim('=').Trim()} : {quality_str}";
+                        QualityChanger.Focusable = true;
+                        QualityChanger.Caption = QualityChangeerTitle;
+                        QualityChanger.FocusedElement = QualityChangerSlider;
+                        QualityChangerSlider.Focusable = true;
+                        QualityChangerSlider.Maximum = quality > 0 ? quality : 100;
+                        QualityChangerSlider.Width = 360;
+                        QualityChangerSlider.IsSnapToTickEnabled = true;
+                        QualityChangerSlider.Ticks = new DoubleCollection() { 10, 25, 30, 35, 50, 55, 60, 65, 70, 75, 85, 95 };
+                        QualityChangerSlider.TickPlacement = TickPlacement.Both;
+                        QualityChangerSlider.LargeChange = 5;
+                        QualityChangerSlider.SmallChange = 1;
+                        QualityChangerSlider.Value = quality > 0 ? quality : 100;
+                        QualityChanger.FocusedElement = QualityChangerSlider;
+                        QualityChanger.UpdateLayout();
+                        QualityChanger.Show();
+
+                        DoEvents();
+
+                        QualityChanger.FocusedElement = QualityChangerSlider;
+                        QualityChangerSlider.Focus();
+
+                        if (QualityChangerDelay is DispatcherTimer)
+                        {
+                            QualityChangerDelay.IsEnabled = true;
+                            QualityChangerDelay.Stop();
+                        }
+                    }
+                });
+            }
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        private void CloseQualityChanger(bool restore = false)
+        {
+            if (Ready && IsQualityChanger)
+            {
+                QualityChanger?.Dispatcher?.InvokeAsync(() =>
+                {
+                    try
+                    {
+                        var image_s = ImageViewer.GetInformation();
+                        if (image_s.ValidCurrent)
+                        {
+                            if (restore)
+                            {
+                                IsProcessingViewer = true;
+                                SetImageSource(ImageViewer, image_s, fit: false);
+                            }
+                            else
+                            {
+                                var quality = (uint)QualityChangerSlider.Value;
+                                if (quality < image_s.OriginalQuality)
+                                {
+                                    image_s.Current.Format = MagickFormat.Jpeg;
+                                    image_s.Current.Quality = quality;
+                                    UpdateInfoBox();
+                                }
+                            }
+                        }
+                        QualityChangerSlider.Tag = null;
+                    }
+                    catch (Exception ex) { ex.ShowMessage(); }
+                    finally
+                    {
+                        QualityChanger.Close();
+                        IsProcessingViewer = false;
+                        _quality_orig_ = null;
+                        _quality_info_.Dispose();
+                    }
+                });
+            }
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="title"></param>
+        private void SetQualityChangerTitle(string title = null)
+        {
+            QualityChanger?.Dispatcher?.InvokeAsync(() =>
+            {
+                title = title?.Trim();
+                QualityChanger.Caption = string.IsNullOrEmpty(title) ? $"{QualityChangeerTitle}" : $"{QualityChangeerTitle} => {title}";
+            });
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="diff"></param>
+        private void UpdateQualityChangerTitle(string diff = null)
+        {
+            if (IsQualityChanger && !string.IsNullOrEmpty(diff))
+            {
+                QualityChanger?.Dispatcher?.InvokeAsync(() =>
+                {
+                    if (Regex.IsMatch(QualityChanger.Caption, $"{"ResultTipDifference".T()}", RegexOptions.IgnoreCase))
+                    {
+                        QualityChanger.Caption = Regex.Replace(QualityChanger.Caption, $"{"ResultTipDifference".T()}.*?$", $"{"ResultTipDifference".T()} {diff}", RegexOptions.IgnoreCase);
+                    }
+                });
+            }
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="diff"></param>
+        private void UpdateQualityChangerTitle(double? diff = null)
+        {
+            if (IsQualityChanger && diff != null && diff != double.NaN)
+            {
+                QualityChanger?.Dispatcher?.InvokeAsync(() =>
+                {
+                    if (Regex.IsMatch(QualityChanger.Caption, $"{"ResultTipDifference".T()}", RegexOptions.IgnoreCase))
+                    {
+                        QualityChanger.Caption = Regex.Replace(QualityChanger.Caption, $"{"ResultTipDifference".T()}.*?$", $"{"ResultTipDifference".T()} {diff:P2}", RegexOptions.IgnoreCase);
+                    }
+                });
+            }
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <returns></returns>
+        private ImageType GetQualityChangerSource()
+        {
+            var result = ImageType.None;
+            result = QualityChanger?.Dispatcher?.Invoke(() =>
+            {
+                var source = ImageType.None;
+                if (IsQualityChanger && QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
+                {
+                    source = (ImageType)(QualityChanger.Tag ?? ImageType.None);
+                }
+                return (source);
+            }) ?? ImageType.None;
+            return (result);
+        }
+        #endregion
+
+        #region Bird View Helper
+        /// <summary>
+        /// 
+        /// </summary>
+        private void ShowBirdView()
+        {
+            BirdViewPanel?.Dispatcher?.Invoke(() => BirdViewPanel.Visibility = Visibility.Visible);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void HideBirdView()
+        {
+            BirdViewPanel?.Dispatcher?.Invoke(() => BirdViewPanel.Visibility = Visibility.Hidden);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="state"></param>
+        private void SetBirdView(bool state)
+        {
+            if (state) ShowBirdView();
+            else HideBirdView();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void ToggleBirdView()
+        {
+            if (BirdViewPanel.IsVisiable()) HideBirdView();
+            else ShowBirdView();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void UpdateBirdViewArea()
+        {
+            BirdViewPanel.Dispatcher.InvokeAsync(() =>
+            {
+                var src = ImageViewer;
+                var scroll = ImageViewerScroll;
+                var ratio = Math.Min(250f / (src.DesiredSize.Width), 250f / (src.DesiredSize.Height));
+
+                var aw = (src.DesiredSize.Width < scroll.ViewportWidth ? src.DesiredSize.Width : scroll.ViewportWidth) * ratio;
+                var ah = (src.DesiredSize.Height < scroll.ViewportHeight ? src.DesiredSize.Height : scroll.ViewportHeight) * ratio;
+                var tx = scroll.HorizontalOffset * ratio;
+                var ty = scroll.VerticalOffset * ratio;
+                BirdViewArea.Width = aw;
+                BirdViewArea.Height = ah;
+                Canvas.SetLeft(BirdViewArea, tx);
+                Canvas.SetTop(BirdViewArea, ty);
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void UpdateBirdView()
+        {
+            BirdViewPanel.Dispatcher.InvokeAsync(() => 
+            {
+                if (ImageViewer.Source == null) BirdView.Source = null;
+                else
+                {
+                    try
+                    {
+                        var src = ImageViewer;
+                        var iw = src.DesiredSize.Width;
+                        var ih = src.DesiredSize.Height;
+                        var ratio = 250f / Math.Max(iw, ih);
+                        var tw = iw * ratio;
+                        var th = ih * ratio;
+                        var bw = BirdViewBorder.BorderThickness.Left + BirdViewBorder.BorderThickness.Right;
+                        var bh = BirdViewBorder.BorderThickness.Top + BirdViewBorder.BorderThickness.Bottom;
+
+                        BirdViewCanvas.Width = tw;
+                        BirdViewCanvas.Height = th;
+                        BirdViewPanel.Width = tw + bw;
+                        BirdViewPanel.Height = th + bh;
+                        BirdViewBorder.Width = tw + bw;
+                        BirdViewBorder.Height = th + bh;
+
+                        BirdView.Source = ImageViewer.ToBitmapSource(new Size(tw, th));
+
+                        BirdView.UpdateLayout();
+                        BirdViewCanvas.UpdateLayout();
+                        BirdViewPanel.UpdateLayout();
+                        BirdViewBorder.UpdateLayout();
+
+                        UpdateBirdViewArea();
+                    }
+                    catch (Exception ex) { ex.ShowMessage(); }
+                }
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        private Point CalcBirdViewOffset(FrameworkElement sender, MouseEventArgs e)
+        {
+            double offset_x = ImageViewerScroll.Dispatcher.Invoke(() => ImageViewerScroll.HorizontalOffset);
+            double offset_y = ImageViewerScroll.Dispatcher.Invoke(() => ImageViewerScroll.VerticalOffset);
+            if (Ready && BirdView.Source != null && (sender == BirdView || sender == BirdViewCanvas || sender == BirdViewArea))
+            {
+                try
+                {
+                    sender.Dispatcher.Invoke(() =>
+                    {
+                        var src = ImageViewerBox;
+                        var ratio = Math.Max(src.DesiredSize.Width / 250f, src.DesiredSize.Height / 250f);
+
+                        //var ax = Canvas.GetLeft(BirdViewArea);
+                        //var ay = Canvas.GetTop(BirdViewArea);
+                        var aw = BirdViewArea.DesiredSize.Width;
+                        var ah = BirdViewArea.DesiredSize.Height;
+                        var acw = aw / 2f;
+                        var ach = ah / 2f;
+
+                        var pos = e.GetPosition(BirdView);
+                        offset_x = (pos.X - acw) * ratio;
+                        offset_y = (pos.Y - ach) * ratio;
+                        if (offset_x <= ratio / 2f) offset_x = 0;
+                        if (offset_y <= ratio / 2f) offset_y = 0;
+                    });
+                }
+                catch { }
+            }
+            return (new Point(offset_x, offset_y));
+        }
+        #endregion
+
         #region UI Indicator Helper
         /// <summary>
         ///
@@ -1137,7 +2007,7 @@ namespace ImageViewer
         ///
         /// </summary>
         private bool IsQualityChanger { get => QualityChanger?.Dispatcher?.Invoke(() => { return (QualityChanger.IsVisible); }) ?? false; }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -1685,861 +2555,6 @@ namespace ImageViewer
             }
             items.Locale();
             target.ContextMenu.ItemsSource = new ObservableCollection<FrameworkElement>(items);
-        }
-        #endregion
-
-        #region Image Viewer Helper
-        /// <summary>
-        /// 
-        /// </summary>
-        private ZoomFitMode CurrentZoomFitMode
-        {
-            get
-            {
-                return (Dispatcher?.Invoke(() =>
-                {
-                    var value = ZoomFitMode.All;
-                    if (ZoomFitNone.IsChecked ?? false) value = ZoomFitMode.None;
-                    else if (ZoomFitAll.IsChecked ?? false) value = ZoomFitMode.All;
-                    else if (ZoomFitWidth.IsChecked ?? false) value = ZoomFitMode.Width;
-                    else if (ZoomFitHeight.IsChecked ?? false) value = ZoomFitMode.Height;
-                    else ZoomFitAll.IsChecked = true;
-                    return (value);
-                }) ?? ZoomFitMode.All);
-            }
-            set
-            {
-                Dispatcher?.Invoke(() =>
-                {
-                    if (value == ZoomFitMode.None)
-                    {
-                        ZoomFitNone.IsChecked = true; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = false;
-                        ImageViewerBox.Stretch = Stretch.None;
-                    }
-                    else if (value == ZoomFitMode.All)
-                    {
-                        ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = true; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = false;
-                        ImageViewerBox.Stretch = Stretch.Uniform;
-                    }
-                    else if (value == ZoomFitMode.Width)
-                    {
-                        ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = true; ZoomFitHeight.IsChecked = false;
-                        ImageViewerBox.Stretch = Stretch.None;
-                    }
-                    else if (value == ZoomFitMode.Height)
-                    {
-                        ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = true;
-                        ImageViewerBox.Stretch = Stretch.None;
-                    }
-                    CalcDisplay();
-                    //CenterViewer();
-                });
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        private FrameworkElement CurrentZoomControl
-        {
-            get
-            {
-                FrameworkElement result = null;
-
-                var mode  = CurrentZoomFitMode;
-                if (mode == ZoomFitMode.None) result = ZoomFitNone;
-                else if (mode == ZoomFitMode.All) result = ZoomFitAll;
-                else if (mode == ZoomFitMode.Width) result = ZoomFitWidth;
-                else if (mode == ZoomFitMode.Height) result = ZoomFitHeight;
-
-                return (result);
-            }
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="set_ratio"></param>
-        private void CalcDisplay(Size? size = null)
-        {
-            if (!Ready) return;
-            try
-            {
-                Dispatcher?.InvokeAsync(() =>
-                {
-                    using (var d = Dispatcher?.DisableProcessing())
-                    {
-                        #region Re-Calc Scroll Viewer Size
-                        var nw = size?.Width;
-                        var nh = size?.Height;
-                        var cw = ImageCanvas.ActualWidth;
-                        var ch = ImageCanvas.ActualHeight - ImageToolBar.ActualHeight;
-                        ImageViewerPanel.MaxWidth = cw;
-                        ImageViewerPanel.MaxHeight = ch;
-                        ImageViewerPanel.MinWidth = cw;
-                        ImageViewerPanel.MinHeight = ch;
-                        ImageViewerPanel.RenderSize = new Size(cw, ch);
-                        ImageViewerPanel.UpdateLayout();
-
-                        ImageViewerScroll.Width = cw;
-                        ImageViewerScroll.Height = ch;
-                        ImageViewerScroll.MaxWidth = cw;
-                        ImageViewerScroll.MaxHeight = ch;
-                        ImageViewerScroll.UpdateLayout();
-                        #endregion
-
-                        if (ZoomFitNone.IsChecked ?? false) ZoomRatio.IsEnabled = true;
-                        else ZoomRatio.IsEnabled = false;
-                        ZoomRatioValue.IsEnabled = ZoomRatio.IsEnabled;
-
-                        CalcZoomRatio();
-                        DoEvents();
-                    }
-                });
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void CalcZoomRatio(Size? size = null)
-        {
-            try
-            {
-                var image_s = ImageViewer.GetInformation();
-                if (image_s.ValidCurrent)
-                {
-                    var scroll  = ImageViewerScroll;
-                    var image  = image_s.Current;
-
-                    var rotate = ImageViewerRotate.Angle % 180 != 0;
-                    var width = rotate ? image.Height : image.Width;
-                    var height = rotate ? image.Width : image.Height;
-
-                    if (CurrentZoomFitMode == ZoomFitMode.None)
-                    {
-                        if (ZoomRatio.Value != LastZoomRatio) ZoomRatio.Value = LastZoomRatio;
-                        ZoomRatio.Minimum = LastZoomRatio < ZoomMin ? LastZoomRatio : ZoomMin;
-                        ImageViewerBox.MaxWidth = LastZoomRatio * width;
-                        ImageViewerBox.MaxHeight = LastZoomRatio * height;
-                        ImageViewerBox.Width = ImageViewerBox.MaxWidth;
-                        ImageViewerBox.Height = ImageViewerBox.MaxHeight;
-                    }
-                    else if (CurrentZoomFitMode == ZoomFitMode.All)
-                    {
-                        var scale = Math.Min(scroll.ActualWidth / width, scroll.ActualHeight / height);
-                        ZoomRatio.Value = scale;
-                        ZoomRatio.Minimum = scale < ZoomMin ? scale : ZoomMin;
-                        ImageViewerBox.MaxWidth = scale * width;
-                        ImageViewerBox.MaxHeight = scale * height;
-                        ImageViewerBox.Width = ImageViewerBox.MaxWidth;
-                        ImageViewerBox.Height = ImageViewerBox.MaxHeight;
-                    }
-                    else if (CurrentZoomFitMode == ZoomFitMode.Width)
-                    {
-                        var ratio = scroll.ActualWidth / width;
-                        var delta = scroll.VerticalScrollBarVisibility == ScrollBarVisibility.Hidden || height * ratio <= scroll.ActualHeight ? 0 : SystemParameters.VerticalScrollBarWidth;
-                        var scale = (scroll.ActualWidth - delta) / width;
-                        var scale_w = scale * width;
-                        var scale_h = scale * height;
-                        if (ZoomRatio.Value != scale) ZoomRatio.Value = scale;
-                        ZoomRatio.Minimum = scale < ZoomMin ? scale : ZoomMin;
-                        ImageViewerBox.MaxWidth = scroll.ActualWidth;
-                        ImageViewerBox.MaxHeight = scale_h <= scroll.ActualHeight ? scroll.ActualHeight : scale_h - delta;
-                        ImageViewerBox.Width = ImageViewerBox.MaxWidth;
-                        ImageViewerBox.Height = ImageViewerBox.MaxHeight;
-                    }
-                    else if (CurrentZoomFitMode == ZoomFitMode.Height)
-                    {
-                        var ratio = scroll.ActualHeight / height;
-                        var delta = scroll.HorizontalScrollBarVisibility == ScrollBarVisibility.Hidden || width * ratio <= scroll.ActualWidth ? 0 : SystemParameters.HorizontalScrollBarHeight;
-                        var scale = (scroll.ActualHeight - delta) / height;
-                        var scale_w = scale * width;
-                        var scale_h = scale * height;
-                        if (ZoomRatio.Value != scale) ZoomRatio.Value = scale;
-                        ZoomRatio.Minimum = scale < ZoomMin ? scale : ZoomMin;
-                        ImageViewerBox.MaxWidth = scale_w <= scroll.ActualWidth ? scroll.ActualWidth : scale_w - delta;
-                        ImageViewerBox.MaxHeight = scroll.ActualHeight;
-                        ImageViewerBox.Width = ImageViewerBox.MaxWidth;
-                        ImageViewerBox.Height = ImageViewerBox.MaxHeight;
-                    }
-                    DoEvents();
-                    
-                    ImageViewer.UpdateLayout();
-                    ImageViewerBox.UpdateLayout();
-                    ImageViewerScroll.UpdateLayout();
-                    DoEvents();
-
-                    ImageViewerScale.ScaleX = ZoomRatio.Value;
-                    ImageViewerScale.ScaleY = ZoomRatio.Value;
-                    DoEvents();
-
-                    //var dw = Math.Round(Math.Min(ImageViewer.DesiredSize.Width, ImageViewerBox.DesiredSize.Width) - ImageViewerScroll.DesiredSize.Width, 1, MidpointRounding.AwayFromZero);
-                    //var dh = Math.Round(Math.Min(ImageViewer.DesiredSize.Height, ImageViewerBox.DesiredSize.Height) - ImageViewerScroll.DesiredSize.Height, 1, MidpointRounding.AwayFromZero);
-                    var dw = ImageViewerScroll.ScrollableWidth;
-                    var dh = ImageViewerScroll.ScrollableHeight;
-
-                    SetBirdView(dw > 0 || dh > 0);
-                    UpdateBirdView();
-                }
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <returns></returns>
-        private Point GetScrollOffset(FrameworkElement sender)
-        {
-            double offset_x = -1, offset_y = -1;
-            if (sender == ImageViewerBox || sender == ImageViewerScroll)
-            {
-                if (ImageViewerBox.Stretch == Stretch.None)
-                {
-                    offset_x = ImageViewerScroll.HorizontalOffset;
-                    offset_y = ImageViewerScroll.VerticalOffset;
-                }
-            }
-            return (new Point(offset_x, offset_y));
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        /// <returns></returns>
-        private Point CalcScrollOffset(FrameworkElement sender, MouseEventArgs e)
-        {
-            double offset_x = -1, offset_y = -1;
-            try
-            {
-                if (sender == ImageViewer || sender == ImageViewerBox || sender == ImageViewerScroll)
-                {
-                    if (ImageViewerBox.Stretch == Stretch.None && ImageViewer.GetInformation().ValidCurrent)
-                    {
-                        try
-                        {
-                            Point factor = new Point(ImageViewerScroll.ExtentWidth/ImageViewerScroll.ViewportWidth, ImageViewerScroll.ExtentHeight/ImageViewerScroll.ViewportHeight);
-                            Vector v = mouse_start - e.GetPosition(ImageViewerScroll);
-                            offset_x = Math.Max(0, mouse_origin.X + v.X * factor.X);
-                            offset_y = Math.Max(0, mouse_origin.Y + v.Y * factor.Y);
-                        }
-                        catch { }
-                    }
-                }
-            }
-            catch (Exception ex) { ex.ShowMessage(); }
-            return (new Point(offset_x, offset_y));
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="offset"></param>
-        private void SyncScrollOffset(Point offset)
-        {
-            if (!Ready) return;
-            ImageViewerScroll.Dispatcher?.Invoke(() =>
-            {
-                if (offset.X >= 0 && ImageViewerScroll.HorizontalOffset != offset.X)
-                {
-                    ImageViewerScroll.ScrollToHorizontalOffset(offset.X);
-                    //mouse_start.X = offset.X;
-                }
-                if (offset.Y >= 0 && ImageViewerScroll.VerticalOffset != offset.Y)
-                {
-                    ImageViewerScroll.ScrollToVerticalOffset(offset.Y);
-                    //mouse_start.Y = offset.Y;
-                }
-#if DEBUG
-                Debug.WriteLine($"Scroll : [{ImageViewerScroll.HorizontalOffset:F0}, {ImageViewerScroll.VerticalOffset:F0}], Offset : [{offset.X:F0}, {offset.Y:F0}]");
-                //Debug.WriteLine($"Move Y: {offset_y}");
-#endif
-                UpdateBirdViewArea();
-            });
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        private void CenterViewer()
-        {
-            if (IsImageNull(ImageViewer)) return;
-            Dispatcher?.Invoke(() =>
-            {
-                ImageViewerScroll.ScrollToVerticalOffset(ImageViewerScroll.ScrollableHeight / 2);
-                ImageViewerScroll.ScrollToHorizontalOffset(ImageViewerScroll.ScrollableWidth / 2);
-                DoEvents();
-            });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void FitView()
-        {
-            ImageViewerBox?.Dispatcher?.Invoke(() =>
-            {
-                if (ImageViewer?.Source != null)
-                {
-                    var iw = ImageViewer?.Source?.Width;
-                    var ih = ImageViewer?.Source?.Height;
-
-                    var vw = ImageViewerPanel?.ActualWidth;
-                    var vh = ImageViewerPanel?.ActualHeight;
-
-                    if (iw >= vw || ih >= vh)
-                    {
-                        var r_x = vw / iw;
-                        var r_y = vh / ih;
-                        ZoomRatio.Value = Math.Max(r_x ?? 1, r_y ?? 1);
-                    }
-                    else
-                    {
-                        ZoomRatio.Value = 1;
-                    }
-                }
-            });
-        }
-        
-        /// <summary>
-        /// 
-        /// </summary>
-        private void FlipView()
-        {
-            if (IsImageNull(ImageViewer)) return;
-            ImageViewerScale?.Dispatcher?.InvokeAsync(() => ImageViewerScale.ScaleY *= -1);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void FlopView()
-        {
-            if (IsImageNull(ImageViewer)) return;
-            ImageViewerScale?.Dispatcher?.InvokeAsync(() => ImageViewerScale.ScaleX *= -1);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="angle"></param>
-        private void RotateView(double  angle)
-        {
-            if (IsImageNull(ImageViewer)) return;
-            ImageViewerScale?.Dispatcher?.InvokeAsync(() => ImageViewerRotate.Angle = (ImageViewerRotate.Angle + angle) % 360);
-            CalcDisplay();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void ResetViewTransform(bool calcdisplay = true)
-        {
-            ImageViewerScale?.Dispatcher?.InvokeAsync(() =>
-            {
-                ImageViewer?.GetInformation()?.ResetTransform();
-
-                var scale = ZoomRatio.Value;
-                ImageViewerRotate.Angle = 0;
-                ImageViewerScale.ScaleX = scale;
-                ImageViewerScale.ScaleY = scale;
-                ZoomRatio.Value = scale;
-                if (calcdisplay) CalcDisplay();
-            });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="image"></param>
-        /// <param name="e"></param>
-        public void UpdateInfoBox(ImageInformation image = null, EventArgs e = null, bool index = true)
-        {
-            if (Ready)
-            {
-                Dispatcher?.InvokeAsync(async () =>
-                {
-                    var refresh = false;
-                    if (index) ImageIndexBox.Text = "-/-";
-                    if (image is null) image = ImageViewer.GetInformation();
-                    if (e is FileSystemEventArgs)
-                    {
-                        Debug.WriteLine($"{e?.GetType()}");
-                        var fs = e as FileSystemEventArgs;
-                        if (fs.ChangeType == WatcherChangeTypes.Changed || fs.ChangeType == WatcherChangeTypes.Created || fs.ChangeType == WatcherChangeTypes.Renamed)
-                        {
-                            refresh = true;
-                        }
-                        else if (e is RenamedEventArgs || (e as RenamedEventArgs).OldName.Equals(image.FileName, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            image.RefreshImageFileInfo((e as RenamedEventArgs).FullPath);
-                        }
-                    }
-                    ImageInfoBox.Text = await image.GetSimpleInfo(refresh: refresh);
-                    if (index) ImageIndexBox.Text = await image.GetIndexInfo();
-                    ImageInfoBoxSep.Visibility = Visibility.Visible;
-                    ImageIndexBoxSep.Visibility = Visibility.Visible;
-                });
-            }
-        }
-        #endregion
-
-        #region Size Changer Helper
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="uid"></param>
-        /// <param name="align"></param>
-        /// <param name="size"></param>
-        private void ChangeImageSize(string uid, Size size, Gravity align)
-        {
-            var w = (uint)size.Width;
-            var h = (uint)size.Height;
-            ChangeImageSize(uid, w, h, align);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="uid"></param>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="align"></param>
-        private async void ChangeImageSize(string uid, uint x, uint y, Gravity align)
-        {
-            if (string.IsNullOrEmpty(uid) || x < 0 || y < 0) return;
-            else if (uid.Equals("CropImageEdge"))
-            {
-                RenderRun(() => { CropImageEdge(true, x, y, align); });
-                if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
-            }
-            else if (uid.Equals("ExtentImageEdge"))
-            {
-                RenderRun(() => { ExtentImageEdge(true, x, y, align); });
-                if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
-            }
-            else if (uid.Equals("PanImageEdge"))
-            {
-                RenderRun(() => { PanImageEdge(true, x, y, align); });
-                if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
-            }
-            else if (uid.Equals("RollImageEdge"))
-            {
-
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="uid"></param>
-        private void OpenSizeChanger(string uid = null)
-        {
-            SizeChanger.Dispatcher.Invoke(() => 
-            {
-                SizeChanger.UpdateLayout();
-                if (!string.IsNullOrEmpty(uid))
-                {
-                    if (uid == "CropImageEdge") { SizeChangeCrop.Focus(); }
-                    else if (uid == "ExtentImageEdge") { SizeChangeExtent.Focus(); }
-                    else if (uid == "PanImageEdge") { }
-                }
-                SizeChanger.Show();
-            });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        private void ApplySizeChanger(FrameworkElement sender)
-        {
-            var size = SizeChangeValue.Value ?? 1;
-            if (sender == SizeChangeExtent) 
-                ChangeImageSize("ExtentImageEdge", size, size, DefaultAlign);
-            else if (sender == SizeChangeCrop) 
-                ChangeImageSize("CropImageEdge", size, size, DefaultAlign);
-            //else if (sender == SizeChangeExtend)
-            //    ChangeImageSize("ExtentImageEdge", size, size, DefaultAlign);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void CloseSizeChanger()
-        {
-            SizeChanger.Dispatcher.Invoke(() => 
-            { 
-                SizeChanger.Close(); 
-            });            
-        }
-        #endregion
-
-        #region Quality Changer Helper
-        private DispatcherTimer QualityChangerDelay = null;
-
-        /// <summary>
-        ///
-        /// </summary>
-        private void InitCoutDownTimer()
-        {
-            if (QualityChangerDelay == null)
-            {
-                QualityChangerDelay = new DispatcherTimer(DispatcherPriority.Normal) { IsEnabled = false, Interval = TimeSpan.FromMilliseconds(CountDownTimeOut) };
-                QualityChangerDelay.Tick += QualityChangerDelay_Tick;
-            }
-        }
-
-        private BitmapSource _quality_orig_ = null;
-        private ImageInformation _quality_info_ = new ImageInformation();
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void QualityChangerDelay_Tick(object sender, EventArgs e)
-        {
-            QualityChangerDelay.Stop();
-            if (IsQualityChanger)
-            {
-                var quality = (uint)(QualityChangerSlider.Value);
-
-                RenderRun(async () =>
-                {
-                    try
-                    {
-                        IsProcessingViewer = true;
-
-                        var info = ImageViewer.GetInformation();
-                        if (info.ValidCurrent)
-                        {
-                            var image = new MagickImage(info.Current);
-                            var quality_o = info.OriginalQuality;
-
-                            var result = quality < quality_o ? await ChangeQuality(image, quality) : new MagickImage(image);
-                            _quality_info_.Original = new MagickImage(result);
-                            SetImageSource(ImageViewer, _quality_info_);
-                            result.Dispose();
-
-                            var size = _quality_info_.Current?.GetArtifact("filesize");
-                            SetQualityChangerTitle(string.IsNullOrEmpty(size) ? null : $"{_quality_info_.CurrentQuality}, {"ResultTipSize".T()} {size}");
-                        }
-                    }
-                    catch (Exception ex) { ex.ShowMessage(); }
-                    finally { IsProcessingViewer = false; }
-                });
-            }
-        }
-
-        private string QualityChangeerTitle = string.Empty;
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="info"></param>
-        private void OpenQualityChanger()
-        {
-            if (Ready && !IsQualityChanger)
-            {
-                InitCoutDownTimer();
-                QualityChanger?.Dispatcher?.InvokeAsync(() =>
-                {
-                    var info = ImageViewer.GetInformation();
-                    if (info.ValidCurrent)
-                    {
-                        var image = info?.Current;
-                        var quality = image.Quality();
-                        var quality_str = quality > 0  ? $"{quality}" : "Unknown";
-                        _quality_orig_ = info?.Source;
-                        _quality_info_ = new ImageInformation();
-                        QualityChangeerTitle = $"{"InfoTipQuality".T().Trim('=').Trim()} : {quality_str}";
-                        QualityChanger.Focusable = true;
-                        QualityChanger.Caption = QualityChangeerTitle;
-                        QualityChanger.FocusedElement = QualityChangerSlider;
-                        QualityChangerSlider.Focusable = true;
-                        QualityChangerSlider.Maximum = quality > 0 ? quality : 100;
-                        QualityChangerSlider.Width = 360;
-                        QualityChangerSlider.IsSnapToTickEnabled = true;
-                        QualityChangerSlider.Ticks = new DoubleCollection() { 10, 25, 30, 35, 50, 55, 60, 65, 70, 75, 85, 95 };
-                        QualityChangerSlider.TickPlacement = TickPlacement.Both;
-                        QualityChangerSlider.LargeChange = 5;
-                        QualityChangerSlider.SmallChange = 1;
-                        QualityChangerSlider.Value = quality > 0 ? quality : 100;
-                        QualityChanger.FocusedElement = QualityChangerSlider;
-                        QualityChanger.UpdateLayout();
-                        QualityChanger.Show();
-
-                        DoEvents();
-
-                        QualityChanger.FocusedElement = QualityChangerSlider;
-                        QualityChangerSlider.Focus();
-
-                        if (QualityChangerDelay is DispatcherTimer)
-                        {
-                            QualityChangerDelay.IsEnabled = true;
-                            QualityChangerDelay.Stop();
-                        }
-                    }
-                });
-            }
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        private void CloseQualityChanger(bool restore = false)
-        {
-            if (Ready && IsQualityChanger)
-            {
-                QualityChanger?.Dispatcher?.InvokeAsync(() =>
-                {
-                    try
-                    {
-                        var image_s = ImageViewer.GetInformation();
-                        if (image_s.ValidCurrent)
-                        {
-                            if (restore)
-                            {
-                                IsProcessingViewer = true;
-                                SetImageSource(ImageViewer, image_s, fit: false);
-                            }
-                            else
-                            {
-                                var quality = (uint)QualityChangerSlider.Value;
-                                if (quality < image_s.OriginalQuality)
-                                {
-                                    image_s.Current.Format = MagickFormat.Jpeg;
-                                    image_s.Current.Quality = quality;
-                                    UpdateInfoBox();
-                                }
-                            }
-                        }
-                        QualityChangerSlider.Tag = null;
-                    }
-                    catch (Exception ex) { ex.ShowMessage(); }
-                    finally
-                    {
-                        QualityChanger.Close();
-                        IsProcessingViewer = false;
-                        _quality_orig_ = null;
-                        _quality_info_.Dispose();
-                    }
-                });
-            }
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="title"></param>
-        private void SetQualityChangerTitle(string title = null)
-        {
-            QualityChanger?.Dispatcher?.InvokeAsync(() =>
-            {
-                title = title?.Trim();
-                QualityChanger.Caption = string.IsNullOrEmpty(title) ? $"{QualityChangeerTitle}" : $"{QualityChangeerTitle} => {title}";
-            });
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="diff"></param>
-        private void UpdateQualityChangerTitle(string diff = null)
-        {
-            if (IsQualityChanger && !string.IsNullOrEmpty(diff))
-            {
-                QualityChanger?.Dispatcher?.InvokeAsync(() =>
-                {
-                    if (Regex.IsMatch(QualityChanger.Caption, $"{"ResultTipDifference".T()}", RegexOptions.IgnoreCase))
-                    {
-                        QualityChanger.Caption = Regex.Replace(QualityChanger.Caption, $"{"ResultTipDifference".T()}.*?$", $"{"ResultTipDifference".T()} {diff}", RegexOptions.IgnoreCase);
-                    }
-                });
-            }
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="diff"></param>
-        private void UpdateQualityChangerTitle(double? diff = null)
-        {
-            if (IsQualityChanger && diff != null && diff != double.NaN)
-            {
-                QualityChanger?.Dispatcher?.InvokeAsync(() =>
-                {
-                    if (Regex.IsMatch(QualityChanger.Caption, $"{"ResultTipDifference".T()}", RegexOptions.IgnoreCase))
-                    {
-                        QualityChanger.Caption = Regex.Replace(QualityChanger.Caption, $"{"ResultTipDifference".T()}.*?$", $"{"ResultTipDifference".T()} {diff:P2}", RegexOptions.IgnoreCase);
-                    }
-                });
-            }
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <returns></returns>
-        private ImageType GetQualityChangerSource()
-        {
-            var result = ImageType.None;
-            result = QualityChanger?.Dispatcher?.Invoke(() =>
-            {
-                var source = ImageType.None;
-                if (IsQualityChanger && QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
-                {
-                    source = (ImageType)(QualityChanger.Tag ?? ImageType.None);
-                }
-                return (source);
-            }) ?? ImageType.None;
-            return (result);
-        }
-        #endregion
-
-        #region Bird View Helper
-        /// <summary>
-        /// 
-        /// </summary>
-        private void ShowBirdView()
-        {
-            BirdViewPanel?.Dispatcher?.Invoke(() => BirdViewPanel.Visibility = Visibility.Visible);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void HideBirdView()
-        {
-            BirdViewPanel?.Dispatcher?.Invoke(() => BirdViewPanel.Visibility = Visibility.Hidden);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="state"></param>
-        private void SetBirdView(bool state)
-        {
-            if (state) ShowBirdView();
-            else HideBirdView();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void ToggleBirdView()
-        {
-            if (BirdViewPanel.IsVisiable()) HideBirdView();
-            else ShowBirdView();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void UpdateBirdViewArea()
-        {
-            BirdViewPanel.Dispatcher.InvokeAsync(() =>
-            {
-                var src = ImageViewer;
-                var scroll = ImageViewerScroll;
-                var ratio = Math.Min(250f / (src.DesiredSize.Width), 250f / (src.DesiredSize.Height));
-
-                var aw = (src.DesiredSize.Width < scroll.ViewportWidth ? src.DesiredSize.Width : scroll.ViewportWidth) * ratio;
-                var ah = (src.DesiredSize.Height < scroll.ViewportHeight ? src.DesiredSize.Height : scroll.ViewportHeight) * ratio;
-                var tx = scroll.HorizontalOffset * ratio;
-                var ty = scroll.VerticalOffset * ratio;
-                BirdViewArea.Width = aw;
-                BirdViewArea.Height = ah;
-                Canvas.SetLeft(BirdViewArea, tx);
-                Canvas.SetTop(BirdViewArea, ty);
-            });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void UpdateBirdView()
-        {
-            BirdViewPanel.Dispatcher.InvokeAsync(() => 
-            {
-                if (ImageViewer.Source == null) BirdView.Source = null;
-                else
-                {
-                    try
-                    {
-                        var src = ImageViewer;
-                        var iw = src.DesiredSize.Width;
-                        var ih = src.DesiredSize.Height;
-                        var ratio = 250f / Math.Max(iw, ih);
-                        var tw = iw * ratio;
-                        var th = ih * ratio;
-                        var bw = BirdViewBorder.BorderThickness.Left + BirdViewBorder.BorderThickness.Right;
-                        var bh = BirdViewBorder.BorderThickness.Top + BirdViewBorder.BorderThickness.Bottom;
-
-                        BirdViewCanvas.Width = tw;
-                        BirdViewCanvas.Height = th;
-                        BirdViewPanel.Width = tw + bw;
-                        BirdViewPanel.Height = th + bh;
-                        BirdViewBorder.Width = tw + bw;
-                        BirdViewBorder.Height = th + bh;
-
-                        BirdView.Source = ImageViewer.ToBitmapSource(new Size(tw, th));
-
-                        BirdView.UpdateLayout();
-                        BirdViewCanvas.UpdateLayout();
-                        BirdViewPanel.UpdateLayout();
-                        BirdViewBorder.UpdateLayout();
-
-                        UpdateBirdViewArea();
-                    }
-                    catch (Exception ex) { ex.ShowMessage(); }
-                }
-            });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        /// <returns></returns>
-        private Point CalcBirdViewOffset(FrameworkElement sender, MouseEventArgs e)
-        {
-            double offset_x = ImageViewerScroll.Dispatcher.Invoke(() => ImageViewerScroll.HorizontalOffset);
-            double offset_y = ImageViewerScroll.Dispatcher.Invoke(() => ImageViewerScroll.VerticalOffset);
-            if (Ready && BirdView.Source != null && (sender == BirdView || sender == BirdViewCanvas || sender == BirdViewArea))
-            {
-                try
-                {
-                    sender.Dispatcher.Invoke(() =>
-                    {
-                        var src = ImageViewerBox;
-                        var ratio = Math.Max(src.DesiredSize.Width / 250f, src.DesiredSize.Height / 250f);
-
-                        //var ax = Canvas.GetLeft(BirdViewArea);
-                        //var ay = Canvas.GetTop(BirdViewArea);
-                        var aw = BirdViewArea.DesiredSize.Width;
-                        var ah = BirdViewArea.DesiredSize.Height;
-                        var acw = aw / 2f;
-                        var ach = ah / 2f;
-
-                        var pos = e.GetPosition(BirdView);
-                        offset_x = (pos.X - acw) * ratio;
-                        offset_y = (pos.Y - ach) * ratio;
-                        if (offset_x <= ratio / 2f) offset_x = 0;
-                        if (offset_y <= ratio / 2f) offset_y = 0;
-                    });
-                }
-                catch { }
-            }
-            return (new Point(offset_x, offset_y));
         }
         #endregion
 
@@ -4054,6 +4069,12 @@ namespace ImageViewer
         #endregion
 
         #region Misc UI Control Events
+        private void ImageInfo_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!Ready || e.ClickCount < 2) return;
+            UpdateInfoBox(index: sender == ImageIndexBox);
+        }
+
         private void Slider_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (!Ready) return;

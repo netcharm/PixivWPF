@@ -1631,7 +1631,20 @@ namespace ImageViewer
                                 var target = image.Clone();
                                 if (native_method)
                                 {
+                                    target.Settings.SetDefine(MagickFormat.Jpeg, "sampling-factor", "4:2:0");
+                                    target.Settings.SetDefine(MagickFormat.Jpeg, "dct-method", "float");
+                                    target.Settings.AntiAlias = true;
+                                    target.Settings.Endian = image.Endian;
+                                    target.Settings.Interlace = Interlace.Plane;
+
+                                    target.BackgroundColor = MasklightColor ?? target.BackgroundColor;
+                                    target.MatteColor = MasklightColor ?? target.BackgroundColor;
+                                    target.Density = image.Density;
+                                    target.Format = image.Format;
+                                    target.Endian = image.Endian;
                                     target.Quality = Math.Max(1, Math.Min(100, quality));
+                                    foreach (var profile in image.ProfileNames) { if (image.HasProfile(profile)) target.SetProfile(image.GetProfile(profile)); }
+
                                     await target.WriteAsync(mo, MagickFormat.Jpg);
                                 }
                                 else

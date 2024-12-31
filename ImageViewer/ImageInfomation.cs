@@ -1158,10 +1158,10 @@ namespace ImageViewer
         /// <returns></returns>
         public async Task<int> IndexOf(string file)
         {
-            var result = _last_file_index_ ?? int.MaxValue;
-            if (!string.IsNullOrEmpty(file) && File.Exists(file))
+            var result = _last_file_index_ ?? -1;
+            if (!string.IsNullOrEmpty(file) && File.Exists(file) && _last_file_list_.Count > 0)
             {
-                result = await Task.Run(() => { return(_last_file_list_?.IndexOf(file) ?? _last_file_index_ ?? int.MaxValue); });
+                result = await Task.Run(() => { return(_last_file_list_?.IndexOf(file) ?? _last_file_index_ ?? -1); });
             }
             return (result);
         }
@@ -1343,6 +1343,11 @@ namespace ImageViewer
                             else
                             {
                                 var idx_n = Math.Max(0, Math.Min(files.Count - 1, relative ? (_last_file_index_ + index) ?? int.MaxValue : index));
+                                if (idx_n > _last_file_index_)
+                                    for (var i = _last_file_index_; i < files.Count; i++) { if (File.Exists(files[idx_n])) { _last_file_index_ = i; break; } }
+                                else if (idx_n < _last_file_index_)
+                                    for (var i = _last_file_index_; i >= 0; i--) { if (File.Exists(files[idx_n])) { _last_file_index_ = i; break; } }
+
                                 ret = await LoadImageFromFile(files[idx_n]);
                                 if (ret) _last_file_index_ = idx_n;
                             }
@@ -1670,49 +1675,58 @@ namespace ImageViewer
                     {
                         var fmt_no_alpha = new MagickFormat[] { MagickFormat.Jpg, MagickFormat.Jpeg, MagickFormat.Jpe, MagickFormat.Bmp2, MagickFormat.Bmp3 };
                         var ext_no_alpha = new string[] { ".jpg", ".jpeg", ".jpe", ".bmp" };
+                        //ImageOptimizer optimizer = new ImageOptimizer();
+                        //optimizer.Compress(file);
+                        var target = image.Clone();
                         if (image.HasAlpha && (fmt_no_alpha.Contains(format) || ext_no_alpha.Contains(e)))
                         {
-                            var target = image.Clone();
                             //if (target.ColorSpace == ColorSpace.scRGB) target.ColorSpace = ColorSpace.sRGB;
                             target.ColorAlpha(MasklightColor ?? target.BackgroundColor);
-                            target.BackgroundColor = MasklightColor ?? target.BackgroundColor;
-                            target.MatteColor = MasklightColor ?? target.BackgroundColor;
-                            target.Density = image.Density;
-                            target.Format = image.Format;
-                            target.Quality = image.Quality;
-                            foreach (var profile in image.ProfileNames) { if (image.HasProfile(profile)) target.SetProfile(image.GetProfile(profile)); }
-                            target.Write(file, format);
                         }
-                        else
+                        if (format.IsPNG() || e.StartsWith(".png"))
                         {
-                            if (format.IsPNG() || e.StartsWith(".png"))
-                            {
-                                image.SetCompression(CompressionMethod.Zip);
-                                image.Settings.Compression = CompressionMethod.Zip;
-                                image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
-                            }
-                            else if (format.IsTIF() || e.StartsWith(".tif"))
-                            {
-                                image.SetCompression(CompressionMethod.Zip);
-                                image.Settings.Compression = CompressionMethod.Zip;
-                                image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
-                            }
-                            else if (format.IsGIF() || e.StartsWith(".gif"))
-                            {
-                                image.GifDisposeMethod = GifDisposeMethod.Background;
-                                image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
-                            }
-                            else if (format.IsWEBP() || e.Equals(".webp") || e.Equals(".webm"))
-                            {
-                                image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
-                            }
-                            else if (format.IsBMP() || e.Equals(".bmp"))
-                            {
-                                image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
-                            }
-                            //if (image.ColorSpace == ColorSpace.scRGB) image.ColorSpace = ColorSpace.sRGB;
-                            image.Write(file, format);
+                            target.SetCompression(CompressionMethod.Zip);
+                            target.Settings.Compression = CompressionMethod.Zip;
+                            target.VirtualPixelMethod = VirtualPixelMethod.Transparent;
                         }
+                        else if (format.IsTIF() || e.StartsWith(".tif"))
+                        {
+                            target.SetCompression(CompressionMethod.Zip);
+                            target.Settings.Compression = CompressionMethod.Zip;
+                            target.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                        }
+                        else if (format.IsGIF() || e.StartsWith(".gif"))
+                        {
+                            target.GifDisposeMethod = GifDisposeMethod.Background;
+                            target.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                        }
+                        else if (format.IsWEBP() || e.Equals(".webp") || e.Equals(".webm"))
+                        {
+                            target.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                        }
+                        else if (format.IsBMP() || e.Equals(".bmp"))
+                        {
+                            target.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                        }
+                        else if (format.IsJPG() || e.StartsWith(".jp"))
+                        {
+                            target.Settings.SetDefine(MagickFormat.Jpeg, "sampling-factor", "4:2:0");
+                            target.Settings.SetDefine(MagickFormat.Jpeg, "dct-method", "float");
+                        }
+
+                        //if (image.ColorSpace == ColorSpace.scRGB) image.ColorSpace = ColorSpace.sRGB;
+                        target.Settings.AntiAlias = true;
+                        target.Settings.Endian = image.Endian;
+                        target.Settings.Interlace = Interlace.Plane;
+                        target.BackgroundColor = MasklightColor ?? target.BackgroundColor;
+                        target.MatteColor = MasklightColor ?? target.BackgroundColor;
+                        target.Density = image.Density;
+                        target.Format = image.Format;
+                        target.Quality = image.Quality;
+                        target.Endian = image.Endian;
+                        foreach (var profile in image.ProfileNames) { if (image.HasProfile(profile)) target.SetProfile(image.GetProfile(profile)); }
+
+                        target.Write(file, format);
                     }
                     result = true;
                 }
@@ -1760,10 +1774,13 @@ namespace ImageViewer
                         result = Save(FileName, image, format: Original.Format);
                         if (result)
                         {
-                            fi.CreationTime = dc;
-                            fi.LastWriteTime = dm;
-                            fi.LastAccessTime = da;
-                            fi.Refresh();
+                            try
+                            {
+                                fi.CreationTime = dc;
+                                fi.LastWriteTime = dm;
+                                fi.LastAccessTime = da;
+                            }
+                            catch { }
                         }
                     }
                     else
@@ -1816,10 +1833,13 @@ namespace ImageViewer
 
                             if (result && !string.IsNullOrEmpty(FileName) && file.Equals(FileName, StringComparison.CurrentCultureIgnoreCase))
                             {
-                                fi.CreationTime = dc;
-                                fi.LastWriteTime = dm;
-                                fi.LastAccessTime = da;
-                                fi.Refresh();
+                                try
+                                {
+                                    fi.CreationTime = dc;
+                                    fi.LastWriteTime = dm;
+                                    fi.LastAccessTime = da;
+                                }
+                                catch { }
                             }
                         }
                     }
