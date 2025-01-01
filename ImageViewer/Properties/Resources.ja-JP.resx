@@ -702,4 +702,10 @@
   <data name="QualityImage.Header" xml:space="preserve">
     <value>画質定量化の変更</value>
   </data>
+  <data name="ZoomFitSmart.ToolTip" xml:space="preserve">
+    <value>大きな画像のみ</value>
+  </data>
+  <data name="ZoomFitNoZoom.ToolTip" xml:space="preserve">
+    <value>原図サイズ表示</value>
+  </data>
 </root>

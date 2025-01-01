@@ -702,4 +702,10 @@
   <data name="QualityImage.Header" xml:space="preserve">
     <value>改变画质因子</value>
   </data>
+  <data name="ZoomFitSmart.ToolTip" xml:space="preserve">
+    <value>只缩放大图像</value>
+  </data>
+  <data name="ZoomFitNoZoom.ToolTip" xml:space="preserve">
+    <value>原图大小显示</value>
+  </data>
 </root>

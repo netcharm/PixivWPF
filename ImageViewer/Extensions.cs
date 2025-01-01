@@ -1754,7 +1754,8 @@ namespace ImageViewer
                 if (image is MagickImage && image.IsValidRead())
                 {
                     var status = image?.HasAlpha ?? false;
-                    if (status || image.IsPNG() || image.IsTIF() || image.IsBMP())
+                    //if (status && (image.IsPNG() || image.IsTIF() || image.IsBMP() || image.IsWEBP()))
+                    if (status)
                     {
                         var w = image.Width;
                         var h = image.Height;

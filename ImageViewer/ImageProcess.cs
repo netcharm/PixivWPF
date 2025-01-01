@@ -1624,7 +1624,8 @@ namespace ImageViewer
                     var ret = image;
                     try
                     {
-                        if (!image.GuessAlpha())
+                        var alpha = image.GuessAlpha();
+                        if (!alpha)
                         {
                             using (MemoryStream mo = new MemoryStream())
                             {
@@ -1663,7 +1664,7 @@ namespace ImageViewer
                                 }
                             }
                         }
-                        else $"{"InfoTipHasAlpha".T()} {(image?.HasAlpha ?? false ? "Included" : "NotIncluded").T()}".ShowMessage();
+                        else $"{"InfoTipHasAlpha".T()} {(alpha ? "Included" : "NotIncluded").T()}".ShowMessage();
                     }
                     catch (Exception ex) { ex.ShowMessage(); }
                     return (ret);

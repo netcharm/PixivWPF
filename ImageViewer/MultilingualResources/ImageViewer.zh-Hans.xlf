@@ -771,9 +771,17 @@
           <source>[F9] Picture Fit Height</source>
           <target state="new">[F9] 图像显示适合高度</target>
         </trans-unit>
+        <trans-unit id="ZoomFitNoZoom.ToolTip" translate="yes" xml:space="preserve">
+          <source>Original Size</source>
+          <target state="new">原图大小显示</target>
+        </trans-unit>
         <trans-unit id="ZoomFitNone.ToolTip" translate="yes" xml:space="preserve">
           <source>[F9] Picture Fit None</source>
           <target state="new">[F9] 图像自由显示</target>
+        </trans-unit>
+        <trans-unit id="ZoomFitSmart.ToolTip" translate="yes" xml:space="preserve">
+          <source>Only Large Image Zoom To Fill</source>
+          <target state="new">只缩放大图像</target>
         </trans-unit>
         <trans-unit id="ZoomFitWidth.ToolTip" translate="yes" xml:space="preserve">
           <source>[F9] Picture Fit Width</source>

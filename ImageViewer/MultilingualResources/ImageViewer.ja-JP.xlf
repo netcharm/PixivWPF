@@ -771,9 +771,17 @@
           <source>[F9] Picture Fit Height</source>
           <target state="new">[F9] 画像表示の高さ</target>
         </trans-unit>
+        <trans-unit id="ZoomFitNoZoom.ToolTip" translate="yes" xml:space="preserve">
+          <source>Original Size</source>
+          <target state="new">原図サイズ表示</target>
+        </trans-unit>
         <trans-unit id="ZoomFitNone.ToolTip" translate="yes" xml:space="preserve">
           <source>[F9] Picture Fit None</source>
           <target state="new">[F9] 画像を自由に表示</target>
+        </trans-unit>
+        <trans-unit id="ZoomFitSmart.ToolTip" translate="yes" xml:space="preserve">
+          <source>Only Large Image Zoom To Fill</source>
+          <target state="new">大きな画像のみ</target>
         </trans-unit>
         <trans-unit id="ZoomFitWidth.ToolTip" translate="yes" xml:space="preserve">
           <source>[F9] Picture Fit Width</source>

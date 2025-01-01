@@ -1807,6 +1807,24 @@ namespace ImageViewer.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Original Size 的本地化字符串。
+        /// </summary>
+        public static string ZoomFitNoZoom_ToolTip {
+            get {
+                return ResourceManager.GetString("ZoomFitNoZoom.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Only Large Image Zoom To Fill 的本地化字符串。
+        /// </summary>
+        public static string ZoomFitSmart_ToolTip {
+            get {
+                return ResourceManager.GetString("ZoomFitSmart.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 [F9] Picture Fit Width 的本地化字符串。
         /// </summary>
         public static string ZoomFitWidth_ToolTip {

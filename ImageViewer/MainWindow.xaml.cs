@@ -41,7 +41,7 @@ namespace ImageViewer
 #pragma warning disable IDE0060
 
     public enum ImageType { All = 0, Source = 1, Target = 2, Result = 3, None = 255 }
-    public enum ZoomFitMode { None = 0, All = 1, Width = 2, Height = 3 }
+    public enum ZoomFitMode { None = 0, All = 1, Width = 2, Height = 3, NoZoom = 4, Smart = 5 }
     public enum ImageOpMode { None = 0, Compare = 1, Compose = 2 }
     public enum ImageScaleMode { Independence = 0, Relative = 1 }
 
@@ -1089,12 +1089,14 @@ namespace ImageViewer
             {
                 return (Dispatcher?.Invoke(() =>
                 {
-                    var value = ZoomFitMode.All;
-                    if (ZoomFitNone.IsChecked ?? false) value = ZoomFitMode.None;
+                    var value = ZoomFitMode.Smart;
+                    if (ZoomFitNoZoom.IsChecked ?? false) value = ZoomFitMode.NoZoom;
+                    else if (ZoomFitSmart.IsChecked ?? false) value = ZoomFitMode.Smart;
+                    else if (ZoomFitNone.IsChecked ?? false) value = ZoomFitMode.None;
                     else if (ZoomFitAll.IsChecked ?? false) value = ZoomFitMode.All;
                     else if (ZoomFitWidth.IsChecked ?? false) value = ZoomFitMode.Width;
                     else if (ZoomFitHeight.IsChecked ?? false) value = ZoomFitMode.Height;
-                    else ZoomFitAll.IsChecked = true;
+                    else ZoomFitSmart.IsChecked = true;
                     return (value);
                 }) ?? ZoomFitMode.All);
             }
@@ -1102,28 +1104,37 @@ namespace ImageViewer
             {
                 Dispatcher?.Invoke(() =>
                 {
-                    if (value == ZoomFitMode.None)
+                    if (value == ZoomFitMode.NoZoom)
                     {
-                        ZoomFitNone.IsChecked = true; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = false;
+                        ZoomFitNoZoom.IsChecked = true; ZoomFitSmart.IsChecked = false; ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = false;
+                        ImageViewerBox.Stretch = Stretch.None;
+                    }
+                    else if (value == ZoomFitMode.Smart)
+                    {
+                        ZoomFitNoZoom.IsChecked = false; ZoomFitSmart.IsChecked = true; ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = false;
+                        ImageViewerBox.Stretch = Stretch.None;
+                    }
+                    else if (value == ZoomFitMode.None)
+                    {
+                        ZoomFitNoZoom.IsChecked = false; ZoomFitSmart.IsChecked = false; ZoomFitNone.IsChecked = true; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = false;
                         ImageViewerBox.Stretch = Stretch.None;
                     }
                     else if (value == ZoomFitMode.All)
                     {
-                        ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = true; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = false;
+                        ZoomFitNoZoom.IsChecked = false; ZoomFitSmart.IsChecked = false; ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = true; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = false;
                         ImageViewerBox.Stretch = Stretch.Uniform;
                     }
                     else if (value == ZoomFitMode.Width)
                     {
-                        ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = true; ZoomFitHeight.IsChecked = false;
+                        ZoomFitNoZoom.IsChecked = false; ZoomFitSmart.IsChecked = false; ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = true; ZoomFitHeight.IsChecked = false;
                         ImageViewerBox.Stretch = Stretch.None;
                     }
                     else if (value == ZoomFitMode.Height)
                     {
-                        ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = true;
+                        ZoomFitNoZoom.IsChecked = false; ZoomFitSmart.IsChecked = false; ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = true;
                         ImageViewerBox.Stretch = Stretch.None;
                     }
                     CalcDisplay();
-                    //CenterViewer();
                 });
             }
         }
@@ -1215,8 +1226,6 @@ namespace ImageViewer
                         ZoomRatio.Minimum = LastZoomRatio < ZoomMin ? LastZoomRatio : ZoomMin;
                         ImageViewerBox.MaxWidth = LastZoomRatio * width;
                         ImageViewerBox.MaxHeight = LastZoomRatio * height;
-                        ImageViewerBox.Width = ImageViewerBox.MaxWidth;
-                        ImageViewerBox.Height = ImageViewerBox.MaxHeight;
                     }
                     else if (CurrentZoomFitMode == ZoomFitMode.All)
                     {
@@ -1225,8 +1234,6 @@ namespace ImageViewer
                         ZoomRatio.Minimum = scale < ZoomMin ? scale : ZoomMin;
                         ImageViewerBox.MaxWidth = scale * width;
                         ImageViewerBox.MaxHeight = scale * height;
-                        ImageViewerBox.Width = ImageViewerBox.MaxWidth;
-                        ImageViewerBox.Height = ImageViewerBox.MaxHeight;
                     }
                     else if (CurrentZoomFitMode == ZoomFitMode.Width)
                     {
@@ -1239,8 +1246,6 @@ namespace ImageViewer
                         ZoomRatio.Minimum = scale < ZoomMin ? scale : ZoomMin;
                         ImageViewerBox.MaxWidth = scroll.ActualWidth;
                         ImageViewerBox.MaxHeight = scale_h <= scroll.ActualHeight ? scroll.ActualHeight : scale_h - delta;
-                        ImageViewerBox.Width = ImageViewerBox.MaxWidth;
-                        ImageViewerBox.Height = ImageViewerBox.MaxHeight;
                     }
                     else if (CurrentZoomFitMode == ZoomFitMode.Height)
                     {
@@ -1253,9 +1258,22 @@ namespace ImageViewer
                         ZoomRatio.Minimum = scale < ZoomMin ? scale : ZoomMin;
                         ImageViewerBox.MaxWidth = scale_w <= scroll.ActualWidth ? scroll.ActualWidth : scale_w - delta;
                         ImageViewerBox.MaxHeight = scroll.ActualHeight;
-                        ImageViewerBox.Width = ImageViewerBox.MaxWidth;
-                        ImageViewerBox.Height = ImageViewerBox.MaxHeight;
                     }
+                    else if (CurrentZoomFitMode == ZoomFitMode.NoZoom)
+                    {
+                        ZoomRatio.Value = 1.0;
+                        ImageViewerBox.MaxWidth = width;
+                        ImageViewerBox.MaxHeight = height;
+                    }
+                    else if (CurrentZoomFitMode == ZoomFitMode.Smart)
+                    {
+                        var scale = Math.Min(1.0, Math.Min(scroll.ActualWidth / width, scroll.ActualHeight / height));
+                        ZoomRatio.Value = scale;
+                        ImageViewerBox.MaxWidth = scale * width;
+                        ImageViewerBox.MaxHeight = scale * height;
+                    }
+                    ImageViewerBox.Width = ImageViewerBox.MaxWidth;
+                    ImageViewerBox.Height = ImageViewerBox.MaxHeight;
                     DoEvents();
 
                     ImageViewerScale.ScaleX = ImageViewerScale.ScaleX < 0 ? -1 * ZoomRatio.Value : ZoomRatio.Value;
@@ -3598,17 +3616,21 @@ namespace ImageViewer
                     {
                         if (km.OnlyShift)
                         {
-                            if      (CurrentZoomFitMode == ZoomFitMode.Height) CurrentZoomFitMode = ZoomFitMode.Width;
-                            else if (CurrentZoomFitMode == ZoomFitMode.Width) CurrentZoomFitMode = ZoomFitMode.All;
+                            if      (CurrentZoomFitMode == ZoomFitMode.Smart) CurrentZoomFitMode = ZoomFitMode.Height;
+                            else if (CurrentZoomFitMode == ZoomFitMode.NoZoom) CurrentZoomFitMode = ZoomFitMode.Smart;
+                            else if (CurrentZoomFitMode == ZoomFitMode.None) CurrentZoomFitMode = ZoomFitMode.NoZoom;
                             else if (CurrentZoomFitMode == ZoomFitMode.All) CurrentZoomFitMode = ZoomFitMode.None;
-                            else if (CurrentZoomFitMode == ZoomFitMode.None) CurrentZoomFitMode = ZoomFitMode.Height;
+                            else if (CurrentZoomFitMode == ZoomFitMode.Width) CurrentZoomFitMode = ZoomFitMode.All;
+                            else if (CurrentZoomFitMode == ZoomFitMode.Height) CurrentZoomFitMode = ZoomFitMode.Width;
                         }
                         else
                         {
-                            if (CurrentZoomFitMode == ZoomFitMode.None) CurrentZoomFitMode = ZoomFitMode.All;
+                            if      (CurrentZoomFitMode == ZoomFitMode.Smart) CurrentZoomFitMode = ZoomFitMode.NoZoom;
+                            else if (CurrentZoomFitMode == ZoomFitMode.NoZoom) CurrentZoomFitMode = ZoomFitMode.None;
+                            else if (CurrentZoomFitMode == ZoomFitMode.None) CurrentZoomFitMode = ZoomFitMode.All;
                             else if (CurrentZoomFitMode == ZoomFitMode.All) CurrentZoomFitMode = ZoomFitMode.Width;
                             else if (CurrentZoomFitMode == ZoomFitMode.Width) CurrentZoomFitMode = ZoomFitMode.Height;
-                            else if (CurrentZoomFitMode == ZoomFitMode.Height) CurrentZoomFitMode = ZoomFitMode.None;
+                            else if (CurrentZoomFitMode == ZoomFitMode.Height) CurrentZoomFitMode = ZoomFitMode.Smart;
                         }
                     }
 
@@ -4044,6 +4066,14 @@ namespace ImageViewer
                 ToggleToolTipState();
             }
 
+            else if (sender == ZoomFitNoZoom)
+            {
+                CurrentZoomFitMode = ZoomFitMode.NoZoom;
+            }
+            else if (sender == ZoomFitSmart)
+            {
+                CurrentZoomFitMode = ZoomFitMode.Smart;
+            }
             else if (sender == ZoomFitNone)
             {
                 CurrentZoomFitMode = ZoomFitMode.None;

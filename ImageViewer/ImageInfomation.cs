@@ -1725,6 +1725,15 @@ namespace ImageViewer
                         target.Quality = image.Quality;
                         target.Endian = image.Endian;
                         foreach (var profile in image.ProfileNames) { if (image.HasProfile(profile)) target.SetProfile(image.GetProfile(profile)); }
+                        if (!target.HasProfile("xmp") && target.AttributeNames.Contains("exif:ExtensibleMetadataPlatform"))
+                        {
+                            var exif = target.GetExifProfile();
+                            if (exif is ExifProfile)
+                            {
+                                var xmp = exif.GetValue(ExifTag.XMP).Value;
+                                if (xmp is byte[] && xmp.Length > 0) target.SetProfile(new XmpProfile(xmp));
+                            }
+                        }
 
                         target.Write(file, format);
                     }

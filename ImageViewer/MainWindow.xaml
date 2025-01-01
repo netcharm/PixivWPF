@@ -64,9 +64,19 @@
             </Button>
             <ProgressBar x:Uid="BusyNow" x:Name="BusyNow" ToolBar.OverflowMode="Never" ToolTip="Processing Progress" Margin="4,0,2,0" HorizontalAlignment="Right" Width="36" Height="20" />
             <Separator x:Uid="Separator_3"/>
+            <ToggleButton x:Name="ZoomFitSmart" x:Uid="ZoomFitSmart" ToolTip="Only Large Image Fill" ToolBar.OverflowMode="Never" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="ZoomFitSmartPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ZoomFitSmartIcon" Text="&#xE130;" Style="{DynamicResource MenuItemIcon}"/>
+                </StackPanel>
+            </ToggleButton>
+            <ToggleButton x:Name="ZoomFitNoZoom" x:Uid="ZoomFitNoZoom" ToolTip="Original Size" ToolBar.OverflowMode="Never" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="ZoomFitNoZoomPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ZoomFitNoZoomIcon" Text="&#xE131;" Style="{DynamicResource MenuItemIcon}"/>
+                </StackPanel>
+            </ToggleButton>
             <ToggleButton x:Name="ZoomFitNone" x:Uid="ZoomFitNone" ToolTip="Fit None" ToolBar.OverflowMode="Never" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="ZoomFitNonePanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ZoomFitNoneIcon" Text="&#xE7C3;" Style="{DynamicResource MenuItemIcon}"/>
+                    <TextBlock x:Uid="ZoomFitNoneIcon" Text="&#xE8B2;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </ToggleButton>
             <ToggleButton x:Name="ZoomFitAll" x:Uid="ZoomFitAll" ToolTip="Fit All" ToolBar.OverflowMode="Never" HorizontalAlignment="Right" Click="ImageActions_Click">

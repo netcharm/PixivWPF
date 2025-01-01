@@ -702,4 +702,10 @@
   <data name="QualityImage.Header" xml:space="preserve">
     <value>Change Image Quality</value>
   </data>
+  <data name="ZoomFitSmart.ToolTip" xml:space="preserve">
+    <value>Only Large Image Zoom To Fill</value>
+  </data>
+  <data name="ZoomFitNoZoom.ToolTip" xml:space="preserve">
+    <value>Original Size</value>
+  </data>
 </root>
