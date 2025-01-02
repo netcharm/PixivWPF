@@ -3730,7 +3730,15 @@ namespace ImageViewer
                     {
                         CurrentZoomFitMode = ZoomFitMode.All;
                     }
-                    
+                    else if (e.Key == Key.NumPad0 || e.Key == Key.NumPad0)
+                    {
+                        CurrentZoomFitMode = ZoomFitMode.Smart;
+                    }
+                    else if (e.Key == Key.NumPad1 || e.Key == Key.NumPad1)
+                    {
+                        CurrentZoomFitMode = ZoomFitMode.NoZoom;
+                    }
+
                     else e.Handled = false;
                     _last_key_ = e.Key;
                     _last_key_time_ = DateTime.Now;

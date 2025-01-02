@@ -40,30 +40,29 @@
             </ToolBar.Resources>
             <Button x:Name="ImageOpen" x:Uid="ImageOpen" ToolTip="Open Source Picture" ToolBar.OverflowMode="Never" Click="ImageActions_Click" >
                 <StackPanel x:Uid="ImageOpenPanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ImageOpenIcon" Text="&#xE1A5;" Style="{DynamicResource MenuItemIcon}"/>
-                    <TextBlock x:Uid="ImageOpenLabel" Text="Open" Margin="0 0"/>
+                    <TextBlock x:Uid="ImageOpenIcon" Text="&#xE1A5;" Style="{DynamicResource MenuItemIcon}" />
+                    <TextBlock x:Uid="ImageOpenLabel" Text="Open" Margin="0 0" ToolBar.OverflowMode="AsNeeded" />
                 </StackPanel>
             </Button>
-            <Button x:Name="ImagePaste" x:Uid="ImagePaste" ToolTip="Paste Source" ToolBar.OverflowMode="Never" Click="ImageActions_Click" >
+            <Button x:Name="ImagePaste" x:Uid="ImagePaste" ToolTip="Paste Source" Click="ImageActions_Click" >
                 <StackPanel x:Uid="ImagePastePanel" Orientation="Horizontal" Margin="2">
-                    <TextBlock x:Uid="ImagePasteIcon" Text="&#xE16D;" Style="{DynamicResource MenuItemIcon}"/>
-                    <TextBlock x:Uid="ImagePasteLabel" Text="Paste" Margin="2 0"/>
+                    <TextBlock x:Uid="ImagePasteIcon" Text="&#xE16D;" Style="{DynamicResource MenuItemIcon}" ToolBar.OverflowMode="Never" />
+                    <TextBlock x:Uid="ImagePasteLabel" Text="Paste" Margin="2 0" ToolBar.OverflowMode="AsNeeded" />
                 </StackPanel>
             </Button>
-            <Separator/>
+            <Separator ToolBar.OverflowMode="Never"/>
             <Button x:Name="ImageReload" x:Uid="ImageReload" ToolTip="Reload Image" Click="ImageActions_Click">
                 <StackPanel x:Uid="ImageReloadPanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="RepeatLastActionIcon" Text="&#xE117;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </Button>
-            <Separator x:Uid="Separator_2"/>
             <Button x:Name="RepeatLastAction" x:Uid="RepeatLastAction" ToolTip="Repeat Last Action" Click="ImageActions_Click">
                 <StackPanel x:Uid="RepeatLastActionPanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="RepeatLastActionIcon" Text="&#xE8ED;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </Button>
             <ProgressBar x:Uid="BusyNow" x:Name="BusyNow" ToolBar.OverflowMode="Never" ToolTip="Processing Progress" Margin="4,0,2,0" HorizontalAlignment="Right" Width="36" Height="20" />
-            <Separator x:Uid="Separator_3"/>
+            <Separator ToolBar.OverflowMode="Never"/>
             <ToggleButton x:Name="ZoomFitSmart" x:Uid="ZoomFitSmart" ToolTip="Only Large Image Fill" ToolBar.OverflowMode="Never" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="ZoomFitSmartPanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="ZoomFitSmartIcon" Text="&#xE130;" Style="{DynamicResource MenuItemIcon}"/>
@@ -105,7 +104,7 @@
                        HorizontalAlignment="Right" VerticalAlignment="Center"
                        Text="{Binding ElementName=ZoomRatio, Path=Value, StringFormat={}{0:F2}X}"
                        ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>
-            <Separator x:Uid="Separator_4"/>
+            <Separator/>
             <xctk:ColorPicker x:Name="MasklightColorPick" x:Uid="MasklightColorPick" Height="24" Width="24" Margin="2 0" SelectedColor="Transparent" 
                               ToolTip="Masklight Color" FontFamily="{DynamicResource MonoSpaceFamily}" 
                               ShowDropDownButton="False" ShowAvailableColors="True" ShowRecentColors="True" 
@@ -126,7 +125,7 @@
                     </ContextMenu>
                 </xctk:ColorPicker.ContextMenu>
             </xctk:ColorPicker>
-            <Separator x:Uid="Separator_5"/>
+            <Separator/>
             <Button x:Name="ImageLoadHaldLut" x:Uid="ImageLoadHaldLut" ToolTip="Load Hald LUT File" Click="ImageActions_Click" Drop="Window_Drop">
                 <StackPanel x:Uid="ImageLoadHaldLutPanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="ImageLoadHaldLutIcon" Text="&#xE771;" Style="{DynamicResource MenuItemIcon}"/>
@@ -159,7 +158,7 @@
                     <TextBlock x:Uid="UseWeakEffectsIcon" Text="&#xE10C;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </ToggleButton>
-            <Separator x:Uid="Separator_6"/>
+            <Separator/>
             <ToggleButton x:Name="MagnifierMode" x:Uid="Magnifier" IsChecked="False" 
                           ToolTip="Image Magnifier" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="MagnifierPanel" Orientation="Horizontal" Margin="2">
@@ -178,7 +177,7 @@
                     <TextBlock x:Uid="DarkBackgroundIcon" Text="&#xE793;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </ToggleButton>
-            <ToggleButton x:Name="AlwaysOnTop" x:Uid="AlwaysOnTop" IsChecked="False" ToolBar.OverflowMode="Never"
+            <ToggleButton x:Name="AlwaysOnTop" x:Uid="AlwaysOnTop" IsChecked="False"
                           ToolTip="Always On Top" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="AlwaysOnTopPanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="AlwaysOnTopIcon" Text="&#xE840;" Style="{DynamicResource MenuItemIcon}"/>
