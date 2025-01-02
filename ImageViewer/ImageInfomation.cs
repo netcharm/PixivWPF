@@ -671,6 +671,16 @@ namespace ImageViewer
         /// 
         /// </summary>
         /// <returns></returns>
+        public async Task<List<string>> GetFileList()
+        {
+            if (FileName.IsUpdatingFileList() && _last_file_list_?.Count > 0) return (_last_file_list_);
+            else return (await FileName.GetFileList());
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public async Task<(int, int)> GetIndex()
         {
             int index = 0, count = 0;
@@ -1328,7 +1338,7 @@ namespace ImageViewer
                     if (!string.IsNullOrEmpty(FileName))
                     {
                         //var files = refresh || !FileName.IsUpdatingFileList() ? await FileName.GetFileList() : _last_file_list_ ?? await FileName.GetFileList();
-                        var files = _last_file_list_ ?? await FileName.GetFileList();
+                        var files = await GetFileList(); // _last_file_list_ ?? await FileName.GetFileList();
                         if (files.Any())
                         {
                             if (refresh)

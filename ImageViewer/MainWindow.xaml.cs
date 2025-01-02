@@ -3758,9 +3758,9 @@ namespace ImageViewer
                 {
                     if (CurrentZoomFitMode == ZoomFitMode.None)
                     {
-                        CurrentZoomFitMode = ZoomFitMode.All;
+                        CurrentZoomFitMode = ZoomFitMode.Smart;
                     }
-                    else if (CurrentZoomFitMode == ZoomFitMode.All)
+                    else if (CurrentZoomFitMode == ZoomFitMode.All || (CurrentZoomFitMode == ZoomFitMode.Smart && ZoomRatio.Value < 1))
                     {
                         ZoomRatio.Value = 1f;
                         CurrentZoomFitMode = ZoomFitMode.None;
@@ -3841,9 +3841,9 @@ namespace ImageViewer
                         {
                             if (CurrentZoomFitMode == ZoomFitMode.None)
                             {
-                                CurrentZoomFitMode = ZoomFitMode.All;
+                                CurrentZoomFitMode = ZoomFitMode.Smart;
                             }
-                            else if (CurrentZoomFitMode == ZoomFitMode.All)
+                            else if (CurrentZoomFitMode == ZoomFitMode.All || (CurrentZoomFitMode == ZoomFitMode.Smart && ZoomRatio.Value < 1))
                             {
                                 ZoomRatio.Value = 1f;
                                 CurrentZoomFitMode = ZoomFitMode.None;
