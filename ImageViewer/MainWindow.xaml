@@ -247,6 +247,10 @@
                 </Viewbox>
             </ScrollViewer>
             <Grid Grid.Row="1" x:Name="BirdViewPanel" x:Uid="BirdViewPanel" Width="250" Height="250" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="16">
+                <Grid.Background>
+                    <ImageBrush x:Uid="CanvasBackImageBrush" ImageSource="pack://application:,,,/ImageViewer;component/Resources/CheckboardPattern_32.png" 
+                TileMode="Tile" Opacity="0.10" ViewportUnits="Absolute" Viewport="0,0,16,16"/>
+                </Grid.Background>
                 <Border x:Name="BirdViewBorder" x:Uid="BirdViewPanelBorder" BorderThickness="1" BorderBrush="#202020">
                     <Border.Effect>
                         <DropShadowEffect Color="#E0E0E0" BlurRadius="3" Opacity="1" ShadowDepth="0"/>

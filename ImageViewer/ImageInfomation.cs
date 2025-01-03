@@ -642,11 +642,11 @@ namespace ImageViewer
         /// </summary>
         private bool IsGetInfo = false;
         private readonly SemaphoreSlim _refresh_info_ = new SemaphoreSlim(1);
-        CancellationTokenSource CancelGetInfo = new CancellationTokenSource();
+        private CancellationTokenSource CancelGetInfo = new CancellationTokenSource();
 
         private int? _last_file_index_ = null;
         private int? _last_file_count_ = null;
-        private readonly List<string> _last_file_list_ = new List<string>();
+        private string[] _last_file_list_ = new string[0];
         private readonly Dictionary<int, string> _last_file_cache_list_ = new Dictionary<int, string>();
 
         /// <summary>
@@ -671,9 +671,9 @@ namespace ImageViewer
         /// 
         /// </summary>
         /// <returns></returns>
-        public async Task<List<string>> GetFileList()
+        public async Task<string[]> GetFileList()
         {
-            if (FileName.IsUpdatingFileList() && _last_file_list_?.Count > 0) return (_last_file_list_);
+            if (FileName.IsUpdatingFileList() && _last_file_list_?.Length > 0) return (_last_file_list_);
             else return (await FileName.GetFileList());
         }
 
@@ -688,8 +688,8 @@ namespace ImageViewer
             {
                 if (FileName.IsUpdatingFileList())
                 {
-                    index = _last_file_list_.IndexOf(FileName);
-                    count = _last_file_list_.Count();
+                    index = Array.IndexOf(_last_file_list_, FileName);
+                    count = _last_file_list_.Length;
                     if (count > 0)
                     {
                         _last_file_index_ = index;
@@ -707,7 +707,7 @@ namespace ImageViewer
                 else
                 {
                     var files = await FileName.GetFileList();
-                    index = files.IndexOf(FileName);
+                    index = Array.IndexOf(files, FileName);
                     count = files.Count();
                     if (count > 0)
                     {
@@ -721,9 +721,8 @@ namespace ImageViewer
                         {
                             _last_file_cache_list_[range_s] = files[range_s];
                         }
-
-                        _last_file_list_.Clear();
-                        _last_file_list_.AddRange(files);
+                        _last_file_list_ = new string[files.Length];
+                        files.CopyTo(_last_file_list_, 0);
                     }
                 }
             }
@@ -896,7 +895,7 @@ namespace ImageViewer
                                 tip.AddRange(artifacts.OrderBy(a => a));
                             }
                             if (CancelGetInfo.IsCancellationRequested) return (ret);
-
+                            await Task.Delay(20);
                             var exif = Current.HasProfile("exif") ? Current?.GetExifProfile() : new ExifProfile();
                             tip.Add($"{"InfoTipAttributes".T()}");
                             var attrs = new List<string>();
@@ -911,6 +910,7 @@ namespace ImageViewer
 
                                     var label = attr.PadRight(32, ' ');
                                     var value = Current.GetAttribute(attr);
+                                    Debug.WriteLine($"==> {attr} -> {value}");
                                     if (string.IsNullOrEmpty(value) && !attr.Contains("Rating") && !tags.Keys.Contains(attr)) continue;
                                     if (attr.Contains("WinXP")) value = Current.GetAttributes(attr);
                                     else if (attr.StartsWith("date:", StringComparison.CurrentCultureIgnoreCase))
@@ -1169,9 +1169,9 @@ namespace ImageViewer
         public async Task<int> IndexOf(string file)
         {
             var result = _last_file_index_ ?? -1;
-            if (!string.IsNullOrEmpty(file) && File.Exists(file) && _last_file_list_.Count > 0)
+            if (!string.IsNullOrEmpty(file) && File.Exists(file) && _last_file_list_?.Length > 0)
             {
-                result = await Task.Run(() => { return(_last_file_list_?.IndexOf(file) ?? _last_file_index_ ?? -1); });
+                result = await Task.Run(() => { return(Array.IndexOf(_last_file_list_, file)); });
             }
             return (result);
         }
@@ -1344,17 +1344,17 @@ namespace ImageViewer
                             if (refresh)
                             {
                                 var file_n = Path.IsPathRooted(FileName) ? FileName : files.Where(f => f.EndsWith(FileName, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
-                                var idx_o = files.IndexOf(file_n);
+                                var idx_o = Array.IndexOf(files, file_n);
                                 if (idx_o < 0) idx_o = _last_file_index_ ?? int.MaxValue;
-                                var idx_n = Math.Max(0, Math.Min(files.Count - 1, relative ? idx_o + index : index));
+                                var idx_n = Math.Max(0, Math.Min(files.Length - 1, relative ? idx_o + index : index));
                                 if (idx_n != idx_o) ret = await LoadImageFromFile(files[idx_n]);
                                 if (ret) _last_file_index_ = idx_n;
                             }
                             else
                             {
-                                var idx_n = Math.Max(0, Math.Min(files.Count - 1, relative ? (_last_file_index_ + index) ?? int.MaxValue : index));
+                                var idx_n = Math.Max(0, Math.Min(files.Length - 1, relative ? (_last_file_index_ + index) ?? int.MaxValue : index));
                                 if (idx_n > _last_file_index_)
-                                    for (var i = _last_file_index_; i < files.Count; i++) { if (File.Exists(files[idx_n])) { _last_file_index_ = i; break; } }
+                                    for (var i = _last_file_index_; i < files.Length; i++) { if (File.Exists(files[idx_n])) { _last_file_index_ = i; break; } }
                                 else if (idx_n < _last_file_index_)
                                     for (var i = _last_file_index_; i >= 0; i--) { if (File.Exists(files[idx_n])) { _last_file_index_ = i; break; } }
 

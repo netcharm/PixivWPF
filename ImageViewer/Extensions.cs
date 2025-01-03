@@ -2373,7 +2373,7 @@ namespace ImageViewer
         private static List<string> ext_movs = new List<string>() { ".webm", ".mp4", ".mov", ".ogv", ".ogg",".gif" };
 
         private static ConcurrentDictionary<string, DateTime?> _file_list_storage_ = new ConcurrentDictionary<string, DateTime?>();
-        private static List<string> _file_list_ = new List<string>();
+        private static string[] _file_list_ = new string[0];
         private static SemaphoreSlim _file_list_updating_ = new SemaphoreSlim(1);
         private static CancellationTokenSource _file_list_updating_cancel_ = new CancellationTokenSource();
 
@@ -2406,9 +2406,9 @@ namespace ImageViewer
             return (files.Distinct().ToList());
         }
 
-        public static async Task<List<string>> GetFileList(this object file)
+        public static async Task<string[]> GetFileList(this object file)
         {
-            var result = new List<string>();
+            var result = new string[0];
             if (await _file_list_updating_.WaitAsync(TimeSpan.FromMilliseconds(333)))
             {
                 try
@@ -2433,7 +2433,7 @@ namespace ImageViewer
                     var ret = false;
                     try
                     {
-                        _file_list_ = _file_list_storage_.Keys.Distinct().NaturalSort().ToList();
+                        _file_list_ = _file_list_storage_.Keys.Distinct().NaturalSort().ToArray();
                         if (_file_list_updating_cancel_.Token.IsCancellationRequested) return (ret);
                         UpdateInfoBox(e: e);
                         ret = true;
@@ -2472,9 +2472,13 @@ namespace ImageViewer
                         try
                         {
                             ReleaseWatcher(null);
-                            _file_list_.Clear();
+                            if (_file_list_ is string[])
+                            {
+                                Array.Clear(_file_list_, 0, _file_list_.Length);
+                                _file_list_ = new string[0];
+                            }
                             _file_list_storage_.Clear();
-                            _FS_Change_Type_ = files.Count() > 1 ? WatcherChangeTypes.Renamed | WatcherChangeTypes.Deleted : WatcherChangeTypes.All;
+                            _FS_Change_Type_ = files.Count() > 1 ? WatcherChangeTypes.Renamed | WatcherChangeTypes.Deleted | WatcherChangeTypes.Changed : WatcherChangeTypes.All;
                             foreach (var file in files) _file_list_storage_[file] = null;
                             if (files.Count() == 1)
                             {

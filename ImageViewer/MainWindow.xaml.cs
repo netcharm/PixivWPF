@@ -41,7 +41,7 @@ namespace ImageViewer
 #pragma warning disable IDE0060
 
     public enum ImageType { All = 0, Source = 1, Target = 2, Result = 3, None = 255 }
-    public enum ZoomFitMode { None = 0, All = 1, Width = 2, Height = 3, NoZoom = 4, Smart = 5 }
+    public enum ZoomFitMode { None = 0, All = 1, Width = 2, Height = 3, NoZoom = 4, Smart = 5, Undefined = 0x0F }
     public enum ImageOpMode { None = 0, Compare = 1, Compose = 2 }
     public enum ImageScaleMode { Independence = 0, Relative = 1 }
 
@@ -1083,6 +1083,11 @@ namespace ImageViewer
         /// <summary>
         /// 
         /// </summary>
+        private ZoomFitMode LastZoomFitMode { get; set; } = ZoomFitMode.Undefined;
+
+        /// <summary>
+        /// 
+        /// </summary>
         private ZoomFitMode CurrentZoomFitMode
         {
             get
@@ -1104,6 +1109,7 @@ namespace ImageViewer
             {
                 Dispatcher?.Invoke(() =>
                 {
+                    LastZoomFitMode = CurrentZoomFitMode;
                     if (value == ZoomFitMode.NoZoom)
                     {
                         ZoomFitNoZoom.IsChecked = true; ZoomFitSmart.IsChecked = false; ZoomFitNone.IsChecked = false; ZoomFitAll.IsChecked = false; ZoomFitWidth.IsChecked = false; ZoomFitHeight.IsChecked = false;
@@ -2888,18 +2894,35 @@ namespace ImageViewer
                 var sri = Application.GetResourceStream(source);
                 if (sri is System.Windows.Resources.StreamResourceInfo && sri.ContentType.Equals("image/png") && sri.Stream is Stream && sri.Stream.CanRead && sri.Stream.Length > 0)
                 {
-                    //var bg = ImageCanvas.Background;
                     var opacity = 0.1;
                     var pattern = new MagickImage(sri.Stream);
+                    var pattern_bird = pattern.Clone();
                     if (DarkTheme)
                     {
+                        pattern_bird.Opaque(MagickColors.White, new MagickColor("#303030"));
+                        pattern_bird.Negate(Channels.RGB);
+                        BirdViewPanel.Background = new ImageBrush(pattern_bird.ToBitmapSource()) { TileMode = TileMode.Tile, Opacity = 1.0, ViewportUnits = BrushMappingMode.Absolute, Viewport = new Rect(0, 0, 16, 16) };
+                        BirdViewPanel.InvalidateVisual();
+
                         pattern.Negate(Channels.RGB);
                         pattern.Opaque(MagickColors.Black, new MagickColor("#202020"));
                         pattern.Opaque(MagickColors.White, new MagickColor("#303030"));
                         opacity = 1.0;
+                        ImageCanvas.Background = new ImageBrush(pattern.ToBitmapSource()) { TileMode = TileMode.Tile, Opacity = opacity, ViewportUnits = BrushMappingMode.Absolute, Viewport = new Rect(0, 0, 32, 32) };
+                        ImageCanvas.InvalidateVisual();
                     }
-                    ImageCanvas.Background = new ImageBrush(pattern.ToBitmapSource()) { TileMode = TileMode.Tile, Opacity = opacity, ViewportUnits = BrushMappingMode.Absolute, Viewport = new Rect(0, 0, 32, 32) };
-                    ImageCanvas.InvalidateVisual();
+                    else
+                    {
+                        ImageCanvas.Background = new ImageBrush(pattern.ToBitmapSource()) { TileMode = TileMode.Tile, Opacity = opacity, ViewportUnits = BrushMappingMode.Absolute, Viewport = new Rect(0, 0, 32, 32) };
+                        ImageCanvas.InvalidateVisual();
+
+                        pattern_bird.Negate(Channels.RGB);
+                        pattern_bird.Opaque(MagickColors.Black, new MagickColor("#202020"));
+                        pattern_bird.Opaque(MagickColors.White, new MagickColor("#303030"));
+                        opacity = 1.0;
+                        BirdViewPanel.Background = new ImageBrush(pattern_bird.ToBitmapSource()) { TileMode = TileMode.Tile, Opacity = opacity, ViewportUnits = BrushMappingMode.Absolute, Viewport = new Rect(0, 0, 16, 16) };
+                        BirdViewPanel.InvalidateVisual();
+                    }
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -3764,14 +3787,13 @@ namespace ImageViewer
                 e.Handled = true;
                 if (e.ClickCount == 1)
                 {
-                    if (CurrentZoomFitMode == ZoomFitMode.None)
+                    if (CurrentZoomFitMode != ZoomFitMode.None)
                     {
-                        CurrentZoomFitMode = ZoomFitMode.Smart;
-                    }
-                    else if (CurrentZoomFitMode == ZoomFitMode.All || (CurrentZoomFitMode == ZoomFitMode.Smart && ZoomRatio.Value < 1))
-                    {
-                        ZoomRatio.Value = 1f;
                         CurrentZoomFitMode = ZoomFitMode.None;
+                    }
+                    else
+                    {
+                        CurrentZoomFitMode = LastZoomFitMode == ZoomFitMode.Undefined || LastZoomFitMode == CurrentZoomFitMode ? ZoomFitMode.Smart : LastZoomFitMode;
                     }
                 }
             }
@@ -3847,14 +3869,13 @@ namespace ImageViewer
                         e.Handled = true;
                         if (e.ClickCount == 1)
                         {
-                            if (CurrentZoomFitMode == ZoomFitMode.None)
+                            if (CurrentZoomFitMode != ZoomFitMode.None)
                             {
-                                CurrentZoomFitMode = ZoomFitMode.Smart;
-                            }
-                            else if (CurrentZoomFitMode == ZoomFitMode.All || (CurrentZoomFitMode == ZoomFitMode.Smart && ZoomRatio.Value < 1))
-                            {
-                                ZoomRatio.Value = 1f;
                                 CurrentZoomFitMode = ZoomFitMode.None;
+                            }
+                            else
+                            {
+                                CurrentZoomFitMode = LastZoomFitMode == ZoomFitMode.Undefined || LastZoomFitMode == CurrentZoomFitMode ? ZoomFitMode.Smart : LastZoomFitMode;
                             }
                         }
                     }
@@ -3894,7 +3915,7 @@ namespace ImageViewer
             if (!Ready) return;
             try
             {
-                if (e.XButton1 == MouseButtonState.Pressed)
+                if (e.XButton1 == MouseButtonState.Pressed && e.LeftButton == MouseButtonState.Released)
                 {
                     if (CurrentZoomFitMode == ZoomFitMode.None)
                     {
@@ -3904,7 +3925,8 @@ namespace ImageViewer
                         else
                         {
                             var dx = pos.X - _last_viewer_pos_.Value.X;
-                            if(dx != 0)
+                            //var dy = pos.X - _last_viewer_pos_.Value.Y;
+                            if (dx != 0)
                             {
                                 var zoom_old = ZoomRatio.Value;
                                 var zoom_new = zoom_old + (dx < 0 ? -0.033 : 0.033);
