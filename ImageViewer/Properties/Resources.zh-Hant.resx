@@ -708,4 +708,13 @@
   <data name="ZoomFitNoZoom.ToolTip" xml:space="preserve">
     <value>原圖大小顯示</value>
   </data>
+  <data name="SizeChangeEnlarge.Content" xml:space="preserve">
+    <value>放大影像</value>
+  </data>
+  <data name="SizeChangeShrink.Content" xml:space="preserve">
+    <value>縮小影像</value>
+  </data>
+  <data name="ResizeImage.Header" xml:space="preserve">
+    <value>改變影像大小</value>
+  </data>
 </root>

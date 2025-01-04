@@ -708,4 +708,13 @@
   <data name="ZoomFitNoZoom.ToolTip" xml:space="preserve">
     <value>Original Size</value>
   </data>
+  <data name="SizeChangeEnlarge.Content" xml:space="preserve">
+    <value>Enlarge</value>
+  </data>
+  <data name="SizeChangeShrink.Content" xml:space="preserve">
+    <value>Shrink</value>
+  </data>
+  <data name="ResizeImage.Header" xml:space="preserve">
+    <value>Resize Image</value>
+  </data>
 </root>

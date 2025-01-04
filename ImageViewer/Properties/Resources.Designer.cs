@@ -1339,6 +1339,15 @@ namespace ImageViewer.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Resize Image 的本地化字符串。
+        /// </summary>
+        public static string ResizeImage_Header {
+            get {
+                return ResourceManager.GetString("ResizeImage.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Elapsed    : 的本地化字符串。
         /// </summary>
         public static string ResultTipElapsed {
@@ -1546,6 +1555,15 @@ namespace ImageViewer.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Enlarge 的本地化字符串。
+        /// </summary>
+        public static string SizeChangeEnlarge_Content {
+            get {
+                return ResourceManager.GetString("SizeChangeEnlarge.Content", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Extent 的本地化字符串。
         /// </summary>
         public static string SizeChangeExtent_Content {
@@ -1560,6 +1578,15 @@ namespace ImageViewer.Properties {
         public static string SizeChangeExtent_ToolTip {
             get {
                 return ResourceManager.GetString("SizeChangeExtent.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Shrink 的本地化字符串。
+        /// </summary>
+        public static string SizeChangeShrink_Content {
+            get {
+                return ResourceManager.GetString("SizeChangeShrink.Content", resourceCulture);
             }
         }
         

@@ -571,6 +571,10 @@
           <source>Reset Transforms</source>
           <target state="new">変換のリセット</target>
         </trans-unit>
+        <trans-unit id="ResizeImage.Header" translate="yes" xml:space="preserve">
+          <source>Resize Image</source>
+          <target state="new">画像サイズの変更</target>
+        </trans-unit>
         <trans-unit id="ResultTipElapsed" translate="yes" xml:space="preserve">
           <source>Elapsed    :</source>
           <target state="new">使用時 :</target>
@@ -663,6 +667,10 @@
           <source>Crop Image Edge</source>
           <target state="new">画像の境界を切り取る</target>
         </trans-unit>
+        <trans-unit id="SizeChangeEnlarge.Content" translate="yes" xml:space="preserve">
+          <source>Enlarge</source>
+          <target state="new">拡大画像</target>
+        </trans-unit>
         <trans-unit id="SizeChangeExtent.Content" translate="yes" xml:space="preserve">
           <source>Extent</source>
           <target state="new">境界を拡張</target>
@@ -670,6 +678,10 @@
         <trans-unit id="SizeChangeExtent.ToolTip" translate="yes" xml:space="preserve">
           <source>Extent Image Edge</source>
           <target state="new">画像の境界を拡張する</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeShrink.Content" translate="yes" xml:space="preserve">
+          <source>Shrink</source>
+          <target state="new">縮小画像</target>
         </trans-unit>
         <trans-unit id="SizeChangeValue.Tooltip" translate="yes" xml:space="preserve">
           <source>Image Changing Size</source>

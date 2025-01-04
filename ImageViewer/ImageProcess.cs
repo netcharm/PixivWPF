@@ -471,7 +471,7 @@ namespace ImageViewer
         /// </summary>
         /// <param name="geomatry"></param>
         /// <param name="source"></param>
-        private async void ScaleImage(MagickGeometry geomatry = null, bool? source = null)
+        private void ScaleImage(MagickGeometry geomatry = null, bool? source = null)
         {
             try
             {
@@ -481,18 +481,42 @@ namespace ImageViewer
 
                 var image_s = ImageViewer.GetInformation();
 
-                if (geomatry is MagickGeometry)
+                if (geomatry is MagickGeometry && image_s.ValidCurrent)
                 {
-                    if (image_s.ValidCurrent) { image_s.Current.Resize(geomatry); image_s.Current.ResetPage(); action = true; }
-                }
-                else
-                {
-                    action |= await image_s.Reload();
+                    image_s.Current.FilterType = FilterType.Lanczos2Sharp;
+                    image_s.Current.FilterType = FilterType.MagicKernelSharp2021;
+
+                    //image_s.Current.Scale(geomatry); image_s.Current.ResetPage(); action = true;
+                    //image_s.Current.InterpolativeResize(geomatry, PixelInterpolateMethod.Bilinear); image_s.Current.ResetPage(); action = true;
+                    image_s.Current.Resize(geomatry); image_s.Current.ResetPage(); action = true;
                 }
 
                 if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
             }
             catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="percentage"></param>
+        private void ScaleImage(Percentage percentage)
+        {
+            try
+            {
+                var geomatry = new MagickGeometry(percentage, percentage);
+                ScaleImage(geomatry);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="percentage"></param>
+        private void ScaleImage(double percentage)
+        {
+            ScaleImage(new Percentage(Math.Max(0, 100 + percentage)));
         }
 
         /// <summary>

@@ -1165,6 +1165,43 @@ namespace ImageViewer
             }
         }
 
+        private void ToggleZoomMode(bool full = false, FlowDirection direction = FlowDirection.LeftToRight)
+        {
+            if (!Ready) return;
+            if (full)
+            {
+                if (direction == FlowDirection.LeftToRight)
+                {
+                    if (CurrentZoomFitMode == ZoomFitMode.Smart) CurrentZoomFitMode = ZoomFitMode.Height;
+                    else if (CurrentZoomFitMode == ZoomFitMode.NoZoom) CurrentZoomFitMode = ZoomFitMode.Smart;
+                    else if (CurrentZoomFitMode == ZoomFitMode.None) CurrentZoomFitMode = ZoomFitMode.NoZoom;
+                    else if (CurrentZoomFitMode == ZoomFitMode.All) CurrentZoomFitMode = ZoomFitMode.None;
+                    else if (CurrentZoomFitMode == ZoomFitMode.Width) CurrentZoomFitMode = ZoomFitMode.All;
+                    else if (CurrentZoomFitMode == ZoomFitMode.Height) CurrentZoomFitMode = ZoomFitMode.Width;
+                }
+                else
+                {
+                    if (CurrentZoomFitMode == ZoomFitMode.Smart) CurrentZoomFitMode = ZoomFitMode.NoZoom;
+                    else if (CurrentZoomFitMode == ZoomFitMode.NoZoom) CurrentZoomFitMode = ZoomFitMode.None;
+                    else if (CurrentZoomFitMode == ZoomFitMode.None) CurrentZoomFitMode = ZoomFitMode.All;
+                    else if (CurrentZoomFitMode == ZoomFitMode.All) CurrentZoomFitMode = ZoomFitMode.Width;
+                    else if (CurrentZoomFitMode == ZoomFitMode.Width) CurrentZoomFitMode = ZoomFitMode.Height;
+                    else if (CurrentZoomFitMode == ZoomFitMode.Height) CurrentZoomFitMode = ZoomFitMode.Smart;
+                }
+            }
+            else
+            {
+                if (CurrentZoomFitMode != ZoomFitMode.None)
+                {
+                    CurrentZoomFitMode = ZoomFitMode.None;
+                }
+                else
+                {
+                    CurrentZoomFitMode = LastZoomFitMode == ZoomFitMode.Undefined || LastZoomFitMode == CurrentZoomFitMode ? ZoomFitMode.Smart : LastZoomFitMode;
+                }
+            }
+        }
+
         /// <summary>
         ///
         /// </summary>
@@ -1524,50 +1561,6 @@ namespace ImageViewer
         /// 
         /// </summary>
         /// <param name="uid"></param>
-        /// <param name="align"></param>
-        /// <param name="size"></param>
-        private void ChangeImageSize(string uid, Size size, Gravity align)
-        {
-            var w = (uint)size.Width;
-            var h = (uint)size.Height;
-            ChangeImageSize(uid, w, h, align);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="uid"></param>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="align"></param>
-        private async void ChangeImageSize(string uid, uint x, uint y, Gravity align)
-        {
-            if (string.IsNullOrEmpty(uid) || x < 0 || y < 0) return;
-            else if (uid.Equals("CropImageEdge"))
-            {
-                RenderRun(() => { CropImageEdge(true, x, y, align); });
-                if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
-            }
-            else if (uid.Equals("ExtentImageEdge"))
-            {
-                RenderRun(() => { ExtentImageEdge(true, x, y, align); });
-                if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
-            }
-            else if (uid.Equals("PanImageEdge"))
-            {
-                RenderRun(() => { PanImageEdge(true, x, y, align); });
-                if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
-            }
-            else if (uid.Equals("RollImageEdge"))
-            {
-
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="uid"></param>
         private void OpenSizeChanger(string uid = null)
         {
             SizeChanger.Dispatcher.Invoke(() => 
@@ -1587,15 +1580,33 @@ namespace ImageViewer
         /// 
         /// </summary>
         /// <param name="sender"></param>
-        private void ApplySizeChanger(FrameworkElement sender)
+        private async void ApplySizeChanger(FrameworkElement sender)
         {
-            var size = SizeChangeValue.Value ?? 1;
-            if (sender == SizeChangeExtent) 
-                ChangeImageSize("ExtentImageEdge", size, size, DefaultAlign);
-            else if (sender == SizeChangeCrop) 
-                ChangeImageSize("CropImageEdge", size, size, DefaultAlign);
-            //else if (sender == SizeChangeExtend)
-            //    ChangeImageSize("ExtentImageEdge", size, size, DefaultAlign);
+            if (!Ready || IsImageNull(ImageViewer) || IsProcessingViewer) return;
+
+            var size = SizeChanger.Dispatcher.Invoke(() => SizeChangeValue.Value ?? 0);
+            var scale = SizeChanger.Dispatcher.Invoke(()=> SizeChangeScaleValue.Value ?? 0);
+
+            if (sender == SizeChangeExtent && size > 0)
+            {
+                RenderRun(() => { ExtentImageEdge(true, size, size, DefaultAlign); });
+                if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
+            }
+            else if (sender == SizeChangeCrop && size > 0)
+            {
+                RenderRun(() => { CropImageEdge(true, size, size, DefaultAlign); });
+                if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
+            }
+            else if (sender == SizeChangeEnlarge && scale > 0)
+            {
+                RenderRun(() => { ScaleImage(scale); });
+                if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
+            }
+            else if (sender == SizeChangeShrink && scale > 0)
+            {
+                RenderRun(() => { ScaleImage(-1 * scale); });
+                if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
+            }
         }
 
         /// <summary>
@@ -2143,6 +2154,13 @@ namespace ImageViewer
                     Tag = source,
                     Icon = new TextBlock() { Text = "\xE123", Style = style }
                 };
+                var item_size_resize = new MenuItem()
+                {
+                    Header = "Resize Image",
+                    Uid = "ResizeImage",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\xE123", Style = style }
+                };
                 var item_size_cropedge = new MenuItem()
                 {
                     Header = "Crop Image Edge",
@@ -2152,7 +2170,7 @@ namespace ImageViewer
                 };
                 var item_size_extentedge = new MenuItem()
                 {
-                    Header = "Extend Image Edge",
+                    Header = "Extent Image Edge",
                     Uid = "ExtentImageEdge",
                     Tag = source,
                     Icon = new TextBlock() { Text = "\xE123", Style = style }
@@ -2244,6 +2262,7 @@ namespace ImageViewer
                 item_sharp.Click += (obj, evt) => RenderRun(() => SharpImage(MenuHost(obj)), target);
 
                 item_size_crop.Click += (obj, evt) => RenderRun(() => { CropImage(MenuHost(obj)); }, target);
+                item_size_resize.Click += (obj, evt) => OpenSizeChanger();
                 item_size_cropedge.Click += (obj, evt) => OpenSizeChanger(item_size_cropedge.Uid);
                 item_size_extentedge.Click += (obj, evt) => OpenSizeChanger(item_size_extentedge.Uid);
                 item_size_panedge.Click += (obj, evt) => OpenSizeChanger(item_size_panedge.Uid);
@@ -2276,9 +2295,10 @@ namespace ImageViewer
                 items.Add(item_more);
                 items.Add(new Separator());
                 items.Add(item_size_crop);
-                items.Add(item_size_cropedge);
-                items.Add(item_size_extentedge);
-                items.Add(item_size_panedge);
+                items.Add(item_size_resize);
+                //items.Add(item_size_cropedge);
+                //items.Add(item_size_extentedge);
+                //items.Add(item_size_panedge);
                 items.Add(new Separator());
                 items.Add(item_load_prev);
                 items.Add(item_load_next);
@@ -3637,24 +3657,7 @@ namespace ImageViewer
                     }
                     else if (e.Key == Key.F9 || e.SystemKey == Key.F9)
                     {
-                        if (km.OnlyShift)
-                        {
-                            if      (CurrentZoomFitMode == ZoomFitMode.Smart) CurrentZoomFitMode = ZoomFitMode.Height;
-                            else if (CurrentZoomFitMode == ZoomFitMode.NoZoom) CurrentZoomFitMode = ZoomFitMode.Smart;
-                            else if (CurrentZoomFitMode == ZoomFitMode.None) CurrentZoomFitMode = ZoomFitMode.NoZoom;
-                            else if (CurrentZoomFitMode == ZoomFitMode.All) CurrentZoomFitMode = ZoomFitMode.None;
-                            else if (CurrentZoomFitMode == ZoomFitMode.Width) CurrentZoomFitMode = ZoomFitMode.All;
-                            else if (CurrentZoomFitMode == ZoomFitMode.Height) CurrentZoomFitMode = ZoomFitMode.Width;
-                        }
-                        else
-                        {
-                            if      (CurrentZoomFitMode == ZoomFitMode.Smart) CurrentZoomFitMode = ZoomFitMode.NoZoom;
-                            else if (CurrentZoomFitMode == ZoomFitMode.NoZoom) CurrentZoomFitMode = ZoomFitMode.None;
-                            else if (CurrentZoomFitMode == ZoomFitMode.None) CurrentZoomFitMode = ZoomFitMode.All;
-                            else if (CurrentZoomFitMode == ZoomFitMode.All) CurrentZoomFitMode = ZoomFitMode.Width;
-                            else if (CurrentZoomFitMode == ZoomFitMode.Width) CurrentZoomFitMode = ZoomFitMode.Height;
-                            else if (CurrentZoomFitMode == ZoomFitMode.Height) CurrentZoomFitMode = ZoomFitMode.Smart;
-                        }
+                        ToggleZoomMode(full: true, direction: km.OnlyShift ? FlowDirection.LeftToRight : FlowDirection.RightToLeft);
                     }
 
                     else if (km.OnlyCtrl && (e.Key == Key.C || e.SystemKey == Key.C))
@@ -3746,20 +3749,11 @@ namespace ImageViewer
                     }
                     else if (e.Key == Key.Multiply || e.Key == Key.Multiply)
                     {
-                        CurrentZoomFitMode = ZoomFitMode.None;
-                        ZoomRatio.Value = 1f;
+                        CurrentZoomFitMode = ZoomFitMode.NoZoom;
                     }
                     else if (e.Key == Key.Divide || e.Key == Key.Divide)
                     {
-                        CurrentZoomFitMode = ZoomFitMode.All;
-                    }
-                    else if (e.Key == Key.NumPad0 || e.Key == Key.NumPad0)
-                    {
-                        CurrentZoomFitMode = ZoomFitMode.Smart;
-                    }
-                    else if (e.Key == Key.NumPad1 || e.Key == Key.NumPad1)
-                    {
-                        CurrentZoomFitMode = ZoomFitMode.NoZoom;
+                        ToggleZoomMode();
                     }
 
                     else e.Handled = false;
@@ -3785,17 +3779,7 @@ namespace ImageViewer
             if      (e.ChangedButton == MouseButton.Left && e.XButton1 == MouseButtonState.Pressed)
             {
                 e.Handled = true;
-                if (e.ClickCount == 1)
-                {
-                    if (CurrentZoomFitMode != ZoomFitMode.None)
-                    {
-                        CurrentZoomFitMode = ZoomFitMode.None;
-                    }
-                    else
-                    {
-                        CurrentZoomFitMode = LastZoomFitMode == ZoomFitMode.Undefined || LastZoomFitMode == CurrentZoomFitMode ? ZoomFitMode.Smart : LastZoomFitMode;
-                    }
-                }
+                if (e.ClickCount == 1) ToggleZoomMode();
             }
             else if (e.ChangedButton == MouseButton.Middle && e.XButton1 == MouseButtonState.Pressed)
             {
@@ -3867,17 +3851,7 @@ namespace ImageViewer
                     if      (e.ChangedButton == MouseButton.Left && e.XButton1 == MouseButtonState.Pressed)
                     {
                         e.Handled = true;
-                        if (e.ClickCount == 1)
-                        {
-                            if (CurrentZoomFitMode != ZoomFitMode.None)
-                            {
-                                CurrentZoomFitMode = ZoomFitMode.None;
-                            }
-                            else
-                            {
-                                CurrentZoomFitMode = LastZoomFitMode == ZoomFitMode.Undefined || LastZoomFitMode == CurrentZoomFitMode ? ZoomFitMode.Smart : LastZoomFitMode;
-                            }
-                        }
+                        if (e.ClickCount == 1) ToggleZoomMode();
                     }
                     else if (e.ChangedButton == MouseButton.Left && km.OnlyShift)
                     {
@@ -4266,6 +4240,7 @@ namespace ImageViewer
             var actionlist = new List<Button>()
             {
                 SizeChangeCrop, SizeChangeExtent,
+                SizeChangeEnlarge, SizeChangeShrink,
             };
 
             if (alignlist.Contains(sender))

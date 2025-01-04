@@ -238,7 +238,7 @@
     <value>更多滤镜效果</value>
   </data>
   <data name="CropBoundingBox.Header" xml:space="preserve">
-    <value>裁剪无图像边界</value>
+    <value>裁剪无图边界</value>
   </data>
   <data name="MatchSourceSize.Header" xml:space="preserve">
     <value>适配来源图像大小</value>
@@ -707,5 +707,14 @@
   </data>
   <data name="ZoomFitNoZoom.ToolTip" xml:space="preserve">
     <value>原图大小显示</value>
+  </data>
+  <data name="SizeChangeEnlarge.Content" xml:space="preserve">
+    <value>放大图像</value>
+  </data>
+  <data name="SizeChangeShrink.Content" xml:space="preserve">
+    <value>缩小图像</value>
+  </data>
+  <data name="ResizeImage.Header" xml:space="preserve">
+    <value>改变图像大小</value>
   </data>
 </root>

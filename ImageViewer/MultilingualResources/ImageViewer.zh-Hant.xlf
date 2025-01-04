@@ -571,6 +571,10 @@
           <source>Reset Transforms</source>
           <target state="new">重置變換</target>
         </trans-unit>
+        <trans-unit id="ResizeImage.Header" translate="yes" xml:space="preserve">
+          <source>Resize Image</source>
+          <target state="new">改變影像大小</target>
+        </trans-unit>
         <trans-unit id="ResultTipElapsed" translate="yes" xml:space="preserve">
           <source>Elapsed    :</source>
           <target state="new">用時 :</target>
@@ -663,6 +667,10 @@
           <source>Crop Image Edge</source>
           <target state="new">裁剪影像的邊界</target>
         </trans-unit>
+        <trans-unit id="SizeChangeEnlarge.Content" translate="yes" xml:space="preserve">
+          <source>Enlarge</source>
+          <target state="new">放大影像</target>
+        </trans-unit>
         <trans-unit id="SizeChangeExtent.Content" translate="yes" xml:space="preserve">
           <source>Extent</source>
           <target state="new">擴展邊界</target>
@@ -670,6 +678,10 @@
         <trans-unit id="SizeChangeExtent.ToolTip" translate="yes" xml:space="preserve">
           <source>Extent Image Edge</source>
           <target state="new">擴展影像的邊界</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeShrink.Content" translate="yes" xml:space="preserve">
+          <source>Shrink</source>
+          <target state="new">縮小影像</target>
         </trans-unit>
         <trans-unit id="SizeChangeValue.Tooltip" translate="yes" xml:space="preserve">
           <source>Image Changing Size</source>
