@@ -325,6 +325,7 @@
                         <ColumnDefinition/>
                         <ColumnDefinition/>
                         <ColumnDefinition/>
+                        <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <ToggleButton Grid.Row="0" Grid.Column="0" x:Name="SizeChangeAlignTL" x:Uid="SizeChangeAlignLT" Width="24" Height="24" Margin="2" Click="SizeChangeAction_Click"
                                   HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
@@ -363,18 +364,20 @@
                         <TextBlock x:Uid="SizeChangeAlignRRIcon" Text="&#xE741;" Style="{DynamicResource MenuItemIcon}"/>
                     </ToggleButton>
 
-                    <Button Grid.Row="0" Grid.Column="3" x:Name="SizeChangeExtent" x:Uid="SizeChangeExtent" Width="64" Margin="16,4,2,4" Content="Extent" Click="SizeChangeAction_Click"
+                    <CheckBox Grid.Row="1" Grid.Column="3" x:Name="SizeChangeUnitMode" Margin="16,4,2,4" HorizontalAlignment="Right" VerticalAlignment="Center" Content="%" IsChecked="True"/>
+
+                    <Button Grid.Row="0" Grid.Column="4" x:Name="SizeChangeExtent" x:Uid="SizeChangeExtent" Width="64" Margin="8,4,2,4" Content="Extent" Click="SizeChangeAction_Click"
                         HorizontalAlignment="Right" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
-                    <xctk:UIntegerUpDown Grid.Row="1" Grid.Column="3" Width="64" x:Name="SizeChangeValue" x:Uid="SizeChangeValue"  Margin="16,4,2,4" Value="1" Minimum="0"
+                    <xctk:UIntegerUpDown Grid.Row="1" Grid.Column="4" x:Name="SizeChangeValue" x:Uid="SizeChangeValue" Width="64" Margin="8,4,2,4" Value="1" Minimum="0"
                         HorizontalAlignment="Right" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" TextAlignment="Center"/>
-                    <Button Grid.Row="2" Grid.Column="3" Width="64" x:Name="SizeChangeCrop" x:Uid="SizeChangeCrop" Margin="16,4,2,4" Content="Crop" Click="SizeChangeAction_Click"
+                    <Button Grid.Row="2" Grid.Column="4" x:Name="SizeChangeCrop" x:Uid="SizeChangeCrop" Width="64" Margin="8,4,2,4" Content="Crop" Click="SizeChangeAction_Click"
                         HorizontalAlignment="Right" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
 
-                    <Button Grid.Row="0" Grid.Column="4" x:Name="SizeChangeEnlarge" x:Uid="SizeChangeEnlarge" Width="64" Margin="8,4,2,4" Content="Enlarge" Click="SizeChangeAction_Click"
+                    <Button Grid.Row="0" Grid.Column="5" x:Name="SizeChangeEnlarge" x:Uid="SizeChangeEnlarge" Width="64" Margin="8,4,2,4" Content="Enlarge" Click="SizeChangeAction_Click"
                         HorizontalAlignment="Right" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
-                    <xctk:DoubleUpDown Grid.Row="1" Grid.Column="4" Width="64" x:Name="SizeChangeScaleValue" x:Uid="SizeChangeScaleValue"  Margin="8,4,2,4" Value="1" Minimum="0" Increment="0.5"
+                    <xctk:DoubleUpDown Grid.Row="1" Grid.Column="5" x:Name="SizeChangeScaleValue" x:Uid="SizeChangeScaleValue" Width="64" Margin="8,4,2,4" Value="1" Minimum="0" Increment="0.5"
                         HorizontalAlignment="Right" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" TextAlignment="Center"/>
-                    <Button Grid.Row="2" Grid.Column="4" Width="64" x:Name="SizeChangeShrink" x:Uid="SizeChangeShrink" Margin="8,4,2,4" Content="Shrink" Click="SizeChangeAction_Click"
+                    <Button Grid.Row="2" Grid.Column="5" x:Name="SizeChangeShrink" x:Uid="SizeChangeShrink" Width="64" Margin="8,4,2,4" Content="Shrink" Click="SizeChangeAction_Click"
                         HorizontalAlignment="Right" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
                 </Grid>
             </xctk:ChildWindow>

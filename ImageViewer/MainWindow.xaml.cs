@@ -1584,6 +1584,7 @@ namespace ImageViewer
         {
             if (!Ready || IsImageNull(ImageViewer) || IsProcessingViewer) return;
 
+            var mode = SizeChanger.Dispatcher.Invoke(() => SizeChangeUnitMode.IsChecked ?? true);
             var size = SizeChanger.Dispatcher.Invoke(() => SizeChangeValue.Value ?? 0);
             var scale = SizeChanger.Dispatcher.Invoke(()=> SizeChangeScaleValue.Value ?? 0);
 
@@ -1599,12 +1600,12 @@ namespace ImageViewer
             }
             else if (sender == SizeChangeEnlarge && scale > 0)
             {
-                RenderRun(() => { ScaleImage(scale); });
+                RenderRun(() => { ScaleImage(scale, mode); });
                 if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
             }
             else if (sender == SizeChangeShrink && scale > 0)
             {
-                RenderRun(() => { ScaleImage(-1 * scale); });
+                RenderRun(() => { ScaleImage(-1 * scale, mode); });
                 if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
             }
         }
@@ -3008,11 +3009,11 @@ namespace ImageViewer
         private void LocaleUI(CultureInfo culture = null)
         {
             Title = $"{Uid}.Title".T(culture) ?? Title;
-            ImageToolBar.Locale();
-            ImageViewerBox.Locale();
+            ImageToolBar.Locale(culture);
+            ImageViewerBox.Locale(culture);
 
-            QualityChanger.Locale();
-            SizeChanger.Locale();
+            QualityChanger.Locale(culture);
+            SizeChanger.Locale(culture);
 
             DefaultWindowTitle = Title;
 

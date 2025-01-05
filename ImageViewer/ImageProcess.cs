@@ -471,7 +471,7 @@ namespace ImageViewer
         /// </summary>
         /// <param name="geomatry"></param>
         /// <param name="source"></param>
-        private void ScaleImage(MagickGeometry geomatry = null, bool? source = null)
+        private void ScaleImage(MagickGeometry geomatry = null)
         {
             try
             {
@@ -499,6 +499,33 @@ namespace ImageViewer
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="size"></param>
+        private void ScaleImage(int size)
+        {
+            try
+            {
+                CloseQualityChanger();
+
+                var action = false;
+
+                var image_s = ImageViewer.GetInformation();
+
+                image_s.Current.FilterType = FilterType.Lanczos2Sharp;
+                image_s.Current.FilterType = FilterType.MagicKernelSharp2021;
+                var w = (uint)Math.Max(1, image_s.Current.Width + size);
+                var h = (uint)Math.Max(1, image_s.Current.Height + size);
+                image_s.Current.Resize(w, h); 
+                image_s.Current.ResetPage(); 
+                action = true;
+
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="percentage"></param>
         private void ScaleImage(Percentage percentage)
         {
@@ -514,9 +541,12 @@ namespace ImageViewer
         /// 
         /// </summary>
         /// <param name="percentage"></param>
-        private void ScaleImage(double percentage)
+        private void ScaleImage(double size, bool percentage)
         {
-            ScaleImage(new Percentage(Math.Max(0, 100 + percentage)));
+            if (percentage)
+                ScaleImage(new Percentage(Math.Max(0, 100 + size)));
+            else
+                ScaleImage((int)(size >= 0 ? Math.Ceiling(size) : Math.Floor(size)));
         }
 
         /// <summary>
