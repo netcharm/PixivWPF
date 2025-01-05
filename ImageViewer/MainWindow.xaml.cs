@@ -1590,12 +1590,12 @@ namespace ImageViewer
 
             if (sender == SizeChangeExtent && size > 0)
             {
-                RenderRun(() => { ExtentImageEdge(true, size, size, DefaultAlign); });
+                RenderRun(() => { ExtentImageEdge(size, mode, DefaultAlign); });
                 if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
             }
             else if (sender == SizeChangeCrop && size > 0)
             {
-                RenderRun(() => { CropImageEdge(true, size, size, DefaultAlign); });
+                RenderRun(() => { CropImageEdge(-1 * size, mode, DefaultAlign); });
                 if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
             }
             else if (sender == SizeChangeEnlarge && scale > 0)
