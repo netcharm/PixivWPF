@@ -2909,6 +2909,7 @@ namespace ImageCompare
 
                 if (!Ready || IsImageNull(image) || indicator) return;
 
+                var mode = SizeChanger.Dispatcher.Invoke(() => SizeChangeUnitMode.IsChecked ?? true);
                 var size = SizeChanger.Dispatcher.Invoke(() => SizeChangeValue.Value ?? 0);
                 var scale = SizeChanger.Dispatcher.Invoke(()=> SizeChangeScaleValue.Value ?? 0);
 
@@ -2924,12 +2925,12 @@ namespace ImageCompare
                 }
                 else if (sender == SizeChangeEnlarge && scale > 0)
                 {
-                    RenderRun(() => { ScaleImage(source == ImageType.Source, scale, true); });
+                    RenderRun(() => { ScaleImage(source == ImageType.Source, scale, mode); });
                     if (await UpdateImageViewerFinished()) indicator = false;
                 }
                 else if (sender == SizeChangeShrink && scale > 0)
                 {
-                    RenderRun(() => { ScaleImage(source == ImageType.Source, -1 * scale, true); });
+                    RenderRun(() => { ScaleImage(source == ImageType.Source, -1 * scale, mode); });
                     if (await UpdateImageViewerFinished()) indicator = false;
                 }
             }
