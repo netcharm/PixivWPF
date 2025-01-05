@@ -863,6 +863,73 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
+        /// <param name="percentage"></param>
+        /// <param name="align"></param>
+        private void CropImageEdge(bool source, Percentage percentage, Gravity align = Gravity.Center)
+        {
+            try
+            {
+                CloseQualityChanger();
+                //await Task.Delay(1);
+
+                var action = false;
+                var factor = WeakEffects ? 1u : 5u;
+                var image_s = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                if (image_s.ValidCurrent)
+                {
+                    var px = percentage.ToDouble();
+                    var py = percentage.ToDouble();
+                    switch (align)
+                    {
+                        case Gravity.Center: break;
+                        case Gravity.North: px = 100; align = Gravity.South; break;
+                        case Gravity.South: px = 100; align = Gravity.North; break;
+                        case Gravity.East: py = 100; align = Gravity.West; break;
+                        case Gravity.West: py = 100; align = Gravity.East; break;
+                        case Gravity.Northeast: align = Gravity.Southwest; break;
+                        case Gravity.Northwest: align = Gravity.Southeast; break;
+                        case Gravity.Southeast: align = Gravity.Northwest; break;
+                        case Gravity.Southwest: align = Gravity.Northeast; break;
+                        default: break;
+                    }
+                    var box = new MagickGeometry(new Percentage(px), new Percentage(py))
+                    {
+                        IgnoreAspectRatio = false,
+                    };
+                    if (percentage.ToDouble() != 0)
+                    {
+                        image_s.Current.Extent(box, align);
+                        image_s.Current.ResetPage();
+                        action = true;
+                    }
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="size"></param>
+        /// <param name="percentage"></param>
+        /// <param name="align"></param>
+        private void CropImageEdge(bool source, double size, bool percentage, Gravity align = Gravity.Center)
+        {
+            if (percentage)
+                CropImageEdge(source, new Percentage(Math.Max(0, 100 + size)), align);
+            else
+            {
+                var value = (uint)(size >= 0 ? Math.Ceiling(size) : Math.Floor(size));
+                CropImageEdge(source, value, value, align);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
         /// <param name="width"></param>
         /// <param name="height"></param>
         /// <param name="align"></param>
@@ -926,6 +993,88 @@ namespace ImageCompare
         private void ExtentImageEdge(bool source, uint width = 0, uint height = 0, Gravity align = Gravity.Center)
         {
             ExtentImageEdge(source, width, height, align, MasklightColor);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="percentage"></param>
+        /// <param name="align"></param>
+        /// <param name="color"></param>
+#if Q16HDRI
+        private void ExtentImageEdge(bool source, Percentage percentage, Gravity align = Gravity.Center, IMagickColor<float> color = null)
+#else
+        private void ExtentImageEdge(bool source, Percentage percentage, Gravity align = Gravity.Center, IMagickColor<byte> color = null)
+#endif
+        {
+            try
+            {
+                CloseQualityChanger();
+                //await Task.Delay(1);
+
+                var action = false;
+                var factor = WeakEffects ? 1u : 5u;
+                var image_s = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                if (image_s.ValidCurrent)
+                {
+                    var px = percentage.ToDouble();
+                    var py = percentage.ToDouble();
+                    switch (align)
+                    {
+                        case Gravity.Center: break;
+                        case Gravity.North: px = 100; align = Gravity.South; break;
+                        case Gravity.South: px = 100; align = Gravity.North; break;
+                        case Gravity.East: py = 100; align = Gravity.West; break;
+                        case Gravity.West: py = 100; align = Gravity.East; break;
+                        case Gravity.Northeast: align = Gravity.Southwest; break;
+                        case Gravity.Northwest: align = Gravity.Southeast; break;
+                        case Gravity.Southeast: align = Gravity.Northwest; break;
+                        case Gravity.Southwest: align = Gravity.Northeast; break;
+                        default: break;
+                    }
+                    var box = new MagickGeometry(new Percentage(px), new Percentage(py))
+                    {
+                        IgnoreAspectRatio = false,
+                    };
+                    if (percentage.ToDouble() != 0)
+                    {
+                        image_s.Current.Extent(box, align, color ?? MagickColors.Transparent);
+                        image_s.Current.ResetPage();
+                        action = true;
+                    }
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="percentage"></param>
+        /// <param name="align"></param>
+        private void ExtentImageEdge(bool source, Percentage percentage, Gravity align = Gravity.Center)
+        {
+            ExtentImageEdge(source, percentage, align, MasklightColor);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="size"></param>
+        /// <param name="percentage"></param>
+        private void ExtentImageEdge(bool source, double size, bool percentage, Gravity align = Gravity.Center)
+        {
+            if (percentage)
+                ExtentImageEdge(source, new Percentage(Math.Max(0, 100 + size)), align);
+            else
+            {
+                var value = (uint)(size >= 0 ? Math.Ceiling(size) : Math.Floor(size));
+                ExtentImageEdge(source, value, value, align);
+            }
         }
 
         /// <summary>
