@@ -17,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
@@ -1862,12 +1863,15 @@ namespace ImageCompare
         {
             var lang = (culture ?? CultureInfo.CurrentCulture).IetfLanguageTag;
             Language = System.Windows.Markup.XmlLanguage.GetLanguage(lang);
-
+            
             Title = $"{Uid}.Title".T(culture) ?? Title;
-            ImageToolBar.Locale();
-            ImageSourceGrid.Locale();
-            ImageTargetGrid.Locale();
-            ImageResultGrid.Locale();
+            ImageToolBar.Locale(culture);
+            ImageSourceGrid.Locale(culture);
+            ImageTargetGrid.Locale(culture);
+            ImageResultGrid.Locale(culture);
+
+            QualityChanger.Locale(culture);
+            SizeChanger.Locale(culture);
 
             DefaultWindowTitle = Title;
             DefaultCompareToolTip = ImageCompare.ToolTip as string;
@@ -1996,6 +2000,13 @@ namespace ImageCompare
                 {
                     Header = "Crop BoundingBox",
                     Uid = "CropBoundingBox",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\xE123", Style = style }
+                };
+                var item_size_resize = new MenuItem()
+                {
+                    Header = "Resize Image",
+                    Uid = "ResizeImage",
                     Tag = source,
                     Icon = new TextBlock() { Text = "\xE123", Style = style }
                 };
@@ -2157,6 +2168,7 @@ namespace ImageCompare
                 item_sharp.Click += (obj, evt) => { RenderRun(() => { SharpImage(MenuHost(obj)); }, target); };
 
                 item_size_crop.Click += (obj, evt) => { RenderRun(() => { CropImage(MenuHost(obj)); }, target); };
+                item_size_resize.Click += (obj, evt) => OpenSizeChanger(MenuHost(obj));
                 item_size_cropedge.Click += (obj, evt) => { RenderRun(() => { CropImageEdge(MenuHost(obj), 1, 1, DefaultMatchAlign); }, target); };
                 item_size_extentedge.Click += (obj, evt) => { RenderRun(() => { ExtentImageEdge(MenuHost(obj), 1, 1, DefaultMatchAlign); }, target); };
                 item_size_panedge.Click += (obj, evt) => { RenderRun(() => { PanImageEdge(MenuHost(obj), 1, 1, DefaultMatchAlign); }, target); };
@@ -2219,9 +2231,10 @@ namespace ImageCompare
                 items.Add(item_more);
                 items.Add(new Separator());
                 items.Add(item_size_crop);
-                items.Add(item_size_cropedge);
-                items.Add(item_size_extentedge);
-                items.Add(item_size_panedge);
+                items.Add(item_size_resize);
+                //items.Add(item_size_cropedge);
+                //items.Add(item_size_extentedge);
+                //items.Add(item_size_panedge);
                 items.Add(item_size_to_source);
                 items.Add(item_size_to_target);
                 items.Add(new Separator());
@@ -2576,6 +2589,9 @@ namespace ImageCompare
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void AdjustQualityChangerPos()
         {
             QualityChanger.Dispatcher.InvokeAsync(() =>
@@ -2836,6 +2852,128 @@ namespace ImageCompare
             });
             return (result);
         }
+
+        #region Size Changer Helper
+        private Gravity SizeChangerAlign = Gravity.Center;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="uid"></param>
+        private void OpenSizeChanger(bool source, string uid = null)
+        {
+            OpenSizeChanger(source ? ImageType.Source : ImageType.Target, uid);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="uid"></param>
+        private void OpenSizeChanger(ImageType source, string uid = null)
+        {
+            SizeChanger.Dispatcher.Invoke(() =>
+            {
+                if (!string.IsNullOrEmpty(uid))
+                {
+                    if (uid == "CropImageEdge") { SizeChangeCrop.Focus(); }
+                    else if (uid == "ExtentImageEdge") { SizeChangeExtent.Focus(); }
+                    else if (uid == "PanImageEdge") { }
+                }
+                SizeChanger.Tag = source;
+                SizeChanger.Show();
+                DoEvents();
+
+                AdjustSizeChangerPos();
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        private async void ApplySizeChanger(FrameworkElement sender)
+        {
+            try
+            {
+                var source = SizeChanger.Dispatcher.Invoke(() =>
+                {
+                    var ret = ImageType.None;
+                    if (SizeChanger.Tag is ImageType) ret = (ImageType)(SizeChanger.Tag);
+                    return(ret);
+                });
+
+                var image = source == ImageType.Source ? ImageSource : ImageTarget;
+                var indicator = source == ImageType.Source ? IsProcessingSource : IsProcessingTarget;
+
+                if (!Ready || IsImageNull(image) || indicator) return;
+
+                var size = SizeChanger.Dispatcher.Invoke(() => SizeChangeValue.Value ?? 0);
+                var scale = SizeChanger.Dispatcher.Invoke(()=> SizeChangeScaleValue.Value ?? 0);
+
+                if (sender == SizeChangeExtent && size > 0)
+                {
+                    RenderRun(() => { ExtentImageEdge(source == ImageType.Source, size, size, SizeChangerAlign); });
+                    if (await UpdateImageViewerFinished()) indicator = false;
+                }
+                else if (sender == SizeChangeCrop && size > 0)
+                {
+                    RenderRun(() => { CropImageEdge(source == ImageType.Source, size, size, SizeChangerAlign); });
+                    if (await UpdateImageViewerFinished()) indicator = false;
+                }
+                else if (sender == SizeChangeEnlarge && scale > 0)
+                {
+                    RenderRun(() => { ScaleImage(source == ImageType.Source, scale, true); });
+                    if (await UpdateImageViewerFinished()) indicator = false;
+                }
+                else if (sender == SizeChangeShrink && scale > 0)
+                {
+                    RenderRun(() => { ScaleImage(source == ImageType.Source, -1 * scale, true); });
+                    if (await UpdateImageViewerFinished()) indicator = false;
+                }
+            }
+            catch(Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void AdjustSizeChangerPos()
+        {
+            SizeChanger.Dispatcher.InvokeAsync(() =>
+            {
+                if (SizeChanger.IsVisible && SizeChanger.Tag is ImageType)
+                {
+                    SizeChanger.UpdateLayout();
+                    SizeChanger.WindowStartupLocation = Xceed.Wpf.Toolkit.WindowStartupLocation.Manual;
+                    var source = (ImageType)SizeChanger.Tag;
+                    var is_hor = ViewerPanel.Orientation == Orientation.Horizontal;
+                    var pw = ViewerPanel.DesiredSize.Width;
+                    var ph = ViewerPanel.DesiredSize.Height;
+                    var factor_x = pw / 6f;
+                    var factor_y = ph / 6f;
+                    var offset_x = SystemParameters.WindowCornerRadius.TopLeft;
+                    var offset_y = SystemParameters.WindowCornerRadius.TopLeft;
+                    var center_x = !is_hor ? pw / 2f : (source == ImageType.Source ?  factor_x : factor_x * 5f);
+                    var center_y = is_hor ? ph : (source == ImageType.Source ?  factor_y * 2f : ph);
+                    SizeChanger.Left = center_x - (SizeChanger.DesiredSize.Width / 2f);
+                    SizeChanger.Top = center_y - (SizeChanger.DesiredSize.Height * 1.5);
+                }
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void CloseSizeChanger()
+        {
+            SizeChanger.Dispatcher.Invoke(() =>
+            {
+                SizeChanger.Close();
+            });
+        }
+        #endregion
 
         /// <summary>
         /// 
@@ -3665,6 +3803,8 @@ namespace ImageCompare
             ImageCompositeBlend.MouseWheel += Slider_MouseWheel;
             ZoomRatio.MouseWheel += Slider_MouseWheel;
             QualityChangerSlider.MouseWheel += Slider_MouseWheel;
+
+            SizeChangeAlignCC.IsChecked = true;
 
             LocaleUI(DefaultCultureInfo);
 
@@ -4756,5 +4896,44 @@ namespace ImageCompare
         }
         #endregion
 
+        #region SizeChanger Events
+        private void SizeChangeAction_Click(object sender, RoutedEventArgs e)
+        {
+            var alignlist = new List<ToggleButton>()
+            {
+                SizeChangeAlignTL, SizeChangeAlignTC, SizeChangeAlignTR,
+                SizeChangeAlignCL, SizeChangeAlignCC, SizeChangeAlignCR,
+                SizeChangeAlignBL, SizeChangeAlignBC, SizeChangeAlignBR,
+            };
+            var actionlist = new List<Button>()
+            {
+                SizeChangeCrop, SizeChangeExtent,
+                SizeChangeEnlarge, SizeChangeShrink,
+            };
+
+            if (alignlist.Contains(sender))
+            {
+                foreach (var btn in alignlist)
+                {
+                    btn.IsChecked = btn == sender;
+                }
+                if      (sender == SizeChangeAlignTL) { SizeChangerAlign = Gravity.Northwest; }
+                else if (sender == SizeChangeAlignTC) { SizeChangerAlign = Gravity.North; }
+                else if (sender == SizeChangeAlignTR) { SizeChangerAlign = Gravity.Northeast; }
+
+                else if (sender == SizeChangeAlignCL) { SizeChangerAlign = Gravity.West; }
+                else if (sender == SizeChangeAlignCC) { SizeChangerAlign = Gravity.Center; }
+                else if (sender == SizeChangeAlignCR) { SizeChangerAlign = Gravity.East; }
+
+                else if (sender == SizeChangeAlignBL) { SizeChangerAlign = Gravity.Southwest; }
+                else if (sender == SizeChangeAlignBC) { SizeChangerAlign = Gravity.South; }
+                else if (sender == SizeChangeAlignBR) { SizeChangerAlign = Gravity.Southeast; }
+            }
+            else if (actionlist.Contains(sender))
+            {
+                ApplySizeChanger(sender as FrameworkElement);
+            }
+        }
+        #endregion
     }
 }

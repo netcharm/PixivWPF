@@ -1375,6 +1375,15 @@ namespace ImageCompare.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Resize Image 的本地化字符串。
+        /// </summary>
+        public static string ResizeImage_Header {
+            get {
+                return ResourceManager.GetString("ResizeImage.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Difference : 的本地化字符串。
         /// </summary>
         public static string ResultTipDifference {
@@ -1479,6 +1488,150 @@ namespace ImageCompare.Properties {
         public static string ShowImageInfo_ToolTip {
             get {
                 return ResourceManager.GetString("ShowImageInfo.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Align To Bottom Center 的本地化字符串。
+        /// </summary>
+        public static string SizeChangeAlignBC_ToolTip {
+            get {
+                return ResourceManager.GetString("SizeChangeAlignBC.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Align To Bottom Left 的本地化字符串。
+        /// </summary>
+        public static string SizeChangeAlignBL_ToolTip {
+            get {
+                return ResourceManager.GetString("SizeChangeAlignBL.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Align To Bottom Right 的本地化字符串。
+        /// </summary>
+        public static string SizeChangeAlignBR_ToolTip {
+            get {
+                return ResourceManager.GetString("SizeChangeAlignBR.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Align To Center 的本地化字符串。
+        /// </summary>
+        public static string SizeChangeAlignCC_ToolTip {
+            get {
+                return ResourceManager.GetString("SizeChangeAlignCC.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Align To Center Left 的本地化字符串。
+        /// </summary>
+        public static string SizeChangeAlignCL_ToolTip {
+            get {
+                return ResourceManager.GetString("SizeChangeAlignCL.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Align To Center Right 的本地化字符串。
+        /// </summary>
+        public static string SizeChangeAlignCR_ToolTip {
+            get {
+                return ResourceManager.GetString("SizeChangeAlignCR.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Align To Top Center 的本地化字符串。
+        /// </summary>
+        public static string SizeChangeAlignTC_ToolTip {
+            get {
+                return ResourceManager.GetString("SizeChangeAlignTC.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Align To Top Left 的本地化字符串。
+        /// </summary>
+        public static string SizeChangeAlignTL_ToolTip {
+            get {
+                return ResourceManager.GetString("SizeChangeAlignTL.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Align To Top Right 的本地化字符串。
+        /// </summary>
+        public static string SizeChangeAlignTR_ToolTip {
+            get {
+                return ResourceManager.GetString("SizeChangeAlignTR.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Crop 的本地化字符串。
+        /// </summary>
+        public static string SizeChangeCrop_Content {
+            get {
+                return ResourceManager.GetString("SizeChangeCrop.Content", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Crop Image Edge 的本地化字符串。
+        /// </summary>
+        public static string SizeChangeCrop_ToolTip {
+            get {
+                return ResourceManager.GetString("SizeChangeCrop.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Enlarge 的本地化字符串。
+        /// </summary>
+        public static string SizeChangeEnlarge_Content {
+            get {
+                return ResourceManager.GetString("SizeChangeEnlarge.Content", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Extent 的本地化字符串。
+        /// </summary>
+        public static string SizeChangeExtent_Content {
+            get {
+                return ResourceManager.GetString("SizeChangeExtent.Content", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Extent Image Edge 的本地化字符串。
+        /// </summary>
+        public static string SizeChangeExtent_ToolTip {
+            get {
+                return ResourceManager.GetString("SizeChangeExtent.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Shrink 的本地化字符串。
+        /// </summary>
+        public static string SizeChangeShrink_Content {
+            get {
+                return ResourceManager.GetString("SizeChangeShrink.Content", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Image Changing Size 的本地化字符串。
+        /// </summary>
+        public static string SizeChangeValue_Tooltip {
+            get {
+                return ResourceManager.GetString("SizeChangeValue.Tooltip", resourceCulture);
             }
         }
         

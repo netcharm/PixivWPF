@@ -587,6 +587,10 @@
           <source>Reset Transforms</source>
           <target state="new">重置变换</target>
         </trans-unit>
+        <trans-unit id="ResizeImage.Header" translate="yes" xml:space="preserve">
+          <source>Resize Image</source>
+          <target state="new">改变图像的大小</target>
+        </trans-unit>
         <trans-unit id="ResultTipDifference" translate="yes" xml:space="preserve">
           <source>Difference :</source>
           <target state="new">差异 :</target>
@@ -634,6 +638,70 @@
         <trans-unit id="ShowImageInfo.ToolTip" translate="yes" xml:space="preserve">
           <source>how Image Information</source>
           <target state="new">显示图像信息</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignBC.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Bottom Center</source>
+          <target state="new">底部中心对齐</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignBL.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Bottom Left</source>
+          <target state="new">对齐到左下角</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignBR.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Bottom Right</source>
+          <target state="new">对齐到右下角</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignCC.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Center</source>
+          <target state="new">完全居中对齐</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignCL.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Center Left</source>
+          <target state="new">左侧居中对齐</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignCR.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Center Right</source>
+          <target state="new">右侧居中对齐</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignTC.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Top Center</source>
+          <target state="new">顶部中心对齐</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignTL.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Top Left</source>
+          <target state="new">对齐到左上角</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeAlignTR.ToolTip" translate="yes" xml:space="preserve">
+          <source>Align To Top Right</source>
+          <target state="new">对齐到右上角</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeCrop.Content" translate="yes" xml:space="preserve">
+          <source>Crop</source>
+          <target state="new">裁剪边界</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeCrop.ToolTip" translate="yes" xml:space="preserve">
+          <source>Crop Image Edge</source>
+          <target state="new">裁剪图像的边界</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeEnlarge.Content" translate="yes" xml:space="preserve">
+          <source>Enlarge</source>
+          <target state="new">放大图像</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeExtent.Content" translate="yes" xml:space="preserve">
+          <source>Extent</source>
+          <target state="new">扩展边界</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeExtent.ToolTip" translate="yes" xml:space="preserve">
+          <source>Extent Image Edge</source>
+          <target state="new">扩展图像的边界</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeShrink.Content" translate="yes" xml:space="preserve">
+          <source>Shrink</source>
+          <target state="new">缩小图像</target>
+        </trans-unit>
+        <trans-unit id="SizeChangeValue.Tooltip" translate="yes" xml:space="preserve">
+          <source>Image Changing Size</source>
+          <target state="new">尺寸改变的像素大小</target>
         </trans-unit>
         <trans-unit id="SlicingX.Header" translate="yes" xml:space="preserve">
           <source>Slicing Horizontal</source>

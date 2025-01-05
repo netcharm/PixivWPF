@@ -675,4 +675,55 @@
   <data name="BusyNow.ToolTip" xml:space="preserve">
     <value>処理の進行状況</value>
   </data>
+  <data name="SizeChangeValue.Tooltip" xml:space="preserve">
+    <value>ピクセルのサイズが変わる</value>
+  </data>
+  <data name="SizeChangeShrink.Content" xml:space="preserve">
+    <value>縮小画像</value>
+  </data>
+  <data name="SizeChangeExtent.ToolTip" xml:space="preserve">
+    <value>画像の境界を拡張する</value>
+  </data>
+  <data name="SizeChangeExtent.Content" xml:space="preserve">
+    <value>境界を拡張</value>
+  </data>
+  <data name="SizeChangeEnlarge.Content" xml:space="preserve">
+    <value>拡大画像</value>
+  </data>
+  <data name="SizeChangeCrop.ToolTip" xml:space="preserve">
+    <value>画像の境界を切り取る</value>
+  </data>
+  <data name="SizeChangeCrop.Content" xml:space="preserve">
+    <value>裁ち境界</value>
+  </data>
+  <data name="SizeChangeAlignTR.ToolTip" xml:space="preserve">
+    <value>右上隅に揃える</value>
+  </data>
+  <data name="SizeChangeAlignTL.ToolTip" xml:space="preserve">
+    <value>左上隅に揃える</value>
+  </data>
+  <data name="SizeChangeAlignTC.ToolTip" xml:space="preserve">
+    <value>上部中央揃え</value>
+  </data>
+  <data name="SizeChangeAlignCR.ToolTip" xml:space="preserve">
+    <value>右側中央揃え</value>
+  </data>
+  <data name="SizeChangeAlignCL.ToolTip" xml:space="preserve">
+    <value>左側中央揃え</value>
+  </data>
+  <data name="SizeChangeAlignCC.ToolTip" xml:space="preserve">
+    <value>完全中央揃え</value>
+  </data>
+  <data name="SizeChangeAlignBR.ToolTip" xml:space="preserve">
+    <value>右下揃に揃える</value>
+  </data>
+  <data name="SizeChangeAlignBL.ToolTip" xml:space="preserve">
+    <value>左下隅に揃える</value>
+  </data>
+  <data name="SizeChangeAlignBC.ToolTip" xml:space="preserve">
+    <value>下部中央揃え</value>
+  </data>
+  <data name="ResizeImage.Header" xml:space="preserve">
+    <value>画像サイズの変更</value>
+  </data>
 </root>

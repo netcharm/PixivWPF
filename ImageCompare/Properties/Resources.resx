@@ -675,4 +675,55 @@
   <data name="BusyNow.ToolTip" xml:space="preserve">
     <value>Processing Progress</value>
   </data>
+  <data name="SizeChangeValue.Tooltip" xml:space="preserve">
+    <value>Image Changing Size</value>
+  </data>
+  <data name="SizeChangeShrink.Content" xml:space="preserve">
+    <value>Shrink</value>
+  </data>
+  <data name="SizeChangeExtent.ToolTip" xml:space="preserve">
+    <value>Extent Image Edge</value>
+  </data>
+  <data name="SizeChangeExtent.Content" xml:space="preserve">
+    <value>Extent</value>
+  </data>
+  <data name="SizeChangeEnlarge.Content" xml:space="preserve">
+    <value>Enlarge</value>
+  </data>
+  <data name="SizeChangeCrop.ToolTip" xml:space="preserve">
+    <value>Crop Image Edge</value>
+  </data>
+  <data name="SizeChangeCrop.Content" xml:space="preserve">
+    <value>Crop</value>
+  </data>
+  <data name="SizeChangeAlignTR.ToolTip" xml:space="preserve">
+    <value>Align To Top Right</value>
+  </data>
+  <data name="SizeChangeAlignTL.ToolTip" xml:space="preserve">
+    <value>Align To Top Left</value>
+  </data>
+  <data name="SizeChangeAlignTC.ToolTip" xml:space="preserve">
+    <value>Align To Top Center</value>
+  </data>
+  <data name="SizeChangeAlignCR.ToolTip" xml:space="preserve">
+    <value>Align To Center Right</value>
+  </data>
+  <data name="SizeChangeAlignCL.ToolTip" xml:space="preserve">
+    <value>Align To Center Left</value>
+  </data>
+  <data name="SizeChangeAlignCC.ToolTip" xml:space="preserve">
+    <value>Align To Center</value>
+  </data>
+  <data name="SizeChangeAlignBR.ToolTip" xml:space="preserve">
+    <value>Align To Bottom Right</value>
+  </data>
+  <data name="SizeChangeAlignBL.ToolTip" xml:space="preserve">
+    <value>Align To Bottom Left</value>
+  </data>
+  <data name="SizeChangeAlignBC.ToolTip" xml:space="preserve">
+    <value>Align To Bottom Center</value>
+  </data>
+  <data name="ResizeImage.Header" xml:space="preserve">
+    <value>Resize Image</value>
+  </data>
 </root>
