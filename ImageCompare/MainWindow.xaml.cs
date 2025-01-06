@@ -2920,7 +2920,7 @@ namespace ImageCompare
                 }
                 else if (sender == SizeChangeCrop && size > 0)
                 {
-                    RenderRun(() => { CropImageEdge(source == ImageType.Source, -1 * size, mode, SizeChangerAlign); });
+                    RenderRun(() => { CropImageEdge(source == ImageType.Source, size, mode, SizeChangerAlign); });
                     if (await UpdateImageViewerFinished()) indicator = false;
                 }
                 else if (sender == SizeChangeEnlarge && scale > 0)

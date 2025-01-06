@@ -307,7 +307,7 @@ namespace ImageCompare
 
                 LastMatchedImage = ImageType.None;
 
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: reload);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: ScaleMode == ImageScaleMode.Relative, reload_type: reload);
                 else UpdateIndaicatorState(source, false, true);
             }
             catch (Exception ex) { ex.ShowMessage(); }
