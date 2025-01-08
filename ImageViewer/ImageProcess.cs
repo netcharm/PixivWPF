@@ -683,28 +683,33 @@ namespace ImageViewer
                 var image_s = ImageViewer.GetInformation();
                 if (image_s.ValidCurrent)
                 {
-                    var px = percentage.ToDouble();
-                    var py = percentage.ToDouble();
+                    var px = percentage.ToDouble() - 100;
+                    var py = percentage.ToDouble() - 100;
                     switch (align)
                     {
-                        case Gravity.Center: break;
-                        case Gravity.North: px = 100; align = Gravity.South; break;
-                        case Gravity.South: px = 100; align = Gravity.North; break;
-                        case Gravity.East: py = 100; align = Gravity.West; break;
-                        case Gravity.West: py = 100; align = Gravity.East; break;
+                        case Gravity.Center: px *= 2; py *= 2; break;
+                        case Gravity.North: px = 0; align = Gravity.South; break;
+                        case Gravity.South: px = 0; align = Gravity.North; break;
+                        case Gravity.East: py = 0; align = Gravity.West; break;
+                        case Gravity.West: py = 0; align = Gravity.East; break;
                         case Gravity.Northeast: align = Gravity.Southwest; break;
                         case Gravity.Northwest: align = Gravity.Southeast; break;
                         case Gravity.Southeast: align = Gravity.Northwest; break;
                         case Gravity.Southwest: align = Gravity.Northeast; break;
                         default: break;
                     }
-                    var box = new MagickGeometry(new Percentage(px), new Percentage(py))
+                    var dx = Math.Floor(image_s.BaseSize.Width / 100f);
+                    var dy =  Math.Floor(image_s.BaseSize.Height / 100f);
+                    var box = new MagickGeometry((uint)image_s.BaseSize.Width, (uint)image_s.BaseSize.Height)
                     {
-                        IgnoreAspectRatio = false,
+                        IgnoreAspectRatio = px == 0 || py == 0,
+                        LimitPixels = true,
+                        Width = (uint)(image_s.Current.Width + px * dx),
+                        Height = (uint)(image_s.Current.Height + py * dy),
                     };
                     if (percentage.ToDouble() != 0)
                     {
-                        image_s.Current.Extent(box, align);
+                        image_s.Current.Extent(box.Width, box.Height, align);
                         image_s.Current.ResetPage();
                         action = true;
                     }
@@ -724,10 +729,12 @@ namespace ImageViewer
         private void CropImageEdge(double size, bool percentage, Gravity align = Gravity.Center)
         {
             if (percentage)
+            {
                 CropImageEdge(true, new Percentage(Math.Max(0, 100 + size)), align);
+            }
             else
             {
-                var value = (uint)(size >= 0 ? Math.Ceiling(size) : Math.Floor(size));
+                var value = (uint)Math.Floor(Math.Abs(size));
                 CropImageEdge(true, value, value, align);
             }
         }
@@ -812,28 +819,33 @@ namespace ImageViewer
                 var image_s = ImageViewer.GetInformation();
                 if (image_s.ValidCurrent)
                 {
-                    var px = percentage.ToDouble();
-                    var py = percentage.ToDouble();
+                    var px = percentage.ToDouble() - 100;
+                    var py = percentage.ToDouble() - 100;
                     switch (align)
                     {
-                        case Gravity.Center: break;
-                        case Gravity.North: px = 100; align = Gravity.South; break;
-                        case Gravity.South: px = 100;  align = Gravity.North; break;
-                        case Gravity.East: py = 100; align = Gravity.West; break;
-                        case Gravity.West: py = 100; align = Gravity.East; break;
+                        case Gravity.Center: px *= 2; py *= 2; break;
+                        case Gravity.North: px = 0; align = Gravity.South; break;
+                        case Gravity.South: px = 0;  align = Gravity.North; break;
+                        case Gravity.East: py = 0; align = Gravity.West; break;
+                        case Gravity.West: py = 0; align = Gravity.East; break;
                         case Gravity.Northeast: align = Gravity.Southwest; break;
                         case Gravity.Northwest: align = Gravity.Southeast; break;
                         case Gravity.Southeast: align = Gravity.Northwest; break;
                         case Gravity.Southwest: align = Gravity.Northeast; break;
                         default: break;
                     }
-                    var box = new MagickGeometry(new Percentage(px), new Percentage(py))
+                    var dx = Math.Floor(image_s.BaseSize.Width / 100f);
+                    var dy =  Math.Floor(image_s.BaseSize.Height / 100f);
+                    var box = new MagickGeometry((uint)image_s.BaseSize.Width, (uint)image_s.BaseSize.Height)
                     {
-                        IgnoreAspectRatio = false,
+                        IgnoreAspectRatio = px == 0 || py == 0,
+                        LimitPixels = true,
+                        Width = (uint)(image_s.Current.Width + px * dx),
+                        Height = (uint)(image_s.Current.Height + py * dy),
                     };
                     if (percentage.ToDouble() != 0)
                     {
-                        image_s.Current.Extent(box, align, color ?? MagickColors.Transparent);
+                        image_s.Current.Extent(box.Width, box.Height, align, color ?? MagickColors.Transparent);
                         image_s.Current.ResetPage();
                         action = true;
                     }
@@ -878,7 +890,7 @@ namespace ImageViewer
                 ExtentImageEdge(true, new Percentage(Math.Max(0, 100 + size)), align);
             else
             {
-                var value = (uint)(size >= 0 ? Math.Ceiling(size) : Math.Floor(size));
+                var value = (uint)Math.Floor(Math.Abs(size));
                 ExtentImageEdge(true, value, value, align);
             }
         }

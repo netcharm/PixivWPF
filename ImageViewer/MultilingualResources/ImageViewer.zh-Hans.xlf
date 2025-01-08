@@ -799,9 +799,13 @@
           <source>[F9] Picture Fit Width</source>
           <target state="new">[F9] 图像显示适合宽度</target>
         </trans-unit>
-        <trans-unit id="will be deleted?" translate="yes" xml:space="preserve">
-          <source>will be deleted?</source>
-          <target state="new">将被删除?</target>
+        <trans-unit id="will be deleted" translate="yes" xml:space="preserve">
+          <source>will be deleted</source>
+          <target state="new">将被删除</target>
+        </trans-unit>
+        <trans-unit id="will be send to recycle bin" translate="yes" xml:space="preserve">
+          <source>will be send to recycle bin</source>
+          <target state="new">将被发送到回收站</target>
         </trans-unit>
       </group>
     </body>

@@ -672,9 +672,6 @@
   <data name="Delete" xml:space="preserve">
     <value>Delete</value>
   </data>
-  <data name="will be deleted?" xml:space="preserve">
-    <value>will be deleted?</value>
-  </data>
   <data name="Favorited" xml:space="preserve">
     <value>Favorited</value>
   </data>
@@ -716,5 +713,11 @@
   </data>
   <data name="ResizeImage.Header" xml:space="preserve">
     <value>Resize Image</value>
+  </data>
+  <data name="will be send to recycle bin" xml:space="preserve">
+    <value>will be send to recycle bin</value>
+  </data>
+  <data name="will be deleted" xml:space="preserve">
+    <value>will be deleted</value>
   </data>
 </root>

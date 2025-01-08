@@ -1789,11 +1789,20 @@ namespace ImageViewer.Properties {
         }
         
         /// <summary>
-        ///   查找类似 will be deleted? 的本地化字符串。
+        ///   查找类似 will be deleted 的本地化字符串。
         /// </summary>
-        public static string will_be_deleted_ {
+        public static string will_be_deleted {
             get {
-                return ResourceManager.GetString("will be deleted?", resourceCulture);
+                return ResourceManager.GetString("will be deleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 will be send to recycle bin 的本地化字符串。
+        /// </summary>
+        public static string will_be_send_to_recycle_bin {
+            get {
+                return ResourceManager.GetString("will be send to recycle bin", resourceCulture);
             }
         }
         
