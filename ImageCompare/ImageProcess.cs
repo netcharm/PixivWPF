@@ -1082,7 +1082,7 @@ namespace ImageCompare
                 ExtentImageEdge(source, new Percentage(Math.Max(0, 100 + size)), align);
             else
             {
-                var value = (uint)(size >= 0 ? Math.Ceiling(size) : Math.Floor(size));
+                var value = (uint)Math.Floor(Math.Abs(size));
                 ExtentImageEdge(source, value, value, align);
             }
         }
