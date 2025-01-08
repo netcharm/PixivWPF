@@ -2589,6 +2589,7 @@ namespace ImageCompare
             }
         }
 
+        #region Quality Changer Helper
         /// <summary>
         /// 
         /// </summary>
@@ -2852,6 +2853,7 @@ namespace ImageCompare
             });
             return (result);
         }
+        #endregion
 
         #region Size Changer Helper
         private Gravity SizeChangerAlign = Gravity.Center;
@@ -2920,7 +2922,7 @@ namespace ImageCompare
                 }
                 else if (sender == SizeChangeCrop && size > 0)
                 {
-                    RenderRun(() => { CropImageEdge(source == ImageType.Source, size, mode, SizeChangerAlign); });
+                    RenderRun(() => { CropImageEdge(source == ImageType.Source, -1 * size, mode, SizeChangerAlign); });
                     if (await UpdateImageViewerFinished()) indicator = false;
                 }
                 else if (sender == SizeChangeEnlarge && scale > 0)
