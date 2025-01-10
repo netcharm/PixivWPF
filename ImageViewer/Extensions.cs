@@ -461,7 +461,7 @@ namespace ImageViewer
             var result = -1;
             if (!string.IsNullOrEmpty(file) && File.Exists(file))
             {
-                var content = recycle ? "will be send to recycle bin" : "will be deleted";
+                var content = recycle ? "will be send to recycle bin".T() : "will be deleted".T();
                 if (ShowConfirm($"{file} {content}", $"{"Delete".T()}?"))
                 {
                     var handle = Process.GetCurrentProcess().MainWindowHandle;
