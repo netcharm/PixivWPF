@@ -223,6 +223,15 @@ namespace ImageViewer.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Cancel 的本地化字符串。
+        /// </summary>
+        public static string Cancel {
+            get {
+                return ResourceManager.GetString("Cancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Charcoal 的本地化字符串。
         /// </summary>
         public static string Charcoal_Header {
@@ -255,6 +264,15 @@ namespace ImageViewer.Properties {
         public static string Compose_Text {
             get {
                 return ResourceManager.GetString("Compose.Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似  的本地化字符串。
+        /// </summary>
+        public static string Confirm {
+            get {
+                return ResourceManager.GetString("Confirm", resourceCulture);
             }
         }
         
@@ -390,6 +408,15 @@ namespace ImageViewer.Properties {
         public static string Emboss_Header {
             get {
                 return ResourceManager.GetString("Emboss.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Exception 的本地化字符串。
+        /// </summary>
+        public static string Exception {
+            get {
+                return ResourceManager.GetString("Exception", resourceCulture);
             }
         }
         
@@ -1197,6 +1224,15 @@ namespace ImageViewer.Properties {
         /// <summary>
         ///   查找类似 No 的本地化字符串。
         /// </summary>
+        public static string No {
+            get {
+                return ResourceManager.GetString("No", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Not Included 的本地化字符串。
+        /// </summary>
         public static string NotIncluded {
             get {
                 return ResourceManager.GetString("NotIncluded", resourceCulture);
@@ -1209,6 +1245,15 @@ namespace ImageViewer.Properties {
         public static string OilPaint_Header {
             get {
                 return ResourceManager.GetString("OilPaint.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 OK 的本地化字符串。
+        /// </summary>
+        public static string OK {
+            get {
+                return ResourceManager.GetString("OK", resourceCulture);
             }
         }
         
@@ -1803,6 +1848,15 @@ namespace ImageViewer.Properties {
         public static string will_be_send_to_recycle_bin {
             get {
                 return ResourceManager.GetString("will be send to recycle bin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Yes 的本地化字符串。
+        /// </summary>
+        public static string Yes {
+            get {
+                return ResourceManager.GetString("Yes", resourceCulture);
             }
         }
         

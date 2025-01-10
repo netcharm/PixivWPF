@@ -460,7 +460,7 @@
     <value>是</value>
   </data>
   <data name="NotIncluded" xml:space="preserve">
-    <value>否</value>
+    <value>未包含</value>
   </data>
   <data name="Undefined" xml:space="preserve">
     <value>未阐明</value>
@@ -719,5 +719,23 @@
   </data>
   <data name="will be deleted" xml:space="preserve">
     <value>将被删除</value>
+  </data>
+  <data name="Exception" xml:space="preserve">
+    <value>异常</value>
+  </data>
+  <data name="Confirm" xml:space="preserve">
+    <value>确认</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>确定</value>
   </data>
 </root>

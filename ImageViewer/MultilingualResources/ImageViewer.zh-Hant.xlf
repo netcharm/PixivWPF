@@ -79,6 +79,10 @@
           <source>Statistical Color Information</source>
           <target state="new">統計顏色信息</target>
         </trans-unit>
+        <trans-unit id="Cancel" translate="yes" xml:space="preserve">
+          <source>Cancel</source>
+          <target state="new">取消</target>
+        </trans-unit>
         <trans-unit id="Charcoal.Header" translate="yes" xml:space="preserve">
           <source>Charcoal</source>
           <target state="new">炭筆畫效果</target>
@@ -90,6 +94,10 @@
         <trans-unit id="Compose.Text" translate="yes" xml:space="preserve">
           <source>Compose</source>
           <target state="new">合成</target>
+        </trans-unit>
+        <trans-unit id="Confirm" translate="yes" xml:space="preserve">
+          <source></source>
+          <target state="new">確認</target>
         </trans-unit>
         <trans-unit id="CopyFromResult.Header" translate="yes" xml:space="preserve">
           <source>Copy Image From Result</source>
@@ -150,6 +158,10 @@
         <trans-unit id="Emboss.Header" translate="yes" xml:space="preserve">
           <source>Emboss</source>
           <target state="new">浮雕效果</target>
+        </trans-unit>
+        <trans-unit id="Exception" translate="yes" xml:space="preserve">
+          <source>Exception</source>
+          <target state="new">异常</target>
         </trans-unit>
         <trans-unit id="ExtentImageEdge.Header" translate="yes" xml:space="preserve">
           <source>Extent Image Edge</source>
@@ -507,9 +519,17 @@
           <source>Morphology</source>
           <target state="new">形態學效果</target>
         </trans-unit>
-        <trans-unit id="NotIncluded" translate="yes" xml:space="preserve">
+        <trans-unit id="No" translate="yes" xml:space="preserve">
           <source>No</source>
           <target state="new">否</target>
+        </trans-unit>
+        <trans-unit id="NotIncluded" translate="yes" xml:space="preserve">
+          <source>Not Included</source>
+          <target state="new">不包括</target>
+        </trans-unit>
+        <trans-unit id="OK" translate="yes" xml:space="preserve">
+          <source>OK</source>
+          <target state="new">確定</target>
         </trans-unit>
         <trans-unit id="OilPaint.Header" translate="yes" xml:space="preserve">
           <source>Oil Paint</source>
@@ -770,6 +790,10 @@
         <trans-unit id="Waiting" translate="yes" xml:space="preserve">
           <source>Waiting ...</source>
           <target state="new">請稍候 ...</target>
+        </trans-unit>
+        <trans-unit id="Yes" translate="yes" xml:space="preserve">
+          <source>Yes</source>
+          <target state="new">是</target>
         </trans-unit>
         <trans-unit id="Zoom Ratio" translate="yes" xml:space="preserve">
           <source>Zoom Ratio</source>

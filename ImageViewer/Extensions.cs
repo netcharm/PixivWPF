@@ -536,7 +536,7 @@ namespace ImageViewer
         }
         #endregion
 
-        #region Import Methods
+        #region Shell Properties
         [DllImport("shell32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         private static extern int SHMultiFileProperties(IDataObject pdtobj, int flags);
 
@@ -548,11 +548,12 @@ namespace ImageViewer
 
         [DllImport("shell32.dll", CharSet = CharSet.None)]
         private static extern int ILGetSize(IntPtr pidl);
-        #endregion
 
-        #region Static Methods
-
-        #region Private
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="FileNames"></param>
+        /// <returns></returns>
         private static MemoryStream CreateShellIDList(StringCollection FileNames)
         {
             // first convert all files into pidls list
@@ -591,9 +592,12 @@ namespace ImageViewer
             // stream now contains the CIDL
             return memStream;
         }
-        #endregion
 
-        #region Public 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="FileNames"></param>
+        /// <returns></returns>
         private static bool ShowFileProperties(IEnumerable<string> FileNames)
         {
             bool result = false;
@@ -616,17 +620,31 @@ namespace ImageViewer
             return (result);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="FileNames"></param>
+        /// <returns></returns>
         private static bool ShowFileProperties(params string[] FileNames)
         {
             return ShowFileProperties(FileNames as IEnumerable<string>);
         }
-        #endregion
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="FileNames"></param>
+        /// <returns></returns>
         public static bool ShowProperties(this string[] FileNames)
         {
             return (ShowFileProperties(FileNames));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="FileNames"></param>
+        /// <returns></returns>
         public static bool ShowProperties(this string FileNames)
         {
             return (ShowFileProperties(new string[] { FileNames }));
@@ -744,6 +762,18 @@ namespace ImageViewer
             return (result);
         }
 
+        private static Style GetMessageBoxStyle()
+        {
+            Style style = new Style();
+            style.Setters.Add(new Setter(Xceed.Wpf.Toolkit.MessageBox.YesButtonContentProperty, "Yes".T()));
+            style.Setters.Add(new Setter(Xceed.Wpf.Toolkit.MessageBox.NoButtonContentProperty, "No".T()));
+            style.Setters.Add(new Setter(Xceed.Wpf.Toolkit.MessageBox.CancelButtonContentProperty, "Cancel".T()));
+            style.Setters.Add(new Setter(Xceed.Wpf.Toolkit.MessageBox.OkButtonContentProperty, "OK".T()));
+            return (style);
+        }
+
+        private static Style DefaultMessageBoxStyle = GetMessageBoxStyle();
+
         public static bool ShowConfirm(this string text, string caption = "")
         {
             var result = Application.Current?.Dispatcher?.Invoke(() =>
@@ -755,29 +785,19 @@ namespace ImageViewer
                     if (Application.Current.MainWindow.IsVisible)
                     {
                         if (string.IsNullOrEmpty(caption))
-                            ret = Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text, "Confirm?", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Yes);
+                            ret = Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text, "Confirm".T(), MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Yes, GetMessageBoxStyle());
                         else
-                            ret = Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text, caption, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Yes);
+                            ret = Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text, caption, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Yes, GetMessageBoxStyle());
                     }
                     else
                     {
                         if (string.IsNullOrEmpty(caption))
-                            ret = Xceed.Wpf.Toolkit.MessageBox.Show(text, "Confirm?", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Yes);
+                            ret = Xceed.Wpf.Toolkit.MessageBox.Show(text, "Confirm".T(), MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Yes, GetMessageBoxStyle());
                         else
-                            ret = Xceed.Wpf.Toolkit.MessageBox.Show(text, caption, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Yes);
+                            ret = Xceed.Wpf.Toolkit.MessageBox.Show(text, caption, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Yes, GetMessageBoxStyle());
                     }
                 }
-                catch (Exception ex)
-                {
-                    if (Application.Current.MainWindow.IsVisible)
-                    {
-                        Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message);
-                    }
-                    else
-                    {
-                        Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message);
-                    }
-                }
+                catch (Exception ex) { ex.ShowMessage(); }
                 return(ret == MessageBoxResult.Yes);
             });
             return (result ?? false);
@@ -793,30 +813,14 @@ namespace ImageViewer
 
                     if (Application.Current.MainWindow.IsVisible)
                     {
-                        if (string.IsNullOrEmpty(prefix))
-                            Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text);
-                        else
-                            Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text, prefix);
+                        Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text, prefix, MessageBoxButton.OKCancel, MessageBoxImage.None, MessageBoxResult.Yes, GetMessageBoxStyle());
                     }
                     else
                     {
-                        if (string.IsNullOrEmpty(prefix))
-                            Xceed.Wpf.Toolkit.MessageBox.Show(text);
-                        else
-                            Xceed.Wpf.Toolkit.MessageBox.Show(text, prefix);
+                        Xceed.Wpf.Toolkit.MessageBox.Show(text, prefix, MessageBoxButton.OKCancel, MessageBoxImage.None, MessageBoxResult.Yes, GetMessageBoxStyle());
                     }
                 }
-                catch (Exception ex)
-                {
-                    if (Application.Current.MainWindow.IsVisible)
-                    {
-                        Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message);
-                    }
-                    else
-                    {
-                        Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message);
-                    }
-                }
+                catch (Exception ex) { ex.ShowMessage(); }
             });
         }
 
@@ -833,27 +837,27 @@ namespace ImageViewer
                     if (Application.Current.MainWindow.IsVisible)
                     {
                         if (string.IsNullOrEmpty(prefix))
-                            Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, contents);
+                            Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, contents, "Exception".T(), MessageBoxButton.OKCancel, MessageBoxImage.Error, MessageBoxResult.Yes, GetMessageBoxStyle());
                         else
-                            Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, contents, prefix);
+                            Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, contents, prefix, MessageBoxButton.OKCancel, MessageBoxImage.Error, MessageBoxResult.Yes, GetMessageBoxStyle());
                     }
                     else
                     {
                         if (string.IsNullOrEmpty(prefix))
-                            Xceed.Wpf.Toolkit.MessageBox.Show(contents);
+                            Xceed.Wpf.Toolkit.MessageBox.Show(contents, "Exception".T(), MessageBoxButton.OKCancel, MessageBoxImage.Error, MessageBoxResult.Yes, GetMessageBoxStyle());
                         else
-                            Xceed.Wpf.Toolkit.MessageBox.Show(prefix);
+                            Xceed.Wpf.Toolkit.MessageBox.Show(contents, prefix, MessageBoxButton.OKCancel, MessageBoxImage.Error, MessageBoxResult.Yes, GetMessageBoxStyle());
                     }
                 }
                 catch (Exception ex)
                 {
                     if (Application.Current.MainWindow.IsVisible)
                     {
-                        Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message);
+                        Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message, "Exception".T(), MessageBoxButton.OKCancel, MessageBoxImage.Error, MessageBoxResult.Yes, GetMessageBoxStyle());
                     }
                     else
                     {
-                        Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message);
+                        Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message, "Exception".T(), MessageBoxButton.OKCancel, MessageBoxImage.Error, MessageBoxResult.Yes, GetMessageBoxStyle());
                     }
                 }
             });
