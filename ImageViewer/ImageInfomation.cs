@@ -55,7 +55,7 @@ namespace ImageViewer
             {
                 CancelGetInfo?.Cancel();
                 if (_original_ is MagickImage) { _original_.Dispose(); _original_ = null; }
-                _original_ = value;
+                _original_ = new MagickImage(value);
                 FixDPI(_original_);
                 _OriginalModified_ = true;
                 DenoiseCount = 0;
@@ -183,7 +183,7 @@ namespace ImageViewer
                 if (_original_ is MagickImage) { _original_?.Dispose(); _original_ = null; }
                 if (value != null)
                 {
-                    _original_ = value;
+                    _original_ = new MagickImage(value);
                     _CurrentModified_ = true;
                     if (_original_ is MagickImage)
                     {
@@ -1542,7 +1542,7 @@ namespace ImageViewer
             }
             return (result);
         }
-
+        F
         /// <summary>
         ///
         /// </summary>
@@ -1836,7 +1836,7 @@ namespace ImageViewer
 
                             var topaz = filter.StartsWith("Topaz", StringComparison.CurrentCultureIgnoreCase);
 
-                            var fi = new FileInfo(FileName);
+                            var fi = new FileInfo(string.IsNullOrEmpty(FileName) ? file : FileName);
                             var dc = fi.Exists ? fi.CreationTime : DateTime.Now;
                             var dm = fi.Exists ? fi.LastWriteTime : DateTime.Now;
                             var da = fi.Exists ? fi.LastAccessTime : DateTime.Now;

@@ -80,14 +80,35 @@ namespace ImageViewer
 
         #region Image Processing Routines
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private ImageInformation GetSource(ImageType type = ImageType.Source)
+        {
+            var result = IsQualityChanger ? _quality_info_ : ImageViewer.GetInformation();
+            return (result ?? new ImageInformation());
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private MagickImage GetImage(ImageType type)
+        {
+            if (IsQualityChanger)
+                return (_quality_info_?.Current);
+            else
+                return (ImageViewer.GetInformation().Current);
+        }
+
+        /// <summary>
         ///
         /// </summary>
         private void CleanImage()
         {
-            CloseQualityChanger();
-            ResetViewTransform(calcdisplay: false);
-
-            IsProcessingViewer = true;
+            ResetViewer();
 
             ImageViewer.GetInformation().Dispose();
 
@@ -118,7 +139,8 @@ namespace ImageViewer
                 if (ImageViewer.Source != null) { ImageViewer.Source = null; }
 
                 if (ImageViewer.ToolTip is ToolTip) { (ImageViewer.ToolTip as ToolTip).IsOpen = false; (ImageViewer.ToolTip as ToolTip).Content = null; }
-                
+
+                //ClearViewer();
                 ResetViewTransform(calcdisplay: false);
                 ImageViewer.ToolTip = null;
                 ImageInfoBox.ToolTip = null;
@@ -128,16 +150,6 @@ namespace ImageViewer
             GC.Collect();
             GC.WaitForPendingFinalizers();
             GC.WaitForFullGCComplete();
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        private MagickImage GetImage(ImageType type)
-        {
-            return (ImageViewer.GetInformation().Current);
         }
 
         /// <summary>
@@ -209,7 +221,7 @@ namespace ImageViewer
         {
             try
             {
-                var src = ImageViewer.GetInformation();
+                var src = GetSource();
 
                 src.Current = new MagickImage(MasklightColor ?? MagickColors.Transparent, MaxCompareSize, MaxCompareSize);
 
@@ -228,7 +240,7 @@ namespace ImageViewer
             {
                 if (source == null)
                 {
-                    ImageViewer.GetInformation().ChangeColorSpace(true);
+                    GetSource()?.ChangeColorSpace(true);
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -243,10 +255,11 @@ namespace ImageViewer
             try
             {
                 CloseQualityChanger();
+                ResetViewTransform();
 
                 UpdateIndaicatorState(true, true);
 
-                var action = ImageViewer.GetInformation().ResetTransform();
+                var action = GetSource()?.ResetTransform() ?? false;
 
                 if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
                 else UpdateIndaicatorState(false, true);
@@ -271,8 +284,8 @@ namespace ImageViewer
                 var size = 0;
                 if (source)
                 {
-                    reload = ImageViewer.GetInformation().IsRotated ? ImageType.All : ImageType.Source;
-                    action = await ImageViewer.GetInformation().Reset(size);
+                    reload = GetSource().IsRotated ? ImageType.All : ImageType.Source;
+                    action = await GetSource().Reset(size);
                 }
 
                 if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
@@ -290,6 +303,7 @@ namespace ImageViewer
             try
             {
                 CloseQualityChanger();
+                ResetImageTransform(true);
 
                 UpdateIndaicatorState(true, true);
 
@@ -301,7 +315,7 @@ namespace ImageViewer
                 }
                 else
                 {
-                    action = await ImageViewer.GetInformation().Reload(size, reload: true);
+                    action = await GetSource().Reload(size, reload: true);
                 }
 
                 if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false);
@@ -325,7 +339,7 @@ namespace ImageViewer
                 UpdateIndaicatorState(true, true);
 
                 var action = false;
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.Rotate(value);
@@ -351,7 +365,7 @@ namespace ImageViewer
 
                 var action = false;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.Flip();
@@ -377,7 +391,7 @@ namespace ImageViewer
 
                 var action = false;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.Flop();
@@ -408,7 +422,7 @@ namespace ImageViewer
 
                 var load_type = source ? ImageType.Source : ImageType.Target;
 
-                var image_s = ImageViewer.GetInformation();
+                var image_s = GetSource();
                 if (image_s.ValidCurrent)
                 {
                     if (reset) await image_s.Reset(size: 0);
@@ -445,7 +459,7 @@ namespace ImageViewer
 
                 var action = false;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     var geometry = vertical ? new MagickGeometry(new Percentage(50), new Percentage(100)) : new MagickGeometry(new Percentage(100), new Percentage(50));
@@ -480,7 +494,7 @@ namespace ImageViewer
 
                 var action = false;
 
-                var image_s = ImageViewer.GetInformation();
+                var image_s = GetSource();
 
                 if (geomatry is MagickGeometry && image_s.ValidCurrent)
                 {
@@ -509,7 +523,7 @@ namespace ImageViewer
 
                 var action = false;
 
-                var image_s = ImageViewer.GetInformation();
+                var image_s = GetSource();
 
                 image_s.Current.FilterType = FilterType.Lanczos2Sharp;
                 image_s.Current.FilterType = FilterType.MagicKernelSharp2021;
@@ -563,7 +577,7 @@ namespace ImageViewer
 
                 var action = false;
 
-                var image_s = ImageViewer.GetInformation();
+                var image_s = GetSource();
                 if (geomatry is MagickGeometry)
                 {
                     if (image_s.ValidCurrent) { image_s.Current.Resize(geomatry); image_s.Current.ResetPage(); action = true; }
@@ -591,7 +605,7 @@ namespace ImageViewer
 
                 var action = false;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     if (SimpleTrimCropBoundingBox)
@@ -629,7 +643,7 @@ namespace ImageViewer
 
                 var action = false;
                 var factor = WeakEffects ? 1u : 5u;
-                var image_s = ImageViewer.GetInformation();
+                var image_s = GetSource();
                 if (image_s.ValidCurrent)
                 {
                     switch (align)
@@ -680,7 +694,7 @@ namespace ImageViewer
 
                 var action = false;
                 var factor = WeakEffects ? 1u : 5u;
-                var image_s = ImageViewer.GetInformation();
+                var image_s = GetSource();
                 if (image_s.ValidCurrent)
                 {
                     var px = percentage.ToDouble() - 100;
@@ -760,7 +774,7 @@ namespace ImageViewer
 
                 var action = false;
                 var factor = WeakEffects ? 1u : 5u;
-                var image_s = ImageViewer.GetInformation();
+                var image_s = GetSource();
                 if (image_s.ValidCurrent)
                 {
                     switch (align)
@@ -816,7 +830,7 @@ namespace ImageViewer
 
                 var action = false;
                 var factor = WeakEffects ? 1u : 5u;
-                var image_s = ImageViewer.GetInformation();
+                var image_s = GetSource();
                 if (image_s.ValidCurrent)
                 {
                     var px = percentage.ToDouble() - 100;
@@ -923,7 +937,7 @@ namespace ImageViewer
 
                 var action = false;
                 var factor = WeakEffects ? 1 : 5;
-                var image_s = ImageViewer.GetInformation();
+                var image_s = GetSource();
                 if (image_s.ValidCurrent)
                 {
                     switch (align)
@@ -963,7 +977,7 @@ namespace ImageViewer
             {
                 var action = false;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent) { image.Current.Grayscale(GrayscaleMode); action = true; }
 
                 if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: source ? ImageType.Source : ImageType.Target);
@@ -983,7 +997,7 @@ namespace ImageViewer
                 var radius = WeakBlur ? 5 : 10;
                 var sigma = WeakBlur ? 0.75 : 1.5;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.GaussianBlur(radius, sigma);
@@ -1009,7 +1023,7 @@ namespace ImageViewer
                 var amount = 15;
                 var threshold = 0;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.UnsharpMask(radius, sigma, amount, threshold);
@@ -1032,7 +1046,7 @@ namespace ImageViewer
                 var action = false;
                 var sigma = WeakSharp ? 5u : 10u;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.ReduceNoise(sigma);
@@ -1056,7 +1070,7 @@ namespace ImageViewer
                 var radius = WeakBlur ? 5 : 10;
                 var sigma = WeakBlur ? 0.75 : 1.5;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.Emboss(radius, sigma);
@@ -1082,7 +1096,7 @@ namespace ImageViewer
                 var radius = WeakBlur ? 5 : 10;
                 var sigma = WeakBlur ? 0.75 : 1.5;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     var setting = new MorphologySettings() { Kernel = Kernel.Euclidean, Method = MorphologyMethod.Smooth };
@@ -1107,7 +1121,7 @@ namespace ImageViewer
                 var radius = WeakBlur ? 5 : 10;
                 var sigma = WeakBlur ? 0.75 : 1.5;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.CannyEdge(radius, sigma, new Percentage(3.0), new Percentage(15));
@@ -1132,7 +1146,7 @@ namespace ImageViewer
                 var sigma = WeakEffects ? 0.33 : 0.66;
                 var angle = WeakEffects ? 15 : 30;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     //image.Current.Sketch();
@@ -1157,7 +1171,7 @@ namespace ImageViewer
                 var radius = WeakEffects ? 3 : 7;
                 var sigma = WeakEffects ? 0.33 : 0.66;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.OilPaint(radius, sigma);
@@ -1181,7 +1195,7 @@ namespace ImageViewer
                 var radius = WeakEffects ? 3 : 7;
                 var sigma = WeakEffects ? 0.25 : 0.5;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.Charcoal(radius, sigma);
@@ -1204,7 +1218,7 @@ namespace ImageViewer
                 var action = false;
                 double angle = WeakEffects ? 3 : 5;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.Polaroid("❤❤", angle, PixelInterpolateMethod.Spline);
@@ -1227,7 +1241,7 @@ namespace ImageViewer
                 var action = false;
                 var sigma = WeakEffects ? 12.5 : 25;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     //image.Current.Solarize(new Percentage(sigma));
@@ -1251,7 +1265,7 @@ namespace ImageViewer
                 var action = false;
                 var levels = WeakEffects ? 32 : 16;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.Posterize(levels, DitherMethod.Riemersma);
@@ -1273,7 +1287,7 @@ namespace ImageViewer
             {
                 var action = false;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.Negate();
@@ -1295,7 +1309,7 @@ namespace ImageViewer
             {
                 var action = false;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.Equalize();
@@ -1317,7 +1331,7 @@ namespace ImageViewer
             {
                 var action = false;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.Enhance();
@@ -1340,7 +1354,7 @@ namespace ImageViewer
                 var action = false;
                 var enhance = new Percentage(10);
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     if (WeakEffects) image.Current.WhiteBalance();
@@ -1364,7 +1378,7 @@ namespace ImageViewer
                 var action = false;
                 var enchance = !WeakEffects;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.Contrast();
@@ -1387,7 +1401,7 @@ namespace ImageViewer
                 var action = false;
                 var enchance = !WeakEffects;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     if (enchance)
@@ -1412,7 +1426,7 @@ namespace ImageViewer
             {
                 var action = false;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.AutoGamma();
@@ -1434,7 +1448,7 @@ namespace ImageViewer
             {
                 var action = false;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.AutoThreshold(AutoThresholdMethod.OTSU);
@@ -1460,7 +1474,7 @@ namespace ImageViewer
                 var action = false;
                 var radius = WeakEffects ? 0.75 : 1.05;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.BlueShift(radius);
@@ -1484,7 +1498,7 @@ namespace ImageViewer
                 var radios = WeakEffects ? 50.0 : 150.0;
                 var sigma = WeakEffects ? 64 : 64;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.Vignette((new double[] { radios / 2.0, image.Current.Width, image.Current.Height }).Min(), sigma, 5, 5);
@@ -1507,7 +1521,7 @@ namespace ImageViewer
                 var action = false;
                 var exists = !string.IsNullOrEmpty(LastHaldFile) && File.Exists(LastHaldFile);
 
-                var image_s = ImageViewer.GetInformation();
+                var image_s = GetSource();
                  if (image_s.ValidCurrent && exists)
                 {
                     image_s.Current.HaldClut(new MagickImage(LastHaldFile));
@@ -1530,7 +1544,7 @@ namespace ImageViewer
                 var action = false;
                 var radius = WeakEffects ? 3u : 5u;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.MedianFilter(radius);
@@ -1554,7 +1568,7 @@ namespace ImageViewer
                 var radius = WeakEffects ? 5u : 10u;
                 var sigma = WeakEffects ? 5 : 10;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.MeanShift(radius, new Percentage(sigma));
@@ -1577,7 +1591,7 @@ namespace ImageViewer
                 var action = false;
                 var sigma = WeakEffects ? 16 : 8;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.Kmeans(new KmeansSettings() { Tolerance = sigma, NumberColors = 64, MaxIterations = 100 });
@@ -1600,7 +1614,7 @@ namespace ImageViewer
                 var action = false;
                 var sigma = WeakEffects ? 200 : 100;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.Segment(ColorSpace.RGB, sigma, sigma * 0.25);
@@ -1623,7 +1637,7 @@ namespace ImageViewer
                 var action = false;
                 var sigma = WeakEffects ? 256u : 64u;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.Quantize(new QuantizeSettings() { Colors = sigma, ColorSpace = ColorSpace.RGB, MeasureErrors = false });
@@ -1647,7 +1661,7 @@ namespace ImageViewer
                 var radius = WeakEffects ? 5 : 10;
                 var sigma = WeakEffects ? 0.25 : 0.5;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     image.Current.BackgroundColor = MasklightColor ?? MagickColors.Transparent;
@@ -1683,7 +1697,7 @@ namespace ImageViewer
                 var radius = WeakEffects ? 5 : 10;
                 var sigma = WeakEffects ? 0.25 : 0.5;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     if (image.Current.HasAlpha)
@@ -1712,7 +1726,7 @@ namespace ImageViewer
                 var radius = WeakEffects ? 5 : 10;
                 var sigma = WeakEffects ? 0.25 : 0.5;
 
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     var alpha = new MagickImage(MasklightColor ?? image.Current.BackgroundColor, image.Current.Width, image.Current.Height);
@@ -1735,7 +1749,7 @@ namespace ImageViewer
             {
                 var action = false;
 
-                var image_s = ImageViewer.GetInformation();
+                var image_s = GetSource();
                 if (image_s.ValidCurrent)
                 {
                     image_s.Current = new MagickImage(MasklightColor ?? image_s.Current.MatteColor ?? image_s.Current.BackgroundColor, image_s.Current.Width, image_s.Current.Height);

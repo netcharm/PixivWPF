@@ -624,7 +624,7 @@ namespace ImageViewer
 #endif
                     IsBusy = true;
 
-                    ImageInformation image_s = ImageViewer.GetInformation();
+                    ImageInformation image_s = GetSource();
                     bool? source = null;
 
                     source = IsImageNull(ImageViewer);
@@ -683,6 +683,17 @@ namespace ImageViewer
         #endregion
 
         #region Image Load/Save Helper
+        /// <summary>
+        /// 
+        /// </summary>
+        private void ResetViewer()
+        {
+            CloseToolTip(ImageViewer);
+            CloseToolTip(ImageInfoBox);
+            CloseQualityChanger();
+            ResetViewTransform(calcdisplay: false);
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -803,7 +814,7 @@ namespace ImageViewer
             result = await Task.Run(async () =>
             {
                 var ret = false;
-                var image = ImageViewer.GetInformation();
+                var image = GetSource();
                 if (image.ValidCurrent)
                 {
                     var angle = ImageViewerRotate.Dispatcher?.Invoke(() => ImageViewerRotate.Angle % 360) ?? 0;
@@ -854,7 +865,7 @@ namespace ImageViewer
             var action = false;
             try
             {
-                CloseQualityChanger();
+                ResetViewer();
                 IsLoadingViewer = true;
 
                 IDataObject dataPackage = Dispatcher?.Invoke(() => Clipboard.GetDataObject());
@@ -906,7 +917,7 @@ namespace ImageViewer
             try
             {
                 if (refresh && this.IsUpdatingFileList()) return (false);
-                CloseQualityChanger();
+                ResetViewer();
                 IsLoadingViewer = true;
 
                 var image =  ImageViewer.GetInformation();
@@ -935,7 +946,7 @@ namespace ImageViewer
             try
             {
                 if (refresh && this.IsUpdatingFileList()) return (false);
-                CloseQualityChanger();
+                ResetViewer();
                 IsLoadingViewer = true;
 
                 var image =  ImageViewer.GetInformation();
@@ -964,7 +975,7 @@ namespace ImageViewer
             try
             {
                 if (refresh && this.IsUpdatingFileList()) return (false);
-                CloseQualityChanger();
+                ResetViewer();
                 IsLoadingViewer = true;
 
                 var image = ImageViewer.GetInformation();
@@ -992,7 +1003,7 @@ namespace ImageViewer
             try
             {
                 if (refresh && this.IsUpdatingFileList()) return (false);
-                CloseQualityChanger();
+                ResetViewer();
                 IsLoadingViewer = true;
 
                 var image =  ImageViewer.GetInformation();
@@ -1037,7 +1048,7 @@ namespace ImageViewer
                     files = files.Select(f => f.Trim().Trim('\"')).Where(f => f.IsSupportedExt()).Where(f => !string.IsNullOrEmpty(f) && File.Exists(f)).ToArray();
                     if (files.Length > 0)
                     {
-                        CloseQualityChanger();
+                        ResetViewer();
                         IsLoadingViewer = true;
 
                         var image  = ImageViewer.GetInformation();
@@ -1665,7 +1676,7 @@ namespace ImageViewer
                             var quality_o = info.OriginalQuality;
 
                             var result = quality < quality_o ? await ChangeQuality(image, quality) : new MagickImage(image);
-                            _quality_info_.Original = new MagickImage(result);
+                            _quality_info_.Original = result;
                             SetImageSource(ImageViewer, _quality_info_);
                             result.Dispose();
 
@@ -1698,8 +1709,10 @@ namespace ImageViewer
                         var image = info?.Current;
                         var quality = image.Quality();
                         var quality_str = quality > 0  ? $"{quality}" : "Unknown";
-                        _quality_orig_ = info?.Source;
                         _quality_info_ = new ImageInformation();
+                        _quality_info_.FileName = info?.FileName;
+                        _quality_info_.Original = info?.Original;
+                        _quality_orig_ = _quality_info_.Source;
                         QualityChangeerTitle = $"{"InfoTipQuality".T().Trim('=').Trim()} : {quality_str}";
                         QualityChanger.Focusable = true;
                         QualityChanger.Caption = QualityChangeerTitle;
@@ -1756,6 +1769,10 @@ namespace ImageViewer
                                 var quality = (uint)QualityChangerSlider.Value;
                                 if (quality < image_s.OriginalQuality)
                                 {
+                                    //if (_quality_info_.IsRotated) RotateImage(true, (int)_quality_info_.Rotated);
+                                    //if (_quality_info_.FlipX) FlopImage(true);
+                                    //if (_quality_info_.FlipY) FlipImage(true);
+                                    image_s.Current = _quality_info_.Current;
                                     image_s.Current.Format = MagickFormat.Jpeg;
                                     image_s.Current.Quality = quality;
                                     UpdateInfoBox();
