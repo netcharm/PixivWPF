@@ -268,7 +268,7 @@ namespace ImageViewer.Properties {
         }
         
         /// <summary>
-        ///   查找类似  的本地化字符串。
+        ///   查找类似 Confirm 的本地化字符串。
         /// </summary>
         public static string Confirm {
             get {
@@ -1254,6 +1254,15 @@ namespace ImageViewer.Properties {
         public static string OK {
             get {
                 return ResourceManager.GetString("OK", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Open Current File With 的本地化字符串。
+        /// </summary>
+        public static string OpenWith_Header {
+            get {
+                return ResourceManager.GetString("OpenWith.Header", resourceCulture);
             }
         }
         

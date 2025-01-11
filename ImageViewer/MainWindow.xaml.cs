@@ -27,6 +27,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shell;
 using System.Windows.Threading;
 using System.Xml.Serialization;
+
 using ImageMagick;
 using Microsoft.Win32;
 using Xceed.Wpf.Toolkit;
@@ -158,6 +159,28 @@ namespace ImageViewer
                     JumpList.SetJumpList(Application.Current, jumpList);
                 }
             });
+        }
+
+        private void ShellRunJumpTask(JumpTask task)
+        {
+            try
+            {
+                if (task is JumpTask && !string.IsNullOrEmpty(task.ApplicationPath) && File.Exists(task.ApplicationPath))
+                {
+                    var filename = GetSource().FileName.Trim('"');
+                    var start = new ProcessStartInfo
+                    {
+                        FileName = task.ApplicationPath,
+                        Arguments = string.IsNullOrEmpty(filename) ? $"{task.Arguments}" : $"{task.Arguments} \"{filename}\"",
+                        WorkingDirectory = string.IsNullOrEmpty(task.WorkingDirectory) ? null : task.WorkingDirectory,
+                        ErrorDialog = true,
+                        UseShellExecute = false
+                    };
+                    Process.Start(start);
+                    //Process.Start(task.ApplicationPath, $"{task.Arguments}" : $"{task.Arguments} \"{filename}\"");
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
         }
         #endregion
 
@@ -2224,6 +2247,7 @@ namespace ImageViewer
                     Icon = new TextBlock() { Text = "\uE91B", Style = style }
                 };
 
+                var item_openwith = new MenuItem(){ Header = "Open Current File With", Uid = "OpenWith", Tag = source, Icon = new TextBlock() { Text = "\uE1A5", Style = style } };
                 var item_reset_image = new MenuItem()
                 {
                     Header = "Reset Image",
@@ -2324,12 +2348,33 @@ namespace ImageViewer
                 //items.Add(item_reset_image);
                 items.Add(item_quality_image);
                 items.Add(item_reload);
+                if (jumplist_tasks?.Count > 0)
+                {
+                    foreach (var task in jumplist_tasks)
+                    {
+                        MagickImage img = null;
+#if DEBUG
+                        var icon = System.Drawing.Icon.ExtractAssociatedIcon(string.IsNullOrEmpty(task.IconResourcePath) ? task.ApplicationPath : task.IconResourcePath);
+                        using (MemoryStream stream = new MemoryStream())
+                        {
+                            icon.Save(stream);
+                            stream.Seek(0, SeekOrigin.Begin);
+                            img = new MagickImage(stream, MagickFormat.Ico);
+                        }
+#endif
+                        var menu = new MenuItem(){ Header = task.Title, Tag = task, Icon = new Image() { Source = img?.ToBitmapSource() } };
+                        menu.Click += (obj, evt) => ShellRunJumpTask(task);
+                        item_openwith.Items.Add(menu);
+                    }
+                    items.Add(new Separator());
+                    items.Add(item_openwith);
+                }
                 items.Add(new Separator());
                 items.Add(item_colorcalc);
                 items.Add(item_copyinfo);
                 items.Add(item_copyimage);
                 items.Add(item_saveas);
-                #endregion
+#endregion
                 #region MoreEffects MenuItem
                 var item_more_autolevel = new MenuItem()
                 {
@@ -2618,7 +2663,7 @@ namespace ImageViewer
             items.Locale();
             target.ContextMenu.ItemsSource = new ObservableCollection<FrameworkElement>(items);
         }
-        #endregion
+#endregion
 
         #region ToolTip Helper
         /// <summary>

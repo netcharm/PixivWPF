@@ -96,7 +96,7 @@
           <target state="new">合成</target>
         </trans-unit>
         <trans-unit id="Confirm" translate="yes" xml:space="preserve">
-          <source></source>
+          <source>Confirm</source>
           <target state="new">確認</target>
         </trans-unit>
         <trans-unit id="CopyFromResult.Header" translate="yes" xml:space="preserve">
@@ -534,6 +534,10 @@
         <trans-unit id="OilPaint.Header" translate="yes" xml:space="preserve">
           <source>Oil Paint</source>
           <target state="new">油畫效果</target>
+        </trans-unit>
+        <trans-unit id="OpenWith.Header" translate="yes" xml:space="preserve">
+          <source>Open Current File With</source>
+          <target state="new">使用外部工具打開當前檔案</target>
         </trans-unit>
         <trans-unit id="PanImageEdge.Header" translate="yes" xml:space="preserve">
           <source>Add Offset To Image Edge</source>

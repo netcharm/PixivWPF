@@ -724,7 +724,7 @@
     <value>Exception</value>
   </data>
   <data name="Confirm" xml:space="preserve">
-    <value></value>
+    <value>Confirm</value>
   </data>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
@@ -737,5 +737,8 @@
   </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
+  </data>
+  <data name="OpenWith.Header" xml:space="preserve">
+    <value>Open Current File With</value>
   </data>
 </root>

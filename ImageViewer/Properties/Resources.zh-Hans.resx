@@ -738,4 +738,7 @@
   <data name="OK" xml:space="preserve">
     <value>确定</value>
   </data>
+  <data name="OpenWith.Header" xml:space="preserve">
+    <value>使用外部工具打开当前文件</value>
+  </data>
 </root>

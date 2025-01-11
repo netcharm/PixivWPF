@@ -738,4 +738,7 @@
   <data name="OK" xml:space="preserve">
     <value>確定</value>
   </data>
+  <data name="OpenWith.Header" xml:space="preserve">
+    <value>外部ツールを使用して現在のファイルを開く</value>
+  </data>
 </root>
