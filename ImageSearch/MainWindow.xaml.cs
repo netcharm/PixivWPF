@@ -586,11 +586,11 @@ namespace ImageSearch
                             {
                                 if (viewinfo)
                                 {
-                                    Process.Start(cmd_info, file);
+                                    Process.Start(cmd_info, $"\"{file.Trim('"')}\"");
                                 }
                                 else
                                 {
-                                    Process.Start(cmd_view, file);
+                                    Process.Start(cmd_view, $"\"{file.Trim('"')}\"");
                                 }
                             }
                             catch (Exception ex) { ReportMessage(ex); }
