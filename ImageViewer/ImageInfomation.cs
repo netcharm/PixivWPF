@@ -493,7 +493,7 @@ namespace ImageViewer
         /// <param name="image"></param>
         /// <param name="size"></param>
         /// <returns></returns>
-        public MagickImage CreateThumbnail(MagickImage image, double size = 10f)
+        public MagickImage CreateThumbnail(MagickImage image, double size = 0.1f)
         {
             MagickImage result = null;
             if (image.IsValidRead() && size > 0 && size <= 1)

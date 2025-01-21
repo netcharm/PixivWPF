@@ -63,7 +63,6 @@ namespace ImageViewer
         private double TaskTimeOutSeconds = 60;
         private double CountDownTimeOut = 500;
 
-
         /// <summary>
         ///
         /// </summary>
@@ -1756,7 +1755,8 @@ namespace ImageViewer
                         DoEvents();
 
                         QualityChanger.FocusedElement = QualityChangerSlider;
-                        QualityChangerSlider.Focus();
+                        Keyboard.Focus(QualityChangerSlider);
+                        InputMethod.Current.ImeState = InputMethodState.Off;
 
                         if (QualityChangerDelay is DispatcherTimer)
                         {
@@ -1811,6 +1811,8 @@ namespace ImageViewer
                         IsProcessingViewer = false;
                         _quality_orig_ = null;
                         _quality_info_.Dispose();
+                        Keyboard.ClearFocus();
+                        InputMethod.Current.ImeState = InputMethodState.Off;
                     }
                 });
             }
@@ -1971,7 +1973,9 @@ namespace ImageViewer
                         BirdViewBorder.Width = tw + bw;
                         BirdViewBorder.Height = th + bh;
 
-                        BirdView.Source = ImageViewer.ToBitmapSource(new Size(tw, th));
+                        //BirdView.Source = ImageViewer.ToBitmapSource(new Size(tw, th));
+                        //BirdView.Source = ImageViewer.ToMagickImage(new Size(tw, th)).ToBitmapSource();
+                        BirdView.Source = ImageViewer.CreateThumb(new Size(tw, th));
 
                         BirdView.UpdateLayout();
                         BirdViewCanvas.UpdateLayout();
@@ -2663,7 +2667,7 @@ namespace ImageViewer
             items.Locale();
             target.ContextMenu.ItemsSource = new ObservableCollection<FrameworkElement>(items);
         }
-#endregion
+        #endregion
 
         #region ToolTip Helper
         /// <summary>
@@ -2958,6 +2962,23 @@ namespace ImageViewer
 
         #region Main Window Helper
         /// <summary>
+        /// 
+        /// </summary>
+        private void InitAccelerators()
+        {
+            // add keyboard accelerators for backwards navigation
+            RoutedUICommand cmd_Close = new RoutedUICommand(){ Text = $"Close".T() };
+            cmd_Close.InputGestures.Add(new KeyGesture(Key.W, ModifierKeys.Control, $"Ctrl+{Key.W}"));
+            CommandBindings.Add(new CommandBinding(cmd_Close, (obj, evt) =>
+            {
+                evt.Handled = true;
+                Close();
+            }));
+            //CopyToClipboard.InputGestureText = string.Join(", ", cmd_Close.InputGestures.OfType<KeyGesture>().Select(k => k.DisplayString));
+
+        }
+
+        /// <summary>
         ///
         /// </summary>
         /// <param name="topmost"></param>
@@ -3061,7 +3082,8 @@ namespace ImageViewer
         /// </summary>
         private void RestoreWindowState()
         {
-            if (Ready && LastWinState == System.Windows.WindowState.Maximized) WindowState = LastWinState;
+            //if (Ready && LastWinState == System.Windows.WindowState.Maximized) WindowState = LastWinState;
+            if (LastWinState == System.Windows.WindowState.Maximized) WindowState = LastWinState;
         }
 
         /// <summary>
@@ -3485,20 +3507,24 @@ namespace ImageViewer
         {
             InitializeComponent();
             LoadConfig();
-        }
-
-        #region Window Events
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            RestoreWindowLocationSize();
-            RestoreWindowState();
 
             LoadJumpList();
+
+            ChangeTheme();
 
             InitCoutDownTimer();
 
             InitMagickNet();
 
+            HideBirdView();
+
+            RestoreWindowLocationSize();
+            RestoreWindowState();
+        }
+
+        #region Window Events
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
             #region Some Default UI Settings
             Icon = new BitmapImage(new Uri("pack://application:,,,/ImageViewer;component/Resources/Image.ico"));
             ToolTipService.SetShowOnDisabled(ImageViewer, false);
@@ -3506,8 +3532,6 @@ namespace ImageViewer
             ShowImageInfo.IsChecked = false;
             BusyNow.Opacity = 0.66;
             //IndicatorViewer.DisplayAfter = TimeSpan.FromMilliseconds(50);
-            HideBirdView();
-            ChangeTheme();
             SizeChangeAlignCC.IsChecked = true;
             QualityChangerSlider.MouseWheel += Slider_MouseWheel;
             //ImageViewerScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;

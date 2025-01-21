@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -21,6 +20,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Media3D;
 using System.Windows.Threading;
 
 using ImageMagick;
@@ -2210,9 +2210,15 @@ namespace ImageViewer
                     Rect bounds = VisualTreeHelper.GetDescendantBounds(element);
                     RenderTargetBitmap rtb = new RenderTargetBitmap((int)(size.Width * dpi.X / 96.0), (int)(size.Height * dpi.Y / 96.0), dpi.X,  dpi.Y, PixelFormats.Pbgra32);
                     DrawingVisual dv = new DrawingVisual();
+                    //RenderOptions.SetEdgeMode(dv, EdgeMode.Aliased);
+                    //RenderOptions.SetBitmapScalingMode(dv, BitmapScalingMode.Fant);
+                    //RenderOptions.SetEdgeMode(rtb, EdgeMode.Aliased);
+                    //RenderOptions.SetBitmapScalingMode(rtb, BitmapScalingMode.Fant);
                     using (DrawingContext ctx = dv.RenderOpen())
                     {
                         VisualBrush vb = new VisualBrush(element);
+                        //RenderOptions.SetEdgeMode(vb, EdgeMode.Aliased);
+                        //RenderOptions.SetBitmapScalingMode(vb, BitmapScalingMode.Fant);
                         ctx.DrawRectangle(vb, null, new Rect(new Point(), size));
                     }
                     rtb.Render(dv);
@@ -2221,6 +2227,129 @@ namespace ImageViewer
             }
             catch (Exception ex) { ex.ShowMessage("ToBitmapSource"); }
             return (result);
+        }
+
+        public static MagickImage ToMagickImage(this FrameworkElement element, int width, int height)
+        {
+            return (ToMagickImage(element, new Size(width, height)));
+        }
+
+        public static MagickImage ToMagickImage(this FrameworkElement element, Size size = default)
+        {
+            MagickImage result = null;
+            if (element is FrameworkElement && size.Width > 0 && size.Height > 0 && (element.ActualWidth != size.Width || element.ActualHeight != size.Height))
+            {
+                var dpi = GetSystemDPI(Application.Current);
+                Rect bounds = VisualTreeHelper.GetDescendantBounds(element);
+                RenderTargetBitmap rtb = new RenderTargetBitmap((int)(element.DesiredSize.Width * dpi.X / 96.0), (int)(element.DesiredSize.Height * dpi.Y / 96.0), dpi.X,  dpi.Y, PixelFormats.Pbgra32);
+                DrawingVisual dv = new DrawingVisual();
+                using (DrawingContext ctx = dv.RenderOpen())
+                {
+                    VisualBrush vb = new VisualBrush(element);
+                    ctx.DrawRectangle(vb, null, new Rect(new Point(), new Size(element.DesiredSize.Width, element.DesiredSize.Height)));
+                }
+                rtb.Render(dv);
+
+                using (MemoryStream stm = new MemoryStream())
+                {
+                    PngBitmapEncoder png = new PngBitmapEncoder();
+                    png.Frames.Add(BitmapFrame.Create(rtb));
+                    png.Save(stm);
+                    stm.Seek(0, SeekOrigin.Begin);
+                    result = new MagickImage(stm);
+                    result.Scale((uint)size.Width, (uint)size.Height);
+                }
+            }
+            return (result);
+        }
+
+        public static MagickImage ToMagickImage(this ImageSource source, int width, int height)
+        {
+            return (ToMagickImage(source, new Size(width, height)));
+        }
+
+        public static MagickImage ToMagickImage(this ImageSource source, Size size = default)
+        {
+            MagickImage result = null;
+            if (source is ImageSource && source.Width > 0 && source.Height > 0 && size.Width > 0 && size.Height > 0 && (source.Width != size.Width || source.Height != size.Height))
+            {
+                var dpi = GetSystemDPI(Application.Current);
+                RenderTargetBitmap target = null;
+                if (size != default && size.Width > 0 && size.Height > 0)
+                    target = new RenderTargetBitmap((int)(size.Width), (int)(size.Height), dpi.X, dpi.Y, PixelFormats.Pbgra32);
+                else
+                    target = new RenderTargetBitmap((int)(source.Width), (int)(source.Height), dpi.X, dpi.Y, PixelFormats.Pbgra32);
+
+                DrawingVisual drawingVisual = new DrawingVisual();
+                using (DrawingContext drawingContext = drawingVisual.RenderOpen())
+                {
+                    drawingContext.DrawImage(source, new Rect(0, 0, target.Width, target.Height));
+                }
+                target.Render(drawingVisual);
+
+                using (MemoryStream stm = new MemoryStream())
+                {
+                    PngBitmapEncoder png = new PngBitmapEncoder();
+                    png.Frames.Add(BitmapFrame.Create(target));
+                    png.Save(stm);
+                    stm.Seek(0, SeekOrigin.Begin);
+                    result = new MagickImage(stm);
+                    result.Scale((uint)size.Width, (uint)size.Height);
+                }
+            }
+            return (result);
+        }
+
+        public static BitmapSource CreateThumb(this FrameworkElement element, Size size = default)
+        {
+            BitmapSource result = null;
+            try
+            {
+                if (element is FrameworkElement && element.ActualWidth > 0 && element.ActualHeight > 0 && size.Width > 0 && size.Height > 0 && (element.Width != size.Width || element.Height != size.Height))
+                {
+                    var dpi = GetSystemDPI(Application.Current);
+                    Rect bounds = VisualTreeHelper.GetDescendantBounds(element);
+                    var factor = 1f;
+                    if (element.DesiredSize.Width >= 16 * size.Width && element.DesiredSize.Height >= 16 * size.Height) factor = 8;
+                    else if (element.DesiredSize.Width >= 8 * size.Width && element.DesiredSize.Height >= 8 * size.Height) factor = 4;
+                    else if (element.DesiredSize.Width >= 4 * size.Width && element.DesiredSize.Height >= 4 * size.Height) factor = 2;
+                    var width = (int)(element.DesiredSize.Width / factor * dpi.X / 96.0);
+                    var height = (int)(element.DesiredSize.Height / factor * dpi.Y / 96.0);
+                    RenderTargetBitmap rtb = new RenderTargetBitmap(width, height, dpi.X,  dpi.Y, PixelFormats.Pbgra32);
+                    DrawingVisual dv = new DrawingVisual();
+                    //RenderOptions.SetEdgeMode(dv, EdgeMode.Aliased);
+                    //RenderOptions.SetBitmapScalingMode(dv, BitmapScalingMode.Fant);
+                    //RenderOptions.SetEdgeMode(rtb, EdgeMode.Aliased);
+                    //RenderOptions.SetBitmapScalingMode(rtb, BitmapScalingMode.Fant);
+                    using (DrawingContext ctx = dv.RenderOpen())
+                    {
+                        VisualBrush vb = new VisualBrush(element);
+                        //RenderOptions.SetEdgeMode(vb, EdgeMode.Aliased);
+                        //RenderOptions.SetBitmapScalingMode(vb, BitmapScalingMode.Fant);
+                        ctx.DrawRectangle(vb, null, new Rect(new Point(), new Size(width, height)));
+                    }
+                    rtb.Render(dv);
+
+                    using (MemoryStream stm = new MemoryStream())
+                    {
+                        PngBitmapEncoder png = new PngBitmapEncoder();
+                        png.Frames.Add(BitmapFrame.Create(rtb));
+                        png.Save(stm);
+                        stm.Seek(0, SeekOrigin.Begin);
+                        var img = new MagickImage(stm);
+                        img.Scale((uint)size.Width, (uint)size.Height);
+                        result = img.ToBitmapSource();
+                        img.Dispose();
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage("ToBitmapSource"); }
+            return (result);
+        }
+
+        public static BitmapSource CreateThumb(this FrameworkElement element, int width, int height)
+        {
+            return (CreateThumb(element, new Size(width, height)));
         }
         #endregion
 
