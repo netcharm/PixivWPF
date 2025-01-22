@@ -307,14 +307,18 @@ namespace PixivWPF.Pages
         internal int GetCategoryIndex(PixivPage target)
         {
             int result = (int)PixivPage.Recommanded;
-            for (int i = 0; i < CategoryMenu.Items.Count; i++)
+            try
             {
-                if (GetPageTypeByCategory(CategoryMenu.Items[i]) == target)
+                for (int i = 0; i < CategoryMenu.Items?.Count; i++)
                 {
-                    result = i;
-                    break;
+                    if (GetPageTypeByCategory(CategoryMenu.Items[i]) == target)
+                    {
+                        result = i;
+                        break;
+                    }
                 }
             }
+            catch (Exception ex) { ex.LOG("GetCategoryIndex"); }
             return (result);
         }
 
@@ -606,7 +610,6 @@ namespace PixivWPF.Pages
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
             $"{WindowTitle} Loading...".INFO();
-
             setting = Application.Current.LoadSetting();
 
             ParentWindow = Window.GetWindow(this) as MainWindow;
