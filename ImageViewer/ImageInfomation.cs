@@ -817,7 +817,7 @@ namespace ImageViewer
 
                     info.Add(rating > 3 ? "Favorited".T() : string.Empty);
 
-                    ret = string.Join(", ", info.Where(i => !string.IsNullOrWhiteSpace(i.Trim())));
+                    ret = string.Join(", ", info.Where(i => !string.IsNullOrWhiteSpace(i?.Trim())));
                 }
                 catch (ObjectDisposedException) { }
                 catch (Exception ex) { ex.ShowMessage(); }

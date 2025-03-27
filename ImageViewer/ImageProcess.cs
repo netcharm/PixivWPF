@@ -1729,8 +1729,10 @@ namespace ImageViewer
                 var image = GetSource();
                 if (image.ValidCurrent)
                 {
+                    var fmt = image.Current.Format;
                     var alpha = new MagickImage(MasklightColor ?? image.Current.BackgroundColor, image.Current.Width, image.Current.Height);
                     image.Current.Composite(alpha, CompositeOperator.ChangeMask);
+                    image.Current.Format = fmt;
                     action = true;
                 }
 

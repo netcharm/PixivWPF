@@ -1288,6 +1288,18 @@ namespace ImageViewer
             return (SupportedExt(ext));
         }
 
+        public static string GetMimeInfo(this MagickImage image)
+        {
+            try { return (GetFormatInfo(image).MimeType ?? "UNKNOWN"); }
+            catch { return ("UNKNOWN"); }
+        }
+
+        public static string GetMimeInfo(this MagickFormat format)
+        {
+            try { return (GetFormatInfo(format).MimeType ?? "UNKNOWN"); }
+            catch { return ("UNKNOWN"); }
+        }
+
         public static IMagickFormatInfo GetFormatInfo(this MagickImage image)
         {
             try { return (MagickFormatInfo.Create(image.Format)); }
@@ -1312,7 +1324,11 @@ namespace ImageViewer
             var result = false;
             if (image is MagickImage)
             {
-                result = IsBMP(image.Format) || GetFormatInfo(image).MimeType.Equals("image/bmp", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("bmp", StringComparison.CurrentCultureIgnoreCase);
+                try
+                {
+                    result = IsBMP(image.Format) || GetMimeInfo(image).Equals("image/bmp", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("bmp", StringComparison.CurrentCultureIgnoreCase);
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
             }
             return (result);
         }
@@ -1329,7 +1345,11 @@ namespace ImageViewer
             var result = false;
             if (image is MagickImage)
             {
-                result = IsGIF(image.Format) || GetFormatInfo(image).MimeType.Equals("image/gif", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("gif", StringComparison.CurrentCultureIgnoreCase);
+                try
+                {
+                    result = IsGIF(image.Format) || GetMimeInfo(image).Equals("image/gif", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("gif", StringComparison.CurrentCultureIgnoreCase);
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
             }
             return (result);
         }
@@ -1346,7 +1366,11 @@ namespace ImageViewer
             var result = false;
             if (image is MagickImage)
             {
-                result = IsJPG(image.Format) || GetFormatInfo(image).MimeType.Equals("image/jpeg", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("jp");
+                try
+                {
+                    result = IsJPG(image.Format) || GetMimeInfo(image).Equals("image/jpeg", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("jp");
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
             }
             return (result);
         }
@@ -1363,7 +1387,11 @@ namespace ImageViewer
             var result = false;
             if (image is MagickImage)
             {
-                result = IsPNG(image.Format) || GetFormatInfo(image).MimeType.Equals("image/png", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("png", StringComparison.CurrentCultureIgnoreCase);
+                try
+                {
+                    result = IsPNG(image.Format) || GetMimeInfo(image).Equals("image/png", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("png", StringComparison.CurrentCultureIgnoreCase);
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
             }
             return (result);
         }
@@ -1380,7 +1408,11 @@ namespace ImageViewer
             var result = false;
             if (image is MagickImage)
             {
-                result = IsTIF(image.Format) || GetFormatInfo(image).MimeType.StartsWith("image/tif", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("tif", StringComparison.CurrentCultureIgnoreCase);
+                try
+                {
+                    result = IsTIF(image.Format) || GetMimeInfo(image).StartsWith("image/tif", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("tif", StringComparison.CurrentCultureIgnoreCase);
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
             }
             return (result);
         }
@@ -1397,7 +1429,11 @@ namespace ImageViewer
             var result = false;
             if (image is MagickImage)
             {
-                result = IsWEBP(image.Format) || GetFormatInfo(image).MimeType.StartsWith("image/web", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("web");
+                try
+                {
+                    result = IsWEBP(image.Format) || GetMimeInfo(image).StartsWith("image/web", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("web");
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
             }
             return (result);
         }
