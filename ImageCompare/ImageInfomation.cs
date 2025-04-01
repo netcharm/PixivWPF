@@ -596,7 +596,8 @@ namespace ImageCompare
                                             else
                                             {
                                                 var arv = tag.GetValue() as Rational[];
-                                                value = $"{arv[0].Numerator / arv[0].Denominator:F0}.{arv[1].Numerator / arv[1].Denominator:F0}'{arv[2].Numerator / (double)arv[2].Denominator}\"";
+                                                if (arv is Rational[] && arv[0].Denominator != 0 && arv[1].Denominator != 0) 
+                                                    value = $"{arv[0].Numerator / arv[0].Denominator:F0}.{arv[1].Numerator / arv[1].Denominator:F0}'{arv[2].Numerator / (double)arv[2].Denominator}\"";
                                             }
                                         }
                                     }
