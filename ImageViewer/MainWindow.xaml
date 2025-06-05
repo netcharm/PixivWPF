@@ -15,7 +15,7 @@
         x:Uid="MainWindow" Title="Image Viewer" 
         Height="720" Width="1280" MinWidth="720" MinHeight="480"
         LocationChanged="Window_LocationChanged" SizeChanged="Window_SizeChanged" StateChanged="Window_StateChanged" 
-        PreviewKeyDown="Window_KeyDown"
+        PreviewKeyDown="Window_KeyDown" MouseWheel="ImageBox_MouseWheel"
         Loaded="Window_Loaded" Unloaded="Window_Unloaded" Closed="Window_Closed"
         DragOver="Window_DragOver" Drop="Window_Drop" >
 

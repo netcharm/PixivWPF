@@ -581,9 +581,13 @@ namespace ImageViewer
                     {
                         try
                         {
-                            element.Source = image.Source;
-                            if (fit && element.Source != null) FitView();
-                            if (update_tooltip) await UpdateImageToolTip();
+                            if (image is ImageInformation)
+                            {
+                                if (!image.ValidCurrent || !image.ValidOriginal) image = GetSource();
+                                element.Source = image.Source;
+                                if (fit && element.Source != null) FitView();
+                                if (update_tooltip) await UpdateImageToolTip();
+                            }
                         }
                         catch { }
                     });
@@ -887,7 +891,7 @@ namespace ImageViewer
             var action = false;
             try
             {
-                ResetViewer();
+                //ResetViewer();
                 IsLoadingViewer = true;
 
                 IDataObject dataPackage = Dispatcher?.Invoke(() => Clipboard.GetDataObject());
@@ -920,6 +924,7 @@ namespace ImageViewer
                 }
                 if (action)
                 {
+                    ClearImage();
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                 }
                 else IsLoadingViewer = false;
@@ -939,14 +944,14 @@ namespace ImageViewer
             try
             {
                 if (refresh && this.IsUpdatingFileList()) return (false);
-                ResetViewer();
+                //ResetViewer();
                 IsLoadingViewer = true;
 
                 var image =  ImageViewer.GetInformation();
                 if (await image?.LoadImageFromFirstFile(refresh))
                 {
                     ClearImage();
-                    ResetViewTransform(calcdisplay: false);
+                    //ResetViewTransform(calcdisplay: false, updatedisplay: false);
                     SetTitle(image?.FileName);
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                     //if (await UpdateImageViewerFinished()) FitView();
@@ -968,14 +973,14 @@ namespace ImageViewer
             try
             {
                 if (refresh && this.IsUpdatingFileList()) return (false);
-                ResetViewer();
+                //ResetViewer();
                 IsLoadingViewer = true;
 
                 var image =  ImageViewer.GetInformation();
                 if (await image?.LoadImageFromPrevFile(refresh))
                 {
                     ClearImage();
-                    ResetViewTransform(calcdisplay: false);
+                    //ResetViewTransform(calcdisplay: false, updatedisplay: false);
                     SetTitle(image?.FileName);
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                     //if (await UpdateImageViewerFinished()) FitView();
@@ -997,14 +1002,14 @@ namespace ImageViewer
             try
             {
                 if (refresh && this.IsUpdatingFileList()) return (false);
-                ResetViewer();
+                //ResetViewer();
                 IsLoadingViewer = true;
 
                 var image = ImageViewer.GetInformation();
                 if (await image?.LoadImageFromNextFile(refresh))
                 {
                     ClearImage();
-                    ResetViewTransform(calcdisplay: false);
+                    //ResetViewTransform(calcdisplay: false, updatedisplay: false);
                     SetTitle(image?.FileName);
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                 }
@@ -1025,14 +1030,14 @@ namespace ImageViewer
             try
             {
                 if (refresh && this.IsUpdatingFileList()) return (false);
-                ResetViewer();
+                //ResetViewer();
                 IsLoadingViewer = true;
 
                 var image =  ImageViewer.GetInformation();
                 if (await image?.LoadImageFromLastFile(refresh))
                 {
                     ClearImage();
-                    ResetViewTransform(calcdisplay: false);
+                    //ResetViewTransform(calcdisplay: false, updatedisplay: false);
                     SetTitle(image?.FileName);
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                     //if (await UpdateImageViewerFinished()) FitView();
@@ -1538,11 +1543,11 @@ namespace ImageViewer
         /// <summary>
         /// 
         /// </summary>
-        private void ResetViewTransform(bool calcdisplay = true)
+        private void ResetViewTransform(bool calcdisplay = true, bool updatedisplay = true)
         {
             ImageViewerScale?.Dispatcher?.InvokeAsync(() =>
             {
-                ImageViewer?.GetInformation()?.ResetTransform();
+                ImageViewer?.GetInformation()?.ResetTransform(updatedisplay);
 
                 var scale = ZoomRatio.Value;
                 ImageViewerRotate.Angle = 0;
