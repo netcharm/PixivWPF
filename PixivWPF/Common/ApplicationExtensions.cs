@@ -4000,7 +4000,7 @@ namespace PixivWPF.Common
                             if (realtime)
                                 await dispatcher.BeginInvoke(action, DispatcherPriority.Send);
                             else
-                                await dispatcher.BeginInvoke(action, DispatcherPriority.Background);
+                                await dispatcher.BeginInvoke(action, DispatcherPriority.Render);
                         }
                         else
                             dispatcher.Invoke(action);
@@ -4024,7 +4024,7 @@ namespace PixivWPF.Common
                             if (realtime)
                                 await dispatcher.BeginInvoke(action, DispatcherPriority.Send, paramlist);
                             else
-                                await dispatcher.BeginInvoke(action, DispatcherPriority.Background, paramlist);
+                                await dispatcher.BeginInvoke(action, DispatcherPriority.Render, paramlist);
                         }
                         else
                             dispatcher.Invoke(action);
@@ -4044,7 +4044,7 @@ namespace PixivWPF.Common
                     if (realtime)
                         await dispatcher.InvokeAsync(action, DispatcherPriority.Send);
                     else
-                        await dispatcher.InvokeAsync(action, DispatcherPriority.Background);
+                        await dispatcher.InvokeAsync(action, DispatcherPriority.Render);
                 }
             }
             catch (Exception ex) { ex.ERROR("InvokeAsync"); }
@@ -4060,7 +4060,7 @@ namespace PixivWPF.Common
                     if (realtime)
                         await dispatcher.InvokeAsync(action, DispatcherPriority.Send, cancelToken);
                     else
-                        await dispatcher.InvokeAsync(action, DispatcherPriority.Background, cancelToken);
+                        await dispatcher.InvokeAsync(action, DispatcherPriority.Render, cancelToken);
                 }
             }
             catch (Exception ex) { ex.ERROR("InvokeAsync"); }

@@ -27,7 +27,7 @@ namespace PixivWPF.Common
     class PrefetchingTask : IDisposable
     {
         private CancellationTokenSource PrefetchingTaskCancelTokenSource = new CancellationTokenSource();
-        private SemaphoreSlim CanPrefetching = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim CanPrefetching = new SemaphoreSlim(1, 1);
         private BackgroundWorker PrefetchingBgWorker = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
         private PrefetchingOpts Options { get; set; } = new PrefetchingOpts();
 
@@ -67,7 +67,6 @@ namespace PixivWPF.Common
         private int CalcPagesThumbItems(IEnumerable<PixivItem> items)
         {
             int result = 0;
-            var setting = Application.Current.LoadSetting();
             foreach (var item in items)
             {
                 if (item.IsPage() || item.IsPages())
@@ -317,8 +316,10 @@ namespace PixivWPF.Common
                 {
                     if (paralllel)
                     {
-                        var opt = new ParallelOptions();
-                        opt.MaxDegreeOfParallelism = parallels;
+                        var opt = new ParallelOptions
+                        {
+                            MaxDegreeOfParallelism = parallels
+                        };
                         if (PrefetchingTaskCancelTokenSource is CancellationTokenSource) opt.CancellationToken = PrefetchingTaskCancelTokenSource.Token;
                         Parallel.ForEach(originals, opt, (url, loopstate, urlIndex) =>
                         {
@@ -458,8 +459,10 @@ namespace PixivWPF.Common
                 if (args.ParallelPrefetching)
                 {
                     #region using Paralle.Foreach
-                    var opt = new ParallelOptions();
-                    opt.MaxDegreeOfParallelism = parallels;
+                    var opt = new ParallelOptions
+                    {
+                        MaxDegreeOfParallelism = parallels
+                    };
                     if (PrefetchingTaskCancelTokenSource is CancellationTokenSource) opt.CancellationToken = PrefetchingTaskCancelTokenSource.Token;
                     Parallel.ForEach(needUpdate, opt, (url, loopstate, urlIndex) =>
                     {
@@ -472,7 +475,7 @@ namespace PixivWPF.Common
                                 {
                                     PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
                                     //if (!PrefetchedList.TryAdd(url, true)) PrefetchedList.TryUpdate(url, true, false);
-                                    count = count - 1;
+                                    count--;
                                 }
                                 else
                                 {
@@ -482,12 +485,12 @@ namespace PixivWPF.Common
                                     {
                                         PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
                                         //if (!PrefetchedList.TryAdd(url, true)) PrefetchedList.TryUpdate(url, true, false);
-                                        count = count - 1;
+                                        count--;
                                     }
                                     else file.CleenLastDownloaded();
                                 }
                             }
-                            if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; State = TaskStatus.Canceled; loopstate.Stop(); }
+                            if (PrefetchingBgWorker != null && PrefetchingBgWorker.CancellationPending) { e.Cancel = true; State = TaskStatus.Canceled; loopstate?.Stop(); }
                             Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
                             Comments = $"Prefetching [ {count} / {total}, I:{illusts.Count} / A:{avatars.Count} / T:{page_thumbs.Count} / P:{page_previews.Count} ]";
                             State = TaskStatus.Running;
@@ -521,7 +524,7 @@ namespace PixivWPF.Common
                                         {
                                             PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
                                             //if (!PrefetchedList.TryAdd(url, true)) PrefetchedList.TryUpdate(url, true, false);
-                                            count = count - 1;
+                                            count--;
                                         }
                                         else
                                         {
@@ -531,7 +534,7 @@ namespace PixivWPF.Common
                                             {
                                                 PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
                                                 //if (!PrefetchedList.TryAdd(url, true)) PrefetchedList.TryUpdate(url, true, false);
-                                                count = count - 1;
+                                                count--;
                                             }
                                             else file.CleenLastDownloaded();
                                         }
