@@ -950,6 +950,7 @@ namespace ImageViewer
                 var image =  ImageViewer.GetInformation();
                 if (await image?.LoadImageFromFirstFile(refresh))
                 {
+                    CloseQualityChanger();
                     ClearImage();
                     //ResetViewTransform(calcdisplay: false, updatedisplay: false);
                     SetTitle(image?.FileName);
@@ -979,6 +980,7 @@ namespace ImageViewer
                 var image =  ImageViewer.GetInformation();
                 if (await image?.LoadImageFromPrevFile(refresh))
                 {
+                    CloseQualityChanger();
                     ClearImage();
                     //ResetViewTransform(calcdisplay: false, updatedisplay: false);
                     SetTitle(image?.FileName);
@@ -1008,6 +1010,7 @@ namespace ImageViewer
                 var image = ImageViewer.GetInformation();
                 if (await image?.LoadImageFromNextFile(refresh))
                 {
+                    CloseQualityChanger();
                     ClearImage();
                     //ResetViewTransform(calcdisplay: false, updatedisplay: false);
                     SetTitle(image?.FileName);
@@ -1036,6 +1039,7 @@ namespace ImageViewer
                 var image =  ImageViewer.GetInformation();
                 if (await image?.LoadImageFromLastFile(refresh))
                 {
+                    CloseQualityChanger();
                     ClearImage();
                     //ResetViewTransform(calcdisplay: false, updatedisplay: false);
                     SetTitle(image?.FileName);
