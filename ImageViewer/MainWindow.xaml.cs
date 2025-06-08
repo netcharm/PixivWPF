@@ -1301,7 +1301,7 @@ namespace ImageViewer
                     var scroll  = ImageViewerScroll;
                     var image  = image_s.Current;
 
-                    var rotate = ImageViewerRotate.Angle % 180 != 0;
+                    var rotate = (ImageViewerRotate?.Angle ?? 0) % 180 != 0;
                     var width = rotate ? image.Height : image.Width;
                     var height = rotate ? image.Width : image.Height;
 
