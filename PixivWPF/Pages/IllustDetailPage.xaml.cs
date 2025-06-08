@@ -2443,7 +2443,8 @@ namespace PixivWPF.Pages
                     {
                         int total = string.IsNullOrEmpty(IllustSize.Text) ? GetTotalIllust() : Convert.ToInt32(IllustSize.Text);
                         var offset = string.IsNullOrEmpty(CurrentRelatedURL) ? 0 : CurrentRelatedURL.CalcPageOffset();
-                        if (append && total >= 0 && offset + RelatedItems.Items.Count >= total) return;
+                        var count = offset + RelatedItems.Items.Count;
+                        if (append && total >= 0 && count >= total) return;
 
                         StopPrefetching();
 #if DEBUG
@@ -2523,7 +2524,9 @@ namespace PixivWPF.Pages
                             if (cancel_related is CancellationTokenSource && cancel_related.IsCancellationRequested) break;
                         } while (append_all && RelatedItems.Items.Count < total && !string.IsNullOrEmpty(next_url));
 
-                        if (RelatedItems.Items.Count >= total)
+                        offset = string.IsNullOrEmpty(CurrentRelatedURL) ? 0 : CurrentRelatedURL.CalcPageOffset();
+                        count = offset + RelatedItems.Items.Count;
+                        if (count >= total)
                         {
                             user.Id.ToString().SetFullListedUserState();
                             Application.Current.SetUserFullListedState();
