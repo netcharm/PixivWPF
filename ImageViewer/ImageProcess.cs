@@ -142,6 +142,7 @@ namespace ImageViewer
 
                 //ClearViewer();
                 ResetViewTransform(calcdisplay: false, updatedisplay: false);
+                CloseToolTip(ImageInfoBox);
                 ImageViewer.ToolTip = null;
                 ImageInfoBox.ToolTip = null;
                 ImageIndexBox.ToolTip = null;
