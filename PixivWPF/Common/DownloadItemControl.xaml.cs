@@ -725,7 +725,7 @@ namespace PixivWPF.Common
 
         public void UpdateInfo(bool force = false)
         {
-            new Action(() => { UpdateProgress(force); }).Invoke(async: true);
+            new Action(() => { UpdateProgress(force); }).Invoke(async: true, realtime: true);
         }
         #endregion
 

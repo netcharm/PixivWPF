@@ -11681,7 +11681,7 @@ namespace PixivWPF.Common
                     _dialogService.ShowNotificationWindow(newNotification, cfg);
                     _dialogService.DoEvents();
                     await Task.Delay(1);
-                }).InvokeAsync(false);
+                }).InvokeAsync(System.Windows.Threading.DispatcherPriority.Background);
             }
             catch (Exception ex) { ex.ERROR("ShowDownloadToast"); }
         }
@@ -11750,7 +11750,7 @@ namespace PixivWPF.Common
                         _dialogService.ShowNotificationWindow(newNotification, cfg);
                         _dialogService.DoEvents();
                         await Task.Delay(1);
-                    }).InvokeAsync(false);
+                    }).InvokeAsync(System.Windows.Threading.DispatcherPriority.Background);
                 }
             }
             catch (Exception ex) { ex.ERROR("ShowToast"); }
@@ -11810,7 +11810,7 @@ namespace PixivWPF.Common
                         _dialogService.ShowNotificationWindow(newNotification, cfg);
                         _dialogService.DoEvents();
                         await Task.Delay(1);
-                    }).InvokeAsync(false);
+                    }).InvokeAsync(System.Windows.Threading.DispatcherPriority.Background);
                 }
             }
             catch (Exception ex) { ex.ERROR("ShowToast"); }
