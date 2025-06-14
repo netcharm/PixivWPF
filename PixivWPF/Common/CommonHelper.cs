@@ -11626,34 +11626,6 @@ namespace PixivWPF.Common
                 content.LOG(title);
 
                 setting = Application.Current.LoadSetting();
-                //await Task.Run(async () =>
-                //{
-                //    INotificationDialogService _dialogService = new NotificationDialogService();
-                //    NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
-                //    NotificationConfiguration cfg = new NotificationConfiguration(
-                //        //new TimeSpan(0, 0, 30), 
-                //        TimeSpan.FromSeconds(setting.ToastTimeout),
-                //        cfgDefault.Width+32, cfgDefault.Height,
-                //        "ToastTemplate",
-                //        //cfgDefault.TemplateName, 
-                //        cfgDefault.NotificationFlowDirection
-                //    );
-                //    var newNotification = new CustomToast()
-                //    {
-                //        Type = ToastType.DOWNLOAD,
-                //        Title = title,
-                //        ImgURL = imgsrc,
-                //        Message = content,
-                //        Extra = string.IsNullOrEmpty(file) ? string.Empty : file,
-                //        State = state,
-                //        StateDescription = state_description,
-                //        Tag = tag
-                //    };
-                //    _dialogService.ClearNotifications();
-                //    _dialogService.ShowNotificationWindow(newNotification, cfg);
-                //    _dialogService.DoEvents();
-                //    await Task.Delay(1);
-                //});
 
                 await new Action(async () =>
                 {
@@ -11696,33 +11668,6 @@ namespace PixivWPF.Common
                 if (main is MainWindow && main.IsVisible())
                 {
                     setting = Application.Current.LoadSetting();
-                    //await Task.Run(async () =>
-                    //{
-                    //    INotificationDialogService _dialogService = new NotificationDialogService();
-                    //    NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
-                    //    NotificationConfiguration cfg = new NotificationConfiguration(
-                    //        //new TimeSpan(0, 0, 30), 
-                    //        TimeSpan.FromSeconds(setting.ToastTimeout),
-                    //        cfgDefault.Width + 32, cfgDefault.Height,
-                    //        "ToastTemplate",
-                    //        //cfgDefault.TemplateName, 
-                    //        cfgDefault.NotificationFlowDirection
-                    //    );
-                    //    var newNotification = new CustomToast()
-                    //    {
-                    //        Type = ToastType.OK,
-                    //        Title = title,
-                    //        ImgURL = imgsrc,
-                    //        Message = content,
-                    //        State = state,
-                    //        StateDescription = state_description,
-                    //        Tag = null
-                    //    };
-                    //    _dialogService.ClearNotifications();
-                    //    _dialogService.ShowNotificationWindow(newNotification, cfg);
-                    //    _dialogService.DoEvents();
-                    //    await Task.Delay(1);
-                    //});
 
                     await new Action(async () =>
                     {
@@ -11768,27 +11713,6 @@ namespace PixivWPF.Common
                 if (main is MainWindow && main.IsVisible())
                 {
                     setting = Application.Current.LoadSetting();
-                    //await Task.Run(async () =>
-                    //{
-                    //    INotificationDialogService _dialogService = new NotificationDialogService();
-                    //    NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
-                    //    NotificationConfiguration cfg = new NotificationConfiguration(
-                    //        TimeSpan.FromSeconds(setting.ToastTimeout),
-                    //        cfgDefault.Width + 32, cfgDefault.Height,
-                    //        "ToastTemplate",
-                    //        //cfgDefault.TemplateName, 
-                    //        cfgDefault.NotificationFlowDirection
-                    //    );
-                    //    var newNotification = new CustomToast()
-                    //    {
-                    //        Title = title,
-                    //        Message = content
-                    //    };
-                    //    _dialogService.ClearNotifications();
-                    //    _dialogService.ShowNotificationWindow(newNotification, cfg);
-                    //    _dialogService.DoEvents();
-                    //    await Task.Delay(1);
-                    //});
 
                     await new Action(async () =>
                     {

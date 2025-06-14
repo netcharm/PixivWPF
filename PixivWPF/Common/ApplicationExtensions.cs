@@ -4000,7 +4000,7 @@ namespace PixivWPF.Common
                             if (realtime)
                                 await dispatcher.BeginInvoke(action, DispatcherPriority.Send);
                             else
-                                await dispatcher.BeginInvoke(action, priority == DispatcherPriority.Invalid ? DispatcherPriority.Input : priority);
+                                await dispatcher.BeginInvoke(action, priority == DispatcherPriority.Invalid ? DispatcherPriority.Background : priority);
                         }
                         else
                             dispatcher.Invoke(action);
@@ -4024,7 +4024,7 @@ namespace PixivWPF.Common
                             if (realtime)
                                 await dispatcher.BeginInvoke(action, DispatcherPriority.Send, paramlist);
                             else
-                                await dispatcher.BeginInvoke(action, priority == DispatcherPriority.Invalid ? DispatcherPriority.Input : priority, paramlist);
+                                await dispatcher.BeginInvoke(action, priority == DispatcherPriority.Invalid ? DispatcherPriority.Background : priority, paramlist);
                         }
                         else
                             dispatcher.Invoke(action);
@@ -4044,7 +4044,7 @@ namespace PixivWPF.Common
                     if (realtime)
                         await dispatcher.InvokeAsync(action, DispatcherPriority.Send);
                     else
-                        await dispatcher.InvokeAsync(action, priority == DispatcherPriority.Invalid ? DispatcherPriority.Input : priority);
+                        await dispatcher.InvokeAsync(action, priority == DispatcherPriority.Invalid ? DispatcherPriority.Background : priority);
                 }
             }
             catch (Exception ex) { ex.ERROR("InvokeAsync"); }
@@ -4060,7 +4060,7 @@ namespace PixivWPF.Common
                     if (realtime)
                         await dispatcher.InvokeAsync(action, DispatcherPriority.Send, cancelToken);
                     else
-                        await dispatcher.InvokeAsync(action, priority == DispatcherPriority.Invalid ? DispatcherPriority.Input : priority, cancelToken);
+                        await dispatcher.InvokeAsync(action, priority == DispatcherPriority.Invalid ? DispatcherPriority.Background : priority, cancelToken);
                 }
             }
             catch (Exception ex) { ex.ERROR("InvokeAsync"); }

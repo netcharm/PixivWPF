@@ -720,6 +720,7 @@ namespace PixivWPF.Common
         private void UpdateProgress(bool force = false)
         {
             if (force) LastElapsed = TimeSpan.FromSeconds(1);
+            else if (LastElapsed.TotalMilliseconds < 500 && State == DownloadItemState.Downloading) return;
             if (progress is IProgress<Tuple<double, double>>) progress.Report(Progress);
         }
 
@@ -1380,9 +1381,6 @@ namespace PixivWPF.Common
             HTTP_STREAM_READ_COUNT = setting.DownloadHttpStreamBlockSize;
             HTTP_TIMEOUT = setting.DownloadHttpTimeout > 5 ? setting.DownloadHttpTimeout : 5;
 
-            IsStart = false;
-            AutoStart = false;
-
             var basename = Path.GetFileName(FileName);
             var msg_title = $"Warnning ({basename})";
             var msg_content = "Overwrite exists?";
@@ -1396,6 +1394,9 @@ namespace PixivWPF.Common
                 if (!(await msg_content.ShowMessageDialog(msg_title, MessageBoxImage.Warning))) { State = DownloadItemState.Finished; return; }
                 restart = true;
             }
+
+            IsStart = false;
+            AutoStart = false;
 
             if (File.Exists(FileName) && IsDownloading) await Cancel();
             CheckProperties();

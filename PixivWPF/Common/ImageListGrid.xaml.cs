@@ -970,7 +970,7 @@ namespace PixivWPF.Common
                         #endregion
 
                         #region Touch filted downloaded
-                        new Action(async () => { this.DoEvents(); await Task.Delay(1); }).Invoke(async: true);
+                        new Action(async () => { this.DoEvents(); await Task.Delay(1); }).Invoke(async: true, priority: System.Windows.Threading.DispatcherPriority.Background);
                         UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(120));
                         opt.CancellationToken = UpdateTileTaskCancelSrc.Token;
                         Parallel.ForEach(downloaded_v, opt, (item, loopstate, itemIndex) =>
@@ -984,7 +984,7 @@ namespace PixivWPF.Common
                         #endregion
 
                         #region Touch downloaded
-                        new Action(async () => { this.DoEvents(); await Task.Delay(1); }).Invoke(async: true);
+                        new Action(async () => { this.DoEvents(); await Task.Delay(1); }).Invoke(async: true, priority: System.Windows.Threading.DispatcherPriority.Background);
                         UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(120));
                         opt.CancellationToken = UpdateTileTaskCancelSrc.Token;
                         Parallel.ForEach(downloaded_a, opt, (item, loopstate, itemIndex) =>
@@ -1073,7 +1073,7 @@ namespace PixivWPF.Common
                                         this.DoEvents(); await Task.Delay(1);
                                         if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release();
                                     }
-                                }).Invoke(async: true);
+                                }).Invoke(async: true, priority: System.Windows.Threading.DispatcherPriority.Background);
                                 this.DoEvents();
                             }
                         }
@@ -1113,7 +1113,7 @@ namespace PixivWPF.Common
                                         if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release();
                                         this.DoEvents(); await Task.Delay(1);
                                     }
-                                }).Invoke(async: true);
+                                }).Invoke(async: true, priority: System.Windows.Threading.DispatcherPriority.Background);
                                 this.DoEvents();
                             }
                         }
@@ -1138,7 +1138,7 @@ namespace PixivWPF.Common
                                         if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release();
                                         this.DoEvents(); await Task.Delay(1);
                                     }
-                                }).Invoke(async: true);
+                                }).Invoke(async: true, priority: System.Windows.Threading.DispatcherPriority.Background);
                             }
                         }
                         if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
@@ -1162,7 +1162,7 @@ namespace PixivWPF.Common
                                         if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release();
                                         this.DoEvents(); await Task.Delay(1);
                                     }
-                                }).Invoke(async: true);
+                                }).Invoke(async: true, priority: System.Windows.Threading.DispatcherPriority.Background);
                             }
                         }
                         if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
@@ -1199,7 +1199,7 @@ namespace PixivWPF.Common
                                         if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release();
                                         this.DoEvents(); await Task.Delay(1);
                                     }
-                                }).Invoke(async: true);
+                                }).Invoke(async: true, priority: System.Windows.Threading.DispatcherPriority.Background);
                                 this.DoEvents();
                             }
                         }
