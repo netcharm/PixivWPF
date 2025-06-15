@@ -11543,13 +11543,15 @@ namespace PixivWPF.Common
 
         public static async Task<bool> ShowMessageDialog(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
         {
-            content.LOG(title);
-
+            MessageBoxResult ret = MessageBoxResult.OK;
+            content.LOG(title);            
             await Task.Delay(1);
-            _MessageDialogList[title] = content;
-            var ret = MessageBox.Show(content, title, MessageBoxButton.OKCancel, image);
-            var value = string.Empty;
-            _MessageDialogList.TryRemove(title, out value);
+            if (_MessageDialogList.TryAdd(title, content))
+            {
+                ret = MessageBox.Show(content, title, MessageBoxButton.OKCancel, image);
+                var value = string.Empty;
+                _MessageDialogList.TryRemove(title, out value);
+            }
             return (ret == MessageBoxResult.OK || ret == MessageBoxResult.Yes ? true : false);
         }
 
