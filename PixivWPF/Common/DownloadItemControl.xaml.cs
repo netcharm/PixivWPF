@@ -720,7 +720,7 @@ namespace PixivWPF.Common
         private void UpdateProgress(bool force = false)
         {
             if (force) LastElapsed = TimeSpan.FromSeconds(1);
-            else if (LastElapsed.TotalMilliseconds < 500 && State == DownloadItemState.Downloading) return;
+            else if (LastElapsed.TotalMilliseconds < 250 && State == DownloadItemState.Downloading) return;
             if (progress is IProgress<Tuple<double, double>>) progress.Report(Progress);
         }
 
@@ -949,17 +949,18 @@ namespace PixivWPF.Common
 
                                 if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Received < Length)
                                 {
-                                    lastReceived += bytesread;
-                                    Received += bytesread;
-                                    UpdateProgress();
-
                                     await ms.WriteAsync(bytes, 0, bytesread);
                                     if (EndTick.DeltaSeconds(lastUpdateBuffer) >= setting.DownloadBufferUpdateFrequency)
                                     {
                                         _DownloadBuffer = ms.ToArray();
                                         lastUpdateBuffer = EndTick;
                                     }
+                                    
+                                    lastReceived += bytesread;
+                                    Received += bytesread;
                                     LastElapsed = EndTick - lastTick;
+
+                                    UpdateProgress();
                                 }
                             } while (bytesread > 0 && Received < Length);
 
