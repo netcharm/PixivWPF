@@ -12,7 +12,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Threading;
-
+using NLog.LayoutRenderers;
 using PixivWPF.Common;
 
 namespace PixivWPF.Pages
@@ -121,8 +121,7 @@ namespace PixivWPF.Pages
                 if (autoTaskTimer == null)
                 {
                     var setting = Application.Current.LoadSetting();
-                    autoTaskTimer = new DispatcherTimer(DispatcherPriority.Normal) { Interval = TimeSpan.FromSeconds(setting.ToastTimeout), IsEnabled = false };
-                    autoTaskTimer.Interval = TimeSpan.FromSeconds(1);
+                    autoTaskTimer = new DispatcherTimer(DispatcherPriority.Normal) { Interval = TimeSpan.FromSeconds(1), IsEnabled = false };
                     autoTaskTimer.Tick += Timer_Tick;
                     autoTaskTimer.Start();
                 }
@@ -588,6 +587,22 @@ namespace PixivWPF.Pages
         {
             try
             {
+                var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+                var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+
+                if (ctrl)
+                {
+                    try
+                    {
+                        if (Clipboard.ContainsText())
+                        {
+                            var urls = Clipboard.GetText().Split(Application.Current.GetLineBreak(), StringSplitOptions.RemoveEmptyEntries);
+                            if (urls.Length > 0) { Commands.AddDownloadItem.Execute(urls); return; }
+                        }
+                    }
+                    catch (Exception x) { x.ERROR("PasteUrls"); }
+                }
+
                 await new Action(() =>
                 {
                     if (DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1)

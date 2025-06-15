@@ -17,6 +17,7 @@ using MahApps.Metro.Controls;
 using Newtonsoft.Json;
 using Prism.Commands;
 using PixivWPF.Pages;
+using mshtml;
 
 namespace PixivWPF.Common
 {
@@ -2290,10 +2291,36 @@ namespace PixivWPF.Common
             {
                 OpenDownloadManager.Execute(false);
                 var _downManager = Application.Current.GetDownloadManager();
-                if (_downManager is DownloadManagerPage && obj is DownloadParams)
+                if (_downManager is DownloadManagerPage)
                 {
-                    var dp = obj as DownloadParams;
-                    _downManager.Add(dp.Url, dp.ThumbUrl, dp.Timestamp, dp.IsSinglePage, dp.OverwriteExists, jpeg: dp.SaveAsJPEG, largepreview: dp.SaveLargePreview);
+                    if (obj is DownloadParams)
+                    {
+                        var dp = obj as DownloadParams;
+                        _downManager.Add(dp.Url, dp.ThumbUrl, dp.Timestamp, dp.IsSinglePage, dp.OverwriteExists, jpeg: dp.SaveAsJPEG, largepreview: dp.SaveLargePreview);
+                    }
+                    else if (obj is IEnumerable<string>)
+                    {
+                        foreach(var url in obj as IEnumerable<string>)
+                        {
+                            var dp = new DownloadParams() { Url = url, Timestamp = url.ParseDateTime() };
+                            var id = url.GetIllustId();
+                            var work = id.FindIllust();
+                            if (work.IsWork()) { dp.ThumbUrl = work.GetThumbnailUrl(); dp.IsSinglePage = (work.PageCount ?? 1) <= 1; }
+                            _downManager.Add(dp.Url, dp.ThumbUrl, dp.Timestamp, dp.IsSinglePage, dp.OverwriteExists, jpeg: dp.SaveAsJPEG, largepreview: dp.SaveLargePreview);
+                        }
+                    }
+                    else if (obj is string && !string.IsNullOrEmpty(obj as string))
+                    {
+                        var urls = (obj as string).Split(Application.Current.GetLineBreak(), StringSplitOptions.RemoveEmptyEntries); ;
+                        foreach (var url in urls)
+                        {
+                            var dp = new DownloadParams() { Url = url, Timestamp = url.ParseDateTime() };
+                            var id = url.GetIllustId();
+                            var work = id.FindIllust();
+                            if (work.IsWork()) { dp.ThumbUrl = work.GetThumbnailUrl(); dp.IsSinglePage = (work.PageCount ?? 1) <= 1; }
+                            _downManager.Add(dp.Url, dp.ThumbUrl, dp.Timestamp, dp.IsSinglePage, dp.OverwriteExists, jpeg: dp.SaveAsJPEG, largepreview: dp.SaveLargePreview);
+                        }
+                    }
                 }
             }).InvokeAsync();
         });
