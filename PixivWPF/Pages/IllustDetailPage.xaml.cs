@@ -3518,17 +3518,22 @@ namespace PixivWPF.Pages
             //if (sender == PreviewOpenDownloaded || (sender is MenuItem && (sender as MenuItem).Uid.Equals("ActionOpenDownloaded", StringComparison.CurrentCultureIgnoreCase)))
             if (sender == PreviewOpenDownloaded || uid.Equals("ActionOpenDownloaded", StringComparison.CurrentCultureIgnoreCase))
             {
+                var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
                 var shift = Keyboard.Modifiers == ModifierKeys.Shift;
                 if (Contents.Count <= 1 || SubIllusts.SelectedItems.Count == 0)
                 {
-                    if (shift) Commands.CopyDownloadedPath.Execute(Contents);
+                    if (ctrl) Commands.CopyDownloadedPath.Execute(Contents);
                     else Commands.OpenDownloaded.Execute(Contents);
                 }
                 else
                 {
-                    if (shift) Commands.CopyDownloadedPath.Execute(SubIllusts);
+                    if (ctrl) Commands.CopyDownloadedPath.Execute(SubIllusts);
                     else Commands.OpenDownloaded.Execute(SubIllusts);
                 }
+            }
+            else if (uid.Equals("ActionOpenDownloadedWith", StringComparison.CurrentCultureIgnoreCase))
+            {
+                Commands.OpenDownloadedWith.Execute(Contents);
             }
             else if (sender == PreviewOpen)
             {
@@ -5774,6 +5779,7 @@ namespace PixivWPF.Pages
             {
                 if (sender is MenuItem)
                 {
+                    var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
                     var shift = Keyboard.Modifiers == ModifierKeys.Shift;
                     var mi = sender as MenuItem;
                     var host = mi.GetContextMenuHost();
@@ -5781,21 +5787,21 @@ namespace PixivWPF.Pages
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
-                            if (shift)
+                            if (ctrl)
                                 Commands.CopyDownloadedPath.Execute(SubIllusts);
                             else
                                 Commands.OpenDownloaded.Execute(SubIllusts);
                         }
                         else if (host == RelatedItemsExpander || host == RelatedItems)
                         {
-                            if (shift)
+                            if (ctrl)
                                 Commands.CopyDownloadedPath.Execute(RelatedItems);
                             else
                                 Commands.OpenDownloaded.Execute(RelatedItems);
                         }
                         else if (host == FavoriteItemsExpander || host == FavoriteItems)
                         {
-                            if (shift)
+                            if (ctrl)
                                 Commands.CopyDownloadedPath.Execute(FavoriteItems);
                             else
                                 Commands.OpenDownloaded.Execute(FavoriteItems);

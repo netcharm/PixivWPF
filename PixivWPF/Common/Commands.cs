@@ -1734,6 +1734,97 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("OpenDownloaded"); }
         });
 
+        public static ICommand OpenDownloadedWith { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            try
+            {
+                if (obj is PixivItem)
+                {
+                    var item = obj as PixivItem;
+                    if (item.IsWork())
+                    {
+                        var illust = item.Illust;
+
+                        string fp = string.Empty;
+
+                        if (item.HasPages() && item.Count > 1)
+                        {
+                            if (item.Index >= 0 && item.Index < item.Count)
+                            {
+                                if (illust.IsDownloadedAsync(out fp, item.Index, touch: false)) fp.OpenFileWithShell(openwith: true);
+                            }
+                            else
+                            {
+                                for (var i = 0; i < item.Count; i++)
+                                {
+                                    if (illust.IsDownloadedAsync(out fp, i, touch: false)) fp.OpenFileWithShell(openwith: true);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (item.IsPage() || item.IsPages())
+                                illust.IsDownloadedAsync(out fp, item.Index, touch: false);
+                            else if (item.NoPage())
+                                illust.IsDownloadedAsync(out fp, true, item.Index, touch: false);
+                            else
+                                illust.IsPartDownloadedAsync(out fp, touch: false);
+
+                            if (!string.IsNullOrEmpty(fp)) fp.OpenFileWithShell(openwith: true);
+                        }
+                    }
+                }
+                else if (obj is ImageListGrid)
+                {
+                    var gallery = obj as ImageListGrid;
+                    if (gallery.Count > 0) OpenDownloaded.Execute(gallery.GetSelected());
+                }
+                else if (obj is IList<PixivItem>)
+                {
+                    await new Action(async () =>
+                    {
+                        var gallery = obj as IList<PixivItem>;
+                        if (gallery.Count() > 0 && ParallelExecutionConfirm(gallery))
+                        {
+                            foreach (var item in gallery)
+                            {
+                                await new Action(() =>
+                                {
+                                    OpenDownloaded.Execute(item);
+                                }).InvokeAsync();
+                            }
+                        }
+                    }).InvokeAsync();
+                }
+                else if (obj is TilesPage)
+                {
+                    (obj as TilesPage).OpenIllust();
+                }
+                else if (obj is IllustDetailPage)
+                {
+                    (obj as IllustDetailPage).OpenIllust();
+                }
+                else if (obj is IllustImageViewerPage)
+                {
+                    (obj as IllustImageViewerPage).OpenIllust();
+                }
+                else if (obj is SearchResultPage)
+                {
+                    (obj as SearchResultPage).OpenIllust();
+                }
+                else if (obj is HistoryPage)
+                {
+                    (obj as HistoryPage).OpenIllust();
+                }
+                else if (obj is Window)
+                {
+                    var win = obj as Window;
+                    if (win.Content is Page) OpenDownloaded.Execute(win.Content);
+                }
+            }
+            catch (Exception ex) { ex.ERROR("OpenDownloaded"); }
+        });
+
         public static ICommand ShowMeta { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try

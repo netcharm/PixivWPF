@@ -2884,7 +2884,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool OpenFileWithShell(this string FileName, bool ShowFolder = false, string command = "", string custom_params = "")
+        public static bool OpenFileWithShell(this string FileName, bool ShowFolder = false, string command = "", string custom_params = "", bool openwith = false)
         {
             bool result = false;
             try
@@ -2929,7 +2929,7 @@ namespace PixivWPF.Common
 
                         var AltViewer = (int)(Keyboard.Modifiers & (ModifierKeys.Alt | ModifierKeys.Control)) == 3 ? !setting.ShellImageViewerEnabled : setting.ShellImageViewerEnabled;
                         var ShowProperties = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
-                        var UsingOpenWith = !ShowProperties && Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? true : false;
+                        var UsingOpenWith = openwith || (!ShowProperties && Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? true : false);
 
                         var SysDir = Path.Combine(WinDir, Environment.Is64BitOperatingSystem ? "SysWOW64" : "System32", "OpenWith.exe");
                         var OpenWith = string.IsNullOrEmpty(WinDir) ? string.Empty : SysDir;
