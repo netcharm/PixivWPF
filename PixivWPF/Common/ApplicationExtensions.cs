@@ -1122,7 +1122,12 @@ namespace PixivWPF.Common
                     ContentWindow w = null;
                     result = _ContentWindows_.TryRemove(win.Key, out w);
                 }
-                if (update) _ContentWindows_.AddOrUpdate(string.IsNullOrEmpty(title) ? window.Title : title, window, (k, v) => window);
+                if (update)
+                {
+                    //_ContentWindows_.AddOrUpdate(string.IsNullOrEmpty(title) ? window.Title : title, window, (k, v) => window);
+                    if (_ContentWindows_.ContainsKey(title)) result = _ContentWindows_.TryUpdate(title, window, _ContentWindows_[title]);
+                    else result = _ContentWindows_.TryAdd(title, window);
+                }
             }
             catch (Exception ex) { ex.ERROR("UpdateContentWindows"); }
             return (result);
@@ -2185,8 +2190,7 @@ namespace PixivWPF.Common
         public static void AddToast(this Application app, Window win)
         {
             InitTaskTimer();
-            toast_list[win] = Environment.TickCount;
-            CloseToastAsync();
+            if (toast_list.TryAdd(win, Environment.TickCount)) CloseToastAsync();
         }
 
         private static async void CloseToastAsync()

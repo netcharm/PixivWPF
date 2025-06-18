@@ -11653,9 +11653,9 @@ namespace PixivWPF.Common
                     };
                     _dialogService.ClearNotifications();
                     _dialogService.ShowNotificationWindow(newNotification, cfg);
-                    _dialogService.DoEvents();
-                    await Task.Delay(1);
-                }).InvokeAsync(System.Windows.Threading.DispatcherPriority.Background);
+                    //_dialogService.DoEvents();
+                    //await Task.Delay(1);
+                }).InvokeAsync(System.Windows.Threading.DispatcherPriority.ContextIdle);
             }
             catch (Exception ex) { ex.ERROR("ShowDownloadToast"); }
         }

@@ -2416,6 +2416,7 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         });
 
+        private static SemaphoreSlim RunningDownloadAction = new SemaphoreSlim(1, 1);
         public static ICommand RunDownloadItemAction { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is Action<DownloadInfo>)
@@ -2424,22 +2425,30 @@ namespace PixivWPF.Common
                 if (_downManager is DownloadManagerPage)
                 {
                     var items = _downManager.GetSelectedItems();
-                    if (items is IEnumerable<DownloadInfo> && items.Count() > 0 && ParallelExecutionConfirm(items))
+                    if (await RunningDownloadAction.WaitAsync(0))
                     {
-                        foreach (var item in items)
+                        try
                         {
-                            if (item is DownloadInfo)
+                            if (items is IEnumerable<DownloadInfo> && items.Count() > 0 && ParallelExecutionConfirm(items))
                             {
-                                await new Action(() =>
+                                foreach (var item in items)
                                 {
-                                    try
+                                    if (item is DownloadInfo)
                                     {
-                                        (obj as Action<DownloadInfo>).Invoke(item);
+                                        await new Action(() =>
+                                        {
+                                            try
+                                            {
+                                                (obj as Action<DownloadInfo>).Invoke(item);
+                                            }
+                                            catch (Exception ex) { ex.ERROR(); }
+                                        }).InvokeAsync();
                                     }
-                                    catch (Exception ex) { ex.ERROR(); }
-                                }).InvokeAsync();
+                                }
                             }
                         }
+                        catch { }
+                        finally { RunningDownloadAction.Release(); }
                     }
                 }            
             }
