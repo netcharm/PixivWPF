@@ -2473,25 +2473,32 @@ namespace PixivWPF.Pages
 
                                 RelatedNextPage.Show(!next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase));
 
+                                var page_total = IllustSize.Text.CalcTotalPages();
+
                                 if (!append)
                                 {
                                     RelatedItemsExpander.Tag = lastUrl;
                                     CurrentRelatedURL = lastUrl;
 
                                     RelatedPrevPage.Tag = string.IsNullOrEmpty(CurrentRelatedURL) ? Contents.MakeUserWorkNextUrl().CalcPrevUrl(totals: IllustSize.Text) : CurrentRelatedURL.CalcPrevUrl(totals: IllustSize.Text);
+                                    RelatedPrevPage.ToolTip = $"Page: {RelatedCurrentPages.Text} / {page_total}";
+                                    RelatedPrevPage.Show(show: page_total > 1);
                                 }
+
+                                var page_current = CurrentRelatedURL.CalcPageNum();
 
                                 RelatedNextURL = next_url;
 
-                                RelatedPrevPage.ToolTip = RelatedNextPage.ToolTip;
-                                RelatedPrevPage.Show(show: IllustSize.Text.CalcTotalPages() > 1);
+                                RelatedCurrentPages.Text = $"{page_current}";
+                                RelatedCurrentPages.ToolTip = $"Page: {page_current} / {page_total}";
+                                RelatedCurrentPages.Show(show: page_total >= 1);
 
                                 RelatedNextPage.Tag = next_url;
                                 RelatedNextPage.ToolTip = CurrentRelatedURL.CalcUrlPageHint(IllustSize.Text);
                                 RelatedNextPage.Show(show: IllustSize.Text.CalcTotalPages() > 1);
 
                                 RelatedNextAppend.ToolTip = RelatedItemsExpander.ToolTip;
-                                RelatedNextAppend.Show(show: IllustSize.Text.CalcTotalPages() > 1);
+                                RelatedNextAppend.Show(show: page_total > 1);
 
                                 foreach (var illust in related.illusts)
                                 {
@@ -2607,9 +2614,13 @@ namespace PixivWPF.Pages
                         FavoriteNextPage.ToolTip = next_url.CalcUrlPageHint(0, FavoriteNextPage.ToolTip is string ? FavoriteNextPage.ToolTip as string : null);
                         FavoriteNextPage.Show(show: !string.IsNullOrEmpty(CurrentFavoriteURL) || !string.IsNullOrEmpty(next_url));
 
+                        //FavoriteCurrentPages.Text = $"{CurrentFavoriteURL.CalcPageNum()}";
+                        //FavoriteCurrentPages.ToolTip = $"Page: {FavoriteCurrentPages.Text} / {IllustSize.Text.CalcTotalPages()}";
+                        //FavoriteCurrentPages.Show(show: IllustSize.Text.CalcTotalPages() > 1);
+
                         FavoriteNextAppend.ToolTip = FavoriteItemsExpander.ToolTip;
                         FavoriteNextAppend.Show(show: !string.IsNullOrEmpty(CurrentFavoriteURL) || !string.IsNullOrEmpty(next_url));
-
+                        
                         foreach (var illust in favorites.illusts)
                         {
                             if (favorite_illusts.Contains(illust.Id)) continue;

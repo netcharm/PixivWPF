@@ -556,8 +556,8 @@ namespace PixivWPF.Pages
                 {
                     if (item is DownloadInfo)
                     {
-                        if (shift && (item as DownloadInfo).State == DownloadItemState.Finished) { targets.Add((item as DownloadInfo).FileName); }
-                        else if (ctrl) { targets.Add((item as DownloadInfo).FileName); }
+                        if (ctrl && (item as DownloadInfo).State == DownloadItemState.Finished) { targets.Add((item as DownloadInfo).FileName); }
+                        else if (shift) { targets.Add((item as DownloadInfo).FileName); }
                         else targets.Add((item as DownloadInfo).IllustID.ToString());//.FileName.ParseLink().ParseID());
                     }
                 }

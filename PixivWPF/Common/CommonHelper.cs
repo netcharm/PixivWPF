@@ -3336,8 +3336,7 @@ namespace PixivWPF.Common
                 int pages = CalcTotalPages(totals);
                 int page = CalcPageNum(offset);
                 if (page == 0) page = pages;
-                if (pages <= 0) result = $"Page: {page}";
-                else result = $"Page: {page} / {pages}";
+                result = pages <= 0 ? $"Page: {page}" : $"Page: {page} / {pages}";
             }
             catch (Exception ex) { ex.ERROR("CalcUrlPages"); }
             return (result);
@@ -11654,7 +11653,7 @@ namespace PixivWPF.Common
                     _dialogService.ClearNotifications();
                     _dialogService.ShowNotificationWindow(newNotification, cfg);
                     //_dialogService.DoEvents();
-                    //await Task.Delay(1);
+                    await Task.Delay(1);
                 }).InvokeAsync(System.Windows.Threading.DispatcherPriority.ContextIdle);
             }
             catch (Exception ex) { ex.ERROR("ShowDownloadToast"); }
