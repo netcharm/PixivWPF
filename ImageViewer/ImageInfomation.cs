@@ -54,7 +54,7 @@ namespace ImageViewer
             set
             {
                 CancelGetInfo?.Cancel();
-                if (_original_ is MagickImage) { _original_.Dispose(); _original_ = null; }
+                if (_original_ is not null) { _original_.Dispose(); _original_ = null; }
                 _original_ = new MagickImage(value);
                 FixDPI(_original_);
                 _OriginalModified_ = true;
@@ -63,7 +63,7 @@ namespace ImageViewer
                 if (ValidOriginal)
                 {
                     _original_thumb_ = CreateThumbnail(_original_, ThumbSize);
-                    _original_.FilterType = ResizeFilter;
+                    _original_?.FilterType = ResizeFilter;
                     Dispatcher.CurrentDispatcher.Invoke(async () => { await Reload(); });
                 }
                 GetProfiles();
@@ -180,14 +180,14 @@ namespace ImageViewer
             set
             {
                 CancelGetInfo?.Cancel();
-                if (_original_ is MagickImage) { _original_?.Dispose(); _original_ = null; }
+                if (_original_ is not null) { _original_?.Dispose(); _original_ = null; }
                 if (value != null)
                 {
                     _original_ = new MagickImage(value);
                     _CurrentModified_ = true;
-                    if (_original_ is MagickImage)
+                    if (_original_ is not null)
                     {
-                        _original_.FilterType = ResizeFilter;
+                        _original_?.FilterType = ResizeFilter;
                         if (ValidOriginal && !string.IsNullOrEmpty(FileName))
                         {
                             if (_original_.Endian == Endian.Undefined) _original_.Endian = DetectFileEndian(FileName);
@@ -250,7 +250,7 @@ namespace ImageViewer
         public IMagickColor<byte> MasklightColor = null;
 #endif
         public ImageOpMode OpMode = ImageOpMode.None;
-        public Percentage ColorFuzzy = new Percentage();
+        public Percentage ColorFuzzy = new();
 
         public uint ChannelCount { get { return (ValidOriginal ? Original.ChannelCount : (ValidCurrent ? Current.ChannelCount : 0)); } }
         public string MemoryUsageMode
@@ -267,7 +267,7 @@ namespace ImageViewer
             }
         }
 
-        private Size _basesize_ = new Size(0, 0);
+        private Size _basesize_ = new(0, 0);
         public Size BaseSize { get { return (ValidCurrent ? _basesize_ : new Size(0, 0)); } }
 
         private ColorSpace _last_colorspace_ = ColorSpace.Undefined;
@@ -301,7 +301,7 @@ namespace ImageViewer
 
         private bool ValidImage(MagickImage image)
         {
-            return (image is MagickImage);
+            return (image is not null);
         }
 
         public FrameworkElement Tagetment { get; set; } = null;
@@ -339,8 +339,8 @@ namespace ImageViewer
             }
         }
 
-        public Dictionary<string, IImageProfile> Profiles { get; set; } = new Dictionary<string, IImageProfile>();
-        public Dictionary<string, string> Attributes { get; set; } = new Dictionary<string, string>();
+        public Dictionary<string, IImageProfile> Profiles { get; set; } = [];
+        public Dictionary<string, string> Attributes { get; set; } = [];
 
         public bool FlipX { get; set; } = false;
         public bool FlipY { get; set; } = false;
@@ -362,7 +362,7 @@ namespace ImageViewer
         /// <param name="use_system"></param>
         public void FixDPI(MagickImage image = null, bool use_system = false)
         {
-            if (image == null) image = Current ?? Original ?? null;
+            image ??= Current ?? Original ?? null;
             if (ValidImage(image))
             {
                 var dpi = Application.Current.GetSystemDPI();
@@ -450,7 +450,7 @@ namespace ImageViewer
             if (File.Exists(file))
             {
                 var exif = new CompactExifLib.ExifData(file);
-                if (exif is CompactExifLib.ExifData)
+                if (exif is not null)
                 {
                     if (exif.ByteOrder == CompactExifLib.ExifByteOrder.BigEndian) result = Endian.MSB;
                     else if (exif.ByteOrder == CompactExifLib.ExifByteOrder.LittleEndian) result = Endian.LSB;
@@ -465,10 +465,10 @@ namespace ImageViewer
         public Endian DetectFileEndian(Stream stream)
         {
             var result = Endian.Undefined;
-            if (stream is Stream && stream.CanRead && stream.CanSeek)
+            if (stream is not null && stream.CanRead && stream.CanSeek)
             {
                 var exif = new CompactExifLib.ExifData(stream);
-                if (exif is CompactExifLib.ExifData)
+                if (exif is not null)
                 {
                     if (exif.ByteOrder == CompactExifLib.ExifByteOrder.BigEndian) result = Endian.MSB;
                     else if (exif.ByteOrder == CompactExifLib.ExifByteOrder.LittleEndian) result = Endian.LSB;
@@ -600,7 +600,7 @@ namespace ImageViewer
         public uint CalcColorDepth(MagickImage image)
         {
             uint result = 0;
-            if (image is MagickImage)
+            if (image is not null)
             {
                 result = image.Depth * image.ChannelCount;
                 if (image.ColorType == ColorType.Bilevel) result = 2;
@@ -641,13 +641,13 @@ namespace ImageViewer
         ///
         /// </summary>
         private bool IsGetInfo = false;
-        private readonly SemaphoreSlim _refresh_info_ = new SemaphoreSlim(1);
-        private CancellationTokenSource CancelGetInfo = new CancellationTokenSource();
+        private readonly SemaphoreSlim _refresh_info_ = new(1);
+        private CancellationTokenSource CancelGetInfo = new();
 
         private int? _last_file_index_ = null;
         private int? _last_file_count_ = null;
-        private string[] _last_file_list_ = new string[0];
-        private readonly Dictionary<int, string> _last_file_cache_list_ = new Dictionary<int, string>();
+        private string[] _last_file_list_ = [];
+        private readonly Dictionary<int, string> _last_file_cache_list_ = [];
 
         /// <summary>
         /// 
@@ -806,7 +806,7 @@ namespace ImageViewer
                         $"{endian}"
                     };
 
-                    if (ImageFileInfo is FileInfo)
+                    if (ImageFileInfo is not null)
                     {
                         ImageFileInfo.Refresh();
                         var FileSize = ImageFileInfo.Exists && File.Exists(ImageFileInfo.FullName) ? ImageFileInfo.Length : -1;
@@ -868,7 +868,7 @@ namespace ImageViewer
                         {
                             if (CancelGetInfo.IsCancellationRequested) return (ret);
                             var fi = OriginalIsFile ? new FileInfo(FileName) : null;
-                            if (fi is FileInfo && fi.Exists)
+                            if (fi is not null && fi.Exists)
                             {
                                 if (CancelGetInfo.IsCancellationRequested) return (ret);
                                 if (Original?.Endian == Endian.Undefined) Original.Endian = DetectFileEndian(fi.FullName);
@@ -902,7 +902,7 @@ namespace ImageViewer
                             var tags = new Dictionary<string, IExifValue>();
                             foreach (var tv in exif.Values) { tags[$"exif:{tv.Tag}"] = tv; }
                             if (CancelGetInfo.IsCancellationRequested) return (ret);
-                            foreach (var attr in Current?.AttributeNames?.Union(new string[] { "exif:Rating", "exif:RatingPercent" }).Union(tags.Keys))
+                            foreach (var attr in Current?.AttributeNames?.Union(["exif:Rating", "exif:RatingPercent"]).Union(tags.Keys))
                             {
                                 try
                                 {
@@ -916,9 +916,9 @@ namespace ImageViewer
                                     else if (attr.StartsWith("date:", StringComparison.CurrentCultureIgnoreCase))
                                     {
                                         var d = DateTime.Now;
-                                        if (fi is FileInfo && attr.EndsWith(":create", StringComparison.CurrentCultureIgnoreCase))
+                                        if (fi is not null && attr.EndsWith(":create", StringComparison.CurrentCultureIgnoreCase))
                                             value = fi.CreationTime.ToLocalTime().ToString();
-                                        else if (fi is FileInfo && attr.EndsWith(":modify", StringComparison.CurrentCultureIgnoreCase))
+                                        else if (fi is not null && attr.EndsWith(":modify", StringComparison.CurrentCultureIgnoreCase))
                                             value = fi.LastWriteTime.ToLocalTime().ToString();
                                         else if (DateTime.TryParse(value, out d))
                                             value = d.ToLocalTime().ToString();
@@ -961,7 +961,7 @@ namespace ImageViewer
                                     else if (attr.StartsWith("exif:GPS") && attr.Contains("itude"))
                                     {
                                         var tag = exif.Values.Where(v => v.Tag.ToString().Equals(attr.Substring(5))).FirstOrDefault();
-                                        if (tag is IExifValue)
+                                        if (tag is not null)
                                         {
                                             if (attr.EndsWith("Ref"))
                                                 value = tag.GetValue().ToString().Trim('\0');
@@ -1058,7 +1058,7 @@ namespace ImageViewer
                                     if (string.IsNullOrEmpty(value)) continue;
                                     if (attr.EndsWith("Keywords") || attr.EndsWith("Author") || attr.EndsWith("Artist") || attr.EndsWith("Copyright") || attr.EndsWith("Copyrights"))
                                     {
-                                        var keywords = value.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(w => w.Trim()).ToList();
+                                        var keywords = value.Split([';'], StringSplitOptions.RemoveEmptyEntries).Select(w => w.Trim()).ToList();
                                         for (var i = 5; i < keywords.Count; i += 5) { keywords[i] = $"{Environment.NewLine}{keywords[i]}"; }
                                         value = string.Join("; ", keywords) + ';';
                                     }
@@ -1093,7 +1093,7 @@ namespace ImageViewer
 
                         if (!string.IsNullOrEmpty(FileName))
                         {
-                            if (ImageFileInfo is FileInfo)
+                            if (ImageFileInfo is not null)
                             {
                                 var FileSize = ImageFileInfo.Exists && File.Exists(ImageFileInfo.FullName) ? ImageFileInfo.Length : -1;
                                 tip.Add($"{"InfoTipFileSize".T()} {FileSize.SmartFileSize()}, {Original?.Endian}");
@@ -1373,7 +1373,7 @@ namespace ImageViewer
         /// <summary>
         /// 
         /// </summary>
-        private readonly SemaphoreSlim _loading_image_ = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _loading_image_ = new(1);
 
         /// <summary>
         ///
@@ -1398,50 +1398,48 @@ namespace ImageViewer
                         FileName = ImageFileInfo.FullName;
                         var ext = Path.GetExtension(FileName).ToLower();
 
-                        using (var fs = new FileStream(FileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        using var fs = new FileStream(FileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+                        if (ext.Equals(".cube"))
                         {
-                            if (ext.Equals(".cube"))
+                            Original = fs.Lut2Png();
+                        }
+                        else
+                        {
+                            var exif = new CompactExifLib.ExifData(fs);
+                            if (exif.ImageType == CompactExifLib.ImageType.Unknown)
                             {
-                                Original = fs.Lut2Png();
+                                OriginalDepth = 0;
+                                OriginalEndian = Endian.Undefined;
                             }
                             else
                             {
-                                var exif = new CompactExifLib.ExifData(fs);
-                                if (exif.ImageType == CompactExifLib.ImageType.Unknown)
-                                {
-                                    OriginalDepth = 0;
-                                    OriginalEndian = Endian.Undefined;
-                                }
-                                else
-                                {
-                                    OriginalDepth = (uint)exif.ColorDepth;
-                                    OriginalEndian = exif.ByteOrder == CompactExifLib.ExifByteOrder.LittleEndian ? Endian.LSB : Endian.MSB;
-                                }
-
-                                fs.Seek(0, SeekOrigin.Begin);
-                                try
-                                {
-                                    var count = 0;
-                                    var image = new MagickImage(fs, ext.GetImageFileFormat());
-                                    while ((image.MetaChannelCount > 0 || CalcColorDepth(image) < OriginalDepth) && count < 20)
-                                    {
-                                        fs.Seek(0, SeekOrigin.Begin);
-                                        image = new MagickImage(fs, ext.GetImageFileFormat());
-                                        count++;
-                                    }
-                                    FixEndian(image, OriginalEndian);
-                                    Original = new MagickImage(image);
-                                    image.Dispose();
-                                }
-                                catch
-                                {
-                                    if (fs.CanSeek) fs.Seek(0, SeekOrigin.Begin);
-                                    Original = new MagickImage(fs, MagickFormat.Unknown);
-                                }
-                                //_simple_info_ = GetSimpleInfo().Result;
+                                OriginalDepth = (uint)exif.ColorDepth;
+                                OriginalEndian = exif.ByteOrder == CompactExifLib.ExifByteOrder.LittleEndian ? Endian.LSB : Endian.MSB;
                             }
-                            ret = Original.IsValidRead();
+
+                            fs.Seek(0, SeekOrigin.Begin);
+                            try
+                            {
+                                var count = 0;
+                                var image = new MagickImage(fs, ext.GetImageFileFormat());
+                                while ((image.MetaChannelCount > 0 || CalcColorDepth(image) < OriginalDepth) && count < 20)
+                                {
+                                    fs.Seek(0, SeekOrigin.Begin);
+                                    image = new MagickImage(fs, ext.GetImageFileFormat());
+                                    count++;
+                                }
+                                FixEndian(image, OriginalEndian);
+                                Original = new MagickImage(image);
+                                image.Dispose();
+                            }
+                            catch
+                            {
+                                if (fs.CanSeek) fs.Seek(0, SeekOrigin.Begin);
+                                Original = new MagickImage(fs, MagickFormat.Unknown);
+                            }
+                            //_simple_info_ = GetSimpleInfo().Result;
                         }
+                        ret = Original.IsValidRead();
                     }
                     catch (Exception ex) { ex.ShowMessage(); }
                     finally { _loading_image_.Release(); }
@@ -1495,7 +1493,7 @@ namespace ImageViewer
                     var ret = false;
                     try
                     {
-                        DataObject dataPackage = new DataObject();
+                        DataObject dataPackage = new();
                         MemoryStream ms = null;
 
                         #region Copy Standard Bitmap date to Clipboard
@@ -1503,14 +1501,14 @@ namespace ImageViewer
                         dataPackage.SetImage(bs);
                         #endregion
                         #region Copy other MIME format data to Clipboard
-                        string[] fmts = image.IsJPG() ? new string[] { "image/jpg", "image/jpeg", "CF_DIBV5" } : new string[] { "PNG", "image/png", "image/bmp", "image/jpg", "image/jpeg", "CF_DIBV5" };
+                        string[] fmts = image.IsJPG() ? ["image/jpg", "image/jpeg", "CF_DIBV5"] : ["PNG", "image/png", "image/bmp", "image/jpg", "image/jpeg", "CF_DIBV5"];
                         foreach (var fmt in fmts)
                         {
                             if (fmt.Equals("CF_DIBV5", StringComparison.CurrentCultureIgnoreCase))
                             {
                                 //if (image.ColorSpace == ColorSpace.scRGB) image.ColorSpace = ColorSpace.sRGB;
                                 byte[] arr = image.ToByteArray(MagickFormat.Bmp3);
-                                byte[] dib = arr.Skip(14).ToArray();
+                                byte[] dib = [.. arr.Skip(14)];
                                 ms = new MemoryStream(dib);
                                 dataPackage.SetData(fmt, ms);
                                 await ms.FlushAsync();
@@ -1601,39 +1599,37 @@ namespace ImageViewer
                     var fm = "-mask";
                     file = fn.ToLower().Contains(fm) ? Path.Combine(fd, $"{fn}.tiff") : Path.Combine(fd, $"{fn}{fm}.tiff");
 
-                    using (var target = new MagickImage(image) { BackgroundColor = MagickColors.Black, MatteColor = new MagickColor(MasklightColor.R, MasklightColor.G, MasklightColor.B) })
+                    using var target = new MagickImage(image) { BackgroundColor = MagickColors.Black, MatteColor = new MagickColor(MasklightColor.R, MasklightColor.G, MasklightColor.B) };
+                    var threshold_color = new MagickColor(HighlightColor.R, HighlightColor.G, HighlightColor.B);
+                    FixDPI(target, use_system: true);
+                    if (OpMode == ImageOpMode.Compose)
                     {
-                        var threshold_color = new MagickColor(HighlightColor.R, HighlightColor.G, HighlightColor.B);
-                        FixDPI(target, use_system: true);
-                        if (OpMode == ImageOpMode.Compose)
-                        {
-                            target.Grayscale();
-                            target.LevelColors(MagickColors.White, MagickColors.Black);
-                            if (LowlightColor.HasAlpha() || LowlightColor == null) target.ColorAlpha(MagickColors.White);
-                            target.Threshold(new Percentage(100 - ColorFuzzy.ToDouble() - 5.0));
-                        }
-                        else if (HighlightColor.HasAlpha() || LowlightColor.HasAlpha() || MasklightColor.HasAlpha())
-                        {
-                            target.Grayscale();
-                            target.ColorAlpha(MagickColors.White);
-                            target.LevelColors(MagickColors.Black, MagickColors.White);
-                            target.AutoThreshold(AutoThresholdMethod.OTSU);
-                        }
-                        else
-                        {
-                            target.ColorThreshold(threshold_color, threshold_color);
-                            target.LevelColors(MagickColors.White, MagickColors.Black);
-                        }
-                        target.Format = format;
-                        target.SetCompression(CompressionMethod.Zip);
-                        target.Settings.Compression = CompressionMethod.Zip;
-                        target.ColorType = ColorType.Palette;
-                        target.ColorSpace = ColorSpace.Gray;
-                        target.Depth = 8;
-
-                        target.Write(file, format);
-                        result = true;
+                        target.Grayscale();
+                        target.LevelColors(MagickColors.White, MagickColors.Black);
+                        if (LowlightColor.HasAlpha() || LowlightColor == null) target.ColorAlpha(MagickColors.White);
+                        target.Threshold(new Percentage(100 - ColorFuzzy.ToDouble() - 5.0));
                     }
+                    else if (HighlightColor.HasAlpha() || LowlightColor.HasAlpha() || MasklightColor.HasAlpha())
+                    {
+                        target.Grayscale();
+                        target.ColorAlpha(MagickColors.White);
+                        target.LevelColors(MagickColors.Black, MagickColors.White);
+                        target.AutoThreshold(AutoThresholdMethod.OTSU);
+                    }
+                    else
+                    {
+                        target.ColorThreshold(threshold_color, threshold_color);
+                        target.LevelColors(MagickColors.White, MagickColors.Black);
+                    }
+                    target.Format = format;
+                    target.SetCompression(CompressionMethod.Zip);
+                    target.Settings.Compression = CompressionMethod.Zip;
+                    target.ColorType = ColorType.Palette;
+                    target.ColorSpace = ColorSpace.Gray;
+                    target.Depth = 8;
+
+                    target.Write(file, format);
+                    result = true;
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }
@@ -1741,7 +1737,7 @@ namespace ImageViewer
                             if (exif is ExifProfile)
                             {
                                 var xmp = exif.GetValue(ExifTag.XMP).Value;
-                                if (xmp is byte[] && xmp.Length > 0) target.SetProfile(new XmpProfile(xmp));
+                                if (xmp is not null && xmp.Length > 0) target.SetProfile(new XmpProfile(xmp));
                             }
                         }
 
@@ -1968,7 +1964,7 @@ namespace ImageViewer
             {
                 ImageFileInfo = new FileInfo(FileName);
             }
-            if (ImageFileInfo is FileInfo)
+            if (ImageFileInfo is not null)
             {
                 ImageFileInfo.Refresh();
                 result = true;
@@ -2017,7 +2013,7 @@ namespace ImageViewer
                         FlipY = false;
                         Rotated = 0;
                         ResetTransform();
-                        if (geo is MagickGeometry)
+                        if (geo is not null)
                         {
                             Current.Resize(geo);
                             Current.ResetPage();
