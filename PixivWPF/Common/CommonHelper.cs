@@ -2202,7 +2202,7 @@ namespace PixivWPF.Common
                         else if (v >= 0xFE00 && v <= 0xFE8F)
                             result = result.Replace(match.Value, $"&#x{v:X4};");
                     }
-                    result = Regex.Replace(result, @"[\uFE00-\uFE7F]", m => $"&#x{Convert.ToInt32(m.Value):X4};", RegexOptions.IgnoreCase);
+                    result = Regex.Replace(result, @"[\uFE00-\uFE7F]", m => $"&#x{Convert.ToInt32(m.Value[0]):X4};", RegexOptions.IgnoreCase);
                     result = result.HtmlFormatBreakLine(br);
                 }
                 catch(Exception e) { e.ERROR("HtmlDecode"); }
@@ -2212,9 +2212,9 @@ namespace PixivWPF.Common
 
         public static string HtmlFormatBreakLine(this string text, bool br = true)
         {
-            var result = text.Replace("\r\n", "<br/>").Replace("\n\r", "<br/>").Replace("\r", "<br/>").Replace("\n", "<br/>");
-            if (br) result = result.Replace("<br/>", $"<br/>{Environment.NewLine}");
-            else result = result.Replace("<br/>", Environment.NewLine);
+            var result = text.Replace("\r\n", "<br />").Replace("\n\r", "<br/>").Replace("\r", "<br/>").Replace("\n", "<br/>");
+            if (br) result = Regex.Replace(result, @"<br *?/>", $"<br/>{Environment.NewLine}");
+            else result = Regex.Replace(result, @"<br *?/>", Environment.NewLine);
             return (result);
         }
 
