@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MahApps.Metro.Controls;
+using PixivWPF.Common;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -14,9 +16,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Threading;
-
-using MahApps.Metro.Controls;
-using PixivWPF.Common;
 
 namespace PixivWPF.Pages
 {
@@ -262,7 +261,7 @@ namespace PixivWPF.Pages
                     if (item.Illust.Tags.Count > 0)
                     {
                         var html = new StringBuilder();
-                        html.AppendLine($"<div class=\"tags\" data-illust=\"{item.Illust.GetType().Name}\">");
+                        html.AppendLine($"<DIV class=\"tags\" data-illust=\"{item.Illust.GetType().Name}\">");
                         if (item.Illust is Pixeez.Objects.IllustWork)
                         {
                             foreach (var tag in (item.Illust as Pixeez.Objects.IllustWork).MoreTags)
@@ -286,8 +285,8 @@ namespace PixivWPF.Pages
                                     $"{Contents.ID}, {tag} : {trans_match.Replace("'", "\"")}".DEBUG("TagTranslate");
                             }
                         }
-                        html.AppendLine("</div>");
-                        result = html.ToString().Trim().GetHtmlFromTemplate(item.Illust.Title);
+                        html.AppendLine("</DIV>");
+                        result = html.ToString().Trim().GetHtmlFromTemplate(item.Illust.Title, src: $"https://www.pixiv.net/artworks/{item.ID}");
                     }
                 }
             }
@@ -302,9 +301,9 @@ namespace PixivWPF.Pages
             {
                 if (item.IsWork() && !string.IsNullOrEmpty(item.Illust.Caption))
                 {
-                    var contents = item.Illust.Caption.HtmlDecode();
-                    contents = $"<div class=\"desc\">{Environment.NewLine}{contents.Trim()}{Environment.NewLine}</div>";
-                    result = contents.GetHtmlFromTemplate(item.Illust.Title);
+                    var contents = item.Illust.Caption.HtmlDecode().HtmlClean();
+                    contents = $"<DIV class=\"desc\">{Environment.NewLine}{contents.Trim()}{Environment.NewLine}</DIV>";
+                    result = contents.GetHtmlFromTemplate(item.Illust.Title, src: $"https://www.pixiv.net/artwork/{item.ID}");
                 }
             }
             catch (Exception ex) { ex.ERROR("ILLUSTDESC"); }
@@ -328,7 +327,7 @@ namespace PixivWPF.Pages
                         desc.AppendLine("<div class=\"desc\">");
                         desc.AppendLine($"<b>Account:</b><br/> ");
                         desc.AppendLine($"<div class=\"section\">");
-                        desc.AppendLine($"{nuser.Account} / <a href=\"{nuser.Id.ToString().ArtistLink()}\">{nuser.Id}</a> / {nuser.Name} <br/>");
+                        desc.AppendLine($"{nuser.Account} / <a href=\"{nuser.Id.ToString().ArtistLink()}\">{nuser.Id}</a> / {nuser.Name.HtmlClean()} <br/>");
                         desc.AppendLine($"</div>");
                         desc.AppendLine($"<b>Stat:</b><br/> ");
                         desc.AppendLine($"<div class=\"section\">");
@@ -366,7 +365,7 @@ namespace PixivWPF.Pages
                         }
                         desc.AppendLine("</div>");
 
-                        result = desc.ToString().Trim().GetHtmlFromTemplate(nuser.Name);
+                        result = desc.ToString().Trim().GetHtmlFromTemplate(nuser.Name, src: $"https://www.pixiv.net/users/{nuser.Id}");
                     }
                 }
             }
@@ -383,10 +382,10 @@ namespace PixivWPF.Pages
                 var nprof = info.profile;
                 var nworks = info.workspace;
 
-                var comment = nuser.comment;//.HtmlEncode();
-                var contents = comment.HtmlDecode();
-                contents = $"<div class=\"desc\">{Environment.NewLine}{contents.Trim()}{Environment.NewLine}</div>";
-                result = contents.GetHtmlFromTemplate(IllustAuthor.Text);
+                var comment = nuser.comment;
+                var contents = comment.HtmlDecode().HtmlClean();
+                contents = $"<DIV class=\"desc\">{Environment.NewLine}{contents.Trim()}{Environment.NewLine}</DIV>";
+                result = contents.GetHtmlFromTemplate(IllustAuthor.Text, src: $"https://www.pixiv.net/users/{nuser.Id}");
             }
             catch (Exception ex) { ex.ERROR("USERDESC"); }
             return (result);

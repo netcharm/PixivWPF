@@ -2178,6 +2178,22 @@ namespace PixivWPF.Common
             return (string.Join(Environment.NewLine, ts));
         }
 
+        public static string HtmlClean(this string text)
+        {
+            string result = text;
+            if (!string.IsNullOrEmpty(result))
+            {
+                try
+                {
+                    result = System.Net.WebUtility.HtmlEncode(result);
+                    result = Regex.Replace(result, @"&#(\d+);", m => Convert.ToInt32(m.Groups[1].Value) > 65535 ? $"&#xU+{Convert.ToInt32(m.Groups[1].Value):X4};" : m.Value, RegexOptions.IgnoreCase);
+                    result = System.Net.WebUtility.HtmlDecode(result);
+                }
+                catch (Exception e) { e.ERROR("HtmlClean"); }
+            }
+            return (result);
+        }
+
         public static string HtmlEncode(this string text)
         {
             if (string.IsNullOrEmpty(text)) return (string.Empty);
@@ -2202,7 +2218,7 @@ namespace PixivWPF.Common
                         else if (v >= 0xFE00 && v <= 0xFE8F)
                             result = result.Replace(match.Value, $"&#x{v:X4};");
                     }
-                    result = Regex.Replace(result, @"[\uFE00-\uFE7F]", m => $"&#x{Convert.ToInt32(m.Value[0]):X4};", RegexOptions.IgnoreCase);
+                    result = Regex.Replace(result, @"[\uFE00-\uFE7F]", m => $"&nbsp;&#x{Convert.ToInt32(m.Value[0]):X4};", RegexOptions.IgnoreCase);
                     result = result.HtmlFormatBreakLine(br);
                 }
                 catch(Exception e) { e.ERROR("HtmlDecode"); }
@@ -2359,7 +2375,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string GetHtmlFromTemplate(this string contents, string title = "")
+        public static string GetHtmlFromTemplate(this string contents, string title = "", string src = "")
         {
             var backcolor = Theme.WhiteColor.ToHtml();
             if (backcolor.StartsWith("#FF") && backcolor.Length > 6) backcolor = backcolor.Replace("#FF", "#");
@@ -2371,10 +2387,13 @@ namespace PixivWPF.Common
 
             contents = string.IsNullOrEmpty(contents) ? string.Empty : contents.Trim();
             title = string.IsNullOrEmpty(title) ? string.Empty : title.Trim();
+            src = string.IsNullOrEmpty(src) ? string.Empty : src.Trim();
 
             var template = GetDefaultTemplate();
             template = Regex.Replace(template, @"{%\s*?site\s*?%}", new Uri(Application.Current.GetRoot()).AbsoluteUri, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, @"{%\s*?title\s*?%}", title, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, @"{%\s*?original\s*?%}", src, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, @"{%\s*?source\s*?%}", src, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, @"{%\s*?backcolor\s*?%}", backcolor, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, @"{%\s*?accentcolor\s*?%}", accentcolor, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, @"{%\s*?accentcolor_rgb\s*?%}", accentcolor_rgb, RegexOptions.IgnoreCase);
