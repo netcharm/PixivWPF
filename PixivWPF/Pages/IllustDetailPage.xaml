@@ -1119,7 +1119,7 @@
                             <TextBlock Text="&#xE112;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
-                    <TextBlock x:Name="SubIllustCurrentPages" x:Uid="SubIllustCurrentPages" Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" />
+                    <TextBlock x:Name="SubIllustCurrentPages" x:Uid="SubIllustCurrentPages" Visibility="Collapsed" Style="{DynamicResource ExpanderButtonText}" />
                     <Button 
                         x:Name="SubIllustNextPages" x:Uid="SubIllustNextPages"
                         Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" Click="SubIllustPagesNav_Click">
@@ -1170,7 +1170,7 @@
                             <TextBlock Text="&#xE112;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
-                    <TextBlock x:Name="RelatedCurrentPages" x:Uid="RelatedCurrentPages" Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" />
+                    <TextBlock x:Name="RelatedCurrentPages" x:Uid="RelatedCurrentPages" Visibility="Collapsed" Text="0" Style="{DynamicResource ExpanderButtonText}" />
                     <Button 
                         x:Name="RelatedNextPage" x:Uid="RalatedNextPage" ToolTip="Next Page"
                         Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" Click="RelatedNextPage_Click">
@@ -1229,7 +1229,7 @@
                             <TextBlock Text="&#xE112;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
-                    <TextBlock x:Name="FavoriteCurrentPages" x:Uid="FavoriteCurrentPages" Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" />
+                    <TextBlock x:Name="FavoriteCurrentPages" x:Uid="FavoriteCurrentPages" Visibility="Collapsed" Style="{DynamicResource ExpanderButtonText}" />
                     <Button 
                         x:Name="FavoriteNextPage" x:Uid="FavoriteNextPage" ToolTip="Next Page"
                         Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" Click="FavoriteNextPage_Click">
@@ -1288,7 +1288,7 @@
                             <TextBlock Text="&#xE112;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
-                    <TextBlock x:Name="CommentsCurrentPages" x:Uid="CommentsCurrentPages" Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" />
+                    <TextBlock x:Name="CommentsCurrentPages" x:Uid="CommentsCurrentPages" Visibility="Collapsed" Style="{DynamicResource ExpanderButtonText}" />
                     <Button 
                         x:Name="CommentsNextPage" x:Uid="CommentsNextPage" ToolTip="Next Page"
                         Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" Click="CommentsNextPage_Click">

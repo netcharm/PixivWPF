@@ -1660,6 +1660,8 @@ namespace PixivWPF.Common
 
         private async void miActions_Click(object sender, RoutedEventArgs e)
         {
+            (sender as UIElement).IsEnabled = false;
+
             setting = Application.Current.LoadSetting();
             var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
             var shift = Keyboard.Modifiers == ModifierKeys.Shift;
@@ -1877,6 +1879,8 @@ namespace PixivWPF.Common
                 if (!IsEnabled || !multiple) action.Invoke(Info);
                 else Commands.RunDownloadItemAction.Execute(action);
             }
+
+            (sender as UIElement).IsEnabled = true;
         }
     }
 }

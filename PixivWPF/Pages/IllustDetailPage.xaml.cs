@@ -2474,6 +2474,8 @@ namespace PixivWPF.Pages
                                 RelatedNextPage.Show(!next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase));
 
                                 var page_total = IllustSize.Text.CalcTotalPages();
+                                var page_current = CurrentRelatedURL.CalcPageNum();
+
 
                                 if (!append)
                                 {
@@ -2481,20 +2483,18 @@ namespace PixivWPF.Pages
                                     CurrentRelatedURL = lastUrl;
 
                                     RelatedPrevPage.Tag = string.IsNullOrEmpty(CurrentRelatedURL) ? Contents.MakeUserWorkNextUrl().CalcPrevUrl(totals: IllustSize.Text) : CurrentRelatedURL.CalcPrevUrl(totals: IllustSize.Text);
-                                    RelatedPrevPage.ToolTip = $"Page: {RelatedCurrentPages.Text} / {page_total}";
+                                    RelatedPrevPage.ToolTip = $"Page: {(page_current == 1 ? page_total : page_current - 1)} / {page_total}";
                                     RelatedPrevPage.Show(show: page_total > 1);
                                 }
-
-                                var page_current = CurrentRelatedURL.CalcPageNum();
 
                                 RelatedNextURL = next_url;
 
                                 RelatedCurrentPages.Text = $"{page_current}";
                                 RelatedCurrentPages.ToolTip = $"Page: {page_current} / {page_total}";
-                                RelatedCurrentPages.Show(show: page_total >= 1);
+                                RelatedCurrentPages.Show(show: page_total > 1);
 
                                 RelatedNextPage.Tag = next_url;
-                                RelatedNextPage.ToolTip = CurrentRelatedURL.CalcUrlPageHint(IllustSize.Text);
+                                RelatedNextPage.ToolTip = RelatedNextURL.CalcUrlPageHint(IllustSize.Text);
                                 RelatedNextPage.Show(show: IllustSize.Text.CalcTotalPages() > 1);
 
                                 RelatedNextAppend.ToolTip = RelatedItemsExpander.ToolTip;

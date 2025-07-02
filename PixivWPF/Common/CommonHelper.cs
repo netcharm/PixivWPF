@@ -2189,16 +2189,23 @@ namespace PixivWPF.Common
             string result = text;
             if (!string.IsNullOrEmpty(result))
             {
-                var patten = new Regex(@"&(amp;)?#(([0-9]{1,6})|(x([a-fA-F0-9]{1,5})));", RegexOptions.IgnoreCase);
-                //result = WebUtility.UrlDecode(WebUtility.HtmlDecode(result));
-                result = Uri.UnescapeDataString(WebUtility.HtmlDecode(result));
-                foreach (Match match in patten.Matches(result))
+                try
                 {
-                    var v = Convert.ToInt32(match.Groups[2].Value);
-                    if (v > 0xFFFF)
-                        result = result.Replace(match.Value, char.ConvertFromUtf32(v));
+                    var patten = new Regex(@"&(amp;)?#(([0-9]{1,6})|(x([a-fA-F0-9]{1,5})));", RegexOptions.IgnoreCase);
+                    //result = WebUtility.UrlDecode(WebUtility.HtmlDecode(result));
+                    result = Uri.UnescapeDataString(WebUtility.HtmlDecode(result));
+                    foreach (Match match in patten.Matches(result))
+                    {
+                        var v = Convert.ToInt32(match.Groups[2].Value);
+                        if (v > 0xFFFF)
+                            result = result.Replace(match.Value, char.ConvertFromUtf32(v));
+                        else if (v >= 0xFE00 && v <= 0xFE8F)
+                            result = result.Replace(match.Value, $"&#x{v:X4};");
+                    }
+                    result = Regex.Replace(result, @"[\uFE00-\uFE7F]", m => $"&#x{Convert.ToInt32(m.Value):X4};", RegexOptions.IgnoreCase);
+                    result = result.HtmlFormatBreakLine(br);
                 }
-                result = result.HtmlFormatBreakLine(br);
+                catch(Exception e) { e.ERROR("HtmlDecode"); }
             }
             return (result);
         }
