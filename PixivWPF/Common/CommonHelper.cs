@@ -2186,7 +2186,8 @@ namespace PixivWPF.Common
                 try
                 {
                     result = System.Net.WebUtility.HtmlEncode(result);
-                    result = Regex.Replace(result, @"&#(\d+);", m => Convert.ToInt32(m.Groups[1].Value) > 65535 ? $"&#xU+{Convert.ToInt32(m.Groups[1].Value):X4};" : m.Value, RegexOptions.IgnoreCase);
+                    //result = Regex.Replace(result, @"&#(\d+);", m => Convert.ToInt32(m.Groups[1].Value) > 65535 ? $"<span hidden>&#x{Convert.ToInt32(m.Groups[1].Value):X5};</span>" : m.Value, RegexOptions.IgnoreCase);
+                    result = Regex.Replace(result, @"&#(\d+);", m => Convert.ToInt32(m.Groups[1].Value) > 65535 ? $"<span hidden>{m.Value}</span>" : m.Value, RegexOptions.IgnoreCase);
                     result = System.Net.WebUtility.HtmlDecode(result);
                 }
                 catch (Exception e) { e.ERROR("HtmlClean"); }
@@ -2218,7 +2219,7 @@ namespace PixivWPF.Common
                         else if (v >= 0xFE00 && v <= 0xFE8F)
                             result = result.Replace(match.Value, $"&#x{v:X4};");
                     }
-                    result = Regex.Replace(result, @"[\uFE00-\uFE7F]", m => $"&nbsp;&#x{Convert.ToInt32(m.Value[0]):X4};", RegexOptions.IgnoreCase);
+                    result = Regex.Replace(result, @"[\uFE00-\uFE7F]", m => $"<span hidden>&#x{Convert.ToInt32(m.Value[0]):X4};</span>", RegexOptions.IgnoreCase);
                     result = result.HtmlFormatBreakLine(br);
                 }
                 catch(Exception e) { e.ERROR("HtmlDecode"); }
