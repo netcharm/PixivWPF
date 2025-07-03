@@ -1170,7 +1170,7 @@
                             <TextBlock Text="&#xE112;" Style="{DynamicResource ExpanderButtonIcon}"/>
                         </Button.Content>
                     </Button>
-                    <TextBlock x:Name="RelatedCurrentPages" x:Uid="RelatedCurrentPages" Visibility="Collapsed" Text="0" Style="{DynamicResource ExpanderButtonText}" />
+                    <TextBlock x:Name="RelatedCurrPage" x:Uid="RelatedCurrentPages" Visibility="Collapsed" Text="0" Style="{DynamicResource ExpanderButtonText}" />
                     <Button 
                         x:Name="RelatedNextPage" x:Uid="RalatedNextPage" ToolTip="Next Page"
                         Visibility="Collapsed" Style="{DynamicResource ExpanderButton}" Click="RelatedNextPage_Click">

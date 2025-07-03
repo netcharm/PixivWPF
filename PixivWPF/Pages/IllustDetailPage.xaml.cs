@@ -77,7 +77,7 @@ namespace PixivWPF.Pages
         private string PreviewImagePath { get; set; } = string.Empty;
         private string AvatarImageUrl { get; set; } = string.Empty;
 
-        private string CurrentRelatedURL { get; set; } = string.Empty;
+        private string RelatedCurrURL { get; set; } = string.Empty;
         private string RelatedNextURL { get; set; } = string.Empty;
 
         private string CurrentFavoriteURL { get; set; } = string.Empty;
@@ -2171,9 +2171,15 @@ namespace PixivWPF.Pages
                 SubIllustsExpander.Hide();
                 PreviewBadge.Hide();
 
+                RelatedCurrURL = string.Empty;
+                RelatedNextURL = string.Empty;
+                //RelatedPrevURL = string.Empty;
+
                 RelatedItemsExpander.Header = "Illusts";
                 RelatedItemsExpander.Show();
+                RelatedPrevPage.Hide();
                 RelatedNextPage.Hide();
+                RelatedCurrPage.Hide();
                 RelatedItemsExpander.IsExpanded = false;
 
                 FavoriteItemsExpander.Header = "Favorite";
@@ -2356,13 +2362,13 @@ namespace PixivWPF.Pages
                         if (!append)
                         {
                             RelatedItemsExpander.Tag = lastUrl;
-                            CurrentRelatedURL = lastUrl;
+                            RelatedCurrURL = lastUrl;
                         }
                         RelatedNextURL = next_url;
                         RelatedNextPage.Tag = next_url;
                         RelatedNextPage.ToolTip = next_url.CalcUrlPageHint(0, RelatedNextPage.ToolTip is string ? RelatedNextPage.ToolTip as string : null);
-                        RelatedNextPage.Show(show: !string.IsNullOrEmpty(CurrentRelatedURL) || !string.IsNullOrEmpty(next_url));
-                        RelatedNextAppend.Show(show: !string.IsNullOrEmpty(CurrentRelatedURL) || !string.IsNullOrEmpty(next_url));
+                        RelatedNextPage.Show(show: !string.IsNullOrEmpty(RelatedCurrURL) || !string.IsNullOrEmpty(next_url));
+                        RelatedNextAppend.Show(show: !string.IsNullOrEmpty(RelatedCurrURL) || !string.IsNullOrEmpty(next_url));
 
                         foreach (var illust in related.illusts)
                         {
@@ -2441,7 +2447,7 @@ namespace PixivWPF.Pages
                     if (user is Pixeez.Objects.UserBase && user.Id != null && user.Id.HasValue)
                     {
                         int total = string.IsNullOrEmpty(IllustSize.Text) ? GetTotalIllust() : Convert.ToInt32(IllustSize.Text);
-                        var offset = string.IsNullOrEmpty(CurrentRelatedURL) ? 0 : CurrentRelatedURL.CalcPageOffset();
+                        var offset = string.IsNullOrEmpty(RelatedCurrURL) ? 0 : RelatedCurrURL.CalcPageOffset();
                         var count = offset + RelatedItems.Items.Count;
                         if (append && total >= 0 && count >= total) return;
 
@@ -2473,24 +2479,25 @@ namespace PixivWPF.Pages
                                 RelatedNextPage.Show(!next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase));
 
                                 var page_total = IllustSize.Text.CalcTotalPages();
-                                var page_current = CurrentRelatedURL.CalcPageNum();
+                                var page_current = RelatedCurrURL.CalcPageNum();
 
 
                                 if (!append)
                                 {
                                     RelatedItemsExpander.Tag = lastUrl;
-                                    CurrentRelatedURL = lastUrl;
+                                    RelatedCurrURL = lastUrl;
+                                    page_current = lastUrl.CalcPageNum();
 
-                                    RelatedPrevPage.Tag = string.IsNullOrEmpty(CurrentRelatedURL) ? Contents.MakeUserWorkNextUrl().CalcPrevUrl(totals: IllustSize.Text) : CurrentRelatedURL.CalcPrevUrl(totals: IllustSize.Text);
+                                    RelatedPrevPage.Tag = string.IsNullOrEmpty(RelatedCurrURL) ? Contents.MakeUserWorkNextUrl().CalcPrevUrl(totals: IllustSize.Text) : RelatedCurrURL.CalcPrevUrl(totals: IllustSize.Text);
                                     RelatedPrevPage.ToolTip = $"Page: {(page_current == 1 ? page_total : page_current - 1)} / {page_total}";
                                     RelatedPrevPage.Show(show: page_total > 1);
                                 }
 
                                 RelatedNextURL = next_url;
 
-                                RelatedCurrentPages.Text = $"{page_current}";
-                                RelatedCurrentPages.ToolTip = $"Page: {page_current} / {page_total}";
-                                RelatedCurrentPages.Show(show: page_total > 1);
+                                RelatedCurrPage.Text = $"{page_current}";
+                                RelatedCurrPage.ToolTip = $"Page: {page_current} / {page_total}";
+                                RelatedCurrPage.Show(show: page_total > 1);
 
                                 RelatedNextPage.Tag = next_url;
                                 RelatedNextPage.ToolTip = RelatedNextURL.CalcUrlPageHint(IllustSize.Text);
@@ -2530,7 +2537,7 @@ namespace PixivWPF.Pages
                             if (cancel_related is CancellationTokenSource && cancel_related.IsCancellationRequested) break;
                         } while (append_all && RelatedItems.Items.Count < total && !string.IsNullOrEmpty(next_url));
 
-                        offset = string.IsNullOrEmpty(CurrentRelatedURL) ? 0 : CurrentRelatedURL.CalcPageOffset();
+                        offset = string.IsNullOrEmpty(RelatedCurrURL) ? 0 : RelatedCurrURL.CalcPageOffset();
                         count = offset + RelatedItems.Items.Count;
                         if (count >= total)
                         {
