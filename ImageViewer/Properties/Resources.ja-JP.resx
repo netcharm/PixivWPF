@@ -741,4 +741,7 @@
   <data name="OpenWith.Header" xml:space="preserve">
     <value>外部ツールを使用して現在のファイルを開く</value>
   </data>
+  <data name="AutoRotateImage.ToolTip" xml:space="preserve">
+    <value>方向情報に従って画像を自動的に回転</value>
+  </data>
 </root>

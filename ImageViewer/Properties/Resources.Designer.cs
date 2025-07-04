@@ -151,6 +151,15 @@ namespace ImageViewer.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Auto Rotating Image Orientation 的本地化字符串。
+        /// </summary>
+        public static string AutoRotateImage_ToolTip {
+            get {
+                return ResourceManager.GetString("AutoRotateImage.ToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Auto Save Options 的本地化字符串。
         /// </summary>
         public static string AutoSaveOptions_ToolTip {

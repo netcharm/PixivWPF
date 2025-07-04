@@ -741,4 +741,7 @@
   <data name="OpenWith.Header" xml:space="preserve">
     <value>使用外部工具打開當前檔案</value>
   </data>
+  <data name="AutoRotateImage.ToolTip" xml:space="preserve">
+    <value>自動按照方向資訊旋轉影像</value>
+  </data>
 </root>

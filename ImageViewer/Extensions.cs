@@ -762,7 +762,7 @@ namespace ImageViewer
             return (result);
         }
 
-        public static MainWindow? GetMainWindow(this DispatcherObject element)
+        public static MainWindow GetMainWindow(this DispatcherObject element)
         {
             return (Application.Current.Dispatcher.Invoke(() =>
             {

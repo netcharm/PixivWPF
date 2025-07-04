@@ -43,6 +43,10 @@
           <source>Auto Reduce Noise</source>
           <target state="new">自动图像降噪</target>
         </trans-unit>
+        <trans-unit id="AutoRotateImage.ToolTip" translate="yes" xml:space="preserve">
+          <source>Auto Rotating Image Orientation</source>
+          <target state="new">自动按照方向信息旋转图像</target>
+        </trans-unit>
         <trans-unit id="AutoSaveOptions.ToolTip" translate="yes" xml:space="preserve">
           <source>Auto Save Options</source>
           <target state="new">自动保存设定</target>
