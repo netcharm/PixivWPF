@@ -37,6 +37,11 @@
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
+                <MenuItem x:Name="miSaveAsJPEG" x:Uid="ActionSaveAsJPEG" Header="Save As JPEG" IsChecked="True" Click="miActions_Click">
+                    <!--<MenuItem.Icon>
+                        <TextBlock Text="&#xE10A;" Style="{DynamicResource MenuItemIcon16}"/>
+                    </MenuItem.Icon>-->
+                </MenuItem>
                 <MenuItem x:Name="miStopDownload" x:Uid="ActionStop" Header="Stop Download" Click="miActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE10A;" Style="{DynamicResource MenuItemIcon16}"/>

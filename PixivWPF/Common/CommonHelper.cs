@@ -3363,7 +3363,7 @@ namespace PixivWPF.Common
                 int pages = CalcTotalPages(totals);
                 int page = CalcPageNum(offset);
                 if (page == 0) page = pages;
-                result = pages <= 0 ? $"Page: {page}" : $"Page: {page} / {pages}";
+                result = pages <= 0 ? $"Page: {page}" : $"Page: {(page > pages ? 1 : page)} / {pages}";
             }
             catch (Exception ex) { ex.ERROR("CalcUrlPages"); }
             return (result);

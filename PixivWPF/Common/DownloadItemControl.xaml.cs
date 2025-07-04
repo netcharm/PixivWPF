@@ -1382,19 +1382,19 @@ namespace PixivWPF.Common
             HTTP_STREAM_READ_COUNT = setting.DownloadHttpStreamBlockSize;
             HTTP_TIMEOUT = setting.DownloadHttpTimeout > 5 ? setting.DownloadHttpTimeout : 5;
 
-            var basename = Path.GetFileName(FileName);
-            var msg_title = $"Warnning ({basename})";
-            var msg_content = "Overwrite exists?";
-            if (msg_title.IsMessagePopup(msg_content)) { State = DownloadItemState.Finished; Received = Length; return; }
+            //var basename = Path.GetFileName(FileName);
+            //var msg_title = $"Warnning ({basename})";
+            //var msg_content = "Overwrite exists?";
+            //if (msg_title.IsMessagePopup(msg_content)) { State = DownloadItemState.Finished; Received = Length; return; }
 
-            bool delta = true;
-            if (File.Exists(FileName) && (_DownloadBuffer == null || _DownloadBuffer.Length <= 0))
-            {
-                delta = new FileInfo(FileName).CreationTime.DeltaNowMillisecond() > setting.DownloadTimeSpan ? true : false;
-                if (!delta) return;
-                if (!(await msg_content.ShowMessageDialog(msg_title, MessageBoxImage.Warning))) { State = DownloadItemState.Finished; return; }
-                restart = true;
-            }
+            //bool delta = true;
+            //if (File.Exists(FileName) && (_DownloadBuffer == null || _DownloadBuffer.Length <= 0))
+            //{
+            //    delta = new FileInfo(FileName).CreationTime.DeltaNowMillisecond() > setting.DownloadTimeSpan ? true : false;
+            //    if (!delta) return;
+            //    if (!(await msg_content.ShowMessageDialog(msg_title, MessageBoxImage.Warning))) { State = DownloadItemState.Finished; return; }
+            //    restart = true;
+            //}
 
             IsStart = false;
             AutoStart = false;
@@ -1434,6 +1434,10 @@ namespace PixivWPF.Common
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         private async Task Cancel()
         {
             if (!Canceling)
@@ -1469,6 +1473,32 @@ namespace PixivWPF.Common
                 }
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private async Task<bool> OverwritePrompt()
+        {
+            var result = true;
+
+            bool delta = true;
+            var basename = Path.GetFileName(FileName);
+            var msg_title = $"Warnning ({basename})";
+            var msg_content = "Overwrite exists?";
+            if (msg_title.IsMessagePopup(msg_content)) result = false; // { State = DownloadItemState.Finished; Received = Length; return; }
+            else
+            {
+                if (File.Exists(FileName) && (_DownloadBuffer == null || _DownloadBuffer.Length <= 0))
+                {
+                    delta = new FileInfo(FileName).CreationTime.DeltaNowMillisecond() > setting.DownloadTimeSpan ? true : false;
+                    if (!delta) result = false;
+                    else if (!(await msg_content.ShowMessageDialog(msg_title, MessageBoxImage.Warning))) { State = DownloadItemState.Finished; result = false; }
+                }
+            }
+
+            return (result);
+        }
         #endregion
 
         public DownloadItem()
@@ -1480,6 +1510,7 @@ namespace PixivWPF.Common
             Info = new DownloadInfo() { Instance = this, SaveAsJPEG = setting.DownloadAutoReduceToJpeg, Received = 0, Length = 0 };
 
             PART_SaveAsJPEG.IsOn = Info.SaveAsJPEG;
+            miSaveAsJPEG.IsChecked = Info.SaveAsJPEG;
 
             InitProgress();
 
@@ -1495,6 +1526,7 @@ namespace PixivWPF.Common
             Info = new DownloadInfo() { Instance = this, SaveAsJPEG = jpeg, Received = 0, Length = 0 };
 
             PART_SaveAsJPEG.IsOn = Info.SaveAsJPEG;
+            miSaveAsJPEG.IsChecked = Info.SaveAsJPEG;
 
             InitProgress();
 
@@ -1518,6 +1550,7 @@ namespace PixivWPF.Common
             Info.Instance = this;
 
             PART_SaveAsJPEG.IsOn = Info.SaveAsJPEG;
+            miSaveAsJPEG.IsChecked = Info.SaveAsJPEG;
 
             InitProgress();
 
@@ -1586,6 +1619,7 @@ namespace PixivWPF.Common
                 IsEnabled = false;
                 //PART_DownloadProgress.IsEnabled = true;
                 PART_SaveAsJPEG.IsOn = Info.SaveAsJPEG;
+                miSaveAsJPEG.IsChecked = Info.SaveAsJPEG;
 
                 if (AutoStart)
                 {
@@ -1663,10 +1697,12 @@ namespace PixivWPF.Common
             (sender as UIElement).IsEnabled = false;
 
             setting = Application.Current.LoadSetting();
+
             var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
             var shift = Keyboard.Modifiers == ModifierKeys.Shift;
             var multiple = Application.Current.DownloadManagerHasMultiSelected();
             var highlight_word = Info.State == DownloadItemState.Finished ? Info.IllustID.ToString() : null;
+
             if ((sender == miCopyIllustID || sender == PART_CopyIllustID) && !string.IsNullOrEmpty(Url))
             {
                 if (shift)
@@ -1715,13 +1751,28 @@ namespace PixivWPF.Common
             else if (sender == miDownload || sender == PART_Download)
             {
                 var continuation = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? !setting.DownloadWithFailResume : setting.DownloadWithFailResume;
-                var restart = Keyboard.Modifiers.HasFlag(ModifierKeys.Control) ? true : false;
+                var restart = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+                restart |= await OverwritePrompt(); // Check if file exists and ask for overwrite
                 Start(continuation, restart);
             }
             else if (sender == miDownloadRestart)
             {
                 var continuation = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? !setting.DownloadWithFailResume : setting.DownloadWithFailResume;
-                Start(continuation, true);
+                if (await OverwritePrompt()) Start(continuation, true); // Check if file exists and ask for overwrite
+            }
+            else if (sender == miSaveAsJPEG)
+            {
+                if (Info is DownloadInfo && !string.IsNullOrEmpty(Info.FileName))
+                {
+                    if (new[] { DownloadItemState.Failed, DownloadItemState.Idle, DownloadItemState.Downloading }.Contains(Info.State))
+                    {
+                        SaveAsJPEG = !SaveAsJPEG;
+                        Info.SaveAsJPEG = SaveAsJPEG;
+                        PART_SaveAsJPEG.IsOn = SaveAsJPEG;
+                        miSaveAsJPEG.IsChecked = SaveAsJPEG;
+                        Info.SetSaveAsJPEG(SaveAsJPEG);
+                    }
+                }
             }
             else if (sender == miRemove || sender == PART_Remove)
             {
