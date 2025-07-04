@@ -1076,7 +1076,7 @@ namespace ImageViewer
                                     attrs.Add($"  {label}= {value.TextPadding(label, 4)}");
                                     if (CancelGetInfo.IsCancellationRequested) break;
                                 }
-                                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.GetMainWindow(), $"{attr} : {ex.Message}"); }
+                                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current?.GetMainWindow(), $"{attr} : {ex.Message}"); }
                                 if (CancelGetInfo.IsCancellationRequested) break;
                             }
                             tip.AddRange(attrs.OrderBy(a => a));
