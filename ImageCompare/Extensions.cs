@@ -394,6 +394,14 @@ namespace ImageCompare
             return (result);
         }
 
+        public static MainWindow GetMainWindow(this DispatcherObject element)
+        {
+            return (Application.Current.Dispatcher.Invoke(() =>
+            {
+                return (Application.Current?.MainWindow is MainWindow ? Application.Current?.MainWindow as MainWindow : null);
+            }));
+        }
+        
         public static void ShowMessage(this string text, string prefix = "")
         {
             Application.Current.Dispatcher.Invoke(() =>

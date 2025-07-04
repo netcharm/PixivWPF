@@ -595,10 +595,16 @@ namespace ImageCompare
                                                 value = tag.GetValue().ToString().Trim('\0');
                                             else
                                             {
-                                                var arv = tag.GetValue() as Rational[];
-                                                if (arv is Rational[] && arv[0].Denominator != 0 && arv[1].Denominator != 0) 
+                                                if (tag.IsArray)
+                                                {
+                                                    var arv = tag.GetValue() as Rational[];
                                                     value = $"{arv[0].Numerator / arv[0].Denominator:F0}.{arv[1].Numerator / arv[1].Denominator:F0}'{arv[2].Numerator / (double)arv[2].Denominator}\"";
-                                            }
+                                                }
+                                                else
+                                                {
+                                                    var arv = (Rational)tag.GetValue();
+                                                    value = $"{arv.Numerator / arv.Denominator:F0}";
+                                                }                                            }
                                         }
                                     }
                                     else if (attr.Equals("exif:59932")) { value = "Padding"; continue; }
@@ -692,7 +698,7 @@ namespace ImageCompare
                                     else if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
                                     attrs.Add($"  {label}= {value.TextPadding(label, 4)}");
                                 }
-                                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, $"{attr} : {ex.Message}"); }
+                                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current?.GetMainWindow(), $"{attr} : {ex.Message}"); }
                             }
                             tip.AddRange(attrs.OrderBy(a => a));
                         }
