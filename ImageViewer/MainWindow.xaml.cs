@@ -297,7 +297,8 @@ namespace ImageViewer
         private IMagickColor<byte> LowlightColor = MagickColors.White;
         private IMagickColor<byte> MasklightColor = MagickColors.Transparent;
 #endif
-
+        protected internal bool AutoRotate { get { return (AutoRotateImage.Dispatcher?.Invoke(() => AutoRotateImage.IsChecked ?? false) ?? true); } }
+        
         private string LastHaldFolder { get; set; } = string.Empty;
         private string LastHaldFile { get; set; } = string.Empty;
 
@@ -3296,6 +3297,12 @@ namespace ImageViewer
                     if (!string.IsNullOrEmpty(value)) LastHaldFile = value;
                 }
 
+                if (appSection.Settings.AllKeys.Contains("AutoRotate"))
+                {
+                    var value = AutoRotateImage.IsChecked ?? true;
+                    if (bool.TryParse(appSection.Settings["AutoRotate"].Value, out value)) AutoRotateImage.IsChecked = value;
+                }
+
                 if (appSection.Settings.AllKeys.Contains("UseWeakBlur"))
                 {
                     var value = UseWeakBlur.IsChecked ?? true;
@@ -3445,6 +3452,11 @@ namespace ImageViewer
                         appSection.Settings["LastHaldFile"].Value = LastHaldFile;
                     else
                         appSection.Settings.Add("LastHaldFile", LastHaldFile);
+
+                    if (appSection.Settings.AllKeys.Contains("AutoRotate"))
+                        appSection.Settings["AutoRotate"].Value = AutoRotateImage.IsChecked.Value.ToString();
+                    else
+                        appSection.Settings.Add("AutoRotate", AutoRotateImage.IsChecked.Value.ToString());
 
                     if (appSection.Settings.AllKeys.Contains("UseWeakBlur"))
                         appSection.Settings["UseWeakBlur"].Value = UseWeakBlur.IsChecked.Value.ToString();

@@ -136,6 +136,12 @@
                     <TextBlock x:Uid="GrayModeImageIcon" Text="&#xE790;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>
             </Button>
+            <ToggleButton x:Name="AutoRotateImage" x:Uid="AutoRotateImage" IsChecked="False"
+                          ToolTip="Auto Rotating Image Orientation" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="AutoRotateImagePanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="AutoRotateImagePanelIcon" Text="&#xE2AE;" Style="{DynamicResource MenuItemIcon}" />
+                </StackPanel>
+            </ToggleButton>
             <ToggleButton x:Name="UseWeakBlur" x:Uid="UseWeakBlur" IsChecked="True"
                           ToolTip="Low/High Intensity Blur" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="UseWeakBlurPanel" Orientation="Horizontal" Margin="2">

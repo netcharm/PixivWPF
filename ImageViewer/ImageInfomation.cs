@@ -46,6 +46,7 @@ namespace ImageViewer
     {
         public ImageType Type { get; set; } = ImageType.None;
         public FilterType ResizeFilter { get; set; } = FilterType.Lanczos2Sharp;
+        public bool AutoRotate { get; set; } = true;
 
         private MagickImage _original_ = null;
         public MagickImage Original
@@ -62,12 +63,13 @@ namespace ImageViewer
                 DenoiseLevel = 0;
                 if (ValidOriginal)
                 {
+                    AutoRotate = Application.Current?.GetMainWindow()?.AutoRotate ?? AutoRotate;
+                    if (AutoRotate) _original_.AutoOrient();
                     _original_thumb_ = CreateThumbnail(_original_, ThumbSize);
                     _original_?.FilterType = ResizeFilter;
                     Dispatcher.CurrentDispatcher.Invoke(async () => { await Reload(); });
                 }
                 GetProfiles();
-
             }
         }
         private MagickImage _original_thumb_ = null;
@@ -967,8 +969,16 @@ namespace ImageViewer
                                                 value = tag.GetValue().ToString().Trim('\0');
                                             else
                                             {
-                                                var arv = tag.GetValue() as Rational[];
-                                                value = $"{arv[0].Numerator / arv[0].Denominator:F0}.{arv[1].Numerator / arv[1].Denominator:F0}'{arv[2].Numerator / (double)arv[2].Denominator}\"";
+                                                if (tag.IsArray)
+                                                {
+                                                    var arv = tag.GetValue() as Rational[];
+                                                    value = $"{arv[0].Numerator / arv[0].Denominator:F0}.{arv[1].Numerator / arv[1].Denominator:F0}'{arv[2].Numerator / (double)arv[2].Denominator}\"";
+                                                }
+                                                else
+                                                {
+                                                    var arv = (Rational)tag.GetValue();
+                                                    value = $"{arv.Numerator / arv.Denominator:F0}";
+                                                }
                                             }
                                         }
                                     }
@@ -1066,7 +1076,7 @@ namespace ImageViewer
                                     attrs.Add($"  {label}= {value.TextPadding(label, 4)}");
                                     if (CancelGetInfo.IsCancellationRequested) break;
                                 }
-                                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, $"{attr} : {ex.Message}"); }
+                                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.GetMainWindow(), $"{attr} : {ex.Message}"); }
                                 if (CancelGetInfo.IsCancellationRequested) break;
                             }
                             tip.AddRange(attrs.OrderBy(a => a));

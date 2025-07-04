@@ -762,6 +762,14 @@ namespace ImageViewer
             return (result);
         }
 
+        public static MainWindow? GetMainWindow(this DispatcherObject element)
+        {
+            return (Application.Current.Dispatcher.Invoke(() =>
+            {
+                return (Application.Current?.MainWindow is MainWindow ? Application.Current?.MainWindow as MainWindow : null);
+            }));
+        }
+
         private static Style GetMessageBoxStyle()
         {
             Style style = new Style();
