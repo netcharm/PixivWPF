@@ -1376,7 +1376,7 @@ namespace ImageViewer
                     var dw = ImageViewerScroll.ScrollableWidth;
                     var dh = ImageViewerScroll.ScrollableHeight;
 
-                    SetBirdView(dw > 0 || dh > 0);
+                    SetBirdView(dw >= 1 || dh >= 1);
                     UpdateBirdView();
                 }
             }
