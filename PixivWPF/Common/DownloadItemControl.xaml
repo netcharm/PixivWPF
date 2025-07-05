@@ -8,7 +8,6 @@
              xmlns:mahs="http://metro.mahapps.com/winfx/xaml/shared"             
              xmlns:local="clr-namespace:PixivWPF.Common"
              mc:Ignorable="d"
-             VisualTextRenderingMode="Auto"
              RenderOptions.BitmapScalingMode="HighQuality"
              RenderOptions.CachingHint="Cache"
              RenderOptions.ClearTypeHint="Enabled"
@@ -204,7 +203,7 @@
         <mah:MetroProgressBar Grid.Row="3" Grid.Column="1" x:Name="PART_DownloadProgress" x:Uid="DownloadProgress"
                     Tag="{Binding Progress, Mode=OneWay}" IsEnabled="True"
                     Height="18" IsIndeterminate="False" Minimum="0" Maximum="100" Margin="2"
-                    Value="{Binding ProgressPercent, Mode=OneWay, IsAsync=True, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"/>
+                    Value="{Binding ProgressPercent, Mode=OneWay, IsAsync=True}"/>
         <TextBlock Grid.Row="3" Grid.Column="1" x:Name="PART_DownloadProgressPercent" 
                    HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
                    TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow">

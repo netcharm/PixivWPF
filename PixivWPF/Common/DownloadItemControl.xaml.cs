@@ -658,7 +658,7 @@ namespace PixivWPF.Common
         {
             progress = new Progress<Tuple<double, double>>(i =>
             {
-                if ((State == DownloadItemState.Downloading && LastElapsed.TotalSeconds >= 0.05) ||
+                if ((State == DownloadItemState.Downloading && LastElapsed.TotalSeconds >= 0.25) ||
                      State == DownloadItemState.Writing ||
                      State == DownloadItemState.Finished ||
                      State == DownloadItemState.NonExists)
@@ -901,7 +901,7 @@ namespace PixivWPF.Common
                     setting = Application.Current.LoadSetting();
 
                     var lastUpdateBuffer = DateTime.Now;
-                    LastElapsed = TimeSpan.FromSeconds(0.1);
+                    LastElapsed = TimeSpan.FromSeconds(0.250);
 
                     if (continuation && _DownloadBuffer is byte[])
                     {
@@ -944,11 +944,12 @@ namespace PixivWPF.Common
                                 using (cancelReadStreamSource.Token.Register(() => cs.Close()))
                                 {
                                     bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelReadStreamSource.Token).ConfigureAwait(false);
-                                    EndTick = DateTime.Now;
                                 }
 
                                 if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Received < Length)
                                 {
+                                    EndTick = DateTime.Now;
+
                                     await ms.WriteAsync(bytes, 0, bytesread);
                                     if (EndTick.DeltaSeconds(lastUpdateBuffer) >= setting.DownloadBufferUpdateFrequency)
                                     {
