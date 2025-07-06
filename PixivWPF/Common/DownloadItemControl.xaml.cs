@@ -651,7 +651,7 @@ namespace PixivWPF.Common
         private double lastRate = 0;
         private double lastRateA = 0;
         private long lastReceived = 0;
-        private Tuple<double, double> finishedProgress;
+        //private Tuple<double, double> finishedProgress;
         internal IProgress<Tuple<double, double>> progress = null;
 
         private void InitProgress()
@@ -830,6 +830,9 @@ namespace PixivWPF.Common
                     PART_OpenFolder.IsEnabled = miOpenFolder.IsEnabled;
 
                     PART_SaveAsJPEG.IsEnabled = !PART_OpenFile.IsEnabled || State == DownloadItemState.Downloading;
+                    
+                    miSaveAsJPEG.IsEnabled = PART_SaveAsJPEG.IsEnabled;
+                    miSaveAsJPEG.IsChecked = PART_SaveAsJPEG.IsOn;
                 }
                 catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_CheckProperties"); }
             }
@@ -921,7 +924,7 @@ namespace PixivWPF.Common
                     Length = range.Length ?? 0;
                     if (Length > 0 && length > 0)
                     {
-                        finishedProgress = new Tuple<double, double>(Length, Length);
+                        //finishedProgress = new Tuple<double, double>(Length, Length);
 
                         lastReceived = 0;
                         Received = ms.Length;
@@ -960,8 +963,7 @@ namespace PixivWPF.Common
                                     lastReceived += bytesread;
                                     Received += bytesread;
                                     LastElapsed = EndTick - lastTick;
-
-                                    UpdateProgress();
+                                    if (LastElapsed.TotalMilliseconds >= 250) UpdateProgress();
                                 }
                             } while (bytesread > 0 && Received < Length);
 
@@ -1327,7 +1329,7 @@ namespace PixivWPF.Common
                         State = DownloadItemState.Writing;
                         var fi = new FileInfo(source);
                         Length = Received = fi.Length;
-                        finishedProgress = new Tuple<double, double>(Received, Length);
+                        //finishedProgress = new Tuple<double, double>(Received, Length);
 
                         if (File.Exists(source))
                         {
@@ -1914,10 +1916,6 @@ namespace PixivWPF.Common
             }
             else if (sender == PART_SaveAsJPEG)
             {
-                //if (State == DownloadState.Finished)
-                //    PART_SaveAsJPEG.IsOn = SaveAsJPEG;
-                //else
-                //    SaveAsJPEG = PART_SaveAsJPEG.IsOn;
                 Action<DownloadInfo> action = (info) =>
                 {
                     if (info is DownloadInfo)
@@ -1926,6 +1924,7 @@ namespace PixivWPF.Common
                             info.SetSaveAsJPEG(info.SaveAsJPEG);
                         else
                             info.SaveAsJPEG = info.GetSaveAsJPEG();
+                        miSaveAsJPEG.IsChecked = info.SaveAsJPEG;
                     }
                 };
                 if (!IsEnabled || !multiple) action.Invoke(Info);
