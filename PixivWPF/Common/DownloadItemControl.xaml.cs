@@ -102,7 +102,8 @@ namespace PixivWPF.Common
                     var illust = id.FindIllust();
                     if (illust.IsWork())
                     {
-                        FileName = illust.GetOriginalUrl(singlefile ? 0 : idx).GetImageName(singlefile);
+                        //FileName = illust.GetOriginalUrl(singlefile ? 0 : idx).GetImageName(singlefile);
+                        FileName = illust.GetPreviewUrl(singlefile ? 0 : idx, UseLargePreview).GetImageName(singlefile);
                         FileName = Application.Current.SaveTarget(FileName);
                         FolderName = Path.GetDirectoryName(FileName);
                     }
@@ -123,8 +124,7 @@ namespace PixivWPF.Common
             get
             {
                 var id = -1L;
-                long.TryParse(Url.GetIllustId(), out id);
-                return (id);
+                return (long.TryParse(Url.GetIllustId(), out id) ? id : -1L);
             }
         }
         public long UserID
@@ -411,7 +411,7 @@ namespace PixivWPF.Common
         #region member properties
         public bool Canceling
         {
-            get { return (Info is DownloadInfo ? Info.Canceled : false); }
+            get { return (Info is DownloadInfo && Info.Canceled); }
             set { if (Info is DownloadInfo) Info.Canceled = value; }
         }
 
@@ -435,7 +435,7 @@ namespace PixivWPF.Common
 
         public bool SaveAsJPEG
         {
-            get { return (Info is DownloadInfo ? Info.SaveAsJPEG : false); }
+            get { return (Info is DownloadInfo && Info.SaveAsJPEG); }
             set { if (Info is DownloadInfo) Info.SaveAsJPEG = value; }
         }
 
@@ -479,7 +479,7 @@ namespace PixivWPF.Common
         [DefaultValue(true)]
         public bool AutoStart
         {
-            get { return (Info is DownloadInfo ? Info.AutoStart : false); }
+            get { return (Info is DownloadInfo && Info.AutoStart); }
             set { if (Info is DownloadInfo) Info.AutoStart = value; }
         }
 
@@ -516,26 +516,26 @@ namespace PixivWPF.Common
 
         public DateTime LastModified
         {
-            get { return (Info is DownloadInfo ? Info.LastModified : default(DateTime)); }
+            get { return (Info is DownloadInfo ? Info.LastModified : default); }
             set { if (Info is DownloadInfo) Info.LastModified = value; }
         }
 
         [DefaultValue(true)]
         public bool Overwrite
         {
-            get { return (Info is DownloadInfo ? Info.Overwrite : false); }
+            get { return (Info is DownloadInfo && Info.Overwrite); }
             set { if (Info is DownloadInfo) Info.Overwrite = value; }
         }
 
         [DefaultValue(true)]
         public bool SingleFile
         {
-            get { return (Info is DownloadInfo ? Info.SingleFile : false); }
+            get { return (Info is DownloadInfo && Info.SingleFile); }
             set { if (Info is DownloadInfo) Info.SingleFile = value; }
         }
         public DateTime FileTime
         {
-            get { return (Info is DownloadInfo ? Info.FileTime : default(DateTime)); }
+            get { return (Info is DownloadInfo ? Info.FileTime : default); }
             set { if (Info is DownloadInfo) Info.FileTime = value; }
         }
 
@@ -552,7 +552,7 @@ namespace PixivWPF.Common
         [DefaultValue(false)]
         public bool IsStart
         {
-            get { return (Info is DownloadInfo ? Info.IsStart : false); }
+            get { return (Info is DownloadInfo && Info.IsStart); }
             set { if (Info is DownloadInfo) Info.IsStart = value; }
         }
 
@@ -621,28 +621,28 @@ namespace PixivWPF.Common
         #region Progress helper
         private DateTime StartTick
         {
-            get { return (Info is DownloadInfo ? Info.StartTime : default(DateTime)); }
+            get { return (Info is DownloadInfo ? Info.StartTime : default); }
             set { if (Info is DownloadInfo) Info.StartTime = value; }
         }
         private DateTime EndTick
         {
-            get { return (Info is DownloadInfo ? Info.EndTime : default(DateTime)); }
+            get { return (Info is DownloadInfo ? Info.EndTime : default); }
             set { if (Info is DownloadInfo) Info.EndTime = value > DateTime.Now ? DateTime.Now : value; }
         }
         private DateTime lastTick = DateTime.Now;
         private TimeSpan TotalElapsed
         {
-            get { return (Info is DownloadInfo ? Info.TotalElapsed : default(TimeSpan)); }
+            get { return (Info is DownloadInfo ? Info.TotalElapsed : default); }
             set { if (Info is DownloadInfo) Info.TotalElapsed = value; }
         }
         private TimeSpan LastTotalElapsed
         {
-            get { return (Info is DownloadInfo ? Info.LastTotalElapsed : default(TimeSpan)); }
+            get { return (Info is DownloadInfo ? Info.LastTotalElapsed : default); }
             set { if (Info is DownloadInfo) Info.LastTotalElapsed = value; }
         }
         private TimeSpan LastElapsed
         {
-            get { return (Info is DownloadInfo ? Info.LastElapsed : default(TimeSpan)); }
+            get { return (Info is DownloadInfo ? Info.LastElapsed : default); }
             set { if (Info is DownloadInfo) Info.LastElapsed = value; }
         }
 
@@ -686,7 +686,7 @@ namespace PixivWPF.Common
                         var percent = total > 0 ? received / total : 0;
                         var finished = State == DownloadItemState.Finished;
                         PART_DownloadProgress.Value = percent * 100;
-                        PART_DownloadProgressPercent.Text = $"{State.ToString()}: {PART_DownloadProgress.Value:0.0}%";
+                        PART_DownloadProgressPercent.Text = $"{State}: {PART_DownloadProgress.Value:0.0}%";
                         PART_DownInfo.Text = $"Status : {received.SmartFileSize(trimzero: finished)} / {total.SmartFileSize(trimzero: finished)}, {lastRate.SmartSpeedRate(trimzero: finished)} / {rateA.SmartSpeedRate(trimzero: finished)}";
                         #endregion
 
@@ -818,7 +818,7 @@ namespace PixivWPF.Common
                     miOpenImage.IsEnabled = FileName.IsDownloaded(touch: false);
                     miOpenFolder.IsEnabled = true;
 
-                    PART_DownloadProgressPercent.Text = $"{State.ToString()}: {PART_DownloadProgress.Value:0.0}%";
+                    PART_DownloadProgressPercent.Text = $"{State}: {PART_DownloadProgress.Value:0.0}%";
 
                     PART_CopyIllustID.IsEnabled = miCopyIllustID.IsEnabled;
                     PART_StopDownload.IsEnabled = miStopDownload.IsEnabled;
@@ -829,10 +829,11 @@ namespace PixivWPF.Common
                     PART_OpenFile.IsEnabled = miOpenImage.IsEnabled;
                     PART_OpenFolder.IsEnabled = miOpenFolder.IsEnabled;
 
+                    PART_SaveAsJPEG.IsOn = Info.SaveAsJPEG;
                     PART_SaveAsJPEG.IsEnabled = !PART_OpenFile.IsEnabled || State == DownloadItemState.Downloading;
-                    
-                    miSaveAsJPEG.IsEnabled = PART_SaveAsJPEG.IsEnabled;
+
                     miSaveAsJPEG.IsChecked = PART_SaveAsJPEG.IsOn;
+                    miSaveAsJPEG.IsEnabled = PART_SaveAsJPEG.IsEnabled;
                 }
                 catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_CheckProperties"); }
             }
@@ -914,7 +915,7 @@ namespace PixivWPF.Common
 
                     UpdateProgress();
                     response.EnsureSuccessStatusCode();
-                    var LastModifiedOffset = response.Content.Headers.LastModified ?? default(DateTimeOffset);
+                    var LastModifiedOffset = response.Content.Headers.LastModified ?? default;
                     LastModified = LastModifiedOffset.DateTime.ToLocalTime();
 
                     string ce = response.Content.Headers.ContentEncoding.FirstOrDefault();
@@ -1158,19 +1159,19 @@ namespace PixivWPF.Common
                         if (retry > 0)
                         {
                             await Task.Delay(Application.Current.DownloadRetryDelay());
-                            FailReason = $"{ex.Message}({ex.GetType().ToString()}) Retry = {retry}";
+                            FailReason = $"{ex.Message}({ex.GetType()}) Retry = {retry}";
                             ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)}", no_stack: true);
                         }
                         else
                         {
-                            FailReason = $"{ex.Message}({ex.GetType().ToString()}) Retry Out!";
+                            FailReason = $"{ex.Message}({ex.GetType()}) Retry Out!";
                             ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)}", no_stack: true);
                         }
                     }
                     catch (WarningException ex)
                     {
                         retry = 0;
-                        FailReason = $"{ex.Message}({ex.GetType().ToString()})";
+                        FailReason = $"{ex.Message}({ex.GetType()})";
                         ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)}", no_stack: true);
                     }
                     catch (Exception ex)
@@ -1178,13 +1179,13 @@ namespace PixivWPF.Common
                         if ((ex.IsNetworkError() || ex.IsCanceled(Canceling)) && retry > 0)
                         {
                             await Task.Delay(Application.Current.DownloadRetryDelay());
-                            FailReason = $"{ex.Message}({ex.GetType().ToString()}) Retry = {retry}";
+                            FailReason = $"{ex.Message}({ex.GetType()}) Retry = {retry}";
                             ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)}", no_stack: true);
                         }
                         else
                         {
                             retry = 0;
-                            FailReason = $"{ex.Message}({ex.GetType().ToString()})"; ;
+                            FailReason = $"{ex.Message}({ex.GetType()})"; ;
                             ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)}");
                         }
                     }
@@ -1494,7 +1495,7 @@ namespace PixivWPF.Common
             {
                 if (File.Exists(FileName) && (_DownloadBuffer == null || _DownloadBuffer.Length <= 0))
                 {
-                    delta = new FileInfo(FileName).CreationTime.DeltaNowMillisecond() > setting.DownloadTimeSpan ? true : false;
+                    delta = new FileInfo(FileName).CreationTime.DeltaNowMillisecond() > setting.DownloadTimeSpan;
                     if (!delta) result = false;
                     else if (!(await msg_content.ShowMessageDialog(msg_title, MessageBoxImage.Warning))) { State = DownloadItemState.Finished; result = false; }
                 }
@@ -1880,9 +1881,6 @@ namespace PixivWPF.Common
             }
             else if (sender == miReduceJpegSize)
             {
-                //Commands.ReduceJpeg.Execute(FileName);
-                //SaveAsJPEG = true;
-                //PART_SaveAsJPEG.IsOn = SaveAsJPEG;
                 Action<DownloadInfo> action = (info) =>
                 {
                     if (info is DownloadInfo&& !string.IsNullOrEmpty(info.FileName))
@@ -1890,6 +1888,12 @@ namespace PixivWPF.Common
                         Commands.ReduceJpeg.Execute(info.FileName);
                         info.SaveAsJPEG = true;
                         info.SetSaveAsJPEG(info.SaveAsJPEG);
+
+                        PART_SaveAsJPEG.IsOn = info.SaveAsJPEG;
+                        PART_SaveAsJPEG.IsEnabled = info.State != DownloadItemState.Finished;
+
+                        miSaveAsJPEG.IsChecked = info.SaveAsJPEG;
+                        miSaveAsJPEG.IsEnabled = info.State != DownloadItemState.Finished;
                     }
                 };
                 if (!multiple) action.Invoke(Info);
@@ -1897,10 +1901,6 @@ namespace PixivWPF.Common
             }
             else if (sender == miReduceJpegSizeTo)
             {
-                //var cq = miReduceJpegSizeTo.Tag is App.MenuItemSliderData ? (int)(miReduceJpegSizeTo.Tag as App.MenuItemSliderData).Value : setting.DownloadRecudeJpegQuality;
-                //Commands.ReduceJpeg.Execute(new Tuple<string, int>(FileName, cq));
-                //SaveAsJPEG = true;
-                //PART_SaveAsJPEG.IsOn = SaveAsJPEG;
                 Action<DownloadInfo> action = (info) =>
                 {
                     if (info is DownloadInfo&& !string.IsNullOrEmpty(info.FileName))
@@ -1909,6 +1909,12 @@ namespace PixivWPF.Common
                         Commands.ReduceJpeg.Execute(new Tuple<string, int>(info.FileName, cq));
                         info.SaveAsJPEG = true;
                         info.SetSaveAsJPEG(info.SaveAsJPEG);
+
+                        PART_SaveAsJPEG.IsOn = info.SaveAsJPEG;
+                        PART_SaveAsJPEG.IsEnabled = info.State != DownloadItemState.Finished;
+
+                        miSaveAsJPEG.IsChecked = info.SaveAsJPEG;
+                        miSaveAsJPEG.IsEnabled = info.State != DownloadItemState.Finished;
                     }
                 };
                 if (!multiple) action.Invoke(Info);
@@ -1924,7 +1930,12 @@ namespace PixivWPF.Common
                             info.SetSaveAsJPEG(info.SaveAsJPEG);
                         else
                             info.SaveAsJPEG = info.GetSaveAsJPEG();
+
+                        PART_SaveAsJPEG.IsOn = info.SaveAsJPEG;
+                        PART_SaveAsJPEG.IsEnabled = info.State != DownloadItemState.Finished;
+
                         miSaveAsJPEG.IsChecked = info.SaveAsJPEG;
+                        miSaveAsJPEG.IsEnabled = info.State != DownloadItemState.Finished;
                     }
                 };
                 if (!IsEnabled || !multiple) action.Invoke(Info);

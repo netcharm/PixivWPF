@@ -1,10 +1,13 @@
-﻿using System;
+﻿using NLog.LayoutRenderers;
+using PixivWPF.Common;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Security.Policy;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -12,8 +15,6 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Threading;
-using NLog.LayoutRenderers;
-using PixivWPF.Common;
 
 namespace PixivWPF.Pages
 {
@@ -22,7 +23,7 @@ namespace PixivWPF.Pages
         public string Url { get; set; } = string.Empty;
         public bool SaveAsJPEG { get; set; } = false;
         public string ThumbUrl { get; set; } = string.Empty;
-        public DateTime Timestamp { get; set; } = default(DateTime);
+        public DateTime Timestamp { get; set; } = default;
         public bool IsSinglePage { get; set; } = false;
         public bool OverwriteExists { get; set; } = true;
         public bool SaveLargePreview { get; set; } = false;
@@ -356,11 +357,12 @@ namespace PixivWPF.Pages
             return (result);
         }
 
-        internal void Add(DownloadInfo item)
+        internal async void Add(DownloadInfo item)
         {
-            if (item is DownloadInfo)// && !IsExists(item))
+            if (item is DownloadInfo && !IsExists(item))
             {
-                //lock (items)
+                //item.FileName = Application.Current.SaveTarget(item.Url.GetImageName(singlefile));
+                if (!File.Exists(item.FileName) || await Application.Current.OverwritePrompt(item.FileName))
                 {
                     items.Add(item);
                     DownloadItems.ScrollIntoView(item);
@@ -616,8 +618,7 @@ namespace PixivWPF.Pages
                         var needUpdate = targets.Where(item => item.State != DownloadItemState.Downloading && item.State != DownloadItemState.Finished && item.State != DownloadItemState.NonExists);
                         if (needUpdate.Count() > 0)
                         {
-                            var opt = new ParallelOptions();
-                            opt.MaxDegreeOfParallelism = (int)SimultaneousJobs;
+                            var opt = new ParallelOptions { MaxDegreeOfParallelism = SimultaneousJobs };
                             var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                             {
                                 item.State = DownloadItemState.Idle;
@@ -629,8 +630,7 @@ namespace PixivWPF.Pages
                         var needUpdate = items.Where(item => item.State != DownloadItemState.Downloading && item.State != DownloadItemState.Finished && item.State != DownloadItemState.NonExists);
                         if (needUpdate.Count() > 0)
                         {
-                            var opt = new ParallelOptions();
-                            opt.MaxDegreeOfParallelism = (int)SimultaneousJobs;
+                            var opt = new ParallelOptions { MaxDegreeOfParallelism = SimultaneousJobs };
                             var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                             {
                                 item.State = DownloadItemState.Idle;
