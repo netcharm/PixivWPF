@@ -1704,7 +1704,8 @@ namespace PixivWPF.Common
 
             var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
             var shift = Keyboard.Modifiers == ModifierKeys.Shift;
-            var multiple = Application.Current.DownloadManagerHasMultiSelected();
+            var selected = Application.Current.GetDownloadItems(seleced: true).Contains(Info);
+            var multiple = selected;// && Application.Current.DownloadManagerHasMultiSelected();
             var highlight_word = Info.State == DownloadItemState.Finished ? Info.IllustID.ToString() : null;
 
             if ((sender == miCopyIllustID || sender == PART_CopyIllustID) && !string.IsNullOrEmpty(Url))

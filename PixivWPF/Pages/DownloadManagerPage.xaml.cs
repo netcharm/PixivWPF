@@ -272,10 +272,10 @@ namespace PixivWPF.Pages
             return (result);
         }
 
-        public IList<DownloadInfo> GetDownloadInfo()
+        public IList<DownloadInfo> GetDownloadItems(bool selected = true)
         {
             List<DownloadInfo> dis = new List<DownloadInfo>();
-            var items = HasMultipleSelected() ? DownloadItems.SelectedItems : DownloadItems.Items;
+            var items = selected && HasMultipleSelected() ? DownloadItems.SelectedItems : DownloadItems.Items;
             foreach (var item in DownloadItems.Items)
             {
                 if (items.Contains(item)) dis.Add(item as DownloadInfo);
@@ -283,10 +283,10 @@ namespace PixivWPF.Pages
             return (dis);
         }
 
-        public IList<DownloadInfo> GetSelectedItems()
+        public IList<DownloadInfo> GetSelectedItems(bool multiple = false)
         {
             List<DownloadInfo> dis = new List<DownloadInfo>();
-            var items = HasSelected() ? DownloadItems.SelectedItems : dis;
+            var items = (multiple ? HasMultipleSelected() : HasSelected()) ? DownloadItems.SelectedItems : dis;
             foreach (var item in DownloadItems.Items)
             {
                 if (items.Contains(item)) dis.Add(item as DownloadInfo);
@@ -495,12 +495,11 @@ namespace PixivWPF.Pages
                     {
                         e.Handled = true;
                         (sender as UIElement).AllowDrop = false;
-                        //var items = DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1 ? DownloadItems.SelectedItems : DownloadItems.Items;
                         var items = DownloadItems.SelectedItems.Cast<DownloadInfo>().Where(i => i.State == DownloadItemState.Finished);
                         var target = new List<string>();
                         foreach (var item in items)
                         {
-                            if (item is DownloadInfo && (item as DownloadInfo).State == DownloadItemState.Finished) target.Add((item as DownloadInfo).FileName);
+                            if (item?.State == DownloadItemState.Finished) target.Add(item.FileName);
                         }
                         if (target.Count > 0) this.DragOut(target);
                     }
@@ -541,7 +540,7 @@ namespace PixivWPF.Pages
 
             await new Action(() =>
             {
-                Commands.CopyDownloadInfo.Execute(GetDownloadInfo());
+                Commands.CopyDownloadInfo.Execute(GetDownloadItems());
             }).InvokeAsync(true);
         }
 

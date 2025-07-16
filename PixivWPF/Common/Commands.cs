@@ -436,7 +436,7 @@ namespace PixivWPF.Common
             }
             else if (obj is DownloadManagerPage)
             {
-                CopyDownloadInfo.Execute((obj as DownloadManagerPage).GetDownloadInfo());
+                CopyDownloadInfo.Execute((obj as DownloadManagerPage).GetDownloadItems());
             }
             else if (obj is Window)
             {
@@ -2461,7 +2461,7 @@ namespace PixivWPF.Common
             {
                 await new Action(() =>
                 {
-                    CopyDownloadInfo.Execute(Application.Current.GetDownloadManager().GetDownloadInfo());
+                    CopyDownloadInfo.Execute(Application.Current.GetDownloadManager().GetDownloadItems());
                 }).InvokeAsync(true);
             }
             else if (await CanOpenDownloadManager.WaitAsync(TimeSpan.FromSeconds(60)))

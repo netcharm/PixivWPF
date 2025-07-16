@@ -3221,6 +3221,16 @@ namespace PixivWPF.Common
             return (_downManager_page);
         }
 
+        public static IEnumerable<DownloadInfo> GetDownloadItems(this Application app, bool seleced = true)
+        {
+            var dm = GetDownloadManager(app);
+            if (dm is DownloadManagerPage)
+            {
+                return (seleced ? dm.GetSelectedItems() : dm.GetDownloadItems(false));
+            }
+            return (new List<DownloadInfo>());
+        }
+
         public static bool DownloadManagerHasSelected(this Application app)
         {
             var result = false;
