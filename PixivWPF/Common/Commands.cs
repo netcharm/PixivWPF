@@ -1777,22 +1777,21 @@ namespace PixivWPF.Common
                 else if (obj is ImageListGrid)
                 {
                     var gallery = obj as ImageListGrid;
-                    if (gallery.Count > 0) OpenDownloaded.Execute(gallery.GetSelected());
+                    if (gallery.Count > 0) OpenDownloadedWith.Execute(gallery.GetSelected());
                 }
                 else if (obj is IList<PixivItem>)
                 {
-                    await new Action(async () =>
+                    await new Action(() =>
                     {
                         var gallery = obj as IList<PixivItem>;
                         if (gallery.Count() > 0 && ParallelExecutionConfirm(gallery))
                         {
+                            var files = new List<string>();
                             foreach (var item in gallery)
                             {
-                                await new Action(() =>
-                                {
-                                    OpenDownloaded.Execute(item);
-                                }).InvokeAsync();
+                                files.AddRange(item.DownloadedFilePaths);
                             }
+                            if (files.Count > 0) files.OpenFileWithShell(openwith: true);
                         }
                     }).InvokeAsync();
                 }

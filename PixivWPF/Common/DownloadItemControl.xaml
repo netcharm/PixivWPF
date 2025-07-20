@@ -67,6 +67,11 @@
                         <TextBlock Text="&#xEB9F;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
+                <MenuItem x:Name="miOpenImageWith" x:Uid="OpenFileWith" Header="View Image With ..." Click="miActions_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="&#xEB9F;" Style="{DynamicResource MenuItemIcon16}"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <MenuItem x:Name="miOpenFolder" x:Uid="OpenFolder" Header="Open Image Folder" Click="miActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xED25;" Style="{DynamicResource MenuItemIcon16}"/>

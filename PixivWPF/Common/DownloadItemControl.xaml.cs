@@ -1797,6 +1797,16 @@ namespace PixivWPF.Common
                 if (sender == PART_OpenFile || !multiple) action.Invoke(Info);
                 else Commands.RunDownloadItemAction.Execute(action);
             }
+            else if (sender == miOpenImageWith)
+            {
+                //FileName.OpenFileWithShell();
+                Action<DownloadInfo> action = (info) =>
+                {
+                    var files = Application.Current.GetDownloadItems(seleced: true).Where(l => l is DownloadInfo && !string.IsNullOrEmpty(l.FileName)).Select(l => l.FileName).ToList();
+                    files.OpenFileWithShell(openwith: true);
+                };
+                action.Invoke(Info);
+            }
             else if (sender == miOpenFolder || sender == PART_OpenFolder)
             {
                 FileName.OpenFileWithShell(ShowFolder: true);

@@ -2959,7 +2959,7 @@ namespace PixivWPF.Common
                         var UsingOpenWith = openwith || (!ShowProperties && Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? true : false);
 
                         var SysDir = Path.Combine(WinDir, Environment.Is64BitOperatingSystem ? "SysWOW64" : "System32", "OpenWith.exe");
-                        var OpenWith = string.IsNullOrEmpty(WinDir) ? string.Empty : SysDir;
+                        var OpenWith = !string.IsNullOrEmpty(setting.ShellOpenWith) && File.Exists(setting.ShellOpenWith) ? setting.ShellOpenWith : (string.IsNullOrEmpty(WinDir) ? string.Empty : SysDir);
                         var openwith_exists = File.Exists(OpenWith) ?  true : false;
                         var command_full = Path.IsPathRooted(command) ? command : command.Where().FirstOrDefault();
 
@@ -3024,6 +3024,90 @@ namespace PixivWPF.Common
                         Process.Start(command, $"{file}");
                         result = true;
                     }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("SHELLRUN"); }
+            finally
+            {
+                Application.Current.DoEvents();
+            }
+            return (result);
+        }
+
+        public static bool OpenFileWithShell(this IEnumerable<string> FileNames, bool openwith = false)
+        {
+            bool result = false;
+            try
+            {
+                var WinDir = Environment.GetEnvironmentVariable("WinDir");
+
+                if (FileNames is IEnumerable<string> && FileNames.Count() > 0)
+                {
+                    setting = Application.Current.LoadSetting();
+
+                    var AltViewer = (int)(Keyboard.Modifiers & (ModifierKeys.Alt | ModifierKeys.Control)) == 3 ? !setting.ShellImageViewerEnabled : setting.ShellImageViewerEnabled;
+                    var ShowProperties = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
+                    var UsingOpenWith = openwith || (!ShowProperties && Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? true : false);
+
+                    var SysDir = Path.Combine(WinDir, Environment.Is64BitOperatingSystem ? "SysWOW64" : "System32", "OpenWith.exe");
+                    var OpenWith = !string.IsNullOrEmpty(setting.ShellOpenWith) && File.Exists(setting.ShellOpenWith) ? setting.ShellOpenWith : (string.IsNullOrEmpty(WinDir) ? string.Empty : SysDir);
+                    var openwith_exists = File.Exists(OpenWith) ?  true : false;
+
+                    Application.Current.ReleaseKeyboardModifiers(use_keybd_event: true);
+                    Application.Current.DoEvents();
+
+                    if (ShowProperties)
+                    {
+                        FileNames.OpenShellProperties();
+                    }
+                    else if (UsingOpenWith && openwith_exists)
+                    {
+                        Process.Start(OpenWith, string.Join(" ", FileNames.Select(f => $"\"{f.Trim('"')}\"")));
+                        result = true;
+                    }
+                    else
+                    {
+                        foreach (var file in FileNames)
+                        {
+                            var IsImage = ext_imgs.Contains(Path.GetExtension(file).ToLower()) ? true : false;
+                            var ext = string.Join("|", ext_movs.Select(e => e.Substring(1)));
+                            var IsUgoira = Regex.IsMatch(Path.GetFileName(file), $@"\d+_ugoira\d+x\d+\.({ext})", RegexOptions.IgnoreCase);
+                            if (AltViewer && IsImage)
+                            {
+                                if (string.IsNullOrEmpty(setting.ShellImageViewerCmd) ||
+                                    !setting.ShellImageViewerCmd.ToLower().Contains(setting.ShellImageViewer.ToLower()))
+                                    setting.ShellImageViewerCmd = setting.ShellImageViewer;
+                                if (!File.Exists(setting.ShellImageViewerCmd))
+                                {
+                                    var cmd_found = setting.ShellImageViewerCmd.Where();
+                                    if (cmd_found.Length > 0) setting.ShellImageViewerCmd = cmd_found.First();
+                                }
+                                var args = $"{setting.ShellImageViewerParams} \"{file}\"";
+                                if (string.IsNullOrEmpty(setting.ShellImageViewerCmd))
+                                    Process.Start(file);
+                                else
+                                    Process.Start(setting.ShellImageViewerCmd, args.Trim());
+                            }
+                            else if (IsUgoira && !string.IsNullOrEmpty(setting.ShellUgoiraViewer))
+                            {
+                                if (!File.Exists(setting.ShellUgoiraViewer))
+                                {
+                                    var cmd_found = setting.ShellUgoiraViewer.Where();
+                                    if (cmd_found.Length > 0) setting.ShellUgoiraViewer = cmd_found.First();
+                                }
+                                var args = $"\"{file}\"";
+                                if (string.IsNullOrEmpty(setting.ShellUgoiraViewer))
+                                    Process.Start(file);
+                                else
+                                    Process.Start(setting.ShellUgoiraViewer, args.Trim());
+                            }
+                            else
+                            {
+                                Process.Start(file);
+                            }
+                        }
+                    }
+                    result = true;
                 }
             }
             catch (Exception ex) { ex.ERROR("SHELLRUN"); }

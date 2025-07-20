@@ -5824,6 +5824,30 @@ namespace PixivWPF.Pages
                                 Commands.OpenDownloaded.Execute(FavoriteItems);
                         }
                     }
+                    else if (mi.Uid.Equals("ActionOpenDownloadedWith", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        if (host == SubIllustsExpander || host == SubIllusts)
+                        {
+                            if (ctrl)
+                                Commands.CopyDownloadedPath.Execute(SubIllusts);
+                            else
+                                Commands.OpenDownloadedWith.Execute(SubIllusts);
+                        }
+                        else if (host == RelatedItemsExpander || host == RelatedItems)
+                        {
+                            if (ctrl)
+                                Commands.CopyDownloadedPath.Execute(RelatedItems);
+                            else
+                                Commands.OpenDownloadedWith.Execute(RelatedItems);
+                        }
+                        else if (host == FavoriteItemsExpander || host == FavoriteItems)
+                        {
+                            if (ctrl)
+                                Commands.CopyDownloadedPath.Execute(FavoriteItems);
+                            else
+                                Commands.OpenDownloadedWith.Execute(FavoriteItems);
+                        }
+                    }
                     else if (mi.Uid.Equals("ActionOpenDownloadedProperties", StringComparison.CurrentCultureIgnoreCase))
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)

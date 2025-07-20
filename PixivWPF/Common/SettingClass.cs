@@ -2400,6 +2400,28 @@ namespace PixivWPF.Common
             }
         }
 
+        private string shell_openwith = string.Empty;
+        public string ShellOpenWith
+        {
+            get { return (Cache is Setting ? Cache.shell_openwith : shell_openwith); }
+            set
+            {
+                shell_openwith = value;
+                if (Cache is Setting) Cache.shell_openwith = shell_openwith;
+            }
+        }
+
+        private string shell_openwith_params = string.Empty;
+        public string ShellOpenWithParams
+        {
+            get { return (Cache is Setting ? Cache.shell_openwith_params : shell_openwith_params); }
+            set
+            {
+                shell_openwith_params = value;
+                if (Cache is Setting) Cache.shell_openwith_params = shell_openwith_params;
+            }
+        }
+
         private string shell_ugoira_viewer = string.Empty;
         public string ShellUgoiraViewer
         {
