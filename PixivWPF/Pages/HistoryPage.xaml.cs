@@ -504,18 +504,28 @@ namespace PixivWPF.Pages
         {
             if (sender is MenuItem)
             {
+                var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+
                 if (sender.GetUid().Equals("ActionOpenDownloadedProperties"))
-                    foreach (PixivItem item in HistoryItems.SelectedItems)
-                        Commands.OpenFileProperties.Execute(item);
+                    Commands.OpenFileProperties.Execute(HistoryItems);
                 else if (sender.GetUid().Equals("ActionOpenDownloaded"))
-                    foreach (PixivItem item in HistoryItems.SelectedItems)
-                        Commands.OpenDownloaded.Execute(item);
+                {
+                    if (ctrl)
+                        Commands.CopyDownloadedPath.Execute(HistoryItems);
+                    else
+                        Commands.OpenDownloaded.Execute(HistoryItems);
+                }
+                else if (sender.GetUid().Equals("ActionOpenDownloadedWith"))
+                {
+                    if (ctrl)
+                        Commands.CopyDownloadedPath.Execute(HistoryItems);
+                    else
+                        Commands.OpenDownloadedWith.Execute(HistoryItems);
+                }
                 else if (sender.GetUid().Equals("ActionShowDownloadedMeta"))
-                    foreach (PixivItem item in HistoryItems.SelectedItems)
-                        Commands.ShowMeta.Execute(item);
+                    Commands.ShowMeta.Execute(HistoryItems);
                 else if (sender.GetUid().Equals("ActionTouchDownloadedMeta"))
-                    foreach (PixivItem item in HistoryItems.SelectedItems)
-                        Commands.TouchMeta.Execute(item);
+                    Commands.TouchMeta.Execute(HistoryItems);
             }
         }
 

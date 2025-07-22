@@ -132,6 +132,11 @@
                     <TextBlock Text="&#xE118;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <MenuItem x:Uid="ActionOpenDownloadedWith" Header="Open Downloaded Illusts With ..." Click="ActionOpenDownloaded_Click">
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE118;" Style="{DynamicResource MenuItemIcon16}"/>
+                </MenuItem.Icon>
+            </MenuItem>
             <MenuItem x:Uid="ActionOpenDownloadedProperties" Header="View Downloaded Properties" Click="ActionOpenDownloaded_Click">
                 <MenuItem.Icon>
                     <TextBlock Text="&#xEA1F;" Style="{DynamicResource MenuItemIcon16}"/>
