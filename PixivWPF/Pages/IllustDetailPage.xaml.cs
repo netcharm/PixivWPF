@@ -3532,12 +3532,13 @@ namespace PixivWPF.Pages
         private void ActionOpenIllust_Click(object sender, RoutedEventArgs e)
         {
             var uid = sender.GetUid();
-            //if (sender == PreviewOpenDownloaded || (sender is MenuItem && (sender as MenuItem).Uid.Equals("ActionOpenDownloaded", StringComparison.CurrentCultureIgnoreCase)))
+            var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+            var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+            var single = Contents.Count <= 1 || SubIllusts.SelectedItems.Count <= 0;
+
             if (sender == PreviewOpenDownloaded || uid.Equals("ActionOpenDownloaded", StringComparison.CurrentCultureIgnoreCase))
             {
-                var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
-                var shift = Keyboard.Modifiers == ModifierKeys.Shift;
-                if (Contents.Count <= 1 || SubIllusts.SelectedItems.Count == 0)
+                if (single)
                 {
                     if (ctrl) Commands.CopyDownloadedPath.Execute(Contents);
                     else Commands.OpenDownloaded.Execute(Contents);
@@ -3548,13 +3549,22 @@ namespace PixivWPF.Pages
                     else Commands.OpenDownloaded.Execute(SubIllusts);
                 }
             }
-            else if (uid.Equals("ActionOpenDownloadedWith", StringComparison.CurrentCultureIgnoreCase))
+            else if (sender == PreviewOpenDownloadedWith || uid.Equals("ActionOpenDownloadedWith", StringComparison.CurrentCultureIgnoreCase))
             {
-                Commands.OpenDownloadedWith.Execute(Contents);
+                if (single)
+                {
+                    if (ctrl) Commands.CopyDownloadedPath.Execute(Contents);
+                    else Commands.OpenDownloadedWith.Execute(Contents);
+                }
+                else
+                {
+                    if (ctrl) Commands.CopyDownloadedPath.Execute(SubIllusts);
+                    else Commands.OpenDownloadedWith.Execute(SubIllusts);
+                }
             }
             else if (sender == PreviewOpen)
             {
-                if (Contents.Count <= 1 || SubIllusts.SelectedItems.Count == 0)
+                if (single)
                     Commands.OpenWorkPreview.Execute(Contents);
                 else
                     Commands.OpenWorkPreview.Execute(SubIllusts);
@@ -3565,14 +3575,14 @@ namespace PixivWPF.Pages
             }
             else if (sender == PreviewOpenDownloadedProperties || uid.Equals("ActionOpenDownloadedProperties", StringComparison.CurrentCultureIgnoreCase))
             {
-                if (Contents.Count <= 1 || SubIllusts.SelectedItems.Count == 0)
+                if (single)
                     Commands.OpenFileProperties.Execute(Contents);
                 else
                     Commands.OpenFileProperties.Execute(SubIllusts);
             }
             else if (uid.Equals("ActionCompareDownloaded", StringComparison.CurrentCultureIgnoreCase))
             {
-                if ((Contents.Count <= 1 || SubIllusts.SelectedItems.Count == 0) && !string.IsNullOrEmpty(Contents.DownloadedFilePath))
+                if (single && !string.IsNullOrEmpty(Contents.DownloadedFilePath))
                     Commands.Compare.Execute(Contents.DownloadedFilePath);
                 else
                 {
@@ -3582,14 +3592,14 @@ namespace PixivWPF.Pages
             }
             else if (sender == ActionShowDownloadedMeta || uid.Equals("ActionShowDownloadedMeta", StringComparison.CurrentCultureIgnoreCase))
             {
-                if (Contents.Count <= 1 || SubIllusts.SelectedItems.Count == 0)
+                if (single)
                     Commands.ShowMeta.Execute(Contents);
                 else
                     Commands.ShowMeta.Execute(SubIllusts);
             }
             else if (sender == ActionTouchDownloadedMeta || uid.Equals("ActionTouchDownloadedMeta", StringComparison.CurrentCultureIgnoreCase))
             {
-                if (Contents.Count <= 1 || SubIllusts.SelectedItems.Count == 0)
+                if (single)
                     Commands.TouchMeta.Execute(Contents);
                 else
                     Commands.TouchMeta.Execute(SubIllusts);

@@ -121,7 +121,12 @@
                         <TextBlock Text="&#xE114;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Name="ActionOpenDownloaded" x:Uid="ActionOpenDownloaded" Header="Open Downloaded With..." Click="ActionIllustInfo_Click">
+                <MenuItem x:Name="ActionOpenDownloaded" x:Uid="ActionOpenDownloaded" Header="Open Downloaded" Click="ActionIllustInfo_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="&#xE118;" Style="{DynamicResource MenuItemIcon16}"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Name="ActionOpenDownloadedWith" x:Uid="ActionOpenDownloadedWith" Header="Open Downloaded With ..." Click="ActionIllustInfo_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE118;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>

@@ -1023,6 +1023,8 @@ namespace PixivWPF.Pages
         {
             if (Contents is PixivItem)
             {
+                var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+
                 if (sender == ActionCopyIllustID)
                     Commands.CopyArtworkIDs.Execute(Contents);
                 else if (sender == ActionCopyIllustJSON)
@@ -1060,7 +1062,17 @@ namespace PixivWPF.Pages
                 }
                 else if (sender == ActionOpenDownloaded)
                 {
-                    Commands.OpenDownloaded.Execute(Contents);
+                    if(ctrl)
+                        Commands.CopyDownloadedPath.Execute(Contents);
+                    else
+                        Commands.OpenDownloaded.Execute(Contents);
+                }
+                else if (sender == ActionOpenDownloadedWith)
+                {
+                    if (ctrl)
+                        Commands.CopyDownloadedPath.Execute(Contents);
+                    else
+                        Commands.OpenDownloadedWith.Execute(Contents);
                 }
                 else if (sender == ActionOpenDownloadedProperties)
                 {
