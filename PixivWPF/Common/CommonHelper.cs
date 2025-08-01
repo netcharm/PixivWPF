@@ -273,6 +273,58 @@ namespace PixivWPF.Common
     }
     #endregion
 
+    #region Delayed Action
+    public class DelayedAction : IDisposable
+    {
+        private TimeSpan delay;
+        private Action action;
+        private CancellationTokenSource cancelTokenSource;
+        private Task task;
+
+        public bool IsBusy { get { return (task?.Status != TaskStatus.RanToCompletion && task?.Status != TaskStatus.WaitingForActivation && task?.Status != TaskStatus.Faulted); } }
+
+        public DelayedAction(Action action, TimeSpan delay)
+        {
+            this.action = action;
+            this.delay = delay;
+            //Invoke();
+            //task = Task.Delay(this.delay, cancelTokenSource.Token).ContinueWith(t => action(), TaskScheduler.FromCurrentSynchronizationContext());
+        }
+
+        public DelayedAction(Action action, int delay)
+        {
+            this.action = action;
+            this.delay = TimeSpan.FromMilliseconds(delay);
+            //Invoke();
+            //task = Task.Delay(this.delay, cancelTokenSource.Token).ContinueWith(t => action(), TaskScheduler.FromCurrentSynchronizationContext());
+        }
+
+        public void Cancel()
+        {
+            cancelTokenSource?.Cancel();
+        }
+
+        public void Invoke()
+        {
+            if (action != null)
+            {
+                if (!task?.IsCompleted ?? false) cancelTokenSource?.Cancel();
+                else cancelTokenSource = new CancellationTokenSource();
+                task = Task.Delay(delay, cancelTokenSource.Token).ContinueWith(t => action(), cancelTokenSource.Token, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.FromCurrentSynchronizationContext());//.ContinueWith(t => { task?.Dispose(); });
+            }
+        }
+
+        public void Dispose()
+        {
+            Cancel();
+
+            cancelTokenSource?.Dispose();
+            task?.Dispose();
+            action = null;
+        }
+    }
+    #endregion
+
     #region Custom storage type
     [Flags]
     public enum SearchDateScope { Year, Season, Month, Week, Day, Hour, Minute };
@@ -11094,13 +11146,17 @@ namespace PixivWPF.Common
             get { return (auto_suggest_list); }
         }
 
+        private static DelayedAction SuggestAction = null;
+        private static Task SearchTask;
+        private static CancellationTokenSource cancelSearchTokenSource;
+
         public static IEnumerable<string> GetSuggestList(this string text, string original = "")
         {
             List<string> result = new List<string>();
 
             if (!string.IsNullOrEmpty(text))
             {
-                var patten = @"^(User|Fuzzy|Tag|Fuzzy Tag): ?";
+                var patten = @"^(User|Fuzzy|Tag|Fuzzy Tag|Local): ?";
                 text = Regex.Replace(text, patten, "", RegexOptions.IgnoreCase).Trim();
 
                 if (Regex.IsMatch(text, @"^\d+$", RegexOptions.IgnoreCase))
@@ -11126,7 +11182,6 @@ namespace PixivWPF.Common
                 }
                 result.Add($"Local: {text}");
                 result = result.Distinct().ToList();
-                //result.Add($"Caption: {text}");
             }
 
             return (result);
@@ -11137,19 +11192,30 @@ namespace PixivWPF.Common
             if (sender is ComboBox)
             {
                 var SearchBox = sender as ComboBox;
-                if (SearchBox.Text.Length > 0)
+
+                if (SearchBox.Text.Length > 0 && (SearchBox.Items.Count <= 0 || !SearchBox.Text.Equals(SearchBox.SelectedValue?.ToString())))
                 {
-                    auto_suggest_list.Clear();
-
-                    var content = SearchBox.Text.ParseLink().ParseID();
-                    if (!string.IsNullOrEmpty(content))
-                    {
-                        content.GetSuggestList(SearchBox.Text).ToList().ForEach(t => auto_suggest_list.Add(t));
-                        SearchBox.Items.Refresh();
-                        SearchBox.IsDropDownOpen = true;
-                    }
-
                     e.Handled = true;
+
+                    if (SuggestAction == null)
+                    {
+                        SuggestAction = new DelayedAction(() =>
+                        {
+                            SearchBox?.Invoke(() =>
+                            {
+                                auto_suggest_list.Clear();
+                                var content = SearchBox.Text.ParseLink().ParseID();
+                                if (!string.IsNullOrEmpty(content))
+                                {
+                                    cancelSearchTokenSource?.Cancel();
+                                    content.GetSuggestList(SearchBox.Text).ToList().ForEach(t => auto_suggest_list.Add(t));
+                                    SearchBox.Items.Refresh();
+                                    SearchBox.IsDropDownOpen = true;
+                                }
+                            });
+                        }, 250);
+                    }
+                    SuggestAction?.Invoke();
                 }
             }
         }
@@ -11175,15 +11241,21 @@ namespace PixivWPF.Common
             {
                 var SearchBox = sender as ComboBox;
 
-                e.Handled = true;
                 var items = e.AddedItems;
                 if (items.Count > 0)
                 {
+                    e.Handled = true;
                     var item = items[0];
                     if (item is string)
                     {
+                        if (!SearchTask?.IsCompleted ?? false) cancelSearchTokenSource?.Cancel();
+                        else cancelSearchTokenSource = new CancellationTokenSource();
+
                         var query = (string)item;
-                        Commands.OpenSearch.Execute(query);
+                        SearchTask = Task.Delay(500, cancelSearchTokenSource.Token).
+                                    ContinueWith(t => { Commands.OpenSearch.Execute(query); cancelSearchTokenSource = null; },
+                                        cancelSearchTokenSource.Token, TaskContinuationOptions.OnlyOnRanToCompletion,
+                                        TaskScheduler.FromCurrentSynchronizationContext());
                     }
                 }
             }

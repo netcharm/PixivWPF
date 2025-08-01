@@ -586,21 +586,32 @@ namespace PixivWPF.Common
             SearchBox.IsDropDownOpen = false;
         }
 
+        private DelayedAction SuggestAction = null;
         private void SearchBox_TextChanged(object sender, RoutedEventArgs e)
         {
-            if (SearchBox.Text.Length > 0)
+            if (SearchBox.Text.Length > 0 && !SearchBox.Text.Equals(SearchBox.SelectedValue?.ToString()))
             {
-                auto_suggest_list.Clear();
+                e.Handled = true;
 
-                var content = SearchBox.Text.ParseLink().ParseID();
-                if (!string.IsNullOrEmpty(content))
+                if (SuggestAction == null)
                 {
-                    content.GetSuggestList(SearchBox.Text).ToList().ForEach(t => auto_suggest_list.Add(t));
-                    SearchBox.Items.Refresh();
-                    SearchBox.IsDropDownOpen = true;
+                    SuggestAction = new DelayedAction(() =>
+                    {
+                        SearchBox?.Invoke(() =>
+                        {
+                            var content = SearchBox.Text.ParseLink().ParseID();
+                            if (!string.IsNullOrEmpty(content))
+                            {
+                                cancelSearchTokenSource?.Cancel();
+                                auto_suggest_list.Clear();
+                                content.GetSuggestList(SearchBox.Text).ToList().ForEach(t => auto_suggest_list.Add(t));
+                                SearchBox.IsDropDownOpen = true;
+                            }
+                        });
+                    }, 250);
                 }
 
-                e.Handled = true;
+                SuggestAction?.Invoke();
             }
         }
 
@@ -614,6 +625,8 @@ namespace PixivWPF.Common
             }
         }
 
+        private Task SearchTask;
+        private CancellationTokenSource cancelSearchTokenSource;
         private void SearchBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             e.Handled = true;
@@ -623,8 +636,14 @@ namespace PixivWPF.Common
                 var item = items[0];
                 if (item is string)
                 {
+                    if (!SearchTask?.IsCompleted ?? false) cancelSearchTokenSource?.Cancel();
+                    else cancelSearchTokenSource = new CancellationTokenSource();
+
                     var query = (string)item;
-                    Commands.OpenSearch.Execute(query);
+                    SearchTask = Task.Delay(500, cancelSearchTokenSource.Token).
+                                ContinueWith(t => { Commands.OpenSearch.Execute(query); cancelSearchTokenSource = null; },
+                                    cancelSearchTokenSource.Token, TaskContinuationOptions.OnlyOnRanToCompletion,
+                                    TaskScheduler.FromCurrentSynchronizationContext());
                 }
             }
         }
