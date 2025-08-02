@@ -216,8 +216,11 @@ namespace ImageCompare
                     try
                     {
                         var image = new MagickImage(Current) { FilterType = ResizeFilter };
-                        image.Extent(SourceParams.Geometry, SourceParams.Align, MagickColors.Transparent);
-                        image.ResetPage();
+                        if (SourceParams.Geometry.Width > 0 && SourceParams.Geometry.Height > 0)
+                        {
+                            image.Extent(SourceParams.Geometry, SourceParams.Align, MagickColors.Transparent);
+                            image.ResetPage();
+                        }
                         result = image.ToBitmapSource();
                         image.Dispose();
                     }
