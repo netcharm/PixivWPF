@@ -1689,10 +1689,13 @@ namespace PixivWPF.Common
 
             setting = Application.Current.LoadSetting();
 
+            var alt = Keyboard.Modifiers == ModifierKeys.Alt;
             var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
             var shift = Keyboard.Modifiers == ModifierKeys.Shift;
             var selected = Application.Current.GetDownloadItems(seleced: true).Contains(Info);
             var multiple = selected;// && Application.Current.DownloadManagerHasMultiSelected();
+            //var continuation = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? !setting.DownloadWithFailResume : setting.DownloadWithFailResume;
+            var continuation = setting.DownloadWithFailResume;
             var highlight_word = Info.State == DownloadItemState.Finished ? Info.IllustID.ToString() : null;
 
             if ((sender == miCopyIllustID || sender == PART_CopyIllustID) && !string.IsNullOrEmpty(Url))
@@ -1742,17 +1745,20 @@ namespace PixivWPF.Common
             }
             else if (sender == miDownload || sender == PART_Download)
             {
-                var continuation = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? !setting.DownloadWithFailResume : setting.DownloadWithFailResume;
                 var restart = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
                 restart |= await OverwritePrompt(); // Check if file exists and ask for overwrite
+                if (shift && (!IsFinished || restart))
+                {
+                    SaveAsJPEG = !SaveAsJPEG;
+                    Info.SetSaveAsJPEG(SaveAsJPEG);
+                }
                 Start(continuation, restart);
             }
             else if (sender == miDownloadRestart)
             {
-                var continuation = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? !setting.DownloadWithFailResume : setting.DownloadWithFailResume;
                 if (await OverwritePrompt())
                 {
-                    if (ctrl)
+                    if (shift)
                     {
                         SaveAsJPEG = !SaveAsJPEG;
                         Info.SetSaveAsJPEG(SaveAsJPEG);
