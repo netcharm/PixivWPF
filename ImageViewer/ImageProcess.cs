@@ -669,7 +669,7 @@ namespace ImageViewer
                     };
                     if (width > 0 || height > 0)
                     {
-                        image_s.Current.Extent(box.Width, box.Height, align);
+                        image_s.Current.Extent(box.Width, box.Height, align, MagickColors.Transparent);
                         image_s.Current.ResetPage();
                         action = true;
                     }
