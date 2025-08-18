@@ -1118,7 +1118,7 @@ namespace ImageApplets
             if (_verbose_)
             {
                 if (string.IsNullOrEmpty(title))
-                    MessageBox.Show(text);
+                    MessageBox.Show(text, Name);
                 else
                     MessageBox.Show(text, title);
             }
