@@ -4814,11 +4814,13 @@ namespace PixivWPF.Pages
         {
             setting = Application.Current.LoadSetting();
             var uid = sender.GetUid();
-            var type = DownloadType.None;
-            //var cq = (int)(ReduceToQuality is Slider ? ReduceToQuality.Value : setting.DownloadRecudeJpegQuality);
+            var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+            var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+
+            var type = (shift ? !setting.DownloadWithAutoReduce : setting.DownloadWithAutoReduce) ? DownloadType.None : DownloadType.Original;
             var cq = sender is MenuItem && (sender as MenuItem).Tag is App.MenuItemSliderData ? ((sender as MenuItem).Tag as App.MenuItemSliderData).Value : setting.DownloadRecudeJpegQuality;
 
-            if (Keyboard.Modifiers == ModifierKeys.Shift) type |= DownloadType.ConvertKeepName;
+            if (ctrl) type |= DownloadType.ConvertKeepName;
             if (sender == PreviewSave) type |= DownloadType.None;
             else if (uid.Equals("ActionSaveIllust")) type |= DownloadType.Original;
             else if (uid.Equals("ActionSaveIllustJpeg")) type |= DownloadType.AsJPEG;
@@ -5663,10 +5665,13 @@ namespace PixivWPF.Pages
                 if (sender is MenuItem)
                 {
                     var uid = sender.GetUid();
-                    var type = DownloadType.None;
+                    var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+                    var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+
+                    var type = (shift ? !setting.DownloadWithAutoReduce : setting.DownloadWithAutoReduce) ? DownloadType.None : DownloadType.Original;
                     var cq = sender is MenuItem && (sender as MenuItem).Tag is App.MenuItemSliderData ? ((sender as MenuItem).Tag as App.MenuItemSliderData).Value : setting.DownloadRecudeJpegQuality;
 
-                    if (Keyboard.Modifiers == ModifierKeys.Shift) type |= DownloadType.ConvertKeepName;
+                    if (ctrl) type |= DownloadType.ConvertKeepName;
                     if (uid.Equals("ActionSaveIllusts") || uid.Equals("ActionSaveIllustsAll")) type |= DownloadType.Original;
                     else if (uid.Equals("ActionSaveIllustsJpeg") || uid.Equals("ActionSaveIllustsJpegAll")) type |= DownloadType.AsJPEG;
                     else if (uid.Equals("ActionSaveIllustsPreview")) type |= DownloadType.UseLargePreview;
@@ -5729,7 +5734,10 @@ namespace PixivWPF.Pages
                 if (sender is MenuItem)
                 {
                     var uid = sender.GetUid();
-                    var type = DownloadType.None;
+                    var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+                    var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+
+                    var type = (shift ? !setting.DownloadWithAutoReduce : setting.DownloadWithAutoReduce) ? DownloadType.None : DownloadType.Original;
 
                     if (Keyboard.Modifiers == ModifierKeys.Shift) type |= DownloadType.ConvertKeepName;
                     if (uid.Equals("ActionSaveIllustAll")) type |= DownloadType.Original;

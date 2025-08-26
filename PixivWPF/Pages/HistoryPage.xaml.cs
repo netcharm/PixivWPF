@@ -488,7 +488,14 @@ namespace PixivWPF.Pages
         {
             if (sender is MenuItem)
             {
-                Commands.SaveIllust.Execute(HistoryItems);
+                var setting = Application.Current.LoadSetting();
+                var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+                var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+
+                var type = (shift ? !setting.DownloadWithAutoReduce : setting.DownloadWithAutoReduce) ? DownloadType.None : DownloadType.Original;
+                var items = new KeyValuePair<ImageListGrid, DownloadType>(HistoryItems, type);
+
+                Commands.SaveIllust.Execute(items);
             }
         }
 
@@ -496,7 +503,14 @@ namespace PixivWPF.Pages
         {
             if (sender is MenuItem)
             {
-                Commands.SaveIllustAll.Execute(HistoryItems);
+                var setting = Application.Current.LoadSetting();
+                var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+                var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+
+                var type = (shift ? !setting.DownloadWithAutoReduce : setting.DownloadWithAutoReduce) ? DownloadType.None : DownloadType.Original;
+                var items = new KeyValuePair<ImageListGrid, DownloadType>(HistoryItems, type);
+
+                Commands.SaveIllustAll.Execute(items);
             }
         }
 

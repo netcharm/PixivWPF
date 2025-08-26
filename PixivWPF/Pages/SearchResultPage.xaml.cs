@@ -642,10 +642,14 @@ namespace PixivWPF.Pages
         {
             if (sender is MenuItem)
             {
-                foreach (PixivItem item in ResultItems.SelectedItems)
-                {
-                    Commands.SaveIllust.Execute(item);
-                }
+                var setting = Application.Current.LoadSetting();
+                var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+                var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+
+                var type = (shift ? !setting.DownloadWithAutoReduce : setting.DownloadWithAutoReduce) ? DownloadType.None : DownloadType.Original;
+                var items = new KeyValuePair<ImageListGrid, DownloadType>(ResultItems, type);
+
+                Commands.SaveIllust.Execute(items);
             }
         }
 
@@ -653,10 +657,14 @@ namespace PixivWPF.Pages
         {
             if (sender is MenuItem)
             {
-                foreach (PixivItem item in ResultItems.SelectedItems)
-                {
-                    Commands.SaveIllustAll.Execute(item);
-                }
+                var setting = Application.Current.LoadSetting();
+                var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+                var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+
+                var type = (shift ? !setting.DownloadWithAutoReduce : setting.DownloadWithAutoReduce) ? DownloadType.None : DownloadType.Original;
+                var items = new KeyValuePair<ImageListGrid, DownloadType>(ResultItems, type);
+
+                Commands.SaveIllustAll.Execute(items);
             }
         }
 
