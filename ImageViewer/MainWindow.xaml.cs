@@ -3924,7 +3924,8 @@ namespace ImageViewer
         #region ImageBox Events
         private async void ImageBox_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (!Ready || IsImageNull(ImageViewer) || e.Delta == 0) return;
+            //if (!Ready || IsImageNull(ImageViewer) || e.Delta == 0) return;
+            if (!Ready || e.Delta == 0) return;
             var km = this.GetModifier();
             if (CurrentZoomFitMode == ZoomFitMode.None && km.OnlyCtrl)
             {

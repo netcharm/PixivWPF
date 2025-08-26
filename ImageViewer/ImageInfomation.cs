@@ -1409,6 +1409,8 @@ namespace ImageViewer
                         var ext = Path.GetExtension(FileName).ToLower();
 
                         using var fs = new FileStream(FileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+                        if (fs?.Length <= 0) return (false);
+
                         if (ext.Equals(".cube"))
                         {
                             Original = fs.Lut2Png();
@@ -1432,26 +1434,37 @@ namespace ImageViewer
                             {
                                 var count = 0;
                                 var image = new MagickImage(fs, ext.GetImageFileFormat());
-                                while ((image.MetaChannelCount > 0 || CalcColorDepth(image) < OriginalDepth) && count < 20)
+                                if (image?.IsValidRead() ?? false)
                                 {
-                                    fs.Seek(0, SeekOrigin.Begin);
-                                    image = new MagickImage(fs, ext.GetImageFileFormat());
-                                    count++;
+                                    while ((image.MetaChannelCount > 0 || CalcColorDepth(image) < OriginalDepth) && count < 20)
+                                    {
+                                        fs.Seek(0, SeekOrigin.Begin);
+                                        image = new MagickImage(fs, ext.GetImageFileFormat());
+                                        count++;
+                                    }
+                                    FixEndian(image, OriginalEndian);
+                                    Original = new MagickImage(image);
                                 }
-                                FixEndian(image, OriginalEndian);
-                                Original = new MagickImage(image);
-                                image.Dispose();
+                                image?.Dispose();
                             }
                             catch
                             {
-                                if (fs.CanSeek) fs.Seek(0, SeekOrigin.Begin);
-                                Original = new MagickImage(fs, MagickFormat.Unknown);
+                                if (fs?.Length > 0 && fs.CanSeek && fs.CanRead)
+                                {
+                                    fs?.Seek(0, SeekOrigin.Begin);
+                                    Original = new MagickImage(fs, MagickFormat.Unknown);
+                                }
                             }
                             //_simple_info_ = GetSimpleInfo().Result;
                         }
                         ret = Original.IsValidRead();
                     }
-                    catch (Exception ex) { ex.ShowMessage(); }
+                    catch (Exception ex)
+                    {
+                        if (ex.Message.Contains("no decode"))
+                            "The file is not a known image format!".ShowMessage();
+                        else ex.ShowMessage();
+                    }
                     finally { _loading_image_.Release(); }
                     return (ret);
                 });
@@ -1703,6 +1716,8 @@ namespace ImageViewer
                         {
                             target.SetCompression(CompressionMethod.Zip);
                             target.Settings.Compression = CompressionMethod.Zip;
+                            //target.Settings.Interlace = image.Interlace;
+                            //target.Settings.SetDefine(MagickFormat.Png, "png:IHDR.interlace_method", "0");
                             target.VirtualPixelMethod = VirtualPixelMethod.Transparent;
                         }
                         else if (format.IsTIF() || e.StartsWith(".tif"))
@@ -1733,7 +1748,7 @@ namespace ImageViewer
                         //if (image.ColorSpace == ColorSpace.scRGB) image.ColorSpace = ColorSpace.sRGB;
                         target.Settings.AntiAlias = true;
                         target.Settings.Endian = image.Endian;
-                        target.Settings.Interlace = Interlace.Plane;
+                        //target.Settings.Interlace = Interlace.Plane;
                         target.BackgroundColor = MasklightColor ?? target.BackgroundColor;
                         target.MatteColor = MasklightColor ?? target.BackgroundColor;
                         target.Density = image.Density;

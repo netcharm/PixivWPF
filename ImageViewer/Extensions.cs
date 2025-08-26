@@ -821,11 +821,11 @@ namespace ImageViewer
 
                     if (Application.Current.MainWindow.IsVisible)
                     {
-                        Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text, prefix, MessageBoxButton.OKCancel, MessageBoxImage.None, MessageBoxResult.Yes, GetMessageBoxStyle());
+                        Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text, prefix, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.Yes, GetMessageBoxStyle());
                     }
                     else
                     {
-                        Xceed.Wpf.Toolkit.MessageBox.Show(text, prefix, MessageBoxButton.OKCancel, MessageBoxImage.None, MessageBoxResult.Yes, GetMessageBoxStyle());
+                        Xceed.Wpf.Toolkit.MessageBox.Show(text, prefix, MessageBoxButton.OK, MessageBoxImage.None, MessageBoxResult.Yes, GetMessageBoxStyle());
                     }
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
@@ -845,23 +845,23 @@ namespace ImageViewer
                     if (Application.Current.MainWindow.IsVisible)
                     {
                         if (string.IsNullOrEmpty(prefix))
-                            Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, contents, "Exception".T(), MessageBoxButton.OKCancel, MessageBoxImage.Error, MessageBoxResult.Yes, GetMessageBoxStyle());
+                            Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, contents, "Exception".T(), MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.Yes, GetMessageBoxStyle());
                         else
-                            Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, contents, prefix, MessageBoxButton.OKCancel, MessageBoxImage.Error, MessageBoxResult.Yes, GetMessageBoxStyle());
+                            Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, contents, prefix, MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.Yes, GetMessageBoxStyle());
                     }
                     else
                     {
                         if (string.IsNullOrEmpty(prefix))
-                            Xceed.Wpf.Toolkit.MessageBox.Show(contents, "Exception".T(), MessageBoxButton.OKCancel, MessageBoxImage.Error, MessageBoxResult.Yes, GetMessageBoxStyle());
+                            Xceed.Wpf.Toolkit.MessageBox.Show(contents, "Exception".T(), MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.Yes, GetMessageBoxStyle());
                         else
-                            Xceed.Wpf.Toolkit.MessageBox.Show(contents, prefix, MessageBoxButton.OKCancel, MessageBoxImage.Error, MessageBoxResult.Yes, GetMessageBoxStyle());
+                            Xceed.Wpf.Toolkit.MessageBox.Show(contents, prefix, MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.Yes, GetMessageBoxStyle());
                     }
                 }
                 catch (Exception ex)
                 {
                     if (Application.Current.MainWindow.IsVisible)
                     {
-                        Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message, "Exception".T(), MessageBoxButton.OKCancel, MessageBoxImage.Error, MessageBoxResult.Yes, GetMessageBoxStyle());
+                        Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, ex.Message, "Exception".T(), MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.Yes, GetMessageBoxStyle());
                     }
                     else
                     {
