@@ -1415,18 +1415,18 @@ namespace ImageViewer
                         {
                             Original = fs.Lut2Png();
                         }
-                        else
+                        else if (fs.Length > 0 && fs.CanRead && fs.CanSeek)
                         {
                             var exif = new CompactExifLib.ExifData(fs);
-                            if (exif.ImageType == CompactExifLib.ImageType.Unknown)
+                            if (exif?.ImageType == CompactExifLib.ImageType.Unknown)
                             {
                                 OriginalDepth = 0;
                                 OriginalEndian = Endian.Undefined;
                             }
                             else
                             {
-                                OriginalDepth = (uint)exif.ColorDepth;
-                                OriginalEndian = exif.ByteOrder == CompactExifLib.ExifByteOrder.LittleEndian ? Endian.LSB : Endian.MSB;
+                                OriginalDepth = (uint)exif?.ColorDepth;
+                                OriginalEndian = exif?.ByteOrder == CompactExifLib.ExifByteOrder.LittleEndian ? Endian.LSB : Endian.MSB;
                             }
 
                             fs.Seek(0, SeekOrigin.Begin);
@@ -1461,7 +1461,7 @@ namespace ImageViewer
                     }
                     catch (Exception ex)
                     {
-                        if (ex.Message.Contains("no decode"))
+                        if (ex.Message.Contains("no decode") || ex.Message.Contains("Internal image structure is wrong!"))
                             "The file is not a known image format!".ShowMessage();
                         else ex.ShowMessage();
                     }
