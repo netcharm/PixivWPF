@@ -1586,9 +1586,15 @@ namespace ImageApplets
                 if (ex is ExifException)
                 {
                     ret = false;
-                    switch ((ex as ExifException).ErrorCode)
+                    switch (ex.ErrorCode)
                     {
+                        //case ExifErrCode.ExifBlockHasIllegalContent: break;
+                        //case ExifErrCode.ExifDataAreTooLarge: break;
+                        //case ExifErrCode.ImageHasUnsupportedFeatures: break;
+                        //case ExifErrCode.ImageTypesDoNotMatch: break;
                         case ExifErrCode.ImageTypeIsNotSupported: break;
+                        case ExifErrCode.InternalError: break;
+                        //case ExifErrCode.InternalImageStructureIsWrong: break;
                         default: MessageBox.Show(ex.Message); break;
                     }
                 }
@@ -1620,9 +1626,15 @@ namespace ImageApplets
                     if (ex is ExifException)
                     {
                         ret = false;
-                        switch ((ex as ExifException).ErrorCode)
+                        switch (ex.ErrorCode)
                         {
+                            //case ExifErrCode.ExifBlockHasIllegalContent: break;
+                            //case ExifErrCode.ExifDataAreTooLarge: break;
+                            //case ExifErrCode.ImageHasUnsupportedFeatures: break;
+                            //case ExifErrCode.ImageTypesDoNotMatch: break;
                             case ExifErrCode.ImageTypeIsNotSupported: break;
+                            case ExifErrCode.InternalError: break;
+                            //case ExifErrCode.InternalImageStructureIsWrong: break;
                             default: MessageBox.Show(ex.Message); break;
                         }
                     }
@@ -1651,9 +1663,15 @@ namespace ImageApplets
                     if (ex is ExifException)
                     {
                         ret = false;
-                        switch ((ex as ExifException).ErrorCode)
+                        switch (ex.ErrorCode)
                         {
+                            //case ExifErrCode.ExifBlockHasIllegalContent: break;
+                            //case ExifErrCode.ExifDataAreTooLarge: break;
+                            //case ExifErrCode.ImageHasUnsupportedFeatures: break;
+                            //case ExifErrCode.ImageTypesDoNotMatch: break;
                             case ExifErrCode.ImageTypeIsNotSupported: break;
+                            case ExifErrCode.InternalError: break;
+                            //case ExifErrCode.InternalImageStructureIsWrong: break;
                             default: MessageBox.Show(ex.Message); break;
                         }
                     }
@@ -1681,9 +1699,15 @@ namespace ImageApplets
                 if (ex is ExifException)
                 {
                     ret = false;
-                    switch ((ex as ExifException).ErrorCode)
+                    switch (ex.ErrorCode)
                     {
+                        //case ExifErrCode.ExifBlockHasIllegalContent: break;
+                        //case ExifErrCode.ExifDataAreTooLarge: break;
+                        //case ExifErrCode.ImageHasUnsupportedFeatures: break;
+                        //case ExifErrCode.ImageTypesDoNotMatch: break;
                         case ExifErrCode.ImageTypeIsNotSupported: break;
+                        case ExifErrCode.InternalError: break;
+                        //case ExifErrCode.InternalImageStructureIsWrong: break;
                         default: MessageBox.Show(ex.Message); break;
                     }
                 }
