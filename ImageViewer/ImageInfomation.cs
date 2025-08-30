@@ -1393,7 +1393,7 @@ namespace ImageViewer
         public async Task<bool> LoadImageFromFile(string file)
         {
             var result = false;
-            if (File.Exists(file) && await _loading_image_.WaitAsync(TimeSpan.FromSeconds(10)))
+            if (!string.IsNullOrEmpty(file) && File.Exists(file) && await _loading_image_.WaitAsync(TimeSpan.FromSeconds(10)))
             {
                 _simple_info_ = string.Empty;
 
@@ -1455,14 +1455,15 @@ namespace ImageViewer
                                     Original = new MagickImage(fs, MagickFormat.Unknown);
                                 }
                             }
-                            //_simple_info_ = GetSimpleInfo().Result;
                         }
                         ret = Original.IsValidRead();
                     }
                     catch (Exception ex)
                     {
-                        if (ex.Message.Contains("no decode") || ex.Message.Contains("Internal image structure is wrong!"))
-                            "The file is not a known image format!".ShowMessage();
+                        if (ex.Message.Contains("no decode"))
+                            file.ShowMessage("The file is not a known image format!");
+                        else if (ex.Message.Contains("Internal image structure is wrong!"))
+                            file.ShowMessage("The image file data is corrupted!");
                         else ex.ShowMessage();
                     }
                     finally { _loading_image_.Release(); }
