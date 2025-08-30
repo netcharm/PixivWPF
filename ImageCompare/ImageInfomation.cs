@@ -938,7 +938,7 @@ namespace ImageCompare
         public async Task<bool> LoadImageFromFile(string file)
         {
             var result = false;
-            if (File.Exists(file))
+            if (!string.IsNullOrEmpty(file) && File.Exists(file))
             {
                 result = await Task.Run(() =>
                 {
@@ -999,8 +999,10 @@ namespace ImageCompare
                     }
                     catch (Exception ex)
                     {
-                        if (ex.Message.Contains("no decode") || ex.Message.Contains("Internal image structure is wrong!"))
-                            "The file is not a known image format!".ShowMessage();
+                        if (ex.Message.Contains("no decode"))
+                            file.ShowMessage("The file is not a known image format!");
+                        else if (ex.Message.Contains("Internal image structure is wrong!"))
+                            file.ShowMessage("The image file data is corrupted!");
                         else ex.ShowMessage();
                     }
                     return (ret);
