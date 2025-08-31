@@ -784,6 +784,7 @@ namespace PixivWPF.Common
                     }
                     else if (State == DownloadItemState.Failed)
                     {
+                        AutoStart = false;
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
                         //PART_SaveAsJPEG.IsEnabled = true;
@@ -959,7 +960,7 @@ namespace PixivWPF.Common
                                     lastReceived += bytesread;
                                     Received += bytesread;
                                     LastElapsed = EndTick - lastTick;
-                                    if (LastElapsed.TotalMilliseconds >= 250 && IsDownloading) UpdateProgress();
+                                    if ((LastElapsed.TotalMilliseconds >= 250 && IsDownloading) || Received >= Length) UpdateProgress();
                                 }
                             } while (bytesread > 0 && Received < Length);
 
@@ -1104,7 +1105,9 @@ namespace PixivWPF.Common
             {
                 if (string.IsNullOrEmpty(FailReason))
                     FailReason = "Unkonwn failed reason when downloading.";
+
                 State = DownloadItemState.Failed;
+                AutoStart = false;
 
                 EndTick = DateTime.Now;
             }
@@ -1303,6 +1306,7 @@ namespace PixivWPF.Common
             {
                 FailReason = ex.Message;
                 State = DownloadItemState.Failed;
+                AutoStart = false;
                 if (!IsCanceling) throw new Exception($"Download {Path.GetFileName(FileName)} Failed! Error is {FailReason}");
             }
             finally
@@ -1363,6 +1367,7 @@ namespace PixivWPF.Common
             {
                 FailReason = ex.Message;
                 State = DownloadItemState.Failed;
+                AutoStart = false;
                 if (!IsCanceling) throw new Exception($"Download {Path.GetFileName(FileName)} from {source} Failed! Error is {FailReason}");
             }
             finally
@@ -1454,6 +1459,7 @@ namespace PixivWPF.Common
                 {
                     FailReason = "Manual Canceled!";
                     State = DownloadItemState.Failed;
+                    AutoStart = false;
                     if (Downloading?.CurrentCount <= 0) Downloading?.Release();
                 }
             }
