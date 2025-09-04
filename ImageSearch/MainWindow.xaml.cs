@@ -145,8 +145,11 @@ namespace ImageSearch
             progress?.Dispatcher.Invoke(() =>
             {
                 percentage = double.IsNaN(percentage) ? 0 : percentage;
-                if (progress.IsIndeterminate && percentage > 0 && percentage < 100) progress.IsIndeterminate = false;
-                progress.Value = (int)Math.Min(100, Math.Max(0, percentage));
+                var percent_old = progress.Value;
+                var percent_new = (int)Math.Min(100, Math.Max(0, percentage));
+                if (progress.IsIndeterminate && percent_new > 0 && percent_new < 100) progress.IsIndeterminate = false;
+                progress.Value = percent_new;
+                if (percent_new - percent_old >= 1) { }
                 DoEvents();
             }, DispatcherPriority.Normal);
         }
@@ -275,6 +278,91 @@ namespace ImageSearch
                 }
             }
             return (result);
+        }
+
+        public SKBitmap? Rotate(SKBitmap? skb, double angle = 0)
+        {
+            SKBitmap rotated;
+            if (skb is SKBitmap)
+            {
+                double radians = Math.PI * (angle % 360) / 180;
+                float sine = (float)Math.Abs(Math.Sin(radians));
+                float cosine = (float)Math.Abs(Math.Cos(radians));
+                int originalWidth = skb.Width;
+                int originalHeight = skb.Height;
+                int rotatedWidth = (int)(cosine * originalWidth + sine * originalHeight);
+                int rotatedHeight = (int)(cosine * originalHeight + sine * originalWidth);
+
+                rotated = new SKBitmap(rotatedWidth, rotatedHeight);
+
+                using (var surface = new SKCanvas(rotated))
+                {
+                    surface.Clear();
+                    surface.Translate(rotatedWidth / 2, rotatedHeight / 2);
+                    surface.RotateDegrees((float)angle);
+                    surface.Translate(-originalWidth / 2, -originalHeight / 2);
+                    //surface.RotateDegrees((float)angle, originalWidth / 2, originalHeight / 2);
+                    surface.DrawBitmap(skb, new SKPoint());
+                }
+#if DEBUG
+                using var png = rotated.Encode(SKEncodedImageFormat.Png, 100);
+                using var fs = new FileStream($"test_rotate_{angle:000}.png", FileMode.OpenOrCreate, FileAccess.Write);
+                png.SaveTo(fs);
+#endif
+                return (rotated);
+            }
+            else return (skb);
+        }
+
+        public SKBitmap? Rotate090(SKBitmap? skb)
+        {
+            return (Rotate(skb, 90));
+        }
+
+        public SKBitmap? Rotate180(SKBitmap? skb)
+        {
+            return (Rotate(skb, 180));
+        }
+
+        public SKBitmap? Rotate270(SKBitmap? skb)
+        {
+            return (Rotate(skb, 270));
+        }
+
+        public SKBitmap? Flip(SKBitmap? skb, bool dir = true)
+        {
+            SKBitmap fliped;
+            if (skb is SKBitmap)
+            {
+                fliped = new SKBitmap(skb.Width, skb.Height);
+
+                using (var surface = new SKCanvas(fliped))
+                {
+                    surface.Clear();
+                    if (dir)
+                        surface.Scale(-1, 1, skb.Width / 2, skb.Height / 2);
+                    else
+                        surface.Scale(1, -1, skb.Width / 2, skb.Height / 2);
+                    surface.DrawBitmap(skb, new SKPoint());
+                }
+#if DEBUG
+                using var png = fliped.Encode(SKEncodedImageFormat.Png, 100);
+                using var fs = new FileStream($"test_flip_{(dir ? "x" : "y")}.png", FileMode.OpenOrCreate, FileAccess.Write);
+                png.SaveTo(fs);
+#endif
+                return (fliped);
+            }
+            else return (skb);
+        }
+
+        public SKBitmap? FlipX(SKBitmap? skb)
+        {
+            return (Flip(skb, true));
+        }
+
+        public SKBitmap? FlipY(SKBitmap? skb)
+        {
+            return (Flip(skb, false));
         }
 
         private (BitmapSource?, SKBitmap?, string?) LoadImageFromStream(Stream? stream)
@@ -770,10 +858,10 @@ namespace ImageSearch
             return (result);
         }
 
-        private static string GetLabelString(LabeledObject[] items)
+        private static string GetLabelString(IEnumerable<LabeledObject> items)
         {
             var result = string.Empty;
-            if (items is not null && items.Length > 0)
+            if (items is not null && items.Count() > 0)
             {
                 var padding = items.Select(x => LenCJK(x.Label)).Max();
                 result = string.Join(Environment.NewLine, items.Select(x => $"Confidence  : {PadRightCJK(x.Label, padding)} ≈ {x.Confidence:F6}"));
@@ -959,6 +1047,8 @@ namespace ImageSearch
 
             _storages_ = settings.StorageList;
             AllFolders.IsChecked = settings.AllFolder;
+
+            QueryRotatedImage.IsChecked = settings.QueryRotatedImage;
 
             if (_storages_ is not null)
             {
@@ -1416,6 +1506,14 @@ namespace ImageSearch
             GC.Collect();
         }
 
+        private void QueryRotatedImage_Checked(object sender, RoutedEventArgs e)
+        {
+            if (IsLoaded)
+            {
+                settings.QueryRotatedImage = QueryRotatedImage.IsChecked ?? false;
+            }
+        }
+
         private bool IsQuering = false;
         private async void QueryImage_Click(object sender, RoutedEventArgs e)
         {
@@ -1491,9 +1589,25 @@ namespace ImageSearch
                     var queries = await similar.QueryImageScore(skb_src, feature_db, limit: limit, labels: true);
                     var imlist = queries?.Results;
                     var labels = queries?.Labels;
+
+                    if (settings.QueryRotatedImage)
+                    {
+                        queries = await similar.QueryImageScore(Rotate090(skb_src), feature_db, limit: limit, labels: true);
+                        imlist.AddRange(queries?.Results ?? []);
+                        queries = await similar.QueryImageScore(Rotate180(skb_src), feature_db, limit: limit, labels: true);
+                        imlist.AddRange(queries?.Results ?? []);
+                        queries = await similar.QueryImageScore(Rotate270(skb_src), feature_db, limit: limit, labels: true);
+                        imlist.AddRange(queries?.Results ?? []);
+                        queries = await similar.QueryImageScore(FlipX(skb_src), feature_db, limit: limit, labels: true);
+                        imlist.AddRange(queries?.Results ?? []);
+                        queries = await similar.QueryImageScore(FlipY(skb_src), feature_db, limit: limit, labels: true);
+                        imlist.AddRange(queries?.Results ?? []);
+                        imlist = imlist.OrderByDescending(r => r.Value).DistinctBy(r => r.Key).Take(limit > 1 ? (int)limit * 5 : 100).ToList();
+                    }
+
                     if (labels is not null)
                     {
-                        var similar_tips = GetLabelString(labels);
+                        var similar_tips = GetLabelString(labels.ToArray());
                         if (!string.IsNullOrEmpty(similar_tips))
                         {
                             ReportMessage(similar_tips);

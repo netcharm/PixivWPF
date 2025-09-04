@@ -176,6 +176,7 @@
                     <TextBlock x:Uid="AlwaysOnTopIcon" Text="&#xE840;" Margin="1,1,0,0" Style="{DynamicResource MenuItemIcon}"/>
                 </ToggleButton.Content>
             </ToggleButton>
+            <CheckBox Grid.Column="0" x:Name="QueryRotatedImage" Content="Rotated Image?" Margin="4" HorizontalAlignment="Center" VerticalAlignment="Center" Checked="QueryRotatedImage_Checked" Unchecked="QueryRotatedImage_Checked"/>
             <TextBlock x:Uid="ResultFilterLabel" Text="Filter:" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" />
             <TextBox x:Name="ResultFilter" Margin="4" MinWidth="160" TextChanged="ResultFilter_TextChanged"
                      HorizontalAlignment="Left" VerticalAlignment="Stretch" TextAlignment="Center" VerticalContentAlignment="Center"/>

@@ -65,6 +65,15 @@ namespace ImageSearch
         public string ImageCompareCmd { get; set; } = string.Empty;
         public string ImageCompareOpt { get; set; } = string.Empty;
 
+        private int _limit_of_feature_used = 1000;
+        public int LimitOfFeatureUsed
+        {
+            get { return (Math.Min(1000, Math.Max(10, _limit_of_feature_used))); }
+            set { _limit_of_feature_used = Math.Min(1000, Math.Max(10, value)); }
+        }
+
+        public bool QueryRotatedImage { get; set; } = false;
+
         [Newtonsoft.Json.JsonConverter(typeof(StringEnumConverter))]
         public BatchRunningMode ParallelMode { get; set; } = BatchRunningMode.ForLoop;
         public int ParallelLimit { get; set; } = 5;

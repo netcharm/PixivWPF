@@ -142,7 +142,7 @@ namespace ImageSearch.Search
     public class SimilarResult
     {
         public List<KeyValuePair<string, double>>? Results { get; set; } = null;
-        public LabeledObject[]? Labels { get; set; } = null;
+        public List<LabeledObject>? Labels { get; set; } = null;
     }
 
     internal class Similar
@@ -2022,7 +2022,7 @@ namespace ImageSearch.Search
             ReportMessage($"Quering Memory Image", RunningStatue);
             var features = await ExtractImaegFeature(image, labels);
             //var result = new SimilarResult(){ Labels = features.Item2?.Where(x => x.Confidence >= confidence).ToArray(), Results = await QueryImageScore(features.Item1, feature_db, limit, padding) };
-            var result = new SimilarResult(){ Labels = features.Item2?.Take(10).ToArray(), Results = await QueryImageScore(features.Item1, feature_db, limit, padding) };
+            var result = new SimilarResult(){ Labels = features.Item2?.Take(10).ToList(), Results = await QueryImageScore(features.Item1, feature_db, limit, padding) };
             return (result);
         }
 
@@ -2031,7 +2031,7 @@ namespace ImageSearch.Search
             ReportMessage($"Quering {file}", RunningStatue);
             var features = await ExtractImaegFeature(file, labels);
             //var result = new SimilarResult(){ Labels = features.Item2?.Where(x => x.Confidence >= confidence).ToArray(), Results = await QueryImageScore(features.Item1, feature_db, limit, padding) };
-            var result = new SimilarResult(){ Labels = features.Item2?.Take(10).ToArray(), Results = await QueryImageScore(features.Item1, feature_db, limit, padding) };
+            var result = new SimilarResult(){ Labels = features.Item2?.Take(10).ToList(), Results = await QueryImageScore(features.Item1, feature_db, limit, padding) };
             return (result);
         }
 #endregion
