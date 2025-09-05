@@ -47,48 +47,70 @@ namespace ImageSearch
             catch (Exception ex) { MessageBox.Show(ex.Message); }
         }
 
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public bool DarkBackground { get; set; } = false;
 
         public string ModelFile { get; set; } = @"models\resnet50-v2-7.onnx";
         public string ModelInput { get; set; } = @"data";
         public string ModelOutput { get; set; } = @"resnetv24_dense0_fwd";
 
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public bool ModelUseGpu { get; set; } = false;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public int ModelGpuDeviceId { get; set; } = 0;
 
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public string ImageViewerCmd { get; set; } = string.Empty;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public string ImageViewerOpt { get; set; } = string.Empty;
 
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public string ImageInfoViewerCmd { get; set; } = string.Empty;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public string ImageInfoViewerOpt { get; set; } = string.Empty;
 
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public string ImageCompareCmd { get; set; } = string.Empty;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public string ImageCompareOpt { get; set; } = string.Empty;
 
         private int _limit_of_feature_used = 1000;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public int LimitOfFeatureUsed
         {
             get { return (Math.Min(1000, Math.Max(10, _limit_of_feature_used))); }
             set { _limit_of_feature_used = Math.Min(1000, Math.Max(10, value)); }
         }
 
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public bool QueryRotatedImage { get; set; } = false;
 
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         [Newtonsoft.Json.JsonConverter(typeof(StringEnumConverter))]
         public BatchRunningMode ParallelMode { get; set; } = BatchRunningMode.ForLoop;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public int ParallelLimit { get; set; } = 5;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public int ParallelTimeOut { get; set; } = 5;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public ulong ParallelCheckPoint { get; set; } = 1000;
 
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public int LogLines { get; set; } = 500;
 
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public bool AllFolder { get; set; } = true;
 
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public int ResultLimitMax { get; set; } = 1000;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public double[] ResultLimitList = [5, 10, 12, 15, 18, 20, 24, 25, 30, 35, 40, 45, 50, 60, 80, 120, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4];
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public double ResultLimit { get; set; } = 10;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public double ResultConfidence { get; set; } = 0.25;
 
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public string LastImageFolder { get; set; } = string.Empty;
         public List<Storage> StorageList { get; set; } = [];
     }

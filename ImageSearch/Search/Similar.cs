@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Globalization;
@@ -26,6 +27,7 @@ using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Image;
 using Microsoft.ML.Transforms.Onnx;
 
+using Newtonsoft.Json;
 using NumSharp;
 using PureHDF;
 using PureHDF.Filters;
@@ -33,6 +35,7 @@ using SkiaSharp;
 
 namespace ImageSearch.Search
 {
+#pragma warning disable IDE0044 // 添加只读修饰符
 #pragma warning disable IDE0063
 #pragma warning disable IDE0305
 #pragma warning disable SYSLIB1045
@@ -71,33 +74,51 @@ namespace ImageSearch.Search
     public class ExtraStorage
     {
         public string ImageFolder { get; set; } = string.Empty;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public string Description { get; set; } = string.Empty;
         public string DatabaseFile { get; set; } = string.Empty;
     }
 
     public class Storage
     {
-        internal protected ITransformer? Model { get; set; } = null;
-        public string ImageFolder { get; set; } = string.Empty;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        public string Name { get; set; } = string.Empty;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public string Description { get; set; } = string.Empty;
 
+        public string ImageFolder { get; set; } = string.Empty;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        public bool Recurice { get; set; } = false;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        public bool UseFullPath { get; set; } = true;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        public string[] IncludeFiles { get; set; } = [];
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        public string[] ExcludeFiles { get; set; } = [];
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        public string[] IncludeFolders { get; set; } = [];
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        public string[] ExcludeFolders { get; set; } = [];
+
+
+        internal protected ITransformer? Model { get; set; } = null;
+
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public string ModelName { get; set; } = string.Empty;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public string ModelFile { get; set; } = string.Empty;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public string ModelInput { get; set; } = string.Empty;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public string ModelOutput { get; set; } = string.Empty;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public bool ModelHasSoftMax { get; set; } = false;
 
-        public bool Recurice { get; set; } = false;
-        public bool UseFullPath { get; set; } = true;
-
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public string DatabaseFile { get; set; } = string.Empty;
 
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public List<ExtraStorage> ExtraStorages { get; set; } = [];
-
-        public string[] IccludeFiles { get; set; } = [];
-        public string[] ExcludeFiles { get; set; } = [];
-        public string[] IccludeFolders { get; set; } = [];
-        public string[] ExcludeFolders { get; set; } = [];
     }
 
     public class ExtraFeatureData
@@ -284,6 +305,9 @@ namespace ImageSearch.Search
 
                         ReportProgress(0);
 
+                        var file_exclude = storage.ExcludeFiles;
+                        var folder_exclude = storage.ExcludeFolders;
+
                         var folder = GetAbsolutePath(storage.ImageFolder);
                         var feats_db = GetAbsolutePath(storage.DatabaseFile);
                         var dir_name = Path.GetFileName(folder);
@@ -302,12 +326,23 @@ namespace ImageSearch.Search
                                 _features_.Add(feat_obj);
                             }
                         }
+                        if (cancel.IsCancellationRequested) { result = false; break; }
 
                         #region Loading latest feats dataset npz
-                        if (cancel.IsCancellationRequested) { result = false; break; }
                         var option = storage.Recurice ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
                         var files = Directory.GetFiles(folder, "*.*", option).Where(f => exts.Contains(Path.GetExtension(f).ToLower()));
+                        if (cancel.IsCancellationRequested) { result = false; break; }
 
+                        foreach (var dir in folder_exclude)
+                        {
+                            files = files.Where(f => !Regex.IsMatch(f, $"{dir}{Path.PathSeparator}", RegexOptions.IgnoreCase));
+                            if (cancel.IsCancellationRequested) { result = false; break; }
+                        }
+                        foreach (var file in file_exclude)
+                        {
+                            files = files.Where(f => !Regex.IsMatch(f, file, RegexOptions.IgnoreCase));
+                            if (cancel.IsCancellationRequested) { result = false; break; }
+                        }
                         if (cancel.IsCancellationRequested) { result = false; break; }
 
                         ConcurrentDictionary<string, float[]>? feats_list = new();

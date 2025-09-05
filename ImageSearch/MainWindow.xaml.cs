@@ -29,6 +29,7 @@ using ImageSearch.Search;
 
 namespace ImageSearch
 {
+#pragma warning disable CA1860
 #pragma warning disable IDE0063
 
     /// <summary>
@@ -280,10 +281,10 @@ namespace ImageSearch
             return (result);
         }
 
-        public SKBitmap? Rotate(SKBitmap? skb, double angle = 0)
+        public static SKBitmap? Rotate(SKBitmap? skb, double angle = 0)
         {
             SKBitmap rotated;
-            if (skb is SKBitmap)
+            if (skb is not null)
             {
                 double radians = Math.PI * (angle % 360) / 180;
                 float sine = (float)Math.Abs(Math.Sin(radians));
@@ -314,25 +315,25 @@ namespace ImageSearch
             else return (skb);
         }
 
-        public SKBitmap? Rotate090(SKBitmap? skb)
+        public static SKBitmap? Rotate090(SKBitmap? skb)
         {
             return (Rotate(skb, 90));
         }
 
-        public SKBitmap? Rotate180(SKBitmap? skb)
+        public static SKBitmap? Rotate180(SKBitmap? skb)
         {
             return (Rotate(skb, 180));
         }
 
-        public SKBitmap? Rotate270(SKBitmap? skb)
+        public static SKBitmap? Rotate270(SKBitmap? skb)
         {
             return (Rotate(skb, 270));
         }
 
-        public SKBitmap? Flip(SKBitmap? skb, bool dir = true)
+        public static SKBitmap? Flip(SKBitmap? skb, bool dir = true)
         {
             SKBitmap fliped;
-            if (skb is SKBitmap)
+            if (skb is not null)
             {
                 fliped = new SKBitmap(skb.Width, skb.Height);
 
@@ -355,12 +356,12 @@ namespace ImageSearch
             else return (skb);
         }
 
-        public SKBitmap? FlipX(SKBitmap? skb)
+        public static SKBitmap? FlipX(SKBitmap? skb)
         {
             return (Flip(skb, true));
         }
 
-        public SKBitmap? FlipY(SKBitmap? skb)
+        public static SKBitmap? FlipY(SKBitmap? skb)
         {
             return (Flip(skb, false));
         }
@@ -469,7 +470,7 @@ namespace ImageSearch
                                 var files = dataPackage.GetData(fmt, true) as string[];
                                 if (files is not null)
                                 {
-                                    files = files.Where(f => File.Exists(f)).ToArray();
+                                    files = [.. files.Where(f => File.Exists(f))];
                                     if (files.Length > 1)
                                     {
                                         imgs.Add(LoadImageFromFile(files[0]));
@@ -642,7 +643,7 @@ namespace ImageSearch
         {
             if (files is not null && files.Length > 0)
             {
-                files = files.Where(f => File.Exists(f)).Select(f => $"{f}").Take(2).ToArray();
+                files = [.. files.Where(f => File.Exists(f)).Select(f => $"{f}").Take(2)];
                 if (!string.IsNullOrEmpty(settings.ImageCompareCmd) && File.Exists(settings.ImageCompareCmd))
                 {
                     Task.Run(() =>
@@ -661,7 +662,7 @@ namespace ImageSearch
                 var cmd_info = string.IsNullOrEmpty(settings.ImageInfoViewerCmd) || !File.Exists(settings.ImageInfoViewerCmd) ? "explorer.exe" : settings.ImageInfoViewerCmd;
                 var cmd_view = string.IsNullOrEmpty(settings.ImageViewerCmd) || !File.Exists(settings.ImageViewerCmd) ? "explorer.exe" : settings.ImageViewerCmd;
                 
-                files = files.Where(f => File.Exists(f)).Select(f => $"{f}").ToArray();
+                files = [.. files.Where(f => File.Exists(f)).Select(f => $"{f}")];
 
                 if (openwith) Process.Start("openwith.exe", files);
                 else
@@ -832,7 +833,7 @@ namespace ImageSearch
             var len_cjk = CJK.GetByteCount(text);
             var len_asc = text.Length;
             var len_dif = len_cjk - len_asc;
-            return (text.PadLeft(totalWidth - len_dif));
+            return (text.PadLeft(totalWidth - len_dif, paddingChar));
         }
 
         public static string? PadRightCJK(string? text, int totalWidth) => PadRightCJK(text, totalWidth, ' ');
@@ -843,7 +844,7 @@ namespace ImageSearch
             var len_cjk = CJK.GetByteCount(text);
             var len_asc = text.Length;
             var len_dif = len_cjk - len_asc;
-            return (text.PadRight(totalWidth - len_dif));
+            return (text.PadRight(totalWidth - len_dif, paddingChar));
         }
 
         private static string ClearLabelString(string? text)
@@ -861,7 +862,7 @@ namespace ImageSearch
         private static string GetLabelString(IEnumerable<LabeledObject> items)
         {
             var result = string.Empty;
-            if (items is not null && items.Count() > 0)
+            if (items is not null && items.Any())
             {
                 var padding = items.Select(x => LenCJK(x.Label)).Max();
                 result = string.Join(Environment.NewLine, items.Select(x => $"Confidence  : {PadRightCJK(x.Label, padding)} ≈ {x.Confidence:F6}"));
@@ -921,7 +922,7 @@ namespace ImageSearch
                                     else if (filter.StartsWith('<') && double.TryParse(filter.AsSpan(1), out fv))
                                         ret |= sv < fv;
                                     else if (filter.StartsWith('~') && double.TryParse(filter.AsSpan(1), out fv))
-                                        ret |= item.Similar.StartsWith(filter.Substring(1));
+                                        ret |= item.Similar.StartsWith(filter[1..]);
                                     else if (double.TryParse(filter, out fv))
                                         ret |= item.Similar.StartsWith(filter);
                                 }
@@ -1110,7 +1111,7 @@ namespace ImageSearch
                 var args = Environment.GetCommandLineArgs();
                 if (args.Length > 1 && File.Exists(args[1]))
                 {
-                    LoadImageFromFiles(args.Skip(1).ToArray());
+                    LoadImageFromFiles([.. args.Skip(1)]);
                 }
             }
             catch (Exception ex) { ReportMessage(ex); }
@@ -1160,7 +1161,7 @@ namespace ImageSearch
                     {
                         e.Handled = true;
                         var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGalleryItem>().Select(item => item.FullName);
-                        ShellOpen(files.ToArray(), openwith: shift, viewinfo: ctrl);
+                        ShellOpen([.. files], openwith: shift, viewinfo: ctrl);
                     }
                 }
                 else if (e.Key == Key.Delete)
@@ -1430,7 +1431,7 @@ namespace ImageSearch
             if (Tabs.SelectedItem == TabSimilar)
             {
                 var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGalleryItem>().Select(item => item.FullName);
-                if (files.Any()) ShellCompare(files.ToArray());
+                if (files.Any()) ShellCompare([.. files]);
             }
             else if (Tabs.SelectedItem == TabCompare)
             {
@@ -1602,12 +1603,12 @@ namespace ImageSearch
                         imlist.AddRange(queries?.Results ?? []);
                         queries = await similar.QueryImageScore(FlipY(skb_src), feature_db, limit: limit, labels: true);
                         imlist.AddRange(queries?.Results ?? []);
-                        imlist = imlist.OrderByDescending(r => r.Value).DistinctBy(r => r.Key).Take(limit > 1 ? (int)limit * 5 : 100).ToList();
+                        imlist = [.. imlist.OrderByDescending(r => r.Value).DistinctBy(r => r.Key).Take(limit > 1 ? (int)limit * 5 : 100)];
                     }
 
                     if (labels is not null)
                     {
-                        var similar_tips = GetLabelString(labels.ToArray());
+                        var similar_tips = GetLabelString([..labels]);
                         if (!string.IsNullOrEmpty(similar_tips))
                         {
                             ReportMessage(similar_tips);
@@ -1774,7 +1775,7 @@ namespace ImageSearch
                 var alt = Keyboard.Modifiers == ModifierKeys.Alt;
 
                 var files = SimilarResultGallery.SelectedItems.OfType<ImageResultGalleryItem>().Select(item => item.FullName);
-                if (files.Any()) ShellOpen(files.ToArray(), openwith: shift, viewinfo: alt || e.ChangedButton == MouseButton.Right);
+                if (files.Any()) ShellOpen([.. files], openwith: shift, viewinfo: alt || e.ChangedButton == MouseButton.Right);
             }
             e.Handled = true;
         }
