@@ -41,16 +41,21 @@
                     <StackPanel.Effect>
                         <DropShadowEffect BlurRadius="1" ShadowDepth="0" Direction="315" Color="{DynamicResource {x:Static SystemColors.HighlightColorKey}}" Opacity="0.75"/>
                     </StackPanel.Effect>
-                    <TextBlock x:Name="PART_IMAGETAGED" Text="&#xE8EC;" FontFamily="{StaticResource SegoeIconFamily}" 
+                    <TextBlock x:Name="PART_IMAGETAGED" x:Uid="PART_IMAGETAGED" Text="&#xE8EC;" FontFamily="{StaticResource SegoeIconFamily}" 
                            Margin="1" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="{Binding HasExifTag, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock x:Name="PART_IMAGEFAVED" Text="&#xEB51;" FontFamily="{StaticResource SegoeIconFamily}" 
+                    <TextBlock x:Name="PART_IMAGEFAVED" x:Uid="PART_IMAGEFAVED" Text="&#xEB51;" FontFamily="{StaticResource SegoeIconFamily}" 
                            Margin="1" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="{Binding Favoriteed, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
                 </StackPanel>
-                <TextBlock Grid.Row="1" Grid.Column="0" x:Name="PART_IMAGEFILE" Text="{Binding Path=FileName, Mode=OneWay}" Margin="0,0,1,0" HorizontalAlignment="Left" VerticalAlignment="Center" />
-                <TextBlock Grid.Row="1" Grid.Column="1" x:Name="PART_IMAGESIMILAR" Text="{Binding Path=Similar, Mode=OneWay}" Margin="1,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="1" Grid.Column="0" x:Name="PART_IMAGEFILE" x:Uid="PART_IMAGEFILE" Text="{Binding Path=FileName, Mode=OneWay}" Margin="0,0,1,0" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="1" Grid.Column="1" x:Name="PART_IMAGESIMILAR" x:Uid="PART_IMAGESIMILAR" Text="{Binding Path=Similar, Mode=OneWay}" Margin="1,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Center" />
             </Grid>
         </DataTemplate>
     </Window.Resources>
+    
+    <Window.TaskbarItemInfo>
+        <TaskbarItemInfo x:Name="TaskbarState" x:Uid="TaskbarState" Description="Progress State Indicator" ProgressValue="{Binding ProgressValue}" ProgressState="{Binding ProgressState}"/>
+    </Window.TaskbarItemInfo>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -64,7 +69,7 @@
             <ColumnDefinition Width="auto"/>
         </Grid.ColumnDefinitions>
         <TabControl Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" x:Name="Tabs" Margin="4" TabStripPlacement="Bottom" >
-            <TabItem x:Name="TabSimilar" Header="Similar" >
+            <TabItem x:Name="TabSimilar" x:Uid="TabSimilar" Header="Similar" >
                 <Grid Grid.Column="0" x:Name="SimilarViewer">
                     <Grid.Background>
                         <ImageBrush ImageSource="pack://application:,,,/ImageSearch;component/Resources/checkerboard.png" TileMode="Tile" Opacity="0.10" ViewportUnits="Absolute" Viewport="0,0,32,32"/>
@@ -107,7 +112,7 @@
                     </ListView>
                 </Grid>
             </TabItem>
-            <TabItem x:Name="TabCompare" Header="Compare" PreviewKeyUp="Window_PreviewKeyUp">
+            <TabItem x:Name="TabCompare" x:Uid="TabCompare" Header="Compare" PreviewKeyUp="Window_PreviewKeyUp">
                 <Grid x:Name="CompareViewer">
                     <Grid.Background>
                         <ImageBrush ImageSource="pack://application:,,,/ImageSearch;component/Resources/checkerboard.png" TileMode="Tile" Opacity="0.10" ViewportUnits="Absolute" Viewport="0,0,32,32"/>
@@ -148,24 +153,24 @@
                     </Viewbox>
                 </Grid>
             </TabItem>
-            <TabItem x:Name="TabLog" Header="Log">
-                <TextBox x:Name="edResult" Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+            <TabItem x:Name="TabLog" x:Uid="TabLog" Header="Log">
+                <TextBox x:Name="edResult" x:Uid="edResult" Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
             </TabItem>
         </TabControl>
         <DockPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" FlowDirection="LeftToRight">
-            <CheckBox x:Name="AllFolders" Content="All Folders" DockPanel.Dock="Left" 
+            <CheckBox x:Name="AllFolders" x:Uid="AllFolders" Content="All Folders" DockPanel.Dock="Left" 
                       Margin="4" HorizontalAlignment="Left" VerticalAlignment="Stretch" VerticalContentAlignment="Center" 
                       Checked="AllFolders_Checked" Unchecked="AllFolders_Checked" />
-            <ComboBox x:Name="FolderList" IsEditable="False" DockPanel.Dock="Left" MinWidth="22"
+            <ComboBox x:Name="FolderList" x:Uid="FolderList" IsEditable="False" DockPanel.Dock="Left" MinWidth="22"
                       Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" VerticalContentAlignment="Center" 
                       ScrollViewer.VerticalScrollBarVisibility="Auto" SelectionChanged="FolderList_SelectionChanged"/>
-            <CheckBox x:Name="OpenInShell" Content="Open Results In Shell" IsChecked="False" DockPanel.Dock="Left" Visibility="Collapsed"
+            <CheckBox x:Name="OpenInShell" x:Uid="OpenInShell" Content="Open Results In Shell" IsChecked="False" DockPanel.Dock="Left" Visibility="Collapsed"
                       Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
-            <TextBlock x:Name="QueryResultLimitLabel" Text="Results: " Margin="4" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-            <ComboBox x:Name="QueryResultLimit" Text="10" IsEditable="False" DockPanel.Dock="Left" MinWidth="22"
+            <TextBlock x:Name="QueryResultLimitLabel" x:Uid="QueryResultLimitLabel" Text="Results: " Margin="4" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            <ComboBox x:Name="QueryResultLimit" x:Uid="QueryResultLimit" Text="10" IsEditable="False" DockPanel.Dock="Left" MinWidth="22"
                       Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" 
                       ScrollViewer.VerticalScrollBarVisibility="Auto"/>
-            <ToggleButton x:Name="DarkBG" Margin="4" Width="22" IsChecked="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Click="DarkBG_Click">
+            <ToggleButton x:Name="DarkBG" x:Uid="DarkBG" Margin="4" Width="22" IsChecked="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Click="DarkBG_Click">
                 <ToggleButton.Content>
                     <TextBlock x:Uid="DarkBGIcon" Text="&#xE793;" Margin="1,1,0,0" Style="{DynamicResource MenuItemIcon}"/>
                 </ToggleButton.Content>
@@ -176,51 +181,54 @@
                     <TextBlock x:Uid="AlwaysOnTopIcon" Text="&#xE840;" Margin="1,1,0,0" Style="{DynamicResource MenuItemIcon}"/>
                 </ToggleButton.Content>
             </ToggleButton>
-            <CheckBox Grid.Column="0" x:Name="QueryRotatedImage" Content="Rotated Image?" Margin="4" HorizontalAlignment="Center" VerticalAlignment="Center" Checked="QueryRotatedImage_Checked" Unchecked="QueryRotatedImage_Checked"/>
-            <TextBlock x:Uid="ResultFilterLabel" Text="Filter:" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" />
-            <TextBox x:Name="ResultFilter" Margin="4" MinWidth="160" TextChanged="ResultFilter_TextChanged"
+            <CheckBox x:Name="IsQueryRotatedImage" x:Uid="IsQueryRotatedImage" Content="Rotated Image?" Margin="4" HorizontalAlignment="Center" VerticalAlignment="Center" Checked="IsQueryRotatedImage_Checked" Unchecked="IsQueryRotatedImage_Checked"/>
+            <TextBlock x:Name="ResultFilterLabel" x:Uid="ResultFilterLabel" Text="Filter:" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" />
+            <TextBox x:Name="ResultFilter" x:Uid="ResultFilter" Margin="4" MinWidth="160" TextChanged="ResultFilter_TextChanged"
                      HorizontalAlignment="Left" VerticalAlignment="Stretch" TextAlignment="Center" VerticalContentAlignment="Center"/>
-            <TextBlock x:Name="LatestMessage" Text=" " Width="auto" DockPanel.Dock="Right" 
+            <TextBlock x:Name="LatestMessage" x:Uid="LatestMessage"  Text=" " Width="auto" DockPanel.Dock="Right" 
                        Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Center" 
                        TextAlignment="Right" TextTrimming="WordEllipsis" TextWrapping="NoWrap" 
                        ScrollViewer.VerticalScrollBarVisibility="Auto"/>
         </DockPanel>
         <StackPanel Grid.Row="2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Orientation="Horizontal" FlowDirection="LeftToRight">
-            <Button x:Name="DBMake" Width="72" Margin="4" Content="Make DB" Click="DBTools_Click">
+            <Button x:Name="DBMake" x:Uid="DBMake" Width="72" Margin="4" Content="Make DB" Click="DBTools_Click">
                 <Button.ContextMenu>
                     <ContextMenu>
-                        <MenuItem x:Name="DBLoad" Header="Load Feature Database" Click="DBTools_Click"/>
+                        <MenuItem x:Name="DBLoad" x:Uid="DBLoad" Header="Load Feature Database" Click="DBTools_Click"/>
                         <Separator/>
-                        <MenuItem x:Name="DBCancel" Header="Cancel Make Feature Database" Click="DBTools_Click"/>
+                        <MenuItem x:Name="DBCancel" x:Uid="DBCancel" Header="Cancel Make Feature Database" Click="DBTools_Click"/>
                         <Separator/>
-                        <MenuItem x:Name="DBUpdate" Header="Update Feature Database for Selected Image" Click="DBTools_Click"/>
+                        <MenuItem x:Name="DBUpdate" x:Uid="DBUpdate" Header="Update Feature Database for Selected Image" Click="DBTools_Click"/>
                         <Separator/>
-                        <MenuItem x:Name="DBClean" Header="Clean Feature Database" Click="DBTools_Click"/>
-                        <MenuItem x:Name="DBMerge" Header="Merge Feature Database" Click="DBTools_Click"/>
-                        <MenuItem x:Name="DBChangePath" Header="Change Feature Database Path" Click="DBTools_Click"/>
-                        <MenuItem x:Name="DBRemove" Header="Remove Feature Database" Click="DBTools_Click" Visibility="Collapsed"/>
-                        <MenuItem x:Name="DBAdd" Header="Add New Feature Database" Click="DBTools_Click" Visibility="Collapsed"/>
+                        <MenuItem x:Name="DBClean" x:Uid="DBClean" Header="Clean Feature Database" Click="DBTools_Click"/>
+                        <MenuItem x:Name="DBMerge" x:Uid="DBMerge" Header="Merge Feature Database" Click="DBTools_Click"/>
+                        <MenuItem x:Name="DBChangePath" x:Uid="DBChangePath" Header="Change Feature Database Path" Click="DBTools_Click"/>
+                        <MenuItem x:Name="DBRemove" x:Uid="DBRemove" Header="Remove Feature Database" Click="DBTools_Click" Visibility="Collapsed"/>
+                        <MenuItem x:Name="DBAdd" x:Uid="DBAdd" Header="Add New Feature Database" Click="DBTools_Click" Visibility="Collapsed"/>
                         <Separator/>
-                        <MenuItem x:Name="SaveDefaultLabels" Header="Save Default Labels List To File" Click="DBTools_Click"/>
-                        <MenuItem x:Name="LoadLocaleLabels" Header="Load Locale Labels List From File" Click="DBTools_Click"/>
+                        <MenuItem x:Name="ClassifyImageByYear" x:Uid="ClassifyImageByYear" Header="Classify Image By Year" Click="DBTools_Click" Visibility="Collapsed"/>
                         <Separator/>
-                        <MenuItem x:Name="ClearLog" Header="Clear Logs" Click="DBTools_Click"/>
+                        <MenuItem x:Name="SaveDefaultLabels" x:Uid="SaveDefaultLabels" Header="Save Default Labels List To File" Click="DBTools_Click"/>
+                        <MenuItem x:Name="LoadLocaleLabels" x:Uid="LoadLocaleLabels" Header="Load Locale Labels List From File" Click="DBTools_Click"/>
                         <Separator/>
-                        <MenuItem x:Name="ShellSearchWin" Header="Shell Search Window" Click="DBTools_Click"/>
+                        <MenuItem x:Name="ClearLog" x:Uid="ClearLog" Header="Clear Logs" Click="DBTools_Click"/>
+                        <MenuItem x:Name="SaveLog" x:Uid="SaveLog" Header="Save Logs" Click="DBTools_Click"/>
                         <Separator/>
-                        <MenuItem x:Name="OpenConfig" Header="Open Config File" Click="DBTools_Click"/>
-                        <MenuItem x:Name="LoadConfig" Header="Load Config File" Click="DBTools_Click"/>
-                        <MenuItem x:Name="SaveConfig" Header="Save Config File" Click="DBTools_Click"/>
+                        <MenuItem x:Name="ShellSearchWin" x:Uid="ShellSearchWin" Header="Shell Search Window" Click="DBTools_Click"/>
+                        <Separator/>
+                        <MenuItem x:Name="OpenConfig" x:Uid="OpenConfig" Header="Open Config File" Click="DBTools_Click"/>
+                        <MenuItem x:Name="LoadConfig" x:Uid="LoadConfig" Header="Load Config File" Click="DBTools_Click"/>
+                        <MenuItem x:Name="SaveConfig" x:Uid="SaveConfig" Header="Save Config File" Click="DBTools_Click"/>
                     </ContextMenu>
                 </Button.ContextMenu>
             </Button>
         </StackPanel>
-        <TextBox Grid.Row="2" Grid.Column="1" x:Name="EditQueryFile" Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" TextAlignment="Center"/>
+        <TextBox Grid.Row="2" Grid.Column="1" x:Name="EditQueryFile" x:Uid="EditQueryFile" Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" TextAlignment="Center"/>
         <StackPanel Grid.Row="2" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Orientation="Horizontal" FlowDirection="RightToLeft">
-            <Button x:Name="QueryImage" Click="QueryImage_Click" Width="72" Margin="4" Content="Query" ToolTip="Query Images By Image"  />
-            <Button x:Name="QueryImageLabel" Click="QueryImageLabel_Click" Width="72" Margin="4" Content="Labels" ToolTip="Query Image Labels" />
-            <Button x:Name="CompareImage" Click="CompareImage_Click" Width="72" Margin="4" Content="Compare" ToolTip="Compare Images" />
+            <Button x:Name="QueryImage" x:Uid="QueryImage" Click="QueryImage_Click" Width="72" Margin="4" Content="Query" ToolTip="Query Images By Image"  />
+            <Button x:Name="QueryImageLabel" x:Uid="QueryImageLabel" Click="QueryImageLabel_Click" Width="72" Margin="4" Content="Labels" ToolTip="Query Image Labels" />
+            <Button x:Name="CompareImage" x:Uid="CompareImage" Click="CompareImage_Click" Width="72" Margin="4" Content="Compare" ToolTip="Compare Images" />
         </StackPanel>
-        <ProgressBar Grid.Row="3" Grid.ColumnSpan="3" x:Name="progress" Height="4" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Value="100" />
+        <ProgressBar Grid.Row="3" Grid.ColumnSpan="3" x:Name="progress" x:Uid="progress" Height="4" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Value="100" />
     </Grid>
 </Window>

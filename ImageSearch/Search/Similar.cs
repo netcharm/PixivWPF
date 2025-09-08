@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -17,6 +17,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Shell;
 using System.Windows.Threading;
 
 using Microsoft.ML;
@@ -946,17 +947,17 @@ namespace ImageSearch.Search
 
             if (string.IsNullOrEmpty(ModelLocation) || !File.Exists(model_file))
             {
-                ReportMessage($"Machine Learning model not specified or model file not exists!");
+                ReportMessage($"Machine Learning model not specified or model file not exists!", TaskStatus.Faulted);
                 return (null);
             }
             else if (string.IsNullOrEmpty(ModelInputColumnName))
             {
-                ReportMessage($"Machine Learning model input name not specified!");
+                ReportMessage($"Machine Learning model input name not specified!", TaskStatus.Faulted);
                 return (null);
             }
             else if (string.IsNullOrEmpty(ModelOutputColumnName))
             {
-                ReportMessage($"Machine Learning model output name not specified!");
+                ReportMessage($"Machine Learning model output name not specified!", TaskStatus.Faulted);
                 return (null);
             }
 
@@ -987,7 +988,7 @@ namespace ImageSearch.Search
                 {
                     sw?.Stop();
                     if (ModelLoadedState?.CurrentCount == 0) ModelLoadedState?.Release();
-                    ReportMessage($"Loaded Model from {model_file}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
+                    ReportMessage($"Loaded Model from {model_file}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.RanToCompletion);
                 }
             }
             return _model_;
@@ -1055,16 +1056,8 @@ namespace ImageSearch.Search
                     return (await CreateFeatureDataAsync(info, BatchCancel.Token));
                 }, BatchCancel.Token);
 
-                if (result)
-                {
-                    ReportProgress(100);
-                    ReportMessage("Batch work finished!");
-                }
-                else
-                {
-                    ReportProgress(100);
-                    ReportMessage("Batch work canceled!");
-                }
+                ReportProgress(100);
+                ReportMessage("Batch work finished!", result ? TaskStatus.RanToCompletion : TaskStatus.Faulted);
             }
             return (result);
         }
@@ -1151,9 +1144,9 @@ namespace ImageSearch.Search
                         else if (h5_names.Type.Class == H5DataTypeClass.VariableLength)
                             names = h5_names.Read<byte[][]>(fileSelection: selection).Select(x => Encoding.UTF8.GetString(x)).ToArray();
 
-                        ReportMessage($"Loaded Feature Database [{names.Length}, {feats.Length}] from {feature_db}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
+                        ReportMessage($"Loaded Feature Database [{names.Length}, {feats.Length}] from {feature_db}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.RanToCompletion);
                     }
-                    catch (Exception ex) { ReportMessage($"{ex.StackTrace?.Split().LastOrDefault()} : {ex.Message}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s"); }
+                    catch (Exception ex) { ReportMessage($"{ex.StackTrace?.Split().LastOrDefault()} : {ex.Message}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.Faulted); }
                     finally
                     {
                         if (FeatureLoadedState?.CurrentCount == 0) FeatureLoadedState?.Release();
@@ -1211,10 +1204,10 @@ namespace ImageSearch.Search
                                     feats = new float[0, 0];
                                     names = [];
                                     GC.Collect();
-                                    ReportMessage($"Loaded Extra Feature DataTable from {file}, {sw?.Elapsed.TotalSeconds:F4}s");
+                                    ReportMessage($"Loaded Extra Feature DataTable from {file}, {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.RanToCompletion);
                                     ret = true;
                                 }
-                                else { ReportMessage($"Loading Extra Feature DataTable from {file} failed!"); }
+                                else { ReportMessage($"Loading Extra Feature DataTable from {file} failed!", TaskStatus.Faulted); }
                                 return (ret);
                             });
                         }
@@ -1270,10 +1263,10 @@ namespace ImageSearch.Search
                                     feats = new float[0, 0];
                                     names = [];
                                     GC.Collect();
-                                    ReportMessage($"Loaded Feature DataTable from {file}, {sw?.Elapsed.TotalSeconds:F4}s");
+                                    ReportMessage($"Loaded Feature DataTable from {file}, {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.RanToCompletion);
                                     ret = true;
                                 }
-                                else { ReportMessage($"Loading Feature DataTable from {file} failed!"); }
+                                else { ReportMessage($"Loading Feature DataTable from {file} failed!", TaskStatus.Faulted); }
                                 return (ret);
                             });
                         }
@@ -1349,10 +1342,10 @@ namespace ImageSearch.Search
                         h5?.Write(file, option);
                         h5?.Clear();
                         GC.Collect();
-                        ReportMessage($"Saved Feature Data to {file}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
+                        ReportMessage($"Saved Feature Data to {file}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.RanToCompletion);
                         result = true;
                     }
-                    catch (Exception ex) { ReportMessage($"{ex.StackTrace?.Split().LastOrDefault()} : {ex.Message}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s"); }
+                    catch (Exception ex) { ReportMessage($"{ex.StackTrace?.Split().LastOrDefault()} : {ex.Message}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.Faulted); }
                     finally { sw?.Stop(); GC.Collect(); }
                 });
             }
@@ -1400,7 +1393,7 @@ namespace ImageSearch.Search
                         ret = true;
                     }
                     catch (Exception ex) { ReportMessage(ex); }
-                    finally { sw?.Stop(); ReportMessage($"Changed Feature Data Folder from {old_folder} to {new_folder}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s"); }
+                    finally { sw?.Stop(); ReportMessage($"Changed Feature Data Folder from {old_folder} to {new_folder}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.RanToCompletion); }
                     return (ret);
                 });
             }
@@ -1474,7 +1467,7 @@ namespace ImageSearch.Search
                                     feat_obj.Feats = new NDArray(feats_new);
                                     feat_obj.Loaded = true;
                                     GC.Collect();
-                                    ReportMessage($"Updated Feature DataTable to {file}, {sw?.Elapsed.TotalSeconds:F4}s");
+                                    ReportMessage($"Updated Feature DataTable to {file}, {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.RanToCompletion);
                                 }
                                 ret &= true;
                             }
@@ -1485,7 +1478,7 @@ namespace ImageSearch.Search
                             if (BatchTaskIdle?.CurrentCount <= 0) BatchTaskIdle?.Release();
                             sw?.Stop();
                             GC.Collect();
-                            ReportMessage($"Cleaned Feature Data {file}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
+                            ReportMessage($"Cleaned Feature Data {file}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.RanToCompletion);
                         }
                     }
                     return (ret);
@@ -1618,18 +1611,18 @@ namespace ImageSearch.Search
                             feat_obj_dst.Loaded = true;
                             GC.Collect();
 
-                            ReportMessage($"Updated Feature DataTable from {feature_src.DatabaseFile} to {feature_dst.DatabaseFile}, {sw?.Elapsed.TotalSeconds:F4}s");
+                            ReportMessage($"Updated Feature DataTable from {feature_src.DatabaseFile} to {feature_dst.DatabaseFile}, {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.RanToCompletion);
                         }
                         result &= true;
 
                     }
-                    catch (Exception ex) { ReportMessage(ex); }
+                    catch (Exception ex) { ReportMessage(ex, TaskStatus.Faulted); }
                     finally
                     {
                         if (BatchTaskIdle?.CurrentCount <= 0) BatchTaskIdle?.Release();
                         sw?.Stop();
                         GC.Collect();
-                        ReportMessage($"Merged Feature Data from {feature_src.DatabaseFile} to {feature_dst.DatabaseFile}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
+                        ReportMessage($"Merged Feature Data from {feature_src.DatabaseFile} to {feature_dst.DatabaseFile}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.RanToCompletion);
                     }
                 }
                 return (ret);
@@ -1702,13 +1695,13 @@ namespace ImageSearch.Search
                         }
                         GC.Collect();
                     }
-                    catch (Exception ex) { ReportMessage(ex); }
+                    catch (Exception ex) { ReportMessage(ex, TaskStatus.Faulted); }
                     finally
                     {
                         if (BatchTaskIdle?.CurrentCount <= 0) BatchTaskIdle?.Release();
                         sw?.Stop();
                         GC.Collect();
-                        ReportMessage($"Updated Feature Data of Files, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
+                        ReportMessage($"Updated Feature Data of Files, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.RanToCompletion);
                     }
                 }
                 return (ret);
@@ -1768,7 +1761,7 @@ namespace ImageSearch.Search
                 finally
                 {
                     sw?.Stop();
-                    ReportMessage($"Quered Label for Memory Image, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
+                    ReportMessage($"Quered Label for Memory Image, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.RanToCompletion);
                 }
             }
             return (label?.Take(10).ToArray());
@@ -1874,7 +1867,7 @@ namespace ImageSearch.Search
                 finally
                 {
                     sw?.Stop();
-                    ReportMessage($"Extracted Feature from Memory Image, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
+                    ReportMessage($"Extracted Feature from Memory Image, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.RanToCompletion);
                 }
             }
             return (feature, label);
@@ -1914,10 +1907,10 @@ namespace ImageSearch.Search
                     sw?.Stop();
                     if (ModelLoadedState?.CurrentCount == 0) ModelLoadedState?.Release();
                     if (FeatureLoadedState?.CurrentCount == 0) FeatureLoadedState?.Release();
-                    ReportMessage($"Compared Result of 2 features : {result:F4}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
+                    ReportMessage($"Compared Result of 2 features : {result:F4}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.RanToCompletion);
                 }
             }
-            else ReportMessage("Model or Feature Database not loaded.");
+            else ReportMessage("Model or Feature Database not loaded.", TaskStatus.Faulted);
             return (result);
         }
 
@@ -2044,11 +2037,11 @@ namespace ImageSearch.Search
                     sw?.Stop();
                     if (ModelLoadedState?.CurrentCount == 0) ModelLoadedState?.Release();
                     if (FeatureLoadedState?.CurrentCount == 0) FeatureLoadedState?.Release();
-                    ReportMessage($"Queried feature, result count: {result?.Count}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
+                    ReportMessage($"Queried feature, result count: {result?.Count}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.RanToCompletion);
                     GC.Collect();
                 }
             }
-            else ReportMessage("Model or Feature Database not loaded.");
+            else ReportMessage("Model or Feature Database not loaded.", TaskStatus.Faulted);
             return (result);
         }
 
