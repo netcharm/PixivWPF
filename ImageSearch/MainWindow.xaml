@@ -53,7 +53,24 @@
     </Window.Resources>
     
     <Window.TaskbarItemInfo>
-        <TaskbarItemInfo x:Name="TaskbarState" x:Uid="TaskbarState" Description="Progress State Indicator" ProgressValue="{Binding ProgressValue}" ProgressState="{Binding ProgressState}"/>
+        <TaskbarItemInfo x:Name="TaskbarState" x:Uid="TaskbarState" Description="" ProgressValue="0" ProgressState="None" >
+            <TaskbarItemInfo.ThumbButtonInfos>
+                <ThumbButtonInfoCollection>
+                    <ThumbButtonInfo x:Name="TaskbarProgressBittonCompare" x:Uid="TaskbarProgressBittonCompare"
+                        DismissWhenClicked="True"
+                        CommandTarget="{Binding ElementName=CompareImage, Mode=OneWay}"
+                        Description="Compare" Visibility="Collapsed" />
+                    <ThumbButtonInfo x:Name="TaskbarProgressBittonQueryLabel" x:Uid="TaskbarProgressBittonQueryLabel"
+                        DismissWhenClicked="True"
+                        CommandTarget="{Binding ElementName=QueryImageLabel}"
+                        Description="Labels" Visibility="Collapsed"/>
+                    <ThumbButtonInfo x:Name="TaskbarProgressBittonQuery" x:Uid="TaskbarProgressBittonQuery"
+                        DismissWhenClicked="True"
+                        CommandTarget="{Binding ElementName=QueryImage}"
+                        Description="Query" Visibility="Collapsed"/>
+                </ThumbButtonInfoCollection>
+            </TaskbarItemInfo.ThumbButtonInfos>
+        </TaskbarItemInfo>
     </Window.TaskbarItemInfo>
 
     <Grid>

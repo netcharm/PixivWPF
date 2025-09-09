@@ -28,7 +28,6 @@ using CompactExifLib;
 using ImageSearch.Search;
 using Microsoft.Win32;
 using SkiaSharp;
-
 namespace ImageSearch
 {
 #pragma warning disable CA1860
@@ -42,20 +41,63 @@ namespace ImageSearch
         private WindowState LastWinState = WindowState.Normal;
         private readonly List<string> _log_ = [];
 
-        private double ProgressValue { get; set; } = 0;
-        private Action<double> SetTaskbarValue => (value) => {
-            Dispatcher.InvokeAsync(() => {
-                TaskbarItemInfo ??= new TaskbarItemInfo();
-                TaskbarItemInfo.ProgressValue = value;
-            }, DispatcherPriority.Normal);
-        };
-        private TaskbarItemProgressState ProgressState { get; set; } = TaskbarItemProgressState.None;
-        private Action<TaskbarItemProgressState> SetTaskbarState => (state) => { 
-            Dispatcher.InvokeAsync(() => {
-                TaskbarItemInfo ??= new TaskbarItemInfo();
-                TaskbarItemInfo.ProgressState = state;
-            }, DispatcherPriority.Normal);
-        };
+        private double TaskbarProgressValue 
+        { 
+            get
+            {
+                return (Dispatcher.InvokeAsync(() => 
+                {
+                    TaskbarItemInfo ??= new TaskbarItemInfo();
+                    return (TaskbarItemInfo.ProgressValue);
+                }, DispatcherPriority.Normal).Result);
+            }
+            set 
+            {
+                Dispatcher.InvokeAsync(() => 
+                {
+                    TaskbarItemInfo ??= new TaskbarItemInfo();
+                    TaskbarItemInfo.ProgressValue = value;
+                }, DispatcherPriority.Normal);
+            } 
+        }
+        private string TaskbarProgressDescription
+        { 
+            get
+            {
+                return (Dispatcher.InvokeAsync(() => 
+                {
+                    TaskbarItemInfo ??= new TaskbarItemInfo();
+                    return (TaskbarItemInfo.Description);
+                }, DispatcherPriority.Normal).Result);
+            }
+            set 
+            {
+                Dispatcher.InvokeAsync(() => 
+                {
+                    TaskbarItemInfo ??= new TaskbarItemInfo();
+                    TaskbarItemInfo.Description = value;
+                }, DispatcherPriority.Normal);
+            } 
+        }
+        private TaskbarItemProgressState TaskbarProgressState
+        {
+            get
+            {
+                return (Dispatcher.InvokeAsync(() =>
+                {
+                    TaskbarItemInfo ??= new TaskbarItemInfo();
+                    return (TaskbarItemInfo.ProgressState);
+                }, DispatcherPriority.Normal).Result);
+            }
+            set
+            {
+                Dispatcher.InvokeAsync(() =>
+                {
+                    TaskbarItemInfo ??= new TaskbarItemInfo();
+                    TaskbarItemInfo.ProgressState = value;
+                }, DispatcherPriority.Normal);
+            }
+        }
 
         private readonly ObservableCollection<ImageResultGalleryItem> GalleryList = [];
 
@@ -164,7 +206,8 @@ namespace ImageSearch
                 if (progress.IsIndeterminate && percent_new > 0 && percent_new < 100) progress.IsIndeterminate = false;
                 progress.Value = percent_new;
                 if (percent_new - percent_old >= 1) { }
-                SetTaskbarValue?.Invoke(percent_new);
+                //SetTaskbarValue?.Invoke(percent_new);
+                TaskbarProgressValue = percent_new;
                 DoEvents();
             }, DispatcherPriority.Normal);
         }
@@ -173,11 +216,16 @@ namespace ImageSearch
         {
             if (!string.IsNullOrEmpty(info))
             {
-                if (state == TaskStatus.Running) SetTaskbarState?.Invoke(ProgressState = TaskbarItemProgressState.Normal);
-                else if(state == TaskStatus.WaitingForActivation) SetTaskbarState?.Invoke(ProgressState = TaskbarItemProgressState.Indeterminate);
-                else if(state == TaskStatus.RanToCompletion) SetTaskbarState?.Invoke(ProgressState = TaskbarItemProgressState.None);
-                else if(state == TaskStatus.Canceled) SetTaskbarState?.Invoke(ProgressState = TaskbarItemProgressState.Paused);
-                else if(state == TaskStatus.Faulted) SetTaskbarState?.Invoke(ProgressState = TaskbarItemProgressState.Error);
+                var state_old = TaskbarProgressState;
+                if (state == TaskStatus.Running) TaskbarProgressState = TaskbarProgressValue > 0 ? TaskbarItemProgressState.Normal : TaskbarItemProgressState.Indeterminate;
+                else if (state == TaskStatus.WaitingForActivation) TaskbarProgressState = TaskbarItemProgressState.Indeterminate;
+                else if (state == TaskStatus.RanToCompletion) TaskbarProgressState = TaskbarItemProgressState.None;
+                else if (state == TaskStatus.Canceled) TaskbarProgressState = TaskbarItemProgressState.Paused;
+                else if (state == TaskStatus.Faulted) TaskbarProgressState = TaskbarItemProgressState.Error;
+                var state_new = TaskbarProgressState;
+
+                if (state_new != state_old) TaskbarProgressDescription = info;
+                if (state == TaskStatus.RanToCompletion) TaskbarProgressValue = 0;
 
                 progress?.Dispatcher.Invoke(() =>
                 {
@@ -1102,6 +1150,7 @@ namespace ImageSearch
             try
             {
                 LoadSetting();
+                //TaskbarState.ThumbButtonInfos = null;
 
                 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
                 CJK = Encoding.GetEncoding("GBK");

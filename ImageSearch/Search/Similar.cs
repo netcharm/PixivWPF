@@ -201,7 +201,7 @@ namespace ImageSearch.Search
 
         public Action<Exception, TaskStatus>? ReportExceptionAction;
 
-        private void ReportMessage(Exception ex, TaskStatus state = TaskStatus.Created)
+        private void ReportMessage(Exception ex, TaskStatus state = TaskStatus.Faulted)
         {
             ReportExceptionAction?.Invoke(ex, state);
         }
