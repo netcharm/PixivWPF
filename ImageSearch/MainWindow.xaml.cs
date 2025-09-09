@@ -218,14 +218,18 @@ namespace ImageSearch
             {
                 var state_old = TaskbarProgressState;
                 if (state == TaskStatus.Running) TaskbarProgressState = TaskbarProgressValue > 0 ? TaskbarItemProgressState.Normal : TaskbarItemProgressState.Indeterminate;
+                else if (state == TaskStatus.Created) TaskbarProgressState = TaskbarItemProgressState.Indeterminate;
                 else if (state == TaskStatus.WaitingForActivation) TaskbarProgressState = TaskbarItemProgressState.Indeterminate;
+                else if (state == TaskStatus.WaitingToRun) TaskbarProgressState = TaskbarItemProgressState.Indeterminate;
+                else if (state == TaskStatus.WaitingForChildrenToComplete) TaskbarProgressState = TaskbarItemProgressState.Indeterminate;
                 else if (state == TaskStatus.RanToCompletion) TaskbarProgressState = TaskbarItemProgressState.None;
                 else if (state == TaskStatus.Canceled) TaskbarProgressState = TaskbarItemProgressState.Paused;
                 else if (state == TaskStatus.Faulted) TaskbarProgressState = TaskbarItemProgressState.Error;
                 var state_new = TaskbarProgressState;
 
                 if (state_new != state_old) TaskbarProgressDescription = info;
-                if (state == TaskStatus.RanToCompletion) TaskbarProgressValue = 0;
+                if (new TaskStatus[]{ TaskStatus.Created, TaskStatus.WaitingForActivation, TaskStatus.WaitingToRun, TaskStatus.RanToCompletion }.Contains(state)) TaskbarProgressValue = 0;
+                DoEvents();
 
                 progress?.Dispatcher.Invoke(() =>
                 {
@@ -245,7 +249,7 @@ namespace ImageSearch
             }
         }
 
-        public void ReportMessage(Exception ex, TaskStatus state = TaskStatus.Created)
+        public void ReportMessage(Exception ex, TaskStatus state = TaskStatus.Faulted)
         {
             if (ex is not null)
             {
@@ -796,7 +800,7 @@ namespace ImageSearch
                     try
                     {
                         var exif = new ExifData(img_file);
-                        if (exif == null || exif.ImageType != ImageType.Unknown) return (infos);
+                        if (exif == null || exif.ImageType == ImageType.Unknown) return (infos);
 
                         #region Get Taken date
                         exif.GetDateDigitized(out var date_digital);
