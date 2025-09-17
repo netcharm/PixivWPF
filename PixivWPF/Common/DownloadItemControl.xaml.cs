@@ -1082,7 +1082,7 @@ namespace PixivWPF.Common
             LastElapsed = TimeSpan.FromSeconds(0);
             lastReceived = 0;
 
-            if (State == DownloadItemState.Finished)
+            if (State == DownloadItemState.Finished && Received > 0 && Received == Length)
             {
                 result = FileName;
 
@@ -1101,7 +1101,7 @@ namespace PixivWPF.Common
                     if (setting.DownloadCompletedSound) this.Sound();
                 }
             }
-            else if (State == DownloadItemState.Downloading)
+            else if (State == DownloadItemState.Finished || State == DownloadItemState.Downloading)
             {
                 if (string.IsNullOrEmpty(FailReason))
                     FailReason = "Unkonwn failed reason when downloading.";
