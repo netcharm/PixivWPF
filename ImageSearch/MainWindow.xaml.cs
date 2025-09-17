@@ -216,19 +216,23 @@ namespace ImageSearch
         {
             if (!string.IsNullOrEmpty(info))
             {
+                //if (new TaskStatus[] { TaskStatus.Created, TaskStatus.WaitingForActivation, TaskStatus.WaitingToRun, TaskStatus.RanToCompletion }.Contains(state)) TaskbarProgressValue = 0;
+                if (new TaskStatus[] { TaskStatus.WaitingForActivation, TaskStatus.WaitingToRun, TaskStatus.RanToCompletion }.Contains(state)) TaskbarProgressValue = 0;
+                else if (new TaskStatus[] { TaskStatus.RanToCompletion }.Contains(state)) TaskbarProgressValue = 100;
+                //else if (new TaskStatus[]{ TaskStatus.Faulted, TaskStatus.Canceled }.Contains(state)) TaskbarProgressValue = 100;
+
                 var state_old = TaskbarProgressState;
                 if (state == TaskStatus.Running) TaskbarProgressState = TaskbarProgressValue > 0 ? TaskbarItemProgressState.Normal : TaskbarItemProgressState.Indeterminate;
-                else if (state == TaskStatus.Created) TaskbarProgressState = TaskbarItemProgressState.Indeterminate;
-                else if (state == TaskStatus.WaitingForActivation) TaskbarProgressState = TaskbarItemProgressState.Indeterminate;
-                else if (state == TaskStatus.WaitingToRun) TaskbarProgressState = TaskbarItemProgressState.Indeterminate;
-                else if (state == TaskStatus.WaitingForChildrenToComplete) TaskbarProgressState = TaskbarItemProgressState.Indeterminate;
-                else if (state == TaskStatus.RanToCompletion) TaskbarProgressState = TaskbarItemProgressState.None;
+                //else if (state == TaskStatus.Created) TaskbarProgressState = TaskbarItemProgressState.Indeterminate;
                 else if (state == TaskStatus.Canceled) TaskbarProgressState = TaskbarItemProgressState.Paused;
                 else if (state == TaskStatus.Faulted) TaskbarProgressState = TaskbarItemProgressState.Error;
+                else if (state == TaskStatus.RanToCompletion) TaskbarProgressState = TaskbarItemProgressState.None;
+                else if (state == TaskStatus.WaitingForActivation) TaskbarProgressState = TaskbarItemProgressState.Indeterminate;
+                else if (state == TaskStatus.WaitingForChildrenToComplete) TaskbarProgressState = TaskbarItemProgressState.Indeterminate;
+                else if (state == TaskStatus.WaitingToRun) TaskbarProgressState = TaskbarItemProgressState.Indeterminate;
                 var state_new = TaskbarProgressState;
 
                 if (state_new != state_old) TaskbarProgressDescription = info;
-                if (new TaskStatus[]{ TaskStatus.Created, TaskStatus.WaitingForActivation, TaskStatus.WaitingToRun, TaskStatus.RanToCompletion }.Contains(state)) TaskbarProgressValue = 0;
                 DoEvents();
 
                 progress?.Dispatcher.Invoke(() =>

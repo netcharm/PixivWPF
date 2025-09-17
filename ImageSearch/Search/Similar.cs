@@ -400,6 +400,7 @@ namespace ImageSearch.Search
                             CancellationToken = cancel
                         };
 
+                        ReportMessage($"Processing Image Feature List", TaskStatus.Running);
                         if (info.ParallelMode == BatchRunningMode.Parallel)
                         {
                             var ret = Parallel.ForEach(diffs, opt, (file, loopstate, elementIndex) =>
@@ -617,6 +618,7 @@ namespace ImageSearch.Search
                                 }
                             }
                         }
+                        ReportMessage($"Processed Image Feature List", TaskStatus.WaitingToRun);
 
                         if ((!File.Exists(feat_obj.FeatureDB) || count > 0 || in_npz.Any()) && !feats.IsEmpty && feats?.Count <= (total + count) && feat_obj is not null)
                         {
@@ -2003,7 +2005,8 @@ namespace ImageSearch.Search
             {
                 try
                 {
-                    ReportMessage($"Quering feature", RunningStatue);
+                    //ReportMessage($"Quering feature", RunningStatue);
+                    ReportMessage($"Quering feature", TaskStatus.WaitingToRun);
 
                     limit = limit >= 1 ? Math.Ceiling(Math.Min(120, Math.Max(1, limit))) : Math.Max(0.1, limit);
 
