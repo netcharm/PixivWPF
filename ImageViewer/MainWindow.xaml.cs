@@ -945,7 +945,6 @@ namespace ImageViewer
             try
             {
                 if (refresh && this.IsUpdatingFileList()) return (false);
-                //ResetViewer();
                 IsLoadingViewer = true;
 
                 var image =  ImageViewer.GetInformation();
@@ -953,12 +952,10 @@ namespace ImageViewer
                 {
                     CloseQualityChanger();
                     ClearImage();
-                    //ResetViewTransform(calcdisplay: false, updatedisplay: false);
-                    SetTitle(image?.FileName);
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
-                    //if (await UpdateImageViewerFinished()) FitView();
                 }
-                else IsLoadingViewer = false;
+                else { IsLoadingViewer = false; }
+                SetTitle(image?.FileName);
             }
             catch (Exception ex) { ex.ShowMessage(); }
             return (ret);
@@ -975,7 +972,6 @@ namespace ImageViewer
             try
             {
                 if (refresh && this.IsUpdatingFileList()) return (false);
-                //ResetViewer();
                 IsLoadingViewer = true;
 
                 var image =  ImageViewer.GetInformation();
@@ -983,12 +979,10 @@ namespace ImageViewer
                 {
                     CloseQualityChanger();
                     ClearImage();
-                    //ResetViewTransform(calcdisplay: false, updatedisplay: false);
-                    SetTitle(image?.FileName);
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
-                    //if (await UpdateImageViewerFinished()) FitView();
                 }
-                else IsLoadingViewer = false;
+                else { IsLoadingViewer = false; }
+                SetTitle(image?.FileName);
             }
             catch (Exception ex) { ex.ShowMessage(); }
             return (ret);
@@ -1005,7 +999,6 @@ namespace ImageViewer
             try
             {
                 if (refresh && this.IsUpdatingFileList()) return (false);
-                //ResetViewer();
                 IsLoadingViewer = true;
 
                 var image = ImageViewer.GetInformation();
@@ -1013,11 +1006,10 @@ namespace ImageViewer
                 {
                     CloseQualityChanger();
                     ClearImage();
-                    //ResetViewTransform(calcdisplay: false, updatedisplay: false);
-                    SetTitle(image?.FileName);
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                 }
-                else IsLoadingViewer = false;
+                else { IsLoadingViewer = false; }
+                SetTitle(image?.FileName);
             }
             catch (Exception ex) { ex.ShowMessage(); }
             return (ret);
@@ -1034,7 +1026,6 @@ namespace ImageViewer
             try
             {
                 if (refresh && this.IsUpdatingFileList()) return (false);
-                //ResetViewer();
                 IsLoadingViewer = true;
 
                 var image =  ImageViewer.GetInformation();
@@ -1042,12 +1033,10 @@ namespace ImageViewer
                 {
                     CloseQualityChanger();
                     ClearImage();
-                    //ResetViewTransform(calcdisplay: false, updatedisplay: false);
-                    SetTitle(image?.FileName);
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
-                    //if (await UpdateImageViewerFinished()) FitView();
                 }
-                else IsLoadingViewer = false;
+                else { IsLoadingViewer = false; }
+                SetTitle(image?.FileName);
             }
             catch (Exception ex) { ex.ShowMessage(); }
             return (ret);
@@ -1095,14 +1084,15 @@ namespace ImageViewer
                             ret = await image?.LoadImageFromFile(files.First());
                         }
 
-                        SetTitle(image?.FileName);
                         if (ret)
                         {
+                            CloseQualityChanger();
                             ClearImage();
                             ResetViewTransform(calcdisplay: false);
                             RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                         }
-                        else { ImageViewer.Source = null; IsLoadingViewer = false; }
+                        else { IsLoadingViewer = false; }
+                        SetTitle(image?.FileName);
                     }
                 }
             }
