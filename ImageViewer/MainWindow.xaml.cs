@@ -1086,23 +1086,23 @@ namespace ImageViewer
                         var image  = ImageViewer.GetInformation();
                         if (files.Length == 1)
                         {
-                            var idx = await image.IndexOf(files[0]);
-                            if (idx >= 0) ret = await image.LoadImageFromIndex(idx);
+                            var idx = await image?.IndexOf(files[0]);
+                            if (idx >= 0) ret = await image?.LoadImageFromIndex(idx);
                         }
                         if (!ret)
                         {
                             _ = Task.Run(async () => await files.InitFileList());
-                            ret = await image.LoadImageFromFile(files.First());
+                            ret = await image?.LoadImageFromFile(files.First());
                         }
 
+                        SetTitle(image?.FileName);
                         if (ret)
                         {
                             ClearImage();
                             ResetViewTransform(calcdisplay: false);
-                            SetTitle(image.FileName);
                             RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                         }
-                        else IsLoadingViewer = false;
+                        else { ImageViewer.Source = null; IsLoadingViewer = false; }
                     }
                 }
             }
@@ -2956,17 +2956,7 @@ namespace ImageViewer
         /// <param name="text"></param>
         private void SetTitle(string text = null)
         {
-            Dispatcher?.InvokeAsync(() =>
-            {
-                if (string.IsNullOrEmpty(text))
-                {
-                    Title = DefaultWindowTitle;
-                }
-                else
-                {
-                    Title = $"{DefaultWindowTitle} - {text}";
-                }
-            });
+            Dispatcher?.InvokeAsync(() => { Title = string.IsNullOrEmpty(text) ? DefaultWindowTitle : $"{DefaultWindowTitle} - {text}"; });
         }
         #endregion
 
