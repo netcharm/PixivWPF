@@ -680,6 +680,7 @@ namespace PixivWPF.Common
                             }
                         }
 
+                        PART_DownloadProgress.Tag = Progress;
                         PART_DownloadProgress.Value = percent * 100;
                         PART_DownloadProgressPercent.Text = $"{State}: {PART_DownloadProgress.Value:0.0}%";
                         PART_DownInfo.Text = $"Status : {received.SmartFileSize(trimzero: finished)} / {total.SmartFileSize(trimzero: finished)}, {lastRate.SmartSpeedRate(trimzero: finished)} / {rateA.SmartSpeedRate(trimzero: finished)}";
@@ -946,7 +947,7 @@ namespace PixivWPF.Common
                                     bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelReadStreamSource.Token).ConfigureAwait(false);
                                 }
 
-                                if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Received < Length)
+                                if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Received <= Length)
                                 {
                                     EndTick = DateTime.Now;
 

@@ -205,10 +205,13 @@
                    HorizontalAlignment="Stretch" Margin="2"
                    Style="{DynamicResource TextContent}"
                    Text="{Binding FolderName, Mode=OneWay}" TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"/>
-        <mah:MetroProgressBar Grid.Row="3" Grid.Column="1" x:Name="PART_DownloadProgress" x:Uid="DownloadProgress"
+        <!--<mah:MetroProgressBar Grid.Row="3" Grid.Column="1" x:Name="PART_DownloadProgress" x:Uid="DownloadProgress"
                     Tag="{Binding Progress, Mode=OneWay}" IsEnabled="True"
                     Height="18" IsIndeterminate="False" Minimum="0" Maximum="100" Margin="2"
-                    Value="{Binding ProgressPercent, Mode=OneWay, IsAsync=True}"/>
+                    Value="{Binding ProgressPercent, Mode=OneWay, IsAsync=True}"/>-->
+        <mah:MetroProgressBar Grid.Row="3" Grid.Column="1" x:Name="PART_DownloadProgress" x:Uid="DownloadProgress"
+                    IsEnabled="True"
+                    Height="18" IsIndeterminate="False" Minimum="0" Maximum="100" Margin="2" />
         <TextBlock Grid.Row="3" Grid.Column="1" x:Name="PART_DownloadProgressPercent" 
                    HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
                    TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow">

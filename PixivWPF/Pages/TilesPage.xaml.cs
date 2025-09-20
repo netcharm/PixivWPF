@@ -185,7 +185,7 @@ namespace PixivWPF.Pages
             return (id);
         }
 
-        private void KeepLastSelected(string id = null)
+        private void KeepLastSelected(string id = null, bool prefetching = true)
         {
             if (string.IsNullOrEmpty(id)) id = lastSelectedId;
             new Action(() =>
@@ -216,7 +216,7 @@ namespace PixivWPF.Pages
                         ImageTiles.ScrollIntoView(ImageTiles.SelectedItem);
                         this.DoEvents();
                     }
-                    Prefetching();
+                    if (prefetching) Prefetching();
                     this.DoEvents();
                 }
             }).Invoke(async: false);
@@ -536,14 +536,14 @@ namespace PixivWPF.Pages
         {
             var id = GetLastSelectedID();
             ImageTiles.SetFilter(filter);
-            KeepLastSelected(id);
+            KeepLastSelected(id, prefetching: false);
         }
 
         public void SetFilter(FilterParam filter)
         {
             var id = GetLastSelectedID();
             ImageTiles.SetFilter(filter);
-            KeepLastSelected(id);
+            KeepLastSelected(id, prefetching: false);
         }
 
         public dynamic GetTilesCount()
