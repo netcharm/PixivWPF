@@ -854,7 +854,7 @@ namespace PixivWPF
 
         private void CommandDropbox_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            Commands.OpenDropBox.Execute(sender);
+            Commands.CopyOpenedWindowInfo.Execute(sender);
         }
 
         private void CommandHistory_Click(object sender, RoutedEventArgs e)
@@ -875,7 +875,7 @@ namespace PixivWPF
         private DelayedAction SuggestAction = null;
         private void SearchBox_TextChanged(object sender, RoutedEventArgs e)
         {
-            if (SearchBox.Text.Length > 0 && (SearchBox.Items.Count <= 0 || !SearchBox.Text.Equals(SearchBox.SelectedValue?.ToString())))
+            if (SearchBox.Text.Length > 0 && !SearchBox.Text.Equals(SearchBox.SelectedValue?.ToString()))
             {
                 e.Handled = true;
 
@@ -936,9 +936,9 @@ namespace PixivWPF
 
         private void SearchBox_KeyDown(object sender, KeyEventArgs e)
         {
-            e.Handled = true;
             if (e.Key == Key.Return)
-            {                
+            {
+                e.Handled = true;
                 Commands.OpenSearch.Execute(SearchBox.Text);
             }
         }

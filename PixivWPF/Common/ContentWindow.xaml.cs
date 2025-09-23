@@ -568,7 +568,7 @@ namespace PixivWPF.Common
 
         private void CommandDropbox_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            Commands.OpenDropBox.Execute(sender);
+            Commands.CopyOpenedWindowInfo.Execute(sender);
         }
 
         private void CommandHistory_Click(object sender, RoutedEventArgs e)

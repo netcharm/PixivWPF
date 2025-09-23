@@ -86,6 +86,10 @@ namespace PixivWPF.Common
         public static string LoginTitle(this Application app) { return (strLoginTitle); }
         public static string strPediaTitle { get; } = "PixivPedia";
         public static string PediaTitle(this Application app) { return (strPediaTitle); }
+        public static string strSearchTitle { get; } = "Search";
+        public static string SearchTitle(this Application app) { return (strPediaTitle); }
+        public static string strPreviewTitle { get; } = "Preview";
+        public static string PreviewTitle(this Application app) { return (strPediaTitle); }
 
         public static string[] LineBreak { get; private set; } = new string[] { Environment.NewLine, "\r\n", "\n\r", "\n", "\r" };
         public static string[] LineBreakExtra { get; private set; } = new string[] { Environment.NewLine, "\r\n", "\n\r", "\n", "\r", "<br/>", "<br />", "<br>", "</br>" };
@@ -1229,6 +1233,39 @@ namespace PixivWPF.Common
             }
             catch (Exception ex) { ex.ERROR("GETLOGINWINDOW"); }
             return (result);
+        }
+
+        public static IList<ContentWindow> OpenedWindows(this Application app)
+        {
+            List<ContentWindow> wins = new();
+            try
+            {
+                app.Dispatcher.Invoke(() =>
+                {
+                    foreach (Window win in app.Windows)
+                    {
+                        try
+                        {
+                            if (win is MainWindow) continue;
+                            else if (win is ContentWindow)
+                            {
+                                if (win.Title.StartsWith(strDownloadTitle, StringComparison.CurrentCultureIgnoreCase)) continue;
+                                else if (win.Title.StartsWith(strSearchTitle, StringComparison.CurrentCultureIgnoreCase)) continue;
+                                //else if (win.Title.StartsWith(strPreviewTitle, StringComparison.CurrentCultureIgnoreCase)) continue;
+                                else if (win.Title.StartsWith(strLoginTitle, StringComparison.CurrentCultureIgnoreCase)) continue;
+                                else if (win.Title.StartsWith(strDropBoxTitle, StringComparison.CurrentCultureIgnoreCase)) continue;
+                                else if (win.Title.StartsWith(strPediaTitle, StringComparison.CurrentCultureIgnoreCase)) continue;
+                                else if (win.Title.StartsWith(strHistoryTitle, StringComparison.CurrentCultureIgnoreCase)) continue;
+                                else wins.Add(win as ContentWindow);
+                            }
+                            else continue;
+                        }
+                        finally { }
+                    }
+                });
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (wins);
         }
 
         public static IList<string> OpenedWindowTitles(this Application app)
