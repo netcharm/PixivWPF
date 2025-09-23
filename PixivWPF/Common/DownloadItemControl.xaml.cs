@@ -592,7 +592,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                return (State == DownloadItemState.Downloading || State == DownloadItemState.Writing || Downloading?.CurrentCount <= 0);
+                return ((State == DownloadItemState.Downloading || State == DownloadItemState.Writing) && Downloading?.CurrentCount <= 0);
             }
         }
 
@@ -1074,7 +1074,7 @@ namespace PixivWPF.Common
             result = string.Empty;
 
             IsStart = false;
-            Canceling = false;
+            AutoStart = false;
 
             setting = Application.Current.LoadSetting();
 
@@ -1117,17 +1117,17 @@ namespace PixivWPF.Common
             {
                 if (httpClient is HttpClient)
                 {
-                    httpClient.CancelPendingRequests();
+                    httpClient?.CancelPendingRequests();
                     //httpClient.Dispose();
                     //httpClient = null;
                 }
             }
             catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_DownloadFinally"); }
 
-            if (cancelSource is CancellationTokenSource) cancelSource.Dispose();
-            cancelSource = null;
-            if (cancelReadStreamSource is CancellationTokenSource) cancelReadStreamSource.Dispose();
-            cancelReadStreamSource = null;
+            //if (cancelSource is CancellationTokenSource) cancelSource.Dispose();
+            //cancelSource = null;
+            //if (cancelReadStreamSource is CancellationTokenSource) cancelReadStreamSource.Dispose();
+            //cancelReadStreamSource = null;
 
             if (Downloading?.CurrentCount <= 0) Downloading?.Release();
         }
@@ -1140,7 +1140,7 @@ namespace PixivWPF.Common
             if (await Downloading?.WaitAsync(setting.DownloadWaitingTime))
             {
                 var retry = Math.Max(1, setting.DownloadFailAutoRetryCount) + 1;
-                while (retry > 0)
+                while (!Canceling && retry > 0)
                 {
                     if (State == DownloadItemState.Finished) { retry = 0; break; }
                     try
@@ -1387,9 +1387,6 @@ namespace PixivWPF.Common
             HTTP_STREAM_READ_COUNT = setting.DownloadHttpStreamBlockSize;
             HTTP_TIMEOUT = setting.DownloadHttpTimeout > 5 ? setting.DownloadHttpTimeout : 5;
 
-            IsStart = true;
-            AutoStart = false;
-
             if (File.Exists(FileName) && IsDownloading) await Cancel();
             CheckProperties();
 
@@ -1411,7 +1408,7 @@ namespace PixivWPF.Common
             {
                 if (CanDownload || restart)
                 {
-                    if (restart) State = DownloadItemState.Idle;
+                    if (restart) { State = DownloadItemState.Idle; AutoStart = true; Canceling = false; }
                     await Task.Delay(Application.Current.Random(20, 200)).ContinueWith(async t =>
                     {
                         this.DoEvents();
@@ -1431,18 +1428,18 @@ namespace PixivWPF.Common
         /// <returns></returns>
         private async Task Cancel()
         {
-            if (!Canceling)
+            if (!IsCanceling)
             {
                 Canceling = true;
-                if (cancelSource is CancellationTokenSource && !cancelSource.IsCancellationRequested)
+                if (!cancelSource?.IsCancellationRequested ?? false)
                 {
-                    cancelSource.Cancel();
+                    cancelSource?.Cancel();
                     await Task.Delay(250);
                     this.DoEvents();
                 }
-                if (cancelReadStreamSource is CancellationTokenSource && !cancelReadStreamSource.IsCancellationRequested)
+                if (!cancelReadStreamSource?.IsCancellationRequested ?? false)
                 {
-                    cancelReadStreamSource.Cancel();
+                    cancelReadStreamSource?.Cancel();
                     await Task.Delay(250);
                     this.DoEvents();
                 }
@@ -1450,7 +1447,7 @@ namespace PixivWPF.Common
                 {
                     if (httpClient is HttpClient)
                     {
-                        httpClient.CancelPendingRequests();
+                        httpClient?.CancelPendingRequests();
                         //httpClient.Dispose();
                         //httpClient = null;
                     }
@@ -1478,7 +1475,7 @@ namespace PixivWPF.Common
             var basename = Path.GetFileName(FileName);
             var msg_title = $"Warnning ({basename})";
             var msg_content = "Overwrite exists?";
-            if (msg_title.IsMessagePopup(msg_content)) result = false; // { State = DownloadItemState.Finished; Received = Length; return; }
+            if (msg_title.IsMessagePopup(msg_content)) result = false;
             else
             {
                 if (File.Exists(FileName) && (_DownloadBuffer == null || _DownloadBuffer.Length <= 0))
@@ -1487,6 +1484,7 @@ namespace PixivWPF.Common
                     if (!delta) result = false;
                     else if (!(await msg_content.ShowMessageDialog(msg_title, MessageBoxImage.Warning))) { State = DownloadItemState.Finished; result = false; }
                 }
+                else if (!File.Exists(FileName) && _DownloadBuffer?.Length > 0) return false;
             }
 
             return (result);
@@ -1753,6 +1751,8 @@ namespace PixivWPF.Common
                     SaveAsJPEG = !SaveAsJPEG;
                     Info.SetSaveAsJPEG(SaveAsJPEG);
                 }
+                AutoStart = true;
+                Canceling = false;
                 Start(continuation, restart);
             }
             else if (sender == miDownloadRestart)
@@ -1764,6 +1764,8 @@ namespace PixivWPF.Common
                         SaveAsJPEG = !SaveAsJPEG;
                         Info.SetSaveAsJPEG(SaveAsJPEG);
                     }
+                    AutoStart = true;
+                    Canceling = false;
                     Start(continuation, true); // Check if file exists and ask for overwrite
                 }
             }

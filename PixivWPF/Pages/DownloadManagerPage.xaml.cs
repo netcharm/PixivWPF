@@ -104,7 +104,7 @@ namespace PixivWPF.Pages
                         {
                             if (jobs_count < SimultaneousJobs)
                             {
-                                if (AutoStart || item.AutoStart) item.IsStart = true;
+                                if (AutoStart && item.AutoStart) item.IsStart = true;
                                 jobs_count++;
                             }
                         }
