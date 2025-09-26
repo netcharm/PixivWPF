@@ -2209,7 +2209,7 @@ namespace PixivWPF.Common
         public static int Random(this Application app, int min, int max)
         {
             var result = 1000;
-            try { result = _random_.Next(min, max); }
+            try { result = _random_?.Next(min, max) ?? result; }
             catch { result = new Random(Environment.TickCount).Next(min, max); }
             return (result);
         }

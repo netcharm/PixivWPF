@@ -72,6 +72,16 @@ namespace PixivWPF.Common
         [DefaultValue(false)]
         public bool Canceled { get; set; } = false;
 
+        public void UpdateByState(DownloadItemState state)
+        {
+            if (state == DownloadItemState.Idle || state == DownloadItemState.Paused)
+            {
+                AutoStart = true;
+                Canceled = false;
+                NotifyPropertyChanged();
+            }
+        }
+
         private DownloadItemState state = DownloadItemState.Idle;
         [DefaultValue(DownloadItemState.Idle)]
         public DownloadItemState State
@@ -201,14 +211,12 @@ namespace PixivWPF.Common
             set { is_follow = value; NotifyPropertyChanged("IsFollow"); }
         }
 
-        private bool start = false;
         [DefaultValue(false)]
         public bool IsStart
         {
-            get { return start; }
+            get { return (Instance?.IsDownloading ?? default); }
             set
             {
-                start = value;
                 if (value) Start();
                 NotifyPropertyChanged("IsStart");
             }
@@ -223,7 +231,7 @@ namespace PixivWPF.Common
                     await new Action(() =>
                     {
                         setting = Application.Current.LoadSetting();
-                        if (start && !Instance.IsDownloading) Instance.Start(setting.DownloadWithFailResume);
+                        if (!IsStart) Instance?.Start(setting.DownloadWithFailResume);
                     }).InvokeAsync();
                 }
                 catch (Exception ex) { ex.ERROR($"{GetType().Name}_{IllustID}_Start"); }
@@ -309,10 +317,6 @@ namespace PixivWPF.Common
                 var fexist = File.Exists(FileName);
                 if (!fexist && State == DownloadItemState.Finished)
                     State = DownloadItemState.NonExists;
-                //else if (!(exists ?? true) && State == DownloadState.Finished)
-                //    State = DownloadState.NonExists;
-                //else if (FileName.IsDownloaded(touch: false))
-                //    State = DownloadState.Finished;
                 else if (fexist) State = DownloadItemState.Finished;
 
                 if (State == DownloadItemState.NonExists) $"{FileName} has been deleted!".INFO("UpdateDownloadState");
@@ -412,38 +416,38 @@ namespace PixivWPF.Common
         #region member properties
         public bool Canceling
         {
-            get { return (Info is DownloadInfo && Info.Canceled); }
-            set { if (Info is DownloadInfo) Info.Canceled = value; }
+            get { return (Info?.Canceled ?? false); }
+            set { Info?.Canceled = value; }
         }
 
         public string FailReason
         {
-            get { return (Info is DownloadInfo ? Info.FailReason : string.Empty); }
-            set { if (Info is DownloadInfo) Info.FailReason = value; }
+            get { return (Info?.FailReason ?? string.Empty); }
+            set { Info?.FailReason = value; }
         }
 
         public string ConvertReason
         {
-            get { return (Info is DownloadInfo ? Info.ConvertReason : string.Empty); }
-            set { if (Info is DownloadInfo) Info.ConvertReason = value; }
+            get { return (Info?.ConvertReason ?? string.Empty); }
+            set { Info?.ConvertReason = value; }
         }
 
         public string Url
         {
-            get { return (Info is DownloadInfo ? Info.Url : string.Empty); }
-            set { if (Info is DownloadInfo) Info.Url = value; }
+            get { return (Info?.Url ?? string.Empty); }
+            set { Info?.Url = value; }
         }
 
         public bool SaveAsJPEG
         {
-            get { return (Info is DownloadInfo && Info.SaveAsJPEG); }
-            set { if (Info is DownloadInfo) Info.SaveAsJPEG = value; }
+            get { return (Info?.SaveAsJPEG ?? setting.DownloadWithAutoReduce); }
+            set { Info?.SaveAsJPEG = value; }
         }
 
         public int JPEGQuality
         {
-            get { return (Info is DownloadInfo ? Info.JPEGQuality : setting.DownloadConvertJpegQuality); }
-            set { if (Info is DownloadInfo) Info.JPEGQuality = value; }
+            get { return (Info?.JPEGQuality ?? setting.DownloadConvertJpegQuality); }
+            set { Info?.JPEGQuality = value; }
         }
 
         public ImageSource Thumbnail
@@ -453,66 +457,56 @@ namespace PixivWPF.Common
         }
         public string ThumbnailUrl
         {
-            get { return (Info is DownloadInfo ? Info.ThumbnailUrl : string.Empty); }
-            set { if (Info is DownloadInfo) Info.ThumbnailUrl = value; }
+            get { return (Info?.ThumbnailUrl ?? string.Empty); }
+            set { Info?.ThumbnailUrl = value; }
         }
 
         public string FileName
         {
-            get { return (Info is DownloadInfo ? Info.FileName : string.Empty); }
+            get { return (Info?.FileName ?? string.Empty); }
             set
             {
-                if (Info is DownloadInfo)
-                {
-                    Info.FileName = value;
+                Info?.FileName = value;
 
-                    PART_FileName.Text = Info.FileName;
-                    PART_FileFolder.Text = FolderName;
-                }
+                PART_FileName.Text = Info?.FileName;
+                PART_FileFolder.Text = FolderName;
             }
         }
 
         public string FolderName
         {
-            get { return (Info is DownloadInfo && !string.IsNullOrEmpty(Info.FileName) ? Path.GetDirectoryName(Info.FileName) : string.Empty); }
+            get { return (!string.IsNullOrEmpty(Info?.FileName) ? Path.GetDirectoryName(Info?.FileName) : string.Empty); }
         }
 
         [DefaultValue(true)]
         public bool AutoStart
         {
-            get { return (Info is DownloadInfo && Info.AutoStart); }
-            set { if (Info is DownloadInfo) Info.AutoStart = value; }
+            get { return (Info?.AutoStart ?? default); }
+            set { Info?.AutoStart = value; }
         }
 
-        [DefaultValue(DownloadItemState.Idle)]
-        public DownloadItemState State
+        [DefaultValue(false)]
+        public bool IsStart
         {
-            get { return (Info is DownloadInfo ? Info.State : DownloadItemState.Unknown); }
-            set
-            {
-                if (Info is DownloadInfo)
-                {
-                    Info.State = value;
-                    NotifyPropertyChanged("StateChanged");
-                }
-            }
+            get { return (Info?.IsStart ?? default); }
+            set { Info?.IsStart = value; }
         }
 
         public Tuple<double, double> Progress
         {
-            get { return (Info is DownloadInfo ? Info.Progress : new Tuple<double, double>(Received, Length)); }
+            get { return (Info?.Progress ?? new Tuple<double, double>(Received, Length)); }
         }
 
         public long Received
         {
-            get { return (Info is DownloadInfo && Info.Received >= 0 ? Info.Received : 0); }
-            set { if (Info is DownloadInfo) Info.Received = value; }
+            get { return (Info?.Received >= 0 ? Info?.Received ?? 0 : 0); }
+            set { Info?.Received = value; }
         }
 
         public long Length
         {
-            get { return (Info is DownloadInfo && Info.Length >= 0 ? Info.Length : 0); }
-            set { if (Info is DownloadInfo) Info.Length = value; }
+            get { return (Info?.Length >= 0 ? Info?.Length ?? 0 : 0); }
+            set { Info?.Length = value; }
         }
 
         public DateTime LastModified
@@ -541,11 +535,15 @@ namespace PixivWPF.Common
             set { Info?.FileTime = value; }
         }
 
-        [DefaultValue(false)]
-        public bool IsStart
+        [DefaultValue(DownloadItemState.Unknown)]
+        public DownloadItemState State
         {
-            get { return (Info?.IsStart ?? default); }
-            set { Info?.IsStart = value; }
+            get { return (Info?.State ?? default); }
+            set
+            {
+                Info?.State = value;
+                NotifyPropertyChanged("StateChanged");
+            }
         }
 
         [DefaultValue(false)]
@@ -583,7 +581,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                return (State == DownloadItemState.Idle || State == DownloadItemState.Failed || State == DownloadItemState.NonExists || State == DownloadItemState.Finished || Downloading?.CurrentCount > 0);
+                return (State == DownloadItemState.Idle || State == DownloadItemState.Paused || State == DownloadItemState.Failed || State == DownloadItemState.NonExists || State == DownloadItemState.Finished || Downloading?.CurrentCount > 0);
             }
         }
 
@@ -757,38 +755,38 @@ namespace PixivWPF.Common
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
-                        //PART_SaveAsJPEG.IsEnabled = false;
                     }
                     else if (State == DownloadItemState.NonExists)
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
-                        //PART_SaveAsJPEG.IsEnabled = true;
                     }
                     else if (State == DownloadItemState.Downloading)
                     {
                         miRemove.IsEnabled = false;
                         miStopDownload.IsEnabled = true;
-                        //PART_SaveAsJPEG.IsEnabled = true;
                     }
                     else if (State == DownloadItemState.Writing)
                     {
                         miRemove.IsEnabled = false;
                         miStopDownload.IsEnabled = false;
-                        //PART_SaveAsJPEG.IsEnabled = false;
                     }
                     else if (State == DownloadItemState.Idle)
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
-                        //PART_SaveAsJPEG.IsEnabled = true;
+                    }
+                    else if (State == DownloadItemState.Paused)
+                    {
+                        AutoStart = false;
+                        miRemove.IsEnabled = true;
+                        miStopDownload.IsEnabled = false;
                     }
                     else if (State == DownloadItemState.Failed)
                     {
                         AutoStart = false;
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
-                        //PART_SaveAsJPEG.IsEnabled = true;
                     }
                     else if (State == DownloadItemState.Remove)
                     {
@@ -798,14 +796,12 @@ namespace PixivWPF.Common
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
-                        //PART_SaveAsJPEG.IsEnabled = true;
                     }
 
                     if (DownloadStatusMark.ContainsKey(State))
                     {
                         PART_DownloadStatusMark.Text = DownloadStatusMark[State].Mark;
                         PART_DownloadStatusMark.Foreground = DownloadStatusMark[State].Foreground;
-                        //PART_DownloadStatusMark.Background = DownloadStatusMark[State].Background;
                     }
                     else
                     {
@@ -838,7 +834,7 @@ namespace PixivWPF.Common
 
         public void UpdateDownloadState()
         {
-            CheckProperties();
+            Dispatcher.InvokeAsync(() => CheckProperties());
         }
 
         public async void UpdateLikeState()
@@ -936,9 +932,12 @@ namespace PixivWPF.Common
                             int bytesread = 0;
                             do
                             {
-                                if (IsCanceling || State == DownloadItemState.Failed)
+                                if (IsCanceling)
                                 {
-                                    throw new Exception($"Download {Path.GetFileName(FileName)} has be canceled!");
+                                    if (State == DownloadItemState.Paused)
+                                        throw new Exception($"Download {Path.GetFileName(FileName)} has be canceled!");
+                                    else if (State == DownloadItemState.Failed)
+                                        throw new Exception($"Download {Path.GetFileName(FileName)} has be failed!");
                                 }
 
                                 cancelReadStreamSource = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
@@ -1014,14 +1013,12 @@ namespace PixivWPF.Common
             if (string.IsNullOrEmpty(Url)) throw new WarningException($"Download URL is unknown!");
             if (!CanDownload && !restart) throw new WarningException($"Download task can't start now!");
 
-            IsStart = true;
-            Canceling = false;
-
             cancelSource = new CancellationTokenSource();
             cancelToken = cancelSource.Token;
 
             FailReason = string.Empty;
             State = DownloadItemState.Downloading;
+            UpdateDownloadState();
 
             if (restart && _DownloadBuffer is byte[]) CleanBuffer();
 
@@ -1073,7 +1070,6 @@ namespace PixivWPF.Common
         {
             result = string.Empty;
 
-            IsStart = false;
             AutoStart = false;
 
             setting = Application.Current.LoadSetting();
@@ -1115,19 +1111,9 @@ namespace PixivWPF.Common
 
             try
             {
-                if (httpClient is HttpClient)
-                {
-                    httpClient?.CancelPendingRequests();
-                    //httpClient.Dispose();
-                    //httpClient = null;
-                }
+                httpClient?.CancelPendingRequests();
             }
             catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_DownloadFinally"); }
-
-            //if (cancelSource is CancellationTokenSource) cancelSource.Dispose();
-            //cancelSource = null;
-            //if (cancelReadStreamSource is CancellationTokenSource) cancelReadStreamSource.Dispose();
-            //cancelReadStreamSource = null;
 
             if (Downloading?.CurrentCount <= 0) Downloading?.Release();
         }
@@ -1139,7 +1125,7 @@ namespace PixivWPF.Common
             setting = Application.Current.LoadSetting();
             if (await Downloading?.WaitAsync(setting.DownloadWaitingTime))
             {
-                var retry = Math.Max(1, setting.DownloadFailAutoRetryCount) + 1;
+                var retry = Math.Max(1, setting.DownloadFailAutoRetryCount);
                 while (!Canceling && retry > 0)
                 {
                     if (State == DownloadItemState.Finished) { retry = 0; break; }
@@ -1157,9 +1143,9 @@ namespace PixivWPF.Common
                     {
                         if (retry > 0)
                         {
-                            await Task.Delay(Application.Current.DownloadRetryDelay());
-                            FailReason = $"{ex.Message}({ex.GetType()}) Retry = {retry}";
+                            FailReason = $"{ex.Message} Retry = {retry}.";
                             ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)}", no_stack: true);
+                            await Task.Delay(Application.Current.DownloadRetryDelay());
                         }
                         else
                         {
@@ -1177,14 +1163,14 @@ namespace PixivWPF.Common
                     {
                         if ((ex.IsNetworkError() || ex.IsCanceled(Canceling)) && retry > 0)
                         {
-                            await Task.Delay(Application.Current.DownloadRetryDelay());
-                            FailReason = $"{ex.Message}({ex.GetType()}) Retry = {retry}";
+                            FailReason = $"{ex.Message} Retry = {retry}.";
                             ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)}", no_stack: true);
+                            await Task.Delay(Application.Current.DownloadRetryDelay());
                         }
                         else
                         {
                             retry = 0;
-                            FailReason = $"{ex.Message}({ex.GetType()})"; ;
+                            FailReason = $"{ex.Message}"; ;
                             ex.ERROR($"DownloadDirectAsync_{Path.GetFileName(FileName)}");
                         }
                     }
@@ -1247,8 +1233,6 @@ namespace PixivWPF.Common
 
             try
             {
-                IsStart = true;
-                Canceling = false;
                 StartTick = DateTime.Now;
                 FailReason = string.Empty;
                 State = DownloadItemState.Downloading;
@@ -1271,6 +1255,7 @@ namespace PixivWPF.Common
             {
                 await new Action(() =>
                 {
+                    var ret_save = false;
                     State = DownloadItemState.Writing;
                     UpdateProgress();
                     if (SaveAsJPEG)
@@ -1283,19 +1268,23 @@ namespace PixivWPF.Common
                         if (ret is byte[] && ret.Length > 16)
                         {
                             if (ret.Length >= bytes.Length)
-                                File.WriteAllBytes(FileName, bytes);
+                                ret_save = FileName.WriteAllBytes(bytes);
                             else
-                                File.WriteAllBytes(FileName, ret);
+                                ret_save = FileName.WriteAllBytes(ret);
                         }
                     }
                     else
-                        File.WriteAllBytes(FileName, bytes);
+                        ret_save = FileName.WriteAllBytes(bytes);
 
-                    if (File.Exists(FileName))
+                    if (ret_save)
                     {
-                        File.SetCreationTime(FileName, FileTime);
-                        File.SetLastWriteTime(FileName, FileTime);
-                        File.SetLastAccessTime(FileName, FileTime);
+                        try
+                        {
+                            File.SetCreationTime(FileName, FileTime);
+                            File.SetLastWriteTime(FileName, FileTime);
+                            File.SetLastAccessTime(FileName, FileTime);
+                        }
+                        catch (Exception exa) { exa.ERROR($"SetFileTime_{Path.GetFileNameWithoutExtension(FileName)}"); }
                         PART_OpenFile.IsEnabled = true;
                         PART_OpenFolder.IsEnabled = true;
                         FailReason = $"downloaded from remote site.";
@@ -1324,44 +1313,7 @@ namespace PixivWPF.Common
             {
                 if (File.Exists(source))
                 {
-                    await new Action(() =>
-                    {
-                        //StartTick = DateTime.Now;
-                        State = DownloadItemState.Writing;
-                        var fi = new FileInfo(source);
-                        Length = Received = fi.Length;
-                        //finishedProgress = new Tuple<double, double>(Received, Length);
-
-                        if (File.Exists(source))
-                        {
-                            if (SaveAsJPEG)
-                            {
-                                setting = Application.Current.LoadSetting();
-                                JPEGQuality = setting.DownloadConvertJpegQuality;
-                                var bytes = File.ReadAllBytes(source);
-                                var reason = string.Empty;
-                                var ret = bytes.ConvertImageTo("jpg", out reason);
-                                ConvertReason += $" {reason}".Trim();
-                                if (ret.Length >= bytes.Length)
-                                    File.WriteAllBytes(FileName, bytes);
-                                else
-                                    File.WriteAllBytes(FileName, ret);
-                            }
-                            else
-                                File.Copy(source, FileName, true);
-                        }
-
-                        if (File.Exists(FileName))
-                        {
-                            File.SetCreationTime(FileName, FileTime);
-                            File.SetLastWriteTime(FileName, FileTime);
-                            File.SetLastAccessTime(FileName, FileTime);
-                            PART_OpenFile.IsEnabled = true;
-                            PART_OpenFolder.IsEnabled = true;
-                            FailReason = $"copied from cached image.";
-                            State = DownloadItemState.Finished;
-                        }
-                    }).InvokeAsync(true);
+                    result = await SaveFile(FileName, File.ReadAllBytes(source));
                 }
             }
             catch (Exception ex)
@@ -1388,7 +1340,7 @@ namespace PixivWPF.Common
             HTTP_TIMEOUT = setting.DownloadHttpTimeout > 5 ? setting.DownloadHttpTimeout : 5;
 
             if (File.Exists(FileName) && IsDownloading) await Cancel();
-            CheckProperties();
+            UpdateDownloadState();
 
             if (CanDownload && Downloading?.CurrentCount <= 0) Downloading?.Release();
 
@@ -1408,8 +1360,8 @@ namespace PixivWPF.Common
             {
                 if (CanDownload || restart)
                 {
-                    if (restart) { State = DownloadItemState.Idle; AutoStart = true; Canceling = false; }
-                    await Task.Delay(Application.Current.Random(20, 200)).ContinueWith(async t =>
+                    if (restart) { State = DownloadItemState.Idle; }
+                    await Task.Delay(Application.Current.Random(50, 500)).ContinueWith(async t =>
                     {
                         this.DoEvents();
 
@@ -1430,34 +1382,29 @@ namespace PixivWPF.Common
         {
             if (!IsCanceling)
             {
+                AutoStart = false;
                 Canceling = true;
                 if (!cancelSource?.IsCancellationRequested ?? false)
                 {
                     cancelSource?.Cancel();
-                    await Task.Delay(250);
+                    await Task.Delay(500);
                     this.DoEvents();
                 }
                 if (!cancelReadStreamSource?.IsCancellationRequested ?? false)
                 {
                     cancelReadStreamSource?.Cancel();
-                    await Task.Delay(250);
+                    await Task.Delay(500);
                     this.DoEvents();
                 }
                 try
                 {
-                    if (httpClient is HttpClient)
-                    {
-                        httpClient?.CancelPendingRequests();
-                        //httpClient.Dispose();
-                        //httpClient = null;
-                    }
+                    httpClient?.CancelPendingRequests();
                 }
-                catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_Cancel"); Canceling = false; }
+                catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_HttpRequest_Cancel"); }
                 finally
                 {
                     FailReason = "Manual Canceled!";
-                    State = DownloadItemState.Failed;
-                    AutoStart = false;
+                    State = DownloadItemState.Paused;
                     if (Downloading?.CurrentCount <= 0) Downloading?.Release();
                 }
             }
@@ -1497,14 +1444,14 @@ namespace PixivWPF.Common
 
             setting = Application.Current.LoadSetting();
 
-            Info = new DownloadInfo() { Instance = this, SaveAsJPEG = setting.DownloadAutoReduceToJpeg, Received = 0, Length = 0 };
+            Info = new DownloadInfo() { Instance = this, SaveAsJPEG = setting.DownloadWithAutoReduce, Received = 0, Length = 0 };
 
             PART_SaveAsJPEG.IsOn = Info.SaveAsJPEG;
             miSaveAsJPEG.IsChecked = Info.SaveAsJPEG;
 
             InitProgress();
 
-            CheckProperties();
+            UpdateDownloadState();
         }
 
         public DownloadItem(string url, bool autostart = true, bool jpeg = false)
@@ -1523,7 +1470,7 @@ namespace PixivWPF.Common
             AutoStart = autostart;
             Url = url;
 
-            CheckProperties();
+            UpdateDownloadState();
         }
 
         public DownloadItem(DownloadInfo info)
@@ -1535,7 +1482,7 @@ namespace PixivWPF.Common
             if (info is DownloadInfo)
                 Info = info;
             else
-                Info = new DownloadInfo() { Instance = this, SaveAsJPEG = setting.DownloadAutoReduceToJpeg, Received = 0, Length = 0 };
+                Info = new DownloadInfo() { Instance = this, SaveAsJPEG = setting.DownloadWithAutoReduce, Received = 0, Length = 0 };
 
             Info.Instance = this;
 
@@ -1544,7 +1491,7 @@ namespace PixivWPF.Common
 
             InitProgress();
 
-            CheckProperties();
+            UpdateDownloadState();
         }
 
         ~DownloadItem()
@@ -1602,7 +1549,7 @@ namespace PixivWPF.Common
 
         private void Download_Loaded(object sender, RoutedEventArgs e)
         {
-            CheckProperties();
+            UpdateDownloadState();
             setting = Application.Current.LoadSetting();
             try
             {
@@ -1617,7 +1564,7 @@ namespace PixivWPF.Common
                     else if (State == DownloadItemState.Idle) //|| State == DownloadState.Failed)
                     {
                         if (string.IsNullOrEmpty(Url) && !string.IsNullOrEmpty(PART_FileURL.Text)) Url = PART_FileURL.Text;
-                        if (!IsStart && !IsDownloading) Start(setting.DownloadWithFailResume);
+                        if (!IsDownloading) Start(setting.DownloadWithFailResume);
                     }
                 }
 
@@ -1673,13 +1620,13 @@ namespace PixivWPF.Common
         {
             setting = Application.Current.LoadSetting();
 
-            CheckProperties();
+            UpdateDownloadState();
             if (sender == PART_Preview)
             {
                 if (PART_Preview.Source == null) PART_ThumbnailWait.Show();
                 else PART_ThumbnailWait.Hide();
             }
-            if (sender == PART_Download && !IsStart && !IsDownloading) Start(setting.DownloadWithFailResume);
+            if (sender == PART_Download && !IsDownloading) Start(setting.DownloadWithFailResume);
         }
 
         private async void miActions_Click(object sender, RoutedEventArgs e)

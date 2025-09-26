@@ -1957,7 +1957,7 @@ namespace PixivWPF.Common
                 if (!(_TagsWildecardT2SCache is ConcurrentDictionary<string, TagsWildecardCacheItem>))
                     _TagsWildecardT2SCache = new ConcurrentDictionary<string, TagsWildecardCacheItem>(StringComparer.CurrentCultureIgnoreCase);
 
-                _BadTags_.RemoveAll(s => _TagsWildecardT2SCache[key].Keys.Contains(s));
+                if (_TagsWildecardT2SCache.ContainsKey(key)) _BadTags_.RemoveAll(s => _TagsWildecardT2SCache[key].Keys.Contains(s));
 
                 var k = key.Trim('/').Replace(" ", @"\s");
                 var v = value.Trim();
@@ -7138,7 +7138,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception)
+            catch
             {
                 //the file is unavailable because it is:
                 //still being written to
@@ -7146,7 +7146,7 @@ namespace PixivWPF.Common
                 //or does not exist (has already been processed)
                 result = true;
                 try { if (stream is FileStream) { stream.Close(); stream.Dispose(); } }
-                catch (Exception) { }
+                catch { }
             }
             //file is not locked
             return (result);
@@ -7167,7 +7167,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception)
+            catch
             {
                 //the file is unavailable because it is:
                 //still being written to
@@ -7175,7 +7175,7 @@ namespace PixivWPF.Common
                 //or does not exist (has already been processed)
                 result = true;
                 try { if (stream is FileStream) { stream.Close(); stream.Dispose(); } }
-                catch (Exception) { }
+                catch { }
             }
             //file is not locked
             return (result);
@@ -7969,8 +7969,8 @@ namespace PixivWPF.Common
                                             mso.Seek(0, SeekOrigin.Begin);
                                             exif_out.Save(msp, mso);
                                         }
-                                        File.WriteAllBytes(fout, mso.ToArray());
-                                        file.SetImageFileQualityInfo(exif_out.GetJpegQuality());
+                                        var ret = WriteAllBytes(fout, mso.ToArray());
+                                        if (ret) file.SetImageFileQualityInfo(exif_out.GetJpegQuality());
                                     }
                                 }
                                 else throw new WarningException($"{feature}ed File Size : Original Image JPEG Quality <= {quality}!");
@@ -8002,12 +8002,14 @@ namespace PixivWPF.Common
                                     throw new WarningException($"{feature}ed File Size : {bytes.Length} >= Original File Size : {fi.Length}!");
                                 }
                             }
-                            File.WriteAllBytes(fout, bytes);
-
-                            var exif_out = new ExifData(fout);
-                            if (exif_in is ExifData && exif_in.ImageType != ImageType.Unknown) exif_out.ReplaceAllTagsBy(exif_in);
-                            exif_out.Save(fout);
-                            file.SetImageFileQualityInfo(exif_out.GetJpegQuality());
+                            var ret = WriteAllBytes(fout, bytes);
+                            if (ret)
+                            {
+                                var exif_out = new ExifData(fout);
+                                if (exif_in is ExifData && exif_in.ImageType != ImageType.Unknown) exif_out.ReplaceAllTagsBy(exif_in);
+                                exif_out.Save(fout);
+                                file.SetImageFileQualityInfo(exif_out.GetJpegQuality());
+                            }
                         }
                         else throw new WarningException($"{feature}ed File Size : Original Image is Error or JPEG Quality <= {quality}!");
                     }
@@ -8380,6 +8382,43 @@ namespace PixivWPF.Common
                     }
                 }
             }
+            return (result);
+        }
+
+        public static async Task<bool> WriteAllBytesAsync(this string filename, byte[] bytes)
+        {
+            var result = false;
+            try
+            {
+                if (!string.IsNullOrEmpty(filename) && bytes.Length > 0)
+                {
+                    using var fs = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None, 4096, useAsync: true);
+                    await fs.WriteAsync(bytes, 0, bytes.Length);
+                    await fs.FlushAsync();
+                    fs.Close();
+                    await Task.Delay(10);
+                    result = File.Exists(filename);
+                }
+            }
+            catch (Exception ex) { ex.ERROR($"WriteAllByte_{Path.GetFileNameWithoutExtension(filename)}"); }
+            return (result);
+        }
+
+        public static bool WriteAllBytes(this string filename, byte[] bytes)
+        {
+            var result = false;
+            try
+            {
+                if (!string.IsNullOrEmpty(filename) && bytes.Length > 0)
+                {
+                    using var fs = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None, 4096, useAsync: true);
+                    fs.Write(bytes, 0, bytes.Length);
+                    fs.Flush();
+                    fs.Close();
+                    result = File.Exists(filename);
+                }
+            }
+            catch (Exception ex) { ex.ERROR($"WriteAllByte_{Path.GetFileNameWithoutExtension(filename)}"); }
             return (result);
         }
         #endregion
