@@ -72,16 +72,6 @@ namespace PixivWPF.Common
         [DefaultValue(false)]
         public bool Canceled { get; set; } = false;
 
-        public void UpdateByState(DownloadItemState state)
-        {
-            if (state == DownloadItemState.Idle || state == DownloadItemState.Paused)
-            {
-                AutoStart = true;
-                Canceled = false;
-                NotifyPropertyChanged();
-            }
-        }
-
         private DownloadItemState state = DownloadItemState.Idle;
         [DefaultValue(DownloadItemState.Idle)]
         public DownloadItemState State
@@ -90,6 +80,11 @@ namespace PixivWPF.Common
             set
             {
                 state = value;
+                if (state == DownloadItemState.Idle || state == DownloadItemState.Paused)
+                {
+                    AutoStart = true;
+                    Canceled = false;
+                }
                 NotifyPropertyChanged("StateChanged");
                 NotifyPropertyChanged();
             }

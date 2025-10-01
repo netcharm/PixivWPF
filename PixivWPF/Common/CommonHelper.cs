@@ -5723,10 +5723,6 @@ namespace PixivWPF.Common
 #endif
                                             try
                                             {
-                                                //if (sh.HasShellProperty(sh.Properties.System.Photo.DateTaken.PropertyKey) &&
-                                                //    sh.Properties.System.Photo.DateTaken.TryFormatForDisplay(fmt, out sdt) &&
-                                                //   (sh.Properties.System.Photo.DateTaken.Value == null ||
-                                                //    sh.Properties.System.Photo.DateTaken.Value.Value.Ticks != dt.Ticks))
                                                 if (sh.Properties.System.Photo.DateTaken.Value == null ||
                                                     sh.Properties.System.Photo.DateTaken.Value.Value.Ticks != dt.Ticks)
                                                     sh.Properties.System.Photo.DateTaken.Value = dt;
@@ -5734,16 +5730,9 @@ namespace PixivWPF.Common
                                             catch (Exception exx) { exx.ERROR($"ShellPropertiesSet_DateTaken_{fileinfo.Name}"); }
                                             try
                                             {
-                                                //if (!is_png)
-                                                {
-                                                    //if (sh.HasShellProperty(sh.Properties.System.DateAcquired.PropertyKey) && 
-                                                    //    sh.Properties.System.DateAcquired.TryFormatForDisplay(fmt, out sdt) &&
-                                                    //   (sh.Properties.System.DateAcquired.Value == null ||
-                                                    //    sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks))
-                                                    if (sh.Properties.System.DateAcquired.Value == null ||
-                                                        sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks)
-                                                        sh.Properties.System.DateAcquired.Value = dt;
-                                                }
+                                                if (sh.Properties.System.DateAcquired.Value == null ||
+                                                    sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks)
+                                                    sh.Properties.System.DateAcquired.Value = dt;
                                             }
                                             catch (Exception exx) { exx.ERROR($"ShellPropertiesSet_DateAcquired_{fileinfo.Name}"); }
 #if DEBUG
@@ -5884,7 +5873,7 @@ namespace PixivWPF.Common
                             }
                         }
                         fileinfo.Refresh();
-                        //await Task.Delay(250);
+                        //await Task.Delay(25);
                         WaitForFile(fileinfo.FullName, new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout)).Token);
                         if (fileinfo.CreationTime.Ticks != dt.Ticks) fileinfo.CreationTime = dt;
                         if (fileinfo.LastWriteTime.Ticks != dt.Ticks) fileinfo.LastWriteTime = dt;
@@ -7050,8 +7039,8 @@ namespace PixivWPF.Common
             {
                 if (!File.Exists(filename)) return true;
 
-                using (FileStream inputStream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.None))
-                    return inputStream.Length > 0;
+                using (FileStream fs = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.None))
+                    return fs.Length > 0;
             }
 #if DEBUG
             catch (Exception ex) { ex.ERROR(); return false; }
@@ -8014,6 +8003,7 @@ namespace PixivWPF.Common
                         else throw new WarningException($"{feature}ed File Size : Original Image is Error or JPEG Quality <= {quality}!");
                     }
 
+                    await Task.Delay(25);
                     var fo = new FileInfo(fout);
                     fo.CreationTime = dc;
                     fo.LastWriteTime = dm;

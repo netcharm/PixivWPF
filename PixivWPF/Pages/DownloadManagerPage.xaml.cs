@@ -620,8 +620,7 @@ namespace PixivWPF.Pages
                             var opt = new ParallelOptions { MaxDegreeOfParallelism = SimultaneousJobs };
                             var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                             {
-                                item.AutoStart = true;
-                                if (item.State != DownloadItemState.Paused) item.State = DownloadItemState.Idle;
+                                item.State = DownloadItemState.Idle;
                             });
                         }
                     }
@@ -633,8 +632,7 @@ namespace PixivWPF.Pages
                             var opt = new ParallelOptions { MaxDegreeOfParallelism = SimultaneousJobs };
                             var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                             {
-                                item.UpdateByState(item.State);
-                                if (item.State != DownloadItemState.Paused) item.State = DownloadItemState.Idle;
+                                item.State = DownloadItemState.Idle;
                             });
                         }
                     }
