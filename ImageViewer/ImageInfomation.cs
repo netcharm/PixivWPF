@@ -1720,12 +1720,14 @@ namespace ImageViewer
                             //target.Settings.Interlace = image.Interlace;
                             //target.Settings.SetDefine(MagickFormat.Png, "png:IHDR.interlace_method", "0");
                             target.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                            image.Quality = image.Quality == 0 ? 100 : image.Quality;
                         }
                         else if (format.IsTIF() || e.StartsWith(".tif"))
                         {
                             target.SetCompression(CompressionMethod.Zip);
                             target.Settings.Compression = CompressionMethod.Zip;
                             target.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                            image.Quality = image.Quality == 0 ? 100 : image.Quality;
                         }
                         else if (format.IsGIF() || e.StartsWith(".gif"))
                         {
@@ -1735,6 +1737,7 @@ namespace ImageViewer
                         else if (format.IsWEBP() || e.Equals(".webp") || e.Equals(".webm"))
                         {
                             target.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                            image.Quality = image.Quality == 0 ? 75 : image.Quality;
                         }
                         else if (format.IsBMP() || e.Equals(".bmp"))
                         {
@@ -1744,6 +1747,7 @@ namespace ImageViewer
                         {
                             target.Settings.SetDefine(MagickFormat.Jpeg, "sampling-factor", "4:2:0");
                             target.Settings.SetDefine(MagickFormat.Jpeg, "dct-method", "float");
+                            image.Quality = image.Quality == 0 ? 75 : image.Quality;
                         }
 
                         //if (image.ColorSpace == ColorSpace.scRGB) image.ColorSpace = ColorSpace.sRGB;
