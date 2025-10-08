@@ -3242,7 +3242,7 @@ namespace PixivWPF.Common
                 {
                     result.Add($"Artist : {di.Illust.User.Name.KatakanaHalfToFull()}, uid:{di.Illust.User.Id}");
                     result.Add($"Title  : {di.Illust.Title.KatakanaHalfToFull()}");
-                    result.Add($"Tags   : {string.Join(" ", di.Illust.Tags.Select(t => $"#{t}")).Trim()}");
+                    result.Add($"Tags   : {string.Join(" ", di.Illust.Tags.Select(t => '#' + t)).Trim()}");
                 }
             }
             return (result);
@@ -12501,6 +12501,96 @@ namespace PixivWPF.Common
         #endregion
 
         #region WPF UI Helper
+        public static T FindByUid<T>(this DependencyObject element, string uid) where T : FrameworkElement
+        {
+            T result = default(T);
+            try
+            {
+                var childs = element is FrameworkElement ? (element as FrameworkElement).GetChildren<T>() : new List<T>(); ;
+                if (childs?.Any() ?? false)
+                {
+                    foreach (var child in childs)
+                    {
+                        var ret = child is T ? (child as T).Uid : null;
+                        if (ret is string && !string.IsNullOrEmpty(ret)) result = (T)child;
+                        break;
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+
+        public static List<T> FindAllByUid<T>(this DependencyObject element, string uid) where T : FrameworkElement
+        {
+            List<T> result = new List<T>();
+            try
+            {
+                var childs = element is FrameworkElement ? (element as FrameworkElement).GetChildren<T>() : new List<T>(); ;
+                if (childs?.Any() ?? false)
+                {
+                    foreach (var child in childs)
+                    {
+                        var ret = child is T ? (child as T).Uid : null;
+                        if (ret is string && !string.IsNullOrEmpty(ret)) result.Add((T)child);
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+
+        public static T FindByUid<T>(this FrameworkElement element, string uid) where T : FrameworkElement
+        {
+            T result = default(T);
+            try
+            {
+                var childs = element is FrameworkElement ? (element as FrameworkElement).GetChildren<T>() : new List<T>(); ;
+                if (childs?.Any() ?? false)
+                {
+                    foreach (var child in childs)
+                    {
+                        var ret = child is T ? (child as T).Uid : null;
+                        if (ret is string && !string.IsNullOrEmpty(ret)) result = (T)child;
+                        break;
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+
+        public static List<T> FindAllByUid<T>(this FrameworkElement element, string uid) where T : FrameworkElement
+        {
+            List<T> result = new List<T>();
+            try
+            {
+                var childs = element is FrameworkElement ? (element as FrameworkElement).GetChildren<T>() : new List<T>(); ;
+                if (childs?.Any() ?? false)
+                {
+                    foreach (var child in childs)
+                    {
+                        var ret = child is T ? (child as T).Uid : null;
+                        if (ret is string && !string.IsNullOrEmpty(ret)) result.Add((T)child);
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+
+        public static T FindByName<T>(this DependencyObject element, string name) where T : FrameworkElement
+        {
+            T result = default(T);
+            try
+            {
+                var ret = element is FrameworkElement ? (element as FrameworkElement).FindName(name) : null;
+                if (ret is T) result = (T)ret;
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+
         public static T FindByName<T>(this FrameworkElement element, string name) where T : FrameworkElement
         {
             T result = default(T);

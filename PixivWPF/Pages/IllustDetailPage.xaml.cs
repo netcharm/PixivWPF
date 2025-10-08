@@ -1,6 +1,4 @@
-﻿using MahApps.Metro.Controls;
-using PixivWPF.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -16,6 +14,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+
+using MahApps.Metro.Controls;
+using PixivWPF.Common;
 
 namespace PixivWPF.Pages
 {
@@ -5665,17 +5666,18 @@ namespace PixivWPF.Pages
                 if (sender is MenuItem)
                 {
                     var uid = sender.GetUid();
+                    var tag = (sender as MenuItem).Tag;
                     var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
                     var shift = Keyboard.Modifiers == ModifierKeys.Shift;
 
                     var type = (shift ? !setting.DownloadWithAutoReduce : setting.DownloadWithAutoReduce) ? DownloadType.None : DownloadType.Original;
-                    var cq = sender is MenuItem && (sender as MenuItem).Tag is App.MenuItemSliderData ? ((sender as MenuItem).Tag as App.MenuItemSliderData).Value : setting.DownloadRecudeJpegQuality;
+                    var cq = tag is App.MenuItemSliderData ? (tag as App.MenuItemSliderData).Value : setting.DownloadRecudeJpegQuality;
 
                     if (ctrl) type |= DownloadType.ConvertKeepName;
                     if (uid.Equals("ActionSaveIllusts") || uid.Equals("ActionSaveIllustsAll")) type |= DownloadType.Original;
                     else if (uid.Equals("ActionSaveIllustsJpeg") || uid.Equals("ActionSaveIllustsJpegAll")) type |= DownloadType.AsJPEG;
-                    else if (uid.Equals("ActionSaveIllustsPreview")) type |= DownloadType.UseLargePreview;
-
+                    else if (uid.Equals("ActionSaveIllustsPreview") || uid.Equals("ActionSaveIllustsPreviewAll")) type |= DownloadType.UseLargePreview;
+                    
                     var mi = sender as MenuItem;
                     var host = mi.GetContextMenuHost();
                     if (mi.Uid.Equals("ActionSaveIllusts", StringComparison.CurrentCultureIgnoreCase) ||
@@ -5734,15 +5736,17 @@ namespace PixivWPF.Pages
                 if (sender is MenuItem)
                 {
                     var uid = sender.GetUid();
+                    var tag = (((sender as MenuItem).Parent as FrameworkElement).FindByName<MenuItem>("") as MenuItem).Tag;
                     var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
                     var shift = Keyboard.Modifiers == ModifierKeys.Shift;
 
                     var type = (shift ? !setting.DownloadWithAutoReduce : setting.DownloadWithAutoReduce) ? DownloadType.None : DownloadType.Original;
+                    var cq = tag is App.MenuItemSliderData ? (tag as App.MenuItemSliderData).Value : setting.DownloadRecudeJpegQuality;
 
-                    if (Keyboard.Modifiers == ModifierKeys.Shift) type |= DownloadType.ConvertKeepName;
-                    if (uid.Equals("ActionSaveIllustAll")) type |= DownloadType.Original;
-                    else if (uid.Equals("ActionSaveIllustsJpegAll")) type |= DownloadType.AsJPEG;
-                    else if (uid.Equals("ActionSaveIllustsPreviewAll")) type |= DownloadType.UseLargePreview;
+                    if (ctrl) type |= DownloadType.ConvertKeepName;
+                    if (uid.Equals("ActionSaveIllusts") || uid.Equals("ActionSaveIllustsAll")) type |= DownloadType.Original;
+                    else if (uid.Equals("ActionSaveIllustsJpeg") || uid.Equals("ActionSaveIllustsJpegAll")) type |= DownloadType.AsJPEG;
+                    else if (uid.Equals("ActionSaveIllustsPreview") || uid.Equals("ActionSaveIllustsPreviewAll")) type |= DownloadType.UseLargePreview;
 
                     var mi = sender as MenuItem;
                     var host = mi.GetContextMenuHost();

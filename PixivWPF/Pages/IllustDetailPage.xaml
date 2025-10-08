@@ -437,22 +437,22 @@
                         <TextBlock Text="&#xEA35;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Uid="ActionSaveIllustsJpeg" Header="Save Illust Page As JPEG" Click="ActionSaveIllusts_Click">
+                <MenuItem x:Uid="ActionSaveIllustsJpeg" Header="Save Selected Illusts As JPEG (Default Page)" Click="ActionSaveIllusts_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE105;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Uid="ActionSaveIllustsJpegAll" Header="Save All Illust Pages As JPEG" Click="ActionSaveIllustsAll_Click">
+                <MenuItem x:Uid="ActionSaveIllustsJpegAll" Header="Save Selected Illusta As JPEG (All Pages)" Click="ActionSaveIllustsAll_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xEA35;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Uid="ActionSaveIllustsPreview" Header="Save Illust Page Large Preview" Click="ActionSaveIllusts_Click">
+                <MenuItem x:Uid="ActionSaveIllustsPreview" Header="Save Selected Illusta Large Preview (Default Page)" Click="ActionSaveIllusts_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE105;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Uid="ActionSaveIllustsPreviewAll" Header="Save All Illust Pages Large Preview" Click="ActionSaveIllustsAll_Click">
+                <MenuItem x:Uid="ActionSaveIllustsPreviewAll" Header="Save Selected All Illusts Large Preview (All Pages)" Click="ActionSaveIllustsAll_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xEA35;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
