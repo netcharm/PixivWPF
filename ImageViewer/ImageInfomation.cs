@@ -1066,7 +1066,7 @@ namespace ImageViewer
                                     if (CancelGetInfo.IsCancellationRequested) break;
 
                                     if (string.IsNullOrEmpty(value)) continue;
-                                    if (attr.EndsWith("Keywords") || attr.EndsWith("Author") || attr.EndsWith("Artist") || attr.EndsWith("Copyright") || attr.EndsWith("Copyrights"))
+                                    if (attr.EndsWith("Keywords") || attr.EndsWith("Author") || attr.EndsWith("Artist") || attr.EndsWith("Copyright") || attr.EndsWith("Copyrights") || attr.EndsWith("artist") || attr.EndsWith("copyright"))
                                     {
                                         var keywords = value.Split([';'], StringSplitOptions.RemoveEmptyEntries).Select(w => w.Trim()).ToList();
                                         for (var i = 5; i < keywords.Count; i += 5) { keywords[i] = $"{Environment.NewLine}{keywords[i]}"; }
@@ -1092,7 +1092,6 @@ namespace ImageViewer
                         tip.Add($"{"InfoTipHasAlpha".T()} {(Original?.HasAlpha ?? false ? "Included" : "NotIncluded").T()}");
                         if (Original?.ColormapSize > 0) tip.Add($"{"InfoTipColorMapsSize".T()} {Original?.ColormapSize}");
                         tip.Add($"{"InfoTipCompression".T()} {Original?.Compression}");
-                        //tip.Add($"{"InfoTipQuality".T()} {(Original?.Compression == CompressionMethod.JPEG || Original?.Quality > 0 ? $"{Original?.Quality}" : "Unknown")}");
                         var quality = Original?.Compression == CompressionMethod.JPEG ? $"{Original?.Quality()}" : "Unknown";
                         tip.Add($"{"InfoTipQuality".T()} {quality}");
                         tip.Add($"{"InfoTipMemoryMode".T()} {MemoryUsageMode}");
