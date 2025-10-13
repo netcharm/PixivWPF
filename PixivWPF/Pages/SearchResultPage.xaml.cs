@@ -763,21 +763,23 @@ namespace PixivWPF.Pages
                 {
                     if (sender is MenuItem)
                     {
-                        IList<PixivItem> items = new List<PixivItem>();
                         var host = (sender as MenuItem).GetContextMenuHost();
-                        if (host == ResultItems || host == ResultExpander) items = ResultItems.GetSelected();
+                        if (host == ResultItems || host == ResultExpander)
+                        {
+                            IList<PixivItem> items = ResultItems.GetSelected().GroupBy(i => i.UserID).Select(g => g.First()).ToList();
 
-                        if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            items.LikeUser();
-                        }
-                        else if (uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            items.LikeUser(false);
-                        }
-                        else if (uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            items.UnLikeUser();
+                            if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                items.LikeUser();
+                            }
+                            else if (uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                items.LikeUser(false);
+                            }
+                            else if (uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                items.UnLikeUser();
+                            }
                         }
                     }
                 }

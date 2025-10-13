@@ -4604,9 +4604,10 @@ namespace PixivWPF.Pages
                         var host = (sender as MenuItem).GetContextMenuHost();
                         if (host is UIElement)
                         {
-                            IList<PixivItem> items = new List<PixivItem>();
-                            if (host == RelatedItems || host == RelatedItemsExpander) items = RelatedItems.GetSelected();
+                            IList<PixivItem> items = new List<PixivItem>(){ Contents };
+                            if (host == RelatedItems || host == RelatedItemsExpander) items = Contents.IsUser() ? items : RelatedItems.GetSelected();
                             else if (host == FavoriteItems || host == FavoriteItemsExpander) items = FavoriteItems.GetSelected();
+                            items = items.GroupBy(i => i.UserID).Select(g => g.First()).ToList();
 
                             if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase))
                             {
