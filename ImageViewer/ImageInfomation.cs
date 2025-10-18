@@ -1709,11 +1709,14 @@ namespace ImageViewer
                         var target = image.Clone();
                         if (image.HasAlpha && (fmt_no_alpha.Contains(format) || ext_no_alpha.Contains(e)))
                         {
+                            target.Settings.SetDefine("bmp3:alpha", "true");
+                            target.Settings.SetDefine("webp:alpha-compression", "1");
                             //if (target.ColorSpace == ColorSpace.scRGB) target.ColorSpace = ColorSpace.sRGB;
                             target.ColorAlpha(MasklightColor ?? target.BackgroundColor);
                         }
                         if (format.IsPNG() || e.StartsWith(".png"))
                         {
+                            target.Settings.SetDefine("png:compression-level", "9");
                             target.SetCompression(CompressionMethod.Zip);
                             target.Settings.Compression = CompressionMethod.Zip;
                             //target.Settings.Interlace = image.Interlace;
@@ -1723,6 +1726,7 @@ namespace ImageViewer
                         }
                         else if (format.IsTIF() || e.StartsWith(".tif"))
                         {
+                            target.Settings.SetDefine("tiff:preserve-compression", "true");
                             target.SetCompression(CompressionMethod.Zip);
                             target.Settings.Compression = CompressionMethod.Zip;
                             target.VirtualPixelMethod = VirtualPixelMethod.Transparent;
@@ -1735,6 +1739,7 @@ namespace ImageViewer
                         }
                         else if (format.IsWEBP() || e.Equals(".webp") || e.Equals(".webm"))
                         {
+                            target.Settings.SetDefine("webp:alpha-compression", "1");
                             target.VirtualPixelMethod = VirtualPixelMethod.Transparent;
                             image.Quality = image.Quality == 0 ? 75 : image.Quality;
                         }
@@ -1744,8 +1749,11 @@ namespace ImageViewer
                         }
                         else if (format.IsJPG() || e.StartsWith(".jp"))
                         {
-                            target.Settings.SetDefine(MagickFormat.Jpeg, "sampling-factor", "4:2:0");
-                            target.Settings.SetDefine(MagickFormat.Jpeg, "dct-method", "float");
+                            target.Settings.SetDefine("jpeg:arithmetic-coding", "on");
+                            target.Settings.SetDefine("jpeg:block-smoothing", "on");
+                            target.Settings.SetDefine("jpeg:optimize-coding", "on");
+                            target.Settings.SetDefine("sampling-factor", "4:2:0");
+                            target.Settings.SetDefine("dct-method", "float");
                             image.Quality = image.Quality == 0 ? 75 : image.Quality;
                         }
 
