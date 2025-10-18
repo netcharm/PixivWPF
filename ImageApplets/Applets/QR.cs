@@ -110,6 +110,7 @@ namespace ImageApplets.Applets
             });
             thread.SetApartmentState(ApartmentState.STA);
             thread.Start();
+            //thread.Join();
         }
 
         public override bool Execute<T>(out T result, params object[] args)
