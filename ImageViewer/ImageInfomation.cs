@@ -1749,7 +1749,7 @@ namespace ImageViewer
                         }
                         else if (format.IsJPG() || e.StartsWith(".jp"))
                         {
-                            target.Settings.SetDefine("jpeg:arithmetic-coding", "on");
+                            //target.Settings.SetDefine("jpeg:arithmetic-coding", "on");
                             target.Settings.SetDefine("jpeg:block-smoothing", "on");
                             target.Settings.SetDefine("jpeg:optimize-coding", "on");
                             target.Settings.SetDefine("sampling-factor", "4:2:0");
