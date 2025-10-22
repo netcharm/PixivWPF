@@ -1694,24 +1694,23 @@ namespace ImageViewer
 
                     FixDPI(image);
 
-                    if (e.Equals(".png8", StringComparison.CurrentCultureIgnoreCase))
+                    var target = image.Clone();
+                    if (format == MagickFormat.Png8 || e.Equals(".png8", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        //if (image.ColorSpace == ColorSpace.scRGB) image.ColorSpace = ColorSpace.sRGB;
-                        image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
-                        image.Write(Path.ChangeExtension(file, ".png"), MagickFormat.Png8);
+                        target.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                        target.ColormapSize = 256;
+                        target.ColorType = ColorType.Palette;
+                        target.SetCompression(CompressionMethod.Zip);
+                        target.Write(Path.ChangeExtension(file, ".png"), MagickFormat.Png8);
                     }
                     else
                     {
                         var fmt_no_alpha = new MagickFormat[] { MagickFormat.Jpg, MagickFormat.Jpeg, MagickFormat.Jpe, MagickFormat.Bmp2, MagickFormat.Bmp3 };
                         var ext_no_alpha = new string[] { ".jpg", ".jpeg", ".jpe", ".bmp" };
-                        //ImageOptimizer optimizer = new ImageOptimizer();
-                        //optimizer.Compress(file);
-                        var target = image.Clone();
                         if (image.HasAlpha && (fmt_no_alpha.Contains(format) || ext_no_alpha.Contains(e)))
                         {
                             target.Settings.SetDefine("bmp3:alpha", "true");
                             target.Settings.SetDefine("webp:alpha-compression", "1");
-                            //if (target.ColorSpace == ColorSpace.scRGB) target.ColorSpace = ColorSpace.sRGB;
                             target.ColorAlpha(MasklightColor ?? target.BackgroundColor);
                         }
                         if (format.IsPNG() || e.StartsWith(".png"))
