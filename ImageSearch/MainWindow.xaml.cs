@@ -206,8 +206,9 @@ namespace ImageSearch
                 if (progress.IsIndeterminate && percent_new > 0 && percent_new < 100) progress.IsIndeterminate = false;
                 progress.Value = percent_new;
                 if (percent_new - percent_old >= 1) { }
-                //SetTaskbarValue?.Invoke(percent_new);
-                TaskbarProgressValue = percent_new;
+
+                TaskbarProgressValue = percent_new / progress.Maximum;
+                if (TaskbarProgressState != TaskbarItemProgressState.Normal) TaskbarProgressState = TaskbarItemProgressState.Normal;
                 DoEvents();
             }, DispatcherPriority.Normal);
         }
@@ -216,24 +217,28 @@ namespace ImageSearch
         {
             if (!string.IsNullOrEmpty(info))
             {
-                //if (new TaskStatus[] { TaskStatus.Created, TaskStatus.WaitingForActivation, TaskStatus.WaitingToRun, TaskStatus.RanToCompletion }.Contains(state)) TaskbarProgressValue = 0;
                 if (new TaskStatus[] { TaskStatus.WaitingForActivation, TaskStatus.WaitingToRun, TaskStatus.RanToCompletion }.Contains(state)) TaskbarProgressValue = 0;
                 else if (new TaskStatus[] { TaskStatus.RanToCompletion }.Contains(state)) TaskbarProgressValue = 100;
-                //else if (new TaskStatus[]{ TaskStatus.Faulted, TaskStatus.Canceled }.Contains(state)) TaskbarProgressValue = 100;
 
                 var state_old = TaskbarProgressState;
-                if (state == TaskStatus.Running) TaskbarProgressState = TaskbarProgressValue > 0 ? TaskbarItemProgressState.Normal : TaskbarItemProgressState.Indeterminate;
-                //else if (state == TaskStatus.Created) TaskbarProgressState = TaskbarItemProgressState.Indeterminate;
-                else if (state == TaskStatus.Canceled) TaskbarProgressState = TaskbarItemProgressState.Paused;
-                else if (state == TaskStatus.Faulted) TaskbarProgressState = TaskbarItemProgressState.Error;
-                else if (state == TaskStatus.RanToCompletion) TaskbarProgressState = TaskbarItemProgressState.None;
-                else if (state == TaskStatus.WaitingForActivation) TaskbarProgressState = TaskbarItemProgressState.Indeterminate;
-                else if (state == TaskStatus.WaitingForChildrenToComplete) TaskbarProgressState = TaskbarItemProgressState.Indeterminate;
-                else if (state == TaskStatus.WaitingToRun) TaskbarProgressState = TaskbarItemProgressState.Indeterminate;
                 var state_new = TaskbarProgressState;
 
-                if (state_new != state_old) TaskbarProgressDescription = info;
-                DoEvents();
+                if (state != TaskStatus.Created)
+                {
+                    if (state == TaskStatus.Running) state_new = TaskbarItemProgressState.Normal;
+                    else if (state == TaskStatus.Canceled) state_new = TaskbarItemProgressState.Paused;
+                    else if (state == TaskStatus.Faulted) state_new = TaskbarItemProgressState.Error;
+                    else if (state == TaskStatus.RanToCompletion) state_new = TaskbarItemProgressState.None;
+                    else if (state == TaskStatus.WaitingForActivation) state_new = TaskbarItemProgressState.Indeterminate;
+                    else if (state == TaskStatus.WaitingForChildrenToComplete) state_new = TaskbarItemProgressState.Indeterminate;
+                    else if (state == TaskStatus.WaitingToRun) state_new = TaskbarItemProgressState.Indeterminate;
+                }
+                if (state_new != state_old)
+                {
+                    TaskbarProgressState = state_new;
+                    TaskbarProgressDescription = info;
+                    DoEvents();
+                }
 
                 progress?.Dispatcher.Invoke(() =>
                 {
@@ -845,9 +850,11 @@ namespace ImageSearch
                         if (!string.IsNullOrEmpty(model)) camera.Add($"{model.Replace(maker, "").Trim()}");
                         if (isoSpeedRating > 0) camera.Add($"ISO{isoSpeedRating}");
                         if (fNumber.Denom != 0) camera.Add($"f/{fNumber.Numer / (double)fNumber.Denom:F1}");
-                        if (exposureTime.Denom != 0) camera.Add($"{(exposureTime.Numer >= exposureTime.Denom ? $"{(double)exposureTime.Numer / exposureTime.Denom:0.####}" : $"1/{exposureTime.Denom / exposureTime.Numer:F0}")}s");
+                        var et = exposureTime.Numer >= exposureTime.Denom ? $"{(double)exposureTime.Numer / exposureTime.Denom:0.####}" : $"1/{exposureTime.Denom / exposureTime.Numer:F0}";
+                        if (exposureTime.Denom != 0) camera.Add($"{et}s");
 
-                        if (exposureBias.Denom != 0 && exposureBias.Numer != 0) camera.Add($"{(exposureBias.Sign ? '+' : '-')}{exposureBias.Numer / (double)exposureBias.Denom:0.#}");
+                        var eb_sign = exposureBias.Sign ? '+' : '-';
+                        if (exposureBias.Denom != 0 && exposureBias.Numer != 0) camera.Add($"{eb_sign}{exposureBias.Numer / (double)exposureBias.Denom:0.#}");
                         if (exposureBias.Denom != 0) camera.Add($"{focalLength.Numer / (double)focalLength.Denom:F0}mm");
                         if (camera.Count > 0) infos.Add($"Camera Info : {string.Join(", ", camera)}");
                         #endregion
@@ -877,7 +884,8 @@ namespace ImageSearch
                         if (!string.IsNullOrEmpty(subject)) infos.Add($"Subject     : {subject.Trim()}");
                         if (!string.IsNullOrEmpty(author)) infos.Add($"Authors     : {author.Trim().TrimEnd(';') + ';'}");
                         if (!string.IsNullOrEmpty(copyrights)) infos.Add($"Copyrights  : {copyrights.Trim().TrimEnd(';') + ';'}");
-                        if (!string.IsNullOrEmpty(tags)) infos.Add($"Tags        : {string.Join(" ", tags.Split(';').Select(t => $"#{t.Trim()}"))}");
+                        var s_tags = string.Join(" ", tags.Split(';').Select(t => $"#{t.Trim()}"));
+                        if (!string.IsNullOrEmpty(tags)) infos.Add($"Tags        : {s_tags}");
                         if (!string.IsNullOrEmpty(comments)) infos.Add($"Commants    : {PaddingLines(comments, 14)}");
                         #endregion
                     }
@@ -1341,6 +1349,34 @@ namespace ImageSearch
             }
         }
 
+        private List<string>? _files_ = null;
+        private void PasteFilesFilter_Click(object sender, RoutedEventArgs e)
+        {
+            if (Clipboard.ContainsText())
+            {
+                var lines = Clipboard.GetText().Split(new string[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                if (lines.Count() > 2)
+                {
+                    if (FolderList.SelectedIndex >= 0)
+                    {
+                        var all_db = AllFolders.IsChecked ?? false;
+                        var storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
+                        var folder = storage.ImageFolder;
+                        var feature_db = all_db ? string.Empty : storage.DatabaseFile;
+                        _files_ = lines.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(folder, f)).ToList();
+                        ToolTipService.SetToolTip(PasteFilesFilter, $"Filter Filss: {_files_.Count()}");
+                    }
+                }
+            }
+        }
+
+        private void ClearFilesFilter_Click(object sender, RoutedEventArgs e)
+        {
+            _files_?.Clear();
+            _files_ = null;
+            ToolTipService.SetToolTip(PasteFilesFilter, $"Filter Filss: 0");
+        }
+
         private void AllFolders_Checked(object sender, RoutedEventArgs e)
         {
             if (IsLoaded)
@@ -1650,6 +1686,14 @@ namespace ImageSearch
                 if (skb is not null) SimilarSrc.Tag = skb;
                 ToolTipService.SetToolTip(SimilarSrcBox, null);
             }
+            //else if (Clipboard.ContainsText())
+            //{
+            //    var lines = Clipboard.GetText().Split(new string[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            //    if (lines.Count() > 2)
+            //    {
+            //        _files_ = lines.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(folder, f)).ToList();
+            //    }
+            //}
             else if (!string.IsNullOrEmpty(EditQueryFile.Text))
             {
                 var file = EditQueryFile.Text.Trim();
@@ -1684,21 +1728,21 @@ namespace ImageSearch
                     IsQuering = true;
                     await LoadFeatureDB();
 
-                    var queries = await similar.QueryImageScore(skb_src, feature_db, limit: limit, labels: true);
+                    var queries = await similar.QueryImageScore(skb_src, feature_db, limit: limit, labels: true, files: _files_);
                     var imlist = queries?.Results;
                     var labels = queries?.Labels;
 
                     if (settings.QueryRotatedImage)
                     {
-                        queries = await similar.QueryImageScore(Rotate090(skb_src), feature_db, limit: limit, labels: true);
+                        queries = await similar.QueryImageScore(Rotate090(skb_src), feature_db, limit: limit, labels: true, files: _files_);
                         imlist.AddRange(queries?.Results ?? []);
-                        queries = await similar.QueryImageScore(Rotate180(skb_src), feature_db, limit: limit, labels: true);
+                        queries = await similar.QueryImageScore(Rotate180(skb_src), feature_db, limit: limit, labels: true, files: _files_);
                         imlist.AddRange(queries?.Results ?? []);
-                        queries = await similar.QueryImageScore(Rotate270(skb_src), feature_db, limit: limit, labels: true);
+                        queries = await similar.QueryImageScore(Rotate270(skb_src), feature_db, limit: limit, labels: true, files: _files_);
                         imlist.AddRange(queries?.Results ?? []);
-                        queries = await similar.QueryImageScore(FlipX(skb_src), feature_db, limit: limit, labels: true);
+                        queries = await similar.QueryImageScore(FlipX(skb_src), feature_db, limit: limit, labels: true, files: _files_);
                         imlist.AddRange(queries?.Results ?? []);
-                        queries = await similar.QueryImageScore(FlipY(skb_src), feature_db, limit: limit, labels: true);
+                        queries = await similar.QueryImageScore(FlipY(skb_src), feature_db, limit: limit, labels: true, files: _files_);
                         imlist.AddRange(queries?.Results ?? []);
                         imlist = [.. imlist.OrderByDescending(r => r.Value).DistinctBy(r => r.Key).Take(limit > 1 ? (int)limit * 5 : 100)];
                     }

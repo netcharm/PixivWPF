@@ -178,7 +178,7 @@
             <CheckBox x:Name="AllFolders" x:Uid="AllFolders" Content="All Folders" DockPanel.Dock="Left" 
                       Margin="4" HorizontalAlignment="Left" VerticalAlignment="Stretch" VerticalContentAlignment="Center" 
                       Checked="AllFolders_Checked" Unchecked="AllFolders_Checked" />
-            <ComboBox x:Name="FolderList" x:Uid="FolderList" IsEditable="False" DockPanel.Dock="Left" MinWidth="22"
+            <ComboBox x:Name="FolderList" x:Uid="FolderList" IsEditable="False" DockPanel.Dock="Left" MinWidth="32"
                       Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" VerticalContentAlignment="Center" 
                       ScrollViewer.VerticalScrollBarVisibility="Auto" SelectionChanged="FolderList_SelectionChanged"/>
             <CheckBox x:Name="OpenInShell" x:Uid="OpenInShell" Content="Open Results In Shell" IsChecked="False" DockPanel.Dock="Left" Visibility="Collapsed"
@@ -199,6 +199,18 @@
                 </ToggleButton.Content>
             </ToggleButton>
             <CheckBox x:Name="IsQueryRotatedImage" x:Uid="IsQueryRotatedImage" Content="Rotated Image?" Margin="4" HorizontalAlignment="Center" VerticalAlignment="Center" Checked="IsQueryRotatedImage_Checked" Unchecked="IsQueryRotatedImage_Checked"/>
+            <Button x:Name="PasteFilesFilter" x:Uid="PasteFilesFilter" Width="22" Margin="4" Click="PasteFilesFilter_Click" 
+                    ToolTip="Paste To Filter Files" HorizontalAlignment="Center" VerticalAlignment="Stretch">
+                <Button.Content>
+                    <TextBlock x:Uid="PasteFilesFilterIcon" Text="&#xE133;" Margin="1,1,0,0" Style="{DynamicResource MenuItemIcon}"/>
+                </Button.Content>
+            </Button>
+            <Button x:Name="ClearFilesFilter" x:Uid="ClearFilesFilter" Width="22" Margin="2,4,4,4" Click="ClearFilesFilter_Click" 
+                    ToolTip="Clear Filter Files" HorizontalAlignment="Center" VerticalAlignment="Stretch">
+                <Button.Content>
+                    <TextBlock x:Uid="ClearFilesFilterIcon" Text="&#xE107;" Margin="1,1,0,0" Style="{DynamicResource MenuItemIcon}"/>
+                </Button.Content>
+            </Button>
             <TextBlock x:Name="ResultFilterLabel" x:Uid="ResultFilterLabel" Text="Filter:" Margin="4" HorizontalAlignment="Left" VerticalAlignment="Center" />
             <TextBox x:Name="ResultFilter" x:Uid="ResultFilter" Margin="4" MinWidth="160" TextChanged="ResultFilter_TextChanged"
                      HorizontalAlignment="Left" VerticalAlignment="Stretch" TextAlignment="Center" VerticalContentAlignment="Center"/>
