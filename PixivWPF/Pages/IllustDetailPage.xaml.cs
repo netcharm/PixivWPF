@@ -4868,12 +4868,17 @@ namespace PixivWPF.Pages
             UpdateIllustStateInfo(querysize: false);
         }
 
-        private void ActionSaveAllIllust_Click(object sender, RoutedEventArgs e)
+        private void ActionSaveIllustAll_Click(object sender, RoutedEventArgs e)
         {
+            setting = Application.Current.LoadSetting();
             var uid = sender.GetUid();
-            var type = DownloadType.None;
+            var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+            var shift = Keyboard.Modifiers == ModifierKeys.Shift;
 
-            if (Keyboard.Modifiers == ModifierKeys.Shift) type |= DownloadType.ConvertKeepName;
+            var type = (shift ? !setting.DownloadWithAutoReduce : setting.DownloadWithAutoReduce) ? DownloadType.None : DownloadType.Original;
+            var cq = sender is MenuItem && (sender as MenuItem).Tag is App.MenuItemSliderData ? ((sender as MenuItem).Tag as App.MenuItemSliderData).Value : setting.DownloadRecudeJpegQuality;
+
+            if (ctrl) type |= DownloadType.ConvertKeepName;
             if (uid.Equals("ActionSaveIllustAll")) type |= DownloadType.Original;
             else if (uid.Equals("ActionSaveIllustJpegAll")) type |= DownloadType.AsJPEG;
             else if (uid.Equals("ActionSaveIllustPreviewAll")) type |= DownloadType.UseLargePreview;
@@ -5667,7 +5672,7 @@ namespace PixivWPF.Pages
                 if (sender is MenuItem)
                 {
                     var uid = sender.GetUid();
-                    var tag = (sender as MenuItem).Tag;
+                    var tag = (sender as MenuItem)?.Tag;
                     var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
                     var shift = Keyboard.Modifiers == ModifierKeys.Shift;
 
@@ -5737,7 +5742,8 @@ namespace PixivWPF.Pages
                 if (sender is MenuItem)
                 {
                     var uid = sender.GetUid();
-                    var tag = (((sender as MenuItem).Parent as FrameworkElement).FindByName<MenuItem>("") as MenuItem).Tag;
+                    //var tag = (((sender as MenuItem).Parent as FrameworkElement).FindByName<MenuItem>("") as MenuItem)?.Tag;
+                    var tag = (sender as MenuItem)?.Tag;
                     var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
                     var shift = Keyboard.Modifiers == ModifierKeys.Shift;
 

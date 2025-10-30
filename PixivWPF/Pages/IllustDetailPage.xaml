@@ -175,7 +175,7 @@
                         <TextBlock Text="&#xE105;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Uid="ActionSaveIllustAll" Header="Save All Illust Pages" Click="ActionSaveAllIllust_Click">
+                <MenuItem x:Uid="ActionSaveIllustAll" Header="Save All Illust Pages" Click="ActionSaveIllustAll_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xEA35;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
@@ -185,7 +185,7 @@
                         <TextBlock Text="&#xE105;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Uid="ActionSaveIllustJpegAll" Header="Save All Illust Pages As JPEG" Click="ActionSaveAllIllust_Click">
+                <MenuItem x:Uid="ActionSaveIllustJpegAll" Header="Save All Illust Pages As JPEG" Click="ActionSaveIllustAll_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xEA35;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
@@ -195,7 +195,7 @@
                         <TextBlock Text="&#xE105;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Uid="ActionSaveIllustPreviewAll" Header="Save All Illust Pages Large Preview" Click="ActionSaveAllIllust_Click">
+                <MenuItem x:Uid="ActionSaveIllustPreviewAll" Header="Save All Illust Pages Large Preview" Click="ActionSaveIllustAll_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xEA35;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
@@ -207,7 +207,7 @@
                     <TextBlock Text="&#xE105;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionConvertIllustJpegAll" Header="Convert All Downloaded To JPEG" Click="ActionSaveAllIllust_Click">
+            <MenuItem x:Uid="ActionConvertIllustJpegAll" Header="Convert All Downloaded To JPEG" Click="ActionSaveIllustAll_Click">
                 <MenuItem.Icon>
                     <TextBlock Text="&#xEA35;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
@@ -217,7 +217,7 @@
                     <TextBlock Text="&#xE105;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionReduceIllustJpegAll" Header="Reduce All Downloaded JPEG Size" Click="ActionSaveAllIllust_Click">
+            <MenuItem x:Uid="ActionReduceIllustJpegAll" Header="Reduce All Downloaded JPEG Size" Click="ActionSaveIllustAll_Click">
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE105;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
