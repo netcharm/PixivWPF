@@ -8,8 +8,9 @@
 //css_reference PresentationFramework.dll
 //css_reference Microsoft.WindowsAPICodePack.dll
 //css_reference Microsoft.WindowsAPICodePack.Shell.dll
+//css_reference System.Web.Extensions.dll
 //css_reference System.Windows.Forms.dll
-//css_reference Newtonsoft.Json.dll
+////css_reference Newtonsoft.Json.dll
 
 using System;
 using System.Collections;
@@ -25,12 +26,15 @@ using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 using System.Windows;
 
 using Microsoft.WindowsAPICodePack.Dialogs;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+//using Newtonsoft.Json;
+//using Newtonsoft.Json.Linq;
 
 [assembly: AssemblyTitle("PixivWPF Search Bridge Utility")]
 //[assembly: AssemblyDescription("PixivWPF Search Bridge Utility")]
@@ -41,11 +45,17 @@ using Newtonsoft.Json.Linq;
 [assembly: AssemblyTrademark("NetCharm")]
 [assembly: AssemblyCulture("")]
 
-[assembly: AssemblyVersion("1.0.1.0")]
-[assembly: AssemblyFileVersion("1.0.1.0")]
+[assembly: AssemblyVersion("1.0.2.0")]
+[assembly: AssemblyFileVersion("1.0.2.0")]
 
 namespace netcharm
 {
+    public class MyConfig
+    {
+        //[JsonProperty("UpgradeFiles")]
+        public string[] UpgradeFiles { get; set; }
+    }
+
     public class ShellProperties
     {
         #region Import Methods
@@ -360,7 +370,7 @@ namespace netcharm
                         //System.Threading.Thread.Sleep(WaitInterval);
                         if (tasks.Wait(WaitInterval, cancel.Token))
                         {
-                            System.Diagnostics.Debug.WriteLine("Wait Instance Exit ......");                            
+                            System.Diagnostics.Debug.WriteLine("Wait Instance Exit ......");
                         }
                     }
                     wait_count++;
@@ -404,16 +414,36 @@ namespace netcharm
         private static Dictionary<string, string> EnumUpgradeFiles(IEnumerable<string> args)
         {
             var result = new Dictionary<string, string>();
-            var files = args.Skip(1).ToArray();
+            var files = args.Count() > 1 ? args.Skip(1).ToArray() : args.ToArray();
             if (files == null || files.Length <= 0)
             {
                 var args_alt = Environment.GetCommandLineArgs();
-                var IsExe = args_alt.Length >= 2 && args_alt[1].Equals(args.First(), StringComparison.CurrentCultureIgnoreCase);
+                var IsExe = args_alt.Length >= 2 && args_alt[1].Equals(args.FirstOrDefault(), StringComparison.CurrentCultureIgnoreCase);
                 var cfgfile = Path.Combine(IsExe ? AppPath : "", "config.json");
-                //Console.WriteLine(cfgfile);                
                 if (File.Exists(cfgfile))
                 {
-                    var json = File.ReadAllText(cfgfile);
+                    string json = File.ReadAllText(cfgfile);
+                    var serializer = new JavaScriptSerializer();
+                    MyConfig cfg = serializer.Deserialize<MyConfig>(json);
+                    foreach (var f_remote in cfg.UpgradeFiles)
+                    {
+                        var fn = Path.GetFileName(f_remote);
+                        var f_local = Path.Combine(AppPath, fn);
+
+                        var fi_local = new FileInfo(f_local);
+                        if (!File.Exists(f_remote)) continue;
+                        var fi_remote = new FileInfo(f_remote);
+
+                        if (!fi_local.Exists || fi_local.LastWriteTime < fi_remote.LastWriteTime)
+                        {
+                            result.Add(f_remote, f_local);
+                            //Console.WriteLine($"Upgrade File: {f_remote} -> {f_local}");
+                        }
+                    }
+                    //Console.WriteLine("Bye Bye!");
+                    //return (result);
+
+                    /*
                     JToken token = JToken.Parse(json);
                     JToken upgradelist = token.SelectToken("$..UpgradeFiles", false);
                     //MessageBox.Show($"{upgradelist}, {args_alt.Count()}, {IsExe}, {cfgfile}");
@@ -441,6 +471,7 @@ namespace netcharm
                         catch (Exception ex) { MessageBox.Show(ex.Message); }
                         //MessageBox.Show($"{result.Count()}");
                     }
+                    */
                 }
             }
             return (result);
@@ -468,7 +499,7 @@ namespace netcharm
                             System.Threading.Thread.Sleep(1000);
                             System.Threading.Tasks.Task.Delay(1000).GetAwaiter().GetResult();
                             wait_count++;
-                        };
+                        }
                         File.Copy(f_remote, f_local, true);
                     }
                 }
