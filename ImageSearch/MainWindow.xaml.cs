@@ -1349,13 +1349,12 @@ namespace ImageSearch
             }
         }
 
-        private List<string>? _files_ = null;
-        private void PasteFilesFilter_Click(object sender, RoutedEventArgs e)
+        private List<string>? _filter_files_ = null;
+        internal protected void SetFilesFilter(IEnumerable<string>? files)
         {
-            if (Clipboard.ContainsText())
+            if (files != null && files.Any())
             {
-                var lines = Clipboard.GetText().Split(new string[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                if (lines.Count() > 2)
+                Dispatcher.Invoke(() =>
                 {
                     if (FolderList.SelectedIndex >= 0)
                     {
@@ -1363,17 +1362,26 @@ namespace ImageSearch
                         var storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
                         var folder = storage.ImageFolder;
                         var feature_db = all_db ? string.Empty : storage.DatabaseFile;
-                        _files_ = lines.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(folder, f)).ToList();
-                        ToolTipService.SetToolTip(PasteFilesFilter, $"Filter Filss: {_files_.Count()}");
+                        _filter_files_ = files.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(folder, f)).ToList();
+                        ToolTipService.SetToolTip(PasteFilesFilter, $"Filter Filss: {_filter_files_.Count()}");
                     }
-                }
+                });
+            }
+        }
+
+        private void PasteFilesFilter_Click(object sender, RoutedEventArgs e)
+        {
+            if (Clipboard.ContainsText())
+            {
+                var lines = Clipboard.GetText().Split(new string[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                if (lines.Count() > 2) SetFilesFilter(lines);
             }
         }
 
         private void ClearFilesFilter_Click(object sender, RoutedEventArgs e)
         {
-            _files_?.Clear();
-            _files_ = null;
+            _filter_files_?.Clear();
+            _filter_files_ = null;
             ToolTipService.SetToolTip(PasteFilesFilter, $"Filter Filss: 0");
         }
 
@@ -1728,21 +1736,21 @@ namespace ImageSearch
                     IsQuering = true;
                     await LoadFeatureDB();
 
-                    var queries = await similar.QueryImageScore(skb_src, feature_db, limit: limit, labels: true, files: _files_);
+                    var queries = await similar.QueryImageScore(skb_src, feature_db, limit: limit, labels: true, files: _filter_files_);
                     var imlist = queries?.Results;
                     var labels = queries?.Labels;
 
                     if (settings.QueryRotatedImage)
                     {
-                        queries = await similar.QueryImageScore(Rotate090(skb_src), feature_db, limit: limit, labels: true, files: _files_);
+                        queries = await similar.QueryImageScore(Rotate090(skb_src), feature_db, limit: limit, labels: true, files: _filter_files_);
                         imlist.AddRange(queries?.Results ?? []);
-                        queries = await similar.QueryImageScore(Rotate180(skb_src), feature_db, limit: limit, labels: true, files: _files_);
+                        queries = await similar.QueryImageScore(Rotate180(skb_src), feature_db, limit: limit, labels: true, files: _filter_files_);
                         imlist.AddRange(queries?.Results ?? []);
-                        queries = await similar.QueryImageScore(Rotate270(skb_src), feature_db, limit: limit, labels: true, files: _files_);
+                        queries = await similar.QueryImageScore(Rotate270(skb_src), feature_db, limit: limit, labels: true, files: _filter_files_);
                         imlist.AddRange(queries?.Results ?? []);
-                        queries = await similar.QueryImageScore(FlipX(skb_src), feature_db, limit: limit, labels: true, files: _files_);
+                        queries = await similar.QueryImageScore(FlipX(skb_src), feature_db, limit: limit, labels: true, files: _filter_files_);
                         imlist.AddRange(queries?.Results ?? []);
-                        queries = await similar.QueryImageScore(FlipY(skb_src), feature_db, limit: limit, labels: true, files: _files_);
+                        queries = await similar.QueryImageScore(FlipY(skb_src), feature_db, limit: limit, labels: true, files: _filter_files_);
                         imlist.AddRange(queries?.Results ?? []);
                         imlist = [.. imlist.OrderByDescending(r => r.Value).DistinctBy(r => r.Key).Take(limit > 1 ? (int)limit * 5 : 100)];
                     }

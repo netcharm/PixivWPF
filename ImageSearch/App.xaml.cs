@@ -162,6 +162,16 @@ namespace ImageSearch
                                 {
                                     //Current.Dispatcher.Invoke(() => { Current?.MainWindow?.Load(); });
                                 }
+                                else if (content.Command.Equals("infiles", StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    Current.Dispatcher.Invoke(() =>
+                                    {
+                                        if (Current?.MainWindow?.IsLoaded ?? false)
+                                        {
+                                            (Current?.MainWindow as MainWindow)?.SetFilesFilter(content.Args);
+                                        }
+                                    });
+                                }
                             }
                         }
                     }
@@ -228,7 +238,12 @@ namespace ImageSearch
             if (DetectPipeServer())
             {
                 var args = Environment.GetCommandLineArgs();
-                if (args.Length > 1)
+                if (args.Length > 11)
+                {
+                    var content = new NamedPipeContent(){ Command = "infiles", Args = args?.Skip(1).ToArray() };
+                    SendToPipeServer(Newtonsoft.Json.JsonConvert.SerializeObject(content, Newtonsoft.Json.Formatting.Indented).ToString());
+                }
+                else if (args.Length > 1)
                 {
                     var content = new NamedPipeContent(){ Command = "query", Args = args?.Skip(1).ToArray() };
                     SendToPipeServer(Newtonsoft.Json.JsonConvert.SerializeObject(content, Newtonsoft.Json.Formatting.Indented).ToString());

@@ -2085,11 +2085,6 @@ namespace ImageSearch.Search
             ExtraFilterData = await GetSubExtraFeatDB(subfiles, feats_obj);
         }
 
-        public async Task SetFilterFiles(IEnumerable<string>? subfiles)
-        {
-            //ExtraFilterData = await GetSubExtraFeatDB(subfiles, feats_obj);
-        }
-
         private async Task<List<KeyValuePair<string, double>>> QueryImageScore(float[]? feature, string? feature_db = null, double limit = 10, int padding = 0, IEnumerable<string>? files = null)
         {
             var result = new List<KeyValuePair<string, double>>();
