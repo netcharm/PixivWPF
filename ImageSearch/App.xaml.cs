@@ -82,7 +82,7 @@ namespace ImageSearch
                 var pipeSec = new PipeSecurity();
                 if (OperatingSystem.IsWindows())
                 {
-                    SecurityIdentifier securityIdentifier = new SecurityIdentifier(WellKnownSidType.AuthenticatedUserSid, null);
+                    SecurityIdentifier securityIdentifier = new(WellKnownSidType.AuthenticatedUserSid, null);
                     pipeSec.AddAccessRule(new PipeAccessRule(securityIdentifier, PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance, AccessControlType.Allow));
                     //pipeSec.SetAccessRule(new PipeAccessRule("Everyone", PipeAccessRights.ReadWrite, System.Security.AccessControl.AccessControlType.Allow));
                     _pipeServer_ = NamedPipeServerStreamAcl.Create($"{PipeName}-{PID}", PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous, 0, 0, pipeSec);
@@ -196,7 +196,7 @@ namespace ImageSearch
 
         private static string[] GetPipeServer(string server = ".")
         {
-            return (Directory.GetFiles($"\\\\{server}\\pipe\\", $"{PipeName}-*").Select(p => p.Replace($"\\\\{server}\\pipe\\", "")).ToArray());
+            return ([.. Directory.GetFiles($"\\\\{server}\\pipe\\", $"{PipeName}-*").Select(p => p.Replace($"\\\\{server}\\pipe\\", ""))]);
         }
 
         public static bool DetectPipeServer(string server = ".")

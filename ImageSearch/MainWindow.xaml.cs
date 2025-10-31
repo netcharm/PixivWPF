@@ -736,7 +736,7 @@ namespace ImageSearch
             }
         }
 
-        private void ShellOpen(string[] files, bool system = false, bool openwith = false, bool viewinfo = false)
+        private void ShellOpen(string[] files, bool openwith = false, bool viewinfo = false)
         {
             if (files is not null && files.Length > 0)
             {
@@ -779,6 +779,39 @@ namespace ImageSearch
                     Clipboard.SetText(text);
                 }
                 catch (Exception ex) { ReportMessage(ex); };
+            });
+        }
+
+        private List<string>? _filter_files_ = null;
+        internal protected void SetFilesFilter(IEnumerable<string>? files)
+        {
+            if (files != null && files.Any())
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (FolderList.SelectedIndex >= 0)
+                    {
+                        var all_db = AllFolders.IsChecked ?? false;
+                        var storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
+                        var folder = storage.ImageFolder;
+                        var feature_db = all_db ? string.Empty : storage.DatabaseFile;
+                        _filter_files_ = [.. files.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(folder, f))];
+                        var tooltip = $"Filter Filss: {_filter_files_.Count}";
+                        ToolTipService.SetToolTip(PasteFilesFilter, tooltip);
+                        ReportMessage(tooltip);
+                    }
+                });
+            }
+        }
+
+        internal protected void ClsFilesFilter()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                _filter_files_?.Clear();
+                _filter_files_ = null;
+                ToolTipService.SetToolTip(PasteFilesFilter, null);
+                ReportMessage("Filter Filss Cleared");
             });
         }
 
@@ -985,8 +1018,7 @@ namespace ImageSearch
                                 }
                                 if (double.TryParse(item.Similar, out double sv))
                                 {
-                                    double fv = 0;
-                                    if (filter.StartsWith('!') && double.TryParse(filter.AsSpan(1), out fv))
+                                    if (filter.StartsWith('!') && double.TryParse(filter.AsSpan(1), out double fv))
                                         ret |= sv != fv;
                                     else if (filter.StartsWith('=') && double.TryParse(filter.AsSpan(1), out fv))
                                         ret |= sv == fv;
@@ -1349,40 +1381,18 @@ namespace ImageSearch
             }
         }
 
-        private List<string>? _filter_files_ = null;
-        internal protected void SetFilesFilter(IEnumerable<string>? files)
-        {
-            if (files != null && files.Any())
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    if (FolderList.SelectedIndex >= 0)
-                    {
-                        var all_db = AllFolders.IsChecked ?? false;
-                        var storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
-                        var folder = storage.ImageFolder;
-                        var feature_db = all_db ? string.Empty : storage.DatabaseFile;
-                        _filter_files_ = files.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(folder, f)).ToList();
-                        ToolTipService.SetToolTip(PasteFilesFilter, $"Filter Filss: {_filter_files_.Count()}");
-                    }
-                });
-            }
-        }
-
         private void PasteFilesFilter_Click(object sender, RoutedEventArgs e)
         {
             if (Clipboard.ContainsText())
             {
-                var lines = Clipboard.GetText().Split(new string[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                if (lines.Count() > 2) SetFilesFilter(lines);
+                var lines = Clipboard.GetText().Split(["\r\n", "\n", "\r"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                if (lines.Length > 2) SetFilesFilter(lines);
             }
         }
 
         private void ClearFilesFilter_Click(object sender, RoutedEventArgs e)
         {
-            _filter_files_?.Clear();
-            _filter_files_ = null;
-            ToolTipService.SetToolTip(PasteFilesFilter, $"Filter Filss: 0");
+            ClsFilesFilter();
         }
 
         private void AllFolders_Checked(object sender, RoutedEventArgs e)
@@ -1407,7 +1417,7 @@ namespace ImageSearch
             {
                 if (!string.IsNullOrEmpty(settings?.SettingFile))
                 {
-                    ShellOpen([settings.SettingFile], system: true);
+                    ShellOpen([settings.SettingFile]);
                 }
             }
             else if (sender == LoadConfig)
@@ -1448,7 +1458,7 @@ namespace ImageSearch
             {
                 if (_log_ is not null && _log_.Any())
                 {
-                    SaveFileDialog dlgSave = new SaveFileDialog()
+                    SaveFileDialog dlgSave = new()
                     {
                         //DefaultDirectory = "",
                         //InitialDirectory = "",
@@ -1459,7 +1469,7 @@ namespace ImageSearch
                         OverwritePrompt = true,
                         RestoreDirectory = true,
                         //SafeFileNames = true,
-                        FileName = $"{AppName}_{DateTime.Now.ToString("yyyyMMddHHmmss")}.log",
+                        FileName = $"{AppName}_{DateTime.Now:yyyyMMddHHmmss}.log",
                     };
                     if (dlgSave.ShowDialog(this) ?? false)
                     {
