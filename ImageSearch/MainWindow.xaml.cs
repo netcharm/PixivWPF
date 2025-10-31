@@ -1,4 +1,8 @@
-﻿using System;
+﻿using CompactExifLib;
+using ImageSearch.Search;
+using Microsoft.Win32;
+using SkiaSharp;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -13,6 +17,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
+using System.Runtime.Intrinsics.Arm;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Transactions;
@@ -23,11 +28,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shell;
 using System.Windows.Threading;
-
-using CompactExifLib;
-using ImageSearch.Search;
-using Microsoft.Win32;
-using SkiaSharp;
 namespace ImageSearch
 {
 #pragma warning disable CA1860
@@ -41,43 +41,43 @@ namespace ImageSearch
         private WindowState LastWinState = WindowState.Normal;
         private readonly List<string> _log_ = [];
 
-        private double TaskbarProgressValue 
-        { 
+        private double TaskbarProgressValue
+        {
             get
             {
-                return (Dispatcher.InvokeAsync(() => 
+                return (Dispatcher.InvokeAsync(() =>
                 {
                     TaskbarItemInfo ??= new TaskbarItemInfo();
                     return (TaskbarItemInfo.ProgressValue);
                 }, DispatcherPriority.Normal).Result);
             }
-            set 
+            set
             {
-                Dispatcher.InvokeAsync(() => 
+                Dispatcher.InvokeAsync(() =>
                 {
                     TaskbarItemInfo ??= new TaskbarItemInfo();
                     TaskbarItemInfo.ProgressValue = value;
                 }, DispatcherPriority.Normal);
-            } 
+            }
         }
         private string TaskbarProgressDescription
-        { 
+        {
             get
             {
-                return (Dispatcher.InvokeAsync(() => 
+                return (Dispatcher.InvokeAsync(() =>
                 {
                     TaskbarItemInfo ??= new TaskbarItemInfo();
                     return (TaskbarItemInfo.Description);
                 }, DispatcherPriority.Normal).Result);
             }
-            set 
+            set
             {
-                Dispatcher.InvokeAsync(() => 
+                Dispatcher.InvokeAsync(() =>
                 {
                     TaskbarItemInfo ??= new TaskbarItemInfo();
                     TaskbarItemInfo.Description = value;
                 }, DispatcherPriority.Normal);
-            } 
+            }
         }
         private TaskbarItemProgressState TaskbarProgressState
         {
@@ -106,7 +106,7 @@ namespace ImageSearch
         private Similar? similar = null;
 
         //private System.Windows.Media.Brush? DefaultTextBrush { get; set; } = null;
-        
+
         private static Encoding CJK = Encoding.GetEncoding("Unicode");
         private string lcid_file = $"Labels_0x{LabelMap.LCID:X4}.csv";
 
@@ -742,7 +742,7 @@ namespace ImageSearch
             {
                 var cmd_info = string.IsNullOrEmpty(settings.ImageInfoViewerCmd) || !File.Exists(settings.ImageInfoViewerCmd) ? "explorer.exe" : settings.ImageInfoViewerCmd;
                 var cmd_view = string.IsNullOrEmpty(settings.ImageViewerCmd) || !File.Exists(settings.ImageViewerCmd) ? "explorer.exe" : settings.ImageViewerCmd;
-                
+
                 files = [.. files.Where(f => File.Exists(f)).Select(f => $"{f}")];
 
                 if (openwith) Process.Start("openwith.exe", files);
@@ -778,7 +778,8 @@ namespace ImageSearch
                 {
                     Clipboard.SetText(text);
                 }
-                catch (Exception ex) { ReportMessage(ex); };
+                catch (Exception ex) { ReportMessage(ex); }
+                ;
             });
         }
 
@@ -950,7 +951,7 @@ namespace ImageSearch
 
         public static string? PadRightCJK(string? text, int totalWidth, char paddingChar)
         {
-            if (string.IsNullOrEmpty(text)) return (text);            
+            if (string.IsNullOrEmpty(text)) return (text);
             var len_cjk = CJK.GetByteCount(text);
             var len_asc = text.Length;
             var len_dif = len_cjk - len_asc;
@@ -1174,7 +1175,8 @@ namespace ImageSearch
 
             QueryResultLimit.ItemsSource = settings.ResultLimitList;
             QueryResultLimit.SelectedIndex = QueryResultLimit.Items.IndexOf(settings.ResultLimit);
-            if (!double.TryParse(QueryResultLimit.Text, out double _)) { QueryResultLimit.Items.IndexOf(settings.ResultLimitList.FirstOrDefault()); };
+            if (!double.TryParse(QueryResultLimit.Text, out double _)) { QueryResultLimit.Items.IndexOf(settings.ResultLimitList.FirstOrDefault()); }
+            ;
         }
 
         public void SaveSetting()
@@ -1295,7 +1297,7 @@ namespace ImageSearch
                     {
                         ResultFilter.Paste();
                     }
-                    else if(e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
+                    else if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
                     {
                         e.Handled = true;
                         QueryImage_Click(QueryImage, e);
@@ -1356,14 +1358,16 @@ namespace ImageSearch
         {
             if (e.Data is DataObject)
             {
-                if (InDrop && MessageBox.Show("Query will be replaced?", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No) return;
-
-                var similar_target = new object[]{ TabSimilar, SimilarViewer, SimilarResultGallery, SimilarResultGallery, SimilarSrc };
-                var compare_target = new object[]{ TabCompare, CompareViewer, CompareBoxL, CompareBoxR, CompareL, CompareR };
-                if (similar_target.Contains(e.Source))
-                    QueryImage_Click(sender, e);
-                else if (compare_target.Contains(e.Source))
-                    CompareImage_Click(sender, e);
+                var dp = e.Data as DataObject;
+                if (dp.ContainsFileDropList())
+                {
+                    var similar_target = new object[]{ TabSimilar, SimilarViewer, SimilarResultGallery, SimilarResultGallery, SimilarSrc };
+                    var compare_target = new object[]{ TabCompare, CompareViewer, CompareBoxL, CompareBoxR, CompareL, CompareR };
+                    if (similar_target.Contains(e.Source))
+                        QueryImage_Click(sender, e);
+                    else if (compare_target.Contains(e.Source))
+                        CompareImage_Click(sender, e);
+                }
             }
         }
 
@@ -1439,7 +1443,7 @@ namespace ImageSearch
                 }
                 var folders = AllFolders.IsChecked ?? false ? _storages_.Select(x => Similar.GetAbsolutePath(x.ImageFolder)).ToArray(): [folder];
                 ShellSearch(query, folders);
-            }    
+            }
             else if (sender == LoadLocaleLabels)
             {
                 LabelMap.LoadLabels(LabelMap.LCID, lcid_file);
@@ -1565,11 +1569,11 @@ namespace ImageSearch
             else if (sender == DBAdd)
             {
 
-            }        
+            }
             else if (sender == ClassifyImageByYear)
             {
 
-            }        
+            }
         }
 
         private async void CompareImage_Click(object sender, RoutedEventArgs e)
@@ -1688,13 +1692,26 @@ namespace ImageSearch
             #region Pre-processing query source
             if (e is DragEventArgs)
             {
-                var imgs = await LoadImageFromDataObject((e as DragEventArgs).Data);
-                if (imgs.Count > 0)
+                var dp = (e as DragEventArgs).Data as DataObject;
+                var files = dp?.GetFileDropList();
+                if (files.Count > 1)
                 {
-                    (var bmp, var skb, var file) = imgs.FirstOrDefault();
-                    if (bmp is not null) SimilarSrc.Source = bmp;
-                    if (skb is not null) SimilarSrc.Tag = skb;
-                    ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(file));
+                    var flist = new List<string>();
+                    foreach (var f in files) { if(!string.IsNullOrEmpty(f)) flist.Add(f); }
+                    SetFilesFilter(flist);
+                }
+                else
+                {
+                    var imgs = await LoadImageFromDataObject((e as DragEventArgs).Data);
+                    if (imgs.Count > 0)
+                    {
+                        if (InDrop && MessageBox.Show("Query will be replaced?", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No) return;
+
+                        (var bmp, var skb, var file) = imgs.FirstOrDefault();
+                        if (bmp is not null) SimilarSrc.Source = bmp;
+                        if (skb is not null) SimilarSrc.Tag = skb;
+                        ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(file));
+                    }
                 }
             }
             else if (Clipboard.ContainsImage())
@@ -1704,14 +1721,6 @@ namespace ImageSearch
                 if (skb is not null) SimilarSrc.Tag = skb;
                 ToolTipService.SetToolTip(SimilarSrcBox, null);
             }
-            //else if (Clipboard.ContainsText())
-            //{
-            //    var lines = Clipboard.GetText().Split(new string[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            //    if (lines.Count() > 2)
-            //    {
-            //        _files_ = lines.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(folder, f)).ToList();
-            //    }
-            //}
             else if (!string.IsNullOrEmpty(EditQueryFile.Text))
             {
                 var file = EditQueryFile.Text.Trim();

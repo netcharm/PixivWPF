@@ -75,50 +75,50 @@ namespace ImageSearch.Search
     public class ExtraStorage
     {
         public string ImageFolder { get; set; } = string.Empty;
-        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Description { get; set; } = string.Empty;
         public string DatabaseFile { get; set; } = string.Empty;
     }
 
     public class Storage
     {
-        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Name { get; set; } = string.Empty;
-        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Description { get; set; } = string.Empty;
 
         public string ImageFolder { get; set; } = string.Empty;
-        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public bool Recurice { get; set; } = false;
-        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public bool UseFullPath { get; set; } = true;
-        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[] IncludeFiles { get; set; } = [];
-        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[] ExcludeFiles { get; set; } = [];
-        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[] IncludeFolders { get; set; } = [];
-        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[] ExcludeFolders { get; set; } = [];
 
 
         internal protected ITransformer? Model { get; set; } = null;
 
-        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string ModelName { get; set; } = string.Empty;
-        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string ModelFile { get; set; } = string.Empty;
-        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string ModelInput { get; set; } = string.Empty;
-        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string ModelOutput { get; set; } = string.Empty;
-        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public bool ModelHasSoftMax { get; set; } = false;
 
-        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string DatabaseFile { get; set; } = string.Empty;
 
-        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public List<ExtraStorage> ExtraStorages { get; set; } = [];
     }
 
@@ -2015,8 +2015,11 @@ namespace ImageSearch.Search
                         foreach (var f_name in files)
                         {
                             var idx = Array.IndexOf(feats_obj.Names, f_name);
-                            names.Add(f_name);
-                            feats.Add(feats_obj.Feats[$"{idx},:"].ToArray<float>());
+                            if (idx > 0)
+                            {
+                                names.Add(f_name);
+                                feats.Add(feats_obj.Feats[$"{idx},:"].ToArray<float>());
+                            }
                         }
                         if (names.Count > 0 && feats.Count > 0)
                         {
@@ -2068,7 +2071,7 @@ namespace ImageSearch.Search
                         }
                     }
                     catch (Exception ex) { ReportMessage(ex); }
-                    finally { ReportMessage($"End Filtered Extra Features"); }                    
+                    finally { ReportMessage($"End Filtered Extra Features"); }
                     return (ret);
                 });
             }
@@ -2162,6 +2165,6 @@ namespace ImageSearch.Search
             var result = new SimilarResult(){ Labels = features.Item2?.Take(10).ToList(), Results = await QueryImageScore(features.Item1, feature_db, limit, padding, files) };
             return (result);
         }
-#endregion
+        #endregion
     }
 }
