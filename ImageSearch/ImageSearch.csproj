@@ -7,9 +7,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>similar.ico</ApplicationIcon>
-    <Version>1.1.1040</Version>
-    <AssemblyVersion>1.1.1040</AssemblyVersion>
-    <FileVersion>1.1.1040</FileVersion>
+    <Version>1.1.1041</Version>
+    <AssemblyVersion>1.1.1041</AssemblyVersion>
+    <FileVersion>1.1.1041</FileVersion>
     <Company>NetCharm Studio!</Company>
     <Authors>NetCharm</Authors>
     <Product>Local Image Search By Image</Product>

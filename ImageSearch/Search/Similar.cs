@@ -1999,7 +1999,9 @@ namespace ImageSearch.Search
 #endif
         //private List<string> _sub_files_ = new (); // maybe using Hashset<string> SetEquals()
         private HashSet<string> _sub_files_ = new ();
-        private FeatureData? _sub_features_ = null;
+        private Dictionary<string, FeatureData?> _sub_features_ = [];
+        private Dictionary<string, ExtraFeatureData?> _sub_extra_features_ = [];
+
         private async Task<FeatureData?> GetSubFeatDB(IEnumerable<string>? subfiles, FeatureData? feats_obj)
         {
             FeatureData? result = null;
@@ -2011,8 +2013,8 @@ namespace ImageSearch.Search
                     try
                     {
                         ReportMessage($"Get Filtered Features ...");
-                        //if (_sub_files_ is not null && subfiles.OrderByDescending(f => f).SequenceEqual(_sub_files_.OrderBy(f => f))) return (_sub_features_);
-                        if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_)) return (_sub_features_);
+                        var fdb = feats_obj.FeatureDB;
+                        if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_) && string.IsNullOrEmpty(fdb) && _sub_features_.ContainsKey(fdb)) return (_sub_features_[fdb]);
 
                         var root = Path.GetDirectoryName(feats_obj.FeatureDB) ?? "";
                         var files = subfiles.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(root, f));
@@ -2037,7 +2039,7 @@ namespace ImageSearch.Search
                             };
                         }
                         _sub_files_ = subfiles.ToHashSet();
-                        _sub_features_ = ret;
+                        _sub_features_[fdb] = ret;
                     }
                     catch (Exception ex) { ReportMessage(ex); }
                     finally { ReportMessage($"End Filtered Features : {ret?.Names?.Length}"); }
@@ -2047,7 +2049,6 @@ namespace ImageSearch.Search
             return (result);
         }
 
-        private ExtraFeatureData? _sub_extra_features_ = null;
         private async Task<ExtraFeatureData?> GetSubExtraFeatDB(IEnumerable<string>? subfiles, ExtraFeatureData? feats_obj)
         {
             ExtraFeatureData? result = null;
@@ -2059,8 +2060,8 @@ namespace ImageSearch.Search
                     try
                     {
                         ReportMessage($"Get Filtered Extra Features ...");
-                        //if (_sub_files_ is not null && subfiles.OrderByDescending(f => f).SequenceEqual(_sub_files_.OrderBy(f => f))) return (_sub_extra_features_);
-                        if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_)) return (_sub_extra_features_);
+                        var fdb = feats_obj.FeatureDB;
+                        if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_) && string.IsNullOrEmpty(fdb) && _sub_features_.ContainsKey(fdb)) return (_sub_extra_features_[fdb]);
 
                         var root = Path.GetDirectoryName(feats_obj.FeatureDB) ?? "";
                         var files = subfiles.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(root, f));
@@ -2081,7 +2082,7 @@ namespace ImageSearch.Search
                                 Feats = new NDArray(feats.ToArray()),
                             };
                         }
-                        _sub_extra_features_ = ret;
+                        _sub_extra_features_[fdb] = ret;
                     }
                     catch (Exception ex) { ReportMessage(ex); }
                     finally { ReportMessage($"End Filtered Extra Features : {ret?.Names?.Length}"); }
