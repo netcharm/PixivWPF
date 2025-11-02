@@ -1997,7 +1997,8 @@ namespace ImageSearch.Search
             return(result);
         };
 #endif
-        private List<string> _sub_files_ = new List<string>();
+        //private List<string> _sub_files_ = new (); // maybe using Hashset<string> SetEquals()
+        private HashSet<string> _sub_files_ = new ();
         private FeatureData? _sub_features_ = null;
         private async Task<FeatureData?> GetSubFeatDB(IEnumerable<string>? subfiles, FeatureData? feats_obj)
         {
@@ -2010,7 +2011,9 @@ namespace ImageSearch.Search
                     try
                     {
                         ReportMessage($"Get Filtered Features ...");
-                        if (_sub_files_ is not null && subfiles.SequenceEqual(_sub_files_)) return (_sub_features_);
+                        //if (_sub_files_ is not null && subfiles.OrderByDescending(f => f).SequenceEqual(_sub_files_.OrderBy(f => f))) return (_sub_features_);
+                        if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_)) return (_sub_features_);
+
                         var root = Path.GetDirectoryName(feats_obj.FeatureDB) ?? "";
                         var files = subfiles.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(root, f));
                         var names = new List<string> ();
@@ -2033,9 +2036,7 @@ namespace ImageSearch.Search
                                 Feats = new NDArray(feats.ToArray()),
                             };
                         }
-                        _sub_files_ ??= new List<string>();
-                        _sub_files_.Clear();
-                        _sub_files_.AddRange(subfiles);
+                        _sub_files_ = subfiles.ToHashSet();
                         _sub_features_ = ret;
                     }
                     catch (Exception ex) { ReportMessage(ex); }
@@ -2058,7 +2059,9 @@ namespace ImageSearch.Search
                     try
                     {
                         ReportMessage($"Get Filtered Extra Features ...");
-                        if (_sub_files_ is not null && subfiles.SequenceEqual(_sub_files_)) return (_sub_extra_features_);
+                        //if (_sub_files_ is not null && subfiles.OrderByDescending(f => f).SequenceEqual(_sub_files_.OrderBy(f => f))) return (_sub_extra_features_);
+                        if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_)) return (_sub_extra_features_);
+
                         var root = Path.GetDirectoryName(feats_obj.FeatureDB) ?? "";
                         var files = subfiles.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(root, f));
                         var names = new List<string> ();
@@ -2142,7 +2145,7 @@ namespace ImageSearch.Search
                             }
                         }
                     }
-                    result = result.OrderByDescending(r => r.Value).Take(limit > 1 ? (int)limit : ResultMax).ToList();
+                    result = result.DistinctBy(r => r.Key).OrderByDescending(r => r.Value).Take(limit > 1 ? (int)limit : ResultMax).ToList();
                 }
                 catch (Exception ex) { ReportMessage(ex); }
                 finally

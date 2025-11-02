@@ -137,7 +137,7 @@ namespace ImageSearch
             return null;
         }
 
-        public static async void DoEvents()
+        private static async void DoEvents()
         {
             if (Application.Current is not null && await CanDoEvents.WaitAsync(0))
             {
@@ -169,6 +169,21 @@ namespace ImageSearch
                     if (CanDoEvents?.CurrentCount <= 0) CanDoEvents?.Release();
                 }
             }
+        }
+
+        private FrameworkElement? FindElementWithName(DependencyObject? element)
+        {
+            if (element is FrameworkElement)
+            {
+                var parent = VisualTreeHelper.GetParent(element);
+                if (parent is FrameworkElement pfe)
+                {
+                    if (!string.IsNullOrEmpty(pfe.Name)) return (pfe);
+                    else return (FindElementWithName(pfe));
+                }
+                else return (null);
+            }
+            else return (null);
         }
 
         private void ShowLog()
@@ -1392,32 +1407,39 @@ namespace ImageSearch
 
         private void Window_DragEnter(object sender, DragEventArgs e)
         {
-
+            e.Effects = DragDropEffects.Link | DragDropEffects.Copy | DragDropEffects.Move;
         }
 
         private void Window_DragOver(object sender, DragEventArgs e)
         {
-
+            e.Effects = DragDropEffects.Link | DragDropEffects.Copy;
         }
 
         private void Window_DragLeave(object sender, DragEventArgs e)
         {
-
+            e.Effects = DragDropEffects.None;
         }
 
         private void Window_Drop(object sender, DragEventArgs e)
         {
+            e.Handled = true;
             if (e.Data is DataObject)
             {
                 var dp = e.Data as DataObject;
                 if (dp.ContainsFileDropList() || dp.ContainsText())
                 {
-                    var similar_target = new object[]{ TabSimilar, SimilarViewer, SimilarResultGallery, SimilarResultGallery, SimilarSrc };
-                    var compare_target = new object[]{ TabCompare, CompareViewer, CompareBoxL, CompareBoxR, CompareL, CompareR };
-                    if (similar_target.Contains(e.Source))
-                        QueryImage_Click(sender, e);
-                    else if (compare_target.Contains(e.Source))
-                        CompareImage_Click(sender, e);
+                    Dispatcher.InvokeAsync(() =>
+                    {
+                        var similar_target = new object[]{ TabSimilar, SimilarViewer, SimilarResultGallery, SimilarResultGallery, SimilarSrc };
+                        var compare_target = new object[]{ TabCompare, CompareViewer, CompareBoxL, CompareBoxR, CompareL, CompareR };
+                        var element = e.Source as FrameworkElement;
+                        var parent = FindElementWithName(element);
+                        var ancestor = parent is not null ? FindElementWithName(parent) : null;
+                        if (similar_target.Contains(element) || similar_target.Contains(parent ?? this) || similar_target.Contains(ancestor ?? this))
+                            QueryImage_Click(sender, e);
+                        else if (compare_target.Contains(e.Source) || compare_target.Contains(parent ?? this) || compare_target.Contains(ancestor ?? this))
+                            CompareImage_Click(sender, e);
+                    });
                 }
             }
         }
