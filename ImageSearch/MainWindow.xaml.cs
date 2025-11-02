@@ -797,7 +797,7 @@ namespace ImageSearch
         {
             if (files != null && files.Any())
             {
-                Dispatcher.Invoke(() =>
+                Dispatcher.InvokeAsync(() =>
                 {
                     if (FolderList.SelectedIndex >= 0)
                     {
@@ -808,6 +808,7 @@ namespace ImageSearch
                         _filter_files_ = [.. files.Select(f => f.Trim('"')).Select(f => Path.IsPathRooted(f) ? f : Path.Combine(folder, f)).Distinct()];
                         var tooltip = $"Filter Filss: {_filter_files_.Count}";
                         ToolTipService.SetToolTip(PasteFilesFilter, tooltip);
+                        //if (Clipboard.ContainsText()) Clipboard.Clear();
                         ReportMessage(tooltip);
                     }
                 });
@@ -1270,7 +1271,7 @@ namespace ImageSearch
         {
         }
 
-        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        private async void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             var shift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
             var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
@@ -1308,6 +1309,40 @@ namespace ImageSearch
                     if (e.Source == ResultFilter)
                     {
                         ResultFilter.Paste();
+                    }
+                    else if (Clipboard.ContainsText())
+                    {
+                        e.Handled = true;
+                        var files = Clipboard.GetText().Split(["\r\n", "\n\r", "\n", "\r"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                        if (files.Length > 2)
+                        {
+                            SetFilesFilter(files);
+                        }
+                        else if (files.Length == 2 && Tabs.SelectedItem == TabCompare)
+                        {
+                            var (bmp, skb, uri) = LoadImageFromFile(files.First());
+                            if ((bmp is null || skb is null) && CompareL.Source is null) return;
+                            if (bmp is not null) CompareL.Source = bmp;
+                            if (skb is not null) CompareL.Tag = skb;
+                            if (bmp is not null) ToolTipService.SetToolTip(CompareBoxL, await GetImageInfo(files.First()));
+                            if (bmp is not null) ReportMessage("Compare Image Left Loaded");
+
+                            (bmp, skb, uri) = LoadImageFromFile(files.Last());
+                            if ((bmp is null || skb is null) && CompareR.Source is null) return;
+                            if (bmp is not null) CompareR.Source = bmp;
+                            if (skb is not null) CompareR.Tag = skb;
+                            if (bmp is not null) ToolTipService.SetToolTip(CompareBoxR, await GetImageInfo(files.First()));
+                            if (bmp is not null) ReportMessage("Compare Image Right Loaded");
+                        }
+                        else if (files.Length >= 1 && Tabs.SelectedItem == TabSimilar)
+                        {
+                            var (bmp, skb, uri) = LoadImageFromFile(files.First());
+                            if ((bmp is null || skb is null) && SimilarSrc.Source is null) return;
+                            if (bmp is not null) SimilarSrc.Source = bmp;
+                            if (skb is not null) SimilarSrc.Tag = skb;
+                            if (bmp is not null) ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(files.First()));
+                            if (bmp is not null) ReportMessage("Query Image Loaded");
+                        }
                     }
                     else if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
                     {
@@ -1737,11 +1772,11 @@ namespace ImageSearch
                     if (Regex.IsMatch(text, @"^https?://"))
                     {
                         var (bmp, skb, uri) = await LoadImageFromWeb(text);
-                        if (bmp is null || skb is null) return;
+                        if ((bmp is null || skb is null) && SimilarSrc.Source is null) return;
                         if (bmp is not null) SimilarSrc.Source = bmp;
                         if (skb is not null) SimilarSrc.Tag = skb;
                         //ToolTipService.SetToolTip(SimilarSrcBox, Regex.Replace(text, $@"{uri}.*?$", $"{uri}", RegexOptions.IgnoreCase));
-                        ToolTipService.SetToolTip(SimilarSrcBox, text);
+                        if (bmp is not null) ToolTipService.SetToolTip(SimilarSrcBox, text);
                     }
                 }
             }
@@ -1751,24 +1786,24 @@ namespace ImageSearch
                 if (bmp is null || skb is null) return;
                 if (bmp is not null) SimilarSrc.Source = bmp;
                 if (skb is not null) SimilarSrc.Tag = skb;
-                ToolTipService.SetToolTip(SimilarSrcBox, null);
+                if (bmp is not null) ToolTipService.SetToolTip(SimilarSrcBox, null);
             }
-            else if (Clipboard.ContainsText())
-            {
-                var files = Clipboard.GetText().Split(["\r\n", "\n\r", "\n", "\r"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                if (files.Length > 1)
-                {
-                    SetFilesFilter(files);
-                }
-                else if (files.Length == 1)
-                {
-                    var (bmp, skb, uri) = LoadImageFromFile(files.First());
-                    if (bmp is null || skb is null) return;
-                    if (bmp is not null) SimilarSrc.Source = bmp;
-                    if (skb is not null) SimilarSrc.Tag = skb;
-                    ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(files.First()));
-                }
-            }
+            //else if (Clipboard.ContainsText())
+            //{
+            //    var files = Clipboard.GetText().Split(["\r\n", "\n\r", "\n", "\r"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            //    if (files.Length > 1)
+            //    {
+            //        SetFilesFilter(files);
+            //    }
+            //    else if (files.Length == 1)
+            //    {
+            //        var (bmp, skb, uri) = LoadImageFromFile(files.First());
+            //        if ((bmp is null || skb is null) && SimilarSrc.Source is null) return;
+            //        if (bmp is not null) SimilarSrc.Source = bmp;
+            //        if (skb is not null) SimilarSrc.Tag = skb;
+            //        if (bmp is not null) ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(files.First()));
+            //    }
+            //}
             else if (!string.IsNullOrEmpty(EditQueryFile.Text))
             {
                 var file = EditQueryFile.Text.Trim();
@@ -1782,7 +1817,7 @@ namespace ImageSearch
 
                 if (bmp is not null) SimilarSrc.Source = bmp;
                 if (skb is not null) SimilarSrc.Tag = skb;
-                ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(file));
+                if (bmp is not null) ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(file));
             }
             #endregion
 
