@@ -1333,6 +1333,8 @@ namespace ImageSearch
                             if (skb is not null) CompareR.Tag = skb;
                             if (bmp is not null) ToolTipService.SetToolTip(CompareBoxR, await GetImageInfo(files.First()));
                             if (bmp is not null) ReportMessage("Compare Image Right Loaded");
+
+                            if (CompareR.Source is not null && CompareL.Source is not null) CompareImage_Click(CompareImage, e);
                         }
                         else if (files.Length >= 1 && Tabs.SelectedItem == TabSimilar)
                         {
@@ -1342,6 +1344,8 @@ namespace ImageSearch
                             if (skb is not null) SimilarSrc.Tag = skb;
                             if (bmp is not null) ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(files.First()));
                             if (bmp is not null) ReportMessage("Query Image Loaded");
+
+                            if (bmp is not null) QueryImage_Click(QueryImage, e);
                         }
                     }
                     else if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
