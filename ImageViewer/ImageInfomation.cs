@@ -1721,7 +1721,8 @@ namespace ImageViewer
                             //target.Settings.Interlace = image.Interlace;
                             //target.Settings.SetDefine(MagickFormat.Png, "png:IHDR.interlace_method", "0");
                             target.VirtualPixelMethod = VirtualPixelMethod.Transparent;
-                            image.Quality = image.Quality == 0 ? 100 : image.Quality;
+                            target.Quality = image.Quality == 0 ? 100 : image.Quality;
+                            target.Format = MagickFormat.Png;
                         }
                         else if (format.IsTIF() || e.StartsWith(".tif"))
                         {
@@ -1729,22 +1730,26 @@ namespace ImageViewer
                             target.SetCompression(CompressionMethod.Zip);
                             target.Settings.Compression = CompressionMethod.Zip;
                             target.VirtualPixelMethod = VirtualPixelMethod.Transparent;
-                            image.Quality = image.Quality == 0 ? 100 : image.Quality;
+                            target.Quality = image.Quality == 0 ? 100 : image.Quality;
+                            target.Format = MagickFormat.Tiff;
                         }
                         else if (format.IsGIF() || e.StartsWith(".gif"))
                         {
                             target.GifDisposeMethod = GifDisposeMethod.Background;
                             target.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                            target.Format = MagickFormat.Gif;
                         }
                         else if (format.IsWEBP() || e.Equals(".webp") || e.Equals(".webm"))
                         {
                             target.Settings.SetDefine("webp:alpha-compression", "1");
                             target.VirtualPixelMethod = VirtualPixelMethod.Transparent;
-                            image.Quality = image.Quality == 0 ? 75 : image.Quality;
+                            target.Quality = image.Quality == 0 ? 75 : image.Quality;
+                            target.Format = MagickFormat.WebP;
                         }
                         else if (format.IsBMP() || e.Equals(".bmp"))
                         {
                             target.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                            target.Format = MagickFormat.Bmp;
                         }
                         else if (format.IsJPG() || e.StartsWith(".jp"))
                         {
@@ -1753,7 +1758,8 @@ namespace ImageViewer
                             target.Settings.SetDefine("jpeg:optimize-coding", "on");
                             target.Settings.SetDefine("sampling-factor", "4:2:0");
                             target.Settings.SetDefine("dct-method", "float");
-                            image.Quality = image.Quality == 0 ? 75 : image.Quality;
+                            target.Quality = image.Quality == 0 ? 75 : image.Quality;
+                            target.Format = MagickFormat.Jpeg;
                         }
 
                         //if (image.ColorSpace == ColorSpace.scRGB) image.ColorSpace = ColorSpace.sRGB;
@@ -1763,10 +1769,25 @@ namespace ImageViewer
                         target.BackgroundColor = MasklightColor ?? target.BackgroundColor;
                         target.MatteColor = MasklightColor ?? target.BackgroundColor;
                         target.Density = image.Density;
-                        target.Format = image.Format;
-                        target.Quality = image.Quality;
+                        //target.Format = image.Format;
+                        //target.Quality = image.Quality;
                         target.Endian = image.Endian;
+
+                        var p_exif = image.GetExifProfile();
+                        var p_iptc = image.GetIptcProfile();
+                        var p_bim = image.Get8BimProfile();
+                        var p_xmp = image.GetXmpProfile();
+                        var p_color = image.GetColorProfile();
+
+                        if (p_exif is ExifProfile) target.SetProfile(p_exif);
+                        if (p_iptc is IptcProfile) target.SetProfile(p_iptc);
+                        if (p_bim is EightBimProfile) target.SetProfile(p_bim);
+                        if (p_xmp is XmpProfile) target.SetProfile(p_xmp);
+                        if (p_color is ColorProfile) target.SetProfile(p_color);
+
                         foreach (var profile in image.ProfileNames) { if (image.HasProfile(profile)) target.SetProfile(image.GetProfile(profile)); }
+                        foreach (var attr in image.AttributeNames) target.SetAttribute(attr, image.GetAttribute(attr));
+
                         if (!target.HasProfile("xmp") && target.AttributeNames.Contains("exif:ExtensibleMetadataPlatform"))
                         {
                             var exif = target.GetExifProfile();
