@@ -1956,8 +1956,8 @@ namespace ImageSearch.Search
 
                     var f_name = names[rank_ID[i]];
                     if (string.IsNullOrEmpty(f_name)) continue;
-                    f_name = GetAbsolutePath(f_name);
-                    if (File.Exists(f_name))
+                    f_name = GetAbsolutePath(f_name);                    
+                    if (!result.Exists(r => r.Key.Equals(f_name)) && File.Exists(f_name))
                     {
                         result.Add(new KeyValuePair<string, double>(f_name, rank_score[i]));
                         if (limit > 1 && result.Count >= limit) break;
@@ -2032,7 +2032,7 @@ namespace ImageSearch.Search
                         }
                     }
                     catch (Exception ex) { ReportMessage(ex); }
-                    finally { ReportMessage($"End Filtered Extra Features"); }
+                    finally { ReportMessage($"End Filtered Features : {ret?.Names?.Length}"); }
                     return (ret);
                 });
             }
@@ -2071,7 +2071,7 @@ namespace ImageSearch.Search
                         }
                     }
                     catch (Exception ex) { ReportMessage(ex); }
-                    finally { ReportMessage($"End Filtered Extra Features"); }
+                    finally { ReportMessage($"End Filtered Extra Features : {ret?.Names?.Length}"); }
                     return (ret);
                 });
             }

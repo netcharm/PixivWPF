@@ -1,8 +1,4 @@
-﻿using CompactExifLib;
-using ImageSearch.Search;
-using Microsoft.Win32;
-using SkiaSharp;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -28,6 +24,12 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shell;
 using System.Windows.Threading;
+
+using CompactExifLib;
+using ImageSearch.Search;
+using Microsoft.Win32;
+using SkiaSharp;
+
 namespace ImageSearch
 {
 #pragma warning disable CA1860
@@ -533,6 +535,12 @@ namespace ImageSearch
             return ((bmp, skb, uri.AbsolutePath));
         }
 
+        private async Task<(BitmapSource?, SKBitmap?, string?)> LoadImageFromWeb(string url)
+        {
+            if (!string.IsNullOrEmpty(url)) return (await LoadImageFromWeb(new Uri(url)));
+            else return ((null, null, null));
+        }
+
         private async Task<List<(BitmapSource?, SKBitmap?, string?)>> LoadImageFromDataObject(IDataObject dataPackage)
         {
             List<(BitmapSource?, SKBitmap?, string?)> imgs = [];
@@ -796,7 +804,7 @@ namespace ImageSearch
                         var storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
                         var folder = storage.ImageFolder;
                         var feature_db = all_db ? string.Empty : storage.DatabaseFile;
-                        _filter_files_ = [.. files.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(folder, f))];
+                        _filter_files_ = [.. files.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(folder, f)).Distinct()];
                         var tooltip = $"Filter Filss: {_filter_files_.Count}";
                         ToolTipService.SetToolTip(PasteFilesFilter, tooltip);
                         ReportMessage(tooltip);
@@ -914,13 +922,16 @@ namespace ImageSearch
                         exif.GetTagValue(ExifTag.XpComment, out string comments, StrCoding.Utf16Le_Byte);
                         exif.GetTagValue(ExifTag.Copyright, out string copyrights, StrCoding.Utf8);
 
-                        if (!string.IsNullOrEmpty(title)) infos.Add($"Title       : {title.Trim()}");
-                        if (!string.IsNullOrEmpty(subject)) infos.Add($"Subject     : {subject.Trim()}");
-                        if (!string.IsNullOrEmpty(author)) infos.Add($"Authors     : {author.Trim().TrimEnd(';') + ';'}");
-                        if (!string.IsNullOrEmpty(copyrights)) infos.Add($"Copyrights  : {copyrights.Trim().TrimEnd(';') + ';'}");
-                        var s_tags = string.Join(" ", tags.Split(';').Select(t => $"#{t.Trim()}"));
-                        if (!string.IsNullOrEmpty(tags)) infos.Add($"Tags        : {s_tags}");
+                        if (!string.IsNullOrEmpty(title)) infos.Add($"Title       : {title?.Trim()}");
+                        if (!string.IsNullOrEmpty(subject)) infos.Add($"Subject     : {subject?.Trim()}");
+                        if (!string.IsNullOrEmpty(author)) infos.Add($"Authors     : {author?.Trim().TrimEnd(';') + ';'}");
+                        if (!string.IsNullOrEmpty(copyrights)) infos.Add($"Copyrights  : {copyrights?.Trim().TrimEnd(';') + ';'}");
                         if (!string.IsNullOrEmpty(comments)) infos.Add($"Commants    : {PaddingLines(comments, 14)}");
+                        if (!string.IsNullOrEmpty(tags))
+                        {
+                            var s_tags = string.Join(" ", tags.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(t => $"#{t.Trim()}"));
+                            infos.Add($"Tags        : {s_tags}");
+                        }
                         #endregion
                     }
                     catch (Exception ex) { ReportMessage(ex); }
@@ -981,7 +992,7 @@ namespace ImageSearch
             return (result);
         }
 
-        public static Predicate<object>? GetFilter(string filter_content)
+        public static Predicate<object>? SetResultFilter(string filter_content)
         {
             Predicate<object>? result = null;
             if (!string.IsNullOrEmpty(filter_content))
@@ -1359,7 +1370,7 @@ namespace ImageSearch
             if (e.Data is DataObject)
             {
                 var dp = e.Data as DataObject;
-                if (dp.ContainsFileDropList())
+                if (dp.ContainsFileDropList() || dp.ContainsText())
                 {
                     var similar_target = new object[]{ TabSimilar, SimilarViewer, SimilarResultGallery, SimilarResultGallery, SimilarSrc };
                     var compare_target = new object[]{ TabCompare, CompareViewer, CompareBoxL, CompareBoxR, CompareL, CompareR };
@@ -1693,24 +1704,41 @@ namespace ImageSearch
             if (e is DragEventArgs)
             {
                 var dp = (e as DragEventArgs).Data as DataObject;
-                var files = dp?.GetFileDropList();
-                if (files.Count > 1)
+                if (dp.ContainsFileDropList())
                 {
-                    var flist = new List<string>();
-                    foreach (var f in files) { if(!string.IsNullOrEmpty(f)) flist.Add(f); }
-                    SetFilesFilter(flist);
-                }
-                else
-                {
-                    var imgs = await LoadImageFromDataObject((e as DragEventArgs).Data);
-                    if (imgs.Count > 0)
+                    var files = dp?.GetFileDropList();
+                    if (files.Count > 1)
                     {
-                        if (InDrop && MessageBox.Show("Query will be replaced?", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No) return;
+                        var flist = new List<string>();
+                        foreach (var f in files) { if (!string.IsNullOrEmpty(f)) flist.Add(f); }
+                        SetFilesFilter(flist);
+                        return;
+                    }
+                    else
+                    {
+                        var imgs = await LoadImageFromDataObject((e as DragEventArgs).Data);
+                        if (imgs.Count > 0)
+                        {
+                            if (InDrop && MessageBox.Show("Query will be replaced?", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No) return;
 
-                        (var bmp, var skb, var file) = imgs.FirstOrDefault();
+                            (var bmp, var skb, var file) = imgs.FirstOrDefault();
+                            if (bmp is not null) SimilarSrc.Source = bmp;
+                            if (skb is not null) SimilarSrc.Tag = skb;
+                            ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(file));
+                        }
+                    }
+                }
+                else if (dp.ContainsText())
+                {
+                    var text = dp.GetText();
+                    //if (Regex.IsMatch(text, @"^https?://mmbiz\.qpic\.cn/mmbiz_"))
+                    if (Regex.IsMatch(text, @"^https?://"))
+                    {
+                        var (bmp, skb, uri) = await LoadImageFromWeb(text);
                         if (bmp is not null) SimilarSrc.Source = bmp;
                         if (skb is not null) SimilarSrc.Tag = skb;
-                        ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(file));
+                        //ToolTipService.SetToolTip(SimilarSrcBox, Regex.Replace(text, $@"{uri}.*?$", $"{uri}", RegexOptions.IgnoreCase));
+                        ToolTipService.SetToolTip(SimilarSrcBox, text);
                     }
                 }
             }
@@ -1771,7 +1799,8 @@ namespace ImageSearch
                         imlist.AddRange(queries?.Results ?? []);
                         queries = await similar.QueryImageScore(FlipY(skb_src), feature_db, limit: limit, labels: true, files: _filter_files_);
                         imlist.AddRange(queries?.Results ?? []);
-                        imlist = [.. imlist.OrderByDescending(r => r.Value).DistinctBy(r => r.Key).Take(limit > 1 ? (int)limit * 5 : 100)];
+
+                        imlist = [.. imlist.DistinctBy(r => r.Key).OrderByDescending(r => r.Value).Take(limit > 1 ? (int)limit * 5 : 100)];
                     }
 
                     if (labels is not null)
@@ -1891,7 +1920,7 @@ namespace ImageSearch
         {
             SimilarResultGallery.Dispatcher.InvokeAsync(() =>
             {
-                SimilarResultGallery.Items.Filter = GetFilter(ResultFilter.Text);
+                SimilarResultGallery.Items.Filter = SetResultFilter(ResultFilter.Text);
             });
             UpdateTabSimilarTooltip();
         }
