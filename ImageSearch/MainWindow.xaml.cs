@@ -477,6 +477,7 @@ namespace ImageSearch
         {
             BitmapSource? bmp = null;
             SKBitmap? skb = null;
+            file = file.Trim('"');
             if (File.Exists(file))
             {
                 using (var ms = new MemoryStream(File.ReadAllBytes(file)))
@@ -804,7 +805,7 @@ namespace ImageSearch
                         var storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
                         var folder = storage.ImageFolder;
                         var feature_db = all_db ? string.Empty : storage.DatabaseFile;
-                        _filter_files_ = [.. files.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(folder, f)).Distinct()];
+                        _filter_files_ = [.. files.Select(f => f.Trim('"')).Select(f => Path.IsPathRooted(f) ? f : Path.Combine(folder, f)).Distinct()];
                         var tooltip = $"Filter Filss: {_filter_files_.Count}";
                         ToolTipService.SetToolTip(PasteFilesFilter, tooltip);
                         ReportMessage(tooltip);
@@ -1722,6 +1723,7 @@ namespace ImageSearch
                             if (InDrop && MessageBox.Show("Query will be replaced?", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No) return;
 
                             (var bmp, var skb, var file) = imgs.FirstOrDefault();
+                            if (bmp is null || skb is null) return;
                             if (bmp is not null) SimilarSrc.Source = bmp;
                             if (skb is not null) SimilarSrc.Tag = skb;
                             ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(file));
@@ -1735,6 +1737,7 @@ namespace ImageSearch
                     if (Regex.IsMatch(text, @"^https?://"))
                     {
                         var (bmp, skb, uri) = await LoadImageFromWeb(text);
+                        if (bmp is null || skb is null) return;
                         if (bmp is not null) SimilarSrc.Source = bmp;
                         if (skb is not null) SimilarSrc.Tag = skb;
                         //ToolTipService.SetToolTip(SimilarSrcBox, Regex.Replace(text, $@"{uri}.*?$", $"{uri}", RegexOptions.IgnoreCase));
@@ -1745,9 +1748,26 @@ namespace ImageSearch
             else if (Clipboard.ContainsImage())
             {
                 (var bmp, var skb) = await LoadImageFromClipboard();
+                if (bmp is null || skb is null) return;
                 if (bmp is not null) SimilarSrc.Source = bmp;
                 if (skb is not null) SimilarSrc.Tag = skb;
                 ToolTipService.SetToolTip(SimilarSrcBox, null);
+            }
+            else if (Clipboard.ContainsText())
+            {
+                var files = Clipboard.GetText().Split(["\r\n", "\n\r", "\n", "\r"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                if (files.Length > 1)
+                {
+                    SetFilesFilter(files);
+                }
+                else if (files.Length == 1)
+                {
+                    var (bmp, skb, uri) = LoadImageFromFile(files.First());
+                    if (bmp is null || skb is null) return;
+                    if (bmp is not null) SimilarSrc.Source = bmp;
+                    if (skb is not null) SimilarSrc.Tag = skb;
+                    ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(files.First()));
+                }
             }
             else if (!string.IsNullOrEmpty(EditQueryFile.Text))
             {
