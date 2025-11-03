@@ -4,19 +4,13 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Configuration;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
-using System.IO.Pipes;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
-using System.Runtime.Intrinsics.Arm;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Transactions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -841,6 +835,301 @@ namespace ImageSearch
             });
         }
 
+        private async Task<(bool, int)> ProcessFileList(IEnumerable<string>? flist)
+        {
+            var result = false;
+            var count = 0;
+            if (flist is IEnumerable<string>)
+            {
+                var files = flist.Select(f => f.Trim('"')).ToList();
+                count = files.Count;
+                if (count > 2)
+                {
+                    SetFilesFilter(files);
+                    result = true;
+                }
+                else if (count == 2 && Dispatcher.Invoke(() => Tabs.SelectedItem == TabCompare))
+                {
+                    bool ret_l = false;
+                    bool ret_r = false;
+
+                    ret_l = await Dispatcher.Invoke(async () =>
+                    {
+                        bool ret = false;
+                        var (bmp, skb, uri) = LoadImageFromFile(files.First());
+                        if (bmp is not null && skb is not null)
+                        {
+                            CompareL.Source = bmp;
+                            CompareL.Tag = skb;
+                            ToolTipService.SetToolTip(CompareBoxL, await GetImageInfo(files.First()));
+                            ReportMessage("Compare Image Left Loaded");
+                            ret = true;
+                        }
+                        return (ret);
+                    });
+
+                    ret_r = await Dispatcher.Invoke(async () =>
+                    {
+                        bool ret = false;
+                        var (bmp, skb, uri) = LoadImageFromFile(files.Last());
+                        if (bmp is not null && skb is not null)
+                        {
+                            CompareR.Source = bmp;
+                            CompareR.Tag = skb;
+                            ToolTipService.SetToolTip(CompareBoxR, await GetImageInfo(files.First()));
+                            ReportMessage("Compare Image Right Loaded");
+                            ret = true;
+                        }
+                        return (ret);
+                    });
+
+                    result = ret_l && ret_r;
+                }
+                else if (count == 1 && Dispatcher.Invoke(() => Tabs.SelectedItem == TabCompare))
+                {
+                    var (bmp, skb, uri) = LoadImageFromFile(files.First());
+                    result = await Dispatcher.Invoke(async () =>
+                    {
+                        if (CompareL.Source is null)
+                        {
+                            CompareL.Source = bmp;
+                            CompareL.Tag = skb;
+                            ToolTipService.SetToolTip(CompareBoxL, await GetImageInfo(uri));
+                            ReportMessage("Compare Image Left Loaded");
+                            _last_pasted_image_ = CompareL;
+                        }
+                        else if (CompareR.Source is null)
+                        {
+                            CompareR.Source = bmp;
+                            CompareR.Tag = skb;
+                            ToolTipService.SetToolTip(CompareBoxR, await GetImageInfo(uri));
+                            ReportMessage("Compare Image Right Loaded");
+                            _last_pasted_image_ = CompareR;
+                        }
+                        else
+                        {
+                            if (_last_pasted_image_ is null)
+                            {
+                                CompareL.Source = bmp;
+                                CompareL.Tag = skb;
+                                ToolTipService.SetToolTip(CompareBoxL, await GetImageInfo(uri));
+                                ReportMessage("Compare Image Left Loaded");
+                                _last_pasted_image_ = CompareL;
+                            }
+                            else if (_last_pasted_image_ == CompareL)
+                            {
+                                CompareR.Source = bmp;
+                                CompareR.Tag = skb;
+                                ToolTipService.SetToolTip(CompareBoxR, await GetImageInfo(uri));
+                                ReportMessage("Compare Image Right Loaded");
+                                _last_pasted_image_ = CompareR;
+                            }
+                            else if (_last_pasted_image_ == CompareR)
+                            {
+                                CompareL.Source = bmp;
+                                CompareL.Tag = skb;
+                                ToolTipService.SetToolTip(CompareBoxL, await GetImageInfo(uri));
+                                ReportMessage("Compare Image Left Loaded");
+                                _last_pasted_image_ = CompareL;
+                            }
+                        }
+                        return (CompareL.Source is not null && CompareR.Source is not null);
+                    });
+                }
+                else if (count >= 1 && Dispatcher.Invoke(() => Tabs.SelectedItem == TabSimilar))
+                {
+                    result = await Dispatcher.Invoke(async () =>
+                    {
+                        bool ret = false;
+                        var (bmp, skb, uri) = LoadImageFromFile(files.First());
+                        if (bmp is not null && skb is not null)
+                        {
+                            SimilarSrc.Source = bmp;
+                            SimilarSrc.Tag = skb;
+                            ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(files.First()));
+                            ReportMessage("Query Image Loaded");
+                            ret = true;
+                        }
+                        return (ret);
+                    });
+                }
+            }
+            return (result, count);
+        }
+
+        private async Task<(bool, int)> ProcessDataObjectText(DataObject? dp)
+        {
+            var result = false;
+            var count = 0;
+            if (dp is DataObject && dp.ContainsText())
+            {
+                var text = dp.GetText();
+                if (Regex.IsMatch(text, @"^https?://"))
+                {
+                    var (bmp, skb, uri) = await LoadImageFromWeb(text);
+                    if (bmp is not null && skb is not null)
+                    {
+                        result = Dispatcher.Invoke(() =>
+                        {
+                            SimilarSrc.Source = bmp;
+                            SimilarSrc.Tag = skb;
+                            //ToolTipService.SetToolTip(SimilarSrcBox, Regex.Replace(text, $@"{uri}.*?$", $"{uri}", RegexOptions.IgnoreCase));
+                            ToolTipService.SetToolTip(SimilarSrcBox, text);
+                            return (true);
+                        });
+                    }
+                }
+                else
+                {
+                    var files = text.Split(["\n", "\r\n", "\r"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    (result, count) = await ProcessFileList(files);
+                }
+            }
+            return (result, count);
+        }
+
+        private async Task<(bool, int)> ProcessClipboardText()
+        {
+            var result = false;
+            var count = 0;
+            if (Clipboard.ContainsText())
+            {
+                (result, count) = await ProcessDataObjectText(Clipboard.GetDataObject() as DataObject);
+            }
+            return (result, count);
+        }
+
+        private object? _last_pasted_image_ = null;
+        private async Task<bool> ProcessDataObjectImage(DataObject? dp)
+        {
+            var result = false;
+            if (dp is not null && dp.ContainsImage())
+            {
+                var imgs = await LoadImageFromDataObject(dp);
+                if (imgs.Any())
+                {
+                    var (bmp, skb, uri) = imgs.First();
+                    if (bmp is not null && skb is not null)
+                    {
+                        if (Dispatcher.Invoke(() => Tabs.SelectedItem == TabCompare))
+                        {
+                            result = await Dispatcher.Invoke(async () =>
+                            {
+                                if (CompareL.Source is null)
+                                {
+                                    CompareL.Source = bmp;
+                                    CompareL.Tag = skb;
+                                    ToolTipService.SetToolTip(CompareBoxL, await GetImageInfo(uri));
+                                    ReportMessage("Compare Image Left Loaded");
+                                    _last_pasted_image_ = CompareL;
+                                }
+                                else if (CompareR.Source is null)
+                                {
+                                    CompareR.Source = bmp;
+                                    CompareR.Tag = skb;
+                                    ToolTipService.SetToolTip(CompareBoxR, await GetImageInfo(uri));
+                                    ReportMessage("Compare Image Right Loaded");
+                                    _last_pasted_image_ = CompareR;
+                                }
+                                else
+                                {
+                                    if (_last_pasted_image_ is null)
+                                    {
+                                        CompareL.Source = bmp;
+                                        CompareL.Tag = skb;
+                                        ToolTipService.SetToolTip(CompareBoxL, await GetImageInfo(uri));
+                                        ReportMessage("Compare Image Left Loaded");
+                                        _last_pasted_image_ = CompareL;
+                                    }
+                                    else if (_last_pasted_image_ == CompareL)
+                                    {
+                                        CompareR.Source = bmp;
+                                        CompareR.Tag = skb;
+                                        ToolTipService.SetToolTip(CompareBoxR, await GetImageInfo(uri));
+                                        ReportMessage("Compare Image Right Loaded");
+                                        _last_pasted_image_ = CompareR;
+                                    }
+                                    else if (_last_pasted_image_ == CompareR)
+                                    {
+                                        CompareL.Source = bmp;
+                                        CompareL.Tag = skb;
+                                        ToolTipService.SetToolTip(CompareBoxL, await GetImageInfo(uri));
+                                        ReportMessage("Compare Image Left Loaded");
+                                        _last_pasted_image_ = CompareL;
+                                    }
+                                }
+                                return (CompareL.Source is not null && CompareR.Source is not null);
+                            });
+                        }
+                        else if (Dispatcher.Invoke(() => Tabs.SelectedItem == TabSimilar))
+                        {
+                            result = await Dispatcher.Invoke(async () =>
+                            {
+                                SimilarSrc.Source = bmp;
+                                SimilarSrc.Tag = skb;
+                                ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(uri));
+                                ReportMessage("Query Image Loaded");
+                                return (true);
+                            });
+                        }
+                    }
+                }
+            }
+            return (result);
+        }
+
+        private async void ProcessClipboardImage()
+        {
+            if (Clipboard.ContainsImage())
+            {
+                await ProcessDataObjectImage(Clipboard.GetDataObject() as DataObject);
+            }
+        }
+
+        private async void ProcessDataObjectFileDropList(DataObject? dp, object sender, DragEventArgs? e)
+        {
+            if (dp is not null && dp.ContainsFileDropList())
+            {
+                await Dispatcher.InvokeAsync(async () =>
+                {
+                    await ProcessFileList(dp.GetFileDropList().Cast<string>());
+                    var similar_target = new object[]{ TabSimilar, SimilarViewer, SimilarResultGallery, SimilarResultGallery, SimilarSrc };
+                    var compare_target = new object[]{ TabCompare, CompareViewer, CompareBoxL, CompareBoxR, CompareL, CompareR };
+                    var element = e.Source as FrameworkElement;
+                    var parent = FindElementWithName(element);
+                    var ancestor = parent is not null ? FindElementWithName(parent) : null;
+                    if (similar_target.Contains(element) || similar_target.Contains(parent ?? this) || similar_target.Contains(ancestor ?? this))
+                        QueryImage_Click(sender, e);
+                    else if (compare_target.Contains(e.Source) || compare_target.Contains(parent ?? this) || compare_target.Contains(ancestor ?? this))
+                        CompareImage_Click(sender, e);
+                });
+            }
+        }
+
+        private void ProcessClipboardFileDropList(object sender, DragEventArgs e)
+        {
+            if (Clipboard.ContainsFileDropList())
+            {
+                ProcessDataObjectFileDropList(Clipboard.GetDataObject() as DataObject, sender, e);
+            }
+        }
+
+        private async Task<(bool, int)> ProcessClipboard()
+        {
+            var result = false;
+            var count = 0;
+
+            var dp = Clipboard.GetDataObject() as DataObject;
+            if (dp is not null)
+            {
+                result = true;
+                if (dp.ContainsImage()) await ProcessDataObjectImage(dp);
+                else if (dp.ContainsFileDropList()) ProcessDataObjectFileDropList(dp, this, null);
+                else if (dp.ContainsText()) (result, count) = await ProcessDataObjectText(dp);
+            }
+            return (result, count);
+        }
+
         private static string PaddingLines(string text, int padding)
         {
             if (string.IsNullOrEmpty(text)) return (text);
@@ -1328,39 +1617,21 @@ namespace ImageSearch
                     else if (Clipboard.ContainsText())
                     {
                         e.Handled = true;
-                        var files = Clipboard.GetText().Split(["\r\n", "\n\r", "\n", "\r"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                        if (files.Length > 2)
+                        var (ret, count) = await ProcessDataObjectText(Clipboard.GetDataObject() as DataObject);
+                        if (ret)
                         {
-                            SetFilesFilter(files);
+                            if (count == 2 && Tabs.SelectedItem == TabCompare) CompareImage_Click(CompareImage, e);
+                            else if (count >= 1 && Tabs.SelectedItem == TabSimilar) QueryImage_Click(QueryImage, e);
                         }
-                        else if (files.Length == 2 && Tabs.SelectedItem == TabCompare)
+                    }
+                    else if (Clipboard.ContainsImage())
+                    {
+                        e.Handled = true;
+                        var ret = await ProcessDataObjectImage(Clipboard.GetDataObject() as DataObject);
+                        if (ret)
                         {
-                            var (bmp, skb, uri) = LoadImageFromFile(files.First());
-                            if ((bmp is null || skb is null) && CompareL.Source is null) return;
-                            if (bmp is not null) CompareL.Source = bmp;
-                            if (skb is not null) CompareL.Tag = skb;
-                            if (bmp is not null) ToolTipService.SetToolTip(CompareBoxL, await GetImageInfo(files.First()));
-                            if (bmp is not null) ReportMessage("Compare Image Left Loaded");
-
-                            (bmp, skb, uri) = LoadImageFromFile(files.Last());
-                            if ((bmp is null || skb is null) && CompareR.Source is null) return;
-                            if (bmp is not null) CompareR.Source = bmp;
-                            if (skb is not null) CompareR.Tag = skb;
-                            if (bmp is not null) ToolTipService.SetToolTip(CompareBoxR, await GetImageInfo(files.First()));
-                            if (bmp is not null) ReportMessage("Compare Image Right Loaded");
-
-                            if (CompareR.Source is not null && CompareL.Source is not null) CompareImage_Click(CompareImage, e);
-                        }
-                        else if (files.Length >= 1 && Tabs.SelectedItem == TabSimilar)
-                        {
-                            var (bmp, skb, uri) = LoadImageFromFile(files.First());
-                            if ((bmp is null || skb is null) && SimilarSrc.Source is null) return;
-                            if (bmp is not null) SimilarSrc.Source = bmp;
-                            if (skb is not null) SimilarSrc.Tag = skb;
-                            if (bmp is not null) ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(files.First()));
-                            if (bmp is not null) ReportMessage("Query Image Loaded");
-
-                            if (bmp is not null) QueryImage_Click(QueryImage, e);
+                            if (Tabs.SelectedItem == TabCompare) CompareImage_Click(CompareImage, e);
+                            else if (Tabs.SelectedItem == TabSimilar) QueryImage_Click(QueryImage, e);
                         }
                     }
                     else if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
@@ -1420,26 +1691,24 @@ namespace ImageSearch
             e.Effects = DragDropEffects.None;
         }
 
-        private void Window_Drop(object sender, DragEventArgs e)
+        private async void Window_Drop(object sender, DragEventArgs e)
         {
             e.Handled = true;
             if (e.Data is DataObject)
             {
                 var dp = e.Data as DataObject;
-                if (dp.ContainsFileDropList() || dp.ContainsText())
+                if (dp.ContainsText())
                 {
-                    Dispatcher.InvokeAsync(() =>
+                    var (ret, count) = await ProcessDataObjectText(dp);
+                    if (ret)
                     {
-                        var similar_target = new object[]{ TabSimilar, SimilarViewer, SimilarResultGallery, SimilarResultGallery, SimilarSrc };
-                        var compare_target = new object[]{ TabCompare, CompareViewer, CompareBoxL, CompareBoxR, CompareL, CompareR };
-                        var element = e.Source as FrameworkElement;
-                        var parent = FindElementWithName(element);
-                        var ancestor = parent is not null ? FindElementWithName(parent) : null;
-                        if (similar_target.Contains(element) || similar_target.Contains(parent ?? this) || similar_target.Contains(ancestor ?? this))
-                            QueryImage_Click(sender, e);
-                        else if (compare_target.Contains(e.Source) || compare_target.Contains(parent ?? this) || compare_target.Contains(ancestor ?? this))
-                            CompareImage_Click(sender, e);
-                    });
+                        if (count == 2 && Tabs.SelectedItem == TabCompare) CompareImage_Click(CompareImage, e);
+                        else if (count >= 1 && Tabs.SelectedItem == TabSimilar) QueryImage_Click(QueryImage, e);
+                    }                    
+                }
+                else if (dp.ContainsFileDropList())
+                {
+                    ProcessDataObjectFileDropList(dp, sender, e);
                 }
             }
         }
@@ -1763,73 +2032,10 @@ namespace ImageSearch
             }
 
             #region Pre-processing query source
-            if (e is DragEventArgs)
+            if (Clipboard.ContainsImage())
             {
-                var dp = (e as DragEventArgs).Data as DataObject;
-                if (dp.ContainsFileDropList())
-                {
-                    var files = dp?.GetFileDropList();
-                    if (files.Count > 1)
-                    {
-                        var flist = new List<string>();
-                        foreach (var f in files) { if (!string.IsNullOrEmpty(f)) flist.Add(f); }
-                        SetFilesFilter(flist);
-                        return;
-                    }
-                    else
-                    {
-                        var imgs = await LoadImageFromDataObject((e as DragEventArgs).Data);
-                        if (imgs.Count > 0)
-                        {
-                            if (InDrop && MessageBox.Show("Query will be replaced?", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No) return;
-
-                            (var bmp, var skb, var file) = imgs.FirstOrDefault();
-                            if (bmp is null || skb is null) return;
-                            if (bmp is not null) SimilarSrc.Source = bmp;
-                            if (skb is not null) SimilarSrc.Tag = skb;
-                            ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(file));
-                        }
-                    }
-                }
-                else if (dp.ContainsText())
-                {
-                    var text = dp.GetText();
-                    //if (Regex.IsMatch(text, @"^https?://mmbiz\.qpic\.cn/mmbiz_"))
-                    if (Regex.IsMatch(text, @"^https?://"))
-                    {
-                        var (bmp, skb, uri) = await LoadImageFromWeb(text);
-                        if ((bmp is null || skb is null) && SimilarSrc.Source is null) return;
-                        if (bmp is not null) SimilarSrc.Source = bmp;
-                        if (skb is not null) SimilarSrc.Tag = skb;
-                        //ToolTipService.SetToolTip(SimilarSrcBox, Regex.Replace(text, $@"{uri}.*?$", $"{uri}", RegexOptions.IgnoreCase));
-                        if (bmp is not null) ToolTipService.SetToolTip(SimilarSrcBox, text);
-                    }
-                }
+                ProcessClipboardImage();
             }
-            else if (Clipboard.ContainsImage())
-            {
-                (var bmp, var skb) = await LoadImageFromClipboard();
-                if (bmp is null || skb is null) return;
-                if (bmp is not null) SimilarSrc.Source = bmp;
-                if (skb is not null) SimilarSrc.Tag = skb;
-                if (bmp is not null) ToolTipService.SetToolTip(SimilarSrcBox, null);
-            }
-            //else if (Clipboard.ContainsText())
-            //{
-            //    var files = Clipboard.GetText().Split(["\r\n", "\n\r", "\n", "\r"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            //    if (files.Length > 1)
-            //    {
-            //        SetFilesFilter(files);
-            //    }
-            //    else if (files.Length == 1)
-            //    {
-            //        var (bmp, skb, uri) = LoadImageFromFile(files.First());
-            //        if ((bmp is null || skb is null) && SimilarSrc.Source is null) return;
-            //        if (bmp is not null) SimilarSrc.Source = bmp;
-            //        if (skb is not null) SimilarSrc.Tag = skb;
-            //        if (bmp is not null) ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(files.First()));
-            //    }
-            //}
             else if (!string.IsNullOrEmpty(EditQueryFile.Text))
             {
                 var file = EditQueryFile.Text.Trim();
@@ -1883,6 +2089,7 @@ namespace ImageSearch
 
                         imlist = [.. imlist.DistinctBy(r => r.Key).OrderByDescending(r => r.Value).Take(limit > 1 ? (int)limit * 5 : 100)];
                     }
+                    if (imlist?.Count <= 0) return;
 
                     if (labels is not null)
                     {
@@ -2006,7 +2213,7 @@ namespace ImageSearch
             UpdateTabSimilarTooltip();
         }
 
-        private bool InDrop = false;
+        //private bool InDrop = false;
         private void SimilarResultGallery_MouseMove(object sender, MouseEventArgs e)
         {
             try
@@ -2024,7 +2231,7 @@ namespace ImageSearch
                     }
                     if (files.Count > 0)
                     {
-                        InDrop = true;
+                        //InDrop = true;
                         var dp = new DataObject();
                         dp.SetFileDropList(files);
                         dp.SetData("text/uri-list", files);
@@ -2041,7 +2248,7 @@ namespace ImageSearch
                 }
             }
             catch (Exception ex) { ReportMessage(ex); }
-            finally { InDrop = false; }
+            finally { /*InDrop = false;*/ }
         }
 
         private void SimilarResultGallery_MouseDoubleClick(object sender, MouseButtonEventArgs e)

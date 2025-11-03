@@ -1998,7 +1998,7 @@ namespace ImageSearch.Search
         };
 #endif
         //private List<string> _sub_files_ = new (); // maybe using Hashset<string> SetEquals()
-        private HashSet<string> _sub_files_ = new ();
+        private HashSet<string> _sub_files_ = [];
         private Dictionary<string, FeatureData?> _sub_features_ = [];
         private Dictionary<string, ExtraFeatureData?> _sub_extra_features_ = [];
 
@@ -2015,6 +2015,7 @@ namespace ImageSearch.Search
                         ReportMessage($"Get Filtered Features ...");
                         var fdb = feats_obj.FeatureDB;
                         if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_) && string.IsNullOrEmpty(fdb) && _sub_features_.ContainsKey(fdb)) return (_sub_features_[fdb]);
+                        //_sub_features_.TryGetValue(fdb, out ret);
 
                         var root = Path.GetDirectoryName(feats_obj.FeatureDB) ?? "";
                         var files = subfiles.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(root, f));
@@ -2126,9 +2127,9 @@ namespace ImageSearch.Search
                         if (feat_obj.Feats is not null && feat_ is not null)
                         {
                             var subfeats = await GetSubFeatDB(files, feat_obj);
-                            if (subfeats is null)
+                            if (subfeats is null && !(files?.Any() ?? false))
                                 result.AddRange(GetNeareatImages(feat_, feat_obj.Feats, feat_obj.Names, limit, ResultMax));
-                            else
+                            else if (subfeats is not null)
                                 result.AddRange(GetNeareatImages(feat_, subfeats.Feats, subfeats.Names, limit, ResultMax));
                             GC.Collect();
                         }
@@ -2138,9 +2139,9 @@ namespace ImageSearch.Search
                             {
                                 if (!(extra.Names is not null && extra.Names.Length > 0) || !(extra.Feats is not null && extra.Feats.shape[0] > 0)) await LoadExtraFeatureData(extra.FeatureStore, feat_obj);
                                 var subfeats = await GetSubExtraFeatDB(files, extra);
-                                if (subfeats is null)
+                                if (subfeats is null && !(files?.Any() ?? false))
                                     result.AddRange(GetNeareatImages(feat_, extra.Feats, extra.Names, limit, ResultMax));
-                                else
+                                else if (subfeats is not null)
                                     result.AddRange(GetNeareatImages(feat_, subfeats.Feats, subfeats.Names, limit, ResultMax));
                                 GC.Collect();
                             }
