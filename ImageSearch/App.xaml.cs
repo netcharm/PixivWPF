@@ -46,7 +46,7 @@ namespace ImageSearch
         public class NamedPipeContent
         {
             public string? Command { get; set; }
-            public bool? Scope { get; set; } = false;
+            public bool? Scope { get; set; } = null;
             public string[]? Args { get; set; }
         }
 
@@ -150,11 +150,12 @@ namespace ImageSearch
                                     Current.Dispatcher.Invoke(() => { Current?.MainWindow?.Activate(); });
                                 else if (content.Command.Equals("query", StringComparison.CurrentCultureIgnoreCase))
                                 {
+                                    var scope = content.Scope;
                                     Current.Dispatcher.Invoke(() =>
                                     {
                                         if ((Current.MainWindow is MainWindow) && (Current.MainWindow.IsLoaded))
                                         {
-                                            (Current.MainWindow as MainWindow).LoadImageFromFiles(content.Args, query: true);
+                                            (Current.MainWindow as MainWindow).LoadImageFromFiles(content.Args, query: true, scope_all: scope);
                                         }
                                     });
                                 }

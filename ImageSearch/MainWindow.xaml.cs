@@ -497,7 +497,7 @@ namespace ImageSearch
             return ((bmp, skb, file));
         }
 
-        public void LoadImageFromFiles(string[]? files, bool query = false, bool scope_all = false)
+        public void LoadImageFromFiles(string[]? files, bool query = false, bool? scope_all = null)
         {
             files = files?.Where(f => File.Exists(f)).Take(2).ToArray();
             if (files.Length > 0)
@@ -512,7 +512,7 @@ namespace ImageSearch
                         ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(file));
                         if (query && !IsQuering)
                         {
-                            AllFolders.IsChecked = scope_all;
+                            if (scope_all != null) AllFolders.IsChecked = scope_all;
                             QueryImage_Click(QueryImage, new RoutedEventArgs());
                         }
                     });
@@ -1078,35 +1078,48 @@ namespace ImageSearch
             return (result);
         }
 
-        private async void ProcessClipboardImage()
+        private async Task<bool> ProcessClipboardImage()
         {
+            var result = false;
             if (Clipboard.ContainsImage())
             {
-                await ProcessDataObjectImage(Clipboard.GetDataObject() as DataObject);
+                result = await ProcessDataObjectImage(Clipboard.GetDataObject() as DataObject);
             }
+            return (result);
         }
 
         private async void ProcessDataObjectFileDropList(DataObject? dp, object sender, DragEventArgs? e)
         {
             if (dp is not null && dp.ContainsFileDropList())
             {
-                await Dispatcher.InvokeAsync(async () =>
+                var (ret, count) = await ProcessFileList(dp.GetFileDropList().Cast<string>());
+                if (ret)
                 {
-                    await ProcessFileList(dp.GetFileDropList().Cast<string>());
-                    var similar_target = new object[]{ TabSimilar, SimilarViewer, SimilarResultGallery, SimilarResultGallery, SimilarSrc };
-                    var compare_target = new object[]{ TabCompare, CompareViewer, CompareBoxL, CompareBoxR, CompareL, CompareR };
-                    var element = e.Source as FrameworkElement;
-                    var parent = FindElementWithName(element);
-                    var ancestor = parent is not null ? FindElementWithName(parent) : null;
-                    if (similar_target.Contains(element) || similar_target.Contains(parent ?? this) || similar_target.Contains(ancestor ?? this))
-                        QueryImage_Click(sender, e);
-                    else if (compare_target.Contains(e.Source) || compare_target.Contains(parent ?? this) || compare_target.Contains(ancestor ?? this))
-                        CompareImage_Click(sender, e);
-                });
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        if (Tabs.SelectedItem == TabSimilar)
+                            QueryImage_Click(sender, e ?? new RoutedEventArgs());
+                        else if (Tabs.SelectedItem == TabCompare)
+                            CompareImage_Click(sender, e ?? new RoutedEventArgs());
+                    });
+                }
+                //await Dispatcher.InvokeAsync(async () =>
+                //{
+                //    var (ret, count) = await ProcessFileList(dp.GetFileDropList().Cast<string>());
+                //    var similar_target = new object[]{ TabSimilar, SimilarViewer, SimilarResultGallery, SimilarResultGallery, SimilarSrc };
+                //    var compare_target = new object[]{ TabCompare, CompareViewer, CompareBoxL, CompareBoxR, CompareL, CompareR };
+                //    var element = e.Source as FrameworkElement;
+                //    var parent = FindElementWithName(element);
+                //    var ancestor = parent is not null ? FindElementWithName(parent) : null;
+                //    if (similar_target.Contains(element) || similar_target.Contains(parent ?? this) || similar_target.Contains(ancestor ?? this))
+                //        QueryImage_Click(sender, e);
+                //    else if (compare_target.Contains(e.Source) || compare_target.Contains(parent ?? this) || compare_target.Contains(ancestor ?? this))
+                //        CompareImage_Click(sender, e);
+                //});
             }
         }
 
-        private void ProcessClipboardFileDropList(object sender, DragEventArgs e)
+        private void ProcessClipboardFileDropList(object sender, DragEventArgs? e)
         {
             if (Clipboard.ContainsFileDropList())
             {
@@ -1932,66 +1945,11 @@ namespace ImageSearch
             }
             else if (Tabs.SelectedItem == TabCompare)
             {
-                if (e is DragEventArgs)
+                if (Clipboard.ContainsImage())
                 {
-                    var imgs = await LoadImageFromDataObject((e as DragEventArgs).Data);
-                    if (imgs.Count > 1)
-                    {
-                        (var bmp0, var skb0, var file0) = imgs[0];
-                        (var bmp1, var skb1, var file1) = imgs[1];
-                        ToolTipService.SetToolTip(CompareBoxL, await GetImageInfo(file0));
-                        CompareL.Source = bmp0;
-                        CompareL.Tag = skb0;
-                        ToolTipService.SetToolTip(CompareBoxR, await GetImageInfo(file1));
-                        CompareR.Source = bmp1;
-                        CompareR.Tag = skb1;
-                    }
-                    else if (imgs.Count > 0)
-                    {
-                        var pt = (e as DragEventArgs).GetPosition(CompareViewer);
-                        var in_compare_l = pt.X < CompareViewer.ActualWidth / 2.0;
-                        var in_compare_r = pt.X > CompareViewer.ActualWidth / 2.0;
-
-                        (var bmp, var skb, var file) = imgs[0];
-                        if (compare_l_target.Contains(e.Source) || in_compare_l || CompareBoxL.IsMouseOver)
-                        {
-                            ToolTipService.SetToolTip(CompareBoxL, await GetImageInfo(file));
-                            CompareL.Source = bmp;
-                            CompareL.Tag = skb;
-                        }
-                        else if (compare_r_target.Contains(e.Source) || in_compare_r || CompareBoxR.IsMouseOver)
-                        {
-                            ToolTipService.SetToolTip(CompareBoxR, await GetImageInfo(file));
-                            CompareR.Source = bmp;
-                            CompareR.Tag = skb;
-                        }
-                    }
+                    var clip = ProcessClipboardImage().GetAwaiter().GetResult();
                 }
-                else if (Clipboard.ContainsImage())
-                {
-                    var imgs = await LoadImageFromDataObject(Clipboard.GetDataObject());
-                    if (imgs.Count > 0)
-                    {
-                        var pt = Mouse.GetPosition(CompareViewer);
-                        var in_compare_l = pt.X < CompareViewer.ActualWidth / 2.0;
-                        var in_compare_r = pt.X > CompareViewer.ActualWidth / 2.0;
-
-                        (var bmp, var skb, _) = imgs[0];
-                        if (CompareL.Source is null || in_compare_l || CompareL.IsMouseOver)
-                        {
-                            ToolTipService.SetToolTip(CompareBoxL, null);
-                            CompareL.Source = bmp;
-                            CompareL.Tag = skb;
-                        }
-                        else if (CompareR.Source is null || in_compare_r || CompareR.IsMouseOver)
-                        {
-                            ToolTipService.SetToolTip(CompareBoxR, null);
-                            CompareR.Source = bmp;
-                            CompareR.Tag = skb;
-                        }
-                    }
-                }
-
+                
                 if (CompareL.Source != null && CompareL.Tag is SKBitmap && CompareR.Source != null && CompareR.Tag is SKBitmap)
                 {
                     var skb0 = CompareL.Tag as SKBitmap;
@@ -2034,7 +1992,7 @@ namespace ImageSearch
             #region Pre-processing query source
             if (Clipboard.ContainsImage())
             {
-                ProcessClipboardImage();
+                await ProcessClipboardImage();
             }
             else if (!string.IsNullOrEmpty(EditQueryFile.Text))
             {
