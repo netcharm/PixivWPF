@@ -536,6 +536,7 @@ namespace ImageSearch
                             using (var ms = await response.Content.ReadAsStreamAsync())
                             {
                                 (bmp, skb, _) = LoadImageFromStream(ms);
+                                ReportMessage($"Load Image from Web Uri : {uri.AbsoluteUri}");
                             }
                         }
                     }
@@ -587,10 +588,9 @@ namespace ImageSearch
                                 var file = dataPackage.GetData(fmt, true) as string;
                                 if (!string.IsNullOrEmpty(file))
                                 {
-                                    var uri = new Uri(file);
                                     if (file.StartsWith("http"))
                                     {
-                                        imgs.Add(await LoadImageFromWeb(uri));
+                                        imgs.Add(await LoadImageFromWeb(file));
                                     }
                                     else if (File.Exists(file))
                                     {
@@ -969,13 +969,13 @@ namespace ImageSearch
                     var (bmp, skb, uri) = await LoadImageFromWeb(text);
                     if (bmp is not null && skb is not null)
                     {
-                        result = Dispatcher.Invoke(() =>
+                        (result, count) = Dispatcher.Invoke(() =>
                         {
                             SimilarSrc.Source = bmp;
                             SimilarSrc.Tag = skb;
                             //ToolTipService.SetToolTip(SimilarSrcBox, Regex.Replace(text, $@"{uri}.*?$", $"{uri}", RegexOptions.IgnoreCase));
                             ToolTipService.SetToolTip(SimilarSrcBox, text);
-                            return (true);
+                            return (true, 1);
                         });
                     }
                 }
