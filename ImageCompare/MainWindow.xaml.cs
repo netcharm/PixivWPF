@@ -3192,6 +3192,15 @@ namespace ImageCompare
         /// <summary>
         /// 
         /// </summary>
+        private bool IsShowImageInfo 
+        { 
+            get => ShowImageInfo.Dispatcher.Invoke(() => ShowImageInfo.IsChecked ?? true); 
+            set => ShowImageInfo.Dispatcher.Invoke(() => ShowImageInfo.IsChecked = value);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         private void ToggleToolTipState()
         {
             ShowImageInfo.Dispatcher.InvokeAsync(() =>
@@ -3509,6 +3518,12 @@ namespace ImageCompare
                     var value = SimpleTrimCropBoundingBox;
                     if (bool.TryParse(appSection.Settings["SimpleTrimCropBoundingBox"].Value, out value)) SimpleTrimCropBoundingBox = value;
                 }
+
+                if (appSection.Settings.AllKeys.Contains("IsShowImageInfo"))
+                {
+                    var value = IsShowImageInfo;
+                    if (bool.TryParse(appSection.Settings["IsShowImageInfo"].Value, out value)) IsShowImageInfo = value;
+                }
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -3710,6 +3725,11 @@ namespace ImageCompare
                         appSection.Settings["SimpleTrimCropBoundingBox"].Value = SimpleTrimCropBoundingBox.ToString();
                     else
                         appSection.Settings.Add("SimpleTrimCropBoundingBox", SimpleTrimCropBoundingBox.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("IsShowImageInfo"))
+                        appSection.Settings["IsShowImageInfo"].Value = IsShowImageInfo.ToString();
+                    else
+                        appSection.Settings.Add("IsShowImageInfo", IsShowImageInfo.ToString());
                 }
                 if (AutoSaveConfig || force) appCfg.Save();
             }
@@ -3960,6 +3980,8 @@ namespace ImageCompare
             ToolTipService.SetShowOnDisabled(ImageSource, false);
             ToolTipService.SetShowOnDisabled(ImageTarget, false);
             ToolTipService.SetShowOnDisabled(ImageResult, false);
+
+            ToggleToolTipState();
 
             BusyNow.Visibility = Visibility.Collapsed;
 
