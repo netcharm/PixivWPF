@@ -1677,6 +1677,14 @@ namespace ImageSearch
                         if (files.Any()) Clipboard.SetText(string.Join(Environment.NewLine, files));
                     }
                 }
+                else if (e.Key == Key.Q && ctrl)
+                {
+                    if (e.Source == TabSimilar)
+                    {
+                        e.Handled = true;
+                        CompareImage_Click(CompareImage, e);
+                    }
+                }
             }
             catch (Exception ex) { ReportMessage(ex); }
         }
