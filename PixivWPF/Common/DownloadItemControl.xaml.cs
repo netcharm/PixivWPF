@@ -436,7 +436,7 @@ namespace PixivWPF.Common
         public bool SaveAsJPEG
         {
             get { return (Info?.SaveAsJPEG ?? setting.DownloadWithAutoReduce); }
-            set { Info?.SaveAsJPEG = value; }
+            set { Info?.SaveAsJPEG = value; Info?.SetSaveAsJPEG(value); }
         }
 
         public int JPEGQuality
@@ -1405,6 +1405,7 @@ namespace PixivWPF.Common
             }
         }
 
+        private SemaphoreSlim OverwritePromptPopup = new SemaphoreSlim(1, 1);
         /// <summary>
         /// 
         /// </summary>
@@ -1412,23 +1413,30 @@ namespace PixivWPF.Common
         private async Task<bool> OverwritePrompt()
         {
             var result = true;
-
-            bool delta = true;
-            var basename = Path.GetFileName(FileName);
-            var msg_title = $"Warnning ({basename})";
-            var msg_content = "Overwrite exists?";
-            if (msg_title.IsMessagePopup(msg_content)) result = false;
-            else
+            try
             {
-                if (File.Exists(FileName) && (_DownloadBuffer == null || _DownloadBuffer.Length <= 0))
+                if (await OverwritePromptPopup.WaitAsync(0))
                 {
-                    delta = new FileInfo(FileName).CreationTime.DeltaNowMillisecond() > setting.DownloadTimeSpan;
-                    if (!delta) result = false;
-                    else if (!(await msg_content.ShowMessageDialog(msg_title, MessageBoxImage.Warning))) { State = DownloadItemState.Finished; result = false; }
+                    bool delta = true;
+                    var basename = Path.GetFileName(FileName);
+                    var msg_title = $"Warnning ({basename})";
+                    var msg_content = "Overwrite exists?";
+                    if (msg_title.IsMessagePopup(msg_content)) result = false;
+                    else
+                    {
+                        if (File.Exists(FileName) && (_DownloadBuffer == null || _DownloadBuffer.Length <= 0))
+                        {
+                            delta = new FileInfo(FileName).CreationTime.DeltaNowMillisecond() > setting.DownloadTimeSpan;
+                            if (!delta) result = false;
+                            else if (!(await msg_content.ShowMessageDialog(msg_title, MessageBoxImage.Warning))) { State = DownloadItemState.Finished; result = false; }
+                        }
+                        else if (!File.Exists(FileName) && _DownloadBuffer?.Length > 0) return false;
+                    }
                 }
-                else if (!File.Exists(FileName) && _DownloadBuffer?.Length > 0) return false;
+                else result = false;
             }
-
+            catch {}
+            finally { if (OverwritePromptPopup?.CurrentCount <= 0) OverwritePromptPopup?.Release(); }
             return (result);
         }
         #endregion
@@ -1688,11 +1696,8 @@ namespace PixivWPF.Common
             {
                 var restart = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
                 restart |= await OverwritePrompt(); // Check if file exists and ask for overwrite
-                if (shift && (!IsFinished || restart))
-                {
-                    SaveAsJPEG = !SaveAsJPEG;
-                    Info.SetSaveAsJPEG(SaveAsJPEG);
-                }
+                if (shift && (!IsFinished || restart)) SaveAsJPEG = !SaveAsJPEG;
+                State = DownloadItemState.Idle;
                 AutoStart = true;
                 Canceling = false;
                 Start(continuation, restart);
@@ -1701,11 +1706,7 @@ namespace PixivWPF.Common
             {
                 if (await OverwritePrompt())
                 {
-                    if (shift)
-                    {
-                        SaveAsJPEG = !SaveAsJPEG;
-                        Info.SetSaveAsJPEG(SaveAsJPEG);
-                    }
+                    if (shift) SaveAsJPEG = !SaveAsJPEG;
                     AutoStart = true;
                     Canceling = false;
                     Start(continuation, true); // Check if file exists and ask for overwrite
@@ -1717,11 +1718,7 @@ namespace PixivWPF.Common
                 {
                     if (info is DownloadInfo && !string.IsNullOrEmpty(info.FileName))
                     {
-                        if (new[] { DownloadItemState.Failed, DownloadItemState.Idle, DownloadItemState.Downloading }.Contains(Info.State))
-                        {
-                            SaveAsJPEG = !SaveAsJPEG;
-                            info.SetSaveAsJPEG(SaveAsJPEG);
-                        }
+                        if (new[] { DownloadItemState.Failed, DownloadItemState.Idle, DownloadItemState.Downloading }.Contains(Info.State)) SaveAsJPEG = !SaveAsJPEG;
                     }
                 };
                 if (!IsEnabled || !multiple) action.Invoke(Info);
@@ -1832,7 +1829,6 @@ namespace PixivWPF.Common
                     {
                         Commands.ConvertToJpeg.Execute(info.FileName);
                         info.SaveAsJPEG = true;
-                        info.SetSaveAsJPEG(info.SaveAsJPEG);
                     }
                 };
                 if (!multiple) action.Invoke(Info);
@@ -1846,7 +1842,6 @@ namespace PixivWPF.Common
                     {
                         Commands.ReduceJpeg.Execute(info.FileName);
                         info.SaveAsJPEG = true;
-                        info.SetSaveAsJPEG(info.SaveAsJPEG);
 
                         PART_SaveAsJPEG.IsOn = info.SaveAsJPEG;
                         PART_SaveAsJPEG.IsEnabled = info.State != DownloadItemState.Finished;
@@ -1867,7 +1862,6 @@ namespace PixivWPF.Common
                         var cq = miReduceJpegSizeTo.Tag is App.MenuItemSliderData ? (int)(miReduceJpegSizeTo.Tag as App.MenuItemSliderData).Value : setting.DownloadRecudeJpegQuality;
                         Commands.ReduceJpeg.Execute(new Tuple<string, int>(info.FileName, cq));
                         info.SaveAsJPEG = true;
-                        info.SetSaveAsJPEG(info.SaveAsJPEG);
 
                         PART_SaveAsJPEG.IsOn = info.SaveAsJPEG;
                         PART_SaveAsJPEG.IsEnabled = info.State != DownloadItemState.Finished;

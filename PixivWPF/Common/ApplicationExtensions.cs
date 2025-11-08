@@ -3229,25 +3229,33 @@ namespace PixivWPF.Common
         #region Application Download Manager
         private static DownloadManagerPage _downManager_page = new DownloadManagerPage() { Name = "DownloadManager", AutoStart = true };
 
+        private static SemaphoreSlim OverwritePromptPopup = new SemaphoreSlim(1, 1);
         public static async Task<bool> OverwritePrompt(this Application app, string file)
         {
             var result = true;
-
-            bool delta = true;
-            var basename = Path.GetFileName(file);
-            var msg_title = $"Warnning ({basename})";
-            var msg_content = "Overwrite exists?";
-            if (msg_title.IsMessagePopup(msg_content)) result = false; // { State = DownloadItemState.Finished; Received = Length; return; }
-            else
+            try
             {
-                if (File.Exists(file))
+                if (await OverwritePromptPopup.WaitAsync(0))
                 {
-                    delta = new FileInfo(file).CreationTime.DeltaNowMillisecond() > LoadSetting(app).DownloadTimeSpan ? true : false;
-                    if (!delta) result = false;
-                    else if (!(await msg_content.ShowMessageDialog(msg_title, MessageBoxImage.Warning))) { result = false; }
+                    bool delta = true;
+                    var basename = Path.GetFileName(file);
+                    var msg_title = $"Warnning ({basename})";
+                    var msg_content = "Overwrite exists?";
+                    if (msg_title.IsMessagePopup(msg_content)) result = false; // { State = DownloadItemState.Finished; Received = Length; return; }
+                    else
+                    {
+                        if (File.Exists(file))
+                        {
+                            delta = new FileInfo(file).CreationTime.DeltaNowMillisecond() > LoadSetting(app).DownloadTimeSpan ? true : false;
+                            if (!delta) result = false;
+                            else if (!(await msg_content.ShowMessageDialog(msg_title, MessageBoxImage.Warning))) { result = false; }
+                        }
+                    }
                 }
+                else result = false;
             }
-
+            catch { }
+            finally { if (OverwritePromptPopup?.CurrentCount <= 0) OverwritePromptPopup?.Release(); }
             return (result);
         }
 
