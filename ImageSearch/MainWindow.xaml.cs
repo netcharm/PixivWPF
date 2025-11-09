@@ -1093,7 +1093,7 @@ namespace ImageSearch
             if (dp is not null && dp.ContainsFileDropList())
             {
                 var (ret, count) = await ProcessFileList(dp.GetFileDropList().Cast<string>());
-                if (ret)
+                if (ret && count > 0)
                 {
                     await Dispatcher.InvokeAsync(() =>
                     {
@@ -1103,19 +1103,6 @@ namespace ImageSearch
                             CompareImage_Click(sender, e ?? new RoutedEventArgs());
                     });
                 }
-                //await Dispatcher.InvokeAsync(async () =>
-                //{
-                //    var (ret, count) = await ProcessFileList(dp.GetFileDropList().Cast<string>());
-                //    var similar_target = new object[]{ TabSimilar, SimilarViewer, SimilarResultGallery, SimilarResultGallery, SimilarSrc };
-                //    var compare_target = new object[]{ TabCompare, CompareViewer, CompareBoxL, CompareBoxR, CompareL, CompareR };
-                //    var element = e.Source as FrameworkElement;
-                //    var parent = FindElementWithName(element);
-                //    var ancestor = parent is not null ? FindElementWithName(parent) : null;
-                //    if (similar_target.Contains(element) || similar_target.Contains(parent ?? this) || similar_target.Contains(ancestor ?? this))
-                //        QueryImage_Click(sender, e);
-                //    else if (compare_target.Contains(e.Source) || compare_target.Contains(parent ?? this) || compare_target.Contains(ancestor ?? this))
-                //        CompareImage_Click(sender, e);
-                //});
             }
         }
 
