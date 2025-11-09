@@ -1691,8 +1691,9 @@ namespace ImageSearch
 
         private void Window_PreviewMouseUp(object sender, MouseButtonEventArgs e)
         {
-            if (e.ChangedButton == MouseButton.Middle) //e.MiddleButton == MouseButtonState.Released)
+            if (e.ChangedButton == MouseButton.Middle || e.ChangedButton == MouseButton.XButton1)
             {
+                e.Handled = true;
                 WindowState = WindowState.Minimized;
             }
         }
@@ -2179,13 +2180,14 @@ namespace ImageSearch
             UpdateTabSimilarTooltip();
         }
 
-        //private bool InDrop = false;
+        private bool InDrop = false;
         private void SimilarResultGallery_MouseMove(object sender, MouseEventArgs e)
         {
             try
             {
-                if (e.MiddleButton == MouseButtonState.Pressed || e.XButton1 == MouseButtonState.Pressed)
+                if (!InDrop && (e.MiddleButton == MouseButtonState.Pressed || e.XButton1 == MouseButtonState.Pressed))
                 {
+                    e.Handled = true;
                     var files = new StringCollection();
                     foreach (var item in SimilarResultGallery.SelectedItems)
                     {
@@ -2197,7 +2199,7 @@ namespace ImageSearch
                     }
                     if (files.Count > 0)
                     {
-                        //InDrop = true;
+                        InDrop = true;
                         var dp = new DataObject();
                         dp.SetFileDropList(files);
                         dp.SetData("text/uri-list", files);
@@ -2214,7 +2216,7 @@ namespace ImageSearch
                 }
             }
             catch (Exception ex) { ReportMessage(ex); }
-            finally { /*InDrop = false;*/ }
+            finally { InDrop = false; }
         }
 
         private void SimilarResultGallery_MouseDoubleClick(object sender, MouseButtonEventArgs e)
