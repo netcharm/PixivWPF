@@ -3530,7 +3530,7 @@ namespace ImageViewer
             Icon = new BitmapImage(new Uri("pack://application:,,,/ImageViewer;component/Resources/Image.ico"));
             ToolTipService.SetShowOnDisabled(ImageViewer, false);
             UILanguage.ContextMenu.PlacementTarget = UILanguage;
-            ShowImageInfo.IsChecked = false;
+            ShowImageInfo.IsChecked = true;
             BusyNow.Opacity = 0.66;
             //IndicatorViewer.DisplayAfter = TimeSpan.FromMilliseconds(50);
             SizeChangeAlignCC.IsChecked = true;
@@ -3763,10 +3763,13 @@ namespace ImageViewer
                     }
                     else if (e.Key == Key.I || e.SystemKey == Key.I)
                     {
-                        if (km.OnlyCtrl) 
+                        if (km.OnlyCtrl)
                             ImageViewer.GetInformation().FileName.ShowProperties();
-                        else if (km.None) 
+                        else if (km.None)
+                        {
+                            ShowImageInfo.IsChecked = ShowImageInfo.IsChecked ?? false;
                             ToggleToolTip(ImageInfoBox);
+                        }
                     }
                     else if (e.Key == Key.M || e.SystemKey == Key.M)
                     {
