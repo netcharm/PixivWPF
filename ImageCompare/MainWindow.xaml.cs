@@ -4210,7 +4210,12 @@ namespace ImageCompare
                     }
                     else if (e.Key == Key.I || e.SystemKey == Key.I)
                     {
-                        if (ImageSourceScroll.IsMouseOver) ToggleToolTip(ImageSource);
+                        if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        {
+                            ShowImageInfo.IsChecked = !ShowImageInfo.IsChecked ?? false; 
+                            ToggleToolTipState();
+                        }
+                        else if (ImageSourceScroll.IsMouseOver) ToggleToolTip(ImageSource);
                         else if (ImageTargetScroll.IsMouseOver) ToggleToolTip(ImageTarget);
                         else if (ImageResultScroll.IsMouseOver) ToggleToolTip(ImageResult);
                     }
