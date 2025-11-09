@@ -1679,10 +1679,10 @@ namespace ImageSearch
                 }
                 else if (e.Key == Key.Q && ctrl)
                 {
-                    if (e.Source == TabSimilar)
+                    if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
                     {
                         e.Handled = true;
-                        CompareImage_Click(CompareImage, e);
+                        QueryImage_Click(QueryImage, e);
                     }
                 }
             }
