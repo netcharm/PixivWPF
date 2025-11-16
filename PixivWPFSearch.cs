@@ -115,7 +115,7 @@ namespace netcharm
         }
         #endregion
 
-        #region Public 
+        #region Public
         public static int Show(IEnumerable<string> Filenames)
         {
             StringCollection Files = new StringCollection();
@@ -419,21 +419,24 @@ namespace netcharm
             {
                 var args_alt = Environment.GetCommandLineArgs();
                 var IsExe = args_alt.Length >= 2 && args_alt[1].Equals(args.FirstOrDefault(), StringComparison.CurrentCultureIgnoreCase);
-                var cfgfile = Path.Combine(IsExe ? AppPath : "", "config.json");
+                var cwd = IsExe ? AppPath : "";
+                var cfgfile = Path.Combine(cwd, "config.json");
                 if (File.Exists(cfgfile))
                 {
                     string json = File.ReadAllText(cfgfile);
                     var serializer = new JavaScriptSerializer();
                     MyConfig cfg = serializer.Deserialize<MyConfig>(json);
+                    //Console.WriteLine(cfg.UpgradeFiles.Count());
                     foreach (var f_remote in cfg.UpgradeFiles)
                     {
                         var fn = Path.GetFileName(f_remote);
-                        var f_local = Path.Combine(AppPath, fn);
+                        var f_local = Path.Combine(cwd, fn);
 
                         var fi_local = new FileInfo(f_local);
                         if (!File.Exists(f_remote)) continue;
                         var fi_remote = new FileInfo(f_remote);
 
+                        //Console.WriteLine($"Upgrade File: {f_remote} -> {fi_remote.LastWriteTime}");
                         if (!fi_local.Exists || fi_local.LastWriteTime < fi_remote.LastWriteTime)
                         {
                             result.Add(f_remote, f_local);
@@ -500,6 +503,7 @@ namespace netcharm
                             System.Threading.Tasks.Task.Delay(1000).GetAwaiter().GetResult();
                             wait_count++;
                         }
+                        //Console.WriteLine($"Upgrade File: {f_remote} -> {f_local}");
                         File.Copy(f_remote, f_local, true);
                     }
                 }
@@ -525,7 +529,7 @@ namespace netcharm
             }
         }
 
-        #region Public 
+        #region Public
         public static int ShowPropertiesDialog(IEnumerable<string> Filenames)
         {
             return (ShellProperties.Show(Filenames));

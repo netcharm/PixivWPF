@@ -312,6 +312,11 @@
                     <TextBlock Text="&#xE16F;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <MenuItem x:Uid="ActionCopyIllustTitle" Header="Copy Illust Title" Click="ActionCopyIllustTitle_Click" >
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE16F;" Style="{DynamicResource MenuItemIcon16}"/>
+                </MenuItem.Icon>
+            </MenuItem>
             <MenuItem x:Uid="ActionIllustWebLink" Header="Copy Illust Weblink" Click="ActionCopyWeblink_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE167;" Style="{DynamicResource MenuItemIcon16}"/>

@@ -567,9 +567,14 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void ActionCopyResultIllustID_Click(object sender, RoutedEventArgs e)
+        private void ActionCopyIllustID_Click(object sender, RoutedEventArgs e)
         {
             Commands.CopyArtworkIDs.Execute(ResultItems);
+        }
+
+        private void ActionCopyIllustTitle_Click(object sender, RoutedEventArgs e)
+        {
+            Commands.CopyArtworkTitles.Execute(ResultItems);
         }
 
         private void ActionCopyIllustJSON_Click(object sender, RoutedEventArgs e)

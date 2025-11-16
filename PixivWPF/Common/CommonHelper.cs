@@ -564,6 +564,78 @@ namespace PixivWPF.Common
         public TimeSpan EstimateTime { get { return (Total > 0 && Current >= 0 ? TimeSpan.FromTicks((CurrentTime - LastestTime).Ticks * (Total - Current)) : TimeSpan.FromTicks(0)); } }
     }
 
+    public class EscapeKey
+    {
+        private CancellationTokenSource escape_state = new CancellationTokenSource();
+
+        //private Timer timer = null;
+        private Gma.System.MouseKeyHook.IKeyboardMouseEvents escape_hook;
+
+        public bool IsEscaped { get { return (escape_state?.IsCancellationRequested ?? false); } }
+
+        public EscapeKey()
+        {
+            try
+            {
+                escape_state ??= new CancellationTokenSource();
+                escape_hook ??= Gma.System.MouseKeyHook.Hook.GlobalEvents();
+                escape_hook?.KeyDown += HookKeyDown;
+                //escape_hook?.KeyDown += (o, e) =>
+                //{
+                //    if (e.KeyCode == System.Windows.Forms.Keys.Escape)
+                //    {
+                //        escape_state?.Cancel();                    
+                //    }
+                //};
+
+                //timer = new Timer((o) =>
+                //{
+                //    var keystate = Gma.System.MouseKeyHook.Implementation.KeyboardState.GetCurrent();
+                //    if (keystate.IsDown(System.Windows.Forms.Keys.Escape))
+                //    {
+                //        escape_state?.Cancel();
+                //    }
+                //}, null, 0, 100);
+            }
+            catch (Exception ex) { ex.ERROR("EscapeInit"); }
+        }
+
+        ~EscapeKey()
+        {
+            try
+            {
+                //timer?.Dispose();
+                escape_hook?.KeyDown -= HookKeyDown;
+                escape_hook?.Dispose();
+                escape_state?.Dispose();
+            }
+            catch (Exception ex) { ex.ERROR("EscapeDispose"); }
+        }
+
+        public void Reset()
+        {
+            try
+            {
+                escape_state?.Dispose();
+            }
+            catch (Exception ex) { ex.ERROR("EscapeReset"); }
+        }
+
+        private void HookKeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
+        {
+            try
+            {
+                if (e.KeyCode == System.Windows.Forms.Keys.Escape)
+                {
+                    escape_state ??= new CancellationTokenSource();
+                    escape_state?.Cancel();
+                    this.LOG("Escape Pressed");
+                }
+            }
+            catch (Exception ex) { ex.ERROR("EscapeKeyDown"); }
+        }
+    }
+
     public static class CommonHelper
     {
         private static Setting setting = Application.Current.LoadSetting();

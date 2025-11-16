@@ -581,6 +581,58 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("CopyJson"); }
         });
 
+        public static ICommand CopyArtistIDs { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            var prefix = Keyboard.Modifiers == ModifierKeys.Control ? "uid:" : string.Empty;
+            if (obj is ImageListGrid)
+            {
+                var gallery = obj as ImageListGrid;
+                if (IsNormalGallary(gallery))
+                {
+                    var ids = new  List<string>();
+                    foreach (var item in gallery.GetSelected())
+                    {
+                        var uid = $"{prefix}{item.UserID}";
+                        if (!ids.Contains(uid)) ids.Add(uid);
+                    }
+                    ids.Add("");
+                    CopyText.Execute(string.Join(Environment.NewLine, ids));
+                }
+                else if (IsPagesGallary(gallery))
+                {
+                    var page = gallery.TryFindParent<IllustDetailPage>();
+                    if (page is IllustDetailPage)
+                    {
+                        if (page.Contents is PixivItem)
+                            CopyText.Execute($"{prefix}{page.Contents.UserID}");
+                    }
+                }
+            }
+            else if (obj is PixivItem)
+            {
+                var item = obj as PixivItem;
+                if (item.IsWork())
+                {
+                    CopyText.Execute($"{prefix}{item.UserID}");
+                }
+            }
+            else if (obj is IEnumerable<string>)
+            {
+                var ids = new List<string>();
+                foreach (var s in (obj as IEnumerable<string>))
+                {
+                    var uid = $"{prefix}{s}";
+                    if (!ids.Contains(uid)) ids.Add(uid);
+                }
+                CopyText.Execute(string.Join(Environment.NewLine, ids));
+            }
+            else if (obj is string)
+            {
+                var id = (obj as string).ParseLink().ParseID();
+                if (!string.IsNullOrEmpty(id)) CopyText.Execute($"{prefix}{id}");
+            }
+        });
+
         public static ICommand CopyArtworkIDs { get; } = new DelegateCommand<dynamic>(obj =>
         {
             var prefix = Keyboard.Modifiers == ModifierKeys.Control ? "id:" : string.Empty;
@@ -636,30 +688,31 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand CopyArtistIDs { get; } = new DelegateCommand<dynamic>(obj =>
+        public static ICommand CopyArtworkTitles { get; } = new DelegateCommand<dynamic>(obj =>
         {
-            var prefix = Keyboard.Modifiers == ModifierKeys.Control ? "uid:" : string.Empty;
             if (obj is ImageListGrid)
             {
                 var gallery = obj as ImageListGrid;
                 if (IsNormalGallary(gallery))
                 {
-                    var ids = new  List<string>();
+                    var titles = new  List<string>();
                     foreach (var item in gallery.GetSelected())
                     {
-                        var uid = $"{prefix}{item.UserID}";
-                        if (!ids.Contains(uid)) ids.Add(uid);
+                        if (item.IsWork())
+                        {
+                            var title = item.Illust.Title;
+                            if (!titles.Contains(title)) titles.Add(title);
+                        }
                     }
-                    ids.Add("");
-                    CopyText.Execute(string.Join(Environment.NewLine, ids));
+                    titles.Add("");
+                    CopyText.Execute(string.Join(Environment.NewLine, titles));
                 }
                 else if (IsPagesGallary(gallery))
                 {
                     var page = gallery.TryFindParent<IllustDetailPage>();
-                    if (page is IllustDetailPage)
+                    if (page is IllustDetailPage && page.Contents is PixivItem && page.Contents.IsWork())
                     {
-                        if (page.Contents is PixivItem)
-                            CopyText.Execute($"{prefix}{page.Contents.UserID}");
+                        CopyText.Execute(page.Contents.Illust.Title);
                     }
                 }
             }
@@ -668,23 +721,22 @@ namespace PixivWPF.Common
                 var item = obj as PixivItem;
                 if (item.IsWork())
                 {
-                    CopyText.Execute($"{prefix}{item.UserID}");
+                    CopyText.Execute(item.Illust.Title);
                 }
             }
             else if (obj is IEnumerable<string>)
             {
-                var ids = new List<string>();
+                var title = new List<string>();
                 foreach (var s in (obj as IEnumerable<string>))
                 {
-                    var uid = $"{prefix}{s}";
-                    if (!ids.Contains(uid)) ids.Add(uid);
+                    if (!title.Contains(s)) title.Add(s);
                 }
-                CopyText.Execute(string.Join(Environment.NewLine, ids));
+                CopyText.Execute(string.Join(Environment.NewLine, title));
             }
             else if (obj is string)
             {
-                var id = (obj as string).ParseLink().ParseID();
-                if (!string.IsNullOrEmpty(id)) CopyText.Execute($"{prefix}{id}");
+                var title = (obj as string).ParseLink().ParseID();
+                if (!string.IsNullOrEmpty(title)) CopyText.Execute(title);
             }
         });
 
@@ -1474,14 +1526,14 @@ namespace PixivWPF.Common
                 }
                 else if (obj is IEnumerable<Pixeez.Objects.Work>)
                 {
+                    var escape = new EscapeKey();
                     var works = obj as IEnumerable<Pixeez.Objects.Work>;
-                    foreach (var work in works.Distinct()) OpenWork.Execute(work);
+                    foreach (var work in works.Distinct()) { if (escape.IsEscaped) break; OpenWork.Execute(work); }
                 }
                 else if (obj is PixivItem)
                 {
                     var item = obj as PixivItem;
-                    if (item.IsWork())
-                        OpenWork.Execute(item.Illust);
+                    if (item.IsWork()) OpenWork.Execute(item.Illust);
                 }
                 else if (obj is ImageListGrid)
                 {
@@ -1495,8 +1547,10 @@ namespace PixivWPF.Common
                         var gallery = obj as IList<PixivItem>;
                         if (gallery.Count() > 0 && ParallelExecutionConfirm(gallery))
                         {
+                            var escape = new EscapeKey();
                             foreach (var item in gallery.Distinct())
                             {
+                                if (escape.IsEscaped) break;
                                 await new Action(async () =>
                                 {
                                     OpenWork.Execute(item);
@@ -2382,8 +2436,10 @@ namespace PixivWPF.Common
         {
             if (obj is IEnumerable<PixivItem>)
             {
+                var escape = new EscapeKey();
                 foreach (var item in (obj as IEnumerable<PixivItem>))
                 {
+                    if (escape.IsEscaped) break;
                     OpenItem.Execute(obj);
                 }
             }
@@ -2629,18 +2685,13 @@ namespace PixivWPF.Common
             }
             else if (obj is IEnumerable<string>)
             {
-                await new Action(async () =>
+                await new Action(() =>
                 {
+                    var escape = new EscapeKey();
                     foreach (var link in obj as IEnumerable<string>)
                     {
-                        try
-                        {
-                            await new Action(() =>
-                            {
-                                OpenSearch.Execute(link);
-                            }).InvokeAsync();
-                        }
-                        catch (Exception ex) { ex.ShowExceptionToast(tag: "OpenSearch"); }
+                        if (escape.IsEscaped) break;
+                        OpenSearch.Execute(link);
                     }
                 }).InvokeAsync();
             }

@@ -390,6 +390,11 @@ namespace PixivWPF.Pages
             Commands.CopyArtworkIDs.Execute(HistoryItems);
         }
 
+        private void ActionCopyIllustTitle_Click(object sender, RoutedEventArgs e)
+        {
+            Commands.CopyArtworkTitles.Execute(HistoryItems);
+        }
+
         private void ActionCopyIllustJSON_Click(object sender, RoutedEventArgs e)
         {
             Commands.CopyJson.Execute(HistoryItems);

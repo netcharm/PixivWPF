@@ -5313,6 +5313,37 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(); }
         }
 
+        private void ActionCopyIllustTitle_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (sender is MenuItem)
+                {
+                    var host = (sender as MenuItem).GetContextMenuHost();
+                    if (host == SubIllustsExpander || host == SubIllusts)
+                    {
+                        if (Contents.IsWork())
+                        {
+                            Commands.CopyArtworkTitles.Execute(Contents);
+                        }
+                    }
+                    else if (host == RelatedItemsExpander || host == RelatedItems)
+                    {
+                        Commands.CopyArtworkTitles.Execute(RelatedItems);
+                    }
+                    else if (host == FavoriteItemsExpander || host == FavoriteItems)
+                    {
+                        Commands.CopyArtworkTitles.Execute(FavoriteItems);
+                    }
+                    else if (host == CommentsExpander || host == IllustCommentsHost)
+                    {
+
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+        }
+
         private void ActionCopyWeblink_Click(object sender, RoutedEventArgs e)
         {
             UpdateLikeState();

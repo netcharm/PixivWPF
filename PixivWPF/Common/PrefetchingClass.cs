@@ -26,6 +26,8 @@ namespace PixivWPF.Common
 
     class PrefetchingTask : IDisposable
     {
+        private EscapeKey escape = new EscapeKey();
+        
         private CancellationTokenSource PrefetchingTaskCancelTokenSource = new CancellationTokenSource();
         private readonly SemaphoreSlim CanPrefetching = new SemaphoreSlim(1, 1);
         private BackgroundWorker PrefetchingBgWorker = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
@@ -69,6 +71,7 @@ namespace PixivWPF.Common
             int result = 0;
             foreach (var item in items)
             {
+                if (escape.IsEscaped) break;
                 if (item.IsPage() || item.IsPages())
                     result += Options.IncludePagePreview ? 2 : 1;
                 else if (item.IsWork() && item.Count > 1)
@@ -100,6 +103,7 @@ namespace PixivWPF.Common
                                 {
                                     foreach (var page in subset.meta_pages)
                                     {
+                                        if (escape.IsEscaped) break;
                                         pages.Add(page.GetThumbnailUrl());
                                     }
                                 }
@@ -117,6 +121,7 @@ namespace PixivWPF.Common
                                     item.Illust = illust;
                                     foreach (var page in illust.Metadata.Pages)
                                     {
+                                        if (escape.IsEscaped) break;
                                         pages.Add(page.GetThumbnailUrl());
                                     }
                                 }
@@ -154,6 +159,7 @@ namespace PixivWPF.Common
                                 {
                                     foreach (var page in subset.meta_pages)
                                     {
+                                        if (escape.IsEscaped) break;
                                         pages.Add(page.GetPreviewUrl());
                                     }
                                 }
@@ -171,6 +177,7 @@ namespace PixivWPF.Common
                                     item.Illust = illust;
                                     foreach (var page in illust.Metadata.Pages)
                                     {
+                                        if (escape.IsEscaped) break;
                                         pages.Add(page.GetPreviewUrl());
                                     }
                                 }
@@ -208,6 +215,7 @@ namespace PixivWPF.Common
                                 {
                                     foreach (var page in subset.meta_pages)
                                     {
+                                        if (escape.IsEscaped) break;
                                         pages.Add(page.GetOriginalUrl());
                                     }
                                 }
@@ -225,6 +233,7 @@ namespace PixivWPF.Common
                                     item.Illust = illust;
                                     foreach (var page in illust.Metadata.Pages)
                                     {
+                                        if (escape.IsEscaped) break;
                                         pages.Add(page.GetOriginalUrl());
                                     }
                                 }
@@ -251,6 +260,7 @@ namespace PixivWPF.Common
                         var items = Items.ToList();
                         foreach (var item in items)
                         {
+                            if (escape.IsEscaped) break;
                             if (item.IsPage() || item.IsPages())
                             {
                                 originals.Add(item.Illust.GetOriginalUrl(item.Index));
@@ -325,6 +335,10 @@ namespace PixivWPF.Common
                         {
                             try
                             {
+                                if (escape.IsEscaped) { e.Cancel = true; loopstate.Stop(); }
+                                if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; loopstate.Stop(); }
+                                if (PrefetchingTaskCancelTokenSource.IsCancellationRequested) { e.Cancel = true; loopstate.Stop(); }
+
                                 var size = url.QueryImageFileSize(cancelToken: PrefetchingTaskCancelTokenSource).GetAwaiter().GetResult();
                                 if (size > 0)
                                 {
@@ -343,8 +357,10 @@ namespace PixivWPF.Common
                         SemaphoreSlim tasks = new SemaphoreSlim(parallels, parallels);
                         foreach (var url in originals)
                         {
+                            if (escape.IsEscaped) { e.Cancel = true; break; }
                             if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; break; }
                             if (PrefetchingTaskCancelTokenSource.IsCancellationRequested) { e.Cancel = true; break; }
+
                             if (tasks.Wait(-1, PrefetchingTaskCancelTokenSource.Token))
                             {
                                 new Action(async () =>
@@ -428,12 +444,16 @@ namespace PixivWPF.Common
                 if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                 else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
 
+                escape ??= new EscapeKey();
+                escape?.Reset();
+                
                 needUpdate.AddRange(args.ReverseOrder ? illusts.Reverse<string>() : illusts);
                 needUpdate.AddRange(args.ReverseOrder ? avatars.Reverse<string>() : avatars);
                 needUpdate.AddRange(args.ReverseOrder ? page_thumbs.Reverse<string>() : page_thumbs);
                 needUpdate.AddRange(args.ReverseOrder ? page_previews.Reverse<string>() : page_previews);
                 foreach (var url in needUpdate.Where(url => !string.IsNullOrEmpty(url) && !PrefetchedList.ContainsKey(url) && File.Exists(url.GetImageCachePath())))
                 {
+                    if (escape.IsEscaped) break;
                     PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
                     //if (!PrefetchedList.TryAdd(url, true)) PrefetchedList.TryUpdate(url, true, false);
                 }
@@ -490,7 +510,10 @@ namespace PixivWPF.Common
                                     else file.CleenLastDownloaded();
                                 }
                             }
+
+                            if (escape.IsEscaped) { e.Cancel = true; loopstate.Stop(); }
                             if (PrefetchingBgWorker != null && PrefetchingBgWorker.CancellationPending) { e.Cancel = true; State = TaskStatus.Canceled; loopstate?.Stop(); }
+                            
                             Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
                             Comments = $"Prefetching [ {count} / {total}, I:{illusts.Count} / A:{avatars.Count} / T:{page_thumbs.Count} / P:{page_previews.Count} ]";
                             State = TaskStatus.Running;
@@ -509,6 +532,7 @@ namespace PixivWPF.Common
                     SemaphoreSlim tasks = new SemaphoreSlim(parallels, parallels);
                     foreach (var url in needUpdate)
                     {
+                        if (escape.IsEscaped) { e.Cancel = true; break; }
                         if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; break; }
                         if (PrefetchingTaskCancelTokenSource.IsCancellationRequested) { e.Cancel = true; break; }
                         if (tasks.Wait(-1, PrefetchingTaskCancelTokenSource.Token))
