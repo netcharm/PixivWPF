@@ -1526,7 +1526,7 @@ namespace PixivWPF.Common
                 }
                 else if (obj is IEnumerable<Pixeez.Objects.Work>)
                 {
-                    var escape = new EscapeKey();
+                    var escape = new EscapeKey("OpenWork");
                     var works = obj as IEnumerable<Pixeez.Objects.Work>;
                     foreach (var work in works.Distinct()) { if (escape.IsEscaped) break; OpenWork.Execute(work); }
                 }
@@ -1547,7 +1547,7 @@ namespace PixivWPF.Common
                         var gallery = obj as IList<PixivItem>;
                         if (gallery.Count() > 0 && ParallelExecutionConfirm(gallery))
                         {
-                            var escape = new EscapeKey();
+                            var escape = new EscapeKey("OpenWork");
                             foreach (var item in gallery.Distinct())
                             {
                                 if (escape.IsEscaped) break;
@@ -2436,7 +2436,7 @@ namespace PixivWPF.Common
         {
             if (obj is IEnumerable<PixivItem>)
             {
-                var escape = new EscapeKey();
+                var escape = new EscapeKey("Open");
                 foreach (var item in (obj as IEnumerable<PixivItem>))
                 {
                     if (escape.IsEscaped) break;
@@ -2687,7 +2687,7 @@ namespace PixivWPF.Common
             {
                 await new Action(() =>
                 {
-                    var escape = new EscapeKey();
+                    var escape = new EscapeKey("OpenSearch");
                     foreach (var link in obj as IEnumerable<string>)
                     {
                         if (escape.IsEscaped) break;

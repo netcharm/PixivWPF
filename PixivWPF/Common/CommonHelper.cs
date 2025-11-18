@@ -573,10 +573,16 @@ namespace PixivWPF.Common
 
         public bool IsEscaped { get { return (escape_state?.IsCancellationRequested ?? false); } }
 
-        public EscapeKey()
+        public string Title { get; private set; } = string.Empty;
+        public string Description { get; private set; } = string.Empty;
+
+        public EscapeKey(string title = null, string description = null)
         {
             try
             {
+                Title = string.IsNullOrEmpty(title) ? string.Empty : title;
+                Description = string.IsNullOrEmpty(description) ? string.Empty : description;
+                
                 escape_state ??= new CancellationTokenSource();
                 escape_hook ??= Gma.System.MouseKeyHook.Hook.GlobalEvents();
                 escape_hook?.KeyDown += HookKeyDown;
@@ -597,7 +603,7 @@ namespace PixivWPF.Common
                 //    }
                 //}, null, 0, 100);
             }
-            catch (Exception ex) { ex.ERROR("EscapeInit"); }
+            catch (Exception ex) { ex.ERROR($"EscapeInit_{Title}"); }
         }
 
         ~EscapeKey()
@@ -609,7 +615,7 @@ namespace PixivWPF.Common
                 escape_hook?.Dispose();
                 escape_state?.Dispose();
             }
-            catch (Exception ex) { ex.ERROR("EscapeDispose"); }
+            catch (Exception ex) { ex.ERROR($"EscapeDispose_{Title}"); }
         }
 
         public void Reset()
@@ -618,21 +624,22 @@ namespace PixivWPF.Common
             {
                 escape_state?.Dispose();
             }
-            catch (Exception ex) { ex.ERROR("EscapeReset"); }
+            catch (Exception ex) { ex.ERROR($"EscapeReset_{Title}"); }
         }
 
         private void HookKeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
         {
             try
             {
-                if (e.KeyCode == System.Windows.Forms.Keys.Escape)
+                if (e.KeyCode == System.Windows.Forms.Keys.Escape && !IsEscaped)
                 {
+                    e.Handled = true;
                     escape_state ??= new CancellationTokenSource();
                     escape_state?.Cancel();
-                    this.LOG("Escape Pressed");
+                    $"Escape Key Pressed State = {IsEscaped}".LOG(tag: Title);
                 }
             }
-            catch (Exception ex) { ex.ERROR("EscapeKeyDown"); }
+            catch (Exception ex) { ex.ERROR($"EscapeKeyDown_{Title}"); }
         }
     }
 
@@ -2735,24 +2742,14 @@ namespace PixivWPF.Common
             int san = 2;
             if (int.TryParse(sanity, out san))
             {
-                switch (sanity)
+                age = sanity switch
                 {
-                    case "3":
-                        age = "12+";
-                        break;
-                    case "4":
-                        age = "15+";
-                        break;
-                    case "5":
-                        age = "17+";
-                        break;
-                    case "6":
-                        age = "18+";
-                        break;
-                    default:
-                        age = "all";
-                        break;
-                }
+                    "3" => "12+",
+                    "4" => "15+",
+                    "5" => "17+",
+                    "6" => "18+",
+                    _   => "all",
+                };
             }
             else
             {
@@ -7325,32 +7322,16 @@ namespace PixivWPF.Common
 
             var ContentType = string.Empty;
             var ext = Path.GetExtension(url).ToLower();
-            switch (ext)
+            ContentType = ext switch
             {
-                case ".jpeg":
-                case ".jpg":
-                    ContentType = "image/jpeg";
-                    break;
-                case ".png":
-                    ContentType = "image/png";
-                    break;
-                case ".bmp":
-                    ContentType = "image/bmp";
-                    break;
-                case ".gif":
-                    ContentType = "image/gif";
-                    break;
-                case ".webp":
-                    ContentType = "image/webp";
-                    break;
-                case ".tiff":
-                case ".tif":
-                    ContentType = "image/tiff";
-                    break;
-                default:
-                    ContentType = "application/octet-stream";
-                    break;
-            }
+                ".jpeg" or ".jpg" => "image/jpeg",
+                ".png" => "image/png",
+                ".bmp" => "image/bmp",
+                ".gif" => "image/gif",
+                ".webp" => "image/webp",
+                ".tiff" or ".tif" => "image/tiff",
+                _ => "application/octet-stream",
+            };
             try
             {
                 var dpi = DPI.Default;
@@ -7436,45 +7417,17 @@ namespace PixivWPF.Common
             {
                 if (string.IsNullOrEmpty(fmt)) fmt = ".png";
                 dynamic encoder = null;
-                switch (fmt)
+                encoder = fmt switch
                 {
-                    case "image/bmp":
-                    case "image/bitmap":
-                    case "CF_BITMAP":
-                    case "CF_DIB":
-                    case ".bmp":
-                        encoder = new BmpBitmapEncoder();
-                        break;
-                    case "image/gif":
-                    case "gif":
-                    case ".gif":
-                        encoder = new GifBitmapEncoder();
-                        break;
-                    case "image/png":
-                    case "png":
-                    case ".png":
-                        encoder = new PngBitmapEncoder();
-                        break;
-                    case "image/jpg":
-                    case ".jpg":
-                        encoder = new JpegBitmapEncoder();
-                        break;
-                    case "image/jpeg":
-                    case ".jpeg":
-                        encoder = new JpegBitmapEncoder();
-                        break;
-                    case "image/tif":
-                    case ".tif":
-                        encoder = new TiffBitmapEncoder();
-                        break;
-                    case "image/tiff":
-                    case ".tiff":
-                        encoder = new TiffBitmapEncoder();
-                        break;
-                    default:
-                        encoder = new PngBitmapEncoder();
-                        break;
-                }
+                    "image/bmp" or "image/bitmap" or "CF_BITMAP" or "CF_DIB" or ".bmp" => new BmpBitmapEncoder(),
+                    "image/gif" or "gif" or ".gif" => new GifBitmapEncoder(),
+                    "image/png" or "png" or ".png" => new PngBitmapEncoder(),
+                    "image/jpg" or ".jpg" => new JpegBitmapEncoder(),
+                    "image/jpeg" or ".jpeg" => new JpegBitmapEncoder(),
+                    "image/tif" or ".tif" => new TiffBitmapEncoder(),
+                    "image/tiff" or ".tiff" => new TiffBitmapEncoder(),
+                    _ => new PngBitmapEncoder(),
+                };
                 encoder.Frames.Add(BitmapFrame.Create(bitmap));
                 encoder.Save(result);
                 await result.FlushAsync();
@@ -11734,24 +11687,14 @@ namespace PixivWPF.Common
         private static TaskDialog MakeTaskDialog(string title, string content, MessageBoxImage image, TaskDialogStandardButtons buttons)
         {
             var dlg_icon = TaskDialogStandardIcon.Information;
-            switch (image)
+            dlg_icon = image switch
             {
-                case MessageBoxImage.Error:
-                    dlg_icon = TaskDialogStandardIcon.Error;
-                    break;
-                case MessageBoxImage.Information:
-                    dlg_icon = TaskDialogStandardIcon.Information;
-                    break;
-                case MessageBoxImage.Warning:
-                    dlg_icon = TaskDialogStandardIcon.Warning;
-                    break;
-                case MessageBoxImage.Question:
-                    dlg_icon = TaskDialogStandardIcon.Shield;
-                    break;
-                default:
-                    dlg_icon = TaskDialogStandardIcon.None;
-                    break;
-            }
+                MessageBoxImage.Error => TaskDialogStandardIcon.Error,
+                MessageBoxImage.Information => TaskDialogStandardIcon.Information,
+                MessageBoxImage.Warning => TaskDialogStandardIcon.Warning,
+                MessageBoxImage.Question => TaskDialogStandardIcon.Shield,
+                _ => TaskDialogStandardIcon.None,
+            };
             var dlg_btns = TaskDialogStandardButtons.Ok;
             var dlg = new TaskDialog()
             {

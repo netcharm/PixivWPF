@@ -26,7 +26,7 @@ namespace PixivWPF.Common
 
     class PrefetchingTask : IDisposable
     {
-        private EscapeKey escape = new EscapeKey();
+        private EscapeKey escape = new EscapeKey("PrefetchingTask");
         
         private CancellationTokenSource PrefetchingTaskCancelTokenSource = new CancellationTokenSource();
         private readonly SemaphoreSlim CanPrefetching = new SemaphoreSlim(1, 1);
@@ -444,7 +444,7 @@ namespace PixivWPF.Common
                 if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                 else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
 
-                escape ??= new EscapeKey();
+                escape ??= new EscapeKey("PrefetchingTask");
                 escape?.Reset();
                 
                 needUpdate.AddRange(args.ReverseOrder ? illusts.Reverse<string>() : illusts);
