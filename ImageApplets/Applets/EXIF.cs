@@ -213,7 +213,9 @@ namespace ImageApplets.Applets
                         else if ((TagType == ExifTagType.Undefined) && (TagSpec == ExifTag.UserComment))
                         {
                             exif.GetTagValue(TagSpec, out s, StrCoding.IdCode_Utf16);
-                            s.Trim('\0').TrimEnd();
+                            //exif.GetTagRawData(TagSpec, out TagType, out ValueCount, out TagData);
+
+                            s = s.Trim('\0').TrimEnd();
                         }
                         else if ((TagType == ExifTagType.Undefined) && ((TagSpec == ExifTag.ExifVersion) || (TagSpec == ExifTag.FlashPixVersion) ||
                                  (TagSpec == ExifTag.InteroperabilityVersion)))
@@ -396,8 +398,8 @@ namespace ImageApplets.Applets
                     var states = GetSanityAI(exif);
                     var state = states.Length > 0 ? string.Join(", ", states).Trim() : string.Empty;
 
-                    var comments = GetUnicodeString(exif, ExifTag.XpComment, raw: true);
-                    if (string.IsNullOrEmpty(comments)) GetUnicodeString(exif, ExifTag.UserComment, id: true);
+                    var comments = GetUnicodeString(exif, ExifTag.XpComment, raw: true).Trim();
+                    if (string.IsNullOrEmpty(comments)) comments = GetUnicodeString(exif, ExifTag.UserComment, id: true).Trim();
 
                     var artist = GetUnicodeString(exif, ExifTag.XpAuthor, raw: true);
                     if (string.IsNullOrEmpty(artist)) artist = GetUTF8String(exif, ExifTag.Artist);
@@ -806,7 +808,7 @@ namespace ImageApplets.Applets
                         foreach (var attr in cats_exif)
                         {
                             var value = GetTagValue(exif, attr);
-                            if (!string.IsNullOrEmpty(value)) sb.AppendLine($"{padding}{attr} = {(_MaxLength_ > 0 ? value.Substring(0, _MaxLength_) : value)}");
+                            if (!string.IsNullOrEmpty(value)) sb.AppendLine($"{padding}{attr} = {(_MaxLength_ > 0 && value.Length > _MaxLength_ ? value.Substring(0, _MaxLength_) : value)}");
                         }
                         status = sb.ToString().Trim();
                         #endregion
