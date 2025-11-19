@@ -25,9 +25,7 @@ namespace PixivWPF.Common
     }
 
     class PrefetchingTask : IDisposable
-    {
-        private EscapeKey escape = new EscapeKey("PrefetchingTask");
-        
+    {       
         private CancellationTokenSource PrefetchingTaskCancelTokenSource = new CancellationTokenSource();
         private readonly SemaphoreSlim CanPrefetching = new SemaphoreSlim(1, 1);
         private BackgroundWorker PrefetchingBgWorker = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
@@ -65,6 +63,8 @@ namespace PixivWPF.Common
 
         public Action<double, string, TaskStatus> ReportProgress { get; set; } = null;
         public Action ReportProgressSlim { get; set; } = null;
+
+        private EscapeKey escape = new EscapeKey("PrefetchingTask");
 
         private int CalcPagesThumbItems(IEnumerable<PixivItem> items)
         {
@@ -418,7 +418,7 @@ namespace PixivWPF.Common
         }
 
         private void PrefetchingTask_DoWork(object sender, DoWorkEventArgs e)
-        {
+        {            
             List<string> illusts = new List<string>();
             List<string> originals = new List<string>();
             List<string> avatars = new List<string>();
@@ -429,6 +429,9 @@ namespace PixivWPF.Common
             {
                 var args = e.Argument is PrefetchingOpts ? e.Argument as PrefetchingOpts : new PrefetchingOpts();
                 if (!args.PrefetchingPreview) return;
+
+                escape ??= new EscapeKey("PrefetchingTask");
+                escape?.Reset();
 
                 LastStartTime = DateTime.Now;
                 var pagesCount = CalcPagesThumbItems(Items);
@@ -444,9 +447,6 @@ namespace PixivWPF.Common
                 if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                 else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
 
-                escape ??= new EscapeKey("PrefetchingTask");
-                escape?.Reset();
-                
                 needUpdate.AddRange(args.ReverseOrder ? illusts.Reverse<string>() : illusts);
                 needUpdate.AddRange(args.ReverseOrder ? avatars.Reverse<string>() : avatars);
                 needUpdate.AddRange(args.ReverseOrder ? page_thumbs.Reverse<string>() : page_thumbs);
@@ -609,12 +609,13 @@ namespace PixivWPF.Common
                     if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                     else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
                     this.DoEvents();
-                    illusts.Clear();
-                    avatars.Clear();
-                    page_thumbs.Clear();
-                    page_previews.Clear();
-                    originals.Clear();
-                    needUpdate.Clear();
+                    illusts?.Clear();
+                    avatars?.Clear();
+                    page_thumbs?.Clear();
+                    page_previews?.Clear();
+                    originals?.Clear();
+                    needUpdate?.Clear();
+                    escape?.Reset();
                 }
                 catch (Exception ex) { ex.ERROR("PREFETCHED"); }
                 if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();

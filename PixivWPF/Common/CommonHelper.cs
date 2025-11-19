@@ -626,6 +626,8 @@ namespace PixivWPF.Common
             }
             catch (Exception ex) { ex.ERROR($"EscapeReset_{Title}"); }
         }
+        
+        public void Clear() => Reset();
 
         private void HookKeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
         {
