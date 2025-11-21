@@ -191,7 +191,7 @@ namespace ImageAppletsCLI
                 }
             }
         }
-        
+
         private static void RunApplet(ImageApplets.Applet applet, int padding, params string[] extras)
         {
             try
@@ -207,16 +207,10 @@ namespace ImageAppletsCLI
                         if (is_contents) result = (result as string).Substring(1).Trim();
                         if (!Console.IsOutputRedirected || applet.Verbose)
                         {
-                            if (is_contents)
-                                Console.Out.WriteLine($"{"".PadRightCJK(Math.Max(padding, 1))} : {$"{result}"}");
-                            else
-                                Console.Out.WriteLine($"{"".PadRightCJK(Math.Max(padding, 1))} : {($"{result}").PadLeft(5)}");
+                            Console.Out.WriteLine("".PadRightCJK(Math.Max(padding, 1)) + " : " + (is_contents ? result : $"{result}".PadLeft(5)));
                         }
 
-                        if (is_contents)
-                            _log_.Add($"{"".PadRightCJK(Math.Max(padding, 1))} : {$"{result}"}");
-                        else
-                            _log_.Add($"{"".PadRightCJK(Math.Max(padding, 1))} : {($"{result}").PadLeft(5)}");
+                        _log_.Add("".PadRightCJK(Math.Max(padding, 1)) + " : " + (is_contents ? result : $"{result}".PadLeft(5)));
                     }
                 }
             }
@@ -231,7 +225,6 @@ namespace ImageAppletsCLI
                     }
                 }
             }
-
         }
 
         private static void RunApplet(string file, ImageApplets.Applet applet, int padding, params string[] extras)
@@ -251,10 +244,7 @@ namespace ImageAppletsCLI
                         if (is_contents) result = (result as string).Substring(1).Trim();
                         if (!Console.IsOutputRedirected || applet.Verbose)
                         {
-                            if (is_contents)
-                                Console.Out.WriteLine($"{fname.PadRightCJK(Math.Max(padding, 1))} : {$"{result}"}");
-                            else
-                                Console.Out.WriteLine($"{fname.PadRightCJK(Math.Max(padding, 1))} : {($"{result}").PadLeft(5)}");
+                            Console.Out.WriteLine(fname.PadRightCJK(Math.Max(padding, 1)) + " : " + (is_contents ? result : $"{result}".PadLeft(5)));
                         }
                         else
                             Console.Out.WriteLine($"{fname}");
@@ -262,10 +252,7 @@ namespace ImageAppletsCLI
                         if (!(_flist_out_ is List<string>)) _flist_out_ = new List<string>();
                         _flist_out_.Add(fname);
 
-                        if (is_contents)
-                            _log_.Add($"{fname.PadRightCJK(Math.Max(padding, 1))} : {$"{result}"}");
-                        else
-                            _log_.Add($"{fname.PadRightCJK(Math.Max(padding, 1))} : {($"{result}").PadLeft(5)}");
+                        _log_.Add(fname.PadRightCJK(Math.Max(padding, 1)) + " : " + (is_contents ? result : $"{result}".PadLeft(5)));
                     }
                 }
             }
@@ -366,10 +353,14 @@ namespace ImageAppletsCLI
             {
                 using (var sw = new StringWriter())
                 {
-                    Console.WriteLine($"Usage: {AppName} <Applet> [OPTIONS]+ <ImageFile(s)>");
+                    var applet_names = ImageApplets.Applet.GetApplets();
+                    if (string.IsNullOrEmpty(applet_name))
+                        Console.WriteLine($"Usage: {AppName} <Applet> [OPTIONS]+ <ImageFile(s)>");
+                    else
+                        Console.WriteLine($"Usage: {AppName} <{applet_name}> [OPTIONS]+ <ImageFile(s)>");
+                    
                     Console.WriteLine("Options:");
                     Options.WriteOptionDescriptions(sw);
-                    var applet_names = ImageApplets.Applet.GetApplets();
                     if (applet_names.Count() > 0)
                     {
                         sw.WriteLine($"".PadRightCJK(LINE_COUNT, '='));
