@@ -25,7 +25,7 @@ namespace ImageApplets.Applets
         public override bool Execute<T>(ExifData exif, out T result, params object[] args)
         {
             var ret = false;
-            result = default(T);
+            result = default;
             try
             {
                 Result.Reset();
@@ -34,6 +34,41 @@ namespace ImageApplets.Applets
                     var status = false;
                     if (exif.ImageFileBlockExists(ImageFileBlock.Exif)) status = true;
                     else if (exif.ImageFileBlockExists(ImageFileBlock.Xmp)) status = true;
+
+                    ret = GetReturnValueByStatus(status);
+                    result = (T)(object)status;
+                }
+                Result.Set(InputFile, OutputFile, ret, result);
+            }
+            catch (Exception ex) { ShowMessage(ex, Name); }
+            return (ret);
+        }
+    }
+
+    class NoExif : Applet
+    {
+        public override Applet GetApplet()
+        {
+            return (new NoExif());
+        }
+
+        public NoExif()
+        {
+            Category = AppletCategory.ImageContent;
+        }
+
+        public override bool Execute<T>(ExifData exif, out T result, params object[] args)
+        {
+            var ret = true;
+            result = default;
+            try
+            {
+                Result.Reset();
+                if (exif != null)
+                {
+                    var status = true;
+                    if (exif.ImageFileBlockExists(ImageFileBlock.Exif)) status = false;
+                    else if (exif.ImageFileBlockExists(ImageFileBlock.Xmp)) status = false;
 
                     ret = GetReturnValueByStatus(status);
                     result = (T)(object)status;

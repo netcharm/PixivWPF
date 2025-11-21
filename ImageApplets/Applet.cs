@@ -1,18 +1,19 @@
-﻿using System;
+﻿using CompactExifLib;
+using Mono.Options;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Globalization;
-using System.Linq;
-using System.Text;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-
-using Mono.Options;
-using CompactExifLib;
 
 namespace ImageApplets
 {
@@ -223,6 +224,64 @@ namespace ImageApplets
                 return (src < dst * (1.0 - tolrence) || src > dst * (1.0 + tolrence));
         }
 
+        #endregion
+
+        #region image bitmap helper
+        static public Color[] GetMatrix(this Bitmap bmp, int x, int y, int w, int h)
+        {
+            var ret = new List<Color>();
+            if (bmp is Bitmap)
+            {
+                //var data = bmp.LockBits(new Rectangle(x, y, w, h), ImageLockMode.ReadOnly, bmp.PixelFormat);
+                for (var i = x; i < x + w; i++)
+                {
+                    for (var j = y; j < y + h; j++)
+                    {
+                        if (i < bmp.Width && j < bmp.Height)
+                            ret.Add(bmp.GetPixel(i, j));
+                    }
+                }
+                //bmp.UnlockBits(data);
+            }
+            return (ret.ToArray());
+        }
+
+        static public bool GuessAlpha(this Image image, int win_size, int threshold)
+        {
+            var status = false;
+            try
+            {
+                if (image is Image && (image.RawFormat.Guid.Equals(ImageFormat.Png.Guid) || image.RawFormat.Guid.Equals(ImageFormat.Tiff.Guid)))
+                {
+                    if (image.PixelFormat == PixelFormat.Format32bppArgb) { status = true; }
+                    else if (image.PixelFormat == PixelFormat.Format32bppPArgb) { status = true; }
+                    else if (image.PixelFormat == PixelFormat.Format16bppArgb1555) { status = true; }
+                    else if (image.PixelFormat == PixelFormat.Format64bppArgb) { status = true; }
+                    else if (image.PixelFormat == PixelFormat.Format64bppPArgb) { status = true; }
+                    else if (image.PixelFormat == PixelFormat.PAlpha) { status = true; }
+                    else if (image.PixelFormat == PixelFormat.Alpha) { status = true; }
+                    else if (Image.IsAlphaPixelFormat(image.PixelFormat)) { status = true; }
+
+                    if (status)
+                    {
+                        var bmp = new Bitmap(image);
+                        var w = bmp.Width;
+                        var h = bmp.Height;
+                        var m = win_size;
+                        var mt = Math.Ceiling(m * m / 2.0);
+                        var lt = bmp?.GetMatrix(0, 0, m, m).Count(c => c.A < threshold);
+                        var rt = bmp?.GetMatrix(w - m, 0, m, m).Count(c => c.A < threshold);
+                        var lb = bmp?.GetMatrix(0, h - m, m, m).Count(c => c.A < threshold);
+                        var rb = bmp?.GetMatrix(w - m, h - m, m, m).Count(c => c.A < threshold);
+                        var ct = bmp?.GetMatrix((int)(w / 2.0 - m / 2.0) , (int)(h / 2.0 - m / 2.0), m, m).Count(c => c.A < threshold);
+                        status = (lt > mt || rt > mt || lb > mt || rb > mt || ct > mt);
+                    }
+                }
+            }
+            catch { }
+            //catch (Exception ex) {}
+            return (status);
+        }
         #endregion
     }
 
