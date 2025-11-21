@@ -1,6 +1,4 @@
-﻿using CompactExifLib;
-using Mono.Options;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -14,6 +12,9 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+
+using CompactExifLib;
+using Mono.Options;
 
 namespace ImageApplets
 {
