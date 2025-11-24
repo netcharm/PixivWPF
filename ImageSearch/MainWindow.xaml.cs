@@ -962,7 +962,7 @@ namespace ImageSearch
         {
             var result = false;
             var count = 0;
-            if (dp is DataObject && dp.ContainsText())
+            if (dp is DataObject && dp.ContainsText() && !Clipboard.IsCurrent(dp))
             {
                 var text = dp.GetText();
                 if (Regex.IsMatch(text, @"^https?://"))
@@ -1004,7 +1004,7 @@ namespace ImageSearch
         private async Task<bool> ProcessDataObjectImage(DataObject? dp)
         {
             var result = false;
-            if (dp is not null && dp.ContainsImage())
+            if (dp is not null && dp.ContainsImage() && !Clipboard.IsCurrent(dp))
             {
                 var imgs = await LoadImageFromDataObject(dp);
                 if (imgs.Any())
@@ -1068,7 +1068,7 @@ namespace ImageSearch
                             {
                                 SimilarSrc.Source = bmp;
                                 SimilarSrc.Tag = skb;
-                                ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(uri));
+                                if (!string.IsNullOrEmpty(uri)) ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(uri));
                                 ReportMessage("Query Image Loaded");
                                 return (true);
                             });
@@ -1079,12 +1079,23 @@ namespace ImageSearch
             return (result);
         }
 
-        private async Task<bool> ProcessClipboardImage()
+        private async Task<bool> ProcessClipboardImageAsync()
         {
-            var result = false;
-            if (Clipboard.ContainsImage())
+            var result = Clipboard.ContainsImage();
+            if (result)
             {
-                result = await ProcessDataObjectImage(Clipboard.GetDataObject() as DataObject);
+                var max_count = 10;
+                var count = new CountdownEvent(max_count);
+                do
+                {
+                    try
+                    {
+                        result = await ProcessDataObjectImage(Clipboard.GetDataObject() as DataObject);
+                        if (result) break;
+                        count.Signal(1);
+                    }
+                    catch (Exception ex) { if (ex.Message.IndexOf("0x800401D0") < 0) ReportMessage(ex); await Task.Delay(333); }
+                } while (!count.IsSet);
             }
             return (result);
         }
@@ -1647,8 +1658,8 @@ namespace ImageSearch
                     else if (Clipboard.ContainsImage())
                     {
                         e.Handled = true;
-                        var ret = await ProcessDataObjectImage(Clipboard.GetDataObject() as DataObject);
-                        if (ret)
+                        //var ret = await ProcessDataObjectImage(Clipboard.GetDataObject() as DataObject);
+                        //if (ret)
                         {
                             if (Tabs.SelectedItem == TabCompare) CompareImage_Click(CompareImage, e);
                             else if (Tabs.SelectedItem == TabSimilar) QueryImage_Click(QueryImage, e);
@@ -1958,12 +1969,14 @@ namespace ImageSearch
             }
             else if (Tabs.SelectedItem == TabCompare)
             {
-                if (Clipboard.ContainsImage())
-                {
-                    var clip = ProcessClipboardImage().GetAwaiter().GetResult();
-                }
-                
-                if (CompareL.Source != null && CompareL.Tag is SKBitmap && CompareR.Source != null && CompareR.Tag is SKBitmap)
+                //if (Clipboard.ContainsImage())
+                //{
+                //    var clip = ProcessClipboardImage().GetAwaiter().GetResult();
+                //}
+                // else clip = true;
+                var clip = !Clipboard.ContainsImage() || await ProcessClipboardImageAsync();
+
+                if (clip && CompareL.Source != null && CompareL.Tag is SKBitmap && CompareR.Source != null && CompareR.Tag is SKBitmap)
                 {
                     var skb0 = CompareL.Tag as SKBitmap;
                     var skb1 = CompareR.Tag as SKBitmap;
@@ -2003,11 +2016,12 @@ namespace ImageSearch
             }
 
             #region Pre-processing query source
+            var clip = false;
             if (Clipboard.ContainsImage())
             {
-                await ProcessClipboardImage();
+                clip = await ProcessClipboardImageAsync();
             }
-            else if (!string.IsNullOrEmpty(EditQueryFile.Text))
+            else if (!clip || !string.IsNullOrEmpty(EditQueryFile.Text))
             {
                 var file = EditQueryFile.Text.Trim();
 
