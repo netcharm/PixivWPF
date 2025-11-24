@@ -431,7 +431,7 @@ namespace PixivWPF.Common
                 if (!args.PrefetchingPreview) return;
 
                 escape ??= new EscapeKey("PrefetchingTask");
-                escape?.Reset();
+                if (!escape?.Shift ?? false) escape?.Reset();
 
                 LastStartTime = DateTime.Now;
                 var pagesCount = CalcPagesThumbItems(Items);
@@ -615,7 +615,7 @@ namespace PixivWPF.Common
                     page_previews?.Clear();
                     originals?.Clear();
                     needUpdate?.Clear();
-                    escape?.Reset();
+                    if (!escape?.Shift ?? false) escape?.Reset();
                 }
                 catch (Exception ex) { ex.ERROR("PREFETCHED"); }
                 if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();

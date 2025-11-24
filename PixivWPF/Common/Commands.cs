@@ -12,13 +12,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 
-using Microsoft.WindowsAPICodePack.Dialogs;
-using MahApps.Metro.Controls;
-using Newtonsoft.Json;
-using Prism.Commands;
-using PixivWPF.Pages;
-using mshtml;
-
 namespace PixivWPF.Common
 {
 #pragma warning disable IDE0017
@@ -41,6 +34,13 @@ namespace PixivWPF.Common
 #pragma warning disable IDE0220
 #pragma warning disable IDE0270
 #pragma warning disable IDE1006
+
+    using MahApps.Metro.Controls;
+    using Microsoft.WindowsAPICodePack.Dialogs;
+    using Newtonsoft.Json;
+    using Prism.Commands;
+
+    using PixivWPF.Pages;
 
     #region ICommand Json Converter
     public class ICommandTypeConverter<T> : JsonConverter

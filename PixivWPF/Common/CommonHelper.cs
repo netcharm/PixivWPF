@@ -29,18 +29,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml;
 
-using Microsoft.Win32;
-using Microsoft.WindowsAPICodePack.Dialogs;
-using MahApps.Metro.Controls;
-using MahApps.Metro.Controls.Dialogs;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using WPFNotification.Core.Configuration;
-using WPFNotification.Model;
-using WPFNotification.Services;
-using CompactExifLib;
-using PixivWPF.Pages;
-
 namespace PixivWPF.Common
 {
 #pragma warning disable IDE0017
@@ -63,6 +51,18 @@ namespace PixivWPF.Common
 #pragma warning disable IDE0220
 #pragma warning disable IDE0270
 #pragma warning disable IDE1006
+
+    using Microsoft.Win32;
+    using Microsoft.WindowsAPICodePack.Dialogs;
+    using MahApps.Metro.Controls;
+    using MahApps.Metro.Controls.Dialogs;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
+    using WPFNotification.Core.Configuration;
+    using WPFNotification.Model;
+    using WPFNotification.Services;
+    using CompactExifLib;
+    using PixivWPF.Pages;
 
     #region Page enmu type
     public enum PixivPage
@@ -573,6 +573,11 @@ namespace PixivWPF.Common
 
         public bool IsEscaped { get { return (escape_state?.IsCancellationRequested ?? false); } }
 
+        public bool Alt { get; private set; } = false;
+        public bool Win { get; private set; } = false;
+        public bool Ctrl { get; private set; } = false;
+        public bool Shift { get; private set; } = false;
+
         public string Title { get; private set; } = string.Empty;
         public string Description { get; private set; } = string.Empty;
 
@@ -623,6 +628,12 @@ namespace PixivWPF.Common
             try
             {
                 escape_state?.Dispose();
+                escape_state = null;
+
+                Win = false;
+                Alt = false;
+                Ctrl = false;
+                Shift = false;
             }
             catch (Exception ex) { ex.ERROR($"EscapeReset_{Title}"); }
         }
@@ -636,8 +647,25 @@ namespace PixivWPF.Common
                 if (e.KeyCode == System.Windows.Forms.Keys.Escape && !IsEscaped)
                 {
                     e.Handled = true;
+                    e.SuppressKeyPress = true;
+
                     escape_state ??= new CancellationTokenSource();
                     escape_state?.Cancel();
+
+                    //Keyboard.Modifiers
+                    Win = e.Modifiers.HasFlag(System.Windows.Forms.Keys.LWin) || e.Modifiers.HasFlag(System.Windows.Forms.Keys.RWin);
+                    //Win = (e.KeyData & System.Windows.Forms.Keys.LWin) == System.Windows.Forms.Keys.LWin || (e.KeyData & System.Windows.Forms.Keys.RWin) == System.Windows.Forms.Keys.RWin;
+
+                    Alt = e.Alt; // e.Modifiers.HasFlag(ModifierKeys.Alt);
+
+                    Ctrl = e.Control;
+                    //Ctrl = e.Modifiers.HasFlag(ModifierKeys.Control); 
+                    //Ctrl = e.Modifiers.HasFlag(System.Windows.Forms.Keys.LControlKey) || e.Modifiers.HasFlag(System.Windows.Forms.Keys.RControlKey)
+                    
+                    Shift = e.Shift;
+                    //Shift = e.Modifiers.HasFlag(ModifierKeys.Shift);
+                    //Shift = e.Modifiers.HasFlag(System.Windows.Forms.Keys.LShiftKey) || e.Modifiers.HasFlag(System.Windows.Forms.Keys.RShiftKey)
+
                     $"Escape Key Pressed State = {IsEscaped}".LOG(tag: Title);
                 }
             }
