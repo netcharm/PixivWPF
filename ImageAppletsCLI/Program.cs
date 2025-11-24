@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 
 using Mono.Options;
@@ -146,6 +146,10 @@ namespace ImageAppletsCLI
                             }
                             Console.In.Close();
                         }
+                        #endregion
+
+                        #region pre-processing file list
+                        files = files.Select(f => Regex.Replace(f.Trim(), @"(^(\.\\{1,2})+)", "", RegexOptions.IgnoreCase).Trim()).Distinct().ToList();
                         #endregion
 
                         #region Runing applet
@@ -399,7 +403,18 @@ namespace ImageAppletsCLI
 
         static private int LengthCJK(string s)
         {
-            return (MBCS.GetByteCount(s));
+            //var bytes = MBCS.GetBytes(s);
+            //var cl = bytes.Count(b => 0x30 <= b && b <= 0x39);
+            //if (cl % 2 != 0) cl -= 1;
+            //return (MBCS.GetByteCount(s) - cl);
+            var cl = 0;
+            foreach (var c in s)
+            {
+                var cc = MBCS.GetByteCount($"{c}");
+                if (cc == 4 || cc == 2) cl += 2;
+                else cl += 1;
+            }
+            return (cl);
         }
 
         static public string PadLefttCJK(this string s, int totalWidth)
