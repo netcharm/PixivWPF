@@ -19,15 +19,16 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shell;
 using System.Windows.Threading;
 
-using CompactExifLib;
-using ImageSearch.Search;
-using Microsoft.Win32;
-using SkiaSharp;
-
 namespace ImageSearch
 {
 #pragma warning disable CA1860
 #pragma warning disable IDE0063
+
+    using CompactExifLib;
+    using Microsoft.Win32;
+    using SkiaSharp;
+
+    using ImageSearch.Search;
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -1461,6 +1462,26 @@ namespace ImageSearch
             UpdateImageBoxTooltip(imagebox_items, true);
         }
 
+        public void OpenSetting()
+        {
+            var setting_file = GetAbsolutePath($"{AppName}.settings");
+            if (File.Exists(setting_file))
+            {
+                var cmd_config = string.IsNullOrEmpty(settings.ConfigEditorCmd) || !File.Exists(settings.ConfigEditorCmd) ? "notepad.exe" : settings.ConfigEditorCmd;
+                var opt_config = settings.ConfigEditorOpt ?? string.Empty;
+
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var opt_space = string.IsNullOrEmpty(opt_config) ? "" : " ";
+                        Process.Start(cmd_config, $"{opt_config}{opt_space}\"{setting_file.Trim('"')}\"");
+                    }
+                    catch (Exception ex) { ReportMessage(ex); }
+                });
+            }
+        }
+
         public void LoadSetting()
         {
             var setting_file = GetAbsolutePath($"{AppName}.settings");
@@ -1492,15 +1513,14 @@ namespace ImageSearch
 
             QueryResultLimit.ItemsSource = settings.ResultLimitList;
             QueryResultLimit.SelectedIndex = QueryResultLimit.Items.IndexOf(settings.ResultLimit);
-            if (!double.TryParse(QueryResultLimit.Text, out double _)) { QueryResultLimit.Items.IndexOf(settings.ResultLimitList.FirstOrDefault()); }
-            ;
+            if (!double.TryParse(QueryResultLimit.Text, out double _)) { QueryResultLimit.Items.IndexOf(settings.ResultLimitList.FirstOrDefault()); }            
         }
 
         public void SaveSetting()
         {
             if (!string.IsNullOrEmpty(settings?.SettingFile))
             {
-                settings.Save(settings.SettingFile);
+                settings?.Save(settings.SettingFile);
             }
         }
 
@@ -1770,10 +1790,7 @@ namespace ImageSearch
         {
             if (sender == OpenConfig)
             {
-                if (!string.IsNullOrEmpty(settings?.SettingFile))
-                {
-                    ShellOpen([settings.SettingFile]);
-                }
+                OpenSetting();
             }
             else if (sender == LoadConfig)
             {
@@ -1785,7 +1802,7 @@ namespace ImageSearch
             }
             else if (sender == ShellSearchWin)
             {
-                var query = string.IsNullOrEmpty(ResultFilter.Text) ? "🔎💬" : ResultFilter.Text;
+                var query = string.IsNullOrEmpty(ResultFilter.Text.Trim()) ? "🔎💬" : ResultFilter.Text.Trim();
                 var folder = string.Empty;
                 if (FolderList.SelectedIndex >= 0)
                 {

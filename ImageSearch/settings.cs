@@ -74,6 +74,11 @@ namespace ImageSearch
         [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public string ImageCompareOpt { get; set; } = string.Empty;
 
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string ConfigEditorCmd { get; set; } = string.Empty;
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string ConfigEditorOpt { get; set; } = string.Empty;
+
         private int _limit_of_feature_used = 1000;
         [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public int LimitOfFeatureUsed
