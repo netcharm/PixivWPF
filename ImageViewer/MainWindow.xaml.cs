@@ -3867,7 +3867,8 @@ namespace ImageViewer
         {
             if (!Ready) return;
             var km = this.GetModifier();
-            if      (e.ChangedButton == MouseButton.Left && e.XButton1 == MouseButtonState.Pressed)
+            //if      (e.ChangedButton == MouseButton.Left && e.XButton1 == MouseButtonState.Pressed)
+            if (e.ChangedButton == MouseButton.XButton1 && e.LeftButton == MouseButtonState.Pressed)
             {
                 e.Handled = true;
                 if (e.ClickCount == 1) ToggleZoomMode();
@@ -3940,7 +3941,7 @@ namespace ImageViewer
                 if (e.Device is MouseDevice)
                 {
                     var km = this.GetModifier();
-                    if      (e.ChangedButton == MouseButton.Left && e.XButton1 == MouseButtonState.Pressed)
+                    if      (e.ChangedButton == MouseButton.XButton1 && e.LeftButton == MouseButtonState.Pressed)
                     {
                         e.Handled = true;
                         if (e.ClickCount == 1) ToggleZoomMode();
