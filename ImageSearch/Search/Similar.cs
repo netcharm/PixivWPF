@@ -9,6 +9,7 @@ using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -1298,44 +1299,65 @@ namespace ImageSearch.Search
         #endregion
 
         #region Save Feature Database
+        private SemaphoreSlim _writing_data_ = new(1, 1);
+        private SemaphoreSlim _writing_file_ = new(1, 1);
+        public bool IsIdle { get { return (_writing_data_?.CurrentCount == 1 && _writing_file_.CurrentCount == 1); } }
+
+        public async Task<bool> WaitingWritten()
+        {
+            var result = false;
+            _writing_file_ ??= new SemaphoreSlim(1, 1);
+            _writing_data_ ??= new SemaphoreSlim(1, 1);
+            if (await _writing_file_?.WaitAsync(TimeSpan.FromSeconds(120)) && await _writing_data_?.WaitAsync(TimeSpan.FromSeconds(125)))
+            {
+                if (_writing_file_?.CurrentCount == 0) _writing_file_?.Release();
+                if (_writing_data_?.CurrentCount == 0) _writing_data_?.Release();
+                result = true;
+            }
+            return (result);
+        }
+
         private async Task<bool> SaveFeatureFile(string feature_db, string[] names, Array feats, string imagefolder, bool fullpath = false)
         {
             var result = false;
             var file = GetAbsolutePath(feature_db);
             if (Directory.Exists(Path.GetDirectoryName(file)) && names is not null && feats is not null)
             {
-                await Task.Run(() =>
+                await Task.Run(async () =>
                 {
-                    var sw = Stopwatch.StartNew();
-                    try
+                    _writing_data_ ??= new SemaphoreSlim(1, 1);
+                    if (await _writing_file_.WaitAsync(TimeSpan.FromSeconds(90)))
                     {
-                        ReportMessage($"Saving Feature Data to {file}", RunningStatue);
-
-                        fullpath = fullpath && !string.IsNullOrEmpty(imagefolder) && Directory.Exists(imagefolder);
-
-                        if (File.Exists(file)) File.Move(file, $"{file}.lastgood", true);
-                        names = fullpath ? names : names.Select(x => x.Replace(GetAbsolutePath(imagefolder), "").TrimStart(['\\', '/', ' ', '\0'])).ToArray();
-                        var h5 = new H5File()
+                        var sw = Stopwatch.StartNew();
+                        try
                         {
-                            //["my-group"] = new H5Group()
-                            //{
-                            ["names"] = names.Select(x => Encoding.UTF8.GetBytes(x)).ToArray(),
-                            ["feats"] = feats,
-                            Attributes = new()
+                            ReportMessage($"Saving Feature Data to {file}", RunningStatue);
+
+                            fullpath = fullpath && !string.IsNullOrEmpty(imagefolder) && Directory.Exists(imagefolder);
+
+                            if (File.Exists(file)) File.Move(file, $"{file}.lastgood", true);
+                            names = fullpath ? names : names.Select(x => x.Replace(GetAbsolutePath(imagefolder), "").TrimStart(['\\', '/', ' ', '\0'])).ToArray();
+                            var h5 = new H5File()
                             {
-                                ["folder"] = $"{feature_db}",
-                                ["size"] = new int[] { IMG_Width, IMG_HEIGHT }
-                            }
-                            //}
-                        };
-                        var option = new H5WriteOptions()
-                        {
-                            DefaultStringLength = 1024,
-                            IncludeClassFields = true,
-                            IncludeClassProperties = true,
-                            IncludeStructFields = true,
-                            IncludeStructProperties = true,
-                            Filters = [
+                                //["my-group"] = new H5Group()
+                                //{
+                                ["names"] = names.Select(x => Encoding.UTF8.GetBytes(x)).ToArray(),
+                                ["feats"] = feats,
+                                Attributes = new()
+                                {
+                                    ["folder"] = $"{feature_db}",
+                                    ["size"] = new int[] { IMG_Width, IMG_HEIGHT }
+                                }
+                                //}
+                            };
+                            var option = new H5WriteOptions()
+                            {
+                                DefaultStringLength = 1024,
+                                IncludeClassFields = true,
+                                IncludeClassProperties = true,
+                                IncludeStructFields = true,
+                                IncludeStructProperties = true,
+                                Filters = [
                                 //Blosc2Filter.Id,
                                 new H5Filter(Id: Blosc2Filter.Id, Options: new()
                                 {
@@ -1343,15 +1365,16 @@ namespace ImageSearch.Search
                                     [Blosc2Filter.COMPRESSOR_CODE] = "blosclz", // blosclz, lz4, lz4hc, zlib or zstd
                                 }),
                             ]
-                        };
-                        h5?.Write(file, option);
-                        h5?.Clear();
-                        GC.Collect();
-                        ReportMessage($"Saved Feature Data to {file}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.RanToCompletion);
-                        result = true;
+                            };
+                            h5?.Write(file, option);
+                            h5?.Clear();
+                            GC.Collect();
+                            ReportMessage($"Saved Feature Data to {file}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.RanToCompletion);
+                            result = true;
+                        }
+                        catch (Exception ex) { ReportMessage($"{ex.StackTrace?.Split().LastOrDefault()} : {ex.Message}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.Faulted); }
+                        finally { sw?.Stop(); GC.Collect(); if (_writing_file_?.CurrentCount == 0) _writing_file_?.Release(); }
                     }
-                    catch (Exception ex) { ReportMessage($"{ex.StackTrace?.Split().LastOrDefault()} : {ex.Message}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.Faulted); }
-                    finally { sw?.Stop(); GC.Collect(); }
                 });
             }
             return (result);
@@ -1362,10 +1385,12 @@ namespace ImageSearch.Search
             var result = false;
             if (featuredata is not null)
             {
+                _writing_file_ ??= new SemaphoreSlim(1, 1);
                 var file = GetAbsolutePath(featuredata.FeatureDB);
-                if (Directory.Exists(Path.GetDirectoryName(file)))
+                if (Directory.Exists(Path.GetDirectoryName(file)) && await _writing_data_.WaitAsync(TimeSpan.FromSeconds(95)))
                 {
                     result = await SaveFeatureFile(file, featuredata.Names, featuredata.Feats.ToMuliDimArray<float>(), featuredata.FeatureStore.ImageFolder, featuredata.FeatureStore.UseFullPath);
+                    if (_writing_data_?.CurrentCount == 0) _writing_data_?.Release();
                 }
             }
             return (result);

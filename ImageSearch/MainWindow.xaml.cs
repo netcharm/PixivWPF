@@ -1577,7 +1577,7 @@ namespace ImageSearch
             catch (Exception ex) { ReportMessage(ex); }
         }
 
-        private void Window_Closing(object sender, CancelEventArgs e)
+        private async void Window_Closing(object sender, CancelEventArgs e)
         {
             var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
             if (ctrl)
@@ -1593,7 +1593,19 @@ namespace ImageSearch
                 }
                 catch (Exception ex) { e.Cancel = true; ReportMessage(ex); }
             }
-            else similar?.CancelCreateFeatureData();
+            else
+            {
+                similar?.CancelCreateFeatureData();
+                if (similar?.IsIdle ?? false || await similar?.WaitingWritten())
+                {
+                    ReportMessage("Database writing completed, application can be closed now.");
+                }
+                else
+                {
+                    //e.Cancel = true;
+                    WindowState = WindowState.Minimized;
+                }
+            }
         }
 
         private void Window_StateChanged(object sender, EventArgs e)
