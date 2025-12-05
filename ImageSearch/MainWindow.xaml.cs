@@ -717,16 +717,24 @@ namespace ImageSearch
             };
         }
 
-        private static void ShellSearch(string query, IEnumerable<string?> folders)
+        private static string[] EscapeChar = ["%", "&", ":", ";", "?", "*", "!", "~", "=", "<", ">", "≠", "-", "$", "#", ".", "(", ")", "/", "|"];
+        private Func<string, string> Escape = (s) =>
+        {
+            foreach(var c in EscapeChar) s = s.Replace(c, Uri.EscapeDataString(c));
+            return(s);
+        };
+     
+        private void ShellSearch(string query, IEnumerable<string?> folders)
         {
             if (!string.IsNullOrEmpty(query) && folders is not null)
             {
                 var targets = folders.Distinct().Where(d => Directory.Exists(d));
                 if (targets.Any())
                 {
+                    if (query.StartsWith("日期") || query.StartsWith("拍摄日期") || query.StartsWith("获取日期")) query = query.Replace("/", "-");
                     var location = string.Join("&", targets.Select(d => $"crumb=location:{d}"));
                     var cmd = "explorer.exe";
-                    var cmd_param = $"/root,\"search-ms:{location}&query={query}\"";
+                    var cmd_param = $"/root,\"search-ms:{location}&query={Escape(query)}\"";
                     Task.Run(() =>
                     {
                         try
@@ -1655,7 +1663,7 @@ namespace ImageSearch
                 {
                     if (e.Source == ResultFilter)
                     {
-                        ResultFilter.Paste();
+                        //ResultFilter.Paste();
                     }
                     else if (Clipboard.ContainsText())
                     {
