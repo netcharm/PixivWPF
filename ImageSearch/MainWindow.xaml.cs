@@ -111,6 +111,7 @@ namespace ImageSearch
 
         private static string AppName { get { return (System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetExecutingAssembly().Location)); } }
 
+        #region Application relative helper routine
         private static string GetAbsolutePath(string relativePath)
         {
             string fullPath = string.Empty;
@@ -318,7 +319,9 @@ namespace ImageSearch
             }
             catch (Exception ex) { ReportMessage(ex); }
         }
+        #endregion
 
+        #region Image relative helper routine
         public SKBitmap? FromImageSource(ImageSource src)
         {
             SKBitmap? result = null;
@@ -667,6 +670,136 @@ namespace ImageSearch
             return ((bmp, skb));
         }
 
+        private double VALUE_GB = 1024 * 1024 * 1024;
+        private double VALUE_MB = 1024 * 1024;
+        private double VALUE_KB = 1024;
+
+        public string SmartFileSize(double v, double factor = 1, bool unit = true, bool trimzero = true, int padleft = 0)
+        {
+            string v_str;
+            string u_str;
+            if (double.IsNaN(v) || double.IsInfinity(v) || double.IsNegativeInfinity(v) || double.IsPositiveInfinity(v)) { v_str = "0"; u_str = "B"; }
+            else if (v >= VALUE_GB) { v_str = $"{v / factor / VALUE_GB:F2}"; u_str = "GB"; }
+            else if (v >= VALUE_MB) { v_str = $"{v / factor / VALUE_MB:F2}"; u_str = "MB"; }
+            else if (v >= VALUE_KB) { v_str = $"{v / factor / VALUE_KB:F2}"; u_str = "KB"; }
+            else { v_str = $"{v / factor:F0}"; u_str = "B"; }
+            var vs = trimzero && !u_str.Equals("B") ? v_str.Trim('0').TrimEnd('.') : v_str;
+            return ((unit ? $"{vs} {u_str}" : vs).PadLeft(padleft));
+        }
+
+        private async Task<string> GetImageInfo(string? img_file)
+        {
+            var result = new List<string>();
+            if (img_file is not null && !string.IsNullOrEmpty(img_file) && File.Exists(img_file))
+            {
+                result = await Task.Run(() =>
+                {
+                    var infos = new List<string>();
+
+                    #region Add File info to tooltip
+                    FileInfo fi = new (img_file);
+                    infos.Add($"Full Name   : {GetAbsolutePath(img_file)}");
+                    infos.Add($"File Size   : {fi.Length:N0} Bytes, {SmartFileSize(fi.Length)}");
+                    infos.Add($"File Date   : {fi.LastWriteTime:yyyy/MM/dd HH:mm:ss zzz}");
+                    #endregion
+
+                    #region Add EXIF info to tooltip
+                    try
+                    {
+                        var exif = new ExifData(img_file);
+                        if (exif == null || exif.ImageType == ImageType.Unknown) return (infos);
+
+                        #region Get Taken date
+                        exif.GetDateDigitized(out var date_digital);
+                        exif.GetDateTaken(out var date_taken);
+
+                        if (date_taken.Ticks > 0) infos.Add($"Taken Date  : {date_taken:yyyy/MM/dd HH:mm:ss zzz}");
+                        #endregion
+
+                        #region Image Info
+                        exif.GetTagValue(ExifTag.Rating, out int ranking);
+                        exif.GetTagValue(ExifTag.RatingPercent, out int rating);
+
+                        var quality = exif.ImageType == ImageType.Jpeg && exif.JpegQuality > 0 ? exif.JpegQuality : -1;
+                        var endian = exif.ByteOrder == ExifByteOrder.BigEndian ? "Big Endian" : "Little Endian";
+                        var fmomat = exif.PixelFormat.ToString().Replace("Format", "");
+                        var aspect = exif.Width == 0 || exif.Height == 0 ? 0 : (double)exif.Width / (double)exif.Height;
+                        var direction = aspect == 0 ? "Unknown" : (aspect > 1.05 ? "Landscape" : (aspect < 0.95 ? "Portrait" : "Square"));
+                        infos.Add($"Image Info  : {exif.ImageType}, {exif.ImageMime}, {exif.ByteOrder}, Q≈{(quality > 0 ? quality : "???")}, Rank={ranking}");
+                        infos.Add($"Image Size  : {exif.Width}x{exif.Height}x{exif.ColorDepth} ({exif.Width * exif.Height / 1000.0 / 1000.0:0.##} MP), {fmomat}, DPI={exif.ResolutionX}x{exif.ResolutionY}, Aspect≈{aspect:F4}[{direction}]");
+                        #endregion
+
+                        #region Get Camera Info
+                        exif.GetTagValue(ExifTag.Make, out string maker, StrCoding.Utf8);
+                        exif.GetTagValue(ExifTag.Model, out string model, StrCoding.Utf8);
+                        exif.GetTagValue(ExifTag.FNumber, out ExifRational fNumber);
+                        exif.GetTagValue(ExifTag.FocalLength, out ExifRational focalLength);
+                        exif.GetTagValue(ExifTag.FocalLengthIn35mmFilm, out ExifRational focalLength35);
+                        exif.GetTagValue(ExifTag.ApertureValue, out ExifRational aperture);
+                        exif.GetTagValue(ExifTag.IsoSpeed, out ExifRational isoSpeed);
+                        exif.GetTagValue(ExifTag.IsoSpeedRatings, out int isoSpeedRating);
+                        exif.GetTagValue(ExifTag.ExposureTime, out ExifRational exposureTime);
+                        exif.GetTagValue(ExifTag.ExposureBiasValue, out ExifRational exposureBias);
+                        exif.GetTagValue(ExifTag.ShutterSpeedValue, out ExifRational shutterSpeed);
+                        exif.GetTagValue(ExifTag.PhotographicSensitivity, out int photoSens);
+
+                        var camera = new List<string>();
+                        if (!string.IsNullOrEmpty(maker)) camera.Add($"{maker.Trim()}");
+                        if (!string.IsNullOrEmpty(model)) camera.Add($"{model.Replace(maker, "").Trim()}");
+                        if (isoSpeedRating > 0) camera.Add($"ISO{isoSpeedRating}");
+                        if (fNumber.Denom != 0) camera.Add($"f/{fNumber.Numer / (double)fNumber.Denom:F1}");
+                        var et = exposureTime.Numer >= exposureTime.Denom ? $"{(double)exposureTime.Numer / exposureTime.Denom:0.####}" : $"1/{exposureTime.Denom / exposureTime.Numer:F0}";
+                        if (exposureTime.Denom != 0) camera.Add($"{et}s");
+
+                        var eb_sign = exposureBias.Sign ? '+' : '-';
+                        if (exposureBias.Denom != 0 && exposureBias.Numer != 0) camera.Add($"{eb_sign}{exposureBias.Numer / (double)exposureBias.Denom:0.#}");
+                        if (exposureBias.Denom != 0) camera.Add($"{focalLength.Numer / (double)focalLength.Denom:F0}mm");
+                        if (camera.Count > 0) infos.Add($"Camera Info : {string.Join(", ", camera)}");
+                        #endregion
+
+                        #region Get GPS Geo Info
+                        var gps = new List<string>();
+                        if (exif.GetGpsLongitude(out GeoCoordinate gpsLon))
+                            gps.Add($"{gpsLon.CardinalPoint} {gpsLon.Degree}.{gpsLon.Minute}'{gpsLon.Second}\"".Trim(['\0', ' ', '\n', '\r', '\t']));
+                        if (exif.GetGpsLatitude(out GeoCoordinate gpsLat))
+                            gps.Add($"{gpsLat.CardinalPoint} {gpsLat.Degree}.{gpsLat.Minute}'{gpsLat.Second}\"".Trim(['\0', ' ', '\n', '\r', '\t']));
+                        if (exif.GetGpsAltitude(out decimal gpsAlt))
+                            gps.Add($"{gpsAlt:0.##} m".Trim(['\0', ' ', '\n', '\r', '\t']));
+                        if (exif.GetGpsDateTimeStamp(out DateTime gdts))
+                            gps.Add($"{gdts:yyyy/MM/ddTHH:mm:dd.fffzzz}");
+                        if (gps.Count > 0) infos.Add($"GPS         : {string.Join(", ", gps)}");
+                        #endregion
+
+                        #region Get Windows Image Info
+                        exif.GetTagValue(ExifTag.XpAuthor, out string author, StrCoding.Utf16Le_Byte);
+                        exif.GetTagValue(ExifTag.XpSubject, out string subject, StrCoding.Utf16Le_Byte);
+                        exif.GetTagValue(ExifTag.XpTitle, out string title, StrCoding.Utf16Le_Byte);
+                        exif.GetTagValue(ExifTag.XpKeywords, out string tags, StrCoding.Utf16Le_Byte);
+                        exif.GetTagValue(ExifTag.XpComment, out string comments, StrCoding.Utf16Le_Byte);
+                        exif.GetTagValue(ExifTag.Copyright, out string copyrights, StrCoding.Utf8);
+
+                        if (!string.IsNullOrEmpty(title)) infos.Add($"Title       : {title?.Trim()}");
+                        if (!string.IsNullOrEmpty(subject)) infos.Add($"Subject     : {subject?.Trim()}");
+                        if (!string.IsNullOrEmpty(author)) infos.Add($"Authors     : {author?.Trim().TrimEnd(';') + ';'}");
+                        if (!string.IsNullOrEmpty(copyrights)) infos.Add($"Copyrights  : {copyrights?.Trim().TrimEnd(';') + ';'}");
+                        if (!string.IsNullOrEmpty(comments)) infos.Add($"Commants    : {PaddingLines(comments, 14)}");
+                        if (!string.IsNullOrEmpty(tags))
+                        {
+                            var s_tags = string.Join(" ", tags.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(t => $"#{t.Trim()}"));
+                            infos.Add($"Tags        : {s_tags}");
+                        }
+                        #endregion
+                    }
+                    catch (Exception ex) { ReportMessage(ex); }
+                    #endregion
+                    return (infos);
+                });
+            }
+            return (string.Join(Environment.NewLine, result).Trim());
+        }
+        #endregion
+
+        #region Feature relative helper routine
         private async Task LoadFeatureDB(bool reload = false)
         {
             InitSimilar();
@@ -716,7 +849,9 @@ namespace ImageSearch
                 ReportExceptionAction = new Action<Exception, TaskStatus>(ReportMessage),
             };
         }
+        #endregion
 
+        #region Shell relative helper routine
         private static string[] EscapeChar = ["%", "&", ":", ";", "?", "*", "!", "~", "=", "<", ">", "≠", "-", "$", "#", ".", "(", ")", "/", "|"];
         private Func<string, string> Escape = (s) =>
         {
@@ -796,7 +931,9 @@ namespace ImageSearch
                 }
             }
         }
+        #endregion
 
+        #region Clipboard/DataObject processing
         private void CopyText(string text)
         {
             Dispatcher.Invoke(() =>
@@ -807,40 +944,6 @@ namespace ImageSearch
                 }
                 catch (Exception ex) { ReportMessage(ex); }
                 ;
-            });
-        }
-
-        private List<string>? _filter_files_ = null;
-        internal protected void SetFilesFilter(IEnumerable<string>? files)
-        {
-            if (files != null && files.Any())
-            {
-                Dispatcher.InvokeAsync(() =>
-                {
-                    if (FolderList.SelectedIndex >= 0)
-                    {
-                        var all_db = AllFolders.IsChecked ?? false;
-                        var storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
-                        var folder = storage.ImageFolder;
-                        var feature_db = all_db ? string.Empty : storage.DatabaseFile;
-                        _filter_files_ = [.. files.Select(f => f.Trim('"')).Select(f => Path.IsPathRooted(f) ? f : Path.Combine(folder, f)).Distinct()];
-                        var tooltip = $"Filter Filss: {_filter_files_.Count}";
-                        ToolTipService.SetToolTip(PasteFilesFilter, tooltip);
-                        //if (Clipboard.ContainsText()) Clipboard.Clear();
-                        ReportMessage(tooltip);
-                    }
-                });
-            }
-        }
-
-        internal protected void ClsFilesFilter()
-        {
-            Dispatcher.Invoke(() =>
-            {
-                _filter_files_?.Clear();
-                _filter_files_ = null;
-                ToolTipService.SetToolTip(PasteFilesFilter, null);
-                ReportMessage("Filter Filss Cleared");
             });
         }
 
@@ -1149,123 +1252,14 @@ namespace ImageSearch
             }
             return (result, count);
         }
+        #endregion
 
+        #region Text relative helper routine
         private static string PaddingLines(string text, int padding)
         {
             if (string.IsNullOrEmpty(text)) return (text);
             var lines = text.Split(["\n\r", "\r\n", "\n", "\r"], StringSplitOptions.RemoveEmptyEntries);
             return (string.Join(Environment.NewLine, lines.Select(l => $"{"".PadLeft(padding)}{l}")).Trim());
-        }
-
-        private async Task<string> GetImageInfo(string? img_file)
-        {
-            var result = new List<string>();
-            if (img_file is not null && !string.IsNullOrEmpty(img_file) && File.Exists(img_file))
-            {
-                result = await Task.Run(() =>
-                {
-                    var infos = new List<string>();
-
-                    #region Add File info to tooltip
-                    FileInfo fi = new (img_file);
-                    infos.Add($"Full Name   : {GetAbsolutePath(img_file)}");
-                    infos.Add($"File Size   : {fi.Length:N0} Bytes");
-                    infos.Add($"File Date   : {fi.LastWriteTime:yyyy/MM/dd HH:mm:ss zzz}");
-                    #endregion
-
-                    #region Add EXIF info to tooltip
-                    try
-                    {
-                        var exif = new ExifData(img_file);
-                        if (exif == null || exif.ImageType == ImageType.Unknown) return (infos);
-
-                        #region Get Taken date
-                        exif.GetDateDigitized(out var date_digital);
-                        exif.GetDateTaken(out var date_taken);
-
-                        if (date_taken.Ticks > 0) infos.Add($"Taken Date  : {date_taken:yyyy/MM/dd HH:mm:ss zzz}");
-                        #endregion
-
-                        #region Image Info
-                        exif.GetTagValue(ExifTag.Rating, out int ranking);
-                        exif.GetTagValue(ExifTag.RatingPercent, out int rating);
-
-                        var quality = exif.ImageType == ImageType.Jpeg && exif.JpegQuality > 0 ? exif.JpegQuality : -1;
-                        var endian = exif.ByteOrder == ExifByteOrder.BigEndian ? "Big Endian" : "Little Endian";
-                        var fmomat = exif.PixelFormat.ToString().Replace("Format", "");
-                        var aspect = exif.Width == 0 || exif.Height == 0 ? 0 : (double)exif.Width / (double)exif.Height;
-                        var direction = aspect == 0 ? "Unknown" : (aspect > 1.05 ? "Landscape" : (aspect < 0.95 ? "Portrait" : "Square"));
-                        infos.Add($"Image Info  : {exif.ImageType}, {exif.ImageMime}, {exif.ByteOrder}, Q≈{(quality > 0 ? quality : "???")}, Rank={ranking}");
-                        infos.Add($"Image Size  : {exif.Width}x{exif.Height}x{exif.ColorDepth} ({exif.Width * exif.Height / 1000.0 / 1000.0:0.##} MP), {fmomat}, DPI={exif.ResolutionX}x{exif.ResolutionY}, Aspect≈{aspect:F4}[{direction}]");
-                        #endregion
-
-                        #region Get Camera Info
-                        exif.GetTagValue(ExifTag.Make, out string maker, StrCoding.Utf8);
-                        exif.GetTagValue(ExifTag.Model, out string model, StrCoding.Utf8);
-                        exif.GetTagValue(ExifTag.FNumber, out ExifRational fNumber);
-                        exif.GetTagValue(ExifTag.FocalLength, out ExifRational focalLength);
-                        exif.GetTagValue(ExifTag.FocalLengthIn35mmFilm, out ExifRational focalLength35);
-                        exif.GetTagValue(ExifTag.ApertureValue, out ExifRational aperture);
-                        exif.GetTagValue(ExifTag.IsoSpeed, out ExifRational isoSpeed);
-                        exif.GetTagValue(ExifTag.IsoSpeedRatings, out int isoSpeedRating);
-                        exif.GetTagValue(ExifTag.ExposureTime, out ExifRational exposureTime);
-                        exif.GetTagValue(ExifTag.ExposureBiasValue, out ExifRational exposureBias);
-                        exif.GetTagValue(ExifTag.ShutterSpeedValue, out ExifRational shutterSpeed);
-                        exif.GetTagValue(ExifTag.PhotographicSensitivity, out int photoSens);
-
-                        var camera = new List<string>();
-                        if (!string.IsNullOrEmpty(maker)) camera.Add($"{maker.Trim()}");
-                        if (!string.IsNullOrEmpty(model)) camera.Add($"{model.Replace(maker, "").Trim()}");
-                        if (isoSpeedRating > 0) camera.Add($"ISO{isoSpeedRating}");
-                        if (fNumber.Denom != 0) camera.Add($"f/{fNumber.Numer / (double)fNumber.Denom:F1}");
-                        var et = exposureTime.Numer >= exposureTime.Denom ? $"{(double)exposureTime.Numer / exposureTime.Denom:0.####}" : $"1/{exposureTime.Denom / exposureTime.Numer:F0}";
-                        if (exposureTime.Denom != 0) camera.Add($"{et}s");
-
-                        var eb_sign = exposureBias.Sign ? '+' : '-';
-                        if (exposureBias.Denom != 0 && exposureBias.Numer != 0) camera.Add($"{eb_sign}{exposureBias.Numer / (double)exposureBias.Denom:0.#}");
-                        if (exposureBias.Denom != 0) camera.Add($"{focalLength.Numer / (double)focalLength.Denom:F0}mm");
-                        if (camera.Count > 0) infos.Add($"Camera Info : {string.Join(", ", camera)}");
-                        #endregion
-
-                        #region Get GPS Geo Info
-                        var gps = new List<string>();
-                        if (exif.GetGpsLongitude(out GeoCoordinate gpsLon))
-                            gps.Add($"{gpsLon.CardinalPoint} {gpsLon.Degree}.{gpsLon.Minute}'{gpsLon.Second}\"".Trim(['\0', ' ', '\n', '\r', '\t']));
-                        if (exif.GetGpsLatitude(out GeoCoordinate gpsLat))
-                            gps.Add($"{gpsLat.CardinalPoint} {gpsLat.Degree}.{gpsLat.Minute}'{gpsLat.Second}\"".Trim(['\0', ' ', '\n', '\r', '\t']));
-                        if (exif.GetGpsAltitude(out decimal gpsAlt))
-                            gps.Add($"{gpsAlt:0.##} m".Trim(['\0', ' ', '\n', '\r', '\t']));
-                        if (exif.GetGpsDateTimeStamp(out DateTime gdts))
-                            gps.Add($"{gdts:yyyy/MM/ddTHH:mm:dd.fffzzz}");
-                        if (gps.Count > 0) infos.Add($"GPS         : {string.Join(", ", gps)}");
-                        #endregion
-
-                        #region Get Windows Image Info
-                        exif.GetTagValue(ExifTag.XpAuthor, out string author, StrCoding.Utf16Le_Byte);
-                        exif.GetTagValue(ExifTag.XpSubject, out string subject, StrCoding.Utf16Le_Byte);
-                        exif.GetTagValue(ExifTag.XpTitle, out string title, StrCoding.Utf16Le_Byte);
-                        exif.GetTagValue(ExifTag.XpKeywords, out string tags, StrCoding.Utf16Le_Byte);
-                        exif.GetTagValue(ExifTag.XpComment, out string comments, StrCoding.Utf16Le_Byte);
-                        exif.GetTagValue(ExifTag.Copyright, out string copyrights, StrCoding.Utf8);
-
-                        if (!string.IsNullOrEmpty(title)) infos.Add($"Title       : {title?.Trim()}");
-                        if (!string.IsNullOrEmpty(subject)) infos.Add($"Subject     : {subject?.Trim()}");
-                        if (!string.IsNullOrEmpty(author)) infos.Add($"Authors     : {author?.Trim().TrimEnd(';') + ';'}");
-                        if (!string.IsNullOrEmpty(copyrights)) infos.Add($"Copyrights  : {copyrights?.Trim().TrimEnd(';') + ';'}");
-                        if (!string.IsNullOrEmpty(comments)) infos.Add($"Commants    : {PaddingLines(comments, 14)}");
-                        if (!string.IsNullOrEmpty(tags))
-                        {
-                            var s_tags = string.Join(" ", tags.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(t => $"#{t.Trim()}"));
-                            infos.Add($"Tags        : {s_tags}");
-                        }
-                        #endregion
-                    }
-                    catch (Exception ex) { ReportMessage(ex); }
-                    #endregion
-                    return (infos);
-                });
-            }
-            return (string.Join(Environment.NewLine, result).Trim());
         }
 
         private static int LenCJK(string? text)
@@ -1317,8 +1311,44 @@ namespace ImageSearch
             }
             return (result);
         }
+        #endregion
 
-        public static Predicate<object>? SetResultFilter(string filter_content)
+        #region query/result filter processing
+        private List<string>? _filter_files_ = null;
+        internal protected void SetFilesFilter(IEnumerable<string>? files)
+        {
+            if (files != null && files.Any())
+            {
+                Dispatcher.InvokeAsync(() =>
+                {
+                    if (FolderList.SelectedIndex >= 0)
+                    {
+                        var all_db = AllFolders.IsChecked ?? false;
+                        var storage = (FolderList.SelectedItem as ComboBoxItem).DataContext as Storage;
+                        var folder = storage.ImageFolder;
+                        var feature_db = all_db ? string.Empty : storage.DatabaseFile;
+                        _filter_files_ = [.. files.Select(f => f.Trim('"')).Select(f => Path.IsPathRooted(f) ? f : Path.Combine(folder, f)).Distinct()];
+                        var tooltip = $"Filter Filss: {_filter_files_.Count}";
+                        ToolTipService.SetToolTip(PasteFilesFilter, tooltip);
+                        //if (Clipboard.ContainsText()) Clipboard.Clear();
+                        ReportMessage(tooltip);
+                    }
+                });
+            }
+        }
+
+        internal protected void ClsFilesFilter()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                _filter_files_?.Clear();
+                _filter_files_ = null;
+                ToolTipService.SetToolTip(PasteFilesFilter, null);
+                ReportMessage("Filter Filss Cleared");
+            });
+        }
+
+        internal protected Predicate<object>? SetResultFilter(string filter_content)
         {
             Predicate<object>? result = null;
             if (!string.IsNullOrEmpty(filter_content))
@@ -1386,7 +1416,9 @@ namespace ImageSearch
             }
             return (result);
         }
+        #endregion
 
+        #region Tooltip update routines
         public async void UpdateTabSimilarTooltip()
         {
             await SimilarResultGallery.Dispatcher.InvokeAsync(() =>
@@ -1480,7 +1512,9 @@ namespace ImageSearch
             };
             UpdateImageBoxTooltip(imagebox_items, true);
         }
+        #endregion
 
+        #region Application settings load/save/open
         public void OpenSetting()
         {
             var setting_file = GetAbsolutePath($"{AppName}.settings");
@@ -1542,6 +1576,7 @@ namespace ImageSearch
                 settings?.Save(settings.SettingFile);
             }
         }
+        #endregion
 
         public MainWindow()
         {
@@ -1801,6 +1836,14 @@ namespace ImageSearch
             ClsFilesFilter();
         }
 
+        private void IsQueryRotatedImage_Checked(object sender, RoutedEventArgs e)
+        {
+            if (IsLoaded)
+            {
+                settings.QueryRotatedImage = IsQueryRotatedImage.IsChecked ?? false;
+            }
+        }
+
         private void AllFolders_Checked(object sender, RoutedEventArgs e)
         {
             if (IsLoaded)
@@ -2006,14 +2049,6 @@ namespace ImageSearch
                 }
             }
             GC.Collect();
-        }
-
-        private void IsQueryRotatedImage_Checked(object sender, RoutedEventArgs e)
-        {
-            if (IsLoaded)
-            {
-                settings.QueryRotatedImage = IsQueryRotatedImage.IsChecked ?? false;
-            }
         }
 
         private bool IsQuering = false;
