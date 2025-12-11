@@ -934,6 +934,8 @@ namespace ImageSearch
         #endregion
 
         #region Clipboard/DataObject processing
+        private bool ImageSourceChanged => !SimilarSrc?.Source?.Equals(_last_pasted_image_) ?? true;
+
         private void CopyText(string text)
         {
             Dispatcher.Invoke(() =>
@@ -975,6 +977,7 @@ namespace ImageSearch
                             CompareL.Tag = skb;
                             ToolTipService.SetToolTip(CompareBoxL, await GetImageInfo(files.First()));
                             ReportMessage("Compare Image Left Loaded");
+                            _last_pasted_image_ = CompareL.Source;
                             ret = true;
                         }
                         return (ret);
@@ -990,6 +993,7 @@ namespace ImageSearch
                             CompareR.Tag = skb;
                             ToolTipService.SetToolTip(CompareBoxR, await GetImageInfo(files.First()));
                             ReportMessage("Compare Image Right Loaded");
+                            _last_pasted_image_ = CompareR.Source;
                             ret = true;
                         }
                         return (ret);
@@ -1060,6 +1064,7 @@ namespace ImageSearch
                             SimilarSrc.Tag = skb;
                             ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(files.First()));
                             ReportMessage("Query Image Loaded");
+                            _last_pasted_image_ = SimilarSrc.Source;
                             ret = true;
                         }
                         return (ret);
@@ -1073,7 +1078,7 @@ namespace ImageSearch
         {
             var result = false;
             var count = 0;
-            if (dp is DataObject && dp.ContainsText() && !Clipboard.IsCurrent(dp))
+            if (dp is DataObject && dp.ContainsText())
             {
                 var text = dp.GetText();
                 if (Regex.IsMatch(text, @"^https?://"))
@@ -1115,7 +1120,7 @@ namespace ImageSearch
         private async Task<bool> ProcessDataObjectImage(DataObject? dp)
         {
             var result = false;
-            if (dp is not null && dp.ContainsImage() && !Clipboard.IsCurrent(dp))
+            if (dp is not null && dp.ContainsImage())
             {
                 var imgs = await LoadImageFromDataObject(dp);
                 if (imgs.Any())
@@ -1713,21 +1718,20 @@ namespace ImageSearch
                     else if (Clipboard.ContainsImage())
                     {
                         e.Handled = true;
-                        //var ret = await ProcessDataObjectImage(Clipboard.GetDataObject() as DataObject);
-                        //if (ret)
-                        {
-                            if (Tabs.SelectedItem == TabCompare) CompareImage_Click(CompareImage, e);
-                            else if (Tabs.SelectedItem == TabSimilar) QueryImage_Click(QueryImage, e);
-                        }
+                        _last_pasted_image_ = null;
+                        if (Tabs.SelectedItem == TabCompare) CompareImage_Click(CompareImage, e);
+                        else if (Tabs.SelectedItem == TabSimilar) QueryImage_Click(QueryImage, e);
                     }
                     else if (e.Source == TabSimilar || Tabs.SelectedItem == TabSimilar)
                     {
                         e.Handled = true;
+                        _last_pasted_image_ = null;
                         QueryImage_Click(QueryImage, e);
                     }
                     else if (e.Source == TabCompare || Tabs.SelectedItem == TabCompare)
                     {
                         e.Handled = true;
+                        _last_pasted_image_ = null;
                         CompareImage_Click(CompareImage, e);
                     }
                 }
@@ -2072,7 +2076,7 @@ namespace ImageSearch
 
             #region Pre-processing query source
             var clip = false;
-            if (Clipboard.ContainsImage())
+            if (Clipboard.ContainsImage() && ImageSourceChanged)
             {
                 clip = await ProcessClipboardImageAsync();
             }
