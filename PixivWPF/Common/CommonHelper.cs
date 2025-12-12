@@ -8778,7 +8778,7 @@ namespace PixivWPF.Common
                                 {
                                     using (var sr = await response.GetResponseStreamAsync())
                                     {
-                                        if (await sr.WriteToFile(file)) result = file;
+                                        if (await sr.WriteToFile(file, cancelToken: cancelToken)) result = file;
                                         sr.Close();
                                         sr.Dispose();
                                     }
@@ -8828,7 +8828,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> SaveImage(this string url, Pixeez.Tokens tokens, string file, bool overwrite = true)
+        public static async Task<bool> SaveImage(this string url, Pixeez.Tokens tokens, string file, bool overwrite = true, CancellationTokenSource cancelToken = null)
         {
             bool result = false;
             if (url.IndexOf("https://") > 1 || url.IndexOf("http://") > 1) return (result);
@@ -8842,7 +8842,7 @@ namespace PixivWPF.Common
                     else if (unc == 0) file = file.Substring(8);
 
                     //if (string.IsNullOrEmpty(await url.DownloadImage(file, overwrite)))
-                    result = !string.IsNullOrEmpty(await url.DownloadImage(file, tokens, overwrite));
+                    result = !string.IsNullOrEmpty(await url.DownloadImage(file, tokens, overwrite, cancelToken: cancelToken));
                 }
                 catch (Exception ex)
                 {

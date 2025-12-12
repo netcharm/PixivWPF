@@ -350,7 +350,8 @@ namespace PixivWPF.Common
                 {
                     if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Show();
 
-                    using (var img = await ThumbnailUrl.LoadImageFromUrl(overwrite, size: Application.Current.GetDefaultThumbSize()))
+                    var cancel_token = new CancellationTokenSource(TimeSpan.FromSeconds(15)); 
+                    using (var img = await ThumbnailUrl.LoadImageFromUrl(overwrite, size: Application.Current.GetDefaultThumbSize(), cancelToken: cancel_token))
                     {
                         if (img.Source != null)
                         {

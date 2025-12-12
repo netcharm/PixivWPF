@@ -12,6 +12,7 @@ using System.Windows.Media;
 using Newtonsoft.Json;
 using PixivWPF.Common;
 using System.Threading;
+using System.Windows.Controls;
 
 namespace PixivWPF.Common
 {
