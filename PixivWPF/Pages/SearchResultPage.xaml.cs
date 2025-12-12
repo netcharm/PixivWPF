@@ -149,7 +149,15 @@ namespace PixivWPF.Pages
         {
             try
             {
-                Commands.SaveIllust.Execute(ResultItems);
+                var setting = Application.Current.LoadSetting();
+
+                var shift = Dispatcher.Invoke(() => Keyboard.Modifiers == ModifierKeys.Shift);
+
+                var type = (shift ? !setting.DownloadWithAutoReduce : setting.DownloadWithAutoReduce) ? DownloadType.None : DownloadType.Original;
+
+                var item = new KeyValuePair<ImageListGrid, DownloadType>(ResultItems, type);
+
+                Commands.SaveIllust.Execute(item);
             }
             catch (Exception ex) { ex.ERROR(); }
         }
@@ -158,7 +166,15 @@ namespace PixivWPF.Pages
         {
             try
             {
-                Commands.SaveIllustAll.Execute(ResultItems);
+                var setting = Application.Current.LoadSetting();
+
+                var shift = Dispatcher.Invoke(() => Keyboard.Modifiers == ModifierKeys.Shift);
+
+                var type = (shift ? !setting.DownloadWithAutoReduce : setting.DownloadWithAutoReduce) ? DownloadType.None : DownloadType.Original;
+
+                var item = new KeyValuePair<ImageListGrid, DownloadType>(ResultItems, type);
+
+                Commands.SaveIllustAll.Execute(item);
             }
             catch (Exception ex) { ex.ERROR(); }
         }

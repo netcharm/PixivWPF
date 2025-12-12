@@ -1371,18 +1371,40 @@ namespace PixivWPF.Pages
         {
             try
             {
+                var shift = Dispatcher.Invoke(() => Keyboard.Modifiers == ModifierKeys.Shift);
+
+                var type = (shift ? !setting.DownloadWithAutoReduce : setting.DownloadWithAutoReduce) ? DownloadType.None : DownloadType.Original;
+
                 if (RelatedItems.IsKeyboardFocusWithin || RelatedItemsExpander.IsKeyboardFocusWithin)
-                    Commands.SaveIllust.Execute(RelatedItems);
+                {
+                    var item = new KeyValuePair<ImageListGrid, DownloadType>(RelatedItems, type);
+                    Commands.SaveIllust.Execute(item);
+                }
                 else if (FavoriteItems.IsKeyboardFocusWithin || FavoriteItemsExpander.IsKeyboardFocusWithin)
-                    Commands.SaveIllust.Execute(FavoriteItems);
+                {
+                    var item = new KeyValuePair<ImageListGrid, DownloadType>(FavoriteItems, type);
+                    Commands.SaveIllust.Execute(item);
+                }
                 else if (RelatedItems.SelectedItems.FirstOrDefault() != null && RelatedItems.SelectedItems.FirstOrDefault().IsFocused)
-                    Commands.SaveIllust.Execute(RelatedItems);
+                {
+                    var item = new KeyValuePair<ImageListGrid, DownloadType>(RelatedItems, type);
+                    Commands.SaveIllust.Execute(item);
+                }
                 else if (FavoriteItems.SelectedItems.FirstOrDefault() != null && FavoriteItems.SelectedItems.FirstOrDefault().IsFocused)
-                    Commands.SaveIllust.Execute(FavoriteItems);
+                {
+                    var item = new KeyValuePair<ImageListGrid, DownloadType>(FavoriteItems, type);
+                    Commands.SaveIllust.Execute(item);
+                }
                 else if (SubIllusts.Items.Count > 0)
-                    Commands.SaveIllust.Execute(SubIllusts);
+                {
+                    var item = new KeyValuePair<ImageListGrid, DownloadType>(SubIllusts, type);
+                    Commands.SaveIllust.Execute(item);
+                }
                 else if (Contents.IsWork())
-                    Commands.SaveIllust.Execute(Contents);
+                {
+                    var item = new KeyValuePair<PixivItem, DownloadType>(Contents, type);
+                    Commands.SaveIllust.Execute(item);
+                }
             }
             catch (Exception ex) { ex.ERROR("SaveIllust"); }
         }
@@ -1391,16 +1413,40 @@ namespace PixivWPF.Pages
         {
             try
             {
+                var shift = Dispatcher.Invoke(() => Keyboard.Modifiers == ModifierKeys.Shift);
+
+                var type = (shift ? !setting.DownloadWithAutoReduce : setting.DownloadWithAutoReduce) ? DownloadType.None : DownloadType.Original;
+
                 if (RelatedItems.IsKeyboardFocusWithin || RelatedItemsExpander.IsKeyboardFocusWithin)
-                    Commands.SaveIllustAll.Execute(RelatedItems);
+                {
+                    var item = new KeyValuePair<ImageListGrid, DownloadType>(RelatedItems, type);
+                    Commands.SaveIllustAll.Execute(item);
+                }
                 else if (FavoriteItems.IsKeyboardFocusWithin || FavoriteItemsExpander.IsKeyboardFocusWithin)
-                    Commands.SaveIllustAll.Execute(FavoriteItems);
+                {
+                    var item = new KeyValuePair<ImageListGrid, DownloadType>(FavoriteItems, type);
+                    Commands.SaveIllustAll.Execute(item);
+                }
                 else if (RelatedItems.SelectedItems.FirstOrDefault() != null && RelatedItems.SelectedItems.FirstOrDefault().IsFocused)
-                    Commands.SaveIllustAll.Execute(RelatedItems);
+                {
+                    var item = new KeyValuePair<ImageListGrid, DownloadType>(RelatedItems, type);
+                    Commands.SaveIllustAll.Execute(item);
+                }
                 else if (FavoriteItems.SelectedItems.FirstOrDefault() != null && FavoriteItems.SelectedItems.FirstOrDefault().IsFocused)
-                    Commands.SaveIllustAll.Execute(FavoriteItems);
+                {
+                    var item = new KeyValuePair<ImageListGrid, DownloadType>(FavoriteItems, type);
+                    Commands.SaveIllustAll.Execute(item);
+                }
+                else if (SubIllusts.Items.Count > 0)
+                {
+                    var item = new KeyValuePair<ImageListGrid, DownloadType>(SubIllusts, type);
+                    Commands.SaveIllustAll.Execute(item);
+                }
                 else if (Contents.IsWork())
-                    Commands.SaveIllustAll.Execute(Contents);
+                {
+                    var item = new KeyValuePair<PixivItem, DownloadType>(Contents, type);
+                    Commands.SaveIllustAll.Execute(item);
+                }
             }
             catch (Exception ex) { ex.ERROR("SaveIllustAll"); }
         }
