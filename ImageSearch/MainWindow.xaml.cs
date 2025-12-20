@@ -23,6 +23,7 @@ namespace ImageSearch
 {
 #pragma warning disable CA1860
 #pragma warning disable IDE0063
+#pragma warning disable IDE0079
 
     using CompactExifLib;
     using Microsoft.Win32;
@@ -38,6 +39,25 @@ namespace ImageSearch
         private WindowState LastWinState = WindowState.Normal;
         private readonly List<string> _log_ = [];
 
+        private ImageSource? TaskbarOverlay
+        {
+            get
+            {
+                return (Dispatcher.InvokeAsync(() =>
+                {
+                    TaskbarItemInfo ??= new TaskbarItemInfo();
+                    return (TaskbarItemInfo.Overlay);
+                }, DispatcherPriority.Normal).Result);
+            }
+            set
+            {
+                Dispatcher.InvokeAsync(() =>
+                {
+                    TaskbarItemInfo ??= new TaskbarItemInfo();
+                    TaskbarItemInfo.Overlay = value;
+                }, DispatcherPriority.Normal);
+            }
+        }
         private double TaskbarProgressValue
         {
             get
@@ -105,13 +125,19 @@ namespace ImageSearch
         //private System.Windows.Media.Brush? DefaultTextBrush { get; set; } = null;
 
         private static Encoding CJK = Encoding.GetEncoding("Unicode");
-        private string lcid_file = $"Labels_0x{LabelMap.LCID:X4}.csv";
+        private readonly string lcid_file = $"Labels_0x{LabelMap.LCID:X4}.csv";
 
         private List<Storage> _storages_ = [];
 
         private static string AppName { get { return (System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetExecutingAssembly().Location)); } }
 
         #region Application relative helper routine
+        private readonly ImageSource StatusOverlay_Run = new BitmapImage(new Uri("pack://application:,,,/Resources/StatusRun_32x.png"));
+        private readonly ImageSource StatusOverlay_Pause = new BitmapImage(new Uri("pack://application:,,,/Resources/StatusPause_32x.png"));
+        private readonly ImageSource StatusOverlay_Error = new BitmapImage(new Uri("pack://application:,,,/Resources/StatusCriticalError_32x.png"));
+        private readonly ImageSource StatusOverlay_Alert = new BitmapImage(new Uri("pack://application:,,,/Resources/StatusAlert_32x.png"));
+        private readonly ImageSource StatusOverlay_OK = new BitmapImage(new Uri("pack://application:,,,/Resources/StatusOK_32x.png"));
+
         private static string GetAbsolutePath(string relativePath)
         {
             string fullPath = string.Empty;
@@ -167,7 +193,7 @@ namespace ImageSearch
             }
         }
 
-        private FrameworkElement? FindElementWithName(DependencyObject? element)
+        private static FrameworkElement? FindElementWithName(DependencyObject? element)
         {
             if (element is FrameworkElement)
             {
@@ -250,6 +276,16 @@ namespace ImageSearch
                 {
                     TaskbarProgressState = state_new;
                     TaskbarProgressDescription = info;
+
+                    TaskbarOverlay = state_new switch
+                    {
+                        TaskbarItemProgressState.None => StatusOverlay_OK,
+                        TaskbarItemProgressState.Error => StatusOverlay_Error,
+                        TaskbarItemProgressState.Paused => StatusOverlay_Pause,
+                        TaskbarItemProgressState.Indeterminate or TaskbarItemProgressState.Normal => StatusOverlay_Run,
+                        _ => null,
+                    };
+
                     DoEvents();
                 }
 
@@ -670,9 +706,9 @@ namespace ImageSearch
             return ((bmp, skb));
         }
 
-        private double VALUE_GB = 1024 * 1024 * 1024;
-        private double VALUE_MB = 1024 * 1024;
-        private double VALUE_KB = 1024;
+        private readonly double VALUE_GB = 1024 * 1024 * 1024;
+        private readonly double VALUE_MB = 1024 * 1024;
+        private readonly double VALUE_KB = 1024;
 
         public string SmartFileSize(double v, double factor = 1, bool unit = true, bool trimzero = true, int padleft = 0)
         {
@@ -852,8 +888,8 @@ namespace ImageSearch
         #endregion
 
         #region Shell relative helper routine
-        private static string[] EscapeChar = ["%", "&", ":", ";", "?", "*", "!", "~", "=", "<", ">", "≠", "-", "$", "#", ".", "(", ")", "/", "|"];
-        private Func<string, string> Escape = (s) =>
+        private readonly static string[] EscapeChar = ["%", "&", ":", ";", "?", "*", "!", "~", "=", "<", ">", "≠", "-", "$", "#", ".", "(", ")", "/", "|"];
+        private readonly Func<string, string> Escape = (s) =>
         {
             foreach(var c in EscapeChar) s = s.Replace(c, Uri.EscapeDataString(c));
             return(s);
@@ -953,7 +989,7 @@ namespace ImageSearch
         {
             var result = false;
             var count = 0;
-            if (flist is IEnumerable<string>)
+            if (flist is not null)
             {
                 var files = flist.Select(f => f.Trim('"')).ToList();
                 count = files.Count;
@@ -1078,7 +1114,7 @@ namespace ImageSearch
         {
             var result = false;
             var count = 0;
-            if (dp is DataObject && dp.ContainsText())
+            if (dp?.ContainsText() ?? false)
             {
                 var text = dp.GetText();
                 if (Regex.IsMatch(text, @"^https?://"))
@@ -1353,7 +1389,7 @@ namespace ImageSearch
             });
         }
 
-        internal protected Predicate<object>? SetResultFilter(string filter_content)
+        protected internal static Predicate<object>? SetResultFilter(string filter_content)
         {
             Predicate<object>? result = null;
             if (!string.IsNullOrEmpty(filter_content))
@@ -1596,7 +1632,6 @@ namespace ImageSearch
             try
             {
                 LoadSetting();
-                //TaskbarState.ThumbButtonInfos = null;
 
                 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
                 CJK = Encoding.GetEncoding("GBK");
@@ -1641,7 +1676,7 @@ namespace ImageSearch
                 }
                 catch (Exception ex) { e.Cancel = true; ReportMessage(ex); }
             }
-            else
+            else if (similar is not null)
             {
                 similar?.CancelCreateFeatureData();
                 if (similar?.IsIdle ?? false || await similar?.WaitingWritten())
@@ -2227,7 +2262,6 @@ namespace ImageSearch
                     GC.Collect();
                     ReportMessage("Quering feature finished!", TaskStatus.RanToCompletion);
                 });
-
             }
         }
 
@@ -2317,6 +2351,20 @@ namespace ImageSearch
             //UpdateSimilarItemsTooltip(e.AddedItems.OfType<ImageResultGalleryItem>());
         }
 
+        private void TaskbarProgressButtonCompare_Click(object sender, EventArgs e)
+        {
+            CompareImage_Click(CompareImage, new RoutedEventArgs());
+        }
+
+        private void TaskbarProgressButtonQueryLabel_Click(object sender, EventArgs e)
+        {
+            QueryImageLabel_Click(QueryImageLabel, new RoutedEventArgs());
+        }
+
+        private void TaskbarProgressButtonQuery_Click(object sender, EventArgs e)
+        {
+            QueryImage_Click(QueryImage, new RoutedEventArgs());
+        }
     }
 
     public class ImageResultGalleryItem : INotifyPropertyChanged, IDisposable

@@ -7,9 +7,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>similar.ico</ApplicationIcon>
-    <Version>1.1.1056</Version>
-    <AssemblyVersion>1.1.1056</AssemblyVersion>
-    <FileVersion>1.1.1056</FileVersion>
+    <Version>1.1.1057</Version>
+    <AssemblyVersion>1.1.1057</AssemblyVersion>
+    <FileVersion>1.1.1057</FileVersion>
     <Company>NetCharm Studio!</Company>
     <Authors>NetCharm</Authors>
     <Product>Local Image Search By Image</Product>
@@ -33,15 +33,32 @@
 
   <ItemGroup>
     <None Remove="Resources\checkerboard.png" />
+    <None Remove="Resources\Compare_32x.png" />
+    <None Remove="Resources\EditLabel_13239.png" />
+    <None Remove="Resources\Newquery_32x.png" />
+    <None Remove="Resources\Search_32x.png" />
+    <None Remove="Resources\StatusAlert_32x.png" />
+    <None Remove="Resources\StatusCriticalError_32x.png" />
+    <None Remove="Resources\StatusOK_32x.png" />
+    <None Remove="Resources\StatusPause_32x.png" />
+    <None Remove="Resources\StatusRun_32x.png" />
     <None Remove="Search\Similar.cs~RF9215e092.TMP" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\EditLabel_13239.png" />
     <Content Include="similar.ico" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Resources\checkerboard.png" />
+    <Resource Include="Resources\Compare_32x.png" />
+    <Resource Include="Resources\Newquery_32x.png" />
+    <Resource Include="Resources\StatusAlert_32x.png" />
+    <Resource Include="Resources\StatusCriticalError_32x.png" />
+    <Resource Include="Resources\StatusOK_32x.png" />
+    <Resource Include="Resources\StatusPause_32x.png" />
+    <Resource Include="Resources\StatusRun_32x.png" />
   </ItemGroup>
 
   <ItemGroup>
