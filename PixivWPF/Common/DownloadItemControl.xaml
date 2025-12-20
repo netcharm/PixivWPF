@@ -20,118 +20,118 @@
     <Grid Margin="2" ToolTipOpening="Download_ToolTipOpening" ToolTip="{Binding Path=ToolTip, Mode=OneWay, IsAsync=True}">
         <Grid.ContextMenu>
             <ContextMenu Opened="Download_ContextMenu_Opened" >
-                <MenuItem x:Name="miCopyIllustID" x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="miActions_Click">
+                <MenuItem x:Name="miCopyIllustID" x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="CMIActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE16F;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Name="miCopyDonwnloadInfo" x:Uid="ActionCopyDownloadInfo" Header="Copy Download Info" Click="miActions_Click">
+                <MenuItem x:Name="miCopyDonwnloadInfo" x:Uid="ActionCopyDownloadInfo" Header="Copy Download Info" Click="CMIActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE16F;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Name="miRefreshThumb" x:Uid="miRefreshThumb" Header="Refresh Thumbnail" Click="miActions_Click">
+                <MenuItem x:Name="miRefreshThumb" x:Uid="miRefreshThumb" Header="Refresh Thumbnail" Click="CMIActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE149;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
-                <MenuItem x:Name="miSaveAsJPEG" x:Uid="ActionSaveAsJPEG" Header="Save As JPEG" IsChecked="True" Click="miActions_Click">
+                <MenuItem x:Name="miSaveAsJPEG" x:Uid="ActionSaveAsJPEG" Header="Save As JPEG" IsChecked="True" Click="CMIActions_Click">
                     <!--<MenuItem.Icon>
                         <TextBlock Text="&#xE10A;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>-->
                 </MenuItem>
-                <MenuItem x:Name="miStopDownload" x:Uid="ActionStop" Header="Stop Download" Click="miActions_Click">
+                <MenuItem x:Name="miStopDownload" x:Uid="ActionStop" Header="Stop Download" Click="CMIActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE10A;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Name="miRemove" x:Uid="ActionRemove" Header="Remove Item" Click="miActions_Click">
+                <MenuItem x:Name="miRemove" x:Uid="ActionRemove" Header="Remove Item" Click="CMIActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE107;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Name="miDownload" x:Uid="Download" Header="Download" Click="miActions_Click">
+                <MenuItem x:Name="miDownload" x:Uid="Download" Header="Download" Click="CMIActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE118;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Name="miDownloadRestart" x:Uid="DownloadRestart" Header="Restart Download" Click="miActions_Click">
+                <MenuItem x:Name="miDownloadRestart" x:Uid="DownloadRestart" Header="Restart Download" Click="CMIActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE118;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
-                <MenuItem x:Name="miOpenImage" x:Uid="OpenFile" Header="View Image" Click="miActions_Click">
+                <MenuItem x:Name="miOpenImage" x:Uid="OpenFile" Header="View Image" Click="CMIActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xEB9F;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Name="miOpenImageWith" x:Uid="OpenFileWith" Header="View Image With ..." Click="miActions_Click">
+                <MenuItem x:Name="miOpenImageWith" x:Uid="OpenFileWith" Header="View Image With ..." Click="CMIActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xEB9F;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Name="miOpenFolder" x:Uid="OpenFolder" Header="Open Image Folder" Click="miActions_Click">
+                <MenuItem x:Name="miOpenFolder" x:Uid="OpenFolder" Header="Open Image Folder" Click="CMIActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xED25;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Name="miOpenIllust" x:Uid="ActionOpenIllust" Header="Open Illust" Click="miActions_Click">
+                <MenuItem x:Name="miOpenIllust" x:Uid="ActionOpenIllust" Header="Open Illust" Click="CMIActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE8A7;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
-                <MenuItem x:Name="miConvertImageToJpeg" x:Uid="ConvertImageToJpeg" Header="Convert Image To JPEG" Click="miActions_Click">
+                <MenuItem x:Name="miConvertImageToJpeg" x:Uid="ConvertImageToJpeg" Header="Convert Image To JPEG" Click="CMIActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE105;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Name="miReduceJpegSize" x:Uid="ReduceJpegSize" Header="Reduce JPEG File Size" Click="miActions_Click">
+                <MenuItem x:Name="miReduceJpegSize" x:Uid="ReduceJpegSize" Header="Reduce JPEG File Size" Click="CMIActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE105;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Name="miReduceJpegSizeTo" x:Uid="ReduceJpegSizeTo" Click="miActions_Click" 
+                <MenuItem x:Name="miReduceJpegSizeTo" x:Uid="ReduceJpegSizeTo" Click="CMIActions_Click" 
                     Header="Quality To" Template="{DynamicResource MenuItemWithSlider}" >
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE105;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
-                <MenuItem x:Name="miSearchArtistInFiles" x:Uid="SearchArtistInFiles" Header="Search Artist In Files" ToolTip="Search Selected In Downloaded" Click="miActions_Click" >
+                <MenuItem x:Name="miSearchArtistInFiles" x:Uid="SearchArtistInFiles" Header="Search Artist In Files" ToolTip="Search Selected In Downloaded" Click="CMIActions_Click" >
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE773;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Name="miSearchTagsInFiles" x:Uid="SearchTagsInFiles" Header="Search Tags In Files" ToolTip="Search Selected In Downloaded" Click="miActions_Click" >
+                <MenuItem x:Name="miSearchTagsInFiles" x:Uid="SearchTagsInFiles" Header="Search Tags In Files" ToolTip="Search Selected In Downloaded" Click="CMIActions_Click" >
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE773;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Name="miSearchTitleInFiles" x:Uid="SearchTitleInFiles" Header="Search Title In Files" ToolTip="Search Selected In Downloaded" Click="miActions_Click" >
+                <MenuItem x:Name="miSearchTitleInFiles" x:Uid="SearchTitleInFiles" Header="Search Title In Files" ToolTip="Search Selected In Downloaded" Click="CMIActions_Click" >
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE773;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
-                <MenuItem x:Name="miCompareDownloaded" x:Uid="miCompareDownloaded" Header="Compare Downloaded"  Click="miActions_Click">
+                <MenuItem x:Name="miCompareDownloaded" x:Uid="miCompareDownloaded" Header="Compare Downloaded"  Click="CMIActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE11E;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Name="miShowImageMeta" x:Uid="ShowImageMeta" Header="Show Image Metadata" Click="miActions_Click">
+                <MenuItem x:Name="miShowImageMeta" x:Uid="ShowImageMeta" Header="Show Image Metadata" Click="CMIActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE114;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Name="miTouchImageMeta" x:Uid="TouchImageMeta" Header="Touch Image Metadata" Click="miActions_Click">
+                <MenuItem x:Name="miTouchImageMeta" x:Uid="TouchImageMeta" Header="Touch Image Metadata" Click="CMIActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xE114;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Name="miOpenImageProperties" x:Uid="OpenFileProperties" Header="View Image Properties" Click="miActions_Click">
+                <MenuItem x:Name="miOpenImageProperties" x:Uid="OpenFileProperties" Header="View Image Properties" Click="CMIActions_Click">
                     <MenuItem.Icon>
                         <TextBlock Text="&#xEA1F;" Style="{DynamicResource MenuItemIcon16}"/>
                     </MenuItem.Icon>
@@ -240,7 +240,7 @@
                        Tag="{Binding Path=State, Mode=OneWay, NotifyOnTargetUpdated=True}"
                        TargetUpdated="PART_Download_TargetUpdated"
                        HorizontalAlignment="Left" VerticalAlignment="Center" />
-            <mah:ToggleSwitch Grid.Column="1" x:Name="PART_SaveAsJPEG" x:Uid="OptionSaveAsJPEG" Margin="2,0,-8,0" Toggled="miActions_Click"                                  
+            <mah:ToggleSwitch Grid.Column="1" x:Name="PART_SaveAsJPEG" x:Uid="OptionSaveAsJPEG" Margin="2,0,-8,0" Toggled="CMIActions_Click"                                  
                         ToolTip="SaveAsJPEG On/Off" RenderTransformOrigin="0.5,0.5" ContentPadding="0,0,-8,0"
                         Width="48" MaxWidth="56" ClipToBounds="True" UseLayoutRounding="True"
                         FlowDirection="RightToLeft" OnContent="JPG" OffContent="KEEP"
@@ -254,35 +254,35 @@
             <StackPanel Grid.Column="2" x:Name="OpenPanel" x:Uid="OpenPanel" Margin="0,0,0,2"
                     Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"
                     Background="Transparent" >
-                <Button x:Name="PART_CopyIllustID" x:Uid="ActionCopyIllustID" Margin="2,0,2,0" Click="miActions_Click"
+                <Button x:Name="PART_CopyIllustID" x:Uid="ActionCopyIllustID" Margin="2,0,2,0" Click="CMIActions_Click"
                         ToolTip="Copy Illust ID" Style="{DynamicResource SquareButton}" HorizontalAlignment="Right">
                     <TextBlock Text="&#xE16F;" Style="{DynamicResource ButtonIcon}"/>
                 </Button>
-                <Button x:Name="PART_OpenIllust" x:Uid="ActionOpenIllust" Margin="2,0,2,0" Click="miActions_Click"
+                <Button x:Name="PART_OpenIllust" x:Uid="ActionOpenIllust" Margin="2,0,2,0" Click="CMIActions_Click"
                         ToolTip="Open Illust" Style="{DynamicResource SquareButton}" HorizontalAlignment="Right">
                     <TextBlock Text="&#xE8A7;" Style="{DynamicResource ButtonIcon}"/>
                 </Button>
-                <Button x:Name="PART_Remove" x:Uid="ActionRemove" Margin="2,0,2,0" Click="miActions_Click"
+                <Button x:Name="PART_Remove" x:Uid="ActionRemove" Margin="2,0,2,0" Click="CMIActions_Click"
                         ToolTip="Remove Item" Style="{DynamicResource SquareButton}" HorizontalAlignment="Right">
                     <TextBlock Text="&#xE107;" Style="{DynamicResource ButtonIcon}"/>
                 </Button>
-                <Button x:Name="PART_StopDownload" x:Uid="ActionStop" Margin="2,0,2,0" Click="miActions_Click"
+                <Button x:Name="PART_StopDownload" x:Uid="ActionStop" Margin="2,0,2,0" Click="CMIActions_Click"
                         ToolTip="Stop Downloading" Style="{DynamicResource SquareButton}" HorizontalAlignment="Right">
                     <TextBlock Text="&#xE10A;" Style="{DynamicResource ButtonIcon}"/>
                 </Button>
-                <Button x:Name="PART_Download" x:Uid="Download" Margin="2,0,2,0" Click="miActions_Click"
+                <Button x:Name="PART_Download" x:Uid="Download" Margin="2,0,2,0" Click="CMIActions_Click"
                         ToolTip="Download File" Tag="{Binding IsStart, Mode=OneWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
                         TargetUpdated="PART_Download_TargetUpdated" Style="{DynamicResource SquareButton}" HorizontalAlignment="Right">
                     <TextBlock Text="&#xE118;" Style="{DynamicResource ButtonIcon}"/>
                 </Button>
-                <Button x:Name="PART_OpenFolder" x:Uid="OpenFolder" Margin="2,0,2,0" Click="miActions_Click"
+                <Button x:Name="PART_OpenFolder" x:Uid="OpenFolder" Margin="2,0,2,0" Click="CMIActions_Click"
                     ToolTip="Open Image Folder" Tag="{Binding FileName, Mode=OneWay}"
                     Style="{DynamicResource SquareButton}" HorizontalAlignment="Right" IsEnabled="False" Visibility="Collapsed">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="&#xED25;" Style="{DynamicResource ButtonIcon}"/>
                     </StackPanel>
                 </Button>
-                <Button x:Name="PART_OpenFile" x:Uid="OpenFile" Margin="2,0,2,0" Click="miActions_Click"
+                <Button x:Name="PART_OpenFile" x:Uid="OpenFile" Margin="2,0,2,0" Click="CMIActions_Click"
                     ToolTip="View Image With Default Application" Tag="{Binding FileName, Mode=OneWay}"
                     Style="{DynamicResource SquareButton}" HorizontalAlignment="Right" IsEnabled="False">
                     <StackPanel Orientation="Horizontal">

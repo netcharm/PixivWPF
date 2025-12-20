@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MahApps.Metro.Controls;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -29,8 +30,8 @@ namespace PixivWPF.Common
 
         public void Dispose()
         {
-            if (Foreground is Brush) Foreground = null;
-            if (Background is Brush) Background = null;
+            Foreground = null;
+            Background = null;
         }
     }
 
@@ -124,20 +125,13 @@ namespace PixivWPF.Common
 
         public string IllustSID { get { return (Url.GetIllustId()); } }
         public Pixeez.Objects.Work Illust { get { return (IllustSID.FindIllust()); } }
-        public long IllustID
-        {
-            get
-            {
-                var id = -1L;
-                return (long.TryParse(Url.GetIllustId(), out id) ? id : -1L);
-            }
-        }
+        public long IllustID => (long.TryParse(Url.GetIllustId(), out long id) ? id : -1L);
         public long UserID
         {
             get
             {
                 var id = -1L;
-                if (Illust is Pixeez.Objects.Work && Illust.User is Pixeez.Objects.UserBase)
+                if (Illust is not null && Illust.User is not null)
                 {
                     id = Illust.User.Id ?? -1L;
                 }
@@ -286,7 +280,7 @@ namespace PixivWPF.Common
             if (disposed) return;
             if (disposing)
             {
-                if (Instance is DownloadItem)
+                if (Instance is not null)
                 {
                     Dispatcher.CurrentDispatcher.BeginInvoke(new Action(delegate
                     {
@@ -348,10 +342,10 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Show();
+                    Instance?.PART_ThumbnailWait.Show();
 
-                    var cancel_token = new CancellationTokenSource(TimeSpan.FromSeconds(15)); 
-                    using (var img = await ThumbnailUrl.LoadImageFromUrl(overwrite, size: Application.Current.GetDefaultThumbSize(), cancelToken: cancel_token))
+                    var cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout)); 
+                    using (var img = await ThumbnailUrl.LoadImageFromUrl(overwrite, size: Application.Current.GetDefaultThumbSize(), cancelToken: cancelToken))
                     {
                         if (img.Source != null)
                         {
@@ -626,7 +620,7 @@ namespace PixivWPF.Common
         }
 
         private int lastRatesCount = 5;
-        private Queue<double> lastRates = new Queue<double>();
+        private Queue<double> lastRates = new();
         private double lastRate = 0;
         private double lastRateA = 0;
         private long lastReceived = 0;
@@ -721,7 +715,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Update state helper
-        private Dictionary<DownloadItemState, DownloadStateMark> DownloadStatusMark = new Dictionary<DownloadItemState, DownloadStateMark>()
+        private Dictionary<DownloadItemState, DownloadStateMark> DownloadStatusMark = new()
         {
             {DownloadItemState.Finished, new DownloadStateMark() { Mark = "\uE930", Foreground = Application.Current.GetSucceedBrush() }},
             {DownloadItemState.NonExists, new DownloadStateMark() { Mark = "\uE946", Foreground = Application.Current.GetNonExistsBrush() }},
@@ -854,7 +848,7 @@ namespace PixivWPF.Common
 
         private CancellationTokenSource cancelReadStreamSource = null;
 
-        private SemaphoreSlim Downloading = new SemaphoreSlim(1, 1);
+        private SemaphoreSlim Downloading = new(1, 1);
 
         //private MemoryStream _DownloadStream = null;
         private byte[] _DownloadBuffer = null;
@@ -1124,7 +1118,7 @@ namespace PixivWPF.Common
                 var retry = Math.Max(1, setting.DownloadFailAutoRetryCount);
                 while (!Canceling && retry > 0)
                 {
-                    if (State == DownloadItemState.Finished) { retry = 0; break; }
+                    if (State == DownloadItemState.Finished) { break; }
                     try
                     {
                         retry--;
@@ -1406,7 +1400,7 @@ namespace PixivWPF.Common
             }
         }
 
-        private SemaphoreSlim OverwritePromptPopup = new SemaphoreSlim(1, 1);
+        private SemaphoreSlim OverwritePromptPopup = new(1, 1);
         /// <summary>
         /// 
         /// </summary>
@@ -1602,10 +1596,7 @@ namespace PixivWPF.Common
 
         private void Download_ContextMenu_Opened(object sender, RoutedEventArgs e)
         {
-            if (miReduceJpegSizeTo.Tag == null)
-            {
-                miReduceJpegSizeTo.Tag = Info.CustomReduceQuality is App.MenuItemSliderData ? Info.CustomReduceQuality : Application.Current.GetDefaultReduceData();
-            }
+            miReduceJpegSizeTo.Tag ??= Info.CustomReduceQuality is App.MenuItemSliderData ? Info.CustomReduceQuality : Application.Current.GetDefaultReduceData();
             if (Info.FileName.IsDownloaded() && miReduceJpegSizeTo.Tag is App.MenuItemSliderData)
             {
                 var data = miReduceJpegSizeTo.Tag as App.MenuItemSliderData;
@@ -1633,7 +1624,7 @@ namespace PixivWPF.Common
             if (sender == PART_Download && !IsDownloading) Start(setting.DownloadWithFailResume);
         }
 
-        private async void miActions_Click(object sender, RoutedEventArgs e)
+        private async void CMIActions_Click(object sender, RoutedEventArgs e)
         {
             (sender as UIElement).IsEnabled = false;
 
