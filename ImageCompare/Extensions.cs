@@ -1303,11 +1303,13 @@ namespace ImageCompare
                 {
                     if (fmt.SupportsReading)
                     {
-                        if (fmt.MimeType != null && fmt.MimeType.StartsWith("video", StringComparison.CurrentCultureIgnoreCase)) continue;
-                        else if (fmt.Description.StartsWith("video", StringComparison.CurrentCultureIgnoreCase)) continue;
-                        else if (fmt.MimeType != null && fmt.MimeType.StartsWith("image", StringComparison.CurrentCultureIgnoreCase))
-                            result.Add(fmt.Format.ToString(), fmt.Description);
-                        else result.Add(fmt.Format.ToString(), fmt.Description);
+                        //if (fmt.MimeType != null && fmt.MimeType.StartsWith("video", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        //else if (fmt.Description.StartsWith("video", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        //else if (fmt.MimeType != null && fmt.MimeType.StartsWith("image", StringComparison.CurrentCultureIgnoreCase))
+                        //    result.Add(fmt.Format.ToString(), fmt.Description);
+                        //else result.Add(fmt.Format.ToString(), fmt.Description);
+                        if (fmt.MimeType is null) continue;
+                        else if (fmt.MimeType.StartsWith("image", StringComparison.CurrentCultureIgnoreCase)) result.Add(fmt.Format.ToString(), fmt.Description);
                     }
                 }
 
