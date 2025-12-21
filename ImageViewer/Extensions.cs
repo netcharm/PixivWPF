@@ -2621,7 +2621,11 @@ namespace ImageViewer
                     var ret = false;
                     try
                     {
-                        _file_list_ = _file_list_storage_.Keys.Distinct().NaturalSort().ToArray();
+                        if (MonitorFS)
+                            _file_list_ = _file_list_storage_.Keys.Distinct().NaturalSort().ToArray();
+                        else
+                            _file_list_ = [.. _file_list_storage_.Keys.Where(f => File.Exists(f))];
+
                         if (_file_list_updating_cancel_.Token.IsCancellationRequested) return (ret);
                         UpdateInfoBox(e: e);
                         ret = true;

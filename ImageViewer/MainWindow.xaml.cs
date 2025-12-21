@@ -937,6 +937,34 @@ namespace ImageViewer
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="refresh"></param>
+        /// <returns></returns>
+        private async Task<bool> LoadImageFromIndexOfFile(int index, bool refresh = true)
+        {
+            var ret = false;
+            try
+            {
+                if (refresh && this.IsUpdatingFileList()) return (false);
+                IsLoadingViewer = true;
+
+                var image =  ImageViewer.GetInformation();
+                if (await image?.LoadImageFromIndex(index, refresh))
+                {
+                    CloseQualityChanger();
+                    ClearImage();
+                    RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
+                }
+                else { IsLoadingViewer = false; }
+                SetTitle(image?.FileName);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+            return (ret);
+        }
+
+        /// <summary>
         ///
         /// </summary>
         /// <param name="source"></param>
@@ -1577,12 +1605,13 @@ namespace ImageViewer
                         {
                             refresh = true;
                         }
-                        else if (e is RenamedEventArgs || (e as RenamedEventArgs).OldName.Equals(image.FileName, StringComparison.InvariantCultureIgnoreCase))
+                        else if (e is RenamedEventArgs || (e as RenamedEventArgs).OldName.Equals(image?.FileName, StringComparison.InvariantCultureIgnoreCase))
                         {
-                            image.RefreshImageFileInfo((e as RenamedEventArgs).FullPath);
+                            image?.RefreshImageFileInfo((e as RenamedEventArgs).FullPath);
                         }
                     }
-                    ImageInfoBox.Text = await image.GetSimpleInfo(refresh: refresh);
+                    ImageInfoBox.Text = await image?.GetSimpleInfo(refresh: refresh);
+                    //if (!MonitorFS) await image?.UpdateFileList();
                     if (index) ImageIndexBox.Text = await image.GetIndexInfo();
                     ImageInfoBoxSep.Visibility = Visibility.Visible;
                     ImageIndexBoxSep.Visibility = Visibility.Visible;
@@ -3733,11 +3762,14 @@ namespace ImageViewer
 
                     else if (e.Key == Key.Delete || e.SystemKey == Key.Delete)
                     {
-                        var file = ImageViewer.GetInformation().FileName;
+                        var image =ImageViewer.GetInformation();
+                        var file = image?.FileName;
                         var ret = file.FileDelete(recycle: !km.Shift) == 0;
                         if (ret)
                         {
-                            ret = await LoadImageFromNextFile(refresh: false);
+                            var idx = await image?.UpdateFileList();
+                            ret = await LoadImageFromIndexOfFile(idx, refresh: false);
+                            //ret = await LoadImageFromNextFile(refresh: false);
                             if (!ret) ret = await LoadImageFromPrevFile(refresh: false);
                             if (!ret) IsLoadingViewer = false;
                         }

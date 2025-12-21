@@ -29,7 +29,7 @@ namespace ImageViewer
 #pragma warning disable IDE0060
 
     public enum ImageTarget { None, Source, Target, Result, All };
-    public enum ListPosition { First, Prev, Next, Last };
+    public enum ListPosition { Current, First, Prev, Next, Last };
 
     public class SourceParam
     {
@@ -667,6 +667,66 @@ namespace ImageViewer
         public bool IsLastFile()
         {
             return (_last_file_index_ == _last_file_count_);
+        }
+
+        public async Task<int> UpdateFileList()
+        {
+            int result = _last_file_index_ ?? 0;
+            _last_file_list_ = [.. _last_file_list_.Where(f => File.Exists(f))];
+            var idx = await IndexOf(FileName);
+            _last_file_index_ = idx < 0 ? CalcFileIndex(ListPosition.Next) : idx;
+            _last_file_count_ = _last_file_list_.Length;
+            return (result);
+        }
+
+        public int CalcFileIndex(ListPosition position)
+        {
+            int result = -1;
+            if (_last_file_index_.HasValue && _last_file_count_.HasValue)
+            {
+                switch (position)
+                {
+                    case ListPosition.Current:
+                        result = _last_file_index_ ?? 0;
+                        break;
+                    case ListPosition.First:
+                        result = 0;
+                        break;
+                    case ListPosition.Prev:
+                        result = _last_file_index_ ?? -1;
+                        for (var i = _last_file_index_ - 1 ?? _last_file_list_.Length - 1; i >= 0; i--)
+                        {
+                            if (File.Exists(_last_file_list_[i])) { result = i; break; }
+                        }
+                        if (result == -1)
+                        {
+                            for (var i = _last_file_index_ + 1 ?? 0; i < _last_file_list_.Length; i++)
+                            {
+                                if (File.Exists(_last_file_list_[i])) { result = i; break; }
+                            }
+                        }
+                        break;
+                    case ListPosition.Next:
+                        result = _last_file_index_ ?? -1;
+                        for (var i = _last_file_index_ + 1 ?? 0; i < _last_file_list_.Length; i++)
+                        {
+                            if (File.Exists(_last_file_list_[i])) { result = i; break; }
+                        }
+                        if (result == -1)
+                        {
+                            for (var i = _last_file_index_ - 1 ?? _last_file_list_.Length - 1; i >= 0; i--)
+                            {
+                                if (File.Exists(_last_file_list_[i])) { result = i; break; }
+                            }
+                        }
+                        break;
+                    case ListPosition.Last:
+                        result = _last_file_list_.Length - 1;
+                        break;
+                }
+                //_last_file_count_ = _last_file_list_.Length;
+            }
+            return (result);
         }
 
         /// <summary>
@@ -1320,12 +1380,8 @@ namespace ImageViewer
         /// <returns></returns>
         public async Task<bool> LoadImageFromIndex(ListPosition pos)
         {
-            var idx = 0;
-            var rel = false;
-            if (pos == ListPosition.First) idx = 0;
-            else if (pos == ListPosition.Prev) { rel = true; idx = -1; }
-            else if (pos == ListPosition.Next) { rel = true; idx = 1; }
-            else if (pos == ListPosition.Last) idx = int.MaxValue;
+            var idx = CalcFileIndex(pos);
+            var rel = false; // pos == ListPosition.Prev || pos == ListPosition.Next;
             return (await LoadImageFromIndex(idx, relative: rel));
         }
 
@@ -1352,25 +1408,35 @@ namespace ImageViewer
                         {
                             if (refresh)
                             {
-                                var file_n = Path.IsPathRooted(FileName) ? FileName : files.Where(f => f.EndsWith(FileName, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
-                                var idx_o = Array.IndexOf(files, file_n);
-                                if (idx_o < 0) idx_o = _last_file_index_ ?? int.MaxValue;
-                                var idx_n = Math.Max(0, Math.Min(files.Length - 1, relative ? idx_o + index : index));
-                                if (idx_n != idx_o) ret = await LoadImageFromFile(files[idx_n]);
-                                if (ret) _last_file_index_ = idx_n;
+                                //var file_n = Path.IsPathRooted(FileName) ? FileName : files.Where(f => f.EndsWith(FileName, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
+                                //var idx_o = Array.IndexOf(files, file_n);
+                                //if (idx_o < 0) idx_o = _last_file_index_ ?? int.MaxValue;
+                                //var idx_n = Math.Max(0, Math.Min(files.Length - 1, relative ? idx_o + index : index));
+                                //if (idx_n != idx_o) ret = await LoadImageFromFile(files[idx_n]);
+                                //if (ret) _last_file_index_ = idx_n;
+                                if (!_last_file_index_.HasValue || index != _last_file_index_.Value)
+                                {
+                                    ret = await LoadImageFromFile(files[index]);
+                                    if (ret) _last_file_index_ = index;
+                                }
                             }
                             else
                             {
-                                var idx_n = Math.Max(0, Math.Min(files.Length - 1, relative ? (_last_file_index_ + index) ?? int.MaxValue : index));
-                                if (idx_n > _last_file_index_)
-                                    for (var i = _last_file_index_; i < files.Length; i++) { if (File.Exists(files[idx_n])) { _last_file_index_ = i; break; } }
-                                else if (idx_n < _last_file_index_)
-                                    for (var i = _last_file_index_; i >= 0; i--) { if (File.Exists(files[idx_n])) { _last_file_index_ = i; break; } }
-
-                                ret = await LoadImageFromFile(files[idx_n]);
-                                if (ret) _last_file_index_ = idx_n;
+                                //var idx_n = Math.Max(0, Math.Min(files.Length - 1, relative ? (_last_file_index_ + index) ?? int.MaxValue : index));
+                                //if (idx_n > _last_file_index_)
+                                //    for (var i = _last_file_index_; i < files.Length; i++) { if (File.Exists(files[idx_n])) { _last_file_index_ = i; break; } }
+                                //else if (idx_n < _last_file_index_)
+                                //    for (var i = _last_file_index_; i >= 0; i--) { if (File.Exists(files[idx_n])) { _last_file_index_ = i; break; } }
+                                //ret = await LoadImageFromFile(files[idx_n]);
+                                //if (ret) _last_file_index_ = idx_n;
+                                if (!_last_file_index_.HasValue || index != _last_file_index_.Value)
+                                {
+                                    ret = await LoadImageFromFile(files[index]);
+                                    if (ret) _last_file_index_ = index;
+                                }
                             }
                         }
+                        //await UpdateFileList();
                     }
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
