@@ -57,6 +57,8 @@ namespace ImageViewer
         private static readonly string AppName = Path.GetFileNameWithoutExtension(AppExec);
         //private static readonly string AppFullName = Application.ResourceAssembly.FullName.Split(',').First().Trim();
         private static string CachePath =  "cache";
+        private static bool MonitorFS =  true;
+        private static bool Singleton =  true;
 
         private bool Ready => Dispatcher?.Invoke(() => IsLoaded) ?? false;
 
@@ -3206,6 +3208,19 @@ namespace ImageViewer
                         }
                         catch { }
                     }
+                }
+
+                if (appSection.Settings.AllKeys.Contains("MonitorFS"))
+                {
+                    var value = appSection.Settings["MonitorFS"].Value;
+                    if (!string.IsNullOrEmpty(value)) bool.TryParse(value, out MonitorFS);
+                    Extensions.MonitorFS = MonitorFS;
+                }
+                if (appSection.Settings.AllKeys.Contains("Singleton"))
+                {
+                    var value = appSection.Settings["Singleton"].Value;
+                    if (!string.IsNullOrEmpty(value)) bool.TryParse(value, out Singleton);
+                    Extensions.Singleton = Singleton;
                 }
 
                 if (appSection.Settings.AllKeys.Contains("CachePath"))

@@ -654,6 +654,7 @@ namespace ImageViewer
         #region Application Helper
         public class MyOptions
         {
+            public bool MonitorFS { get; set; } = true;
             public bool Singleton { get; set; } = false;
             public bool DualOpen { get; set; } = false;
             public bool RunAs32Bits { get; set; } = false;
@@ -661,16 +662,21 @@ namespace ImageViewer
             public List<string> Args = new List<string>();
         }
 
+        private static bool monitorfs = true;
         private static bool singleton = false;
         private static bool dualopen = false;
         private static bool runas64 = false;
         private static bool runas32 = false;
+
+        public static bool MonitorFS { get => monitorfs; set => monitorfs = value; }
+        public static bool Singleton { get => singleton; set => singleton = value; }
 
         private static MyOptions myoptions = null;
 
         public static OptionSet Options { get; set; } = new OptionSet()
         {
             { "s|single", "Single Instance Mode", v => { singleton = v != null; } },
+            { "m|monitor", "Do Not Monitor The File System", v => { monitorfs = v == null; } },
             //{ "d|dual", "Dual Open One Image Mode", v => { dualopen = v != null; } },
             //{ "32", "Run As 64Bits Application", v => { runas32 = v != null; } },
             //{ "64", "Run As 64Bits Application", v => { runas64 = v != null; } },
@@ -682,8 +688,8 @@ namespace ImageViewer
             {
                 var args = Environment.GetCommandLineArgs().Skip(1).ToList();
                 var opts = Options.Parse(args);
-                if (dualopen && opts.Count > 0) opts.Insert(0, opts.FirstOrDefault());
-                myoptions = new MyOptions() { DualOpen = dualopen, Singleton = singleton, RunAs32Bits = runas32, RunAs64Bits = runas64, Args = opts };
+                //if (dualopen && opts.Count > 0) opts.Insert(0, opts.FirstOrDefault());
+                myoptions = new MyOptions() { MonitorFS = monitorfs,  DualOpen = dualopen, Singleton = singleton, RunAs32Bits = runas32, RunAs64Bits = runas64, Args = opts };
             }
             return (myoptions ?? new MyOptions());
         }
@@ -1728,11 +1734,15 @@ namespace ImageViewer
                 {
                     if (fmt.SupportsReading)
                     {
-                        if (fmt.MimeType != null && fmt.MimeType.StartsWith("video", StringComparison.CurrentCultureIgnoreCase)) continue;
-                        else if (fmt.Description.StartsWith("video", StringComparison.CurrentCultureIgnoreCase)) continue;
-                        else if (fmt.MimeType != null && fmt.MimeType.StartsWith("image", StringComparison.CurrentCultureIgnoreCase))
+                        //if (fmt.MimeType != null && fmt.MimeType.StartsWith("video", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        //else if (fmt.Description.StartsWith("video", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        //else if (fmt.MimeType != null && fmt.MimeType.StartsWith("image", StringComparison.CurrentCultureIgnoreCase))
+                        //    result.Add(fmt.Format.ToString(), fmt.Description);
+                        //else result.Add(fmt.Format.ToString(), fmt.Description);
+
+                        if (fmt.MimeType is null) continue; 
+                        else if (fmt.MimeType.StartsWith("image", StringComparison.CurrentCultureIgnoreCase))
                             result.Add(fmt.Format.ToString(), fmt.Description);
-                        else result.Add(fmt.Format.ToString(), fmt.Description);
                     }
                 }
 
@@ -2658,7 +2668,7 @@ namespace ImageViewer
                             _file_list_storage_.Clear();
                             _FS_Change_Type_ = files.Count() > 1 ? WatcherChangeTypes.Renamed | WatcherChangeTypes.Deleted | WatcherChangeTypes.Changed : WatcherChangeTypes.All;
                             foreach (var file in files) _file_list_storage_[file] = null;
-                            if (files.Count() == 1)
+                            if (monitorfs && files.Count() == 1)
                             {
                                 foreach (var path in paths)
                                 {
@@ -2691,7 +2701,9 @@ namespace ImageViewer
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         public static async Task<bool> InitWatcher(IEnumerable<string> paths)
         {
-            var result = false;
+            var result = !monitorfs;
+            if (result) return (result);
+
             result = await Task.Run(() =>
             {
                 var ret = false;
