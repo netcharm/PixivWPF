@@ -1980,7 +1980,7 @@ namespace ImageSearch
                 }
                 if (_storages_?.Count > 0)
                 {
-                    if (MessageBox.Show($"Will update/create features database, continue it?", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                    if (MessageBox.Show(this, $"Will update/create features database, continue it?", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                     {
                         if (AllFolders.IsChecked ?? false)
                         {
@@ -2364,6 +2364,11 @@ namespace ImageSearch
         private void TaskbarProgressButtonQuery_Click(object sender, EventArgs e)
         {
             QueryImage_Click(QueryImage, new RoutedEventArgs());
+        }
+
+        private void TaskbarProgressButtonMakeDB_Click(object sender, EventArgs e)
+        {
+            DBTools_Click(DBMake, new RoutedEventArgs());
         }
     }
 

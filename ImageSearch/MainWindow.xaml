@@ -56,6 +56,12 @@
         <TaskbarItemInfo x:Name="TaskbarState" x:Uid="TaskbarState" Description="" ProgressValue="0" ProgressState="None" >
             <TaskbarItemInfo.ThumbButtonInfos>
                 <ThumbButtonInfoCollection>
+                    <ThumbButtonInfo x:Name="TaskbarProgressButtonMakeDB" x:Uid="TaskbarProgressBittonMakeDB"
+                        DismissWhenClicked="False" ImageSource="pack://application:,,,/Resources/DatabaseTableGroup_32x.png"
+                        Click="TaskbarProgressButtonMakeDB_Click"
+                        Command="{Binding ElementName=DBMake, Mode=OneWay}"
+                        CommandTarget="{Binding ElementName=DBMake, Mode=OneWay}"
+                        Description="Make/Update DB" Visibility="Visible" />
                     <ThumbButtonInfo x:Name="TaskbarProgressButtonCompare" x:Uid="TaskbarProgressBittonCompare"
                         DismissWhenClicked="False" ImageSource="pack://application:,,,/Resources/Compare_32x.png"
                         Click="TaskbarProgressButtonCompare_Click"
