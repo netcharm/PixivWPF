@@ -1414,7 +1414,8 @@ namespace ImageViewer
                     if (!string.IsNullOrEmpty(FileName))
                     {
                         //var files = refresh || !FileName.IsUpdatingFileList() ? await FileName.GetFileList() : _last_file_list_ ?? await FileName.GetFileList();
-                        var files = await GetFileList(); // _last_file_list_ ?? await FileName.GetFileList();
+                        //var files = _last_file_list_ ?? await FileName.GetFileList();
+                        var files = await GetFileList();
                         if (files.Any())
                         {
                             if (refresh)

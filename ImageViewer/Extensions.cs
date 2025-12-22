@@ -2596,7 +2596,7 @@ namespace ImageViewer
         public static async Task<string[]> GetFileList(this object file)
         {
             var result = new string[0];
-            if (!MonitorFS) await UpdateFileList();
+            //if (!MonitorFS) await UpdateFileList();
             if (await _file_list_updating_.WaitAsync(TimeSpan.FromMilliseconds(333)))
             {
                 try
