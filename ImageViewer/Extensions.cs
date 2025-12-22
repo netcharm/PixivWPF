@@ -2596,6 +2596,7 @@ namespace ImageViewer
         public static async Task<string[]> GetFileList(this object file)
         {
             var result = new string[0];
+            if (!MonitorFS) await UpdateFileList();
             if (await _file_list_updating_.WaitAsync(TimeSpan.FromMilliseconds(333)))
             {
                 try
@@ -2621,7 +2622,7 @@ namespace ImageViewer
                     try
                     {
                         if (MonitorFS)
-                            _file_list_ = _file_list_storage_.Keys.Distinct().NaturalSort().ToArray();
+                            _file_list_ = [.. _file_list_storage_.Keys.Distinct().NaturalSort()];
                         else
                             _file_list_ = [.. _file_list_storage_.Keys.Where(File.Exists).Distinct().NaturalSort()];
 

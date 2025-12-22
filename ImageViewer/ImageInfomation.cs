@@ -687,7 +687,18 @@ namespace ImageViewer
                 switch (position)
                 {
                     case ListPosition.Current:
-                        result = _last_file_index_ ?? 0;
+                        result = _last_file_index_ ?? -1;
+                        for (var i = _last_file_index_ ?? 0; i < _last_file_list_.Length; i++)
+                        {
+                            if (File.Exists(_last_file_list_[i])) { result = i; break; }
+                        }
+                        if (result == -1)
+                        {
+                            for (var i = _last_file_index_ ?? _last_file_list_.Length - 1; i >= 0; i--)
+                            {
+                                if (File.Exists(_last_file_list_[i])) { result = i; break; }
+                            }
+                        }
                         break;
                     case ListPosition.First:
                         result = 0;
@@ -1378,11 +1389,11 @@ namespace ImageViewer
         /// </summary>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public async Task<bool> LoadImageFromIndex(ListPosition pos)
+        public async Task<bool> LoadImageFromIndex(ListPosition pos, bool refresh = true)
         {
             var idx = CalcFileIndex(pos);
             var rel = false; // pos == ListPosition.Prev || pos == ListPosition.Next;
-            return (await LoadImageFromIndex(idx, relative: rel));
+            return (await LoadImageFromIndex(idx, relative: rel, refresh: refresh));
         }
 
         /// <summary>

@@ -964,6 +964,28 @@ namespace ImageViewer
             return (ret);
         }
 
+        private async Task<bool> LoadImageFromIndexOfFile(ListPosition pos, bool refresh = true)
+        {
+            var ret = false;
+            try
+            {
+                if (refresh && this.IsUpdatingFileList()) return (false);
+                IsLoadingViewer = true;
+
+                var image =  ImageViewer.GetInformation();
+                if (await image?.LoadImageFromIndex(pos, refresh))
+                {
+                    CloseQualityChanger();
+                    ClearImage();
+                    RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
+                }
+                else { IsLoadingViewer = false; }
+                SetTitle(image?.FileName);
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+            return (ret);
+        }
+
         /// <summary>
         ///
         /// </summary>
@@ -1096,7 +1118,7 @@ namespace ImageViewer
                 }
                 else
                 {
-                    files = [.. files.Select(f => f.Trim().Trim('\"')).Where(f => f.IsSupportedExt()).Where(f => !string.IsNullOrEmpty(f) && File.Exists(f))];
+                    files = [.. files.Select(f => f.Trim().Trim('\"')).Where(f => f.IsSupportedExt()).Where(f => !string.IsNullOrEmpty(f) && File.Exists(f)).Distinct().NaturalSort()];
                     if (files.Length > 0)
                     {
                         ResetViewer();
@@ -3767,9 +3789,10 @@ namespace ImageViewer
                         var ret = file.FileDelete(recycle: !km.Shift) == 0;
                         if (ret)
                         {
-                            var idx = await image?.UpdateFileList();
-                            ret = await LoadImageFromIndexOfFile(idx, refresh: false);
+                            //var idx = await image?.UpdateFileList();
+                            //ret = await LoadImageFromIndexOfFile(idx, refresh: false);
                             //ret = await LoadImageFromNextFile(refresh: false);
+                            ret = await LoadImageFromIndexOfFile(ListPosition.Current, refresh: false);
                             if (!ret) ret = await LoadImageFromPrevFile(refresh: false);
                             if (!ret) IsLoadingViewer = false;
                         }
