@@ -672,7 +672,7 @@ namespace ImageViewer
         public async Task<int> UpdateFileList()
         {
             int result = _last_file_index_ ?? 0;
-            _last_file_list_ = [.. _last_file_list_.Where(f => File.Exists(f))];
+            _last_file_list_ = [.. _last_file_list_.Where(f => File.Exists(f)).Distinct().NaturalSort()];
             var idx = await IndexOf(FileName);
             _last_file_index_ = idx < 0 ? CalcFileIndex(ListPosition.Next) : idx;
             _last_file_count_ = _last_file_list_.Length;
