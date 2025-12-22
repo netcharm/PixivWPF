@@ -150,9 +150,9 @@ namespace ImageViewer
                 {
                     jumpList = new JumpList();
 
-                    foreach(var task in tasks)
+                    foreach (var task in tasks.Where(t => File.Exists(t.ApplicationPath)))
                     {
-                        if (string.IsNullOrEmpty(task.IconResourcePath)) task.IconResourcePath = task.ApplicationPath;
+                        if (string.IsNullOrEmpty(task.IconResourcePath) || !File.Exists(task.ApplicationPath)) task.IconResourcePath = task.ApplicationPath;
                         jumpList?.JumpItems.Add(task);
                     }
 
@@ -912,7 +912,7 @@ namespace ImageViewer
                         else
                         {
                             var files = text.Split(new string[]{ Environment.NewLine, "\n\r", "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries);
-                            files = files.Select(f => f.Trim('"')).Where(f => File.Exists(f)).ToArray();
+                            files = [.. files.Select(f => f.Trim('"')).Where(File.Exists)];
                             if (files.Any())
                             {
                                 await LoadImageFromFiles(files);
@@ -1096,7 +1096,7 @@ namespace ImageViewer
                 }
                 else
                 {
-                    files = files.Select(f => f.Trim().Trim('\"')).Where(f => f.IsSupportedExt()).Where(f => !string.IsNullOrEmpty(f) && File.Exists(f)).ToArray();
+                    files = [.. files.Select(f => f.Trim().Trim('\"')).Where(f => f.IsSupportedExt()).Where(f => !string.IsNullOrEmpty(f) && File.Exists(f))];
                     if (files.Length > 0)
                     {
                         ResetViewer();

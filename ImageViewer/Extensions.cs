@@ -603,8 +603,7 @@ namespace ImageViewer
             bool result = false;
             try
             {
-                StringCollection Files = new StringCollection();
-                Files.AddRange(FileNames.Where(f => !string.IsNullOrEmpty(f) && File.Exists(f)).ToArray());
+                StringCollection Files = [.. FileNames.Where(f => !string.IsNullOrEmpty(f) && File.Exists(f)).ToArray()];
                 if (Files.Count > 0)
                 {
                     var pdtobj = new DataObject();
@@ -2624,7 +2623,7 @@ namespace ImageViewer
                         if (MonitorFS)
                             _file_list_ = _file_list_storage_.Keys.Distinct().NaturalSort().ToArray();
                         else
-                            _file_list_ = [.. _file_list_storage_.Keys.Where(f => File.Exists(f)).Distinct().NaturalSort()];
+                            _file_list_ = [.. _file_list_storage_.Keys.Where(File.Exists).Distinct().NaturalSort()];
 
                         if (_file_list_updating_cancel_.Token.IsCancellationRequested) return (ret);
                         UpdateInfoBox(e: e);
