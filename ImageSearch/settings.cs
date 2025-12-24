@@ -50,6 +50,9 @@ namespace ImageSearch
         [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public bool DarkBackground { get; set; } = false;
 
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public bool UseTemporaryDB { get; set; } = false;
+
         public string ModelFile { get; set; } = @"models\resnet50-v2-7.onnx";
         public string ModelInput { get; set; } = @"data";
         public string ModelOutput { get; set; } = @"resnetv24_dense0_fwd";

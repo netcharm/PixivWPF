@@ -175,6 +175,10 @@ namespace ImageSearch.Search
         private static string AppPath = string.Empty;
         public Settings? Setting { get; set; } = null;
 
+        public bool UseTemporaryDB { get; set; } = false;
+        public string TempFeatureFile { get; set; } = GetAbsolutePath(@"data\temp_features.h5");
+        private Dictionary<string, float[]> TempFeatures { get; set; } = [];
+
         private static CultureInfo _culture_ = CultureInfo.CurrentCulture;
         private static int _lcid_ = _culture_.LCID;
 
@@ -712,6 +716,22 @@ namespace ImageSearch.Search
             H5Filter.Register(new Blosc2Filter());
             mlContext.GpuDeviceId = ModelUseGpu ? 0 : null;
             MaxLabelWidth = LabelMap.Labels.Select(x => x.Length).Max();
+            Task.Run(async () => await LoadTempFeatureFile(TempFeatureFile));
+        }
+
+        public async Task<bool> Dispose()
+        {
+            var result = TempFeatures?.Count <= 0 || await SaveTempFeatureFile(TempFeatureFile);
+            if (result)
+            {
+                TempFeatures?.Clear();
+                BatchCancel?.Cancel();
+                BatchCancel?.Dispose();
+                BatchTaskIdle?.Dispose();
+                ModelLoadedState?.Dispose();
+                FeatureLoadedState?.Dispose();
+            }
+            return (result);
         }
 
         #region norm/softmax/meanstd function
@@ -1110,6 +1130,59 @@ namespace ImageSearch.Search
             BatchCancel?.CancelAsync();
         }
 
+        #region Load Temporary Feature Database
+        private readonly SemaphoreSlim _temp_feature_rw_ = new(1, 1);
+        public async Task<bool> LoadTempFeatureFile(string tempfeat_db)
+        {
+            var result = false;
+            if (File.Exists(tempfeat_db) && await _temp_feature_rw_.WaitAsync(TimeSpan.FromSeconds(5)))
+            {
+                try
+                {
+                    (var names, var feats) = await LoadFeatureFile(tempfeat_db);
+                    var feats_n = new NDArray(feats).ToJaggedArray<float>() as float[][];
+                    TempFeatures ??= [];
+                    for (var i = 0; i < names.Length; i++)
+                    {
+                        TempFeatures[names[i]] = feats_n[i];
+                    }
+                    ReportMessage("Temporary database writing completed");
+                }
+                catch { }
+                finally { if (_temp_feature_rw_?.CurrentCount == 0) _temp_feature_rw_?.Release(); }
+            }
+            return (result);
+        }
+
+        public async Task<bool> SaveTempFeatureFile(string tempfeat_db)
+        {
+            var result = false;
+            if (TempFeatures?.Count > 0 && await _temp_feature_rw_.WaitAsync(TimeSpan.FromSeconds(5)))
+            {
+                try
+                {
+                    var temp_folder = Path.GetDirectoryName(tempfeat_db);
+                    if (!string.IsNullOrEmpty(temp_folder) && !Directory.Exists(temp_folder)) Directory.CreateDirectory(temp_folder);
+
+                    var names = TempFeatures.Keys.ToArray();
+                    var feats = new float[TempFeatures.Count, TempFeatures.First().Value.Length];
+                    for (var i = 0; i < names.Length; i++)
+                    {
+                        for (var j = 0; j < TempFeatures[names[i]].Length; j++)
+                        {
+                            feats[i, j] = TempFeatures[names[i]][j];
+                        }
+                    }
+                    result = await SaveFeatureFile(tempfeat_db, names, feats, string.Empty, fullpath: true);
+                    ReportMessage("Temporary database loading completed");
+                }
+                catch { }
+                finally { if (_temp_feature_rw_?.CurrentCount == 0) _temp_feature_rw_?.Release(); }
+            }
+            return (result);
+        }
+        #endregion
+
         #region Load Feature Database
         private async Task<(string[], float[,])> LoadFeatureFile(string feature_db, ulong start = 0, ulong count = 0)
         {
@@ -1312,7 +1385,7 @@ namespace ImageSearch.Search
             {
                 if (_writing_file_?.CurrentCount == 0) _writing_file_?.Release();
                 if (_writing_data_?.CurrentCount == 0) _writing_data_?.Release();
-                result = true;
+                //result = await SaveTempFeatureFile(TempFeatureFile);
             }
             return (result);
         }
@@ -1333,10 +1406,14 @@ namespace ImageSearch.Search
                         {
                             ReportMessage($"Saving Feature Data to {file}", RunningStatue);
 
-                            fullpath = fullpath && !string.IsNullOrEmpty(imagefolder) && Directory.Exists(imagefolder);
-
                             if (File.Exists(file)) File.Move(file, $"{file}.lastgood", true);
-                            names = fullpath ? names : names.Select(x => x.Replace(GetAbsolutePath(imagefolder), "").TrimStart(['\\', '/', ' ', '\0'])).ToArray();
+
+                            fullpath = fullpath && !string.IsNullOrEmpty(imagefolder) && Directory.Exists(imagefolder);
+                            if (!fullpath)
+                            {
+                                var folder = GetAbsolutePath(imagefolder);
+                                names = names.Select(x => x.Replace(folder, "").TrimStart(['\\', '/', ' ', '\0'])).ToArray();
+                            }
                             var h5 = new H5File()
                             {
                                 //["my-group"] = new H5Group()
@@ -2032,15 +2109,17 @@ namespace ImageSearch.Search
             FeatureData? result = null;
             if (subfiles != null && subfiles.Any() && feats_obj != null && feats_obj.Names?.Length > 0 && feats_obj.Feats?.shape[0] > 0)
             {
-                result = await Task.Run(() =>
+                result = await Task.Run(async () =>
                 {
                     FeatureData? ret = null;
                     try
                     {
                         ReportMessage($"Get Filtered Features ...");
                         var fdb = feats_obj.FeatureDB;
-                        if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_) && string.IsNullOrEmpty(fdb) && _sub_features_.ContainsKey(fdb)) return (_sub_features_[fdb]);
+                        if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_) && string.IsNullOrEmpty(fdb) && _sub_features_.TryGetValue(fdb, out FeatureData? sub_value)) return (sub_value);
                         //_sub_features_.TryGetValue(fdb, out ret);
+
+                        var temp_modified = false;
 
                         var root = Path.GetDirectoryName(feats_obj.FeatureDB) ?? "";
                         var files = subfiles.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(root, f));
@@ -2054,6 +2133,23 @@ namespace ImageSearch.Search
                                 names.Add(f_name);
                                 feats.Add(feats_obj.Feats[$"{idx},:"].ToArray<float>());
                             }
+                            else if (TempFeatures.TryGetValue(f_name, out float[]? f_value))
+                            {
+                                names.Add(f_name);
+                                feats.Add(f_value);
+                            }
+                            else if (UseTemporaryDB)
+                            {
+                                var feature = await ExtractImaegFeature(f_name);
+                                if (feature.Item1 is not null)
+                                {
+                                    names.Add(f_name);
+                                    feats.Add(feature.Item1);
+
+                                    TempFeatures[f_name] = feature.Item1;
+                                    temp_modified = true;
+                                }
+                            }
                         }
                         if (names.Count > 0 && feats.Count > 0)
                         {
@@ -2066,6 +2162,8 @@ namespace ImageSearch.Search
                         }
                         _sub_files_ = subfiles.ToHashSet();
                         _sub_features_[fdb] = ret;
+
+                        if (temp_modified) await SaveTempFeatureFile(TempFeatureFile);
                     }
                     catch (Exception ex) { ReportMessage(ex); }
                     finally { ReportMessage($"End Filtered Features : {ret?.Names?.Length}"); }
@@ -2080,7 +2178,7 @@ namespace ImageSearch.Search
             ExtraFeatureData? result = null;
             if (subfiles != null && subfiles.Any() && feats_obj != null && feats_obj.Names?.Length > 0 && feats_obj.Feats?.shape[0] > 0)
             {
-                result = await Task.Run(() =>
+                result = await Task.Run(async () =>
                 {
                     ExtraFeatureData? ret = null;
                     try
@@ -2089,6 +2187,8 @@ namespace ImageSearch.Search
                         var fdb = feats_obj.FeatureDB;
                         if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_) && string.IsNullOrEmpty(fdb) && _sub_features_.ContainsKey(fdb)) return (_sub_extra_features_[fdb]);
 
+                        var temp_modified = false;
+
                         var root = Path.GetDirectoryName(feats_obj.FeatureDB) ?? "";
                         var files = subfiles.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(root, f));
                         var names = new List<string> ();
@@ -2096,8 +2196,28 @@ namespace ImageSearch.Search
                         foreach (var f_name in files)
                         {
                             var idx = Array.IndexOf(feats_obj.Names, f_name);
-                            names.Add(f_name);
-                            feats.Add(feats_obj.Feats[$"[{idx}],:"].ToArray<float>());
+                            if (idx > 0)
+                            {
+                                names.Add(f_name);
+                                feats.Add(feats_obj.Feats[$"[{idx}],:"].ToArray<float>());
+                            }
+                            else if (TempFeatures.TryGetValue(f_name, out float[]? value))
+                            {
+                                names.Add(f_name);
+                                feats.Add(value);
+                            }
+                            else if (UseTemporaryDB)
+                            {
+                                var feature = await ExtractImaegFeature(f_name);
+                                if (feature.Item1 is not null)
+                                {
+                                    names.Add(f_name);
+                                    feats.Add(feature.Item1);
+
+                                    TempFeatures[f_name] = feature.Item1;
+                                    temp_modified = true;
+                                }
+                            }
                         }
                         if (names.Count > 0 && feats.Count > 0)
                         {
@@ -2109,6 +2229,8 @@ namespace ImageSearch.Search
                             };
                         }
                         _sub_extra_features_[fdb] = ret;
+
+                        if (temp_modified) await SaveTempFeatureFile(TempFeatureFile);
                     }
                     catch (Exception ex) { ReportMessage(ex); }
                     finally { ReportMessage($"End Filtered Extra Features : {ret?.Names?.Length}"); }
@@ -2170,6 +2292,11 @@ namespace ImageSearch.Search
                                     result.AddRange(GetNeareatImages(feat_, subfeats.Feats, subfeats.Names, limit, ResultMax));
                                 GC.Collect();
                             }
+                        }
+                        if (TempFeatures?.Count > 0)
+                        {
+                            result.AddRange(GetNeareatImages(feat_, new NDArray(TempFeatures.Values.ToArray()), TempFeatures.Keys.ToArray(), limit, ResultMax));
+                            GC.Collect();
                         }
                     }
                     result = result.DistinctBy(r => r.Key).OrderByDescending(r => r.Value).Take(limit > 1 ? (int)limit : ResultMax).ToList();

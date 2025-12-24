@@ -254,57 +254,61 @@ namespace ImageSearch
 
         private void ReportMessage(string info, TaskStatus state = TaskStatus.Created)
         {
-            if (!string.IsNullOrEmpty(info))
+            try
             {
-                if (new TaskStatus[] { TaskStatus.WaitingForActivation, TaskStatus.WaitingToRun, TaskStatus.RanToCompletion }.Contains(state)) TaskbarProgressValue = 0;
-                else if (new TaskStatus[] { TaskStatus.RanToCompletion }.Contains(state)) TaskbarProgressValue = 100;
-
-                var state_old = TaskbarProgressState;
-                var state_new = TaskbarProgressState;
-
-                if (state != TaskStatus.Created)
+                if (!string.IsNullOrEmpty(info))
                 {
-                    if (state == TaskStatus.Running) state_new = TaskbarItemProgressState.Normal;
-                    else if (state == TaskStatus.Canceled) state_new = TaskbarItemProgressState.Paused;
-                    else if (state == TaskStatus.Faulted) state_new = TaskbarItemProgressState.Error;
-                    else if (state == TaskStatus.RanToCompletion) state_new = TaskbarItemProgressState.None;
-                    else if (state == TaskStatus.WaitingForActivation) state_new = TaskbarItemProgressState.Indeterminate;
-                    else if (state == TaskStatus.WaitingForChildrenToComplete) state_new = TaskbarItemProgressState.Indeterminate;
-                    else if (state == TaskStatus.WaitingToRun) state_new = TaskbarItemProgressState.Indeterminate;
-                }
-                if (state_new != state_old)
-                {
-                    TaskbarProgressState = state_new;
-                    TaskbarProgressDescription = info;
+                    if (new TaskStatus[] { TaskStatus.WaitingForActivation, TaskStatus.WaitingToRun, TaskStatus.RanToCompletion }.Contains(state)) TaskbarProgressValue = 0;
+                    else if (new TaskStatus[] { TaskStatus.RanToCompletion }.Contains(state)) TaskbarProgressValue = 100;
 
-                    TaskbarOverlay = state_new switch
+                    var state_old = TaskbarProgressState;
+                    var state_new = state_old;
+
+                    if (state != TaskStatus.Created)
                     {
-                        TaskbarItemProgressState.None => StatusOverlay_OK,
-                        TaskbarItemProgressState.Error => StatusOverlay_Error,
-                        TaskbarItemProgressState.Paused => StatusOverlay_Pause,
-                        TaskbarItemProgressState.Indeterminate or TaskbarItemProgressState.Normal => StatusOverlay_Run,
-                        _ => null,
-                    };
+                        if (state == TaskStatus.Running) state_new = TaskbarItemProgressState.Normal;
+                        else if (state == TaskStatus.Canceled) state_new = TaskbarItemProgressState.Paused;
+                        else if (state == TaskStatus.Faulted) state_new = TaskbarItemProgressState.Error;
+                        else if (state == TaskStatus.RanToCompletion) state_new = TaskbarItemProgressState.None;
+                        else if (state == TaskStatus.WaitingForActivation) state_new = TaskbarItemProgressState.Indeterminate;
+                        else if (state == TaskStatus.WaitingForChildrenToComplete) state_new = TaskbarItemProgressState.Indeterminate;
+                        else if (state == TaskStatus.WaitingToRun) state_new = TaskbarItemProgressState.Indeterminate;
+                    }
+                    if (state_new != state_old)
+                    {
+                        TaskbarProgressState = state_new;
+                        TaskbarProgressDescription = info;
 
+                        TaskbarOverlay = state_new switch
+                        {
+                            TaskbarItemProgressState.None => StatusOverlay_OK,
+                            TaskbarItemProgressState.Error => StatusOverlay_Error,
+                            TaskbarItemProgressState.Paused => StatusOverlay_Pause,
+                            TaskbarItemProgressState.Indeterminate or TaskbarItemProgressState.Normal => StatusOverlay_Run,
+                            _ => null,
+                        };
+
+                        DoEvents();
+                    }
+
+                    progress?.Dispatcher.Invoke(() =>
+                    {
+                        if (progress.Value <= 0 || progress.Value >= 100)
+                        {
+                            var state_old = progress.IsIndeterminate;
+                            var state_new = state == TaskStatus.Running || state == TaskStatus.WaitingForActivation || state == TaskStatus.Canceled;
+                            if (state_new != state_old) progress.IsIndeterminate = state_new;
+                        }
+                    }, DispatcherPriority.Normal);
+
+                    var lines = info.Split(Environment.NewLine).Select(l => $"[{DateTime.Now:yyyy/MM/dd HH:mm:ss.fff}] {l}");
+                    _log_.AddRange(lines);
+                    //var log = _log_.Count > settings.LogLines ? _log_.TakeLast(settings.LogLines) : lines;
+                    ShowLog();
                     DoEvents();
                 }
-
-                progress?.Dispatcher.Invoke(() =>
-                {
-                    if (progress.Value <= 0 || progress.Value >= 100)
-                    {
-                        var state_old = progress.IsIndeterminate;
-                        var state_new = state == TaskStatus.Running || state == TaskStatus.WaitingForActivation || state == TaskStatus.Canceled;
-                        if (state_new != state_old) progress.IsIndeterminate = state_new;
-                    }
-                }, DispatcherPriority.Normal);
-
-                var lines = info.Split(Environment.NewLine).Select(l => $"[{DateTime.Now:yyyy/MM/dd HH:mm:ss.fff}] {l}");
-                _log_.AddRange(lines);
-                //var log = _log_.Count > settings.LogLines ? _log_.TakeLast(settings.LogLines) : lines;
-                ShowLog();
-                DoEvents();
             }
+            catch (Exception ex) { _log_.Add(ex.Message); }
         }
 
         public void ReportMessage(Exception ex, TaskStatus state = TaskStatus.Faulted)
@@ -867,6 +871,8 @@ namespace ImageSearch
             similar ??= new Similar
             {
                 Setting = settings,
+                
+                UseTemporaryDB = settings.UseTemporaryDB,
 
                 ModelLocation = settings.ModelFile,
                 ModelInputColumnName = settings.ModelInput,
@@ -1678,8 +1684,10 @@ namespace ImageSearch
             }
             else if (similar is not null)
             {
+                //var ret = await similar?.Dispose();
+                //var ret = similar?.Dispose().GetAwaiter().GetResult() ?? true;
                 similar?.CancelCreateFeatureData();
-                if (similar?.IsIdle ?? false || await similar?.WaitingWritten())
+                if ((similar?.IsIdle ?? false || await similar?.WaitingWritten()))
                 {
                     ReportMessage("Database writing completed, application can be closed now.");
                 }
