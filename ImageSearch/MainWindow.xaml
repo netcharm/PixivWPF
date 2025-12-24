@@ -238,9 +238,10 @@
                         <MenuItem x:Name="DBLoad" x:Uid="DBLoad" Header="Load Feature Database" Click="DBTools_Click"/>
                         <Separator/>
                         <MenuItem x:Name="DBCancel" x:Uid="DBCancel" Header="Cancel Make Feature Database" Click="DBTools_Click"/>
+                        <MenuItem x:Name="DBClearTemp" x:Uid="DBClearTemp" Header="Clear Temporary Feature Database" Click="DBTools_Click" Visibility="Visible"/>
                         <Separator/>
                         <MenuItem x:Name="DBUpdate" x:Uid="DBUpdate" Header="Update Feature Database for Selected Image" Click="DBTools_Click"/>
-                        <Separator/>
+                        <Separator Visibility="Collapsed"/>
                         <MenuItem x:Name="DBClean" x:Uid="DBClean" Header="Clean Feature Database" Click="DBTools_Click"/>
                         <MenuItem x:Name="DBMerge" x:Uid="DBMerge" Header="Merge Feature Database" Click="DBTools_Click"/>
                         <MenuItem x:Name="DBChangePath" x:Uid="DBChangePath" Header="Change Feature Database Path" Click="DBTools_Click"/>
@@ -248,7 +249,7 @@
                         <MenuItem x:Name="DBAdd" x:Uid="DBAdd" Header="Add New Feature Database" Click="DBTools_Click" Visibility="Collapsed"/>
                         <Separator/>
                         <MenuItem x:Name="ClassifyImageByYear" x:Uid="ClassifyImageByYear" Header="Classify Image By Year" Click="DBTools_Click" Visibility="Collapsed"/>
-                        <Separator/>
+                        <Separator Visibility="Collapsed"/>
                         <MenuItem x:Name="SaveDefaultLabels" x:Uid="SaveDefaultLabels" Header="Save Default Labels List To File" Click="DBTools_Click"/>
                         <MenuItem x:Name="LoadLocaleLabels" x:Uid="LoadLocaleLabels" Header="Load Locale Labels List From File" Click="DBTools_Click"/>
                         <Separator/>

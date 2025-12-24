@@ -1969,6 +1969,10 @@ namespace ImageSearch
                         File.WriteAllLines(dlgSave.FileName, _log_);
                     }
                 }
+            }            
+            else if (sender == DBClearTemp)
+            {
+                Task.Run(() => { similar?.ClearTempFeatureFile(); });
             }
             else if (sender == DBLoad)
             {

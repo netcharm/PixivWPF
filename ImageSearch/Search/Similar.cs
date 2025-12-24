@@ -1123,18 +1123,19 @@ namespace ImageSearch.Search
             }
             return (result);
         }
-        #endregion
 
         public void CancelCreateFeatureData()
         {
             BatchCancel?.CancelAsync();
         }
+        #endregion
 
         #region Load Temporary Feature Database
         private readonly SemaphoreSlim _temp_feature_rw_ = new(1, 1);
-        public async Task<bool> LoadTempFeatureFile(string tempfeat_db)
+        public async Task<bool> LoadTempFeatureFile(string? tempfeat_db = null)
         {
             var result = false;
+            tempfeat_db = string.IsNullOrEmpty(tempfeat_db) ? TempFeatureFile : tempfeat_db;
             if (File.Exists(tempfeat_db) && await _temp_feature_rw_.WaitAsync(TimeSpan.FromSeconds(5)))
             {
                 try
@@ -1154,13 +1155,14 @@ namespace ImageSearch.Search
             return (result);
         }
 
-        public async Task<bool> SaveTempFeatureFile(string tempfeat_db)
+        public async Task<bool> SaveTempFeatureFile(string? tempfeat_db = null)
         {
             var result = false;
-            if (TempFeatures?.Count > 0 && await _temp_feature_rw_.WaitAsync(TimeSpan.FromSeconds(5)))
+            if (UseTemporaryDB && TempFeatures?.Count > 0 && await _temp_feature_rw_.WaitAsync(TimeSpan.FromSeconds(5)))
             {
                 try
                 {
+                    tempfeat_db = string.IsNullOrEmpty(tempfeat_db) ? TempFeatureFile : tempfeat_db;
                     var temp_folder = Path.GetDirectoryName(tempfeat_db);
                     if (!string.IsNullOrEmpty(temp_folder) && !Directory.Exists(temp_folder)) Directory.CreateDirectory(temp_folder);
 
@@ -1179,6 +1181,33 @@ namespace ImageSearch.Search
                 catch { }
                 finally { if (_temp_feature_rw_?.CurrentCount == 0) _temp_feature_rw_?.Release(); }
             }
+            return (result);
+        }
+
+        public bool ClearTempFeatureFile(string? tempfeat_db = null)
+        {
+            var result = false;
+            tempfeat_db = string.IsNullOrEmpty(tempfeat_db) ? TempFeatureFile : tempfeat_db;
+            if (File.Exists(tempfeat_db))
+            {
+                try
+                {
+                    var folder = Path.GetDirectoryName(tempfeat_db);
+                    var files = Directory.GetFiles(folder ?? ".", $"{tempfeat_db}*", SearchOption.TopDirectoryOnly);
+                    foreach (var tf in files)
+                    {
+                        File.Delete(tf);
+                        ReportMessage($"Temporary features database {tf} deleted");
+                    }
+                }
+                catch (Exception ex) { ReportMessage(ex); }
+            }
+            if (TempFeatures?.Count > 0)
+            {
+                TempFeatures?.Clear();
+                ReportMessage($"Temporary features data has been cleared");
+            }
+            result = true;
             return (result);
         }
         #endregion
