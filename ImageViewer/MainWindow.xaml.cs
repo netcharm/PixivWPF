@@ -964,6 +964,12 @@ namespace ImageViewer
             return (ret);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <param name="refresh"></param>
+        /// <returns></returns>
         private async Task<bool> LoadImageFromIndexOfFile(ListPosition pos, bool refresh = true)
         {
             var ret = false;
@@ -3789,9 +3795,8 @@ namespace ImageViewer
                         var ret = file.FileDelete(recycle: !km.Shift) == 0;
                         if (ret)
                         {
-                            //var idx = await image?.UpdateFileList();
-                            //ret = await LoadImageFromIndexOfFile(idx, refresh: false);
-                            //ret = await LoadImageFromNextFile(refresh: false);
+                            CloseQualityChanger(restore: false);
+
                             ret = await LoadImageFromIndexOfFile(ListPosition.Current, refresh: false);
                             if (!ret) ret = await LoadImageFromPrevFile(refresh: false);
                             if (!ret) IsLoadingViewer = false;
@@ -3921,6 +3926,9 @@ namespace ImageViewer
                     _last_key_ = e.Key;
                     _last_key_time_ = DateTime.Now;
                     //Debug.WriteLine(e.Key);
+
+                    Focusable = true;
+                    Focus();
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }
