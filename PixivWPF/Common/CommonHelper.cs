@@ -9998,7 +9998,7 @@ namespace PixivWPF.Common
                             var result = item.IsLiked() ? true : await item.LikeIllust(pub);
                         }
                         catch (Exception ex) { ex.ERROR(); }
-                    }).InvokeAsync();
+                    }).InvokeAsync().ContinueWith(async t => await Task.Delay(50), TaskContinuationOptions.PreferFairness);
                 }
             });
         }
@@ -10114,7 +10114,7 @@ namespace PixivWPF.Common
                             var result = item.IsLiked() ? await item.UnLikeIllust() : true;
                         }
                         catch (Exception ex) { ex.ERROR(); }
-                    }).InvokeAsync();
+                    }).InvokeAsync().ContinueWith(async t => await Task.Delay(50), TaskContinuationOptions.PreferFairness);;
                 }
             });
         }
@@ -10175,7 +10175,7 @@ namespace PixivWPF.Common
                             var result = await item.ToggleLikeIllust(pub);
                         }
                         catch (Exception ex) { ex.ERROR(); }
-                    }).InvokeAsync();
+                    }).InvokeAsync().ContinueWith(async t => await Task.Delay(50), TaskContinuationOptions.PreferFairness);;
                 }
             });
         }
@@ -10287,7 +10287,7 @@ namespace PixivWPF.Common
                             var result = await item.LikeUser(pub);
                         }
                         catch (Exception ex) { ex.ERROR(); }
-                    }).InvokeAsync();
+                    }).InvokeAsync().ContinueWith(async t => await Task.Delay(50), TaskContinuationOptions.PreferFairness);;
                 }
             });
         }
@@ -10395,7 +10395,7 @@ namespace PixivWPF.Common
                             var result = await item.UnLikeUser();
                         }
                         catch (Exception ex) { ex.ERROR(); }
-                    }).InvokeAsync();
+                    }).InvokeAsync().ContinueWith(async t => await Task.Delay(50), TaskContinuationOptions.PreferFairness);;
                 }
             });
         }
@@ -10465,7 +10465,7 @@ namespace PixivWPF.Common
                             var result = await item.ToggleLikeUser(pub);
                         }
                         catch (Exception ex) { ex.ERROR(); }
-                    }).InvokeAsync();
+                    }).InvokeAsync().ContinueWith(async t => await Task.Delay(50), TaskContinuationOptions.PreferFairness);;
                 }
             });
         }
