@@ -702,6 +702,10 @@ namespace ImageViewer
                         break;
                     case ListPosition.First:
                         result = 0;
+                        for (var i = result; i < _last_file_list_.Length; i++)
+                        {
+                            if (File.Exists(_last_file_list_[i])) { result = i; break; }
+                        }
                         break;
                     case ListPosition.Prev:
                         result = _last_file_index_ ?? -1;
@@ -733,6 +737,10 @@ namespace ImageViewer
                         break;
                     case ListPosition.Last:
                         result = _last_file_list_.Length - 1;
+                        for (var i = result; i >= 0; i--)
+                        {
+                            if (File.Exists(_last_file_list_[i])) { result = i; break; }
+                        }
                         break;
                 }
                 //_last_file_count_ = _last_file_list_.Length;
