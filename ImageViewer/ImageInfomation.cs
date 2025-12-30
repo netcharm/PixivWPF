@@ -669,6 +669,10 @@ namespace ImageViewer
             return (_last_file_index_ == _last_file_count_);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public async Task<int> UpdateFileList()
         {
             int result = _last_file_index_ ?? 0;
@@ -679,6 +683,11 @@ namespace ImageViewer
             return (result);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="position"></param>
+        /// <returns></returns>
         public int CalcFileIndex(ListPosition position)
         {
             int result = -1;
