@@ -451,6 +451,17 @@ namespace PixivWPF.Pages
             if (PART_MaxJobs.Maximum != MaxSimultaneousJobs) PART_MaxJobs.Maximum = MaxSimultaneousJobs;
             PART_MaxJobs.ToolTip = $"Max Simultaneous Jobs: {SimultaneousJobs} / {MaxSimultaneousJobs}";
 
+            // add keyboard accelerators for backwards navigation
+            RoutedUICommand cmd_PasteUrl = new RoutedUICommand(){ Text = "Paste Url To Download Manager" };
+            cmd_PasteUrl.InputGestures.Add(new KeyGesture(Key.V, ModifierKeys.Control, $"Ctrl + {Key.V}"));
+            CommandBindings.Add(new CommandBinding(cmd_PasteUrl, (obj, evt) =>
+            {
+                evt.Handled = true;
+                var url = Clipboard.GetText();
+                if (!string.IsNullOrEmpty(url)) Commands.AddDownloadItem.Execute(url);
+            }));
+            //PasteFromClipboard.InputGestureText = string.Join(", ", cmd_AddUrl.InputGestures.OfType<KeyGesture>().Select(k => k.DisplayString));
+
             DownloadItems.ItemsSource = items;
             InitTaskTimer();
             UpdateStateInfo();
