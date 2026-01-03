@@ -457,8 +457,12 @@ namespace PixivWPF.Pages
             CommandBindings.Add(new CommandBinding(cmd_PasteUrl, (obj, evt) =>
             {
                 evt.Handled = true;
-                var url = Clipboard.GetText();
-                if (!string.IsNullOrEmpty(url)) Commands.AddDownloadItem.Execute(url);
+                try
+                {
+                    var url = Clipboard.GetText();
+                    if (!string.IsNullOrEmpty(url)) Commands.AddDownloadItem.Execute(url);
+                }
+                catch (Exception ex) { ex.ERROR("PasteUrl"); }
             }));
             //PasteFromClipboard.InputGestureText = string.Join(", ", cmd_AddUrl.InputGestures.OfType<KeyGesture>().Select(k => k.DisplayString));
 
