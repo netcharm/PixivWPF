@@ -278,18 +278,18 @@ namespace ImageSearch
                     {
                         TaskbarProgressState = state_new;
                         TaskbarProgressDescription = info;
-
-                        TaskbarOverlay = state_new switch
-                        {
-                            TaskbarItemProgressState.None => StatusOverlay_OK,
-                            TaskbarItemProgressState.Error => StatusOverlay_Error,
-                            TaskbarItemProgressState.Paused => StatusOverlay_Pause,
-                            TaskbarItemProgressState.Indeterminate or TaskbarItemProgressState.Normal => StatusOverlay_Run,
-                            _ => null,
-                        };
-
-                        DoEvents();
                     }
+
+                    TaskbarOverlay = state_new switch
+                    {
+                        TaskbarItemProgressState.None => StatusOverlay_OK,
+                        TaskbarItemProgressState.Error => StatusOverlay_Error,
+                        TaskbarItemProgressState.Paused => StatusOverlay_Pause,
+                        TaskbarItemProgressState.Indeterminate or TaskbarItemProgressState.Normal => StatusOverlay_Run,
+                        _ => null,
+                    };
+
+                    DoEvents();
 
                     progress?.Dispatcher.Invoke(() =>
                     {
