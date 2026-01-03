@@ -3797,9 +3797,9 @@ namespace ImageViewer
                         {
                             CloseQualityChanger(restore: false);
 
-                            ret = await LoadImageFromIndexOfFile(ListPosition.Current, refresh: false);
-                            if (!ret) ret = await LoadImageFromPrevFile(refresh: false);
-                            if (!ret) IsLoadingViewer = false;
+                            ret &= await LoadImageFromIndexOfFile(ListPosition.Current, refresh: false);
+                            //if (!ret) ret = await LoadImageFromPrevFile(refresh: false);
+                            //if (!ret) IsLoadingViewer = false;
                         }
                     }
 
