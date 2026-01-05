@@ -26,10 +26,11 @@ namespace ImageSearch
 #pragma warning disable IDE0079
 
     using CompactExifLib;
+    using ImageSearch.Search;
     using Microsoft.Win32;
     using SkiaSharp;
-
-    using ImageSearch.Search;
+    using System.Runtime.InteropServices;
+    using System.Windows.Interop;
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -208,6 +209,21 @@ namespace ImageSearch
             else return (null);
         }
 
+        [DllImport("user32.dll")]
+        private static extern int ShowWindow(IntPtr hWnd, uint Msg);
+
+        private const uint SW_RESTORE = 0x09;
+
+        private void ActiveWindow()
+        {
+            try
+            {
+                if (WindowState == WindowState.Minimized) ShowWindow(new WindowInteropHelper(this).Handle, SW_RESTORE); ;
+                Activate();
+            }
+            catch (Exception ex) { ReportMessage(ex); }
+        }
+
         private void ShowLog()
         {
             edResult?.Dispatcher.Invoke(() =>
@@ -274,20 +290,21 @@ namespace ImageSearch
                         else if (state == TaskStatus.WaitingForChildrenToComplete) state_new = TaskbarItemProgressState.Indeterminate;
                         else if (state == TaskStatus.WaitingToRun) state_new = TaskbarItemProgressState.Indeterminate;
                     }
+
                     if (state_new != state_old)
                     {
                         TaskbarProgressState = state_new;
                         TaskbarProgressDescription = info;
-                    }
 
-                    TaskbarOverlay = state_new switch
-                    {
-                        TaskbarItemProgressState.None => StatusOverlay_OK,
-                        TaskbarItemProgressState.Error => StatusOverlay_Error,
-                        TaskbarItemProgressState.Paused => StatusOverlay_Pause,
-                        TaskbarItemProgressState.Indeterminate or TaskbarItemProgressState.Normal => StatusOverlay_Run,
-                        _ => null,
-                    };
+                        TaskbarOverlay = state_new switch
+                        {
+                            TaskbarItemProgressState.None => StatusOverlay_OK,
+                            TaskbarItemProgressState.Error => StatusOverlay_Error,
+                            TaskbarItemProgressState.Paused => StatusOverlay_Pause,
+                            TaskbarItemProgressState.Indeterminate or TaskbarItemProgressState.Normal => StatusOverlay_Run,
+                            _ => StatusOverlay_Alert,
+                        };
+                    }
 
                     DoEvents();
 
@@ -2366,20 +2383,24 @@ namespace ImageSearch
         private void TaskbarProgressButtonCompare_Click(object sender, EventArgs e)
         {
             CompareImage_Click(CompareImage, new RoutedEventArgs());
+            ActiveWindow();
         }
 
         private void TaskbarProgressButtonQueryLabel_Click(object sender, EventArgs e)
         {
             QueryImageLabel_Click(QueryImageLabel, new RoutedEventArgs());
+            ActiveWindow();
         }
 
         private void TaskbarProgressButtonQuery_Click(object sender, EventArgs e)
         {
             QueryImage_Click(QueryImage, new RoutedEventArgs());
+            ActiveWindow();
         }
 
         private void TaskbarProgressButtonMakeDB_Click(object sender, EventArgs e)
         {
+            ActiveWindow();
             DBTools_Click(DBMake, new RoutedEventArgs());
         }
     }
