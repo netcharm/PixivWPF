@@ -320,6 +320,21 @@ namespace PixivWPF
             if (Contents is Pages.TilesPage) Contents.NextIllustPage();
         }
 
+        public void ShowRanking(DateTime date)
+        {
+            var title = Contents.TargetPage.ToString();
+            if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
+            {
+                if (LastSelectedDate.Year != date.Year ||
+                LastSelectedDate.Month != date.Month ||
+                LastSelectedDate.Day != date.Day)
+                {
+                    LastSelectedDate = date;
+                    NavPageTitle.Text = $"{title}[{date.ToString("yyyy-MM-dd")}]";
+                    Contents.ShowImages(Contents.TargetPage, false, Contents.GetLastSelectedID());
+                }
+            }
+        }
         #region Named Pipe Heler
         private NamedPipeServerStream pipeServer;
         private string pipeName = Application.Current.PipeServerName();
@@ -579,12 +594,6 @@ namespace PixivWPF
                 (Content as Pages.TilesPage).StopPrefetching();
         }
 
-        private void DatePicker_SelectedDatesChanged(object sender, SelectionChangedEventArgs e)
-        {
-            //if (Contents is Pages.TilesPage && DatePicker.SelectedDate.HasValue && DatePicker.SelectedDate.Value <= DateTime.Now)
-            //    Contents.SelectedDate = DatePicker.SelectedDate.Value;
-        }
-
         private void DatePicker_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (e.Delta > 0) DatePicker.DisplayDate -= TimeSpan.FromDays(30);
@@ -606,18 +615,7 @@ namespace PixivWPF
 
         private void DatePickerPopup_Closed(object sender, EventArgs e)
         {
-            var title = Contents.TargetPage.ToString();
-            if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
-            {
-                if (LastSelectedDate.Year != Contents.SelectedDate.Year ||
-                LastSelectedDate.Month != Contents.SelectedDate.Month ||
-                LastSelectedDate.Day != Contents.SelectedDate.Day)
-                {
-                    LastSelectedDate = Contents.SelectedDate;
-                    NavPageTitle.Text = $"{title}[{Contents.SelectedDate.ToString("yyyy-MM-dd")}]";
-                    Contents.ShowImages(Contents.TargetPage, false, Contents.GetLastSelectedID());
-                }
-            }
+            ShowRanking(Contents.SelectedDate);
         }
 
         private void NavPageTitle_ToolTipOpening(object sender, ToolTipEventArgs e)
@@ -830,6 +828,14 @@ namespace PixivWPF
                 DatePicker.DisplayDateEnd = DateTime.Now;
                 DatePickerPopup.IsOpen = true;
             }
+        }
+
+        private void CommandDatePicker_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var yestoday = DateTime.Today - TimeSpan.FromDays(1);
+            DatePicker.SelectedDate = yestoday;
+            Contents.SelectedDate = yestoday;
+            ShowRanking(yestoday);
         }
 
         private void CommandNext_Click(object sender, RoutedEventArgs e)

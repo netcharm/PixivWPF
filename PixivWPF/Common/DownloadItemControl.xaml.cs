@@ -336,33 +336,38 @@ namespace PixivWPF.Common
             NotifyPropertyChanged("StateChanged");
         }
 
+        private CancellationTokenSource _thumb_cancel_ = null;
         public async void RefreshThumbnail(bool overwrite = false, bool force = false)
         {
+            _thumb_cancel_?.Cancel();
+            _thumb_cancel_ = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
+            _thumb_cancel_.CancelAfter(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
+
             await new Action(async () =>
             {
                 try
                 {
                     Instance?.PART_ThumbnailWait.Show();
 
-                    var cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout)); 
-                    using (var img = await ThumbnailUrl.LoadImageFromUrl(overwrite, size: Application.Current.GetDefaultThumbSize(), cancelToken: cancelToken))
+                    var cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
+                    using (var img = await ThumbnailUrl.LoadImageFromUrl(overwrite, size: Application.Current.GetDefaultThumbSize(), cancelToken: _thumb_cancel_))
                     {
                         if (img.Source != null)
                         {
                             if (force) Thumbnail = null;
                             Thumbnail = img.Source;
-                            if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Hide();
+                            Instance?.PART_ThumbnailWait.Hide();
                         }
-                        else if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Fail();
+                        else Instance?.PART_ThumbnailWait.Fail();
                     }
                 }
-                catch (Exception ex) { ex.ERROR($"{GetType().Name}_{IllustID}_RefreshThumbnail"); if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Fail(); }
+                catch (Exception ex) { ex.ERROR($"{GetType().Name}_{IllustID}_RefreshThumbnail"); Instance?.PART_ThumbnailWait.Fail(); }
                 finally
                 {
-                    if (Thumbnail == null && Instance is DownloadItem) Instance.PART_ThumbnailWait.Fail();
+                    if (Thumbnail == null) Instance?.PART_ThumbnailWait.Fail();
                     NotifyPropertyChanged("Thumbnail");
                 }
-            }).InvokeAsync();
+            }).InvokeAsync(cancelToken: _thumb_cancel_.Token);
         }
 
         public void SetSaveAsJPEG(bool? on)

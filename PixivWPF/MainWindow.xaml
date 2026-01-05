@@ -100,7 +100,7 @@
                 </StackPanel>
             </Button>
             <Button x:Name="CommandDatePicker" x:Uid="CommandDatePicker" 
-                    Click="CommandDatePicker_Click"                                
+                    Click="CommandDatePicker_Click" MouseRightButtonDown="CommandDatePicker_MouseRightButtonDown"
                     ToolTip="Date Selector">
                 <StackPanel>
                     <TextBlock Text="&#xE163;" Style="{DynamicResource CommandButtonIcon}"/>
@@ -109,8 +109,7 @@
                             BorderThickness="1" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                             HorizontalAlignment="Center" VerticalAlignment="Center"
                             VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
-                            SelectionMode="SingleDate" SelectedDatesChanged="DatePicker_SelectedDatesChanged" 
-                            MouseWheel="DatePicker_MouseWheel" MouseDoubleClick="DatePicker_MouseDoubleClick">
+                            SelectionMode="SingleDate" MouseWheel="DatePicker_MouseWheel" MouseDoubleClick="DatePicker_MouseDoubleClick">
                         </Calendar>
                     </Popup>
                 </StackPanel>
