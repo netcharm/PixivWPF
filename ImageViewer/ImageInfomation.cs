@@ -695,20 +695,6 @@ namespace ImageViewer
             {
                 switch (position)
                 {
-                    case ListPosition.Current:
-                        result = _last_file_index_ ?? -1;
-                        for (var i = _last_file_index_ ?? 0; i < _last_file_list_.Length; i++)
-                        {
-                            if (File.Exists(_last_file_list_[i])) { result = i; break; }
-                        }
-                        if (result == -1)
-                        {
-                            for (var i = _last_file_index_ ?? _last_file_list_.Length - 1; i >= 0; i--)
-                            {
-                                if (File.Exists(_last_file_list_[i])) { result = i; break; }
-                            }
-                        }
-                        break;
                     case ListPosition.First:
                         result = 0;
                         for (var i = result; i < _last_file_list_.Length; i++)
@@ -717,7 +703,7 @@ namespace ImageViewer
                         }
                         break;
                     case ListPosition.Prev:
-                        result = _last_file_index_ ?? -1;
+                        result = -1;
                         for (var i = _last_file_index_ - 1 ?? _last_file_list_.Length - 1; i >= 0; i--)
                         {
                             if (File.Exists(_last_file_list_[i])) { result = i; break; }
@@ -730,8 +716,9 @@ namespace ImageViewer
                             }
                         }
                         break;
+                    case ListPosition.Current:
                     case ListPosition.Next:
-                        result = _last_file_index_ ?? -1;
+                        result = -1;
                         for (var i = _last_file_index_ + 1 ?? 0; i < _last_file_list_.Length; i++)
                         {
                             if (File.Exists(_last_file_list_[i])) { result = i; break; }
