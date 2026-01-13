@@ -1629,7 +1629,7 @@ namespace PixivWPF.Common
             if (sender == PART_Download && !IsDownloading) Start(setting.DownloadWithFailResume);
         }
 
-        private async void CMIActions_Click(object sender, RoutedEventArgs e)
+        private async void miActions_Click(object sender, RoutedEventArgs e)
         {
             (sender as UIElement).IsEnabled = false;
 

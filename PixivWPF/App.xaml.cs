@@ -31,6 +31,15 @@ namespace PixivWPF
             e.Result = true;
         }
 
+        private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            // 记录异常信息或显示错误消息
+            MessageBox.Show("发生了一个未处理的异常: " + e.Exception.Message);
+
+            // 标记异常已处理
+            e.Handled = true;
+        }
+
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             try
@@ -40,6 +49,8 @@ namespace PixivWPF
 
                 NBug.Settings.Destinations.Add(new NBug.Core.Submission.Custom.Custom());
                 NBug.Settings.CustomSubmissionEvent += Settings_CustomSubmissionEvent;
+
+                this.DispatcherUnhandledException += App_DispatcherUnhandledException;
 
                 //add handler on application load
                 AppDomain.CurrentDomain.UnhandledException += NBug.Handler.UnhandledException;
