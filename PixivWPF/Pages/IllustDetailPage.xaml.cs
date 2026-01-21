@@ -1527,33 +1527,36 @@ namespace PixivWPF.Pages
         #region Theme/Thumb/Detail refresh methods
         private void InitPrefetchingTask()
         {
-            if (PrefetchingImagesTask == null) PrefetchingImagesTask = new PrefetchingTask()
+            if (PrefetchingImagesTask == null)
             {
-                Name = "DetailPagePrefetching",
-                ReportProgressSlim = () =>
+                PrefetchingImagesTask = new PrefetchingTask()
                 {
-                    var percent = PrefetchingImagesTask.Percentage;
-                    var tooltip = PrefetchingImagesTask.Comments;
-                    var state = PrefetchingImagesTask.State;
-                    if (ParentWindow is MainWindow) (ParentWindow as MainWindow).SetPrefetchingProgress(percent, tooltip, state);
-                    if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
-                    if (state == TaskStatus.RanToCompletion ||
-                        state == TaskStatus.Faulted ||
-                        state == TaskStatus.Canceled ||
-                        (state != TaskStatus.WaitingForChildrenToComplete && percent >= 100))
-                        UpdateThumb(prefetching: false);
-                },
-                ReportProgress = (percent, tooltip, state) =>
-                {
-                    if (ParentWindow is MainWindow) (ParentWindow as MainWindow).SetPrefetchingProgress(percent, tooltip, state);
-                    if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
-                    if (state == TaskStatus.RanToCompletion ||
-                        state == TaskStatus.Faulted ||
-                        state == TaskStatus.Canceled ||
-                        (state != TaskStatus.WaitingForChildrenToComplete && percent >= 100))
-                        UpdateThumb(prefetching: false);
-                }
-            };
+                    Name = "DetailPagePrefetching",
+                    ReportProgressSlim = () =>
+                    {
+                        var percent = PrefetchingImagesTask.Percentage;
+                        var tooltip = PrefetchingImagesTask.Comments;
+                        var state = PrefetchingImagesTask.State;
+                        if (ParentWindow is MainWindow) (ParentWindow as MainWindow).SetPrefetchingProgress(percent, tooltip, state);
+                        if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
+                        if (state == TaskStatus.RanToCompletion ||
+                            state == TaskStatus.Faulted ||
+                            state == TaskStatus.Canceled ||
+                            (state != TaskStatus.WaitingForChildrenToComplete && percent >= 100))
+                            UpdateThumb(prefetching: false);
+                    },
+                    ReportProgress = (percent, tooltip, state) =>
+                    {
+                        if (ParentWindow is MainWindow) (ParentWindow as MainWindow).SetPrefetchingProgress(percent, tooltip, state);
+                        if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
+                        if (state == TaskStatus.RanToCompletion ||
+                            state == TaskStatus.Faulted ||
+                            state == TaskStatus.Canceled ||
+                            (state != TaskStatus.WaitingForChildrenToComplete && percent >= 100))
+                            UpdateThumb(prefetching: false);
+                    }
+                };
+            }
         }
 
         private void InitSubIllustUpdateTimer()
@@ -1806,6 +1809,7 @@ namespace PixivWPF.Pages
                         items = items.Union(RelatedItems.FiltedList).Union(FavoriteItems.FiltedList).Union(RelatedItems.Items).Union(FavoriteItems.Items).ToList();
                         if (items.Count > 0)
                         {
+                            InitPrefetchingTask();
                             PrefetchingImagesTask.Items = items;
                             PrefetchingImagesTask.Start(overwrite: overwrite);
                         }
@@ -1851,6 +1855,7 @@ namespace PixivWPF.Pages
                 {
                     this.Invoke(() => { PreviewBadge.Opacity = PreviewBadge.IsMouseOver || PreviewBadge.IsMouseDirectlyOver ? 0.75 : 0.33; });
 
+                    InitPrefetchingTask();
                     PrefetchingImagesTask.Name = $"IllustPagePrefetching_{item.ID}";
                     Contents = item;
                     tooltip = $"{item.ID}, {item.Illust.Title}";
