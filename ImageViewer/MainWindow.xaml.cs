@@ -3753,7 +3753,7 @@ namespace ImageViewer
         private DateTime _last_key_time_ = DateTime.Now;
         private async void Window_KeyDown(object sender, KeyEventArgs e)
         {
-            if (!Ready) return;
+            if (!Ready || IsBusy) return;
             if (e.IsDown)
             {
                 try
@@ -3825,10 +3825,12 @@ namespace ImageViewer
 
                     else if (km.OnlyCtrl && (e.Key == Key.C || e.SystemKey == Key.C))
                     {
+                        //if (!IsBusy) await CopyImageToClipboard();
                         await CopyImageToClipboard();
                     }
                     else if (km.OnlyCtrl && (e.Key == Key.V || e.SystemKey == Key.V))
                     {
+                        //if (!IsBusy) await LoadImageFromClipboard();
                         await LoadImageFromClipboard();
                     }
 

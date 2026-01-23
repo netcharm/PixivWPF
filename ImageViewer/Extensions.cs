@@ -1453,7 +1453,7 @@ namespace ImageViewer
 
         public static bool Valid(this MagickImage image)
         {
-            return (image.IsValidRead() && image.Width > 0 && image.Height > 0);
+            return (image is not null && image.IsValidRead() && image.Width > 0 && image.Height > 0);
         }
 
         public static bool Invalided(this MagickImage image)

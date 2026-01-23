@@ -1599,27 +1599,31 @@ namespace ImageViewer
                         string[] fmts = image.IsJPG() ? ["image/jpg", "image/jpeg", "CF_DIBV5"] : ["PNG", "image/png", "image/bmp", "image/jpg", "image/jpeg", "CF_DIBV5"];
                         foreach (var fmt in fmts)
                         {
-                            if (fmt.Equals("CF_DIBV5", StringComparison.CurrentCultureIgnoreCase))
+                            try
                             {
-                                //if (image.ColorSpace == ColorSpace.scRGB) image.ColorSpace = ColorSpace.sRGB;
-                                byte[] arr = image.ToByteArray(MagickFormat.Bmp3);
-                                byte[] dib = [.. arr.Skip(14)];
-                                ms = new MemoryStream(dib);
-                                dataPackage.SetData(fmt, ms);
-                                await ms.FlushAsync();
-                            }
-                            else
-                            {
-                                var mfmt = fmt.GetMagickFormat();
-                                if (mfmt != MagickFormat.Unknown)
+                                if (fmt.Equals("CF_DIBV5", StringComparison.CurrentCultureIgnoreCase))
                                 {
                                     //if (image.ColorSpace == ColorSpace.scRGB) image.ColorSpace = ColorSpace.sRGB;
-                                    byte[] arr = image.ToByteArray(mfmt);
-                                    ms = new MemoryStream(arr);
+                                    byte[] arr = image.ToByteArray(MagickFormat.Bmp3);
+                                    byte[] dib = [.. arr.Skip(14)];
+                                    ms = new MemoryStream(dib);
                                     dataPackage.SetData(fmt, ms);
                                     await ms.FlushAsync();
                                 }
+                                else
+                                {
+                                    var mfmt = fmt.GetMagickFormat();
+                                    if (mfmt != MagickFormat.Unknown)
+                                    {
+                                        //if (image.ColorSpace == ColorSpace.scRGB) image.ColorSpace = ColorSpace.sRGB;
+                                        byte[] arr = image.ToByteArray(mfmt);
+                                        ms = new MemoryStream(arr);
+                                        dataPackage.SetData(fmt, ms);
+                                        await ms.FlushAsync();
+                                    }
+                                }
                             }
+                            catch (Exception ex) { ex.ShowMessage($"CopyToClipFmt_{fmt}_Error"); }
                         }
                         #endregion
                         await Application.Current?.Dispatcher?.InvokeAsync(() =>
