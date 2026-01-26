@@ -687,8 +687,6 @@ namespace ImageSearch.Search
                         diffs = null;
 
                         files = null;
-
-                        GC.Collect();
                     }
                 }
                 catch (Exception ex) { ReportMessage(ex); }
@@ -699,7 +697,7 @@ namespace ImageSearch.Search
                     if (BatchTaskIdle?.CurrentCount <= 0) BatchTaskIdle?.Release();
                     sw?.Stop();
                     System.Media.SystemSounds.Beep.Play();
-                    ReportMessage($"Create feature datas finished, Elapsed: {sw?.Elapsed:dd\\.hh\\:mm\\:ss}", result ? TaskStatus.RanToCompletion : TaskStatus.Canceled);
+                    ReportMessage($"Create feature datas {(result ? "finished" : "canceled")}, Elapsed: {sw?.Elapsed:dd\\.hh\\:mm\\:ss}", result ? TaskStatus.RanToCompletion : TaskStatus.Canceled);
                     GC.Collect();
                 }
             }

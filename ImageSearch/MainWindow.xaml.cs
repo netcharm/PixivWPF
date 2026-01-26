@@ -280,7 +280,7 @@ namespace ImageSearch
                     var state_old = TaskbarProgressState;
                     var state_new = state_old;
 
-                    if (state != TaskStatus.Created)
+                    if (state != TaskStatus.Created || state == TaskStatus.RanToCompletion)
                     {
                         if (state == TaskStatus.Running) state_new = TaskbarItemProgressState.Normal;
                         else if (state == TaskStatus.Canceled) state_new = TaskbarItemProgressState.Paused;
