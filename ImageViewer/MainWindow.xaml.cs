@@ -324,11 +324,14 @@ namespace ImageViewer
                 //if (!Directory.Exists(magick_cache)) Directory.CreateDirectory(magick_cache);
                 //MagickAnyCPU.CacheDirectory = Directory.Exists(magick_cache) ? magick_cache : AppPath;
                 //MagickAnyCPU.HasSharedCacheDirectory = true;
-                OpenCL.IsEnabled = true;
-                if (Directory.Exists(magick_cache)) OpenCL.SetCacheDirectory(magick_cache);
-#if DEBUG
-                Debug.WriteLine(string.Join(", ", OpenCL.Devices.Select(d => d.Name)));
-#endif
+//                if (OpenCL.Devices.Any())
+//                {
+//                    OpenCL.IsEnabled = true;
+//                    if (Directory.Exists(magick_cache)) OpenCL.SetCacheDirectory(magick_cache);
+//#if DEBUG
+//                    Debug.WriteLine(string.Join(", ", OpenCL.Devices.Select(d => d.Name)));
+//#endif
+//                }
                 ResourceLimits.MaxMemoryRequest = 4 * GB;
                 ResourceLimits.Memory = 4 * GB;
                 ResourceLimits.LimitMemory(new Percentage(10));
