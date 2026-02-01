@@ -361,7 +361,7 @@ namespace PixivWPF.Common
                         else Instance?.PART_ThumbnailWait.Fail();
                     }
                 }
-                catch (Exception ex) { ex.ERROR($"{GetType().Name}_{IllustID}_RefreshThumbnail"); Instance?.PART_ThumbnailWait.Fail(); }
+                catch (Exception ex) { ex.ERROR($"DownloadItem_{IllustID}_RefreshThumbnail"); Instance?.PART_ThumbnailWait.Fail(); }
                 finally
                 {
                     if (Thumbnail == null) Instance?.PART_ThumbnailWait.Fail();
@@ -1623,8 +1623,8 @@ namespace PixivWPF.Common
             UpdateDownloadState();
             if (sender == PART_Preview)
             {
-                if (PART_Preview.Source == null) PART_ThumbnailWait.Show();
-                else PART_ThumbnailWait.Hide();
+                // if (PART_Preview.Source == null) PART_ThumbnailWait.Show();
+                // else PART_ThumbnailWait.Hide();
             }
             if (sender == PART_Download && !IsDownloading) Start(setting.DownloadWithFailResume);
         }

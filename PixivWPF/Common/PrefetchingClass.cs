@@ -65,6 +65,8 @@ namespace PixivWPF.Common
         public Action ReportProgressSlim { get; set; } = null;
 
         private EscapeKey escape = new EscapeKey("PrefetchingTask");
+        public void ClearEscape() { escape?.Clear(); }
+        public void ResetEscape() { escape?.Reset(); }
 
         private int CalcPagesThumbItems(IEnumerable<PixivItem> items)
         {
@@ -627,7 +629,7 @@ namespace PixivWPF.Common
         {
             Stop();
             //PrefetchedList = Application.Current.MergeFromSystemPrefetchedList(PrefetchedList);
-            if (items is IEnumerable<PixivItem>) { Items = items.ToList(); }
+            if (items is IEnumerable<PixivItem>) { Items = items?.ToList(); }
             Start(include_page_thumb, include_page_preview, overwrite, reverse, force);
         }
 

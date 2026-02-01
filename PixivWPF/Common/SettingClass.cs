@@ -132,6 +132,17 @@ namespace PixivWPF.Common
             }
         }
 
+        private bool show_toast = true;
+        public bool ShowToast
+        {
+            get { return (Cache is Setting ? Cache.show_toast : show_toast); }
+            set
+            {
+                show_toast = value;
+                if (Cache is Setting) Cache.show_toast = show_toast;
+            }
+        }
+
         private bool confirm_exit = true;
         public bool ConfirmExit
         {

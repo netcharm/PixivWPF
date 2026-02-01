@@ -362,7 +362,8 @@ namespace PixivWPF.Pages
 
         public void Prefetching()
         {
-            if (PrefetchingImagesTask is PrefetchingTask) PrefetchingImagesTask.Start(reverse: true);
+            PrefetchingImagesTask?.ClearEscape();
+            PrefetchingImagesTask?.Start(reverse: true);
         }
 
         public void AppendTiles()
@@ -591,6 +592,8 @@ namespace PixivWPF.Pages
                     }
                 };
             }
+            PrefetchingImagesTask?.Stop();
+            PrefetchingImagesTask?.ClearEscape();
         }
 
         public void StopPrefetching()
@@ -914,14 +917,7 @@ namespace PixivWPF.Pages
             if (ParentWindow is MainWindow) ParentWindow.UpdateTitle(target.ToString());
             this.DoEvents();
 
-            InitPrefetchingTask();
-            if (PrefetchingImagesTask is PrefetchingTask) PrefetchingImagesTask.Stop();
-
-            //if (ids.Count > 0)
-            //{
-            //    ids_last.Clear();
-            //    ids_last.AddRange(ids);
-            //}
+            InitPrefetchingTask();            
 
             if (TargetPage != target)
             {

@@ -666,7 +666,7 @@ namespace PixivWPF.Common
                     //Shift = e.Modifiers.HasFlag(ModifierKeys.Shift);
                     //Shift = e.Modifiers.HasFlag(System.Windows.Forms.Keys.LShiftKey) || e.Modifiers.HasFlag(System.Windows.Forms.Keys.RShiftKey)
 
-                    $"Escape Key Pressed State = {IsEscaped}".LOG(tag: Title);
+                    $"Escape Key Pressed State = {IsEscaped}, Modifier = Win[{Win}],Alt[{Alt}],Ctrl[{Ctrl}],Shift[{Shift}]".LOG(tag: Title);
                 }
             }
             catch (Exception ex) { ex.ERROR($"EscapeKeyDown_{Title}"); }
@@ -11884,6 +11884,7 @@ namespace PixivWPF.Common
                 content.LOG(title);
 
                 setting = Application.Current.LoadSetting();
+                if (!setting.ShowToast) return;
 
                 await new Action(async () =>
                 {
@@ -11922,11 +11923,12 @@ namespace PixivWPF.Common
             {
                 Regex.Replace(content, @"(\r\n|\n\r|\r|\n|\s)+", " ", RegexOptions.IgnoreCase).LOG(title, tag);
 
+                setting = Application.Current.LoadSetting();
+                if (!setting.ShowToast) return;
+
                 var main = Application.Current.GetMainWindow();
                 if (main is MainWindow && main.IsVisible())
                 {
-                    setting = Application.Current.LoadSetting();
-
                     await new Action(async () =>
                     {
                         INotificationDialogService _dialogService = new NotificationDialogService();
@@ -11967,11 +11969,12 @@ namespace PixivWPF.Common
 
                 Regex.Replace(content, @"(\r\n|\n\r|\r|\n|\s)+", " ", RegexOptions.IgnoreCase).LOG(title, tag);
 
+                setting = Application.Current.LoadSetting();
+                if (!setting.ShowToast) return;
+
                 var main = Application.Current.GetMainWindow();
                 if (main is MainWindow && main.IsVisible())
                 {
-                    setting = Application.Current.LoadSetting();
-
                     await new Action(async () =>
                     {
                         INotificationDialogService _dialogService = new NotificationDialogService();
