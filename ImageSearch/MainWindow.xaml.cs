@@ -135,6 +135,7 @@ namespace ImageSearch
         #region Application relative helper routine
         private readonly ImageSource StatusOverlay_Run = new BitmapImage(new Uri("pack://application:,,,/Resources/StatusRun_32x.png"));
         private readonly ImageSource StatusOverlay_Pause = new BitmapImage(new Uri("pack://application:,,,/Resources/StatusPause_32x.png"));
+        private readonly ImageSource StatusOverlay_Update = new BitmapImage(new Uri("pack://application:,,,/Resources/StatusUpdate_32x.png"));
         private readonly ImageSource StatusOverlay_Error = new BitmapImage(new Uri("pack://application:,,,/Resources/StatusCriticalError_32x.png"));
         private readonly ImageSource StatusOverlay_Alert = new BitmapImage(new Uri("pack://application:,,,/Resources/StatusAlert_32x.png"));
         private readonly ImageSource StatusOverlay_OK = new BitmapImage(new Uri("pack://application:,,,/Resources/StatusOK_32x.png"));
@@ -280,7 +281,7 @@ namespace ImageSearch
                     var state_old = TaskbarProgressState;
                     var state_new = state_old;
 
-                    if (state != TaskStatus.Created || state == TaskStatus.RanToCompletion)
+                    if (state != TaskStatus.Created)
                     {
                         if (state == TaskStatus.Running) state_new = TaskbarItemProgressState.Normal;
                         else if (state == TaskStatus.Canceled) state_new = TaskbarItemProgressState.Paused;
@@ -303,9 +304,11 @@ namespace ImageSearch
                         TaskbarItemProgressState.None => StatusOverlay_OK,
                         TaskbarItemProgressState.Error => StatusOverlay_Error,
                         TaskbarItemProgressState.Paused => StatusOverlay_Pause,
-                        TaskbarItemProgressState.Indeterminate or TaskbarItemProgressState.Normal => StatusOverlay_Run,
+                        TaskbarItemProgressState.Indeterminate => StatusOverlay_Update,
+                        TaskbarItemProgressState.Normal => StatusOverlay_Run,
                         _ => StatusOverlay_Alert,
                     };
+                    if (state_new == TaskbarItemProgressState.Normal) overlay_new = TaskbarProgressValue >= 1.0 ? StatusOverlay_OK : StatusOverlay_Run;
                     if (overlay_old == null || (overlay_new != null && overlay_new != overlay_old)) TaskbarOverlay = overlay_new;
 
                     DoEvents();
