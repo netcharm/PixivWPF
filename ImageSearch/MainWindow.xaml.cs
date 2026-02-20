@@ -29,6 +29,7 @@ namespace ImageSearch
     using ImageSearch.Search;
     using Microsoft.Win32;
     using SkiaSharp;
+    using System.Diagnostics.Contracts;
     using System.Runtime.InteropServices;
     using System.Windows.Interop;
 
@@ -998,6 +999,8 @@ namespace ImageSearch
         #endregion
 
         #region Clipboard/DataObject processing
+        private bool IsDragDroped { get; set; } = false;
+
         private bool ImageSourceChanged => !SimilarSrc?.Source?.Equals(_last_pasted_image_) ?? true;
 
         private void CopyText(string text)
@@ -1315,8 +1318,8 @@ namespace ImageSearch
             if (dp is not null)
             {
                 result = true;
-                if (dp.ContainsImage()) await ProcessDataObjectImage(dp);
-                else if (dp.ContainsFileDropList()) ProcessDataObjectFileDropList(dp, this, null);
+                if (dp.ContainsFileDropList()) ProcessDataObjectFileDropList(dp, this, null);
+                else if (dp.ContainsImage()) await ProcessDataObjectImage(dp);
                 else if (dp.ContainsText()) (result, count) = await ProcessDataObjectText(dp);
             }
             return (result, count);
@@ -1860,6 +1863,7 @@ namespace ImageSearch
             e.Handled = true;
             if (e.Data is DataObject)
             {
+                IsDragDroped = true;
                 var dp = e.Data as DataObject;
                 if (dp.ContainsText())
                 {
@@ -2144,26 +2148,30 @@ namespace ImageSearch
             }
 
             #region Pre-processing query source
-            var clip = false;
-            if (Clipboard.ContainsImage() && ImageSourceChanged)
+            if (!IsDragDroped)
             {
-                clip = await ProcessClipboardImageAsync();
-            }
-            else if (!clip || !string.IsNullOrEmpty(EditQueryFile.Text))
-            {
-                var file = EditQueryFile.Text.Trim();
-
-                if (!System.IO.Path.IsPathRooted(file))
+                var clip = false;
+                if (Clipboard.ContainsImage() && ImageSourceChanged)
                 {
-                    file = System.IO.Path.Combine(folder, file);
+                    clip = await ProcessClipboardImageAsync();
                 }
+                else if (!clip || !string.IsNullOrEmpty(EditQueryFile.Text))
+                {
+                    var file = EditQueryFile.Text.Trim();
 
-                (var bmp, var skb, _) = LoadImageFromFile(GetAbsolutePath(file));
+                    if (!System.IO.Path.IsPathRooted(file))
+                    {
+                        file = System.IO.Path.Combine(folder, file);
+                    }
 
-                if (bmp is not null) SimilarSrc.Source = bmp;
-                if (skb is not null) SimilarSrc.Tag = skb;
-                if (bmp is not null) ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(file));
+                    (var bmp, var skb, _) = LoadImageFromFile(GetAbsolutePath(file));
+
+                    if (bmp is not null) SimilarSrc.Source = bmp;
+                    if (skb is not null) SimilarSrc.Tag = skb;
+                    if (bmp is not null) ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(file));
+                }
             }
+            IsDragDroped = false;
             #endregion
 
             if (SimilarSrc.Tag is SKBitmap)
