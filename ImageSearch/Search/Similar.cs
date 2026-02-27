@@ -39,6 +39,7 @@ namespace ImageSearch.Search
 {
 #pragma warning disable IDE0044 // 添加只读修饰符
 #pragma warning disable IDE0063
+#pragma warning disable IDE0079
 #pragma warning disable IDE0305
 #pragma warning disable SYSLIB1045
 
@@ -1184,7 +1185,7 @@ namespace ImageSearch.Search
 
         public bool ClearTempFeatureFile(string? tempfeat_db = null)
         {
-            var result = false;
+            var result = true;
             tempfeat_db = string.IsNullOrEmpty(tempfeat_db) ? TempFeatureFile : tempfeat_db;
             if (File.Exists(tempfeat_db))
             {
@@ -1198,14 +1199,13 @@ namespace ImageSearch.Search
                         ReportMessage($"Temporary features database {tf} deleted");
                     }
                 }
-                catch (Exception ex) { ReportMessage(ex); }
+                catch (Exception ex) { ReportMessage(ex); result = false; }
             }
             if (TempFeatures?.Count > 0)
             {
                 TempFeatures?.Clear();
                 ReportMessage($"Temporary features data has been cleared");
             }
-            result = true;
             return (result);
         }
         #endregion
@@ -2145,56 +2145,56 @@ namespace ImageSearch.Search
                         var fdb = feats_obj.FeatureDB;
                         if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_) && !string.IsNullOrEmpty(fdb) && _sub_features_.TryGetValue(fdb, out FeatureData? sub_value))
                         {
-                            ReportMessage($"End Filtered Features : {sub_value?.Names?.Length}");
-                            return (sub_value);
+                            ret = sub_value;
                         }
-                        //_sub_features_.TryGetValue(fdb, out ret);
-
-                        var temp_modified = false;
-
-                        var root = Path.GetDirectoryName(feats_obj.FeatureDB) ?? "";
-                        var files = subfiles.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(root, f));
-                        var names = new List<string> ();
-                        var feats = new List<float[]>();
-                        foreach (var f_name in files)
+                        else
                         {
-                            var idx = Array.IndexOf(feats_obj.Names, f_name);
-                            if (idx > 0)
+                            var temp_modified = false;
+
+                            var root = Path.GetDirectoryName(feats_obj.FeatureDB) ?? "";
+                            var files = subfiles.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(root, f));
+                            var names = new List<string> ();
+                            var feats = new List<float[]>();
+                            foreach (var f_name in files)
                             {
-                                names.Add(f_name);
-                                feats.Add(feats_obj.Feats[$"{idx},:"].ToArray<float>());
-                            }
-                            else if (TempFeatures.TryGetValue(f_name, out float[]? f_value))
-                            {
-                                names.Add(f_name);
-                                feats.Add(f_value);
-                            }
-                            else if (UseTemporaryDB)
-                            {
-                                var feature = await ExtractImaegFeature(f_name);
-                                if (feature.Item1 is not null)
+                                var idx = Array.IndexOf(feats_obj.Names, f_name);
+                                if (idx > 0)
                                 {
                                     names.Add(f_name);
-                                    feats.Add(feature.Item1);
+                                    feats.Add(feats_obj.Feats[$"{idx},:"].ToArray<float>());
+                                }
+                                else if (TempFeatures.TryGetValue(f_name, out float[]? f_value))
+                                {
+                                    names.Add(f_name);
+                                    feats.Add(f_value);
+                                }
+                                else if (UseTemporaryDB)
+                                {
+                                    var feature = await ExtractImaegFeature(f_name);
+                                    if (feature.Item1 is not null)
+                                    {
+                                        names.Add(f_name);
+                                        feats.Add(feature.Item1);
 
-                                    TempFeatures[f_name] = feature.Item1;
-                                    temp_modified = true;
+                                        TempFeatures[f_name] = feature.Item1;
+                                        temp_modified = true;
+                                    }
                                 }
                             }
-                        }
-                        if (names.Count > 0 && feats.Count > 0)
-                        {
-                            ret = new FeatureData()
+                            if (names.Count > 0 && feats.Count > 0)
                             {
-                                FeatureDB = feats_obj.FeatureDB,
-                                Names = names.ToArray(),
-                                Feats = new NDArray(feats.ToArray()),
-                            };
-                        }
-                        _sub_files_ = subfiles.ToHashSet();
-                        _sub_features_[fdb] = ret;
+                                ret = new FeatureData()
+                                {
+                                    FeatureDB = feats_obj.FeatureDB,
+                                    Names = names.ToArray(),
+                                    Feats = new NDArray(feats.ToArray()),
+                                };
+                            }
+                            _sub_files_ = subfiles.ToHashSet();
+                            _sub_features_[fdb] = ret;
 
-                        if (temp_modified) await SaveTempFeatureFile(TempFeatureFile);
+                            if (temp_modified) await SaveTempFeatureFile(TempFeatureFile);
+                        }
                     }
                     catch (Exception ex) { ReportMessage(ex); }
                     finally { ReportMessage($"End Filtered Features : {ret?.Names?.Length}"); }
@@ -2219,54 +2219,55 @@ namespace ImageSearch.Search
                         //if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_) && !string.IsNullOrEmpty(fdb) && _sub_features_.ContainsKey(fdb)) return (_sub_extra_features_[fdb]);
                         if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_) && !string.IsNullOrEmpty(fdb) && _sub_extra_features_.TryGetValue(fdb, out ExtraFeatureData? sub_value))
                         {
-                            ReportMessage($"End Filtered Extra Features : {sub_value?.Names?.Length}");
-                            return (sub_value);
+                            ret = sub_value;
                         }
-
-                        var temp_modified = false;
-
-                        var root = Path.GetDirectoryName(feats_obj.FeatureDB) ?? "";
-                        var files = subfiles.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(root, f));
-                        var names = new List<string> ();
-                        var feats = new List<float[]>();
-                        foreach (var f_name in files)
+                        else
                         {
-                            var idx = Array.IndexOf(feats_obj.Names, f_name);
-                            if (idx > 0)
+                            var temp_modified = false;
+
+                            var root = Path.GetDirectoryName(feats_obj.FeatureDB) ?? "";
+                            var files = subfiles.Select(f => Path.IsPathRooted(f) ? f : Path.Combine(root, f));
+                            var names = new List<string> ();
+                            var feats = new List<float[]>();
+                            foreach (var f_name in files)
                             {
-                                names.Add(f_name);
-                                feats.Add(feats_obj.Feats[$"[{idx}],:"].ToArray<float>());
-                            }
-                            else if (TempFeatures.TryGetValue(f_name, out float[]? value))
-                            {
-                                names.Add(f_name);
-                                feats.Add(value);
-                            }
-                            else if (UseTemporaryDB)
-                            {
-                                var feature = await ExtractImaegFeature(f_name);
-                                if (feature.Item1 is not null)
+                                var idx = Array.IndexOf(feats_obj.Names, f_name);
+                                if (idx > 0)
                                 {
                                     names.Add(f_name);
-                                    feats.Add(feature.Item1);
+                                    feats.Add(feats_obj.Feats[$"[{idx}],:"].ToArray<float>());
+                                }
+                                else if (TempFeatures.TryGetValue(f_name, out float[]? value))
+                                {
+                                    names.Add(f_name);
+                                    feats.Add(value);
+                                }
+                                else if (UseTemporaryDB)
+                                {
+                                    var feature = await ExtractImaegFeature(f_name);
+                                    if (feature.Item1 is not null)
+                                    {
+                                        names.Add(f_name);
+                                        feats.Add(feature.Item1);
 
-                                    TempFeatures[f_name] = feature.Item1;
-                                    temp_modified = true;
+                                        TempFeatures[f_name] = feature.Item1;
+                                        temp_modified = true;
+                                    }
                                 }
                             }
-                        }
-                        if (names.Count > 0 && feats.Count > 0)
-                        {
-                            ret = new ExtraFeatureData()
+                            if (names.Count > 0 && feats.Count > 0)
                             {
-                                FeatureDB = feats_obj.FeatureDB,
-                                Names = names.ToArray(),
-                                Feats = new NDArray(feats.ToArray()),
-                            };
-                        }
-                        _sub_extra_features_[fdb] = ret;
+                                ret = new ExtraFeatureData()
+                                {
+                                    FeatureDB = feats_obj.FeatureDB,
+                                    Names = names.ToArray(),
+                                    Feats = new NDArray(feats.ToArray()),
+                                };
+                            }
+                            _sub_extra_features_[fdb] = ret;
 
-                        if (temp_modified) await SaveTempFeatureFile(TempFeatureFile);
+                            if (temp_modified) await SaveTempFeatureFile(TempFeatureFile);
+                        }
                     }
                     catch (Exception ex) { ReportMessage(ex); }
                     finally { ReportMessage($"End Filtered Extra Features : {ret?.Names?.Length}"); }
