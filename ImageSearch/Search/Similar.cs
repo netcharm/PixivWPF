@@ -2143,7 +2143,11 @@ namespace ImageSearch.Search
                     {
                         ReportMessage($"Get Filtered Features ...");
                         var fdb = feats_obj.FeatureDB;
-                        if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_) && string.IsNullOrEmpty(fdb) && _sub_features_.TryGetValue(fdb, out FeatureData? sub_value)) return (sub_value);
+                        if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_) && !string.IsNullOrEmpty(fdb) && _sub_features_.TryGetValue(fdb, out FeatureData? sub_value))
+                        {
+                            ReportMessage($"End Filtered Features : {sub_value?.Names?.Length}");
+                            return (sub_value);
+                        }
                         //_sub_features_.TryGetValue(fdb, out ret);
 
                         var temp_modified = false;
@@ -2212,7 +2216,12 @@ namespace ImageSearch.Search
                     {
                         ReportMessage($"Get Filtered Extra Features ...");
                         var fdb = feats_obj.FeatureDB;
-                        if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_) && string.IsNullOrEmpty(fdb) && _sub_features_.ContainsKey(fdb)) return (_sub_extra_features_[fdb]);
+                        //if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_) && !string.IsNullOrEmpty(fdb) && _sub_features_.ContainsKey(fdb)) return (_sub_extra_features_[fdb]);
+                        if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_) && !string.IsNullOrEmpty(fdb) && _sub_extra_features_.TryGetValue(fdb, out ExtraFeatureData? sub_value))
+                        {
+                            ReportMessage($"End Filtered Extra Features : {sub_value?.Names?.Length}");
+                            return (sub_value);
+                        }
 
                         var temp_modified = false;
 

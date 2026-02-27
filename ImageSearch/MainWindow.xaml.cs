@@ -1000,6 +1000,7 @@ namespace ImageSearch
 
         #region Clipboard/DataObject processing
         private bool IsDragDroped { get; set; } = false;
+        private int DropedCount { get; set; } = 0;
 
         private bool ImageSourceChanged => !SimilarSrc?.Source?.Equals(_last_pasted_image_) ?? true;
 
@@ -1288,6 +1289,7 @@ namespace ImageSearch
             if (dp is not null && dp.ContainsFileDropList())
             {
                 var (ret, count) = await ProcessFileList(dp.GetFileDropList().Cast<string>());
+                DropedCount = count;
                 if (ret && count > 0)
                 {
                     await Dispatcher.InvokeAsync(() =>
@@ -1864,6 +1866,7 @@ namespace ImageSearch
             if (e.Data is DataObject)
             {
                 IsDragDroped = true;
+                DropedCount = 0;
                 var dp = e.Data as DataObject;
                 if (dp.ContainsText())
                 {
@@ -2148,7 +2151,7 @@ namespace ImageSearch
             }
 
             #region Pre-processing query source
-            if (!IsDragDroped)
+            if (!IsDragDroped || DropedCount > 1)
             {
                 var clip = false;
                 if (Clipboard.ContainsImage() && ImageSourceChanged)
