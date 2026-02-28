@@ -968,7 +968,9 @@ namespace ImageSearch
             if (files is not null && files.Length > 0)
             {
                 var cmd_info = string.IsNullOrEmpty(settings.ImageInfoViewerCmd) || !File.Exists(settings.ImageInfoViewerCmd) ? "explorer.exe" : settings.ImageInfoViewerCmd;
+                var cmd_info_opt = string.IsNullOrEmpty(settings.ImageInfoViewerOpt) ? string.Empty : settings.ImageInfoViewerOpt.Trim() + ' ';
                 var cmd_view = string.IsNullOrEmpty(settings.ImageViewerCmd) || !File.Exists(settings.ImageViewerCmd) ? "explorer.exe" : settings.ImageViewerCmd;
+                var cmd_view_opt = string.IsNullOrEmpty(settings.ImageViewerOpt) ? string.Empty : settings.ImageViewerOpt.Trim() + ' ';
 
                 files = [.. files.Where(f => File.Exists(f)).Select(f => $"{f}")];
 
@@ -983,11 +985,11 @@ namespace ImageSearch
                             {
                                 if (viewinfo)
                                 {
-                                    Process.Start(cmd_info, $"\"{file.Trim('"')}\"");
+                                    Process.Start(cmd_info, $"{cmd_info_opt}\"{file.Trim('"')}\"");
                                 }
                                 else
                                 {
-                                    Process.Start(cmd_view, $"\"{file.Trim('"')}\"");
+                                    Process.Start(cmd_view, $"{cmd_view_opt}\"{file.Trim('"')}\"");
                                 }
                             }
                             catch (Exception ex) { ReportMessage(ex); }

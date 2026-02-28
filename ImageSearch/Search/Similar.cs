@@ -2143,7 +2143,12 @@ namespace ImageSearch.Search
                     {
                         ReportMessage($"Get Filtered Features ...");
                         var fdb = feats_obj.FeatureDB;
-                        if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_) && !string.IsNullOrEmpty(fdb) && _sub_features_.TryGetValue(fdb, out FeatureData? sub_value))
+                        if (_sub_files_ is not null && 
+                            subfiles.ToHashSet().SetEquals(_sub_files_) && 
+                            !string.IsNullOrEmpty(fdb) && 
+                            _sub_features_.TryGetValue(fdb, out FeatureData? sub_value) && 
+                            sub_value is not null && 
+                            sub_value.Names.ToHashSet().SetEquals(_sub_files_))
                         {
                             ret = sub_value;
                         }
@@ -2158,7 +2163,7 @@ namespace ImageSearch.Search
                             foreach (var f_name in files)
                             {
                                 var idx = Array.IndexOf(feats_obj.Names, f_name);
-                                if (idx > 0)
+                                if (idx >= 0)
                                 {
                                     names.Add(f_name);
                                     feats.Add(feats_obj.Feats[$"{idx},:"].ToArray<float>());
@@ -2180,6 +2185,11 @@ namespace ImageSearch.Search
                                         temp_modified = true;
                                     }
                                 }
+                                else
+                                {
+                                    names.Add(f_name);
+                                    feats.Add(np.zeros<float>(1000).ToArray<float>());
+                                }
                             }
                             if (names.Count > 0 && feats.Count > 0)
                             {
@@ -2197,7 +2207,7 @@ namespace ImageSearch.Search
                         }
                     }
                     catch (Exception ex) { ReportMessage(ex); }
-                    finally { ReportMessage($"End Filtered Features : {ret?.Names?.Length}"); }
+                    finally { ReportMessage($"End Filtered Features : {ret?.Names?.Length ?? 0}"); }
                     return (ret);
                 });
             }
@@ -2216,8 +2226,12 @@ namespace ImageSearch.Search
                     {
                         ReportMessage($"Get Filtered Extra Features ...");
                         var fdb = feats_obj.FeatureDB;
-                        //if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_) && !string.IsNullOrEmpty(fdb) && _sub_features_.ContainsKey(fdb)) return (_sub_extra_features_[fdb]);
-                        if (_sub_files_ is not null && subfiles.ToHashSet().SetEquals(_sub_files_) && !string.IsNullOrEmpty(fdb) && _sub_extra_features_.TryGetValue(fdb, out ExtraFeatureData? sub_value))
+                        if (_sub_files_ is not null &&
+                            subfiles.ToHashSet().SetEquals(_sub_files_) &&
+                            !string.IsNullOrEmpty(fdb) &&
+                            _sub_extra_features_.TryGetValue(fdb, out ExtraFeatureData? sub_value) &&
+                            sub_value is not null &&
+                            sub_value.Names.ToHashSet().SetEquals(_sub_files_))
                         {
                             ret = sub_value;
                         }
@@ -2232,7 +2246,7 @@ namespace ImageSearch.Search
                             foreach (var f_name in files)
                             {
                                 var idx = Array.IndexOf(feats_obj.Names, f_name);
-                                if (idx > 0)
+                                if (idx >= 0)
                                 {
                                     names.Add(f_name);
                                     feats.Add(feats_obj.Feats[$"[{idx}],:"].ToArray<float>());
@@ -2254,6 +2268,11 @@ namespace ImageSearch.Search
                                         temp_modified = true;
                                     }
                                 }
+                                else
+                                {
+                                    names.Add(f_name);
+                                    feats.Add(np.zeros<float>(1000).ToArray<float>());
+                                }
                             }
                             if (names.Count > 0 && feats.Count > 0)
                             {
@@ -2270,7 +2289,7 @@ namespace ImageSearch.Search
                         }
                     }
                     catch (Exception ex) { ReportMessage(ex); }
-                    finally { ReportMessage($"End Filtered Extra Features : {ret?.Names?.Length}"); }
+                    finally { ReportMessage($"End Filtered Extra Features : {ret?.Names?.Length ?? 0}"); }
                     return (ret);
                 });
             }
