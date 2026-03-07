@@ -348,6 +348,7 @@ namespace ImageCompare
 
             Extensions.AllSupportedFormats = Extensions.GetSupportedImageFormats();
             Extensions.AllSupportedExts = Extensions.AllSupportedFormats.Keys.Skip(4).Select(ext => $".{ext.ToLower()}").Where(ext => !ext.Equals(".txt")).ToList();
+            Extensions.AllSupportedExts.Add(".jfif");
             var exts = Extensions.AllSupportedExts.Select(ext => $"*{ext}");
             Extensions.AllSupportedFiles = string.Join(";", exts);
             Extensions.AllSupportedFilters = string.Join("|", Extensions.AllSupportedFormats.Select(f => $"{f.Value}|*.{f.Key}"));
