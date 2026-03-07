@@ -1381,7 +1381,7 @@ namespace ImageViewer
             {
                 try
                 {
-                    result = IsJPG(image.Format) || GetMimeInfo(image).Equals("image/jpeg", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("jp");
+                    result = IsJPG(image.Format) || GetMimeInfo(image).Equals("image/jpeg", StringComparison.CurrentCultureIgnoreCase) || image.Format.ToString().StartsWith("jp") || image.Format.ToString().StartsWith("jfif");
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
             }
@@ -1569,7 +1569,7 @@ namespace ImageViewer
             return (png);
         }
 
-        private static readonly List<string> _auto_formats_ = new List<string>() { ".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff" };
+        private static readonly List<string> _auto_formats_ = new List<string>() { ".jpg", ".jpeg", ".jfif", ".jp2", ".jp2000", ".jpxl", ".png", ".bmp", ".tif", ".tiff" };
         private static readonly Dictionary<string, MagickFormat> _supported_formats_ = new Dictionary<string, MagickFormat>();
         public static MagickFormat GetImageFileFormat(this string ext)
         {
