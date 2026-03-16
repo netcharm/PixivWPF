@@ -1773,7 +1773,7 @@ namespace ImageSearch
                 }
                 else if (e.Key == Key.V && ctrl)
                 {
-                    if (e.Source == ResultFilter)
+                    if (e.Source == ResultFilter && Clipboard.ContainsText())
                     {
                         //ResultFilter.Paste();
                     }
