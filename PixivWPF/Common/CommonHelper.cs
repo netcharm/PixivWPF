@@ -2721,7 +2721,7 @@ namespace PixivWPF.Common
             string result = string.Empty;
             if (!string.IsNullOrEmpty(url))
             {
-                var m = Regex.Match(Path.GetFileName(url), @"(\d+)(_(p|ugoira)\d+.*?)", RegexOptions.IgnoreCase);
+                var m = Regex.Match(Path.GetFileName(url), @"(\d+)(-[a-z0-9]+?)?(_(p|ugoira)\d+.*?)", RegexOptions.IgnoreCase);
                 if (m.Groups.Count > 0)
                 {
                     result = m.Groups[1].Value;
@@ -6989,7 +6989,7 @@ namespace PixivWPF.Common
                         if (result) break;
 
                         var fn = Path.GetFileNameWithoutExtension(file_s);
-                        var files = Directory.EnumerateFiles(folder, $"{id}_*.*").NaturalSort();
+                        var files = Directory.EnumerateFiles(folder, $"{id}*_*.*").NaturalSort();
                         if (files.Count() > 0)
                         {
                             if (touch) { files.Skip(1).TouchAsync(url, meta: touch); }
@@ -6998,7 +6998,7 @@ namespace PixivWPF.Common
                         }
                         if (result) break;
 
-                        files = Directory.EnumerateFiles(folder, $"{id}.*").NaturalSort();
+                        files = Directory.EnumerateFiles(folder, $"{id}*.*").NaturalSort();
                         if (files.Count() > 0)
                         {
                             if (touch) { files.Skip(1).TouchAsync(url, meta: touch); }
@@ -7320,7 +7320,7 @@ namespace PixivWPF.Common
             string result = string.Empty;
             if (!string.IsNullOrEmpty(url))
             {
-                result = Regex.Replace(Path.GetFileName(url).Replace("_p", "_"), @"_(master|square|custom)(\d+)?\.", ".", RegexOptions.IgnoreCase);
+                result = Regex.Replace(Path.GetFileName(url), @"(-[a-z0-9]*?)?_p?(\d+)(_(master|square|custom)(\d+)?)?\.", "_$2.", RegexOptions.IgnoreCase);
                 if (is_meta_single_page) result = result.Replace("_0.", ".");
             }
             return (result);
