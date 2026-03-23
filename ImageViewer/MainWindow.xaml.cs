@@ -60,6 +60,11 @@ namespace ImageViewer
         private static bool MonitorFS =  true;
         private static bool Singleton =  true;
 
+        private static string ShellImageViewer =  "";
+        private static string ShellImageViewerOpt =  "";
+        private static string ShellTextViewer =  "";
+        private static string ShellTextViewerOpt =  "";
+
         private bool Ready => Dispatcher?.Invoke(() => IsLoaded) ?? false;
 
         private double TaskTimeOutSeconds = 60;
@@ -745,7 +750,10 @@ namespace ImageViewer
             }
             else
             {
-                Process.Start(image.FileName);
+                if (string.IsNullOrEmpty(ShellImageViewer))
+                    Process.Start(image.FileName);
+                else
+                    Process.Start(ShellImageViewer, $"{ShellImageViewerOpt} {image.FileName}");
             }
         }
 
@@ -3291,6 +3299,27 @@ namespace ImageViewer
                     if (!string.IsNullOrEmpty(value)) CachePath = value;
                 }
 
+                if (appSection.Settings.AllKeys.Contains("ShellImageViewer"))
+                {
+                    var value = appSection.Settings["ShellImageViewer"].Value.Trim();
+                    if (!string.IsNullOrEmpty(value)) ShellImageViewer = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("ShellImageViewerOpt"))
+                {
+                    var value = appSection.Settings["ShellImageViewerOpt"].Value.Trim();
+                    if (!string.IsNullOrEmpty(value)) ShellImageViewerOpt = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("ShellTextViewer"))
+                {
+                    var value = appSection.Settings["ShellTextViewer"].Value.Trim();
+                    if (!string.IsNullOrEmpty(value)) ShellTextViewer = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("ShellTextViewerOpt"))
+                {
+                    var value = appSection.Settings["ShellTextViewerOpt"].Value.Trim();
+                    if (!string.IsNullOrEmpty(value)) ShellTextViewerOpt = value;
+                }
+
                 if (appSection.Settings.AllKeys.Contains("UILanguage"))
                 {
                     var value = appSection.Settings["UILanguage"].Value;
@@ -3471,6 +3500,26 @@ namespace ImageViewer
                     else
                         appSection.Settings.Add("CachePath", CachePath);
 
+                    if (appSection.Settings.AllKeys.Contains("ShellImageViewer"))
+                        appSection.Settings["ShellImageViewer"].Value = ShellImageViewer;
+                    else
+                        appSection.Settings.Add("ShellImageViewer", ShellImageViewer);
+
+                    if (appSection.Settings.AllKeys.Contains("ShellImageViewerOpt"))
+                        appSection.Settings["ShellImageViewerOpt"].Value = ShellImageViewerOpt;
+                    else
+                        appSection.Settings.Add("ShellImageViewerOpt", ShellImageViewerOpt);
+
+                    if (appSection.Settings.AllKeys.Contains("ShellTextViewer"))
+                        appSection.Settings["ShellTextViewer"].Value = ShellTextViewer;
+                    else
+                        appSection.Settings.Add("ShellTextViewer", ShellTextViewer);
+
+                    if (appSection.Settings.AllKeys.Contains("ShellTextViewerOpt"))
+                        appSection.Settings["ShellTextViewerOpt"].Value = ShellTextViewerOpt;
+                    else
+                        appSection.Settings.Add("ShellTextViewerOpt", ShellTextViewerOpt);
+
                     if (appSection.Settings.AllKeys.Contains("DarkTheme"))
                         appSection.Settings["DarkTheme"].Value = DarkTheme.ToString();
                     else
@@ -3538,6 +3587,24 @@ namespace ImageViewer
                 if (AutoSaveConfig || force) appCfg.Save();
             }
             catch (Exception ex) { ex.ShowMessage(); }
+        }
+        
+        private void OpenConfigFile()
+        {
+            Configuration appCfg =  ConfigurationManager.OpenExeConfiguration(AppExec);
+            if (!string.IsNullOrEmpty(appCfg.FilePath))
+            {
+                try
+                {
+                    Process.Start(new ProcessStartInfo()
+                    {
+                        FileName = string.IsNullOrEmpty(ShellTextViewer) ? appCfg.FilePath : ShellTextViewer,
+                        Arguments = string.IsNullOrEmpty(ShellTextViewer) ? string.Empty : $"{ShellTextViewerOpt} \"{appCfg.FilePath}\"",
+                        UseShellExecute = true,
+                    });
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
+            }
         }
         #endregion
 
@@ -4208,7 +4275,8 @@ namespace ImageViewer
             }
             else if (sender == AutoSaveOptions)
             {
-                SaveConfig(force: true);
+                if (km.OnlyAlt) OpenConfigFile();
+                else SaveConfig(force: true);
             }
 
             else if (sender == ImageOpen)
