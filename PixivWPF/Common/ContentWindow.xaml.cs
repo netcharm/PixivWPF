@@ -703,9 +703,17 @@ namespace PixivWPF.Common
             }
         }
 
+        private void LiveFilter_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            LiveFilterNotDownloaded.IsChecked = !LiveFilterNotDownloaded.IsChecked;
+            LiveFilterNotAIGC.IsChecked = !LiveFilterNotAIGC.IsChecked;
+            LiveFilterNotMovie.IsChecked = !LiveFilterNotMovie.IsChecked;
+            LiveFilterItem_Click(sender, e);
+        }
+
         private void LiveFilterItem_Click(object sender, RoutedEventArgs e)
         {
-            if (!(sender is MenuItem)) return;
+            if (!(sender is MenuItem || sender == CommandFilter)) return;
             if (sender == LiveFilterFavoritedRange) return;
 
             #region pre-define filter menus list
@@ -967,6 +975,19 @@ namespace PixivWPF.Common
                 if (LiveFilterSanity_Any.IsChecked) LiveFilterSanity.IsChecked = false;
                 #endregion
             }
+
+            var none = string.IsNullOrEmpty(filter_type) &&
+                       string.IsNullOrEmpty(filter_fav_no) &&
+                       string.IsNullOrEmpty(filter_fast) &&
+                       string.IsNullOrEmpty(filter_fav) &&
+                       string.IsNullOrEmpty(filter_follow) &&
+                       string.IsNullOrEmpty(filter_down) &&
+                       string.IsNullOrEmpty(filter_ai) &&
+                       string.IsNullOrEmpty(filter_movie) &&
+                       string.IsNullOrEmpty(filter_mmd) &&
+                       string.IsNullOrEmpty(filter_full) &&
+                       string.IsNullOrEmpty(filter_sanity);
+            LiveFilterNone.IsChecked = none;
 
             var filter = new FilterParam()
             {

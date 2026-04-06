@@ -97,7 +97,7 @@
                 </StackPanel>
             </Button>
             <mah:DropDownButton x:Name="CommandFilter" x:Uid="CommandFilter"
-                                Click="LiveFilter_Click"
+                                Click="LiveFilter_Click" MouseRightButtonDown="LiveFilter_MouseRightButtonDown"
                                 ToolTip="Live Filter" ToolTipOpening="LiveFilter_ToolTipOpening">
                 <mah:DropDownButton.Icon>
                     <TextBlock Text="&#xE16E;" Style="{DynamicResource CommandButtonIcon}"/>

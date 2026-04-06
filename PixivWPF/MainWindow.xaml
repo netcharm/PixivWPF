@@ -114,7 +114,7 @@
                     </Popup>
                 </StackPanel>
             </Button>
-            <mah:DropDownButton x:Name="CommandFilter" x:Uid="CommandFilter" ToolTip="Live Filter" ToolTipOpening="LiveFilter_ToolTipOpening" Click="LiveFilter_Click">
+            <mah:DropDownButton x:Name="CommandFilter" x:Uid="CommandFilter" ToolTip="Live Filter" ToolTipOpening="LiveFilter_ToolTipOpening" Click="LiveFilter_Click" MouseRightButtonDown="LiveFilter_MouseRightButtonDown">
                 <mah:DropDownButton.Icon>
                     <TextBlock Text="&#xE16E;" Style="{DynamicResource CommandButtonIcon}"/>
                 </mah:DropDownButton.Icon>
