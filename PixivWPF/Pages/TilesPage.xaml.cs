@@ -910,7 +910,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        internal void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false, string id = "")
+        internal void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false, string id = "", int works_count = 30)
         {
             if (ParentWindow == null) ParentWindow = this.GetMainWindow();
             if (target == PixivPage.My) { ShowUser(0, true); return; }
@@ -947,7 +947,7 @@ namespace PixivWPF.Pages
                     ShowRecommanded(NextURL);
                     break;
                 case PixivPage.Latest:
-                    ShowLatest(NextURL);
+                    ShowLatest(NextURL, works_count: works_count);
                     break;
                 case PixivPage.TrendingTags:
                     ShowTrendingTags(NextURL);
@@ -999,43 +999,43 @@ namespace PixivWPF.Pages
                 case PixivPage.MyBookmark:
                     break;
                 case PixivPage.RankingDay:
-                    ShowRanking(NextURL, "day");
+                    ShowRanking(NextURL, "day", works_count: works_count);
                     break;
                 case PixivPage.RankingDayMale:
-                    ShowRanking(NextURL, "day_male");
+                    ShowRanking(NextURL, "day_male", works_count: works_count);
                     break;
                 case PixivPage.RankingDayFemale:
-                    ShowRanking(NextURL, "day_female");
+                    ShowRanking(NextURL, "day_female", works_count: works_count);
                     break;
                 case PixivPage.RankingDayR18:
-                    ShowRanking(NextURL, "day_r18");
+                    ShowRanking(NextURL, "day_r18", works_count: works_count);
                     break;
                 case PixivPage.RankingDayMaleR18:
-                    ShowRanking(NextURL, "day_male_r18");
+                    ShowRanking(NextURL, "day_male_r18", works_count: works_count);
                     break;
                 case PixivPage.RankingDayFemaleR18:
-                    ShowRanking(NextURL, "day_female_r18");
+                    ShowRanking(NextURL, "day_female_r18", works_count: works_count);
                     break;
                 case PixivPage.RankingDayManga:
-                    ShowRanking(NextURL, "day_manga");
+                    ShowRanking(NextURL, "day_manga", works_count: works_count);
                     break;
                 case PixivPage.RankingWeek:
-                    ShowRanking(NextURL, "week");
+                    ShowRanking(NextURL, "week", works_count: works_count);
                     break;
                 case PixivPage.RankingWeekOriginal:
-                    ShowRanking(NextURL, "week_original");
+                    ShowRanking(NextURL, "week_original", works_count: works_count);
                     break;
                 case PixivPage.RankingWeekRookie:
-                    ShowRanking(NextURL, "week_rookie");
+                    ShowRanking(NextURL, "week_rookie", works_count: works_count);
                     break;
                 case PixivPage.RankingWeekR18:
-                    ShowRanking(NextURL, "week_r18");
+                    ShowRanking(NextURL, "week_r18", works_count: works_count);
                     break;
                 case PixivPage.RankingWeekR18G:
-                    ShowRanking(NextURL, "week_r18g");
+                    ShowRanking(NextURL, "week_r18g", works_count: works_count);
                     break;
                 case PixivPage.RankingMonth:
-                    ShowRanking(NextURL, "month");
+                    ShowRanking(NextURL, "month", works_count: works_count);
                     break;
             }
             this.DoEvents();
@@ -1115,7 +1115,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void ShowLatest(string nexturl = null)
+        private async void ShowLatest(string nexturl = null, int works_count = 30)
         {
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
@@ -1127,7 +1127,7 @@ namespace PixivWPF.Pages
                 if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
                 var page_no = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
-                var root = await tokens.GetLatestWorksAsync(page_no);
+                var root = await tokens.GetLatestWorksAsync(page_no, perPage: Math.Max(1, works_count));
                 nexturl = root.Pagination.Next.ToString() ?? string.Empty;
                 NextURL = nexturl;
 
@@ -1438,7 +1438,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void ShowRankingAll(string nexturl = null, string condition = "daily")
+        private async void ShowRankingAll(string nexturl = null, string condition = "daily", int works_count = 30)
         {
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
@@ -1450,7 +1450,7 @@ namespace PixivWPF.Pages
                 if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
                 var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
-                var root = await tokens.GetRankingAllAsync(condition, page);
+                var root = await tokens.GetRankingAllAsync(condition, page, perPage: Math.Max(1, works_count));
                 nexturl = root.Pagination.Next.ToString() ?? string.Empty;
                 NextURL = nexturl;
 
@@ -1502,7 +1502,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void ShowRanking(string nexturl = null, string condition = "day")
+        private async void ShowRanking(string nexturl = null, string condition = "day", int works_count = 30)
         {
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
@@ -1516,7 +1516,7 @@ namespace PixivWPF.Pages
                 var rank_date_fmt = "yyyy-MM-dd";
                 var date = SelectedDate.Date == DateTime.Now.Date ? DateTime.Now : (SelectedDate - TimeSpan.FromDays(setting.RankingDateOffset));
                 date = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(date, Application.Current.GetTokyoTimeZone().Id);
-                var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition, 1, 30, date.ToString(rank_date_fmt)) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition, 1, Math.Max(1, works_count), date.ToString(rank_date_fmt)) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
                 int count = 1;
                 while (count <= 7 && (root.illusts == null || root.illusts.Length <= 0))
                 {
