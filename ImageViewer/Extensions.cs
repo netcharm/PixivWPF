@@ -1831,7 +1831,7 @@ namespace ImageViewer
                         var cb = GetMatrix(pixels, (w - m) / 2, h - m, m, m).Count(c => c.A < threshold);
                         var rb = GetMatrix(pixels, w - m, h - m, m, m).Count(c => c.A < threshold);
                         
-                        var lc = GetMatrix(pixels, w, (h - m) / 2, m, m).Count(c => c.A < threshold);
+                        var lc = GetMatrix(pixels, 0, (h - m) / 2, m, m).Count(c => c.A < threshold);
                         var rc = GetMatrix(pixels, w - m, (h - m) / 2, m, m).Count(c => c.A < threshold);
                         var cc = GetMatrix(pixels, (w - m) / 2, (h - m) / 2, m, m).Count(c => c.A < threshold);
                         //var cc = GetMatrix(pixels, (uint)(w / 2.0 - m / 2.0) , (uint)(h / 2.0 - m / 2.0), m, m).Count(c => c.A < threshold);
