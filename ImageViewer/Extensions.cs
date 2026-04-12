@@ -36,12 +36,7 @@ namespace ImageViewer
 
     public static class Extensions
     {
-        #region Locale Resource Helper
-        private static CultureInfo resourceCulture = Properties.Resources.Culture ?? CultureInfo.CurrentCulture;
-        private static readonly System.Resources.ResourceManager resourceMan = Properties.Resources.ResourceManager;
-        private static System.Resources.ResourceSet resourceSet = resourceMan.GetResourceSet(resourceCulture, true, true);
-        private static Dictionary<FrameworkElement, bool> _be_locale_ = null;
-
+        #region Win32 API Calling
         [DllImport("user32.dll")]
         private static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
 
@@ -50,18 +45,13 @@ namespace ImageViewer
 
         [DllImport("gdi32.dll")]
         private static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
+        #endregion
 
-        public static bool IsRecursiveCall(string method_name)
-        {
-            // get call stack
-            StackTrace stackTrace = new StackTrace();
-            var last_method_name = stackTrace.GetFrame(2).GetMethod().Name;
-            // get calling method name
-#if DEBUG
-            Debug.WriteLine(last_method_name);
-#endif
-            return (last_method_name.Equals(method_name));
-        }
+        #region Locale Resource Helper
+        private static CultureInfo resourceCulture = Properties.Resources.Culture ?? CultureInfo.CurrentCulture;
+        private static readonly System.Resources.ResourceManager resourceMan = Properties.Resources.ResourceManager;
+        private static System.Resources.ResourceSet resourceSet = resourceMan.GetResourceSet(resourceCulture, true, true);
+        private static Dictionary<FrameworkElement, bool> _be_locale_ = null;
 
         public static string _(this string text)
         {
@@ -387,7 +377,7 @@ namespace ImageViewer
             public bool fAnyOperationsAborted;
 
             /// <summary>
-            /// 
+            ///
             /// </summary>
             public IntPtr hNameMappings;
 
@@ -402,7 +392,7 @@ namespace ImageViewer
         private struct SHFILEOPSTRUCT64
         {
             /// <summary>
-            /// 
+            ///
             /// </summary>
             public IntPtr hwnd;
 
@@ -434,7 +424,7 @@ namespace ImageViewer
             public bool fAnyOperationsAborted;
 
             /// <summary>
-            /// 
+            ///
             /// </summary>
             public IntPtr hNameMappings;
 
@@ -452,7 +442,7 @@ namespace ImageViewer
         private static extern int SHFileOperation64(ref SHFILEOPSTRUCT64 lpFileOp);
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
@@ -482,7 +472,7 @@ namespace ImageViewer
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="src"></param>
         /// <param name="dst"></param>
@@ -509,7 +499,7 @@ namespace ImageViewer
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="src"></param>
         /// <param name="dst"></param>
@@ -550,7 +540,7 @@ namespace ImageViewer
         private static extern int ILGetSize(IntPtr pidl);
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="FileNames"></param>
         /// <returns></returns>
@@ -594,7 +584,7 @@ namespace ImageViewer
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="FileNames"></param>
         /// <returns></returns>
@@ -620,7 +610,7 @@ namespace ImageViewer
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="FileNames"></param>
         /// <returns></returns>
@@ -630,7 +620,7 @@ namespace ImageViewer
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="FileNames"></param>
         /// <returns></returns>
@@ -640,7 +630,7 @@ namespace ImageViewer
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="FileNames"></param>
         /// <returns></returns>
@@ -701,6 +691,18 @@ namespace ImageViewer
         public static bool IsRunAs32Bits(this DispatcherObject element)
         {
             return (!System.Environment.Is64BitProcess || IntPtr.Size == 4);
+        }
+
+        public static bool IsRecursiveCall(string method_name)
+        {
+            // get call stack
+            StackTrace stackTrace = new StackTrace();
+            var last_method_name = stackTrace.GetFrame(2).GetMethod().Name;
+            // get calling method name
+#if DEBUG
+            Debug.WriteLine(last_method_name);
+#endif
+            return (last_method_name.Equals(method_name));
         }
 
         public static Point GetDpi()
@@ -1739,7 +1741,7 @@ namespace ImageViewer
                         //    result.Add(fmt.Format.ToString(), fmt.Description);
                         //else result.Add(fmt.Format.ToString(), fmt.Description);
 
-                        if (fmt.MimeType is null) continue; 
+                        if (fmt.MimeType is null) continue;
                         else if (fmt.MimeType.StartsWith("image", StringComparison.CurrentCultureIgnoreCase))
                             result.Add(fmt.Format.ToString(), fmt.Description);
                     }
@@ -1820,12 +1822,21 @@ namespace ImageViewer
                         var m = window;
                         var mt = Math.Ceiling(m * m / 2.0);
                         var pixels = image.GetPixels();
+                        
                         var lt = GetMatrix(pixels, 0, 0, m, m).Count(c => c.A < threshold);
+                        var ct = GetMatrix(pixels, (w - m) / 2, 0, m, m).Count(c => c.A < threshold);
                         var rt = GetMatrix(pixels, w - m, 0, m, m).Count(c => c.A < threshold);
+                        
                         var lb = GetMatrix(pixels, 0, h - m, m, m).Count(c => c.A < threshold);
+                        var cb = GetMatrix(pixels, (w - m) / 2, h - m, m, m).Count(c => c.A < threshold);
                         var rb = GetMatrix(pixels, w - m, h - m, m, m).Count(c => c.A < threshold);
-                        var ct = GetMatrix(pixels, (uint)(w / 2.0 - m / 2.0) , (uint)(h / 2.0 - m / 2.0), m, m).Count(c => c.A < threshold);
-                        status = lt > mt || rt > mt || lb > mt || rb > mt || ct > mt;
+                        
+                        var lc = GetMatrix(pixels, w, (h - m) / 2, m, m).Count(c => c.A < threshold);
+                        var rc = GetMatrix(pixels, w - m, (h - m) / 2, m, m).Count(c => c.A < threshold);
+                        var cc = GetMatrix(pixels, (w - m) / 2, (h - m) / 2, m, m).Count(c => c.A < threshold);
+                        //var cc = GetMatrix(pixels, (uint)(w / 2.0 - m / 2.0) , (uint)(h / 2.0 - m / 2.0), m, m).Count(c => c.A < threshold);
+                        
+                        status = lt > mt || rt > mt || lb > mt || rb > mt || cc > mt;
                     }
                     result = status;
                 }
@@ -2133,7 +2144,7 @@ namespace ImageViewer
                     {
                         var exif_profile = image.GetExifProfile() ?? new ExifProfile();
 
-                        await image.WriteAsync(stream, image.Format);                        
+                        await image.WriteAsync(stream, image.Format);
                         stream.Seek(0, SeekOrigin.Begin);
                         var exif = new CompactExifLib.ExifData(stream);
                         foreach (var attr in image.AttributeNames)
@@ -2145,7 +2156,7 @@ namespace ImageViewer
                             foreach (var tag in exif_profile.Values)
                             {
                                 var value = tag.GetValue();
-                                //exif.SetTagRawData(ExifTagTable[$"exif:{tag.Tag}"], CompactExifLib.ExifTagType. 
+                                //exif.SetTagRawData(ExifTagTable[$"exif:{tag.Tag}"], CompactExifLib.ExifTagType.
                             }
 
                         }
@@ -2179,7 +2190,7 @@ namespace ImageViewer
 
                     fi.CreationTime = dc;
                     fi.LastWriteTime = dm;
-                    fi.LastAccessTime = da;                    
+                    fi.LastAccessTime = da;
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -2408,7 +2419,7 @@ namespace ImageViewer
 
         #region Keyboard Modifier
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public class Modifier
         {
@@ -2426,7 +2437,7 @@ namespace ImageViewer
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="modifiers"></param>
         /// <returns></returns>
@@ -2446,7 +2457,7 @@ namespace ImageViewer
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="app"></param>
         /// <returns></returns>
@@ -2459,7 +2470,7 @@ namespace ImageViewer
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="element"></param>
         /// <returns></returns>
@@ -2472,7 +2483,7 @@ namespace ImageViewer
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="app"></param>
         /// <param name="key"></param>
@@ -2500,7 +2511,7 @@ namespace ImageViewer
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="element"></param>
         /// <param name="exclude"></param>
@@ -2511,7 +2522,7 @@ namespace ImageViewer
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="element"></param>
         /// <param name="exclude"></param>
@@ -2522,7 +2533,7 @@ namespace ImageViewer
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="element"></param>
         /// <param name="exclude"></param>
@@ -2533,7 +2544,7 @@ namespace ImageViewer
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="app"></param>
         /// <param name="exclude"></param>
@@ -2544,7 +2555,7 @@ namespace ImageViewer
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="element"></param>
         /// <param name="key"></param>
@@ -2807,7 +2818,7 @@ namespace ImageViewer
             {
             }
         }
-        
+
         private static void OnFSError(object sender, ErrorEventArgs e)
         {
             var ex = e.GetException();

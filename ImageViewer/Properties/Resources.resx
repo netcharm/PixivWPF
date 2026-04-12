@@ -744,4 +744,7 @@
   <data name="AutoRotateImage.ToolTip" xml:space="preserve">
     <value>Auto Rotating Image Orientation</value>
   </data>
+  <data name="CopyImageList.Header" xml:space="preserve">
+    <value>Copy Current Image List</value>
+  </data>
 </root>

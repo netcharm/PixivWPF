@@ -744,4 +744,7 @@
   <data name="AutoRotateImage.ToolTip" xml:space="preserve">
     <value>方向情報に従って画像を自動的に回転</value>
   </data>
+  <data name="CopyImageList.Header" xml:space="preserve">
+    <value>画像リストをコピー</value>
+  </data>
 </root>

@@ -322,6 +322,15 @@ namespace ImageViewer.Properties {
         }
         
         /// <summary>
+        ///   查找类似 Copy Current Image List 的本地化字符串。
+        /// </summary>
+        public static string CopyImageList_Header {
+            get {
+                return ResourceManager.GetString("CopyImageList.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Copy Image To Source 的本地化字符串。
         /// </summary>
         public static string CopyToSource_Header {

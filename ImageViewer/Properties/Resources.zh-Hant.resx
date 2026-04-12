@@ -744,4 +744,7 @@
   <data name="AutoRotateImage.ToolTip" xml:space="preserve">
     <value>自動按照方向資訊旋轉影像</value>
   </data>
+  <data name="CopyImageList.Header" xml:space="preserve">
+    <value>複製影像清單</value>
+  </data>
 </root>

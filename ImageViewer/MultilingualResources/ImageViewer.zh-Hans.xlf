@@ -119,6 +119,10 @@
           <source>Copy Image Info</source>
           <target state="new">复制图像信息</target>
         </trans-unit>
+        <trans-unit id="CopyImageList.Header" translate="yes" xml:space="preserve">
+          <source>Copy Current Image List</source>
+          <target state="new">复制图像列表</target>
+        </trans-unit>
         <trans-unit id="CopyToSource.Header" translate="yes" xml:space="preserve">
           <source>Copy Image To Source</source>
           <target state="new">复制图像到来源</target>

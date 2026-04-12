@@ -791,6 +791,37 @@ namespace ImageViewer
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private async Task<bool> CopyImageListToClipboard()
+        {
+            var result = false;
+            IsProcessingViewer = true;
+            result = await Task.Run(async () =>
+            {
+                var ret = false;
+                var images = await ImageViewer.GetFileList();
+                if (images.Any())
+                {
+                    DataObject dataPackage = new();
+                    dataPackage.SetData(DataFormats.FileDrop, images);
+                    dataPackage.SetData(DataFormats.UnicodeText, string.Join(Environment.NewLine, images));
+                    dataPackage.SetData(DataFormats.OemText, string.Join(Environment.NewLine, images));
+                    dataPackage.SetData(DataFormats.Text, string.Join(Environment.NewLine, images));
+                    await Application.Current?.Dispatcher?.InvokeAsync(() =>
+                    {
+                        Clipboard.SetDataObject(dataPackage, true);
+                    });
+                    ret = true;
+                }
+                return (ret);
+            });
+            IsProcessingViewer = false;
+            return (result);
+        }
+
+        /// <summary>
         ///
         /// </summary>
         /// <param name="source"></param>
@@ -2345,6 +2376,13 @@ namespace ImageViewer
                     Tag = source,
                     Icon = new TextBlock() { Text = "\uE1D0", Style = style }
                 };
+                var item_copyimagelist = new MenuItem()
+                {
+                    Header = "Copy Current Image List",
+                    Uid = "CopyImageList",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE16F", Style = style }
+                };
                 var item_copyinfo = new MenuItem()
                 {
                     Header = "Copy Image Info",
@@ -2393,6 +2431,7 @@ namespace ImageViewer
                 item_reload.Click += (obj, evt) => { var shift = this.IsShiftPressed(true); RenderRun(() => ReloadImage(MenuHost(obj), info_only: shift), target); };
 
                 item_colorcalc.Click += (obj, evt) => RenderRun(() => CalcImageColors(MenuHost(obj)), target);
+                item_copyimagelist.Click += (obj, evt) => RenderRun(async () => await CopyImageListToClipboard(), target);
                 item_copyinfo.Click += (obj, evt) => RenderRun(() => CopyImageInfo(), target);
                 item_copyimage.Click += (obj, evt) => RenderRun(async () => await CopyImage(), target);
                 item_saveas.Click += async (obj, evt) => await SaveImageAs();
@@ -2447,6 +2486,7 @@ namespace ImageViewer
                 }
                 items.Add(new Separator());
                 items.Add(item_colorcalc);
+                items.Add(item_copyimagelist);
                 items.Add(item_copyinfo);
                 items.Add(item_copyimage);
                 items.Add(item_saveas);
@@ -3904,6 +3944,10 @@ namespace ImageViewer
                     {
                         //if (!IsBusy) await LoadImageFromClipboard();
                         await LoadImageFromClipboard();
+                    }
+                    else if (km.OnlyShift && (e.Key == Key.C || e.SystemKey == Key.C))
+                    {
+                        await CopyImageListToClipboard();
                     }
 
                     else if (e.Key == Key.B || e.SystemKey == Key.B)
