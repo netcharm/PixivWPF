@@ -576,7 +576,7 @@ namespace ImageSearch
                     {
                         if (bmp is not null) SimilarSrc.Source = bmp;
                         if (skb is not null) SimilarSrc.Tag = skb;
-                        ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(file));
+                        ToolTipService.SetToolTip(SimilarSrcBox, string.IsNullOrEmpty(file) ? null : await GetImageInfo(file));
                         if (query && !IsQuering)
                         {
                             if (scope_all != null) AllFolders.IsChecked = scope_all;
@@ -1132,7 +1132,7 @@ namespace ImageSearch
                         {
                             SimilarSrc.Source = bmp;
                             SimilarSrc.Tag = skb;
-                            ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(files.First()));
+                            ToolTipService.SetToolTip(SimilarSrcBox, string.IsNullOrEmpty(uri) ? null : await GetImageInfo(files.First()));
                             ReportMessage("Query Image Loaded");
                             _last_pasted_image_ = SimilarSrc.Source;
                             ret = true;
@@ -1160,7 +1160,6 @@ namespace ImageSearch
                         {
                             SimilarSrc.Source = bmp;
                             SimilarSrc.Tag = skb;
-                            //ToolTipService.SetToolTip(SimilarSrcBox, Regex.Replace(text, $@"{uri}.*?$", $"{uri}", RegexOptions.IgnoreCase));
                             ToolTipService.SetToolTip(SimilarSrcBox, text);
                             return (true, 1);
                         });
@@ -1254,7 +1253,7 @@ namespace ImageSearch
                             {
                                 SimilarSrc.Source = bmp;
                                 SimilarSrc.Tag = skb;
-                                if (!string.IsNullOrEmpty(uri)) ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(uri));
+                                ToolTipService.SetToolTip(SimilarSrcBox, string.IsNullOrEmpty(uri) ? null : await GetImageInfo(uri));
                                 ReportMessage("Query Image Loaded");
                                 return (true);
                             });
@@ -2173,7 +2172,7 @@ namespace ImageSearch
 
                     if (bmp is not null) SimilarSrc.Source = bmp;
                     if (skb is not null) SimilarSrc.Tag = skb;
-                    if (bmp is not null) ToolTipService.SetToolTip(SimilarSrcBox, await GetImageInfo(file));
+                    ToolTipService.SetToolTip(SimilarSrcBox, bmp is null ? null : await GetImageInfo(file));
                 }
             }
             IsDragDroped = false;

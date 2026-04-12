@@ -369,6 +369,7 @@ namespace ImageSearch.Search
                                 feats_list[names_a[i]] = feats_a[i];
                             }
                             ReportMessage($"Pre-Processed feature list");
+                            GC.Collect();
                         }
 
                         if (cancel.IsCancellationRequested) { result = false; break; }
@@ -389,6 +390,7 @@ namespace ImageSearch.Search
                                         feats[kv.Key] = kv.Value;
                                     }
                                     ReportMessage($"Loaded latest checkpoint file {npz_file}");
+                                    GC.Collect();
                                 }
                             }
                             catch (Exception ex) { ReportMessage(ex); }
@@ -628,6 +630,7 @@ namespace ImageSearch.Search
                             }
                         }
                         ReportMessage($"Processed Image Feature List");
+                        GC.Collect();
 
                         if ((!File.Exists(feat_obj.FeatureDB) || count > 0 || in_npz.Any()) && !feats.IsEmpty && feats?.Count <= (total + count) && feat_obj is not null)
                         {
@@ -1014,6 +1017,7 @@ namespace ImageSearch.Search
                     sw?.Stop();
                     if (ModelLoadedState?.CurrentCount == 0) ModelLoadedState?.Release();
                     ReportMessage($"Loaded Model from {model_file}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.RanToCompletion);
+                    GC.Collect();
                 }
             }
             return _model_;
@@ -2355,7 +2359,7 @@ namespace ImageSearch.Search
                             GC.Collect();
                         }
                     }
-                    result = result.DistinctBy(r => r.Key).OrderByDescending(r => r.Value).Take(limit > 1 ? (int)limit : ResultMax).ToList();
+                    result = result.DistinctBy(r => r.Key).OrderByDescending(r => r.Value).ThenByDescending(r => r.Key).Take(limit > 1 ? (int)limit : ResultMax).ToList();
                 }
                 catch (Exception ex) { ReportMessage(ex); }
                 finally
