@@ -2046,6 +2046,7 @@ namespace ImageSearch.Search
                     if (ModelLoadedState?.CurrentCount == 0) ModelLoadedState?.Release();
                     if (FeatureLoadedState?.CurrentCount == 0) FeatureLoadedState?.Release();
                     ReportMessage($"Compared Result of 2 features : {result:F4}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s", TaskStatus.RanToCompletion);
+                    GC.Collect();
                 }
             }
             else ReportMessage("Model or Feature Database not loaded.", TaskStatus.Faulted);
@@ -2096,6 +2097,7 @@ namespace ImageSearch.Search
                         if (limit > 1 && result.Count >= limit) break;
                     }
                 }
+                GC.Collect();
             }
             return (result);
         }
@@ -2126,6 +2128,7 @@ namespace ImageSearch.Search
                         if (limit > 1 && result.Count >= limit) break;
                     }
                 }
+                GC.Collect();
             }
             return(result);
         };
@@ -2211,7 +2214,7 @@ namespace ImageSearch.Search
                         }
                     }
                     catch (Exception ex) { ReportMessage(ex); }
-                    finally { ReportMessage($"End Filtered Features : {ret?.Names?.Length ?? 0}"); }
+                    finally { ReportMessage($"End Filtered Features : {ret?.Names?.Length ?? 0}"); GC.Collect(); }
                     return (ret);
                 });
             }
@@ -2293,7 +2296,7 @@ namespace ImageSearch.Search
                         }
                     }
                     catch (Exception ex) { ReportMessage(ex); }
-                    finally { ReportMessage($"End Filtered Extra Features : {ret?.Names?.Length ?? 0}"); }
+                    finally { ReportMessage($"End Filtered Extra Features : {ret?.Names?.Length ?? 0}"); GC.Collect(); }
                     return (ret);
                 });
             }
