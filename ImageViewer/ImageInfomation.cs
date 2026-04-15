@@ -291,6 +291,7 @@ namespace ImageViewer
                     }
                     catch (AccessViolationException) { }
                     catch (Exception ex) { ex.ShowMessage(); }
+                    finally { GC.Collect(); }
                 }
                 return (result);
             }
@@ -1537,7 +1538,7 @@ namespace ImageViewer
                             file.ShowMessage("The image file data is corrupted!");
                         else ex.ShowMessage();
                     }
-                    finally { _loading_image_.Release(); }
+                    finally { _loading_image_.Release(); GC.Collect(); }
                     return (ret);
                 });
             }
@@ -1570,6 +1571,7 @@ namespace ImageViewer
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
+            finally { GC.Collect(); }
             return (result);
         }
 
@@ -1634,6 +1636,7 @@ namespace ImageViewer
                         ret = true;
                     }
                     catch (Exception ex) { ex.ShowMessage(); }
+                    finally { GC.Collect(); }
                     return (ret);
                 });
             }
@@ -1673,6 +1676,7 @@ namespace ImageViewer
                     }
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
+                finally { GC.Collect(); }
                 return (ret);
             });
             return (result);
@@ -1731,6 +1735,7 @@ namespace ImageViewer
                     result = true;
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
+                finally { GC.Collect(); }
             }
             return (result);
         }
@@ -2158,6 +2163,7 @@ namespace ImageViewer
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
+            finally { GC.Collect(); }
             return (result);
         }
 
@@ -2206,6 +2212,7 @@ namespace ImageViewer
             Current?.Dispose(); Current = null; FileName = string.Empty;
             Original?.Dispose(); Original = null; FileName = string.Empty;
             ResetTransform(restore: false);
+            GC.Collect();
         }
     }
 }
