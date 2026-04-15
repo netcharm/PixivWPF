@@ -733,6 +733,7 @@ namespace ImageSearch.Search
                 ModelLoadedState?.Dispose();
                 FeatureLoadedState?.Dispose();
             }
+            GC.Collect();
             return (result);
         }
 
@@ -961,6 +962,7 @@ namespace ImageSearch.Search
                 }
             }
             catch (Exception ex) { ReportMessage(ex); }
+            finally { GC.Collect(); }
 #if DEBUG
             ReportMessage($"Loaded image file {file}, Elapsed: {sw?.Elapsed.TotalSeconds:F4}s");
 #endif
@@ -1703,6 +1705,7 @@ namespace ImageSearch.Search
                             }
                             feat_list_dst.Add(names_dst[i], row.ToArray());
                         }
+                        GC.Collect();
 
                         (names_src, feats_src) = await LoadFeatureFile(file_src);
                         ReportMessage($"Pre=Processing {file_src}");
@@ -1721,6 +1724,7 @@ namespace ImageSearch.Search
                             }
                             feat_list_src.Add(names_src[i], row.ToArray());
                         }
+                        GC.Collect();
 
                         ReportMessage($"Processing Feature DataTables", RunningStatue);
                         var feat_list =  feat_list_dst.UnionBy(feat_list_src, f => f.Key).DistinctBy(f => f.Key);
@@ -1739,6 +1743,7 @@ namespace ImageSearch.Search
                         }
 
                         result &= await SaveFeatureFile(file_dst, names_new, feats_new, folder_dst, feat_obj_dst.FeatureStore.UseFullPath);
+                        GC.Collect();
 
                         if (feat_obj_dst is not null && names_new.Length > 0 && feats_new.Length > 0)
                         {

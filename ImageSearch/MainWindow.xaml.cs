@@ -2097,6 +2097,7 @@ namespace ImageSearch
             {
 
             }
+            GC.Collect();
         }
 
         private async void CompareImage_Click(object sender, RoutedEventArgs e)
@@ -2176,6 +2177,7 @@ namespace ImageSearch
                 }
             }
             IsDragDroped = false;
+            GC.Collect();
             #endregion
 
             if (SimilarSrc.Tag is SKBitmap)
@@ -2215,6 +2217,7 @@ namespace ImageSearch
                         imlist = [.. imlist.DistinctBy(r => r.Key).OrderByDescending(r => r.Value).Take(limit > 1 ? (int)limit * 5 : 100)];
                     }
                     if (imlist?.Count <= 0) return;
+                    GC.Collect();
 
                     if (labels is not null)
                     {
@@ -2236,6 +2239,7 @@ namespace ImageSearch
                             });
                         }
                     }
+                    GC.Collect();
 
                     if (imlist?.Count > 0)
                     {
@@ -2287,6 +2291,7 @@ namespace ImageSearch
                                 }
                             }
                         }
+                        GC.Collect();
 
                         UpdateTabSimilarTooltip();
 
