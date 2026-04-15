@@ -79,6 +79,7 @@ namespace PixivWPF.Common
                 else if (item.IsWork() && item.Count > 1)
                     result += Options.IncludePagePreview ? item.Count * 2 : item.Count;
             }
+            GC.Collect();
             return (result);
         }
 
@@ -131,6 +132,7 @@ namespace PixivWPF.Common
                             pages = pages.Distinct().ToList();
                         }
                     }
+                    GC.Collect();
                 }
             }
             catch (Exception ex) { ex.ERROR("PAGESCOUNTING"); }
@@ -187,6 +189,7 @@ namespace PixivWPF.Common
                             pages = pages.Distinct().ToList();
                         }
                     }
+                    GC.Collect();
                 }
             }
             catch (Exception ex) { ex.ERROR("PAGESCOUNTING"); }
@@ -243,6 +246,7 @@ namespace PixivWPF.Common
                             pages = pages.Distinct().ToList();
                         }
                     }
+                    GC.Collect();
                 }
             }
             catch (Exception ex) { ex.ERROR("PAGESCOUNTING"); }
@@ -301,6 +305,7 @@ namespace PixivWPF.Common
                             }
                         }
                         result = true;
+                        GC.Collect();
                     }).Invoke(async: false);
                 }
             }
@@ -353,6 +358,7 @@ namespace PixivWPF.Common
                             catch (Exception ex) { ex.ERROR("PREFETCHING"); }
                             finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
                         });
+                        GC.Collect();
                     }
                     else
                     {
@@ -383,6 +389,7 @@ namespace PixivWPF.Common
                                 }).Invoke(async: false);
                             }
                         }
+                        GC.Collect();
                     }
                 }
                 catch (Exception ex) { ex.ERROR("GetOriginalImageSize"); }
@@ -392,6 +399,7 @@ namespace PixivWPF.Common
                 else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
                 setting.SaveImageFileSizeData();
                 result = true;
+                GC.Collect();
             }
             return (result);
         }
@@ -475,6 +483,7 @@ namespace PixivWPF.Common
                 if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                 else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
                 this.DoEvents();
+                GC.Collect();
                 if (count == 0) return;
 
                 var parallels = args.PrefetchingDownloadParallel;
@@ -527,6 +536,7 @@ namespace PixivWPF.Common
                         finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
                     });
                     #endregion
+                    GC.Collect();
                 }
                 else
                 {
@@ -580,6 +590,7 @@ namespace PixivWPF.Common
                         }
                     }
                     this.DoEvents();
+                    GC.Collect();
                     #endregion
                 }
 
@@ -622,6 +633,7 @@ namespace PixivWPF.Common
                 catch (Exception ex) { ex.ERROR("PREFETCHED"); }
                 if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
                 LastStartTime = DateTime.Now;
+                GC.Collect();
             }
         }
 
@@ -681,6 +693,11 @@ namespace PixivWPF.Common
                 if (!dispose) InitBgWorker();
             }
             catch (Exception ex) { ex.ERROR("PrefetchingTaskStop"); }
+            finally
+            {
+                //if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
+                GC.Collect();
+            }
         }
 
         public void InitBgWorker()

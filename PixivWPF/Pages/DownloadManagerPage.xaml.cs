@@ -231,6 +231,7 @@ namespace PixivWPF.Pages
                         finally
                         {
                             if (CanUpdateState is SemaphoreSlim && CanUpdateState.CurrentCount <= 0) CanUpdateState.Release();
+                            GC.Collect();
                         }
                     }).InvokeAsync(true);
                 }
@@ -695,6 +696,7 @@ namespace PixivWPF.Pages
                             }
                         }
                     }
+                    GC.Collect();
                 }).InvokeAsync();
             }
             catch (Exception ex) { ex.ERROR("DOWNLOADMANAGER"); }
@@ -762,6 +764,7 @@ namespace PixivWPF.Pages
                             foreach (var i in remove) { i.State = DownloadItemState.Remove; }
                         }
                     }
+                    GC.Collect();
                 }).InvokeAsync();
             }
             catch (Exception ex) { ex.ERROR("DOWNLOADMANAGER"); }

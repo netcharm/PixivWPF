@@ -94,6 +94,7 @@ namespace PixivWPF.Pages
                 {
                     if (ParentWindow != null) ParentWindow.SizeToContent = SizeToContent.WidthAndHeight;
                     if (CanUpdateing is SemaphoreSlim && CanUpdateing.CurrentCount <= 0) CanUpdateing.Release();
+                    GC.Collect();
                 }
             }
         }
@@ -293,7 +294,7 @@ namespace PixivWPF.Pages
                 Contents = null;
             }
             catch (Exception ex) { ex.ERROR("DisposeSearchResult"); }
-            finally { }
+            finally { GC.Collect(); }
         }
 
         public SearchResultPage()
@@ -412,6 +413,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                         this.DoEvents();
+                        GC.Collect();
                     }
                 }
                 else if (content.StartsWith("IllustID:", StringComparison.CurrentCultureIgnoreCase))
@@ -433,6 +435,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                         this.DoEvents();
+                        GC.Collect();
                     }
                 }
                 else if (content.StartsWith("User:", StringComparison.CurrentCultureIgnoreCase))
@@ -455,6 +458,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                         this.DoEvents();
+                        GC.Collect();
                     }
                 }
                 else if (content.StartsWith("Fuzzy:", StringComparison.CurrentCultureIgnoreCase))
@@ -475,6 +479,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                         this.DoEvents();
+                        GC.Collect();
                     }
                 }
                 else if (content.StartsWith("Tag:", StringComparison.CurrentCultureIgnoreCase))
@@ -497,6 +502,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                         this.DoEvents();
+                        GC.Collect();
                     }
                 }
                 else if (content.StartsWith("Fuzzy Tag:", StringComparison.CurrentCultureIgnoreCase))
@@ -518,6 +524,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                         this.DoEvents();
+                        GC.Collect();
                     }
                 }
                 else if (content.StartsWith("Caption:", StringComparison.CurrentCultureIgnoreCase))
@@ -539,6 +546,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                         this.DoEvents();
+                        GC.Collect();
                     }
                 }
                 ResultItems.UpdateTilesImage(touch: ResultItems.Count > 1);
@@ -580,6 +588,7 @@ namespace PixivWPF.Pages
                     ResultItems.Ready();
                     (ParentWindow as MetroWindow).AdjustWindowPos();
                 }
+                GC.Collect();
             }
         }
 

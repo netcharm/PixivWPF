@@ -686,6 +686,7 @@ namespace PixivWPF.Common
                             canvas.Background = new ImageBrush(source) { Stretch = Stretch.Uniform, TileMode = TileMode.None };
                             if (canvas.Background.CanFreeze) canvas.Background.Freeze();
                         }
+                        GC.Collect();
                     }).InvokeAsync(true);
                 }
                 else
@@ -710,6 +711,7 @@ namespace PixivWPF.Common
                             canvas.Background = new ImageBrush(source) { Stretch = Stretch.Uniform, TileMode = TileMode.None };
                             if (canvas.Background.CanFreeze) canvas.Background.Freeze();
                         }
+                        GC.Collect();
                     }).Invoke(async: async);
                 }
             }
@@ -737,6 +739,7 @@ namespace PixivWPF.Common
                         image.Source = source;
                         if (image.Source.CanFreeze) image.Source.Freeze();
                     }
+                    GC.Collect();
                 }).Invoke(async: async);
             }
         }
@@ -891,6 +894,7 @@ namespace PixivWPF.Common
                         finally { this.DoEvents(); }
                     });
                     if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                    GC.Collect();
 
                     Parallel.ForEach(needUpdate_a, opt, (item, loopstate, itemIndex) =>
                     {
@@ -900,9 +904,10 @@ namespace PixivWPF.Common
                             item.State = TaskStatus.WaitingToRun;
                         }
                         catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
-                        finally { this.DoEvents(); }
+                        finally { this.DoEvents(); GC.Collect(); }
                     });
                     if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                    GC.Collect();
                     #endregion
 
                     var thumb_size = Application.Current.GetDefaultThumbSize();
@@ -938,6 +943,7 @@ namespace PixivWPF.Common
                             finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
                         });
                         if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                        GC.Collect();
                         #endregion
 
                         #region Loading filted items downloading thumbnails
@@ -967,6 +973,7 @@ namespace PixivWPF.Common
                             finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
                         });
                         if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                        GC.Collect();
                         #endregion
 
                         #region Touch filted downloaded
@@ -981,6 +988,7 @@ namespace PixivWPF.Common
                             finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
                         });
                         if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                        GC.Collect();
                         #endregion
 
                         #region Touch downloaded
@@ -995,6 +1003,7 @@ namespace PixivWPF.Common
                             finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
                         });
                         if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                        GC.Collect();
                         #endregion
 
                         #region Loading need downloading thumbnails
@@ -1024,6 +1033,7 @@ namespace PixivWPF.Common
                             finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
                         });
                         if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                        GC.Collect();
                         #endregion
                     }
                     else
@@ -1078,6 +1088,7 @@ namespace PixivWPF.Common
                             }
                         }
                         if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                        GC.Collect();
                         #endregion
 #if DEBUG
                         System.Diagnostics.Debug.WriteLine($"==> Load Cached Thumbnail Stop : {DateTime.Now.ToString()}");
@@ -1118,6 +1129,7 @@ namespace PixivWPF.Common
                             }
                         }
                         if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                        GC.Collect();
                         #endregion
 
                         #region Touch filted downloaded
@@ -1142,6 +1154,7 @@ namespace PixivWPF.Common
                             }
                         }
                         if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                        GC.Collect();
                         #endregion
 
                         #region Touch downloaded
@@ -1166,6 +1179,7 @@ namespace PixivWPF.Common
                             }
                         }
                         if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                        GC.Collect();
                         #endregion
 
                         #region Loading need downloading thumbnails
@@ -1204,8 +1218,9 @@ namespace PixivWPF.Common
                             }
                         }
                         if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                        GC.Collect();
                         #endregion
-                   }
+                    }
                 }
             }
             catch (Exception ex)
@@ -1218,6 +1233,7 @@ namespace PixivWPF.Common
                 this.DoEvents();
                 Task.Delay(1).GetAwaiter().GetResult();
                 ReleaseUpdateLock();
+                GC.Collect();
             }
         }
 
@@ -1253,6 +1269,7 @@ namespace PixivWPF.Common
                         RenderImage(image, null);
                     }
                 }
+                GC.Collect();
             }
         }
 
@@ -1281,6 +1298,7 @@ namespace PixivWPF.Common
                 finally
                 {
                     if (!UpdateTileTask.IsBusy && !UpdateTileTask.CancellationPending) ReleaseUpdateLock();
+                    GC.Collect();
                 }
             }
         }
@@ -1351,6 +1369,7 @@ namespace PixivWPF.Common
                         this.DoEvents();
                     }
                     await Task.Delay(1);
+                    GC.Collect();
                 }
                 catch (Exception ex) { ex.ERROR("UpdateTilesState"); }
             }
@@ -1426,6 +1445,7 @@ namespace PixivWPF.Common
                     }
                 }
                 catch (Exception ex) { ex.ERROR("UpdateGalleryTooltip"); }
+                GC.Collect();
             });
         }
         #endregion
@@ -1557,6 +1577,7 @@ namespace PixivWPF.Common
                             }
                         }
                         RingList[id] = ring;
+                        GC.Collect();
                     }
                 }
                 catch (Exception ex) { ex.ERROR("THUMBRINGSTATE"); }
@@ -1585,6 +1606,7 @@ namespace PixivWPF.Common
                         canvas.UpdateLayout();
                     }
                 }
+                GC.Collect();
             }
             catch (Exception ex) { ex.ERROR("THUMBUNLOAD"); }
         }

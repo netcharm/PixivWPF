@@ -1040,6 +1040,7 @@ namespace PixivWPF.Pages
             }
             this.DoEvents();
             if (!string.IsNullOrEmpty(id)) lastSelectedId = id;
+            GC.Collect();
         }
 
         #region Show category
@@ -1112,6 +1113,7 @@ namespace PixivWPF.Pages
             {
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
+                GC.Collect();
             }
         }
 
@@ -1164,6 +1166,7 @@ namespace PixivWPF.Pages
             {
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
+                GC.Collect();
             }
         }
 
@@ -1216,6 +1219,7 @@ namespace PixivWPF.Pages
             {
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
+                GC.Collect();
             }
         }
 
@@ -1268,6 +1272,7 @@ namespace PixivWPF.Pages
             {
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
+                GC.Collect();
             }
         }
 
@@ -1323,6 +1328,7 @@ namespace PixivWPF.Pages
             {
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
+                GC.Collect();
             }
         }
 
@@ -1380,6 +1386,7 @@ namespace PixivWPF.Pages
             {
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
+                GC.Collect();
             }
         }
 
@@ -1435,6 +1442,7 @@ namespace PixivWPF.Pages
             {
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
+                GC.Collect();
             }
         }
 
@@ -1499,6 +1507,7 @@ namespace PixivWPF.Pages
             {
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
+                GC.Collect();
             }
         }
 
@@ -1560,6 +1569,7 @@ namespace PixivWPF.Pages
             {
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
+                GC.Collect();
             }
         }
 
@@ -1586,6 +1596,7 @@ namespace PixivWPF.Pages
                     user = await uid.RefreshUser();
                 Commands.Open.Execute(user);
             }
+            GC.Collect();
         }
 
         private async void ShowMyFollower(long uid, string nexturl = null)
@@ -1640,6 +1651,7 @@ namespace PixivWPF.Pages
             {
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
+                GC.Collect();
             }
         }
 
@@ -1696,6 +1708,7 @@ namespace PixivWPF.Pages
             {
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
+                GC.Collect();
             }
         }
 
@@ -1751,6 +1764,7 @@ namespace PixivWPF.Pages
             {
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
+                GC.Collect();
             }
         }
 
@@ -1806,6 +1820,7 @@ namespace PixivWPF.Pages
             {
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
+                GC.Collect();
             }
         }
         #endregion

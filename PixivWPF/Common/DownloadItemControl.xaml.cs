@@ -864,6 +864,7 @@ namespace PixivWPF.Common
                 if (_DownloadBuffer is byte[]) _DownloadBuffer.Dispose(ref _DownloadBuffer);
             }
             catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_CleanBuffer"); }
+            finally { GC.Collect(); }
         }
 
         private HttpClient httpClient = null;
@@ -998,6 +999,7 @@ namespace PixivWPF.Common
                     }
                     ms.Close();
                     ms.Dispose();
+                    GC.Collect();
                 }
             }
             return (result);
@@ -1111,6 +1113,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_DownloadFinally"); }
 
             if (Downloading?.CurrentCount <= 0) Downloading?.Release();
+            GC.Collect();
         }
 
         private async Task<string> DownloadDirectAsync(bool continuation = true, bool restart = false)
@@ -1173,6 +1176,7 @@ namespace PixivWPF.Common
                     {
                         DownloadFinally(out result);
                         UpdateProgress();
+                        GC.Collect();
                     }
                 }
             }
@@ -1217,6 +1221,7 @@ namespace PixivWPF.Common
                 {
                     DownloadFinally(out result);
                     UpdateProgress();
+                    GC.Collect();
                 }
             }
             return (result);
@@ -1238,6 +1243,7 @@ namespace PixivWPF.Common
             {
                 DownloadFinally(out result);
                 UpdateProgress();
+                GC.Collect();
             }
 
             return (result);
@@ -1297,6 +1303,7 @@ namespace PixivWPF.Common
             finally
             {
                 UpdateProgress();
+                GC.Collect();
             }
             return (result);
         }
@@ -1321,6 +1328,7 @@ namespace PixivWPF.Common
             finally
             {
                 UpdateProgress();
+                GC.Collect();
             }
             return (result);
         }
@@ -1542,12 +1550,14 @@ namespace PixivWPF.Common
                     {
                         if (PART_Preview.Source != null) PART_Preview.Source = null;
                         PART_Preview.UpdateLayout();
+                        GC.Collect();
                     }
                     catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_~DownloadItem"); }
                 }));
                 PART_Preview = null;
             }
             disposed = true;
+            GC.Collect();
         }
 
         private void Download_Loaded(object sender, RoutedEventArgs e)
@@ -1579,7 +1589,7 @@ namespace PixivWPF.Common
                     }).Invoke(async: true);
                 }
             }
-            finally { IsEnabled = true; }
+            finally { IsEnabled = true; GC.Collect(); }
         }
 
         private void Download_ToolTipOpening(object sender, ToolTipEventArgs e)

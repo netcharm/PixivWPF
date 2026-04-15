@@ -528,6 +528,7 @@ namespace PixivWPF.Pages
                             //AdjustBrowserSize(browser);
                         }
                         browser.WebBrowserShortcutsEnabled = false;
+                        GC.Collect();
                     }).InvokeAsync();
                 }
             }
@@ -696,6 +697,7 @@ namespace PixivWPF.Pages
                         }
                     }
                 }
+                GC.Collect();
             }
             catch (Exception ex) { ex.ERROR("BROWSER"); }
         }
@@ -720,6 +722,7 @@ namespace PixivWPF.Pages
                 e.Cancel = true;
                 return;
             }
+            GC.Collect();
         }
 
         private void WebBrowser_Navigated(object sender, System.Windows.Forms.WebBrowserNavigatedEventArgs e)
@@ -762,6 +765,7 @@ namespace PixivWPF.Pages
                         AdjustBrowserSize(browser);
                     }
                 }
+                GC.Collect();
             }
             catch (Exception ex) { ex.ERROR("WEBBROWSER"); }
         }
@@ -1016,6 +1020,7 @@ namespace PixivWPF.Pages
                         this.DoEvents();
                     }
                 }
+                GC.Collect();
             }
             catch (Exception ex) { ex.ERROR("DOWNLOADSTATE"); }
         }
@@ -1744,6 +1749,7 @@ namespace PixivWPF.Pages
                 }
             }
             catch (Exception ex) { ex.ERROR("UpdateContentsThumbnail"); }
+            finally { GC.Collect(); }
         }
 
         public async void UpdateThumb(bool full = false, bool overwrite = false, bool prefetching = true, bool wating = true)
@@ -1822,6 +1828,7 @@ namespace PixivWPF.Pages
             {
                 IllustDetailWait.Hide();
                 this.DoEvents();
+                GC.Collect();
             }
         }
 
@@ -1908,6 +1915,7 @@ namespace PixivWPF.Pages
             {
                 //UpdateContentsThumbnail();
                 //if (Contents.HasUser()) Application.Current.GC(this.Name ?? "IllustDetailPage");
+                GC.Collect();
             }
         }
 
@@ -2092,6 +2100,7 @@ namespace PixivWPF.Pages
                 this.DoEvents();
                 IllustDetailWait.Hide();
                 Preview.Focus();
+                GC.Collect();
             }
         }
 
@@ -2257,6 +2266,7 @@ namespace PixivWPF.Pages
             {
                 this.DoEvents();
                 IllustDetailWait.Hide();
+                GC.Collect();
             }
         }
         #endregion
@@ -2990,7 +3000,7 @@ namespace PixivWPF.Pages
                         Contents.Source = null;
                     }
                     catch (Exception ex) { ex.ERROR("DisposeIllustDetail"); }
-                    finally { }
+                    finally { GC.Collect(); }
                 }
 
                 // TODO: 释放未托管的资源(未托管的对象)并在以下内容中替代终结器。
@@ -2998,6 +3008,7 @@ namespace PixivWPF.Pages
 
                 disposedValue = true;
             }
+            GC.Collect();
         }
 
         // TODO: 仅当以上 Dispose(bool disposing) 拥有用于释放未托管资源的代码时才替代终结器。
@@ -3152,6 +3163,7 @@ namespace PixivWPF.Pages
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             //Dispose();
+            GC.Collect();
         }
 
         private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)

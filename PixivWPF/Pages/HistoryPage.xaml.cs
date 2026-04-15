@@ -134,6 +134,7 @@ namespace PixivWPF.Pages
             {
                 HistoryItems.Ready();
                 this.DoEvents();
+                GC.Collect();
             }
         }
 
