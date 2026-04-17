@@ -6077,6 +6077,7 @@ namespace PixivWPF.Pages
                 }
             }
             catch (Exception ex) { ex.ERROR(); }
+            finally { GC.Collect(); }
         }
         #endregion
 

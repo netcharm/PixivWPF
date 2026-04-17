@@ -141,17 +141,25 @@ namespace PixivWPF.Common
             {
                 try
                 {
+                    if (append_seprate == default(string)) append_seprate = Environment.NewLine;
                     var control = this.FindByName<Control>(element);
-                    if (control is Control)
+                    if (control.ToolTip is string || control.ToolTip is null)
                     {
-                        control.ToolTip = append ? $"{control.ToolTip}{append_seprate}{tooltip}" : $"{tooltip}";
-                    }
-                    else
-                    {
-                        var child = this.FindVisualChild<Control>(control);
-                        if (child is Control)
+                        var tooltip_old = control.ToolTip is null ? string.Empty : control.ToolTip as string;
+                        if (tooltip_old.IndexOf(tooltip, StringComparison.CurrentCultureIgnoreCase) < 0)
                         {
-                            child.ToolTip = append ? $"{child.ToolTip}{append_seprate}{tooltip}" : $"{tooltip}";
+                            if (control is Control)
+                            {
+                                control.ToolTip = append ? $"{control.ToolTip}{append_seprate}{tooltip}" : $"{tooltip}";
+                            }
+                            else
+                            {
+                                var child = this.FindVisualChild<Control>(control);
+                                if (child is Control)
+                                {
+                                    child.ToolTip = append ? $"{child.ToolTip}{append_seprate}{tooltip}" : $"{tooltip}";
+                                }
+                            }
                         }
                     }
                 }
