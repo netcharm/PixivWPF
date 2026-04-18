@@ -1753,7 +1753,10 @@ namespace ImageViewer
         {
             SizeChanger.Dispatcher.Invoke(() => 
             { 
-                SizeChanger.Close(); 
+                SizeChanger.Close();
+                Focus();
+                ImageViewerBox.Focus();
+                ImageViewer.Focus();
             });            
         }
         #endregion
@@ -1913,9 +1916,13 @@ namespace ImageViewer
                         QualityChanger.Close();
                         IsProcessingViewer = false;
                         _quality_orig_ = null;
-                        _quality_info_.Dispose();
+                        _quality_info_?.Dispose();
                         Keyboard.ClearFocus();
                         InputMethod.Current.ImeState = InputMethodState.Off;
+                        
+                        Focus();
+                        ImageViewerBox.Focus();
+                        ImageViewer.Focus();
                     }
                 });
             }
@@ -3902,7 +3909,7 @@ namespace ImageViewer
 
                     else if (e.Key == Key.Delete || e.SystemKey == Key.Delete)
                     {
-                        var image =ImageViewer.GetInformation();
+                        var image = ImageViewer.GetInformation();
                         var file = image?.FileName;
                         var ret = file.FileDelete(recycle: !km.Shift) == 0;
                         if (ret)

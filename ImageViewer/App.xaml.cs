@@ -227,6 +227,44 @@ namespace ImageViewer
             var opts = this.GetCmdLineOpts();
             var args = opts.Args.ToArray();
 
+            #region Unhandled Exception Handler
+            TaskScheduler.UnobservedTaskException += (s, ev) =>
+            {
+                if (ev.Exception != null)
+                {
+                    ReportMessage(ev.Exception);
+                    ev.SetObserved();
+                }
+            };
+
+            AppDomain.CurrentDomain.UnhandledException += (s, ev) =>
+            {
+                if (ev.ExceptionObject is Exception ex)
+                {
+                    ReportMessage(ex);
+                }
+            };
+
+            Dispatcher.UnhandledException += (s, ev) =>
+            {
+                if (ev.Exception != null)
+                {
+                    ReportMessage(ev.Exception);
+                    ev.Handled = MainWindow?.IsLoaded ?? false;
+                }
+            };
+
+            DispatcherUnhandledException += (s, ev) =>
+            {
+                if (ev.Exception != null)
+                {
+                    ReportMessage(ev.Exception);
+                    ev.Handled = MainWindow?.IsLoaded ?? false;
+                }
+            };
+            #endregion
+
+            #region Named Pipe Server
             if (opts.Singleton && DetectPipeServer())
             {
                 if (args.Length > 0)
@@ -245,11 +283,14 @@ namespace ImageViewer
                 Environment.Exit(0);
             }
             CreateNamedPipeServer();
+            #endregion
         }
 
         private void Application_Exit(object sender, ExitEventArgs e)
         {
+            #region
             ReleaseNamedPipeServer();
+            #endregion
         }
     }
 }

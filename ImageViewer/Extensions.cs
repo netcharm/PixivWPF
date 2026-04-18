@@ -678,7 +678,7 @@ namespace ImageViewer
                 var args = Environment.GetCommandLineArgs().Skip(1).ToList();
                 var opts = Options.Parse(args);
                 //if (dualopen && opts.Count > 0) opts.Insert(0, opts.FirstOrDefault());
-                myoptions = new MyOptions() { MonitorFS = monitorfs,  DualOpen = dualopen, Singleton = singleton, RunAs32Bits = runas32, RunAs64Bits = runas64, Args = opts };
+                myoptions = new MyOptions() { MonitorFS = monitorfs, DualOpen = dualopen, Singleton = singleton, RunAs32Bits = runas32, RunAs64Bits = runas64, Args = opts };
             }
             return (myoptions ?? new MyOptions());
         }
@@ -797,23 +797,18 @@ namespace ImageViewer
                 try
                 {
                     (Application.Current.MainWindow as MainWindow)?.UpdateIndaicatorState(ImageType.All, state: false, busy: true);
+                    if (string.IsNullOrEmpty(caption.Trim())) caption = "Confirm".T();
                     if (Application.Current.MainWindow.IsVisible)
                     {
-                        if (string.IsNullOrEmpty(caption))
-                            ret = Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text, "Confirm".T(), MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Yes, GetMessageBoxStyle());
-                        else
-                            ret = Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text, caption, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Yes, GetMessageBoxStyle());
+                        ret = Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current.MainWindow, text, caption, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Yes, GetMessageBoxStyle());
                     }
                     else
                     {
-                        if (string.IsNullOrEmpty(caption))
-                            ret = Xceed.Wpf.Toolkit.MessageBox.Show(text, "Confirm".T(), MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Yes, GetMessageBoxStyle());
-                        else
-                            ret = Xceed.Wpf.Toolkit.MessageBox.Show(text, caption, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Yes, GetMessageBoxStyle());
+                        ret = Xceed.Wpf.Toolkit.MessageBox.Show(text, caption, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Yes, GetMessageBoxStyle());
                     }
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
-                return(ret == MessageBoxResult.Yes);
+                return (ret == MessageBoxResult.Yes);
             });
             return (result ?? false);
         }
@@ -1822,20 +1817,20 @@ namespace ImageViewer
                         var m = window;
                         var mt = Math.Ceiling(m * m / 2.0);
                         var pixels = image.GetPixels();
-                        
+
                         var lt = GetMatrix(pixels, 0, 0, m, m).Count(c => c.A < threshold);
                         var ct = GetMatrix(pixels, (w - m) / 2, 0, m, m).Count(c => c.A < threshold);
                         var rt = GetMatrix(pixels, w - m, 0, m, m).Count(c => c.A < threshold);
-                        
+
                         var lb = GetMatrix(pixels, 0, h - m, m, m).Count(c => c.A < threshold);
                         var cb = GetMatrix(pixels, (w - m) / 2, h - m, m, m).Count(c => c.A < threshold);
                         var rb = GetMatrix(pixels, w - m, h - m, m, m).Count(c => c.A < threshold);
-                        
+
                         var lc = GetMatrix(pixels, 0, (h - m) / 2, m, m).Count(c => c.A < threshold);
                         var rc = GetMatrix(pixels, w - m, (h - m) / 2, m, m).Count(c => c.A < threshold);
                         var cc = GetMatrix(pixels, (w - m) / 2, (h - m) / 2, m, m).Count(c => c.A < threshold);
                         // var cc = GetMatrix(pixels, (uint)(w / 2.0 - m / 2.0) , (uint)(h / 2.0 - m / 2.0), m, m).Count(c => c.A < threshold);
-                        
+
                         // status = lt > mt || rt > mt || lb > mt || rb > mt || cc > mt;
                         status = lt > mt || ct > mt || rt > mt || lb > mt || cb > mt || rb > mt || lc > mt || rc > mt || cc > mt;
                     }
@@ -1890,13 +1885,13 @@ namespace ImageViewer
                             //else if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.Alpha) { status = true; }
                             //else if (System.Drawing.Image.IsAlphaPixelFormat(image.PixelFormat)) { status = true; }
 
-                            status = image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb || 
-                                    image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppPArgb || 
-                                    image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format16bppArgb1555 || 
-                                    image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format64bppArgb || 
-                                    image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format64bppPArgb || 
-                                    image.PixelFormat == System.Drawing.Imaging.PixelFormat.PAlpha || 
-                                    image.PixelFormat == System.Drawing.Imaging.PixelFormat.Alpha || 
+                            status = image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb ||
+                                    image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppPArgb ||
+                                    image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format16bppArgb1555 ||
+                                    image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format64bppArgb ||
+                                    image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format64bppPArgb ||
+                                    image.PixelFormat == System.Drawing.Imaging.PixelFormat.PAlpha ||
+                                    image.PixelFormat == System.Drawing.Imaging.PixelFormat.Alpha ||
                                     System.Drawing.Image.IsAlphaPixelFormat(image.PixelFormat);
 
                             if (status)
@@ -2137,7 +2132,7 @@ namespace ImageViewer
 
         private static void InitMagicImageAttrToExifTagsTable()
         {
-            foreach(var tag in typeof(ExifTag).GetProperties())
+            foreach (var tag in typeof(ExifTag).GetProperties())
             {
                 if (Enum.TryParse(tag.Name, out CompactExifLib.ExifTag tag_o))
                     ExifTagTable[$"exif:{tag.Name}"] = tag_o;
@@ -2584,8 +2579,8 @@ namespace ImageViewer
         #endregion
 
         #region File List && File System Watcher
-        private static List<string> ext_imgs = new List<string>() { ".png", ".jpg", ".gif", ".bmp", ".webp", ".tif", ".tiff", ".jpeg", ".heif", ".heic" };
-        private static List<string> ext_movs = new List<string>() { ".webm", ".mp4", ".mov", ".ogv", ".ogg",".gif" };
+        private static List<string> ext_imgs = new List<string>() { ".png", ".jpg", ".gif", ".bmp", ".webp", ".tif", ".tiff", ".apng", ".mng", ".jpeg", ".jfif", ".heif", ".heic" };
+        private static List<string> ext_movs = new List<string>() { ".webm", ".mp4", ".mov", ".ogv", ".ogg", ".gif", ".apng", ".mng" };
 
         private static ConcurrentDictionary<string, DateTime?> _file_list_storage_ = new ConcurrentDictionary<string, DateTime?>();
         private static string[] _file_list_ = new string[0];
@@ -2644,7 +2639,7 @@ namespace ImageViewer
                 _file_list_updating_cancel_?.Cancel();
                 _file_list_updating_cancel_ = new CancellationTokenSource();
 
-                result = await  Task.Run(() =>
+                result = await Task.Run(() =>
                 {
                     var ret = false;
                     try
@@ -2662,7 +2657,7 @@ namespace ImageViewer
                     return (ret);
                 }, _file_list_updating_cancel_.Token);
             }
-            return(result);
+            return (result);
         }
 
         private static void UpdateInfoBox(EventArgs e = null, bool index = true)

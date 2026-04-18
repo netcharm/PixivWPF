@@ -286,8 +286,8 @@ namespace ImageViewer
                     {
                         var image = new MagickImage(Current) { FilterType = ResizeFilter };
                         //result = image.ToBitmapSourceWithDensity();
-                        result = image.ToBitmapSource();
-                        image.Dispose();
+                        result = image?.ToBitmapSource();
+                        image?.Dispose();
                     }
                     catch (AccessViolationException) { }
                     catch (Exception ex) { ex.ShowMessage(); }
@@ -1314,7 +1314,7 @@ namespace ImageViewer
                                     {
                                         var image = MagickImage.FromBase64(Regex.Replace(text, @"^data:.*?;base64,", "", RegexOptions.IgnoreCase));
                                         Original = new MagickImage(image);
-                                        image.Dispose();
+                                        image?.Dispose();
                                         FileName = string.Empty;
                                         ImageFileInfo = null;
                                         OriginalModified = true;
@@ -2209,9 +2209,9 @@ namespace ImageViewer
         /// </summary>
         public void Dispose()
         {
-            Current?.Dispose(); Current = null; FileName = string.Empty;
-            Original?.Dispose(); Original = null; FileName = string.Empty;
-            ResetTransform(restore: false);
+            try { Current?.Dispose(); Current = null; FileName = string.Empty; } catch { }
+            try { Original?.Dispose(); Original = null; FileName = string.Empty; } catch { }
+            try { ResetTransform(restore: false); } catch { }
             GC.Collect();
         }
     }
