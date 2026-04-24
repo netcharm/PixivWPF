@@ -187,7 +187,7 @@ namespace PixivWPF.Common
         public string ThumbnailUrl
         {
             get { return (thumbnail_url); }
-            set { thumbnail_url = value; RefreshThumbnail(); }
+            set { if (!string.IsNullOrEmpty(value)) { thumbnail_url = value; RefreshThumbnail(force: thumbnail_url.Equals(value)); } }
         }
 
         private bool is_fav = false;
@@ -354,11 +354,9 @@ namespace PixivWPF.Common
                     {
                         Instance?.PART_ThumbnailWait.Show();
 
-                        var cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
                         using var img = await ThumbnailUrl.LoadImageFromUrl(overwrite, size: Application.Current.GetDefaultThumbSize(), cancelToken: _thumb_cancel_);
                         if (img.Source != null)
                         {
-                            //if (force) Thumbnail = null;
                             Thumbnail = img.Source;
                             Instance?.PART_ThumbnailWait.Hide();
                         }

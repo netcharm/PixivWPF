@@ -528,7 +528,7 @@ namespace PixivWPF.Pages
                             //AdjustBrowserSize(browser);
                         }
                         browser.WebBrowserShortcutsEnabled = false;
-                        GC.Collect();
+                        //GC.Collect();
                     }).InvokeAsync();
                 }
             }
@@ -697,7 +697,7 @@ namespace PixivWPF.Pages
                         }
                     }
                 }
-                GC.Collect();
+                //GC.Collect();
             }
             catch (Exception ex) { ex.ERROR("BROWSER"); }
         }
@@ -3008,7 +3008,7 @@ namespace PixivWPF.Pages
 
                 disposedValue = true;
             }
-            GC.Collect();
+            //GC.Collect();
         }
 
         // TODO: 仅当以上 Dispose(bool disposing) 拥有用于释放未托管资源的代码时才替代终结器。
