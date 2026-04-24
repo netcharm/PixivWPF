@@ -19,6 +19,10 @@ using System.Windows.Threading;
 
 namespace PixivWPF.Common
 {
+    #pragma warning disable IDE0079
+    #pragma warning disable IDE0044
+    #pragma warning disable IDE1006
+
     public enum DownloadItemState { Idle, Downloading, Paused, Finished, Failed, Writing, Deleted, NonExists, Remove, Older, NDays, Unknown }
 
     public class DownloadStateMark : IDisposable
@@ -213,7 +217,7 @@ namespace PixivWPF.Common
 
         public async void Start()
         {
-            if (Instance is DownloadItem)
+            if (Instance is not null)
             {
                 try
                 {
@@ -321,7 +325,7 @@ namespace PixivWPF.Common
             try
             {
                 var illust = Url.GetIllustId().FindIllust();
-                if (illust is Pixeez.Objects.Work)
+                if (illust is not null)
                 {
                     IsFav = illust.IsLiked();
                     IsFollow = illust.User.IsLiked();
@@ -342,32 +346,32 @@ namespace PixivWPF.Common
             _thumb_cancel_?.Cancel();
             _thumb_cancel_ = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
             _thumb_cancel_.CancelAfter(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
-
-            await new Action(async () =>
+            if (force || Thumbnail is null)
             {
-                try
+                await new Action(async () =>
                 {
-                    Instance?.PART_ThumbnailWait.Show();
-
-                    var cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
-                    using (var img = await ThumbnailUrl.LoadImageFromUrl(overwrite, size: Application.Current.GetDefaultThumbSize(), cancelToken: _thumb_cancel_))
+                    try
                     {
+                        Instance?.PART_ThumbnailWait.Show();
+
+                        var cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
+                        using var img = await ThumbnailUrl.LoadImageFromUrl(overwrite, size: Application.Current.GetDefaultThumbSize(), cancelToken: _thumb_cancel_);
                         if (img.Source != null)
                         {
-                            if (force) Thumbnail = null;
+                            //if (force) Thumbnail = null;
                             Thumbnail = img.Source;
                             Instance?.PART_ThumbnailWait.Hide();
                         }
                         else Instance?.PART_ThumbnailWait.Fail();
                     }
-                }
-                catch (Exception ex) { ex.ERROR($"DownloadItem_{IllustID}_RefreshThumbnail"); Instance?.PART_ThumbnailWait.Fail(); }
-                finally
-                {
-                    if (Thumbnail == null) Instance?.PART_ThumbnailWait.Fail();
-                    NotifyPropertyChanged("Thumbnail");
-                }
-            }).InvokeAsync(cancelToken: _thumb_cancel_.Token);
+                    catch (Exception ex) { ex.ERROR($"DownloadItem_{IllustID}_RefreshThumbnail"); Instance?.PART_ThumbnailWait.Fail(); }
+                    finally
+                    {
+                        if (Thumbnail == null) Instance?.PART_ThumbnailWait.Fail();
+                        NotifyPropertyChanged("Thumbnail");
+                    }
+                }).InvokeAsync(cancelToken: _thumb_cancel_.Token);
+            }
         }
 
         public void SetSaveAsJPEG(bool? on)
@@ -379,7 +383,7 @@ namespace PixivWPF.Common
 
         public bool GetSaveAsJPEG()
         {
-            return (Instance is DownloadItem ? Instance.PART_SaveAsJPEG.IsOn : SaveAsJPEG);
+            return (Instance is null ? SaveAsJPEG : Instance.PART_SaveAsJPEG.IsOn);
         }
 
         public void UpdateInfo(bool force = false)
@@ -447,8 +451,8 @@ namespace PixivWPF.Common
 
         public ImageSource Thumbnail
         {
-            get { return (Info is DownloadInfo ? Info.Thumbnail : null); }
-            set { if (Info is DownloadInfo) Info.Thumbnail = value; }
+            get { return (Info?.Thumbnail); }
+            set { Info?.Thumbnail = value; }
         }
         public string ThumbnailUrl
         {
@@ -688,7 +692,7 @@ namespace PixivWPF.Common
                         PART_ProgressInfoLinearRight.Offset = percent;
                         #endregion
 
-                        if (Info is DownloadInfo)
+                        if (Info is not null)
                         {
                             Info.DownRateCurrent = lastRate;
                             Info.DownRateAverage = rateA;
@@ -710,7 +714,7 @@ namespace PixivWPF.Common
         {
             if (force) LastElapsed = TimeSpan.FromSeconds(1);
             else if (LastElapsed.TotalMilliseconds < 250 && State == DownloadItemState.Downloading) return;
-            if (progress is IProgress<Tuple<double, double>>) progress.Report(Progress);
+            progress?.Report(Progress);
         }
 
         public void UpdateInfo(bool force = false)
@@ -720,7 +724,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Update state helper
-        private Dictionary<DownloadItemState, DownloadStateMark> DownloadStatusMark = new()
+        private readonly Dictionary<DownloadItemState, DownloadStateMark> DownloadStatusMark = new()
         {
             {DownloadItemState.Finished, new DownloadStateMark() { Mark = "\uE930", Foreground = Application.Current.GetSucceedBrush() }},
             {DownloadItemState.NonExists, new DownloadStateMark() { Mark = "\uE946", Foreground = Application.Current.GetNonExistsBrush() }},
@@ -737,7 +741,7 @@ namespace PixivWPF.Common
 
         private void CheckProperties()
         {
-            if (Tag is DownloadInfo)
+            if (Tag is not null)
             {
                 try
                 {
@@ -834,13 +838,7 @@ namespace PixivWPF.Common
 
         public async void UpdateLikeState()
         {
-            await new Action(() =>
-            {
-                if (Info is DownloadInfo)
-                {
-                    Info.UpdateLikeState();
-                }
-            }).InvokeAsync();
+            await new Action(() => { Info?.UpdateLikeState(); }).InvokeAsync();
         }
         #endregion
 
@@ -861,7 +859,7 @@ namespace PixivWPF.Common
         {
             try
             {
-                if (_DownloadBuffer is byte[]) _DownloadBuffer.Dispose(ref _DownloadBuffer);
+                _DownloadBuffer?.Dispose(ref _DownloadBuffer);
             }
             catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_CleanBuffer"); }
             finally { GC.Collect(); }
@@ -870,7 +868,7 @@ namespace PixivWPF.Common
         private HttpClient httpClient = null;
         private async Task<HttpResponseMessage> GetAsyncResponse(string Url, bool continuation = false)
         {
-            var start = _DownloadBuffer is byte[] ? _DownloadBuffer.Length : 0;
+            var start = _DownloadBuffer is not null ? _DownloadBuffer.Length : 0;
             if (!continuation || start <= 0) start = 0;
             var request = Application.Current.GetHttpRequest(Url, range_start: start);
             //request.Headers.Add("Range", $"bytes={start}-");
@@ -896,7 +894,7 @@ namespace PixivWPF.Common
                     var lastUpdateBuffer = DateTime.Now;
                     LastElapsed = TimeSpan.FromSeconds(0.250);
 
-                    if (continuation && _DownloadBuffer is byte[])
+                    if (continuation && _DownloadBuffer is not null)
                     {
                         await ms.WriteAsync(_DownloadBuffer, 0, _DownloadBuffer.Length);
                         await ms.FlushAsync();
@@ -922,54 +920,52 @@ namespace PixivWPF.Common
 
                         ms.Seek(pos, SeekOrigin.Begin);
 
-                        using (var cs = ce != null && ce == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                        using var cs = ce != null && ce == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync();
+                        byte[] bytes = new byte[HTTP_STREAM_READ_COUNT];
+                        int bytesread = 0;
+                        do
                         {
-                            byte[] bytes = new byte[HTTP_STREAM_READ_COUNT];
-                            int bytesread = 0;
-                            do
+                            if (IsCanceling)
                             {
-                                if (IsCanceling)
-                                {
-                                    if (State == DownloadItemState.Paused)
-                                        throw new Exception($"Download {Path.GetFileName(FileName)} has be canceled!");
-                                    else if (State == DownloadItemState.Failed)
-                                        throw new Exception($"Download {Path.GetFileName(FileName)} has be failed!");
-                                }
-
-                                cancelReadStreamSource = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
-                                using (cancelReadStreamSource.Token.Register(() => cs.Close()))
-                                {
-                                    bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelReadStreamSource.Token).ConfigureAwait(false);
-                                }
-
-                                if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Received <= Length)
-                                {
-                                    EndTick = DateTime.Now;
-
-                                    await ms.WriteAsync(bytes, 0, bytesread);
-                                    if (EndTick.DeltaSeconds(lastUpdateBuffer) >= setting.DownloadBufferUpdateFrequency)
-                                    {
-                                        _DownloadBuffer = ms.ToArray();
-                                        lastUpdateBuffer = EndTick;
-                                    }
-                                    
-                                    lastReceived += bytesread;
-                                    Received += bytesread;
-                                    LastElapsed = EndTick - lastTick;
-                                    if ((LastElapsed.TotalMilliseconds >= 250 && IsDownloading) || Received >= Length) UpdateProgress();
-                                }
-                            } while (bytesread > 0 && Received < Length);
-
-                            if (Received == Length && State == DownloadItemState.Downloading)
-                            {
-                                if (TotalElapsed.TotalSeconds == 0) TotalElapsed = LastTotalElapsed + (EndTick - StartTick);
-                                if (LastElapsed.TotalSeconds == 0) LastElapsed = EndTick - StartTick;
-                                if (lastReceived == 0) lastReceived = Received;
-                                _DownloadBuffer = ms.ToArray();
-                                result = await SaveFile(FileName, _DownloadBuffer);
+                                if (State == DownloadItemState.Paused)
+                                    throw new Exception($"Download {Path.GetFileName(FileName)} has be canceled!");
+                                else if (State == DownloadItemState.Failed)
+                                    throw new Exception($"Download {Path.GetFileName(FileName)} has be failed!");
                             }
-                            else DownloadExceptionProcess();
+
+                            cancelReadStreamSource = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
+                            using (cancelReadStreamSource.Token.Register(() => cs.Close()))
+                            {
+                                bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelReadStreamSource.Token).ConfigureAwait(false);
+                            }
+
+                            if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Received <= Length)
+                            {
+                                EndTick = DateTime.Now;
+
+                                await ms.WriteAsync(bytes, 0, bytesread);
+                                if (EndTick.DeltaSeconds(lastUpdateBuffer) >= setting.DownloadBufferUpdateFrequency)
+                                {
+                                    _DownloadBuffer = ms.ToArray();
+                                    lastUpdateBuffer = EndTick;
+                                }
+
+                                lastReceived += bytesread;
+                                Received += bytesread;
+                                LastElapsed = EndTick - lastTick;
+                                if ((LastElapsed.TotalMilliseconds >= 250 && IsDownloading) || Received >= Length) UpdateProgress();
+                            }
+                        } while (bytesread > 0 && Received < Length);
+
+                        if (Received == Length && State == DownloadItemState.Downloading)
+                        {
+                            if (TotalElapsed.TotalSeconds == 0) TotalElapsed = LastTotalElapsed + (EndTick - StartTick);
+                            if (LastElapsed.TotalSeconds == 0) LastElapsed = EndTick - StartTick;
+                            if (lastReceived == 0) lastReceived = Received;
+                            _DownloadBuffer = ms.ToArray();
+                            result = await SaveFile(FileName, _DownloadBuffer);
                         }
+                        else DownloadExceptionProcess();
                     }
                     else
                     {
@@ -1017,11 +1013,11 @@ namespace PixivWPF.Common
             State = DownloadItemState.Downloading;
             UpdateDownloadState();
 
-            if (restart && _DownloadBuffer is byte[]) CleanBuffer();
+            if (restart && _DownloadBuffer is not null) CleanBuffer();
 
             LastElapsed = TimeSpan.FromSeconds(0);
             var force = false;
-            if (_DownloadBuffer is byte[])
+            if (_DownloadBuffer is not null)
             {
                 TotalElapsed = EndTick - StartTick;
                 Received = _DownloadBuffer.Length;
@@ -1131,11 +1127,9 @@ namespace PixivWPF.Common
                     {
                         retry--;
                         DownloadPreProcess(restart);
-                        using (var response = await GetAsyncResponse(Url, continuation))
-                        {
-                            EndTick = DateTime.Now;
-                            await DownloadStreamAsync(response, continuation);
-                        }
+                        using var response = await GetAsyncResponse(Url, continuation);
+                        EndTick = DateTime.Now;
+                        await DownloadStreamAsync(response, continuation);
                     }
                     catch (IOException ex)
                     {
@@ -1194,17 +1188,15 @@ namespace PixivWPF.Common
                     DownloadPreProcess(restart);
 
                     Pixeez.Tokens tokens = await CommonHelper.ShowLogin();
-                    using (var async_response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, Url))
+                    using var async_response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, Url);
+                    if (async_response is not null)
                     {
-                        if (async_response is Pixeez.AsyncResponse)
-                        {
-                            EndTick = DateTime.Now;
-                            await DownloadStreamAsync(async_response.Source, continuation);
-                        }
-                        else
-                        {
-                            throw new Exception($"Download {Path.GetFileName(FileName)} Failed! Connection Failed!");
-                        }
+                        EndTick = DateTime.Now;
+                        await DownloadStreamAsync(async_response.Source, continuation);
+                    }
+                    else
+                    {
+                        throw new Exception($"Download {Path.GetFileName(FileName)} Failed! Connection Failed!");
                     }
                 }
                 catch (WarningException ex)
@@ -1266,7 +1258,7 @@ namespace PixivWPF.Common
                         var reason = string.Empty;
                         var ret = bytes.ConvertImageTo("jpg", out reason);
                         ConvertReason += $" {reason}".Trim();
-                        if (ret is byte[] && ret.Length > 16)
+                        if (ret is not null && ret.Length > 16)
                         {
                             if (ret.Length >= bytes.Length)
                                 ret_save = FileName.WriteAllBytes(bytes);
@@ -1490,7 +1482,7 @@ namespace PixivWPF.Common
 
             setting = Application.Current.LoadSetting();
 
-            if (info is DownloadInfo)
+            if (info is not null)
                 Info = info;
             else
                 Info = new DownloadInfo() { Instance = this, SaveAsJPEG = setting.DownloadWithAutoReduce, Received = 0, Length = 0 };
@@ -1581,7 +1573,7 @@ namespace PixivWPF.Common
                     }
                 }
 
-                if (Info is DownloadInfo && Info.Illust.IsUgoira() && !string.IsNullOrEmpty(Info.FileName))
+                if (Info is not null && Info.Illust.IsUgoira() && !string.IsNullOrEmpty(Info.FileName))
                 {
                     new Action(async () =>
                     {
@@ -1594,7 +1586,7 @@ namespace PixivWPF.Common
 
         private void Download_ToolTipOpening(object sender, ToolTipEventArgs e)
         {
-            if (Info is DownloadInfo)
+            if (Info is not null)
             {
                 UpdateProgress();
                 var down_info = Info.GetDownloadInfo();
@@ -1611,7 +1603,7 @@ namespace PixivWPF.Common
 
         private void Download_ContextMenu_Opened(object sender, RoutedEventArgs e)
         {
-            miReduceJpegSizeTo.Tag ??= Info.CustomReduceQuality is App.MenuItemSliderData ? Info.CustomReduceQuality : Application.Current.GetDefaultReduceData();
+            miReduceJpegSizeTo.Tag ??= Info.CustomReduceQuality is not null ? Info.CustomReduceQuality : Application.Current.GetDefaultReduceData();
             if (Info.FileName.IsDownloaded() && miReduceJpegSizeTo.Tag is App.MenuItemSliderData)
             {
                 var data = miReduceJpegSizeTo.Tag as App.MenuItemSliderData;
@@ -1673,7 +1665,7 @@ namespace PixivWPF.Common
                 //if (Info is DownloadInfo) Info.RefreshThumbnail();
                 Action<DownloadInfo> action = (info) =>
                 {
-                    if (info is DownloadInfo) info.RefreshThumbnail(force: ctrl);
+                    info?.RefreshThumbnail(force: ctrl);
                 };
                 if (sender == PART_ThumbnailWait || !multiple) action.Invoke(Info);
                 else Commands.RunDownloadItemAction.Execute(action);
@@ -1687,10 +1679,10 @@ namespace PixivWPF.Common
                 //    Commands.OpenWork.Execute(Url);
                 Action<DownloadInfo> action = (info) =>
                 {
-                    if (info is DownloadInfo)
+                    if (info is not null)
                     {
                         var illust = info.Url.GetIllustId().FindIllust();
-                        if (illust is Pixeez.Objects.Work)
+                        if (illust is not null)
                             Commands.OpenWork.Execute(illust);
                         else
                             Commands.OpenWork.Execute(info.Url);
@@ -1723,7 +1715,7 @@ namespace PixivWPF.Common
             {
                 Action<DownloadInfo> action = (info) =>
                 {
-                    if (info is DownloadInfo && !string.IsNullOrEmpty(info.FileName))
+                    if (info is not null && !string.IsNullOrEmpty(info.FileName))
                     {
                         if (new[] { DownloadItemState.Failed, DownloadItemState.Idle, DownloadItemState.Downloading }.Contains(Info.State)) SaveAsJPEG = !SaveAsJPEG;
                     }
@@ -1744,7 +1736,7 @@ namespace PixivWPF.Common
                 //FileName.OpenFileWithShell();
                 Action<DownloadInfo> action = (info) =>
                 {
-                    if (info is DownloadInfo && !string.IsNullOrEmpty(info.FileName)) info.FileName.OpenFileWithShell();
+                    if (info is not null && !string.IsNullOrEmpty(info.FileName)) info.FileName.OpenFileWithShell();
                 };
                 if (sender == PART_OpenFile || !multiple) action.Invoke(Info);
                 else Commands.RunDownloadItemAction.Execute(action);
@@ -1754,7 +1746,7 @@ namespace PixivWPF.Common
                 //FileName.OpenFileWithShell();
                 Action<DownloadInfo> action = (info) =>
                 {
-                    var files = Application.Current.GetDownloadItems(seleced: true).Where(l => l is DownloadInfo && !string.IsNullOrEmpty(l.FileName)).Select(l => l.FileName).ToList();
+                    var files = Application.Current.GetDownloadItems(seleced: true).Where(l => l is not null && !string.IsNullOrEmpty(l.FileName)).Select(l => l.FileName).ToList();
                     files.OpenFileWithShell(openwith: true);
                 };
                 action.Invoke(Info);
@@ -1774,21 +1766,21 @@ namespace PixivWPF.Common
                 //FileName.OpenShellProperties();
                 Action<DownloadInfo> action = (info) =>
                 {
-                    if (info is DownloadInfo&& !string.IsNullOrEmpty(info.FileName)) info.FileName.OpenShellProperties();
+                    if (info is not null && !string.IsNullOrEmpty(info.FileName)) info.FileName.OpenShellProperties();
                 };
                 if (!multiple) action.Invoke(Info);
                 else Commands.RunDownloadItemAction.Execute(action);
             }
             else if (sender == miSearchArtistInFiles)
             {
-                if (Info is DownloadInfo && Info.Illust.IsWork())
+                if (Info is not null && Info.Illust.IsWork())
                 {
                     Commands.SearchInStorage.Execute(new SearchObject($"=uid:{Info.UserID}", scope: StorageSearchScope.Author, highlight: highlight_word));
                 }
             }
             else if (sender == miSearchTagsInFiles)
             {
-                if (Info is DownloadInfo && Info.Illust.IsWork())
+                if (Info is not null && Info.Illust.IsWork())
                 {
                     var mode = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? StorageSearchMode.And : StorageSearchMode.Or;
                     Commands.SearchInStorage.Execute(new SearchObject(string.Join(Environment.NewLine, Info.Illust.Tags), scope: StorageSearchScope.Tag, mode: mode, highlight: highlight_word));
@@ -1796,7 +1788,7 @@ namespace PixivWPF.Common
             }
             else if (sender == miSearchTitleInFiles)
             {
-                if (Info is DownloadInfo && Info.Illust.IsWork())
+                if (Info is not null && Info.Illust.IsWork())
                 {
                     Commands.SearchInStorage.Execute(new SearchObject(Info.Illust.Title.KatakanaHalfToFull(), scope: StorageSearchScope.Title, highlight: highlight_word));
                 }
@@ -1810,7 +1802,7 @@ namespace PixivWPF.Common
                 //Commands.ShowMeta.Execute(FileName);
                 Action<DownloadInfo> action = (info) =>
                 {
-                    if (info is DownloadInfo&& !string.IsNullOrEmpty(info.FileName)) Commands.ShowMeta.Execute(info.FileName);
+                    if (info is not null && !string.IsNullOrEmpty(info.FileName)) Commands.ShowMeta.Execute(info.FileName);
                 };
                 if (!multiple) action.Invoke(Info);
                 else Commands.RunDownloadItemAction.Execute(action);
@@ -1820,7 +1812,7 @@ namespace PixivWPF.Common
                 //Commands.TouchMeta.Execute(FileName);
                 Action<DownloadInfo> action = (info) =>
                 {
-                    if (info is DownloadInfo&& !string.IsNullOrEmpty(info.FileName)) Commands.TouchMeta.Execute(info.FileName);
+                    if (info is not null && !string.IsNullOrEmpty(info.FileName)) Commands.TouchMeta.Execute(info.FileName);
                 };
                 if (!multiple) action.Invoke(Info);
                 else Commands.RunDownloadItemAction.Execute(action);
@@ -1832,7 +1824,7 @@ namespace PixivWPF.Common
                 //PART_SaveAsJPEG.IsOn = SaveAsJPEG;
                 Action<DownloadInfo> action = (info) =>
                 {
-                    if (info is DownloadInfo&& !string.IsNullOrEmpty(info.FileName))
+                    if (info is not null && !string.IsNullOrEmpty(info.FileName))
                     {
                         Commands.ConvertToJpeg.Execute(info.FileName);
                         info.SaveAsJPEG = true;
@@ -1845,7 +1837,7 @@ namespace PixivWPF.Common
             {
                 Action<DownloadInfo> action = (info) =>
                 {
-                    if (info is DownloadInfo&& !string.IsNullOrEmpty(info.FileName))
+                    if (info is not null && !string.IsNullOrEmpty(info.FileName))
                     {
                         Commands.ReduceJpeg.Execute(info.FileName);
                         info.SaveAsJPEG = true;
@@ -1864,7 +1856,7 @@ namespace PixivWPF.Common
             {
                 Action<DownloadInfo> action = (info) =>
                 {
-                    if (info is DownloadInfo&& !string.IsNullOrEmpty(info.FileName))
+                    if (info is not null && !string.IsNullOrEmpty(info.FileName))
                     {
                         var cq = miReduceJpegSizeTo.Tag is App.MenuItemSliderData ? (int)(miReduceJpegSizeTo.Tag as App.MenuItemSliderData).Value : setting.DownloadRecudeJpegQuality;
                         Commands.ReduceJpeg.Execute(new Tuple<string, int>(info.FileName, cq));
@@ -1884,7 +1876,7 @@ namespace PixivWPF.Common
             {
                 Action<DownloadInfo> action = (info) =>
                 {
-                    if (info is DownloadInfo)
+                    if (info is not null)
                     {
                         if (info.State == DownloadItemState.Finished)
                             info.SetSaveAsJPEG(info.SaveAsJPEG);

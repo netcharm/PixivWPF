@@ -18,6 +18,10 @@ using System.Windows.Threading;
 
 namespace PixivWPF.Pages
 {
+    #pragma warning disable IDE0079
+    #pragma warning disable IDE0044
+    #pragma warning disable IDE1006
+
     public class DownloadParams
     {
         public string Url { get; set; } = string.Empty;
@@ -56,7 +60,7 @@ namespace PixivWPF.Pages
         {
             get
             {
-                if (!(items is ObservableCollection<DownloadInfo>)) items = new ObservableCollection<DownloadInfo>();
+                if (!(items is not null)) items = [];
                 return (items.Where(item => item.State == DownloadItemState.Downloading || item.State == DownloadItemState.Writing));
             }
         }
@@ -70,7 +74,7 @@ namespace PixivWPF.Pages
         {
             get
             {
-                if (!(items is ObservableCollection<DownloadInfo>)) items = new ObservableCollection<DownloadInfo>();
+                if (!(items is not null)) items = [];
                 return (items.Where(item => item.State == DownloadItemState.Idle || item.State == DownloadItemState.Paused));
             }
         }
@@ -146,7 +150,7 @@ namespace PixivWPF.Pages
         {
             foreach (var item in Items.ToArray())
             {
-                if (item is DownloadInfo)
+                if (item is not null)
                 {
                     await new Action(() =>
                     {
@@ -190,7 +194,7 @@ namespace PixivWPF.Pages
 
         private async void UpdateStateInfo()
         {
-            if (ParentWindow is Window && ParentWindow.WindowState != WindowState.Minimized)
+            if (ParentWindow is not null && ParentWindow.WindowState != WindowState.Minimized)
             {
                 if (await CanUpdateState.WaitAsync(0))
                 {
@@ -230,7 +234,7 @@ namespace PixivWPF.Pages
                         catch (Exception ex) { ex.ERROR("UpdateDownloadManagerStateInfo"); }
                         finally
                         {
-                            if (CanUpdateState is SemaphoreSlim && CanUpdateState.CurrentCount <= 0) CanUpdateState.Release();
+                            if (CanUpdateState?.CurrentCount <= 0) CanUpdateState?.Release();
                             GC.Collect();
                         }
                     }).InvokeAsync(true);
@@ -240,10 +244,10 @@ namespace PixivWPF.Pages
         #endregion
 
         #region Items Helper
-        private SemaphoreSlim CanAddItem = new SemaphoreSlim(1, 1);
-        private SemaphoreSlim CanUpdateState = new SemaphoreSlim(1, 1);
+        private SemaphoreSlim CanAddItem = new(1, 1);
+        private SemaphoreSlim CanUpdateState = new(1, 1);
 
-        private ObservableCollection<DownloadInfo> items = new ObservableCollection<DownloadInfo>();
+        private ObservableCollection<DownloadInfo> items = [];
         public ObservableCollection<DownloadInfo> Items
         {
             get { return items; }
@@ -261,7 +265,7 @@ namespace PixivWPF.Pages
 
         public IList<string> Unfinished()
         {
-            List<string> result = new List<string>();
+            List<string> result = [];
             Dispatcher.Invoke(() =>
             {
                 var unfinished = items.Where(i => i.State != DownloadItemState.Finished).ToList();
@@ -275,7 +279,7 @@ namespace PixivWPF.Pages
 
         public IList<DownloadInfo> GetDownloadItems(bool selected = true)
         {
-            List<DownloadInfo> dis = new List<DownloadInfo>();
+            List<DownloadInfo> dis = [];
             var items = selected && HasMultipleSelected() ? DownloadItems.SelectedItems : DownloadItems.Items;
             foreach (var item in DownloadItems.Items)
             {
@@ -286,7 +290,7 @@ namespace PixivWPF.Pages
 
         public IList<DownloadInfo> GetSelectedItems(bool multiple = false)
         {
-            List<DownloadInfo> dis = new List<DownloadInfo>();
+            List<DownloadInfo> dis = [];
             var items = (multiple ? HasMultipleSelected() : HasSelected()) ? DownloadItems.SelectedItems : dis;
             foreach (var item in DownloadItems.Items)
             {
@@ -360,7 +364,7 @@ namespace PixivWPF.Pages
 
         internal async void Add(DownloadInfo item)
         {
-            if (item is DownloadInfo && !IsExists(item))
+            if (item is not null && !IsExists(item))
             {
                 //item.FileName = Application.Current.SaveTarget(item.Url.GetImageName(singlefile));
                 if (!File.Exists(item.FileName) || await Application.Current.OverwritePrompt(item.FileName))
@@ -397,7 +401,7 @@ namespace PixivWPF.Pages
                         FileTime = dt
                     };
                     Add(item);
-                    if (CanAddItem is SemaphoreSlim && CanAddItem.CurrentCount <= 0) CanAddItem.Release();
+                    if (CanAddItem?.CurrentCount <= 0) CanAddItem?.Release();
                 }
             }
         }
@@ -453,7 +457,7 @@ namespace PixivWPF.Pages
             PART_MaxJobs.ToolTip = $"Max Simultaneous Jobs: {SimultaneousJobs} / {MaxSimultaneousJobs}";
 
             // add keyboard accelerators for backwards navigation
-            RoutedUICommand cmd_PasteUrl = new RoutedUICommand(){ Text = "Paste Url To Download Manager" };
+            RoutedUICommand cmd_PasteUrl = new(){ Text = "Paste Url To Download Manager" };
             cmd_PasteUrl.InputGestures.Add(new KeyGesture(Key.V, ModifierKeys.Control, $"Ctrl + {Key.V}"));
             CommandBindings.Add(new CommandBinding(cmd_PasteUrl, (obj, evt) =>
             {

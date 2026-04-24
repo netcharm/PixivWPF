@@ -1040,7 +1040,7 @@ namespace PixivWPF.Pages
             }
             this.DoEvents();
             if (!string.IsNullOrEmpty(id)) lastSelectedId = id;
-            GC.Collect();
+            //GC.Collect();
         }
 
         #region Show category
