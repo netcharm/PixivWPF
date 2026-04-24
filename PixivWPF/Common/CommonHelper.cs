@@ -4492,7 +4492,7 @@ namespace PixivWPF.Common
                             }
                         }
                         #endregion
-                        GC.Collect();
+                        //GC.Collect();
 
                         #region xml nodes updating
                         var rdf_attr = "xmlns:rdf";
@@ -4630,7 +4630,7 @@ namespace PixivWPF.Common
                             nodes.Clear();
                         }
                         #endregion
-                        GC.Collect();
+                        //GC.Collect();
                         #region pretty xml
                         xml = FormatXML(xml_doc, true);
                         #endregion
@@ -4717,7 +4717,7 @@ namespace PixivWPF.Common
                     }
                     #endregion
                 }
-                finally { GC.Collect(); }
+                //finally { GC.Collect(); }
             }
             return (xml);
         }
@@ -4762,7 +4762,7 @@ namespace PixivWPF.Common
                     ;
             }
             catch (Exception ex) { ex.ERROR("GzipBytesToText"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -4780,7 +4780,7 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR("GetPngMetaInfo"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -4851,7 +4851,7 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR("GetPngMetaInfo"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -4879,7 +4879,7 @@ namespace PixivWPF.Common
                     fileinfo.LastAccessTime = dta;
                 }
                 result = true;
-                GC.Collect();
+                //GC.Collect();
             }
             return (result);
         }
@@ -4909,7 +4909,7 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR("UpdatePngMetaInfo"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -4935,7 +4935,7 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR("GetMetaInfoPng"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -4993,7 +4993,7 @@ namespace PixivWPF.Common
                     png_r.End();
                     result = true;
                 }
-                GC.Collect();
+                //GC.Collect();
             }
             return (result);
         }
@@ -5025,7 +5025,7 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR("UpdatePngMetaInfo"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -5051,7 +5051,7 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR("GetMetaInfoPng"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
         #endregion
@@ -5108,7 +5108,7 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR("MakeMeteInfo"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             #endregion
             return (meta);
         }
@@ -5198,7 +5198,7 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR("GetMetaInfo"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
 
             return (result);
         }
@@ -5288,7 +5288,7 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR("GetMetaInfo"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -5357,7 +5357,7 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR($"GetExifData_{fi.Name}"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -5426,7 +5426,7 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR("GetExifData", no_stack: !ex.Message.StartsWith("Internal ", StringComparison.CurrentCultureIgnoreCase)); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -5562,7 +5562,7 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR("UpdateExifData"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -5610,7 +5610,7 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                GC.Collect();
+                //GC.Collect();
             }
             return (result);
         }
@@ -5676,7 +5676,7 @@ namespace PixivWPF.Common
                 // Error occurred while reading image file
                 ex.ERROR("AttachMetaInfoInternal");
             }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -5996,7 +5996,7 @@ namespace PixivWPF.Common
                     var trace = new System.Diagnostics.StackTrace(true);
                     trace.ToString().DEBUG("AttachMetaCallStack");
 #endif
-                    GC.Collect();
+                    //GC.Collect();
                 }
             }
             return (result);
@@ -6100,11 +6100,11 @@ namespace PixivWPF.Common
                                 Application.Current.DoEvents();
                             }
                             catch (Exception ex) { ex.ERROR($"BatchProcessing_{f.Name}"); }
-                            finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); Application.Current.DoEvents(); await Task.Delay(1); GC.Collect(); }
+                            finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); Application.Current.DoEvents(); await Task.Delay(1); }
                         }).Invoke(async: false);
                     }
                 }
-                GC.Collect();
+                //GC.Collect();
             }
         }
         #endregion
@@ -6178,7 +6178,7 @@ namespace PixivWPF.Common
                         }).Invoke(async: false);
                     }
                 }
-                GC.Collect();
+                //GC.Collect();
             }
         }
 
@@ -6243,14 +6243,14 @@ namespace PixivWPF.Common
                                     }
                                 }
                                 catch (Exception ex) { var id = fileinfo is FileInfo ? fileinfo.Name : url.GetIllustId(); ex.ERROR($"Touch_{id}"); }
-                                finally { long ticks; _Touching_.TryRemove(fileinfo.FullName, out ticks); GC.Collect(); }
+                                finally { long ticks; _Touching_.TryRemove(fileinfo.FullName, out ticks); }
                             }).Invoke(async: true);
                         }
                     }
                 }
             }
             catch (Exception ex) { var id = fileinfo is FileInfo ? fileinfo.Name : url.GetIllustId(); ex.ERROR($"Touch_{id}"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
         }
 
         public static void Touch(this string file, string url, bool local = false, bool meta = false, bool force = false)
@@ -6336,7 +6336,7 @@ namespace PixivWPF.Common
                     }
                 }
                 catch (Exception ex) { ex.ERROR("UpdateDownloadedListCache"); }
-                finally { GC.Collect(); }
+                //finally { GC.Collect(); }
             }
         }
 
@@ -6857,7 +6857,7 @@ namespace PixivWPF.Common
                 if (touch && !string.IsNullOrEmpty(filepath)) filepath.TouchAsync(url, meta: touch);
             }
             catch (Exception ex) { ex.ERROR("IsDownloaded"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
         #endregion
@@ -7019,7 +7019,7 @@ namespace PixivWPF.Common
                 if (touch && !string.IsNullOrEmpty(filepath)) filepath.TouchAsync(url, meta: touch);
             }
             catch (Exception ex) { ex.ERROR("IsPartDownloaded"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
         #endregion
@@ -7382,7 +7382,7 @@ namespace PixivWPF.Common
                 result = await content.ToBitmapSource(size);
             }
             catch (Exception ex) { ex.ERROR("ToImageSource"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
 
             return (result);
         }
@@ -7429,7 +7429,7 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR(); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -7448,7 +7448,7 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR("ToBitmapSource"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -7475,7 +7475,7 @@ namespace PixivWPF.Common
                 await result.FlushAsync();
             }
             catch (Exception ex) { ex.ERROR("ENCODER"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -7552,7 +7552,7 @@ namespace PixivWPF.Common
                     }
                     catch (Exception ex) { ex.ERROR("ConvertDPI"); }
                 }
-                GC.Collect();
+                //GC.Collect();
             }
             return (result);
         }
@@ -7594,7 +7594,7 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR("ToBitmapSource"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -7612,7 +7612,7 @@ namespace PixivWPF.Common
                 bmp = null;
             }
             catch (Exception ex) { ex.ERROR("ToWriteableBitmap"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -7656,7 +7656,7 @@ namespace PixivWPF.Common
                 bitmap = null;
             }
             catch (Exception ex) { ex.ERROR("ToWriteableBitmap"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -7754,7 +7754,7 @@ namespace PixivWPF.Common
                     }
                 }
                 //bmp.UnlockBits(data);
-                GC.Collect();
+                //GC.Collect();
             }
             return (ret.ToArray());
         }
@@ -7804,7 +7804,7 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR("GuessAlpha"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -7872,7 +7872,7 @@ namespace PixivWPF.Common
                 bin.Seek(0, SeekOrigin.Begin);
                 result = new System.Drawing.Icon(msIco);
             }
-            GC.Collect();
+            //GC.Collect();
             return (result);
         }
 
@@ -7960,7 +7960,7 @@ namespace PixivWPF.Common
             }
             catch (WarningException ex) { ex.WARN("ConvertImageTo"); }
             catch (Exception ex) { ex.ERROR("ConvertImageTo", no_stack: ex is WarningException); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -8085,7 +8085,7 @@ namespace PixivWPF.Common
             }
             catch (WarningException ex) { ex.WARN(InfoTitle); }
             catch (Exception ex) { ex.ERROR(InfoTitle, no_stack: ex is WarningException); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -8148,7 +8148,7 @@ namespace PixivWPF.Common
                 Array.Clear(pixelData, 0, pixelData.Length);
                 Array.Resize(ref pixelData, 0);
                 pixelData = null;
-                GC.Collect();
+                //GC.Collect();
             }
             return result;
         }
@@ -8180,7 +8180,7 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR("ResizeImage"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -8231,7 +8231,7 @@ namespace PixivWPF.Common
                     Clipboard.SetDataObject(dataPackage, true);
                 }
                 catch (Exception ex) { ex.ERROR("CopyImage"); }
-                finally { GC.Collect(); }   
+                //finally { GC.Collect(); }   
             }).InvokeAsync(realtime: false);
         }
 
@@ -8323,7 +8323,7 @@ namespace PixivWPF.Common
                     }
                     fs.Write(bytes, 0, bytes.Length);
                 }
-                GC.Collect();
+                //GC.Collect();
             }
         }
 
@@ -8441,7 +8441,7 @@ namespace PixivWPF.Common
                         ms.Close();
                         ms.Dispose();
                     }
-                    GC.Collect();
+                    //GC.Collect();
                 }
             }
             return (result);
@@ -8463,7 +8463,7 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR($"WriteAllByte_{Path.GetFileNameWithoutExtension(filename)}"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
 
@@ -8482,7 +8482,7 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR($"WriteAllByte_{Path.GetFileNameWithoutExtension(filename)}"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
             return (result);
         }
         #endregion
@@ -8513,7 +8513,7 @@ namespace PixivWPF.Common
                     }
                 }
                 catch (Exception ex) { ex.ERROR("LoadImageFromFile", no_stack: ex is IOException); }
-                GC.Collect();
+                //GC.Collect();
             }
             return (result);
         }
@@ -8707,7 +8707,7 @@ namespace PixivWPF.Common
                     t.Dispose();
                 }
                 exists = File.Exists(file);
-                GC.Collect();
+                //GC.Collect();
             }
             return (exists);
         }
@@ -8767,7 +8767,7 @@ namespace PixivWPF.Common
                         bool f = false;
                         _Downloading_.TryRemove(file, out f);
                         if (response is HttpResponseMessage) response.Dispose();
-                        GC.Collect();
+                        //GC.Collect();
                     }
                 }
             }
@@ -8809,7 +8809,7 @@ namespace PixivWPF.Common
                     {
                         bool f = false;
                         _Downloading_.TryRemove(file, out f);
-                        GC.Collect();
+                        //GC.Collect();
                     }
                 }
             }

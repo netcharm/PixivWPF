@@ -860,7 +860,6 @@ namespace PixivWPF.Common
                 _DownloadBuffer?.Dispose(ref _DownloadBuffer);
             }
             catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_CleanBuffer"); }
-            finally { GC.Collect(); }
         }
 
         private HttpClient httpClient = null;
@@ -993,7 +992,6 @@ namespace PixivWPF.Common
                     }
                     ms.Close();
                     ms.Dispose();
-                    GC.Collect();
                 }
             }
             return (result);
@@ -1107,7 +1105,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_DownloadFinally"); }
 
             if (Downloading?.CurrentCount <= 0) Downloading?.Release();
-            GC.Collect();
+            //GC.Collect();
         }
 
         private async Task<string> DownloadDirectAsync(bool continuation = true, bool restart = false)
@@ -1168,7 +1166,7 @@ namespace PixivWPF.Common
                     {
                         DownloadFinally(out result);
                         UpdateProgress();
-                        GC.Collect();
+                        //GC.Collect();
                     }
                 }
             }
@@ -1211,7 +1209,7 @@ namespace PixivWPF.Common
                 {
                     DownloadFinally(out result);
                     UpdateProgress();
-                    GC.Collect();
+                    //GC.Collect();
                 }
             }
             return (result);
@@ -1233,7 +1231,7 @@ namespace PixivWPF.Common
             {
                 DownloadFinally(out result);
                 UpdateProgress();
-                GC.Collect();
+                //GC.Collect();
             }
 
             return (result);
@@ -1293,7 +1291,7 @@ namespace PixivWPF.Common
             finally
             {
                 UpdateProgress();
-                GC.Collect();
+                //GC.Collect();
             }
             return (result);
         }
@@ -1318,7 +1316,7 @@ namespace PixivWPF.Common
             finally
             {
                 UpdateProgress();
-                GC.Collect();
+                //GC.Collect();
             }
             return (result);
         }
@@ -1540,7 +1538,7 @@ namespace PixivWPF.Common
                     {
                         if (PART_Preview.Source != null) PART_Preview.Source = null;
                         PART_Preview.UpdateLayout();
-                        GC.Collect();
+                        //GC.Collect();
                     }
                     catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_~DownloadItem"); }
                 }));
@@ -1579,7 +1577,7 @@ namespace PixivWPF.Common
                     }).Invoke(async: true);
                 }
             }
-            finally { IsEnabled = true; GC.Collect(); }
+            finally { IsEnabled = true; }
         }
 
         private void Download_ToolTipOpening(object sender, ToolTipEventArgs e)

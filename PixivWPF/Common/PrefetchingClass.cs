@@ -79,7 +79,7 @@ namespace PixivWPF.Common
                 else if (item.IsWork() && item.Count > 1)
                     result += Options.IncludePagePreview ? item.Count * 2 : item.Count;
             }
-            GC.Collect();
+            //GC.Collect();
             return (result);
         }
 
@@ -132,7 +132,7 @@ namespace PixivWPF.Common
                             pages = pages.Distinct().ToList();
                         }
                     }
-                    GC.Collect();
+                    //GC.Collect();
                 }
             }
             catch (Exception ex) { ex.ERROR("PAGESCOUNTING"); }
@@ -189,7 +189,7 @@ namespace PixivWPF.Common
                             pages = pages.Distinct().ToList();
                         }
                     }
-                    GC.Collect();
+                    //GC.Collect();
                 }
             }
             catch (Exception ex) { ex.ERROR("PAGESCOUNTING"); }
@@ -246,7 +246,7 @@ namespace PixivWPF.Common
                             pages = pages.Distinct().ToList();
                         }
                     }
-                    GC.Collect();
+                    //GC.Collect();
                 }
             }
             catch (Exception ex) { ex.ERROR("PAGESCOUNTING"); }
@@ -305,7 +305,7 @@ namespace PixivWPF.Common
                             }
                         }
                         result = true;
-                        GC.Collect();
+                        //GC.Collect();
                     }).Invoke(async: false);
                 }
             }
@@ -358,7 +358,6 @@ namespace PixivWPF.Common
                             catch (Exception ex) { ex.ERROR("PREFETCHING"); }
                             finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
                         });
-                        GC.Collect();
                     }
                     else
                     {
@@ -389,8 +388,8 @@ namespace PixivWPF.Common
                                 }).Invoke(async: false);
                             }
                         }
-                        GC.Collect();
                     }
+                    //GC.Collect();
                 }
                 catch (Exception ex) { ex.ERROR("GetOriginalImageSize"); }
                 $"Query Original Imagee File Size : {Environment.NewLine}  Done [ {originals.Count} ]".ShowToast("INFO", tag: args.Name ?? Name ?? GetType().Name);
@@ -399,7 +398,7 @@ namespace PixivWPF.Common
                 else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
                 setting.SaveImageFileSizeData();
                 result = true;
-                GC.Collect();
+                //GC.Collect();
             }
             return (result);
         }
@@ -483,7 +482,6 @@ namespace PixivWPF.Common
                 if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                 else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
                 this.DoEvents();
-                GC.Collect();
                 if (count == 0) return;
 
                 var parallels = args.PrefetchingDownloadParallel;
@@ -536,7 +534,6 @@ namespace PixivWPF.Common
                         finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
                     });
                     #endregion
-                    GC.Collect();
                 }
                 else
                 {
@@ -590,9 +587,9 @@ namespace PixivWPF.Common
                         }
                     }
                     this.DoEvents();
-                    GC.Collect();
                     #endregion
                 }
+                GC.Collect();
 
                 if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; State = TaskStatus.Canceled; return; }
                 if (count >= 0 && total > 0)
@@ -696,7 +693,7 @@ namespace PixivWPF.Common
             finally
             {
                 //if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
-                GC.Collect();
+                //GC.Collect();
             }
         }
 

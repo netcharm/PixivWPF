@@ -235,7 +235,7 @@ namespace PixivWPF.Pages
                         finally
                         {
                             if (CanUpdateState?.CurrentCount <= 0) CanUpdateState?.Release();
-                            GC.Collect();
+                            //GC.Collect();
                         }
                     }).InvokeAsync(true);
                 }
@@ -700,10 +700,10 @@ namespace PixivWPF.Pages
                             }
                         }
                     }
-                    GC.Collect();
                 }).InvokeAsync();
             }
             catch (Exception ex) { ex.ERROR("DOWNLOADMANAGER"); }
+            if (DownloadItems.Items.Count <= 0) GC.Collect();
         }
 
         private async void PART_RemoveAll_Context_Click(object sender, RoutedEventArgs e)
@@ -768,7 +768,7 @@ namespace PixivWPF.Pages
                             foreach (var i in remove) { i.State = DownloadItemState.Remove; }
                         }
                     }
-                    GC.Collect();
+                    //GC.Collect();
                 }).InvokeAsync();
             }
             catch (Exception ex) { ex.ERROR("DOWNLOADMANAGER"); }

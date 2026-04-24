@@ -119,7 +119,7 @@ namespace PixivWPF.Common
                 loadedImageHashTable[hash] = id;
                 loadedImageFileTable[hash] = fn;
             }
-            GC.Collect();
+            //GC.Collect();
             return (result);
         }
 
