@@ -239,7 +239,7 @@ namespace ImageViewer
 
             AppDomain.CurrentDomain.UnhandledException += (s, ev) =>
             {
-                if (ev.ExceptionObject is Exception ex)
+                if (ev.ExceptionObject is Exception ex && (ev.ExceptionObject is not TaskCanceledException))
                 {
                     ReportMessage(ex);
                 }
@@ -247,20 +247,20 @@ namespace ImageViewer
 
             Dispatcher.UnhandledException += (s, ev) =>
             {
-                if (ev.Exception != null)
+                if (ev.Exception != null && (ev.Exception is not TaskCanceledException))
                 {
                     ReportMessage(ev.Exception);
-                    ev.Handled = MainWindow?.IsLoaded ?? false;
                 }
+                ev.Handled = MainWindow?.IsLoaded ?? false;
             };
 
             DispatcherUnhandledException += (s, ev) =>
             {
-                if (ev.Exception != null)
+                if (ev.Exception != null && (ev.Exception is not TaskCanceledException))
                 {
                     ReportMessage(ev.Exception);
-                    ev.Handled = MainWindow?.IsLoaded ?? false;
                 }
+                ev.Handled = MainWindow?.IsLoaded ?? false;
             };
             #endregion
 

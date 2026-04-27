@@ -366,18 +366,22 @@ namespace ImageViewer
         public void FixDPI(MagickImage image = null, bool use_system = false)
         {
             image ??= Current ?? Original ?? null;
-            if (ValidImage(image))
+            try
             {
-                var dpi = Application.Current.GetSystemDPI();
-                if (image?.Density?.X > 0 && image?.Density?.Y > 0 && image?.Density.Units != DensityUnit.PixelsPerInch)
+                if (ValidImage(image))
                 {
-                    var unit = image?.Density?.ChangeUnits(DensityUnit.PixelsPerInch);
-                    if (use_system || unit.X <= 0 || unit.Y <= 0)
-                        image.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
-                    else
-                        image.Density = new Density(Math.Round(unit.X), Math.Round(unit.Y), DensityUnit.PixelsPerInch);
+                    var dpi = Application.Current.GetSystemDPI();
+                    if (image?.Density?.X > 0 && image?.Density?.Y > 0 && image?.Density.Units != DensityUnit.PixelsPerInch)
+                    {
+                        var unit = image?.Density?.ChangeUnits(DensityUnit.PixelsPerInch);
+                        if (use_system || unit.X <= 0 || unit.Y <= 0)
+                            image.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
+                        else
+                            image.Density = new Density(Math.Round(unit.X), Math.Round(unit.Y), DensityUnit.PixelsPerInch);
+                    }
                 }
             }
+            catch { }
         }
 
         /// <summary>

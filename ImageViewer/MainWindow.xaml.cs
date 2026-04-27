@@ -88,12 +88,12 @@ namespace ImageViewer
             set { DarkBackground?.Dispatcher?.Invoke(() => DarkBackground.IsChecked = value); }
         }
 
-        private readonly FontFamily CustomMonoFontFamily = new FontFamily();
-        private readonly FontFamily CustomIconFontFamily = new FontFamily();
+        private readonly FontFamily CustomMonoFontFamily = new();
+        private readonly FontFamily CustomIconFontFamily = new();
 
         private string DefaultWindowTitle = string.Empty;
 
-        private Rect LastPositionSize = new Rect();
+        private Rect LastPositionSize = new();
         private System.Windows.WindowState LastWinState = System.Windows.WindowState.Normal;
         //private Screen screens = Screen..AllScreens;
 
@@ -102,44 +102,39 @@ namespace ImageViewer
 
         #region Shell Jump List
         private static string jumplist_tasks_file = $"{AppName}_JumpTasks.xml";
-        private List<JumpTask> jumplist_tasks = new List<JumpTask>();
+        private List<JumpTask> jumplist_tasks = [];
 
         private void LoadJumpList(string tasks = null)
         {
-            if (tasks == null) tasks = jumplist_tasks_file;
+            tasks ??= jumplist_tasks_file;
             if (!Path.IsPathRooted(tasks)) tasks = Path.GetFullPath(Path.Combine(AppPath, tasks));
             if (!string.IsNullOrEmpty(tasks) && File.Exists(tasks))
             {
-                using (StreamReader txt = new StreamReader(tasks, true))
+                try
                 {
-                    try
-                    {
-                        XmlSerializer xml = new XmlSerializer(typeof(List<JumpTask>));
-                        jumplist_tasks = (List<JumpTask>)xml.Deserialize(txt);
-                        InitJumpList(jumplist_tasks);
-                    }
-                    catch (Exception ex) { ex.ShowMessage(); }
+                    using StreamReader txt = new(tasks, true);
+                    XmlSerializer xml = new(typeof(List<JumpTask>));
+                    jumplist_tasks = (List<JumpTask>)xml.Deserialize(txt);
+                    InitJumpList(jumplist_tasks);
                 }
+                catch (Exception ex) { ex.ShowMessage(); }
             }
         }
 
         private void SaveJumpList(string tasks)
         {
-            if (tasks == null) tasks = jumplist_tasks_file;
+            tasks ??= jumplist_tasks_file;
             if (!Path.IsPathRooted(tasks)) tasks = Path.GetFullPath(Path.Combine(AppPath, tasks));
             if (!string.IsNullOrEmpty(tasks))
             {
-                using (StreamWriter txt = new StreamWriter(tasks, false, Encoding.UTF8))
+                try
                 {
-                    try
-                    {
-                        if (!jumplist_tasks.Any()) jumplist_tasks.Add(new JumpTask() { ApplicationPath = "", Arguments = "", CustomCategory = "", Description = "", IconResourceIndex = 0, IconResourcePath = "", Title = "", WorkingDirectory = "" });
-
-                        XmlSerializer xml = new XmlSerializer(typeof(List<JumpTask>));
-                        xml.Serialize(txt, jumplist_tasks, new XmlSerializerNamespaces());
-                    }
-                    catch (Exception ex) { ex.ShowMessage(); }
+                    if (!jumplist_tasks.Any()) jumplist_tasks.Add(new JumpTask() { ApplicationPath = "", Arguments = "", CustomCategory = "", Description = "", IconResourceIndex = 0, IconResourcePath = "", Title = "", WorkingDirectory = "" });
+                    using StreamWriter txt = new(tasks, false, Encoding.UTF8);
+                    XmlSerializer xml = new(typeof(List<JumpTask>));
+                    xml.Serialize(txt, jumplist_tasks, new XmlSerializerNamespaces());
                 }
+                catch (Exception ex) { ex.ShowMessage(); }
             }
         }
 
@@ -171,7 +166,7 @@ namespace ImageViewer
         {
             try
             {
-                if (task is JumpTask && !string.IsNullOrEmpty(task.ApplicationPath) && File.Exists(task.ApplicationPath))
+                if (task is not null && !string.IsNullOrEmpty(task.ApplicationPath) && File.Exists(task.ApplicationPath))
                 {
                     var filename = GetSource().FileName.Trim('"');
                     var start = new ProcessStartInfo
@@ -197,7 +192,7 @@ namespace ImageViewer
             return null;
         }
 
-        private static readonly SemaphoreSlim CanDoEvents = new SemaphoreSlim(1, 1);
+        private static readonly SemaphoreSlim CanDoEvents = new(1, 1);
         public static async void DoEvents()
         {
             if (await CanDoEvents?.WaitAsync(0))
@@ -220,7 +215,7 @@ namespace ImageViewer
                     {
                         if (Application.Current?.Dispatcher?.CheckAccess() ?? false)
                         {
-                            DispatcherFrame frame = new DispatcherFrame();
+                            DispatcherFrame frame = new();
                             //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new Action(delegate { }));
                             //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Send, new Action(delegate { }));
 
@@ -248,6 +243,7 @@ namespace ImageViewer
         private Action LastAction { get; set; } = null;
         private BackgroundWorker RenderWorker = null;
 
+        private CancellationTokenSource _render_ = new();
         private void InitRenderWorker()
         {
             if (RenderWorker == null)
@@ -259,11 +255,14 @@ namespace ImageViewer
                 {
                     if (e.Argument is Action)
                     {
+                        _render_ ??= new();
+                        _render_?.Cancel();                        
+                        _render_ = new();
                         var action = e.Argument as Action;
                         await Task.Run(() =>
                         {
                             action.Invoke();
-                        });
+                        }, _render_.Token);
                         LastAction = action;
                     }
                 };
@@ -273,7 +272,7 @@ namespace ImageViewer
         private void RenderRun(Action action, object sender = null)
         {
             InitRenderWorker();
-            if (!(RenderWorker?.IsBusy ?? true) && !IsBusy && action is Action)
+            if (!(RenderWorker?.IsBusy ?? true) && !IsBusy && action is not null)
             {
                 IsBusy = true;
                 IsProcessingViewer = true;
@@ -362,7 +361,7 @@ namespace ImageViewer
             catch (Exception ex) { ex.ShowMessage(); }
 
             Extensions.AllSupportedFormats = Extensions.GetSupportedImageFormats();
-            Extensions.AllSupportedExts = Extensions.AllSupportedFormats.Keys.Skip(4).Select(ext => $".{ext.ToLower()}").Where(ext => !ext.Equals(".txt")).ToList();
+            Extensions.AllSupportedExts = [.. Extensions.AllSupportedFormats.Keys.Skip(4).Select(ext => $".{ext.ToLower()}").Where(ext => !ext.Equals(".txt"))];
             Extensions.AllSupportedExts.Add(".jfif");
             //Extensions.AllSupportedExts.Add(".jp2000");
             var exts = Extensions.AllSupportedExts.Select(ext => $"*{ext}");
@@ -388,8 +387,8 @@ namespace ImageViewer
         private double ImageMagnifierBorderThickness { get; set; } = 1;
         private Color ImageMagnifierBorderBrush { get; set; } = Colors.Silver;
 
-        private readonly SemaphoreSlim _CanUpdate_ = new SemaphoreSlim(1, 1);
-        private readonly Dictionary<Color, string> ColorNames = new Dictionary<Color, string>();
+        private readonly SemaphoreSlim _CanUpdate_ = new(1, 1);
+        private readonly Dictionary<Color, string> ColorNames = [];
 
         private Point? _last_viewer_pos_ = null;
 
@@ -428,7 +427,7 @@ namespace ImageViewer
         private IList<Color> GetRecentColors(ColorPicker picker)
         {
             var result = new List<Color>();
-            if (picker is ColorPicker)
+            if (picker is not null)
             {
                 result.AddRange(picker.RecentColors.Select(c => c.Color ?? Colors.Transparent).ToList().Distinct());
             }
@@ -443,7 +442,7 @@ namespace ImageViewer
         private IList<string> GetRecentHexColors(ColorPicker picker)
         {
             var result = new List<string>();
-            if (picker is ColorPicker)
+            if (picker is not null)
             {
                 result.AddRange(picker.RecentColors.Select(c => ColorToHex(c.Color ?? Colors.Transparent)).Distinct());
             }
@@ -457,7 +456,7 @@ namespace ImageViewer
         /// <param name="colors"></param>
         private void SetRecentColors(ColorPicker picker, IEnumerable<Color> colors)
         {
-            if (colors is IEnumerable<Color> && colors.Count() > 0)
+            if (colors is not null && colors.Count() > 0)
             {
                 Dispatcher?.Invoke(() =>
                 {
@@ -486,7 +485,7 @@ namespace ImageViewer
         /// <param name="colors"></param>
         private void SetRecentColors(ColorPicker picker, IEnumerable<string> colors)
         {
-            if (colors is IEnumerable<string> && colors.Count() > 0)
+            if (colors is not null && colors.Count() > 0)
             {
                 SetRecentColors(picker, colors.Select(c => (Color)ColorConverter.ConvertFromString(c)));
             }
@@ -515,7 +514,7 @@ namespace ImageViewer
         private Size? GetImageSize(Image element)
         {
             Size? result = null;
-            if (element is Image)
+            if (element is not null)
             {
                 var size = element?.Dispatcher?.Invoke(() => element?.RenderSize);
                 if (size?.Width > 0 && size?.Height > 0) result = size;
@@ -561,7 +560,7 @@ namespace ImageViewer
         /// <param name="fit"></param>
         private async void SetImageSource(Image element, ImageSource image, bool fit = false)
         {
-            if (Ready && image is BitmapSource)
+            if (Ready && image is not null)
             {
                 try
                 {
@@ -586,7 +585,7 @@ namespace ImageViewer
         /// <param name="image"></param>
         private async void SetImageSource(Image element, ImageInformation image, bool fit = false, bool update_tooltip = true)
         {
-            if (Ready && image is ImageInformation)
+            if (Ready && image is not null)
             {
                 try
                 {
@@ -594,7 +593,7 @@ namespace ImageViewer
                     {
                         try
                         {
-                            if (image is ImageInformation)
+                            if (image is not null)
                             {
                                 if (!image.ValidCurrent || !image.ValidOriginal) image = GetSource();
                                 element.Source = image.Source;
@@ -617,7 +616,7 @@ namespace ImageViewer
         private async Task<string> UpdateImageToolTip(bool calc_colors = false)
         {
             var result = string.Empty;
-            if (Ready && ImageViewer is Image)
+            if (Ready && ImageViewer is not null)
             {
                 var image = ImageViewer.GetInformation();
                 UpdateInfoBox(image);
@@ -636,7 +635,7 @@ namespace ImageViewer
         private async Task<bool> UpdateImageViewerFinished(double timeout = 60)
         {
             var result = false;
-            if (_CanUpdate_ is SemaphoreSlim && await _CanUpdate_.WaitAsync(TimeSpan.FromSeconds(timeout)))
+            if (_CanUpdate_ is not null && await _CanUpdate_.WaitAsync(TimeSpan.FromSeconds(timeout)))
             {
                 _CanUpdate_.Release();
                 result = true;
@@ -839,10 +838,8 @@ namespace ImageViewer
                     if (IsQualityChanger)
                     {
                         var quality = QualityChangerValue?.Dispatcher.Invoke(() => QualityChangerValue?.Value) ?? image.CurrentQuality;
-                        using (var target = new MagickImage(image.Current) { Quality = quality })
-                        {
-                            ret = await image.CopyToClipboard(target).ContinueWith(t => { UpdateIndaicatorState(false, true); return (t.Result); });
-                        }
+                        using var target = new MagickImage(image.Current) { Quality = quality };
+                        ret = await image.CopyToClipboard(target).ContinueWith(t => { UpdateIndaicatorState(false, true); return (t.Result); });
                     }
                     else ret = await image.CopyToClipboard().ContinueWith(t => { UpdateIndaicatorState(false, true); return (t.Result); });
                 }
@@ -899,25 +896,21 @@ namespace ImageViewer
                     if (IsQualityChanger)
                     {
                         var quality = QualityChangerValue?.Dispatcher.Invoke(() => QualityChangerValue?.Value) ?? image.CurrentQuality;
-                        using (var target = new MagickImage(image.Current) { Quality = quality })
-                        {
-                            if (angle != 0) target.Rotate(angle);
-                            if (flipx) target.Flop();
-                            if (flipy) target.Flip();
+                        using var target = new MagickImage(image.Current) { Quality = quality };
+                        if (angle != 0) target.Rotate(angle);
+                        if (flipx) target.Flop();
+                        if (flipy) target.Flip();
 
-                            ret = image.Save(target, overwrite: overwrite);
-                        }
+                        ret = image.Save(target, overwrite: overwrite);
                     }
                     else if (angle != 0 || flipx || flipy)
                     {
-                        using (var target = new MagickImage(image.Current))
-                        {
-                            if (angle != 0) target.Rotate(angle);
-                            if (flipx) target.Flop();
-                            if (flipy) target.Flip();
+                        using var target = new MagickImage(image.Current);
+                        if (angle != 0) target.Rotate(angle);
+                        if (flipx) target.Flop();
+                        if (flipy) target.Flip();
 
-                            ret = image.Save(target, overwrite: overwrite);
-                        }
+                        ret = image.Save(target, overwrite: overwrite);
                     }
                     else ret = image.Save(overwrite: overwrite);
                     if (ret) await UpdateImageToolTip();
@@ -955,7 +948,7 @@ namespace ImageViewer
                         }
                         else
                         {
-                            var files = text.Split(new string[]{ Environment.NewLine, "\n\r", "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries);
+                            var files = text.Split([Environment.NewLine, "\n\r", "\r\n", "\n", "\r"], StringSplitOptions.RemoveEmptyEntries);
                             files = [.. files.Select(f => f.Trim('"')).Where(File.Exists)];
                             if (files.Any())
                             {
@@ -1149,7 +1142,7 @@ namespace ImageViewer
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
-        private async Task<bool> LoadImageFromFile() => (await LoadImageFromFiles(new string[] { }));
+        private async Task<bool> LoadImageFromFile() => (await LoadImageFromFiles([]));
 
         /// <summary>
         ///
@@ -1210,7 +1203,7 @@ namespace ImageViewer
         /// <returns></returns>
         protected internal async Task<bool> LoadImageFromFiles(IEnumerable<string> files)
         {
-            return (await LoadImageFromFiles(files.ToArray()));
+            return (await LoadImageFromFiles([.. files]));
         }
         #endregion
 
@@ -1348,34 +1341,32 @@ namespace ImageViewer
             {
                 Dispatcher?.InvokeAsync(() =>
                 {
-                    using (var d = Dispatcher?.DisableProcessing())
-                    {
-                        #region Re-Calc Scroll Viewer Size
-                        var nw = size?.Width;
-                        var nh = size?.Height;
-                        var cw = ImageCanvas.ActualWidth;
-                        var ch = ImageCanvas.ActualHeight - ImageToolBar.ActualHeight;
-                        ImageViewerPanel.MaxWidth = cw;
-                        ImageViewerPanel.MaxHeight = ch;
-                        ImageViewerPanel.MinWidth = cw;
-                        ImageViewerPanel.MinHeight = ch;
-                        ImageViewerPanel.RenderSize = new Size(cw, ch);
-                        ImageViewerPanel.UpdateLayout();
+                    using var d = Dispatcher?.DisableProcessing();
+                    #region Re-Calc Scroll Viewer Size
+                    var nw = size?.Width;
+                    var nh = size?.Height;
+                    var cw = ImageCanvas.ActualWidth;
+                    var ch = ImageCanvas.ActualHeight - ImageToolBar.ActualHeight;
+                    ImageViewerPanel.MaxWidth = cw;
+                    ImageViewerPanel.MaxHeight = ch;
+                    ImageViewerPanel.MinWidth = cw;
+                    ImageViewerPanel.MinHeight = ch;
+                    ImageViewerPanel.RenderSize = new Size(cw, ch);
+                    ImageViewerPanel.UpdateLayout();
 
-                        ImageViewerScroll.Width = cw;
-                        ImageViewerScroll.Height = ch;
-                        ImageViewerScroll.MaxWidth = cw;
-                        ImageViewerScroll.MaxHeight = ch;
-                        ImageViewerScroll.UpdateLayout();
-                        #endregion
+                    ImageViewerScroll.Width = cw;
+                    ImageViewerScroll.Height = ch;
+                    ImageViewerScroll.MaxWidth = cw;
+                    ImageViewerScroll.MaxHeight = ch;
+                    ImageViewerScroll.UpdateLayout();
+                    #endregion
 
-                        if (ZoomFitNone.IsChecked ?? false) ZoomRatio.IsEnabled = true;
-                        else ZoomRatio.IsEnabled = false;
-                        ZoomRatioValue.IsEnabled = ZoomRatio.IsEnabled;
+                    if (ZoomFitNone.IsChecked ?? false) ZoomRatio.IsEnabled = true;
+                    else ZoomRatio.IsEnabled = false;
+                    ZoomRatioValue.IsEnabled = ZoomRatio.IsEnabled;
 
-                        CalcZoomRatio();
-                        DoEvents();
-                    }
+                    CalcZoomRatio();
+                    DoEvents();
                 });
             }
             catch (Exception ex) { ex.ShowMessage(); }
@@ -1511,7 +1502,7 @@ namespace ImageViewer
                     {
                         try
                         {
-                            Point factor = new Point(ImageViewerScroll.ExtentWidth/ImageViewerScroll.ViewportWidth, ImageViewerScroll.ExtentHeight/ImageViewerScroll.ViewportHeight);
+                            Point factor = new(ImageViewerScroll.ExtentWidth/ImageViewerScroll.ViewportWidth, ImageViewerScroll.ExtentHeight/ImageViewerScroll.ViewportHeight);
                             Vector v = mouse_start - e.GetPosition(ImageViewerScroll);
                             offset_x = Math.Max(0, mouse_origin.X + v.X * factor.X);
                             offset_y = Math.Max(0, mouse_origin.Y + v.Y * factor.Y);
@@ -1668,7 +1659,7 @@ namespace ImageViewer
                 {
                     var refresh = false;
                     if (index) ImageIndexBox.Text = "-/-";
-                    if (image is null) image = ImageViewer.GetInformation();
+                    image ??= ImageViewer.GetInformation();
                     if (e is FileSystemEventArgs)
                     {
                         Debug.WriteLine($"{e?.GetType()}");
@@ -1777,7 +1768,7 @@ namespace ImageViewer
         }
 
         private BitmapSource _quality_orig_ = null;
-        private ImageInformation _quality_info_ = new ImageInformation();
+        private ImageInformation _quality_info_ = new();
 
         /// <summary>
         ///
@@ -1818,6 +1809,47 @@ namespace ImageViewer
             }
         }
 
+        private CancellationTokenSource _quality_change_ = new();
+        private async void DelayChangeQuality()
+        {
+            if (IsQualityChanger)
+            {
+                _quality_change_ ??= new();
+                _quality_change_?.Cancel();
+                await Task.Delay(50);
+                _quality_change_ = new();
+
+                var quality = (uint)(QualityChangerSlider.Value);
+
+                await Task.Run(async () => { await Task.Delay(TimeSpan.FromMilliseconds(CountDownTimeOut)); }, _quality_change_.Token).ContinueWith(async (t, o) =>
+                {
+                    if (_quality_change_?.IsCancellationRequested ?? false) return;
+                    try
+                    {
+                        IsProcessingViewer = true;
+
+                        var info = ImageViewer.GetInformation();
+                        if (info.ValidCurrent)
+                        {
+                            var image = new MagickImage(info.Current);
+                            var quality_o = info.OriginalQuality;
+
+                            var result = quality < quality_o ? await ChangeQuality(image, quality) : new MagickImage(image);
+                            _quality_info_.Original = result;
+                            SetImageSource(ImageViewer, _quality_info_);
+                            result.Dispose();
+
+                            var size = _quality_info_.Current?.GetArtifact("filesize");
+                            SetQualityChangerTitle(string.IsNullOrEmpty(size) ? null : $"{_quality_info_.CurrentQuality}, {"ResultTipSize".T()} {size}");
+                        }
+                    }
+                    catch (TaskCanceledException) { }
+                    catch (Exception ex) { ex.ShowMessage(); }
+                    finally { IsProcessingViewer = false; }
+                }, _quality_change_.Token, continuationOptions: TaskContinuationOptions.OnlyOnRanToCompletion);
+            }
+        }
+
         private string QualityChangeerTitle = string.Empty;
 
         /// <summary>
@@ -1837,9 +1869,11 @@ namespace ImageViewer
                         var image = info?.Current;
                         var quality = image.Quality();
                         var quality_str = quality > 0  ? $"{quality}" : "Unknown";
-                        _quality_info_ = new ImageInformation();
-                        _quality_info_.FileName = info?.FileName;
-                        _quality_info_.Original = info?.Original;
+                        _quality_info_ = new()
+                        {
+                            FileName = info?.FileName,
+                            Original = info?.Original
+                        };
                         _quality_orig_ = _quality_info_.Source;
                         QualityChangeerTitle = $"{"InfoTipQuality".T().Trim('=').Trim()} : {quality_str}";
                         QualityChanger.Focusable = true;
@@ -1849,7 +1883,7 @@ namespace ImageViewer
                         QualityChangerSlider.Maximum = quality > 0 ? quality : 100;
                         QualityChangerSlider.Width = 360;
                         QualityChangerSlider.IsSnapToTickEnabled = true;
-                        QualityChangerSlider.Ticks = new DoubleCollection() { 10, 25, 30, 35, 50, 55, 60, 65, 70, 75, 85, 95 };
+                        QualityChangerSlider.Ticks = [10, 25, 30, 35, 50, 55, 60, 65, 70, 75, 85, 95];
                         QualityChangerSlider.TickPlacement = TickPlacement.Both;
                         QualityChangerSlider.LargeChange = 5;
                         QualityChangerSlider.SmallChange = 1;
@@ -1864,7 +1898,7 @@ namespace ImageViewer
                         Keyboard.Focus(QualityChangerSlider);
                         InputMethod.Current.ImeState = InputMethodState.Off;
 
-                        if (QualityChangerDelay is DispatcherTimer)
+                        if (QualityChangerDelay is not null)
                         {
                             QualityChangerDelay.IsEnabled = true;
                             QualityChangerDelay.Stop();
@@ -2207,8 +2241,8 @@ namespace ImageViewer
         #region Context Menu Helper
         private ContextMenu cm_grayscale_mode = null;
 
-        private readonly List<FrameworkElement> cm_image_viewer = new List<FrameworkElement>();
-        private readonly List<FrameworkElement> cm_image_target = new List<FrameworkElement>();
+        private readonly List<FrameworkElement> cm_image_viewer = [];
+        private readonly List<FrameworkElement> cm_image_target = [];
 
         /// <summary>
         ///
@@ -2220,8 +2254,8 @@ namespace ImageViewer
             var effect_blur = new BlurEffect() { Radius = 2, KernelType = KernelType.Gaussian };
 
             var items = cm_image_viewer;
-            if (items != null) items.Clear();
-            else items = new List<FrameworkElement>();
+            if (items != null) items?.Clear();
+            else items = [];
 
             Func<object, bool> MenuHost = (obj) => Dispatcher?.Invoke(() => (bool)(obj as MenuItem).Tag) ?? false;
 
@@ -2477,12 +2511,10 @@ namespace ImageViewer
                         MagickImage img = null;
 #if DEBUG
                         var icon = System.Drawing.Icon.ExtractAssociatedIcon(string.IsNullOrEmpty(task.IconResourcePath) ? task.ApplicationPath : task.IconResourcePath);
-                        using (MemoryStream stream = new MemoryStream())
-                        {
-                            icon.Save(stream);
-                            stream.Seek(0, SeekOrigin.Begin);
-                            img = new MagickImage(stream, MagickFormat.Ico);
-                        }
+                        using MemoryStream stream = new();
+                        icon.Save(stream);
+                        stream.Seek(0, SeekOrigin.Begin);
+                        img = new MagickImage(stream, MagickFormat.Ico);
 #endif
                         var menu = new MenuItem(){ Header = task.Title, Tag = task, Icon = new Image() { Source = img?.ToBitmapSource() } };
                         menu.Click += (obj, evt) => ShellRunJumpTask(task);
@@ -2765,13 +2797,13 @@ namespace ImageViewer
                     if (image.Source == null) { evt.Handled = true; return; }
 
                     var show_load = false;
-                    if (image is Image) { show_load = !string.IsNullOrEmpty(image.GetInformation().FileName); }
+                    if (image is not null) { show_load = !string.IsNullOrEmpty(image.GetInformation().FileName); }
                     item_load_prev.Visibility = show_load ? Visibility.Visible : Visibility.Collapsed;
                     item_load_next.Visibility = show_load ? Visibility.Visible : Visibility.Collapsed;
                 };
             }
 
-            if (target.ContextMenu is ContextMenu)
+            if (target.ContextMenu is not null)
             {
                 foreach (var item in target.ContextMenu.Items)
                 {
@@ -3076,7 +3108,7 @@ namespace ImageViewer
         private void InitAccelerators()
         {
             // add keyboard accelerators for backwards navigation
-            RoutedUICommand cmd_Close = new RoutedUICommand(){ Text = $"Close".T() };
+            RoutedUICommand cmd_Close = new(){ Text = $"Close".T() };
             cmd_Close.InputGestures.Add(new KeyGesture(Key.W, ModifierKeys.Control, $"Ctrl+{Key.W}"));
             CommandBindings.Add(new CommandBinding(cmd_Close, (obj, evt) =>
             {
@@ -3105,7 +3137,7 @@ namespace ImageViewer
             {
                 var source = new Uri(@"pack://application:,,,/ImageViewer;component/Resources/CheckboardPattern_32.png", UriKind.RelativeOrAbsolute);
                 var sri = Application.GetResourceStream(source);
-                if (sri is System.Windows.Resources.StreamResourceInfo && sri.ContentType.Equals("image/png") && sri.Stream is Stream && sri.Stream.CanRead && sri.Stream.Length > 0)
+                if (sri is not null && sri.ContentType.Equals("image/png") && sri.Stream is not null && sri.Stream.CanRead && sri.Stream.Length > 0)
                 {
                     var opacity = 0.1;
                     var pattern = new MagickImage(sri.Stream);
@@ -3153,12 +3185,12 @@ namespace ImageViewer
                 { "SegoeIconFamily", CustomIconFontFamily },
             };
 
-            if (font == null) { font = new FontFamily(); }
+            font ??= new();
 
-            foreach (var family in font is FontFamily ? customfamilies.Where(f => f.Value.Equals(font)) : customfamilies)
+            foreach (var family in font is not null ? customfamilies.Where(f => f.Value.Equals(font)) : customfamilies)
             {
                 var old_family = FindResource(family.Key);
-                if (old_family is FontFamily && font is FontFamily && !string.IsNullOrEmpty(fonts))
+                if (old_family is not null && font is not null && !string.IsNullOrEmpty(fonts))
                 {
                     try
                     {
@@ -3665,11 +3697,8 @@ namespace ImageViewer
                 if (disposing)
                 {
                     // TODO: 释放托管状态(托管对象)。
-                    if (_CanUpdate_ is SemaphoreSlim)
-                    {
-                        if (_CanUpdate_.CurrentCount < 1) _CanUpdate_.Release();
-                        _CanUpdate_.Dispose();
-                    }
+                    if (_CanUpdate_?.CurrentCount < 1) _CanUpdate_?.Release();
+                    _CanUpdate_?.Dispose();
                 }
 
                 // TODO: 释放未托管的资源(未托管的对象)并在以下内容中替代终结器。
@@ -3885,7 +3914,7 @@ namespace ImageViewer
                     }
                     else if (km.OnlyAlt && (e.Key == Key.T || e.SystemKey == Key.T))
                     {
-                        if (ImageViewerScroll.ContextMenu != null) ImageViewerScroll.ContextMenu.IsOpen = true;
+                        ImageViewerScroll.ContextMenu?.IsOpen = true;
                     }
                     else if (e.Key == Key.Escape || e.SystemKey == Key.Escape)
                     {
@@ -3967,7 +3996,7 @@ namespace ImageViewer
                             ImageViewer.GetInformation().FileName.ShowProperties();
                         else if (km.None)
                         {
-                            ShowImageInfo.IsChecked = ShowImageInfo.IsChecked ?? false;
+                            ShowImageInfo.IsChecked ??= false;
                             ToggleToolTip(ImageInfoBox);
                         }
                     }
@@ -4155,7 +4184,7 @@ namespace ImageViewer
                         var dp = new DataObject();
                         var image = ImageViewer.GetInformation();
                         if (!string.IsNullOrEmpty(image.FileName) && File.Exists(image.FileName))
-                            dp.SetFileDropList(new System.Collections.Specialized.StringCollection() { image.FileName });
+                            dp.SetFileDropList([image.FileName]);
                         else
                             dp.SetImage((BitmapSource)ImageViewer.Source);
                         DragDrop.DoDragDrop(this, dp, DragDropEffects.Copy);
@@ -4271,7 +4300,7 @@ namespace ImageViewer
                 try
                 {
                     Image image = GetImageControl(e.Source as FrameworkElement);
-                    if (image is Image && image.Source != null)
+                    if (image is not null && image.Source != null)
                     {
                         var tooltip = GetToolTip(image);
                         if (string.IsNullOrEmpty(tooltip) || tooltip.StartsWith(WaitingString, StringComparison.CurrentCultureIgnoreCase))
@@ -4293,7 +4322,7 @@ namespace ImageViewer
             var km = this.GetModifier();
             if (sender == UILanguage)
             {
-                if (UILanguage.ContextMenu is ContextMenu) { UILanguage.ContextMenu.IsOpen = true; }
+                UILanguage.ContextMenu?.IsOpen = true;
             }
             else if (sender == UILanguageEn)
             {
@@ -4426,29 +4455,27 @@ namespace ImageViewer
             if (!Ready || IsImageNull(ImageViewer)) return;
             try
             {
-                using (var d = Dispatcher?.DisableProcessing())
+                using var d = Dispatcher?.DisableProcessing();
+                if (Ready && CurrentZoomFitMode == ZoomFitMode.None && LastZoomRatio != e.NewValue)
                 {
-                    if (Ready && CurrentZoomFitMode == ZoomFitMode.None && LastZoomRatio != e.NewValue)
-                    {
-                        e.Handled = true;
-                        var zoom_old = LastZoomRatio;
-                        var zoom_new = e.NewValue;
-                        zoom_new = Math.Min(ZoomMax, Math.Max(ZoomMin, zoom_new));
-                        if (zoom_new - zoom_old <= ZoomRatio.SmallChange && ((zoom_new < 1 && zoom_old > 1) || (zoom_new > 1 && zoom_old < 1)))
-                            zoom_new = 1f;
+                    e.Handled = true;
+                    var zoom_old = LastZoomRatio;
+                    var zoom_new = e.NewValue;
+                    zoom_new = Math.Min(ZoomMax, Math.Max(ZoomMin, zoom_new));
+                    if (zoom_new - zoom_old <= ZoomRatio.SmallChange && ((zoom_new < 1 && zoom_old > 1) || (zoom_new > 1 && zoom_old < 1)))
+                        zoom_new = 1f;
 
-                        ZoomRatio.ToolTip = $"{"Zoom Ratio".T(DefaultCultureInfo)}: {zoom_new:F2}X";
-                        LastZoomRatio = zoom_new;
+                    ZoomRatio.ToolTip = $"{"Zoom Ratio".T(DefaultCultureInfo)}: {zoom_new:F2}X";
+                    LastZoomRatio = zoom_new;
 
-                        var zw = zoom_new * ImageViewer.Source.Width;
-                        var zh = zoom_new * ImageViewer.Source.Height;
-                        ImageViewerBox.MaxWidth = zw <= ImageViewerScroll.ActualWidth ? ImageViewerScroll.ActualWidth : zw;
-                        ImageViewerBox.MaxHeight = zh <= ImageViewerScroll.ActualHeight ? ImageViewerScroll.ActualHeight : zh;
-                        ImageViewerBox.Width = zw <= ImageViewerScroll.ActualWidth ? ImageViewerScroll.ActualWidth : zw;
-                        ImageViewerBox.Height = zh <= ImageViewerScroll.ActualHeight ? ImageViewerScroll.ActualHeight : zh;
-                    }
-                    if (Ready) CalcDisplay();
+                    var zw = zoom_new * ImageViewer.Source.Width;
+                    var zh = zoom_new * ImageViewer.Source.Height;
+                    ImageViewerBox.MaxWidth = zw <= ImageViewerScroll.ActualWidth ? ImageViewerScroll.ActualWidth : zw;
+                    ImageViewerBox.MaxHeight = zh <= ImageViewerScroll.ActualHeight ? ImageViewerScroll.ActualHeight : zh;
+                    ImageViewerBox.Width = zw <= ImageViewerScroll.ActualWidth ? ImageViewerScroll.ActualWidth : zw;
+                    ImageViewerBox.Height = zh <= ImageViewerScroll.ActualHeight ? ImageViewerScroll.ActualHeight : zh;
                 }
+                if (Ready) CalcDisplay();
             }
             catch (Exception ex) { ex.ShowMessage(); }
         }
@@ -4485,6 +4512,7 @@ namespace ImageViewer
                             e.Handled = true;
                             SetQualityChangerTitle($"{quality_n}");
                             QualityChangerDelay.Start();
+                            //DelayChangeQuality();
                         }
                     }
 #if DEBUG
