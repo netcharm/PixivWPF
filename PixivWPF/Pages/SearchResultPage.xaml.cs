@@ -68,6 +68,8 @@ namespace PixivWPF.Pages
 
         private SemaphoreSlim CanUpdateing = new SemaphoreSlim(1, 1);
 
+        //private CancellationTokenSource _detail_gc = new();
+
         public async void UpdateDetail(string content)
         {
             if (CanUpdateing.Wait(0))
@@ -94,7 +96,9 @@ namespace PixivWPF.Pages
                 {
                     if (ParentWindow != null) ParentWindow.SizeToContent = SizeToContent.WidthAndHeight;
                     if (CanUpdateing is SemaphoreSlim && CanUpdateing.CurrentCount <= 0) CanUpdateing.Release();
-                    GC.Collect();
+                    Application.Current.DelayGC();
+                    //Application.Current.DelayGC(_detail_gc);
+                    //GC.Collect();
                 }
             }
         }

@@ -528,7 +528,6 @@ namespace PixivWPF.Pages
                             //AdjustBrowserSize(browser);
                         }
                         browser.WebBrowserShortcutsEnabled = false;
-                        //GC.Collect();
                     }).InvokeAsync();
                 }
             }
@@ -537,6 +536,8 @@ namespace PixivWPF.Pages
         #endregion
 
         #region WebBrowser Events Handle
+        //private CancellationTokenSource _web_gc = new();
+
         private async void WebBrowser_LinkClick(object sender, System.Windows.Forms.HtmlElementEventArgs e)
         {
             bCancel = true;
@@ -697,7 +698,6 @@ namespace PixivWPF.Pages
                         }
                     }
                 }
-                //GC.Collect();
             }
             catch (Exception ex) { ex.ERROR("BROWSER"); }
         }
@@ -722,7 +722,6 @@ namespace PixivWPF.Pages
                 e.Cancel = true;
                 return;
             }
-            GC.Collect();
         }
 
         private void WebBrowser_Navigated(object sender, System.Windows.Forms.WebBrowserNavigatedEventArgs e)
@@ -737,6 +736,8 @@ namespace PixivWPF.Pages
         {
             try
             {
+                //_web_gc?.Cancel();
+                //_web_gc = new();
                 if (sender == IllustDescHtml || sender == IllustTagsHtml)
                 {
                     var browser = sender as System.Windows.Forms.WebBrowser;
@@ -765,7 +766,10 @@ namespace PixivWPF.Pages
                         AdjustBrowserSize(browser);
                     }
                 }
-                GC.Collect();
+                Application.Current.DelayGC();
+                //Application.Current.DelayGC(_web_gc);
+                //Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(30)); }, _web_gc.Token).ContinueWith(t => GC.Collect(), continuationOptions: TaskContinuationOptions.NotOnCanceled);
+                //GC.Collect();
             }
             catch (Exception ex) { ex.ERROR("WEBBROWSER"); }
         }
@@ -1020,7 +1024,7 @@ namespace PixivWPF.Pages
                         this.DoEvents();
                     }
                 }
-                GC.Collect();
+                //GC.Collect();
             }
             catch (Exception ex) { ex.ERROR("DOWNLOADSTATE"); }
         }
@@ -1749,13 +1753,17 @@ namespace PixivWPF.Pages
                 }
             }
             catch (Exception ex) { ex.ERROR("UpdateContentsThumbnail"); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
         }
+
+        //private CancellationTokenSource _thumb_gc = new();
 
         public async void UpdateThumb(bool full = false, bool overwrite = false, bool prefetching = true, bool wating = true)
         {
             try
             {
+                //_thumb_gc?.Cancel();
+                //_thumb_gc = new();
                 overwrite = Keyboard.Modifiers == ModifierKeys.Alt ? true : overwrite;
                 if (Contents.HasUser())
                 {
@@ -1828,14 +1836,22 @@ namespace PixivWPF.Pages
             {
                 IllustDetailWait.Hide();
                 this.DoEvents();
-                GC.Collect();
+                Application.Current.DelayGC();
+                //Application.Current.DelayGC(_thumb_gc);
+                //await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(30)); }, _thumb_gc.Token).ContinueWith(t => GC.Collect(), continuationOptions: TaskContinuationOptions.NotOnCanceled);
+                //GC.Collect();
             }
         }
+
+        //private CancellationTokenSource _detail_gc = new();
 
         internal async void UpdateDetail(PixivItem item)
         {
             try
             {
+                //_detail_gc?.Cancel();
+                //_detail_gc = new();
+
                 page_count = 0;
                 page_number = 0;
                 page_index = 0;
@@ -1915,7 +1931,10 @@ namespace PixivWPF.Pages
             {
                 //UpdateContentsThumbnail();
                 //if (Contents.HasUser()) Application.Current.GC(this.Name ?? "IllustDetailPage");
-                GC.Collect();
+                Application.Current.DelayGC();
+                //Application.Current.DelayGC(_detail_gc);
+                //await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(30)); }, _detail_gc.Token).ContinueWith(t => GC.Collect(), continuationOptions: TaskContinuationOptions.NotOnCanceled);
+                //GC.Collect();
             }
         }
 
@@ -2100,7 +2119,7 @@ namespace PixivWPF.Pages
                 this.DoEvents();
                 IllustDetailWait.Hide();
                 Preview.Focus();
-                GC.Collect();
+                //GC.Collect();
             }
         }
 
@@ -2266,7 +2285,7 @@ namespace PixivWPF.Pages
             {
                 this.DoEvents();
                 IllustDetailWait.Hide();
-                GC.Collect();
+                //GC.Collect();
             }
         }
         #endregion
@@ -6077,7 +6096,7 @@ namespace PixivWPF.Pages
                 }
             }
             catch (Exception ex) { ex.ERROR(); }
-            finally { GC.Collect(); }
+            //finally { GC.Collect(); }
         }
         #endregion
 

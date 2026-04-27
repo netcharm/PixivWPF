@@ -32,6 +32,7 @@ using MahApps.Metro.Controls;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using PixivWPF.Pages;
+using System.Web;
 
 namespace PixivWPF.Common
 {
@@ -574,6 +575,25 @@ namespace PixivWPF.Common
                 mem_ws_after = Application.Current.MemoryUsage();// process.WorkingSet64;
                 mem_pb_after = Application.Current.MemoryUsage(true);// process.PrivateMemorySize64;
                 $"System Memory Usage (WS/PB): {mem_ws_before.SmartFileSize()} / {mem_pb_before.SmartFileSize()} => {mem_ws_after.SmartFileSize()} / {mem_pb_after.SmartFileSize()}".DEBUG(name ?? string.Empty);
+            }
+        }
+
+        private static CancellationTokenSource _gc_ = new();
+        public static async void DelayGC(this Application app, CancellationTokenSource cancel = null)
+        {
+            if (cancel is null)
+            {
+                _gc_?.Cancel();
+                await Task.Delay(250);
+                _gc_ = new();
+                await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60)); }, _gc_.Token).ContinueWith(t => System.GC.Collect(), continuationOptions: TaskContinuationOptions.NotOnCanceled);
+            }
+            else
+            {
+                cancel?.Cancel();
+                await Task.Delay(250);
+                cancel = new();
+                await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60)); }, cancel.Token).ContinueWith(t => System.GC.Collect(), continuationOptions: TaskContinuationOptions.NotOnCanceled);
             }
         }
         #endregion

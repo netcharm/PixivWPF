@@ -95,6 +95,8 @@ namespace PixivWPF.Pages
             }
         }
 
+        //private CancellationTokenSource _detail_gc = new();
+
         private void ShowHistory(bool overwrite = false)
         {
             try
@@ -134,7 +136,9 @@ namespace PixivWPF.Pages
             {
                 HistoryItems.Ready();
                 this.DoEvents();
-                GC.Collect();
+                Application.Current.DelayGC();
+                //Application.Current.DelayGC(_detail_gc);
+                //GC.Collect();
             }
         }
 

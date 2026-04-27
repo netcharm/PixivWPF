@@ -841,7 +841,8 @@ namespace PixivWPF.Common
         }
 
         private BackgroundWorker UpdateTileTask = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
-        private CancellationTokenSource UpdateTileTaskCancelSrc = new CancellationTokenSource();
+        private CancellationTokenSource UpdateTileTaskCancelSrc = new();
+        //private CancellationTokenSource _gallery_gc = new();
 
         private void UpdateTileTask_DoWork(object sender, DoWorkEventArgs e)
         {
@@ -904,7 +905,7 @@ namespace PixivWPF.Common
                             item.State = TaskStatus.WaitingToRun;
                         }
                         catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
-                        finally { this.DoEvents(); GC.Collect(); }
+                        finally { this.DoEvents(); }
                     });
                     if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
                     //GC.Collect();
@@ -943,7 +944,7 @@ namespace PixivWPF.Common
                             finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
                         });
                         if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
-                        GC.Collect();
+                        //GC.Collect();
                         #endregion
 
                         #region Loading filted items downloading thumbnails
@@ -1233,7 +1234,9 @@ namespace PixivWPF.Common
                 this.DoEvents();
                 Task.Delay(1).GetAwaiter().GetResult();
                 ReleaseUpdateLock();
-                GC.Collect();
+                Application.Current.DelayGC();
+                //Application.Current.DelayGC(_gallery_gc);
+                //C.Collect();
             }
         }
 
@@ -1298,7 +1301,7 @@ namespace PixivWPF.Common
                 finally
                 {
                     if (!UpdateTileTask.IsBusy && !UpdateTileTask.CancellationPending) ReleaseUpdateLock();
-                    GC.Collect();
+                    //GC.Collect();
                 }
             }
         }
@@ -1606,7 +1609,7 @@ namespace PixivWPF.Common
                         canvas.UpdateLayout();
                     }
                 }
-                GC.Collect();
+                //GC.Collect();
             }
             catch (Exception ex) { ex.ERROR("THUMBUNLOAD"); }
         }
