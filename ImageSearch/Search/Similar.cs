@@ -37,11 +37,11 @@ using SkiaSharp;
 
 namespace ImageSearch.Search
 {
-#pragma warning disable IDE0044 // 添加只读修饰符
-#pragma warning disable IDE0063
 #pragma warning disable IDE0079
+#pragma warning disable IDE0044 // 添加只读修饰符
 #pragma warning disable IDE0305
 #pragma warning disable SYSLIB1045
+#pragma warning disable CA1816
 
     public enum BatchRunningMode { Parallel, ParallelAsync, MultiTask, ForLoop };
 
@@ -82,7 +82,7 @@ namespace ImageSearch.Search
         public string DatabaseFile { get; set; } = string.Empty;
     }
 
-    public class Storage
+    public class Storage : IDisposable
     {
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Name { get; set; } = string.Empty;
@@ -122,18 +122,26 @@ namespace ImageSearch.Search
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public List<ExtraStorage> ExtraStorages { get; set; } = [];
+
+        public void Dispose() => ExtraStorages?.Clear();
     }
 
-    public class ExtraFeatureData
+    public class ExtraFeatureData : IDisposable
     {
         public bool Loaded { get; set; } = false;
         public ExtraStorage FeatureStore { get; set; } = new();
         public string FeatureDB { get; set; } = string.Empty;
         public NDArray? Feats { get; set; } = np.zeros(0);
         public string[] Names { get; set; } = [];
+
+        public void Dispose()
+        {
+            Array.Clear(Names);
+            Feats = np.zeros(0);
+        }
     }
 
-    public class FeatureData
+    public class FeatureData : IDisposable
     {
         public bool Loaded { get; set; } = false;
         public Storage FeatureStore { get; set; } = new();
@@ -141,20 +149,38 @@ namespace ImageSearch.Search
         public NDArray? Feats { get; set; } = np.zeros(0);
         public string[] Names { get; set; } = [];
         public List<ExtraFeatureData> ExtraFeatureDatas { get; set; } = [];
+
+        public void Dispose()
+        {
+            FeatureStore.Dispose();
+            Array.Clear(Names);
+            Feats = np.zeros(0);
+            ExtraFeatureDatas.Clear();
+        }
     }
 
-    public class ModelInput
+    public class ModelInput : IDisposable
     {
         [VectorType(3 * 224 * 224)]
         [ColumnName("ImageByteData")]
         public float[]? Data { get; set; }
+
+        public void Dispose()
+        {
+            if (Data is not null) Array.Clear(Data);
+        }
     }
 
-    public class Prediction
+    public class Prediction : IDisposable
     {
         [VectorType(1000)]
         [ColumnName("PredictionFeature")]
         public float[]? Feature { get; set; }
+
+        public void Dispose()
+        {
+            if (Feature is not null) Array.Clear(Feature);
+        }
     }
 
     public class LabeledObject
@@ -163,13 +189,19 @@ namespace ImageSearch.Search
         public float? Confidence { get; set; }
     }
 
-    public class SimilarResult
+    public class SimilarResult : IDisposable
     {
         public List<KeyValuePair<string, double>>? Results { get; set; } = null;
         public List<LabeledObject>? Labels { get; set; } = null;
+
+        public void Dispose()
+        {
+            Results?.Clear();
+            Labels?.Clear();
+        }
     }
 
-    internal class Similar
+    internal class Similar : IDisposable
     {
         private static readonly string[] exts = [ ".jpg", ".jpeg", ".bmp", ".png", ".tif", ".tiff", ".gif", ".webp" ];
         private static readonly string[] tiff_exts = [ ".tif", ".tiff" ];
@@ -258,6 +290,20 @@ namespace ImageSearch.Search
         private readonly List<FeatureData> _features_ = [];
 
         public List<Storage> StorageList { get; set; } = [];
+
+        void IDisposable.Dispose()
+        {
+            ExtraFilterData?.Dispose();
+            FilterData?.Dispose();
+
+            _features_.Clear();
+            _predictionEngine_.Dispose();
+
+            StorageList.Clear();
+            TempFeatures.Clear();
+
+            GC.SuppressFinalize(this);
+        }
 
         #region background work thread
         private readonly SemaphoreSlim BatchTaskIdle = new(1,1);
@@ -379,19 +425,17 @@ namespace ImageSearch.Search
                         {
                             try
                             {
-                                using (var npz_fs = new FileStream(npz_file, FileMode.Open, FileAccess.Read))
+                                using var npz_fs = new FileStream(npz_file, FileMode.Open, FileAccess.Read);
+                                ReportMessage($"Loading latest checkpoint file {npz_file}");
+                                var checkpoint = np.Load_Npz<float[]>(npz_fs);
+                                var losts = checkpoint.Keys.Except(files).ToArray();
+                                foreach (var kv in checkpoint)
                                 {
-                                    ReportMessage($"Loading latest checkpoint file {npz_file}");
-                                    var checkpoint = np.Load_Npz<float[]>(npz_fs);
-                                    var losts = checkpoint.Keys.Except(files).ToArray();
-                                    foreach (var kv in checkpoint)
-                                    {
-                                        if (losts.Contains(kv.Key)) continue;
-                                        feats[kv.Key] = kv.Value;
-                                    }
-                                    ReportMessage($"Loaded latest checkpoint file {npz_file}");
-                                    GC.Collect();
+                                    if (losts.Contains(kv.Key)) continue;
+                                    feats[kv.Key] = kv.Value;
                                 }
+                                ReportMessage($"Loaded latest checkpoint file {npz_file}");
+                                GC.Collect();
                             }
                             catch (Exception ex) { ReportMessage(ex); }
                         }
@@ -405,11 +449,7 @@ namespace ImageSearch.Search
                         int total = feats.Count;
                         uint index = 0;
 
-                        var opt = new ParallelOptions
-                        {
-                            MaxDegreeOfParallelism = info.ParallelLimit,
-                            CancellationToken = cancel
-                        };
+                        var opt = new ParallelOptions { MaxDegreeOfParallelism = info.ParallelLimit, CancellationToken = cancel };
 
                         ReportMessage($"Processing Image Feature List", TaskStatus.Running);
                         if (info.ParallelMode == BatchRunningMode.Parallel)
@@ -446,6 +486,7 @@ namespace ImageSearch.Search
                                             if (File.Exists(npz_file)) File.Move(npz_file, cp_npz_file, true);
                                             np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), npz_file);
                                             ReportMessage($"Saved checkpoint file to {npz_file}, {sw?.Elapsed:dd\\.hh\\:mm\\:ss}");
+                                            GC.Collect();
                                         }
                                         catch (Exception ex) { ReportMessage(ex); }
                                     }
@@ -496,6 +537,7 @@ namespace ImageSearch.Search
                                             if (File.Exists(npz_file)) File.Move(npz_file, cp_npz_file, true);
                                             np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), npz_file);
                                             ReportMessage($"Saved checkpoint file to {npz_file}, {sw?.Elapsed:dd\\.hh\\:mm\\:ss}");
+                                            GC.Collect();
                                         }
                                         catch (Exception ex) { ReportMessage(ex); }
                                     }
@@ -551,6 +593,7 @@ namespace ImageSearch.Search
                                                     if (File.Exists(npz_file)) File.Move(npz_file, cp_npz_file, true);
                                                     np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), npz_file);
                                                     ReportMessage($"Saved checkpoint file to {npz_file}, {sw?.Elapsed:dd\\.hh\\:mm\\:ss}");
+                                                    GC.Collect();
                                                 }
                                                 catch (Exception ex) { ReportMessage(ex); }
                                             }
@@ -610,6 +653,7 @@ namespace ImageSearch.Search
                                                 if (File.Exists(npz_file)) File.Move(npz_file, cp_npz_file, true);
                                                 np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), npz_file);
                                                 ReportMessage($"Saved checkpoint file to {npz_file}, {sw?.Elapsed:dd\\.hh\\:mm\\:ss}");
+                                                GC.Collect();
                                             }
                                             catch (Exception ex) { ReportMessage(ex); }
                                         }
@@ -648,8 +692,8 @@ namespace ImageSearch.Search
                                     ReportMessage($"Saving latest checkpoint file {npz_file}");
                                     np.Save_Npz(feats.ToDictionary(kv => kv.Key, kv => kv.Value as Array), npz_fs);
                                     ReportMessage($"Saved latest checkpoint file {npz_file}");
+                                    GC.Collect();
                                 }
-                                GC.Collect();
                                 ReportMessage($"Cleaning intermediate checkpoint files");
                                 var cp_npz_files = Directory.GetFiles("data", $@"{dir_name}_checkpoint_*.npz", SearchOption.TopDirectoryOnly);
                                 foreach (var npz in cp_npz_files.Where(f => Regex.IsMatch(f, @"checkpoint_\d+\.npz", RegexOptions.IgnoreCase))) File.Delete(npz);
@@ -673,8 +717,8 @@ namespace ImageSearch.Search
 
                             feats_new?.Clear();
                             feats_new = null;
-                            GC.Collect();
                             ReportMessage($"Post-Processed feature list");
+                            GC.Collect();
 
                             if (cancel.IsCancellationRequested) { result = false; break; }
                             result &= await SaveFeatureData(feat_obj);
@@ -845,19 +889,17 @@ namespace ImageSearch.Search
             SKBitmap? result = null;
             if (src is not null)
             {
-                using (var ms = new MemoryStream())
+                using var ms = new MemoryStream();
+                try
                 {
-                    try
-                    {
-                        BitmapEncoder encoder = new PngBitmapEncoder();
-                        encoder.Frames.Add(BitmapFrame.Create(src as BitmapSource));
-                        encoder.Save(ms);
+                    BitmapEncoder encoder = new PngBitmapEncoder();
+                    encoder.Frames.Add(BitmapFrame.Create(src as BitmapSource));
+                    encoder.Save(ms);
 
-                        ms.Seek(0, SeekOrigin.Begin);
-                        result = SKBitmap.Decode(ms);
-                    }
-                    catch (Exception ex) { ReportMessage(ex); }
+                    ms.Seek(0, SeekOrigin.Begin);
+                    result = SKBitmap.Decode(ms);
                 }
+                catch (Exception ex) { ReportMessage(ex); }
             }
             return (result);
         }
@@ -867,24 +909,22 @@ namespace ImageSearch.Search
             SKBitmap? result = null;
             if (src is not null)
             {
-                using (var ms = new MemoryStream())
+                using var ms = new MemoryStream();
+                try
                 {
-                    try
-                    {
-                        ////var stride = ((image.PixelWidth * image.Format.BitsPerPixel + 31) / 32) * 4;
-                        //var stride = ((image.PixelWidth * image.Format.BitsPerPixel + 31) >> 5) << 2;
-                        //byte[] buf = new byte[stride * (int)image.Height];
-                        //image.CopyPixels(buf, stride, 0);
+                    ////var stride = ((image.PixelWidth * image.Format.BitsPerPixel + 31) / 32) * 4;
+                    //var stride = ((image.PixelWidth * image.Format.BitsPerPixel + 31) >> 5) << 2;
+                    //byte[] buf = new byte[stride * (int)image.Height];
+                    //image.CopyPixels(buf, stride, 0);
 
-                        BitmapEncoder encoder = new PngBitmapEncoder();
-                        encoder.Frames.Add(BitmapFrame.Create(src));
-                        encoder.Save(ms);
+                    BitmapEncoder encoder = new PngBitmapEncoder();
+                    encoder.Frames.Add(BitmapFrame.Create(src));
+                    encoder.Save(ms);
 
-                        ms.Seek(0, SeekOrigin.Begin);
-                        result = SKBitmap.Decode(ms);
-                    }
-                    catch (Exception ex) { ReportMessage(ex); }
+                    ms.Seek(0, SeekOrigin.Begin);
+                    result = SKBitmap.Decode(ms);
                 }
+                catch (Exception ex) { ReportMessage(ex); }
             }
             return (result);
         }
@@ -894,33 +934,29 @@ namespace ImageSearch.Search
             BitmapSource? result = null;
             if (src is not null)
             {
-                using (var sk_data = src.Encode(SKEncodedImageFormat.Png, 100))
+                using var sk_data = src.Encode(SKEncodedImageFormat.Png, 100);
+                using var ms = new MemoryStream();
+                try
                 {
-                    using (var ms = new MemoryStream())
-                    {
-                        try
-                        {
-                            sk_data.SaveTo(ms);
-                            ms.Seek(0, SeekOrigin.Begin);
+                    sk_data.SaveTo(ms);
+                    ms.Seek(0, SeekOrigin.Begin);
 
-                            //var frame = BitmapFrame.Create(ms);
-                            //frame.Freeze();
+                    //var frame = BitmapFrame.Create(ms);
+                    //frame.Freeze();
 
-                            var bmp = new BitmapImage();
-                            bmp.BeginInit();
-                            bmp.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
-                            bmp.CacheOption = BitmapCacheOption.OnLoad;
-                            bmp.DecodePixelWidth = src.Width;
-                            bmp.DecodePixelHeight = src.Height;
-                            bmp.StreamSource = ms;
-                            bmp.EndInit();
-                            bmp.Freeze();
+                    var bmp = new BitmapImage();
+                    bmp.BeginInit();
+                    bmp.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
+                    bmp.CacheOption = BitmapCacheOption.OnLoad;
+                    bmp.DecodePixelWidth = src.Width;
+                    bmp.DecodePixelHeight = src.Height;
+                    bmp.StreamSource = ms;
+                    bmp.EndInit();
+                    bmp.Freeze();
 
-                            result = bmp.Clone();
-                        }
-                        catch (Exception ex) { ReportMessage(ex); }
-                    }
+                    result = bmp.Clone();
                 }
+                catch (Exception ex) { ReportMessage(ex); }
             }
             return (result);
         }
@@ -937,24 +973,20 @@ namespace ImageSearch.Search
                 if (tiff_exts.Contains(Path.GetExtension(file).ToLower()))
                 {
                     var bytes = File.ReadAllBytes(file);
-                    using (var msi = new MemoryStream(bytes))
+                    using var msi = new MemoryStream(bytes);
+                    using var mso = new MemoryStream();
+                    try
                     {
-                        using (var mso = new MemoryStream())
-                        {
-                            try
-                            {
-                                msi.Seek(0, SeekOrigin.Begin);
+                        msi.Seek(0, SeekOrigin.Begin);
 
-                                BitmapEncoder encoder = new PngBitmapEncoder();
-                                encoder.Frames.Add(BitmapFrame.Create(msi));
-                                encoder.Save(mso);
+                        BitmapEncoder encoder = new PngBitmapEncoder();
+                        encoder.Frames.Add(BitmapFrame.Create(msi));
+                        encoder.Save(mso);
 
-                                mso.Seek(0, SeekOrigin.Begin);
-                                result = SKBitmap.Decode(mso);
-                            }
-                            catch (Exception ex) { ReportMessage(ex); }
-                        }
+                        mso.Seek(0, SeekOrigin.Begin);
+                        result = SKBitmap.Decode(mso);
                     }
+                    catch (Exception ex) { ReportMessage(ex); }
                 }
                 else
                 {
@@ -1067,30 +1099,7 @@ namespace ImageSearch.Search
 #endif
         public async Task<bool> CreateFeatureData(Storage storage)
         {
-            var result = false;
-            if (await BatchTaskIdle?.WaitAsync(0))
-            {
-                var info = new BatchTaskInfo()
-                {
-                    Folders = [storage],
-
-                    CancelToken = BatchCancel.Token,
-                    ParallelMode = Setting.ParallelMode,
-                    ParallelLimit = Setting.ParallelLimit,
-                    ParallelTimeOut = TimeSpan.FromSeconds(Setting.ParallelTimeOut),
-                    CheckPoint = Setting.ParallelCheckPoint
-                };
-
-                if (!BatchCancel.TryReset() && BatchCancel.IsCancellationRequested) BatchCancel = new CancellationTokenSource();
-                result = await Task.Run(async () =>
-                {
-                    return (await CreateFeatureDataAsync(info, BatchCancel.Token));
-                }, BatchCancel.Token);
-
-                ReportProgress(100);
-                ReportMessage("Batch work finished!", result ? TaskStatus.RanToCompletion : TaskStatus.Faulted);
-            }
-            return (result);
+            return (await CreateFeatureData([storage]));
         }
 
         public async Task<bool> CreateFeatureData(List<Storage> storage)
@@ -1109,7 +1118,7 @@ namespace ImageSearch.Search
                     CheckPoint = Setting.ParallelCheckPoint
                 };
 
-                if (!BatchCancel.TryReset() && BatchCancel.IsCancellationRequested) BatchCancel = new CancellationTokenSource();
+                if (BatchCancel.IsCancellationRequested) BatchCancel = new CancellationTokenSource();
                 result = await Task.Run(async () =>
                 {
                     return (await CreateFeatureDataAsync(info, BatchCancel.Token));
@@ -1118,12 +1127,12 @@ namespace ImageSearch.Search
                 if (result)
                 {
                     ReportProgress(100);
-                    ReportMessage("Batch work finished!");
+                    ReportMessage("Batch work finished!", TaskStatus.RanToCompletion);
                 }
                 else
                 {
                     ReportProgress(100);
-                    ReportMessage("Batch work canceled!");
+                    ReportMessage("Batch work canceled!", TaskStatus.Faulted);
                 }
             }
             return (result);
@@ -1921,13 +1930,11 @@ namespace ImageSearch.Search
             {
                 try
                 {
-                    using (SKBitmap? bmp_src = LoadImage(file))
+                    using SKBitmap? bmp_src = LoadImage(file);
+                    if (bmp_src is not null)
                     {
-                        if (bmp_src is not null)
-                        {
-                            ReportMessage($"Quering Label from {file}", RunningStatue);
-                            label = await GetImageLabel(bmp_src);
-                        }
+                        ReportMessage($"Quering Label from {file}", RunningStatue);
+                        label = await GetImageLabel(bmp_src);
                     }
                 }
                 catch (Exception ex) { ReportMessage(ex); }
@@ -1949,13 +1956,11 @@ namespace ImageSearch.Search
             {
                 try
                 {
-                    using (SKBitmap? bmp_src = LoadImage(file))
+                    using SKBitmap? bmp_src = LoadImage(file);
+                    if (bmp_src is not null)
                     {
-                        if (bmp_src is not null)
-                        {
-                            ReportMessage($"Extracting Feature from {file}");
-                            (feature, label) = await ExtractImaegFeature(bmp_src, labels);
-                        }
+                        ReportMessage($"Extracting Feature from {file}");
+                        (feature, label) = await ExtractImaegFeature(bmp_src, labels);
                     }
                 }
                 catch (Exception ex) { ReportMessage(ex); }
@@ -1980,14 +1985,10 @@ namespace ImageSearch.Search
                     SKBitmap bmp_thumb;
                     if (image.BytesPerPixel < 3)
                     {
-                        using (var bmp_palete = image.Resize(IMG_SIZE, SKFilterQuality.Medium))
-                        {
-                            bmp_thumb = new SKBitmap(bmp_palete.Width, bmp_palete.Height);
-                            using (var bmp_canvas = new SKCanvas(bmp_thumb))
-                            {
-                                bmp_canvas.DrawImage(SKImage.FromBitmap(bmp_palete), 0f, 0f);
-                            }
-                        }
+                        using var bmp_palete = image.Resize(IMG_SIZE, SKFilterQuality.Medium);
+                        bmp_thumb = new SKBitmap(bmp_palete.Width, bmp_palete.Height);
+                        using var bmp_canvas = new SKCanvas(bmp_thumb);
+                        bmp_canvas.DrawImage(SKImage.FromBitmap(bmp_palete), 0f, 0f);
                     }
                     else bmp_thumb = image.Resize(IMG_SIZE, SKFilterQuality.Medium);
 
@@ -2095,7 +2096,7 @@ namespace ImageSearch.Search
 
                     var f_name = names[rank_ID[i]];
                     if (string.IsNullOrEmpty(f_name)) continue;
-                    f_name = GetAbsolutePath(f_name);                    
+                    f_name = GetAbsolutePath(f_name);
                     if (!result.Exists(r => r.Key.Equals(f_name)) && File.Exists(f_name))
                     {
                         result.Add(new KeyValuePair<string, double>(f_name, rank_score[i]));
@@ -2155,11 +2156,11 @@ namespace ImageSearch.Search
                     {
                         ReportMessage($"Get Filtered Features ...");
                         var fdb = feats_obj.FeatureDB;
-                        if (_sub_files_ is not null && 
-                            subfiles.ToHashSet().SetEquals(_sub_files_) && 
-                            !string.IsNullOrEmpty(fdb) && 
-                            _sub_features_.TryGetValue(fdb, out FeatureData? sub_value) && 
-                            sub_value is not null && 
+                        if (_sub_files_ is not null &&
+                            subfiles.ToHashSet().SetEquals(_sub_files_) &&
+                            !string.IsNullOrEmpty(fdb) &&
+                            _sub_features_.TryGetValue(fdb, out FeatureData? sub_value) &&
+                            sub_value is not null &&
                             sub_value.Names.ToHashSet().SetEquals(_sub_files_))
                         {
                             ret = sub_value;
