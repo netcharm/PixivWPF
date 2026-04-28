@@ -632,13 +632,13 @@ namespace ImageViewer
             {
                 if (ValidOriginal)
                 {
-                    foreach (var profile in Original.ProfileNames) { if (Original.HasProfile(profile)) Profiles[profile] = Original.GetProfile(profile); }
-                    foreach (var attr in Original.AttributeNames) { Attributes[attr] = Original.GetAttribute(attr); }
+                    foreach (var profile in Original?.ProfileNames) { if (Original?.HasProfile(profile) ?? false) Profiles[profile] = Original?.GetProfile(profile); }
+                    foreach (var attr in Original?.AttributeNames) { Attributes[attr] = Original?.GetAttribute(attr); }
                 }
                 else if (ValidCurrent)
                 {
-                    foreach (var profile in Current.ProfileNames) { if (Current.HasProfile(profile)) Profiles[profile] = Current.GetProfile(profile); }
-                    foreach (var attr in Current.AttributeNames) { Attributes[attr] = Current.GetAttribute(attr); }
+                    foreach (var profile in Current?.ProfileNames) { if (Current?.HasProfile(profile) ?? false) Profiles[profile] = Current?.GetProfile(profile); }
+                    foreach (var attr in Current?.AttributeNames) { Attributes[attr] = Current?.GetAttribute(attr); }
                 }
             }
             catch { }

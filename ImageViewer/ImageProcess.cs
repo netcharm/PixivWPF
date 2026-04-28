@@ -55,6 +55,107 @@ namespace ImageViewer
         #endregion
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="align"></param>
+        /// <returns></returns>
+        public Gravity FlipX(Gravity align)
+        {
+            var result = align;
+
+            switch (align)
+            {
+                case Gravity.East: result = Gravity.West; break;
+                case Gravity.West: result = Gravity.East; break;
+                case Gravity.Northeast: result = Gravity.Northwest; break;
+                case Gravity.Northwest: result = Gravity.Northeast; break;
+                case Gravity.Southeast: result = Gravity.Southwest; break;
+                case Gravity.Southwest: result = Gravity.Southeast; break;
+            }
+
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="align"></param>
+        /// <returns></returns>
+        public Gravity FlipY(Gravity align)
+        {
+            var result = align;
+
+            switch (align)
+            {
+                case Gravity.North: result = Gravity.South; break;
+                case Gravity.South: result = Gravity.North; break;
+                case Gravity.Northeast: result = Gravity.Southeast; break;
+                case Gravity.Northwest: result = Gravity.Southwest; break;
+                case Gravity.Southeast: result = Gravity.Northeast; break;
+                case Gravity.Southwest: result = Gravity.Northwest; break;
+            }
+
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="align"></param>
+        /// <param name="angle"></param>
+        /// <returns></returns>
+        public Gravity Rotate(Gravity align, double angle)
+        { 
+            var result = align;
+
+            if (angle % 360 == 90 || angle % 360 == -270)
+            {
+                switch (align)
+                {
+                    case Gravity.North: result = Gravity.West; break;
+                    case Gravity.West: result = Gravity.South; break;
+                    case Gravity.South: result = Gravity.East; break;
+                    case Gravity.East: result = Gravity.North; break;
+                    case Gravity.Northeast: result  = Gravity.Northwest; break;
+                    case Gravity.Northwest: result = Gravity.Southwest; break;
+                    case Gravity.Southwest: result = Gravity.Southeast; break;
+                    case Gravity.Southeast: result  = Gravity.Northeast; break;
+                }
+            }
+            else if (angle % 360 == 180 || angle % 360 == -180)
+            {
+                switch (align)
+                {
+                    case Gravity.North: result = Gravity.South; break;
+                    case Gravity.South: result = Gravity.North; break;
+                    case Gravity.East: result = Gravity.West; break;
+                    case Gravity.West: result = Gravity.East; break;
+                    case Gravity.Northeast: result = Gravity.Southwest; break;
+                    case Gravity.Southwest: result = Gravity.Northeast; break;
+                    case Gravity.Northwest: result = Gravity.Southeast; break;
+                    case Gravity.Southeast: result = Gravity.Northwest; break;
+                }
+            }
+            else if (angle % 360 == 270 || angle % 360 == -90)
+            {
+                switch (align)
+                {
+                    case Gravity.North: result = Gravity.East; break;
+                    case Gravity.East: result = Gravity.South; break;
+                    case Gravity.South: result = Gravity.West; break;
+                    case Gravity.West: result = Gravity.North; break;
+                    case Gravity.Northeast: result = Gravity.Southeast; break;
+                    case Gravity.Southeast: result = Gravity.Southwest; break;
+                    case Gravity.Southwest: result = Gravity.Northwest; break;
+                    case Gravity.Northwest: result = Gravity.Northeast; break;
+                }
+            }
+
+            return (result);
+        }
+
+
+        /// <summary>
         ///
         /// </summary>
         /// <param name="source"></param>
@@ -660,6 +761,10 @@ namespace ImageViewer
                         case Gravity.Southwest: align = Gravity.Northeast; break;
                         default: break;
                     }
+                    if (image_s.Rotated % 360 != 0) align = Rotate(align, image_s.Rotated);
+                    if (image_s.FlipX) align = FlipX(align);
+                    if (image_s.FlipY) align = FlipY(align);
+
                     var box = new MagickGeometry(image_s.Current.Width, image_s.Current.Height)
                     {
                         IgnoreAspectRatio = true,
@@ -700,6 +805,7 @@ namespace ImageViewer
                 {
                     var px = percentage.ToDouble() - 100;
                     var py = percentage.ToDouble() - 100;
+
                     switch (align)
                     {
                         case Gravity.Center: px *= 2; py *= 2; break;
@@ -713,6 +819,10 @@ namespace ImageViewer
                         case Gravity.Southwest: align = Gravity.Northeast; break;
                         default: break;
                     }
+                    if (image_s.Rotated % 360 != 0) align = Rotate(align, image_s.Rotated);
+                    if (image_s.FlipX) align = FlipX(align);
+                    if (image_s.FlipY) align = FlipY(align);
+
                     var dx = Math.Floor(image_s.BaseSize.Width / 100f);
                     var dy =  Math.Floor(image_s.BaseSize.Height / 100f);
                     var box = new MagickGeometry((uint)image_s.BaseSize.Width, (uint)image_s.BaseSize.Height)
@@ -791,6 +901,10 @@ namespace ImageViewer
                         case Gravity.Southwest: align = Gravity.Northeast; break;
                         default: break;
                     }
+                    if (image_s.Rotated % 360 != 0) align = Rotate(align, image_s.Rotated);
+                    if (image_s.FlipX) align = FlipX(align);
+                    if (image_s.FlipY) align = FlipY(align);
+
                     var box = new MagickGeometry(image_s.Current.Width, image_s.Current.Height)
                     {
                         IgnoreAspectRatio = true,
@@ -836,6 +950,7 @@ namespace ImageViewer
                 {
                     var px = percentage.ToDouble() - 100;
                     var py = percentage.ToDouble() - 100;
+
                     switch (align)
                     {
                         case Gravity.Center: px *= 2; py *= 2; break;
@@ -849,6 +964,10 @@ namespace ImageViewer
                         case Gravity.Southwest: align = Gravity.Northeast; break;
                         default: break;
                     }
+                    if (image_s.Rotated % 360 != 0) align = Rotate(align, image_s.Rotated);
+                    if (image_s.FlipX) align = FlipX(align);
+                    if (image_s.FlipY) align = FlipY(align);
+
                     var dx = Math.Floor(image_s.BaseSize.Width / 100f);
                     var dy =  Math.Floor(image_s.BaseSize.Height / 100f);
                     var box = new MagickGeometry((uint)image_s.BaseSize.Width, (uint)image_s.BaseSize.Height)

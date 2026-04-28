@@ -1715,14 +1715,23 @@ namespace ImageViewer
             var size = SizeChanger.Dispatcher.Invoke(() => SizeChangeValue.Value ?? 0);
             var scale = SizeChanger.Dispatcher.Invoke(()=> SizeChangeScaleValue.Value ?? 0);
 
+            var angle = ImageViewerRotate.Dispatcher?.Invoke(() => ImageViewerRotate.Angle % 360) ?? 0;
+            var flipx = ImageViewerScale.Dispatcher?.Invoke(() => ImageViewerScale.ScaleX < 0) ?? false;
+            var flipy = ImageViewerScale.Dispatcher?.Invoke(() => ImageViewerScale.ScaleY < 0) ?? false;
+
+            var align = DefaultAlign;
+            if (angle != 0) align = Rotate(align, angle);
+            if (flipx) align = FlipX(align);
+            if (flipy) align = FlipY(align);
+
             if (sender == SizeChangeExtent && size > 0)
             {
-                RenderRun(() => { ExtentImageEdge(size, mode, DefaultAlign); });
+                RenderRun(() => { ExtentImageEdge(size, mode, align); });
                 if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
             }
             else if (sender == SizeChangeCrop && size > 0)
             {
-                RenderRun(() => { CropImageEdge(-1 * size, mode, DefaultAlign); });
+                RenderRun(() => { CropImageEdge(-1 * size, mode, align); });
                 if (await UpdateImageViewerFinished()) IsProcessingViewer = false;
             }
             else if (sender == SizeChangeEnlarge && scale > 0)
@@ -1821,8 +1830,11 @@ namespace ImageViewer
 
                 var quality = (uint)(QualityChangerSlider.Value);
 
-                await Task.Run(async () => { await Task.Delay(TimeSpan.FromMilliseconds(CountDownTimeOut)); }, _quality_change_.Token).ContinueWith(async (t, o) =>
-                {
+                //await Task.Run(async () => { await Task.Delay(TimeSpan.FromMilliseconds(CountDownTimeOut)); }, _quality_change_.Token).ContinueWith(async (t, o) =>
+                await Task.Run(async () => 
+                { 
+                    await Task.Delay(TimeSpan.FromMilliseconds(CountDownTimeOut), _quality_change_.Token); 
+
                     if (_quality_change_?.IsCancellationRequested ?? false) return;
                     try
                     {
@@ -1846,7 +1858,8 @@ namespace ImageViewer
                     catch (TaskCanceledException) { }
                     catch (Exception ex) { ex.ShowMessage(); }
                     finally { IsProcessingViewer = false; }
-                }, _quality_change_.Token, continuationOptions: TaskContinuationOptions.OnlyOnRanToCompletion);
+                }, _quality_change_.Token);
+                //}, _quality_change_.Token, continuationOptions: TaskContinuationOptions.OnlyOnRanToCompletion);
             }
         }
 
@@ -4511,8 +4524,8 @@ namespace ImageViewer
                         {
                             e.Handled = true;
                             SetQualityChangerTitle($"{quality_n}");
-                            QualityChangerDelay.Start();
-                            //DelayChangeQuality();
+                            //QualityChangerDelay.Start();
+                            DelayChangeQuality();
                         }
                     }
 #if DEBUG
