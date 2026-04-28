@@ -2911,6 +2911,9 @@ namespace ImageCompare
                 });
 
                 var image = source == ImageType.Source ? ImageSource : ImageTarget;
+                var scaler = source == ImageType.Source ? ImageSourceScale : ImageTargetScale;
+                var rotater = source == ImageType.Source ? ImageSourceRotate : ImageTargetRotate;
+
                 var indicator = source == ImageType.Source ? IsProcessingSource : IsProcessingTarget;
 
                 if (!Ready || IsImageNull(image) || indicator) return;
@@ -2919,14 +2922,23 @@ namespace ImageCompare
                 var size = SizeChanger.Dispatcher.Invoke(() => SizeChangeValue.Value ?? 0);
                 var scale = SizeChanger.Dispatcher.Invoke(()=> SizeChangeScaleValue.Value ?? 0);
 
+                var angle = rotater.Dispatcher?.Invoke(() => rotater.Angle % 360) ?? 0;
+                var flipx = scaler.Dispatcher?.Invoke(() => scaler.ScaleX < 0) ?? false;
+                var flipy = scaler.Dispatcher?.Invoke(() => scaler.ScaleY < 0) ?? false;
+
+                var align = SizeChangerAlign;
+                if (angle != 0) align = Rotate(align, angle);
+                if (flipx) align = FlipX(align);
+                if (flipy) align = FlipY(align);
+
                 if (sender == SizeChangeExtent && size > 0)
                 {
-                    RenderRun(() => { ExtentImageEdge(source == ImageType.Source, size, mode, SizeChangerAlign); });
+                    RenderRun(() => { ExtentImageEdge(source == ImageType.Source, size, mode, align); });
                     if (await UpdateImageViewerFinished()) indicator = false;
                 }
                 else if (sender == SizeChangeCrop && size > 0)
                 {
-                    RenderRun(() => { CropImageEdge(source == ImageType.Source, -1 * size, mode, SizeChangerAlign); });
+                    RenderRun(() => { CropImageEdge(source == ImageType.Source, -1 * size, mode, align); });
                     if (await UpdateImageViewerFinished()) indicator = false;
                 }
                 else if (sender == SizeChangeEnlarge && scale > 0)

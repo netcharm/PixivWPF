@@ -154,7 +154,6 @@ namespace ImageViewer
             return (result);
         }
 
-
         /// <summary>
         ///
         /// </summary>
