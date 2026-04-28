@@ -587,14 +587,16 @@ namespace PixivWPF.Common
                 _gc_?.Cancel();
                 await Task.Delay(250);
                 _gc_ = new();
-                await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60)); }, _gc_.Token).ContinueWith((t, o) => System.GC.Collect(), _gc_.Token, continuationOptions: TaskContinuationOptions.OnlyOnRanToCompletion);
+                //await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60)); }, _gc_.Token).ContinueWith((t, o) => System.GC.Collect(), _gc_.Token, continuationOptions: TaskContinuationOptions.OnlyOnRanToCompletion);
+                await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60), _gc_.Token); if (_gc_?.IsCancellationRequested ?? false) return; System.GC.Collect(); }, _gc_.Token);
             }
             else
             {
                 cancel?.Cancel();
                 await Task.Delay(250);
                 cancel = new();
-                await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60)); }, cancel.Token).ContinueWith((t, o) => System.GC.Collect(), _gc_.Token, continuationOptions: TaskContinuationOptions.OnlyOnRanToCompletion);
+                //await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60)); }, cancel.Token).ContinueWith((t, o) => System.GC.Collect(), _gc_.Token, continuationOptions: TaskContinuationOptions.OnlyOnRanToCompletion);
+                await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60), cancel.Token); if (cancel?.IsCancellationRequested ?? false) return; System.GC.Collect(); }, cancel.Token);
             }
         }
         #endregion
