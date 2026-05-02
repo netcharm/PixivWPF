@@ -403,7 +403,7 @@ namespace ImageViewer
         {
             try
             {
-                CloseQualityChanger();
+                CloseQualityChanger(drop: true);
                 ResetImageTransform(true);
 
                 UpdateIndaicatorState(true, true);

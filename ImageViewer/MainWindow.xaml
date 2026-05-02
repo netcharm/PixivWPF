@@ -51,7 +51,7 @@
                 </StackPanel>
             </Button>
             <Separator ToolBar.OverflowMode="Never"/>
-            <Button x:Name="ImageReload" x:Uid="ImageReload" ToolTip="Reload Image" Click="ImageActions_Click">
+            <Button x:Name="ImageReload" x:Uid="ImageReload" ToolTip="Reload Image" ToolBar.OverflowMode="Never" Click="ImageActions_Click">
                 <StackPanel x:Uid="ImageReloadPanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="RepeatLastActionIcon" Text="&#xE117;" Style="{DynamicResource MenuItemIcon}"/>
                 </StackPanel>

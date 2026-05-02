@@ -934,6 +934,8 @@ namespace ImageViewer
                 //ResetViewer();
                 IsLoadingViewer = true;
 
+                CloseQualityChanger(drop: true);
+
                 IDataObject dataPackage = Dispatcher?.Invoke(() => Clipboard.GetDataObject());
                 if (dataPackage != null)
                 {
@@ -990,7 +992,7 @@ namespace ImageViewer
                 var image =  ImageViewer.GetInformation();
                 if (await image?.LoadImageFromIndex(index, refresh))
                 {
-                    CloseQualityChanger();
+                    CloseQualityChanger(drop: true);
                     ClearImage();
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                 }
@@ -1018,7 +1020,7 @@ namespace ImageViewer
                 var image =  ImageViewer.GetInformation();
                 if (await image?.LoadImageFromIndex(pos, refresh))
                 {
-                    CloseQualityChanger();
+                    CloseQualityChanger(drop: true);
                     ClearImage();
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                 }
@@ -1045,7 +1047,7 @@ namespace ImageViewer
                 var image =  ImageViewer.GetInformation();
                 if (await image?.LoadImageFromFirstFile(refresh))
                 {
-                    CloseQualityChanger();
+                    CloseQualityChanger(drop: true);
                     ClearImage();
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                 }
@@ -1072,7 +1074,7 @@ namespace ImageViewer
                 var image =  ImageViewer.GetInformation();
                 if (await image?.LoadImageFromPrevFile(refresh))
                 {
-                    CloseQualityChanger();
+                    CloseQualityChanger(drop: true);
                     ClearImage();
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                 }
@@ -1099,7 +1101,7 @@ namespace ImageViewer
                 var image = ImageViewer.GetInformation();
                 if (await image?.LoadImageFromNextFile(refresh))
                 {
-                    CloseQualityChanger();
+                    CloseQualityChanger(drop: true);
                     ClearImage();
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                 }
@@ -1126,7 +1128,7 @@ namespace ImageViewer
                 var image =  ImageViewer.GetInformation();
                 if (await image?.LoadImageFromLastFile(refresh))
                 {
-                    CloseQualityChanger();
+                    CloseQualityChanger(drop: true);
                     ClearImage();
                     RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
                 }
@@ -1181,7 +1183,7 @@ namespace ImageViewer
 
                         if (ret)
                         {
-                            CloseQualityChanger();
+                            CloseQualityChanger(drop: true);
                             ClearImage();
                             ResetViewTransform(calcdisplay: false);
                             RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true));
@@ -1924,7 +1926,7 @@ namespace ImageViewer
         /// <summary>
         ///
         /// </summary>
-        private void CloseQualityChanger(bool restore = false)
+        private void CloseQualityChanger(bool restore = false, bool drop = false)
         {
             if (Ready && IsQualityChanger)
             {
@@ -1932,6 +1934,7 @@ namespace ImageViewer
                 {
                     try
                     {
+                        if (drop) return;
                         var image_s = ImageViewer.GetInformation();
                         if (image_s.ValidCurrent)
                         {
@@ -1955,11 +1958,11 @@ namespace ImageViewer
                                 }
                             }
                         }
-                        QualityChangerSlider.Tag = null;
                     }
                     catch (Exception ex) { ex.ShowMessage(); }
                     finally
                     {
+                        QualityChangerSlider.Tag = null;
                         QualityChanger.Close();
                         IsProcessingViewer = false;
                         _quality_orig_ = null;
@@ -3956,7 +3959,7 @@ namespace ImageViewer
                         var ret = file.FileDelete(recycle: !km.Shift) == 0;
                         if (ret)
                         {
-                            CloseQualityChanger(restore: false);
+                            CloseQualityChanger(drop: true);
 
                             ret &= await LoadImageFromIndexOfFile(ListPosition.Current, refresh: false);
                             //if (!ret) ret = await LoadImageFromPrevFile(refresh: false);
