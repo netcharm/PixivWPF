@@ -166,8 +166,8 @@ namespace PixivWPF.Common
         public double X20 { get; } = 192.0;
         public double Y20 { get; } = 192.0;
 
-        private static DPI dpi = new();
-        public static DPI Default
+        static private DPI dpi = new();
+        static public DPI Default
         {
             get { return (dpi); }
             set { dpi = value; }
@@ -215,7 +215,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR(); }
         }
 
-        public static DPI GetDefault(Visual visual)
+        static public DPI GetDefault(Visual visual)
         {
             var result = new DPI();
             try
@@ -231,7 +231,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static DPI FromVisual(Visual visual)
+        static public DPI FromVisual(Visual visual)
         {
             var source = PresentationSource.FromVisual(visual);
             var dpiX = 96.0;
@@ -252,7 +252,7 @@ namespace PixivWPF.Common
             return new DPI(dpiX, dpiY, scaleX, scaleY);
         }
 
-        public static DPI BySystemParameters()
+        static public DPI BySystemParameters()
         {
             BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Static;
             var dpiXProperty = typeof(SystemParameters).GetProperty("DpiX", flags);
@@ -425,7 +425,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void Search(string query, IEnumerable<string> folders, StorageSearchScope flags = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And)
+        static public void Search(string query, IEnumerable<string> folders, StorageSearchScope flags = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And)
         {
             if (!string.IsNullOrEmpty(query) && folders is not null)
             {
@@ -452,7 +452,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void Search(string query, IEnumerable<StorageType> folders, StorageSearchScope flags = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And)
+        static public void Search(string query, IEnumerable<StorageType> folders, StorageSearchScope flags = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And)
         {
             if (!string.IsNullOrEmpty(query) && folders is not null)
             {
@@ -673,24 +673,24 @@ namespace PixivWPF.Common
         }
     }
 
-    public static class CommonHelper
+    static public class CommonHelper
     {
-        private static Setting setting = Application.Current.LoadSetting();
-        private static CacheImage cache = new CacheImage();
-        private static ConcurrentDictionary<long?, Pixeez.Objects.Work> IllustCache = new ConcurrentDictionary<long?, Pixeez.Objects.Work>();
-        private static ConcurrentDictionary<long?, Pixeez.Objects.UserBase> UserCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserBase>();
-        private static ConcurrentDictionary<long?, Pixeez.Objects.UserInfo> UserInfoCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserInfo>();
-        private static ConcurrentDictionary<string, byte[]> DownloadTaskCache = new ConcurrentDictionary<string, byte[]>();
+        static private Setting setting = Application.Current.LoadSetting();
+        static private CacheImage cache = new CacheImage();
+        static private ConcurrentDictionary<long?, Pixeez.Objects.Work> IllustCache = new ConcurrentDictionary<long?, Pixeez.Objects.Work>();
+        static private ConcurrentDictionary<long?, Pixeez.Objects.UserBase> UserCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserBase>();
+        static private ConcurrentDictionary<long?, Pixeez.Objects.UserInfo> UserInfoCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserInfo>();
+        static private ConcurrentDictionary<string, byte[]> DownloadTaskCache = new ConcurrentDictionary<string, byte[]>();
 
-        private static ConcurrentDictionary<string, string> _FullListedUser_ = null;
-        public static ConcurrentDictionary<string, string> FullListedUser
+        static private ConcurrentDictionary<string, string> _FullListedUser_ = null;
+        static public ConcurrentDictionary<string, string> FullListedUser
         {
             get { if (!(_FullListedUser_ is not null)) _FullListedUser_ = new ConcurrentDictionary<string, string>(); return (_FullListedUser_); }
         }
 
-        private static SemaphoreSlim FullListedUserStateLock = new SemaphoreSlim(1, 1);
+        static private SemaphoreSlim FullListedUserStateLock = new SemaphoreSlim(1, 1);
 
-        public static void LoadFullListedUserState(this string file)
+        static public void LoadFullListedUserState(this string file)
         {
             if (!(_FullListedUser_ is not null)) _FullListedUser_ = new ConcurrentDictionary<string, string>();
             try
@@ -707,7 +707,7 @@ namespace PixivWPF.Common
             finally { if (FullListedUserStateLock?.CurrentCount <= 0) FullListedUserStateLock?.Release(); }
         }
 
-        public static void SaveFullListedUserState(this string file)
+        static public void SaveFullListedUserState(this string file)
         {
             try
             {
@@ -729,12 +729,12 @@ namespace PixivWPF.Common
             finally { if (FullListedUserStateLock?.CurrentCount <= 0) FullListedUserStateLock?.Release(); }
         }
 
-        public static bool IsFullListedUser(this string userid)
+        static public bool IsFullListedUser(this string userid)
         {
             return (string.IsNullOrEmpty(GetFullListedUserState(userid)));
         }
 
-        public static string GetFullListedUserState(this string userid)
+        static public string GetFullListedUserState(this string userid)
         {
             var result = string.Empty;
             if (!string.IsNullOrEmpty(userid))
@@ -745,7 +745,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool SetFullListedUserState(this string userid, bool remove = false)
+        static public bool SetFullListedUserState(this string userid, bool remove = false)
         {
             var result = false;
             if (!string.IsNullOrEmpty(userid))
@@ -767,7 +767,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void SetUserFullListedState(this Application app)
+        static public void SetUserFullListedState(this Application app)
         {
             Application.Current.Dispatcher.InvokeAsync(() =>
             {
@@ -781,7 +781,7 @@ namespace PixivWPF.Common
             });
         }
 
-        public static void RemoveUserFullListedState(this Application app)
+        static public void RemoveUserFullListedState(this Application app)
         {
             Application.Current.Dispatcher.InvokeAsync(() =>
             {
@@ -795,9 +795,9 @@ namespace PixivWPF.Common
             });
         }
 
-        private static ConcurrentDictionary<string, int> DownloadedImageQualityInfoCache = new();
+        static private ConcurrentDictionary<string, int> DownloadedImageQualityInfoCache = new();
 
-        public static int GetImageQualityInfo(this string file)
+        static public int GetImageQualityInfo(this string file)
         {
             var result = -1;
             try
@@ -817,7 +817,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool SetImageFileQualityInfo(this string file, int quality)
+        static public bool SetImageFileQualityInfo(this string file, int quality)
         {
             var result = false;
             try
@@ -837,22 +837,22 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static ConcurrentDictionary<string, string> _TagsCache = null;
-        public static ConcurrentDictionary<string, string> TagsCache
+        static private ConcurrentDictionary<string, string> _TagsCache = null;
+        static public ConcurrentDictionary<string, string> TagsCache
         {
             get { if (_TagsCache == null) _TagsCache = new ConcurrentDictionary<string, string>(); return (_TagsCache); }
         }
-        private static ConcurrentDictionary<string, string>  _TagsT2S = null;
-        public static ConcurrentDictionary<string, string> TagsT2S
+        static private ConcurrentDictionary<string, string>  _TagsT2S = null;
+        static public ConcurrentDictionary<string, string> TagsT2S
         {
             get { if (_TagsT2S == null) _TagsT2S = new ConcurrentDictionary<string, string>(StringComparer.CurrentCultureIgnoreCase); return (_TagsT2S); }
         }
-        private static OrderedDictionary _TagsWildecardT2S = null;
-        public static OrderedDictionary TagsWildecardT2S
+        static private OrderedDictionary _TagsWildecardT2S = null;
+        static public OrderedDictionary TagsWildecardT2S
         {
             get { if (_TagsWildecardT2S == null) _TagsWildecardT2S = new OrderedDictionary(); return (_TagsWildecardT2S); }
         }
-        private static List<string> _BadTags_ = new List<string>();
+        static private List<string> _BadTags_ = new List<string>();
 
         private class TagsWildecardCacheItem
         {
@@ -861,30 +861,30 @@ namespace PixivWPF.Common
             public List<string> LastKeys { get; set; } = new List<string>();
             public string LastTranslated { get; set; } = string.Empty;
         }
-        private static ConcurrentDictionary<string, TagsWildecardCacheItem> _TagsWildecardT2SCache = new ConcurrentDictionary<string, TagsWildecardCacheItem>(StringComparer.CurrentCultureIgnoreCase);
+        static private ConcurrentDictionary<string, TagsWildecardCacheItem> _TagsWildecardT2SCache = new ConcurrentDictionary<string, TagsWildecardCacheItem>(StringComparer.CurrentCultureIgnoreCase);
 
-        private static List<string> ext_imgs = new List<string>() { ".png", ".jpg", ".gif", ".bmp", ".webp", ".tif", ".tiff", ".jpeg" };
-        private static List<string> ext_movs = new List<string>() { ".webm", ".mp4", ".mov", ".ogv", ".ogg",".gif", ".zip" };
-        private static char[] trim_char = new char[] { ' ', ',', '.', '/', '\\', '\r', '\n', ':', ';' };
-        private static string[] trim_str = new string[] { Environment.NewLine };
-        private static string regex_img_ext = @"\.(png|jpg|jpeg|gif|bmp|zip|webp)";
-        private static string regex_symbol = @"([\u0020-\u002F\u003A-\u0040\u005B-\u005E\u007B-\u007E])";
-        private static string regex_invalid_char  = @"[\u2000-\u200B]";
+        static private List<string> ext_imgs = new List<string>() { ".png", ".jpg", ".gif", ".bmp", ".webp", ".tif", ".tiff", ".jpeg" };
+        static private List<string> ext_movs = new List<string>() { ".webm", ".mp4", ".mov", ".ogv", ".ogg",".gif", ".zip" };
+        static private char[] trim_char = new char[] { ' ', ',', '.', '/', '\\', '\r', '\n', ':', ';' };
+        static private string[] trim_str = new string[] { Environment.NewLine };
+        static private string regex_img_ext = @"\.(png|jpg|jpeg|gif|bmp|zip|webp)";
+        static private string regex_symbol = @"([\u0020-\u002F\u003A-\u0040\u005B-\u005E\u007B-\u007E])";
+        static private string regex_invalid_char  = @"[\u2000-\u200B]";
 
-        private static double VALUE_GB = 1024 * 1024 * 1024;
-        private static double VALUE_MB = 1024 * 1024;
-        private static double VALUE_KB = 1024;
+        static private double VALUE_GB = 1024 * 1024 * 1024;
+        static private double VALUE_MB = 1024 * 1024;
+        static private double VALUE_KB = 1024;
 
         #region Shell Object Properties
         //Get a List of the properties from a type
-        public static PropertyInfo[] ListOfPropertiesFromInstance(Type AType)
+        static public PropertyInfo[] ListOfPropertiesFromInstance(Type AType)
         {
             if (AType == null) return null;
             return AType.GetProperties(BindingFlags.Public);
         }
 
         //Get a List of the properties from a instance of a class
-        public static PropertyInfo[] ListOfPropertiesFromInstance(object InstanceOfAType)
+        static public PropertyInfo[] ListOfPropertiesFromInstance(object InstanceOfAType)
         {
             if (InstanceOfAType == null) return null;
             Type TheType = InstanceOfAType.GetType();
@@ -892,7 +892,7 @@ namespace PixivWPF.Common
         }
 
         //purrfect for usage example and Get a Map of the properties from a instance of a class
-        public static Dictionary<string, PropertyInfo> DictionaryOfPropertiesFromInstance(object InstanceOfAType, BindingFlags? flag = null)
+        static public Dictionary<string, PropertyInfo> DictionaryOfPropertiesFromInstance(object InstanceOfAType, BindingFlags? flag = null)
         {
             if (InstanceOfAType == null) return null;
             Type TheType = InstanceOfAType.GetType();
@@ -907,7 +907,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region File type identification
-        public static bool IsImage(this string file)
+        static public bool IsImage(this string file)
         {
             if (file is not null && !string.IsNullOrEmpty(file))
             {
@@ -917,7 +917,7 @@ namespace PixivWPF.Common
             else return (false);
         }
 
-        public static bool IsPng(this string file)
+        static public bool IsPng(this string file)
         {
             if (file is string && !string.IsNullOrEmpty(file))
             {
@@ -928,7 +928,7 @@ namespace PixivWPF.Common
             else return (false);
         }
 
-        public static bool IsMovie(this string file)
+        static public bool IsMovie(this string file)
         {
             if (file is string && !string.IsNullOrEmpty(file))
             {
@@ -938,7 +938,7 @@ namespace PixivWPF.Common
             else return (false);
         }
 
-        public static bool IsZip(this string file)
+        static public bool IsZip(this string file)
         {
             if (file is string && !string.IsNullOrEmpty(file))
             {
@@ -949,7 +949,7 @@ namespace PixivWPF.Common
             else return (false);
         }
 
-        public static bool IsImage(this FileInfo file)
+        static public bool IsImage(this FileInfo file)
         {
             if (file is FileInfo)
             {
@@ -959,7 +959,7 @@ namespace PixivWPF.Common
             else return (false);
         }
 
-        public static bool IsPng(this FileInfo file)
+        static public bool IsPng(this FileInfo file)
         {
             if (file is FileInfo)
             {
@@ -969,7 +969,7 @@ namespace PixivWPF.Common
             else return (false);
         }
 
-        public static bool IsMovie(this FileInfo file)
+        static public bool IsMovie(this FileInfo file)
         {
             if (file is FileInfo)
             {
@@ -979,7 +979,7 @@ namespace PixivWPF.Common
             else return (false);
         }
 
-        public static bool IsZip(this FileInfo file)
+        static public bool IsZip(this FileInfo file)
         {
             if (file is FileInfo)
             {
@@ -992,9 +992,9 @@ namespace PixivWPF.Common
         #endregion
 
         #region Pixiv Token Helper
-        private static SemaphoreSlim CanRefreshToken = new SemaphoreSlim(1, 1);
-        private static CancellationTokenSource CancelRefreshSource = new CancellationTokenSource();
-        private static async Task<Pixeez.Tokens> RefreshToken(CancellationTokenSource cancelToken = null)
+        static private SemaphoreSlim CanRefreshToken = new SemaphoreSlim(1, 1);
+        static private CancellationTokenSource CancelRefreshSource = new CancellationTokenSource();
+        static private async Task<Pixeez.Tokens> RefreshToken(CancellationTokenSource cancelToken = null)
         {
             Pixeez.Tokens result = null;
             setting = Application.Current.LoadSetting();
@@ -1060,9 +1060,9 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static SemaphoreSlim CanShowLogin = new SemaphoreSlim(1, 1);
-        private static CancellationTokenSource CancelShowLoginSource = new CancellationTokenSource();
-        public static async Task<Pixeez.Tokens> ShowLogin(bool force = false, CancellationTokenSource canceltoken = null)
+        static private SemaphoreSlim CanShowLogin = new SemaphoreSlim(1, 1);
+        static private CancellationTokenSource CancelShowLoginSource = new CancellationTokenSource();
+        static public async Task<Pixeez.Tokens> ShowLogin(bool force = false, CancellationTokenSource canceltoken = null)
         {
             Pixeez.Tokens result = null;
             CancelShowLoginSource = canceltoken is CancellationTokenSource ? canceltoken : new CancellationTokenSource();
@@ -1156,7 +1156,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string AccessToken(this Application app)
+        static public string AccessToken(this Application app)
         {
             var result = string.Empty;
             try
@@ -1168,7 +1168,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string RefreshToken(this Application app)
+        static public string RefreshToken(this Application app)
         {
             var result = string.Empty;
             try
@@ -1180,7 +1180,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool DownloadUsingToken(this Application app)
+        static public bool DownloadUsingToken(this Application app)
         {
             var setting = Application.Current.LoadSetting();
             return (setting.DownloadByAPI && !string.IsNullOrEmpty(setting.AccessToken) && setting.ExpTime <= DateTime.Now);
@@ -1188,7 +1188,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region WebBrowser helper
-        public static string GetText(this System.Windows.Forms.WebBrowser browser, bool html = false, bool all_without_selection = true)
+        static public string GetText(this System.Windows.Forms.WebBrowser browser, bool html = false, bool all_without_selection = true)
         {
             string result = string.Empty;
             try
@@ -1235,7 +1235,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Link parsing/genaration helper
-        public static bool IsFile(this string text)
+        static public bool IsFile(this string text)
         {
             var result = false;
             Uri unc = null;
@@ -1255,7 +1255,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static IList<string> ParseDataObject(this IDataObject dp)
+        static public IList<string> ParseDataObject(this IDataObject dp)
         {
             var result = new List<string>();
             if (dp is IDataObject)
@@ -1312,17 +1312,17 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static IList<string> ParseClipboard() => (IList<string>)Application.Current.Dispatcher.InvokeAsync(() =>
+        static public IList<string> ParseClipboard() => (IList<string>)Application.Current.Dispatcher.InvokeAsync(() =>
         {
             return (ParseDataObject(Clipboard.GetDataObject()));
         });
 
-        public static IList<string> ParseDragContent(this DragEventArgs e)
+        static public IList<string> ParseDragContent(this DragEventArgs e)
         {
             return (e is DragEventArgs && e.Data is IDataObject ? ParseDataObject(e.Data).ToList() : new List<string>());
         }
 
-        public static string ParseID(this string searchContent)
+        static public string ParseID(this string searchContent)
         {
             var patten =  @"((UserID|PID)|(IllustID)|(User)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)|(Downloading))[：:]\s*(.*?)$";
             string result = searchContent;
@@ -1333,7 +1333,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string ParseLink(this string link)
+        static public string ParseLink(this string link)
         {
             string result = link;
 
@@ -1395,8 +1395,8 @@ namespace PixivWPF.Common
             return (result.Trim().Trim(trim_char).HtmlDecode());
         }
 
-        private static string[] html_split = new string[] { Environment.NewLine, "\n", "\r", "\t", "url", "src", "href", "<p>", "</p>", "<br/>", "<br>", "<br />", "><", "</a>", ">", "&nbsp;" };//, " " };
-        public static IList<string> ParseLinks(this string html, bool is_src = false)
+        static private string[] html_split = new string[] { Environment.NewLine, "\n", "\r", "\t", "url", "src", "href", "<p>", "</p>", "<br/>", "<br>", "<br />", "><", "</a>", ">", "&nbsp;" };//, " " };
+        static public IList<string> ParseLinks(this string html, bool is_src = false)
         {
             List<string> links = new List<string>();
             var href_prefix_0 = is_src ? @"(href="")?" : string.Empty;
@@ -1723,81 +1723,36 @@ namespace PixivWPF.Common
             return (links);
         }
 
-        public static string ArtworkLink(this string id)
+        static public string ArtworkLink(this string id)
         {
             long iid = -1;
             return (string.IsNullOrEmpty(id) || !long.TryParse(id, out iid) || iid < 0 ? string.Empty : $"https://www.pixiv.net/artworks/{id}");
         }
 
-        public static string ArtworkLink(this long id)
+        static public string ArtworkLink(this long id)
         {
             return (id < 0 ? string.Empty : $"https://www.pixiv.net/artworks/{id}");
         }
 
-        public static string ArtistLink(this string id)
+        static public string ArtistLink(this string id)
         {
             long uid = -1;
             return (string.IsNullOrEmpty(id) || !long.TryParse(id, out uid) || uid < 0 ? string.Empty : $"https://www.pixiv.net/users/{id}");
         }
 
-        public static string ArtistLink(this long id)
+        static public string ArtistLink(this long id)
         {
             return (id < 0 ? string.Empty : $"https://www.pixiv.net/users/{id}");
         }
 
-        public static string TagLink(this string tag)
+        static public string TagLink(this string tag)
         {
             return (string.IsNullOrEmpty(tag) ? string.Empty : Uri.EscapeUriString($"https://www.pixiv.net/tags/{tag}"));
         }
         #endregion
 
-        #region Text process routines
-        public static bool IsAlpha(this string text)
-        {
-            return (Regex.IsMatch(text, @"^[\u0020-\u007E]+$", RegexOptions.IgnoreCase));
-        }
-
-        //
-        // https://stackoverflow.com/a/6944095/1842521
-        //
-        public static int LevenshteinDistance(string s, string t)
-        {
-            if (string.IsNullOrEmpty(s))
-            {
-                if (string.IsNullOrEmpty(t))
-                    return 0;
-                return t.Length;
-            }
-
-            if (string.IsNullOrEmpty(t))
-            {
-                return s.Length;
-            }
-
-            int n = s.Length;
-            int m = t.Length;
-            int[,] d = new int[n + 1, m + 1];
-
-            // initialize the top and right of the table to 0, 1, 2, ...
-            for (int i = 0; i <= n; d[i, 0] = i++) ;
-            for (int j = 1; j <= m; d[0, j] = j++) ;
-
-            for (int i = 1; i <= n; i++)
-            {
-                for (int j = 1; j <= m; j++)
-                {
-                    int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
-                    int min1 = d[i - 1, j] + 1;
-                    int min2 = d[i, j - 1] + 1;
-                    int min3 = d[i - 1, j - 1] + cost;
-                    d[i, j] = Math.Min(Math.Min(min1, min2), min3);
-                }
-            }
-            return d[n, m];
-        }
-
         #region Kana Half To Full Lookup Map
-        private static Dictionary<string, string> KanaToFullMap = new Dictionary<string, string>()
+        static private Dictionary<string, string> KanaToFullMap = new Dictionary<string, string>()
         {
             {"ｸﾞ", "グ"}, {"ﾎﾟ", "ポ"}, {"ｹﾞ", "ゲ"}, {"ｶﾞ", "ガ"}, {"ｷﾞ", "ギ"},
             {"ｺﾞ", "ゴ"}, {"ｻﾞ", "ザ"}, {"ｼﾞ", "ジ"}, {"ｽﾞ", "ズ"}, {"ｾﾞ", "ゼ"},
@@ -1832,7 +1787,7 @@ namespace PixivWPF.Common
         };
         #endregion
 
-        #region Convert Chinese to Japanese Kanji
+        #region Converter of Chinese & Japanese Kanji
         static private Encoding GB2312 = Encoding.GetEncoding("GB2312");
         static private Encoding JIS = Encoding.GetEncoding("SHIFT_JIS");
         static private List<char> GB2312_List { get; set; } = new List<char>();
@@ -1927,9 +1882,8 @@ namespace PixivWPF.Common
 
             return (result);
         }
-        #endregion
 
-        public static string KatakanaHalfToFull(this string text, bool lookup = true)
+        static public string KatakanaHalfToFull(this string text, bool lookup = true)
         {
             if (string.IsNullOrEmpty(text)) return (string.Empty);
 
@@ -1960,9 +1914,55 @@ namespace PixivWPF.Common
             }
             return result;
         }
+        #endregion
 
-        private static ConcurrentDictionary<string, string> _symbol_letters_ = new ConcurrentDictionary<string, string>();
-        private static ConcurrentDictionary<string, string> SymbolLetterTable
+        #region Other Text process routines
+        static public bool IsAlpha(this string text)
+        {
+            return (Regex.IsMatch(text, @"^[\u0020-\u007E]+$", RegexOptions.IgnoreCase));
+        }
+
+        //
+        // https://stackoverflow.com/a/6944095/1842521
+        //
+        static public int LevenshteinDistance(string s, string t)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                if (string.IsNullOrEmpty(t))
+                    return 0;
+                return t.Length;
+            }
+
+            if (string.IsNullOrEmpty(t))
+            {
+                return s.Length;
+            }
+
+            int n = s.Length;
+            int m = t.Length;
+            int[,] d = new int[n + 1, m + 1];
+
+            // initialize the top and right of the table to 0, 1, 2, ...
+            for (int i = 0; i <= n; d[i, 0] = i++) ;
+            for (int j = 1; j <= m; d[0, j] = j++) ;
+
+            for (int i = 1; i <= n; i++)
+            {
+                for (int j = 1; j <= m; j++)
+                {
+                    int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
+                    int min1 = d[i - 1, j] + 1;
+                    int min2 = d[i, j - 1] + 1;
+                    int min3 = d[i - 1, j - 1] + cost;
+                    d[i, j] = Math.Min(Math.Min(min1, min2), min3);
+                }
+            }
+            return d[n, m];
+        }
+
+        static private ConcurrentDictionary<string, string> _symbol_letters_ = new ConcurrentDictionary<string, string>();
+        static private ConcurrentDictionary<string, string> SymbolLetterTable
         {
             get
             {
@@ -1984,7 +1984,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static string SymbolToLetter(this string text)
+        static public string SymbolToLetter(this string text)
         {
             var result = new List<string>();
             try
@@ -1999,12 +1999,12 @@ namespace PixivWPF.Common
             return (result.Count <= 0 ? text : string.Join(string.Empty, result));
         }
 
-        public static string Normalizing(this string text)
+        static public string Normalizing(this string text)
         {
             return (SymbolToLetter(KatakanaHalfToFull(text)));
         }
 
-        public static string MaintainCustomTagFile(this Application app, bool save = true)
+        static public string MaintainCustomTagFile(this Application app, bool save = true)
         {
             var setting = Application.Current.LoadSetting();
             var tag_file = Path.Combine(Application.Current.GetRoot(), setting.CustomTagsFile);
@@ -2027,13 +2027,13 @@ namespace PixivWPF.Common
             return (tag_file);
         }
 
-        public static void TagWildcardCacheClear(this IEnumerable<string> keys)
+        static public void TagWildcardCacheClear(this IEnumerable<string> keys)
         {
             try { foreach (var key in keys) TagWildcardCacheClear(key); }
             catch (Exception ex) { ex.ERROR("TagWildcardCacheClear"); }
         }
 
-        public static void TagWildcardCacheClear(this string key)
+        static public void TagWildcardCacheClear(this string key)
         {
             try
             {
@@ -2050,13 +2050,13 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("TagWildcardCacheClear"); }
         }
 
-        public static void TagWildcardCacheClear(Application app)
+        static public void TagWildcardCacheClear(Application app)
         {
             try { _BadTags_.Clear(); _TagsWildecardT2SCache.Clear(); }
             catch (Exception ex) { ex.ERROR("TagWildcardCacheClear"); }
         }
 
-        public static void TagWildcardCacheUpdate(this string key, string value = "")
+        static public void TagWildcardCacheUpdate(this string key, string value = "")
         {
             try
             {
@@ -2092,7 +2092,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("TagWildcardChanged"); }
         }
 
-        public static void TagWildcardCacheUpdate(this DictionaryEntry entry)
+        static public void TagWildcardCacheUpdate(this DictionaryEntry entry)
         {
             try
             {
@@ -2103,7 +2103,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("TagWildcardChanged"); }
         }
 
-        public static string TranslatedText(this string src, out string matched, string translated = default(string))
+        static public string TranslatedText(this string src, out string matched, string translated = default(string))
         {
             var result = src;
             matched = string.Empty;
@@ -2293,7 +2293,7 @@ namespace PixivWPF.Common
             return (result.Trim().Replace("\\n", "\n").TrimEnd(new char[] { ',', '，' }));
         }
 
-        public static string InsertLineBreak(this string text, int lineLength)
+        static public string InsertLineBreak(this string text, int lineLength)
         {
             if (string.IsNullOrEmpty(text)) return (string.Empty);
             //return Regex.Replace(text, @"(.{" + lineLength + @"})", "$1" + Environment.NewLine);
@@ -2336,7 +2336,7 @@ namespace PixivWPF.Common
             return (string.Join(Environment.NewLine, ts));
         }
 
-        public static string HtmlClean(this string text)
+        static public string HtmlClean(this string text)
         {
             string result = text;
             if (!string.IsNullOrEmpty(result))
@@ -2353,13 +2353,13 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string HtmlEncode(this string text)
+        static public string HtmlEncode(this string text)
         {
             if (string.IsNullOrEmpty(text)) return (string.Empty);
             else return (WebUtility.HtmlEncode(text));
         }
 
-        public static string HtmlDecode(this string text, bool br = true)
+        static public string HtmlDecode(this string text, bool br = true)
         {
             string result = text;
             if (!string.IsNullOrEmpty(result))
@@ -2385,7 +2385,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string HtmlFormatBreakLine(this string text, bool br = true)
+        static public string HtmlFormatBreakLine(this string text, bool br = true)
         {
             var result = text.Replace("\r\n", "<br />").Replace("\n\r", "<br/>").Replace("\r", "<br/>").Replace("\n", "<br/>");
             if (br) result = Regex.Replace(result, @"<br *?/>", $"<br/>{Environment.NewLine}");
@@ -2399,7 +2399,7 @@ namespace PixivWPF.Common
         /// </summary>
         /// <param name="html"></param>
         /// <returns></returns>
-        public static string HtmlToText(this string html)
+        static public string HtmlToText(this string html)
         {
             if (string.IsNullOrEmpty(html)) return (html);
             string result = string.Copy(html);
@@ -2444,7 +2444,7 @@ namespace PixivWPF.Common
             return result;
         }
 
-        public static string HtmlToText(this string html, bool decode = false, bool br = false, bool limit = false, int limitcount = 512, bool breakline = false, int breakcount = 72)
+        static public string HtmlToText(this string html, bool decode = false, bool br = false, bool limit = false, int limitcount = 512, bool breakline = false, int breakcount = 72)
         {
             if (string.IsNullOrEmpty(html)) return (html);
             var result = html.TrimEnd().HtmlToText();
@@ -2454,13 +2454,13 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string FilterInvalidChar(this string text)
+        static public string FilterInvalidChar(this string text)
         {
             if (string.IsNullOrEmpty(text)) return (text);
             else return (Regex.Replace(text, regex_invalid_char, " "));
         }
 
-        public static string GetDefaultTemplate()
+        static public string GetDefaultTemplate()
         {
             var result = string.Empty;
             if (setting is Setting)
@@ -2534,7 +2534,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string GetHtmlFromTemplate(this string contents, string title = "", string src = "")
+        static public string GetHtmlFromTemplate(this string contents, string title = "", string src = "")
         {
             var backcolor = Theme.WhiteColor.ToHtml();
             if (backcolor.StartsWith("#FF") && backcolor.Length > 6) backcolor = backcolor.Replace("#FF", "#");
@@ -2564,7 +2564,7 @@ namespace PixivWPF.Common
             return (template.ToString());
         }
 
-        public static async void UpdateIllustTagsAsync()
+        static public async void UpdateIllustTagsAsync()
         {
             await new Action(async () =>
             {
@@ -2592,17 +2592,17 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         }
 
-        public static void UpdateIllustTags(this ConcurrentDictionary<string, string> tags)
+        static public void UpdateIllustTags(this ConcurrentDictionary<string, string> tags)
         {
             UpdateIllustTagsAsync();
         }
 
-        public static void UpdateIllustTags(this Application app)
+        static public void UpdateIllustTags(this Application app)
         {
             UpdateIllustTagsAsync();
         }
 
-        public static async void UpdateIllustDescAsync()
+        static public async void UpdateIllustDescAsync()
         {
             await new Action(() =>
             {
@@ -2626,17 +2626,17 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         }
 
-        public static void UpdateIllustDesc(this string content)
+        static public void UpdateIllustDesc(this string content)
         {
             UpdateIllustDescAsync();
         }
 
-        public static void UpdateIllustDesc(this Application app)
+        static public void UpdateIllustDesc(this Application app)
         {
             UpdateIllustDescAsync();
         }
 
-        public static async void UpdateWebContentAsync()
+        static public async void UpdateWebContentAsync()
         {
             await new Action(() =>
             {
@@ -2660,18 +2660,18 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         }
 
-        public static void UpdateWebContent(this Pixeez.Objects.Work illust)
+        static public void UpdateWebContent(this Pixeez.Objects.Work illust)
         {
             UpdateWebContentAsync();
         }
 
-        public static void UpdateWebContent(this Application app)
+        static public void UpdateWebContent(this Application app)
         {
             UpdateWebContentAsync();
         }
 
         // To return an array of strings instead:
-        public static string[] Slice(this string text, int lineLength)
+        static public string[] Slice(this string text, int lineLength)
         {
             if (string.IsNullOrEmpty(text)) return (new string[] { });
             //return Regex.Matches(text, @"(.{" + lineLength + @"})").Cast<Match>().Select(m => m.Value).ToArray();
@@ -2682,7 +2682,7 @@ namespace PixivWPF.Common
             return Regex.Matches(t, @"(.{" + lineLength + @"})", RegexOptions.IgnoreCase | RegexOptions.Multiline).Cast<Match>().Select(m => m.Value).ToArray();
         }
 
-        public static string[] Where(this string cmd)
+        static public string[] Where(this string cmd)
         {
             var result = new List<string>();
 
@@ -2701,7 +2701,7 @@ namespace PixivWPF.Common
             return (result.ToArray());
         }
 
-        public static int GetIllustPageIndex(this string url)
+        static public int GetIllustPageIndex(this string url)
         {
             int idx = -1;
             if (!string.IsNullOrEmpty(url))
@@ -2713,7 +2713,7 @@ namespace PixivWPF.Common
             return (idx);
         }
 
-        public static string GetIllustId(this string url)
+        static public string GetIllustId(this string url)
         {
             string result = string.Empty;
             if (!string.IsNullOrEmpty(url))
@@ -2736,13 +2736,13 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string GetIllustId(this string url, out int index)
+        static public string GetIllustId(this string url, out int index)
         {
             index = GetIllustPageIndex(url);
             return (GetIllustId(url));
         }
 
-        public static string GetImageId(this string url)
+        static public string GetImageId(this string url)
         {
             string result = string.Empty;
             if (!string.IsNullOrEmpty(url))
@@ -2752,7 +2752,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string SanityAge(this Pixeez.Objects.Work work)
+        static public string SanityAge(this Pixeez.Objects.Work work)
         {
             var age = "all";
             if (work is Pixeez.Objects.IllustWork)
@@ -2762,7 +2762,7 @@ namespace PixivWPF.Common
             return (age);
         }
 
-        public static string SanityAge(this string sanity)
+        static public string SanityAge(this string sanity)
         {
             string age = "all";
 
@@ -2790,27 +2790,27 @@ namespace PixivWPF.Common
             return (age);
         }
 
-        public static string SanityAgeTag(this string sanity)
+        static public string SanityAgeTag(this string sanity)
         {
             var age = SanityAge(sanity);
             string tag = age.Equals("all", StringComparison.CurrentCultureIgnoreCase) ? string.Empty : $"R-{age}".TrimEnd('+');
             return (tag);
         }
 
-        public static string SanityAgeTag(this Pixeez.Objects.Work work)
+        static public string SanityAgeTag(this Pixeez.Objects.Work work)
         {
             var age = work.SanityAge();
             string tag = age.SanityAgeTag();
             return (tag);
         }
 
-        public static string AIGCTag(this Pixeez.Objects.Work work)
+        static public string AIGCTag(this Pixeez.Objects.Work work)
         {
             string tag = work.IsAI() ? $"AIGC-2" : (work.HasAI() ? "AIGC-1" : string.Empty);
             return (tag);
         }
 
-        public static IEnumerable<string> TagsTrans(this Pixeez.Objects.Work work)
+        static public IEnumerable<string> TagsTrans(this Pixeez.Objects.Work work)
         {
             var result = new List<string>();
             if (work is Pixeez.Objects.Work)
@@ -2822,7 +2822,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static IEnumerable<string> Tags(this Pixeez.Objects.Work work, IEnumerable<string> extras = null, bool add_trans = false, bool add_sanity = false, bool add_aigc = false)
+        static public IEnumerable<string> Tags(this Pixeez.Objects.Work work, IEnumerable<string> extras = null, bool add_trans = false, bool add_sanity = false, bool add_aigc = false)
         {
             var result = new List<string>();
             if (work is Pixeez.Objects.Work)
@@ -2838,26 +2838,26 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string FolderMacroReplace(this string text)
+        static public string FolderMacroReplace(this string text)
         {
             var result = text;
             result = MacroReplace(result, @"%id%", text.GetIllustId());
             return (result);
         }
 
-        public static string FolderMacroReplace(this string text, string target)
+        static public string FolderMacroReplace(this string text, string target)
         {
             var result = text;
             result = MacroReplace(result, @"%id%", target);
             return (result);
         }
 
-        public static string MacroReplace(this string text, string macro, string target)
+        static public string MacroReplace(this string text, string macro, string target)
         {
             return (Regex.Replace(text, macro, target, RegexOptions.IgnoreCase));
         }
 
-        public static void ShellImageCompare(this string file_s, string file_t = "")
+        static public void ShellImageCompare(this string file_s, string file_t = "")
         {
             if (string.IsNullOrEmpty(setting.ShellImageCompareCmd)) return;
             var shell = Path.IsPathRooted(setting.ShellImageCompareCmd) ? setting.ShellImageCompareCmd : Path.Combine(Application.Current.GetRoot(), setting.ShellImageCompareCmd);
@@ -2871,7 +2871,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void ShellImageCompare(this IEnumerable<string> files)
+        static public void ShellImageCompare(this IEnumerable<string> files)
         {
             if (string.IsNullOrEmpty(setting.ShellImageCompareCmd)) return;
             var shell = Path.IsPathRooted(setting.ShellImageCompareCmd) ? setting.ShellImageCompareCmd : Path.Combine(Application.Current.GetRoot(), setting.ShellImageCompareCmd);
@@ -2889,7 +2889,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void SendToOtherInstance(this IEnumerable<string> contents)
+        static public void SendToOtherInstance(this IEnumerable<string> contents)
         {
             if (contents is IEnumerable<string> && contents.Count() > 0)
             {
@@ -2898,7 +2898,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void SendToOtherInstance(this string contents)
+        static public void SendToOtherInstance(this string contents)
         {
             try
             {
@@ -2954,7 +2954,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void ShellSendToOtherInstance(this IEnumerable<string> contents)
+        static public void ShellSendToOtherInstance(this IEnumerable<string> contents)
         {
             if (contents is IEnumerable<string> && contents.Count() > 0)
             {
@@ -2963,7 +2963,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void ShellSendToOtherInstance(this string contents)
+        static public void ShellSendToOtherInstance(this string contents)
         {
             if (string.IsNullOrEmpty(setting.ShellSearchBridgeApplication)) return;
             var shell = Path.IsPathRooted(setting.ShellSearchBridgeApplication) ? setting.ShellSearchBridgeApplication : Path.Combine(Application.Current.GetRoot(), setting.ShellSearchBridgeApplication);
@@ -2973,7 +2973,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void OpenPixivPediaWithShell(this string contents)
+        static public void OpenPixivPediaWithShell(this string contents)
         {
             if (string.IsNullOrEmpty(contents)) return;
 
@@ -3000,7 +3000,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static bool OpenUrlWithShell(this string url, bool search = false)
+        static public bool OpenUrlWithShell(this string url, bool search = false)
         {
             bool result = false;
 
@@ -3034,7 +3034,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static bool Run(string FileName, string args = "")
+        static private bool Run(string FileName, string args = "")
         {
             bool result = false;
             try
@@ -3055,7 +3055,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool OpenFileWithShell(this string FileName, bool ShowFolder = false, string command = "", string custom_params = "", bool openwith = false)
+        static public bool OpenFileWithShell(this string FileName, bool ShowFolder = false, string command = "", string custom_params = "", bool openwith = false)
         {
             bool result = false;
             try
@@ -3178,7 +3178,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool OpenFileWithShell(this IEnumerable<string> FileNames, bool openwith = false)
+        static public bool OpenFileWithShell(this IEnumerable<string> FileNames, bool openwith = false)
         {
             bool result = false;
             try
@@ -3262,7 +3262,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool OpenShellProperties(this string FileName)
+        static public bool OpenShellProperties(this string FileName)
         {
             bool result = false;
             if (!string.IsNullOrEmpty(FileName) && File.Exists(FileName))
@@ -3277,7 +3277,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool OpenShellProperties(this IEnumerable<string> FileName)
+        static public bool OpenShellProperties(this IEnumerable<string> FileName)
         {
             bool result = false;
             if (FileName is IEnumerable<string> && FileName.Count() > 0)
@@ -3292,7 +3292,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> OpenShellTransltaor(this string contents)
+        static public async Task<bool> OpenShellTransltaor(this string contents)
         {
             var result = false;
             result = await Task.Run(() =>
@@ -3310,7 +3310,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static IEnumerable<string> GetDownloadInfo(this DownloadInfo item)
+        static public IEnumerable<string> GetDownloadInfo(this DownloadInfo item)
         {
             List<string> result = new List<string>();
             if (item is DownloadInfo)
@@ -3340,11 +3340,11 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static Func<double, string> SmartSpeedRateFunc = (v) => { return(SmartSpeedRate(v)); };
+        static public Func<double, string> SmartSpeedRateFunc = (v) => { return(SmartSpeedRate(v)); };
 
-        public static string SmartSpeedRate(this long v, double factor = 1, bool unit = true, bool trimzero = true, int padleft = 0) { return (SmartSpeedRate((double)v, factor, unit, trimzero: trimzero, padleft: padleft)); }
+        static public string SmartSpeedRate(this long v, double factor = 1, bool unit = true, bool trimzero = true, int padleft = 0) { return (SmartSpeedRate((double)v, factor, unit, trimzero: trimzero, padleft: padleft)); }
 
-        public static string SmartSpeedRate(this double v, double factor = 1, bool unit = true, bool trimzero = false, int padleft = 0)
+        static public string SmartSpeedRate(this double v, double factor = 1, bool unit = true, bool trimzero = false, int padleft = 0)
         {
             string v_str = string.Empty;
             string u_str = string.Empty;
@@ -3356,11 +3356,11 @@ namespace PixivWPF.Common
             return ((unit ? $"{vs} {u_str}" : vs).PadLeft(padleft));
         }
 
-        public static Func<double, string> SmartFileSizeFunc = (v) => { return(SmartFileSize(v)); };
+        static public Func<double, string> SmartFileSizeFunc = (v) => { return(SmartFileSize(v)); };
 
-        public static string SmartFileSize(this long v, double factor = 1, bool unit = true, bool trimzero = true, int padleft = 0) { return (SmartFileSize((double)v, factor, unit, trimzero: trimzero, padleft: padleft)); }
+        static public string SmartFileSize(this long v, double factor = 1, bool unit = true, bool trimzero = true, int padleft = 0) { return (SmartFileSize((double)v, factor, unit, trimzero: trimzero, padleft: padleft)); }
 
-        public static string SmartFileSize(this double v, double factor = 1, bool unit = true, bool trimzero = true, int padleft = 0)
+        static public string SmartFileSize(this double v, double factor = 1, bool unit = true, bool trimzero = true, int padleft = 0)
         {
             string v_str = string.Empty;
             string u_str = string.Empty;
@@ -3373,7 +3373,7 @@ namespace PixivWPF.Common
             return ((unit ? $"{vs} {u_str}" : vs).PadLeft(padleft));
         }
 
-        public static string SmartElapsed(this TimeSpan delta, bool msec = true, bool unit = false, bool trimzero = true, int padleft = 0)
+        static public string SmartElapsed(this TimeSpan delta, bool msec = true, bool unit = false, bool trimzero = true, int padleft = 0)
         {
             var elapsed = "0";
             if (delta.TotalDays >= 1) elapsed = $"{delta.TotalHours:F0}:{delta.Minutes:00}:{delta.Seconds:00}";
@@ -3385,7 +3385,7 @@ namespace PixivWPF.Common
             return ((unit ? $"{elapsed} s" : elapsed).PadLeft(padleft));
         }
 
-        public static void DragOut(this DependencyObject sender, string item)
+        static public void DragOut(this DependencyObject sender, string item)
         {
             try
             {
@@ -3413,7 +3413,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("DragOut"); }
         }
 
-        public static void DragOut(this DependencyObject sender, IEnumerable<string> items)
+        static public void DragOut(this DependencyObject sender, IEnumerable<string> items)
         {
             try
             {
@@ -3440,7 +3440,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("DragOut"); }
         }
 
-        public static void DragOut(this DependencyObject sender, PixivItem item, bool large_preview = false, bool original = false, bool open_downloaded = true)
+        static public void DragOut(this DependencyObject sender, PixivItem item, bool large_preview = false, bool original = false, bool open_downloaded = true)
         {
             try
             {
@@ -3474,7 +3474,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("DragOut"); }
         }
 
-        public static void DragOut(this DependencyObject sender, ImageListGrid gallery, bool large_preview = false, bool original = false, bool open_downloaded = true)
+        static public void DragOut(this DependencyObject sender, ImageListGrid gallery, bool large_preview = false, bool original = false, bool open_downloaded = true)
         {
             try
             {
@@ -3483,7 +3483,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("DragOut"); }
         }
 
-        public static void DragOut(this DependencyObject sender, IEnumerable<PixivItem> items, bool large_preview = false, bool original = false, bool open_downloaded = true)
+        static public void DragOut(this DependencyObject sender, IEnumerable<PixivItem> items, bool large_preview = false, bool original = false, bool open_downloaded = true)
         {
             try
             {
@@ -3550,7 +3550,7 @@ namespace PixivWPF.Common
         #region ImageListGrid page calculating
         internal const int ImagesPerPage = 30;
 
-        public static int CalcPageOffset(this string url)
+        static public int CalcPageOffset(this string url)
         {
             int result = 0;
             var offset = Regex.IsMatch(url, @".*?offset=(\d+).*?", RegexOptions.IgnoreCase | RegexOptions.Singleline) ? Regex.Replace(url, @".*?offset=(\d+).*?", "$1", RegexOptions.IgnoreCase | RegexOptions.Singleline) : string.Empty;
@@ -3558,23 +3558,23 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static int CalcPageNum(this int offset)
+        static public int CalcPageNum(this int offset)
         {
             return (offset / ImagesPerPage + 1);
         }
 
-        public static int CalcPageNum(this string url)
+        static public int CalcPageNum(this string url)
         {
             var offset = CalcPageOffset(url);
             return (offset / ImagesPerPage + 1);
         }
 
-        public static int CalcTotalPages(this int totals)
+        static public int CalcTotalPages(this int totals)
         {
             return ((int)Math.Ceiling((double)totals / ImagesPerPage));
         }
 
-        public static int CalcTotalPages(this string totals)
+        static public int CalcTotalPages(this string totals)
         {
             int total = 0;
             int.TryParse(totals, out total);
@@ -3582,7 +3582,7 @@ namespace PixivWPF.Common
             return (pages);
         }
 
-        public static string CalcUrlPageHint(this string url, string totals = null)
+        static public string CalcUrlPageHint(this string url, string totals = null)
         {
             string result = "Unknown";
             try
@@ -3597,7 +3597,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string CalcUrlPageHint(this string url, int totals = 0, string current = null)
+        static public string CalcUrlPageHint(this string url, int totals = 0, string current = null)
         {
             string result = "Unknown";
             try
@@ -3613,7 +3613,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static int CalcPrevPage(this string url, string totals = null)
+        static public int CalcPrevPage(this string url, string totals = null)
         {
             int result = 0;
             try
@@ -3627,7 +3627,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static int CalcNextPage(this string url, string totals = null, string current = null)
+        static public int CalcNextPage(this string url, string totals = null, string current = null)
         {
             int result = 0;
             try
@@ -3641,7 +3641,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string CalcPrevUrl(this string url, string totals, bool is_next_url = false)
+        static public string CalcPrevUrl(this string url, string totals, bool is_next_url = false)
         {
             string result = string.Empty;
             try
@@ -3653,7 +3653,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string CalcNextUrl(this string url, string totals, bool is_next_url = false)
+        static public string CalcNextUrl(this string url, string totals, bool is_next_url = false)
         {
             string result = string.Empty;
             try
@@ -3665,7 +3665,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string CalcPrevUrl(this string url, int pages = -1, bool is_next_url = false)
+        static public string CalcPrevUrl(this string url, int pages = -1, bool is_next_url = false)
         {
             string result = string.Empty;
             try
@@ -3683,7 +3683,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string CalcNextUrl(this string url, int pages = -1, bool is_next_url = false)
+        static public string CalcNextUrl(this string url, int pages = -1, bool is_next_url = false)
         {
             string result = string.Empty;
             try
@@ -3697,7 +3697,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string MakeRelWorkNextUrl(this PixivItem item, int offset = 0)
+        static public string MakeRelWorkNextUrl(this PixivItem item, int offset = 0)
         {
             var result = string.Empty;
             if (item.HasUser())
@@ -3707,7 +3707,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string MakeUserWorkNextUrl(this PixivItem item, int offset = 0)
+        static public string MakeUserWorkNextUrl(this PixivItem item, int offset = 0)
         {
             var result = string.Empty;
             if (item.HasUser())
@@ -3717,7 +3717,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string MakeUserFavNextUrl(this PixivItem item, int offset = 0)
+        static public string MakeUserFavNextUrl(this PixivItem item, int offset = 0)
         {
             var result = string.Empty;
             if (item.HasUser())
@@ -3729,18 +3729,18 @@ namespace PixivWPF.Common
         #endregion
 
         #region Illust Work DateTime routines
-        public static TimeZoneInfo TokoyTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
-        public static TimeZoneInfo GetTokyoTimeZone(this Application app)
+        static public TimeZoneInfo TokoyTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
+        static public TimeZoneInfo GetTokyoTimeZone(this Application app)
         {
             return (TokoyTimeZone);
         }
-        public static TimeZoneInfo LocalTimeZone = TimeZoneInfo.Local;
-        public static TimeZoneInfo GetLocalTimeZone(this Application app)
+        static public TimeZoneInfo LocalTimeZone = TimeZoneInfo.Local;
+        static public TimeZoneInfo GetLocalTimeZone(this Application app)
         {
             return (LocalTimeZone);
         }
 
-        public static DateTime ParseDateTime(this string url)
+        static public DateTime ParseDateTime(this string url)
         {
             var result = default(DateTime);
             //https://i.pximg.net/img-original/img/2010/11/16/22/34/05/14611687_p0.png
@@ -3749,7 +3749,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static DateTime GetDateTime(this Pixeez.Objects.Work Illust, bool local = false)
+        static public DateTime GetDateTime(this Pixeez.Objects.Work Illust, bool local = false)
         {
             var dt = DateTime.Now;
             if (Illust is Pixeez.Objects.IllustWork)
@@ -3773,51 +3773,34 @@ namespace PixivWPF.Common
             else return (dt);
         }
 
-        private static bool IsShellSupported = Microsoft.WindowsAPICodePack.Shell.ShellObject.IsPlatformSupported;
-        private static ConcurrentDictionary<string, long> _Touching_ = new ConcurrentDictionary<string, long>();
-        private static ConcurrentDictionary<string, long> _Attaching_ = new ConcurrentDictionary<string, long>();
-        private static SemaphoreSlim _CanAttaching_ = new SemaphoreSlim(5, 5);
+        static private bool IsShellSupported = Microsoft.WindowsAPICodePack.Shell.ShellObject.IsPlatformSupported;
+        static private ConcurrentDictionary<string, long> _Touching_ = new ConcurrentDictionary<string, long>();
+        static private ConcurrentDictionary<string, long> _Attaching_ = new ConcurrentDictionary<string, long>();
+        static private SemaphoreSlim _CanAttaching_ = new SemaphoreSlim(5, 5);
 
-        private static bool IsMetaAttaching(this string file)
+        static private bool IsMetaAttaching(this string file)
         {
             return (_Attaching_ is ConcurrentDictionary<string, long> && _Attaching_.ContainsKey(file));
         }
 
-        private static bool IsMetaAttaching(this FileInfo fileinfo)
+        static private bool IsMetaAttaching(this FileInfo fileinfo)
         {
             return (_Attaching_ is ConcurrentDictionary<string, long> && _Attaching_.ContainsKey(fileinfo.FullName));
         }
 
-        private static bool IsTouching(this string file)
+        static private bool IsTouching(this string file)
         {
             return (_Touching_ is ConcurrentDictionary<string, long> && _Touching_.ContainsKey(file));
         }
 
-        private static bool IsTouching(this FileInfo fileinfo)
+        static private bool IsTouching(this FileInfo fileinfo)
         {
             return (_Touching_ is ConcurrentDictionary<string, long> && _Touching_.ContainsKey(fileinfo.FullName));
         }
         #endregion
 
-        #region XMP XML Formating Helper
-        private static List<string> xmp_ns = new List<string> { "rdf", "xmp", "dc", "exif", "tiff", "iptc", "MicrosoftPhoto", };
-        private static Dictionary<string, string> xmp_ns_lookup = new Dictionary<string, string>()
-        {
-            {"rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#" },
-            {"xmp", "http://ns.adobe.com/xap/1.0/" },
-            {"dc", "http://purl.org/dc/elements/1.1/" },
-            {"lr", "http://ns.adobe.com/lightroom/1.0/" },
-            //{"iptc", "http://ns.adobe.com/iptc/1.0/" },
-            {"exif", "http://ns.adobe.com/exif/1.0/" },
-            {"tiff", "http://ns.adobe.com/tiff/1.0/" },
-            {"photoshop", "http://ns.adobe.com/photoshop/1.0/" },
-            {"MicrosoftPhoto", "http://ns.microsoft.com/photo/1.0" },
-            //{"MicrosoftPhoto", "http://ns.microsoft.com/photo/1.0/" },
-            //{"MicrosoftPhoto", "http://ns.microsoft.com/photo/1.2/" },
-        };
-
         #region below tags will be touching
-        private static string[] tag_date = new string[] {
+        static private string[] tag_date = [
           "exif:DateTimeDigitized",
           "exif:DateTimeOriginal",
           "exif:DateTime",
@@ -3835,8 +3818,8 @@ namespace PixivWPF.Common
           "tiff:datetime",
           //"date:modify",
           //"date:create",
-        };
-        private static string[] tag_author = new string[] {
+        ];
+        static private string[] tag_author = [
           "exif:Artist",
           "exif:WinXP-Author",
           "dc:creator",
@@ -3845,31 +3828,31 @@ namespace PixivWPF.Common
           "tiff:artist",
           "xmp:creator",
           "xmp:Creator",
-        };
-        private static string[] tag_copyright = new string[] {
+        ];
+        static private string[] tag_copyright = [
           "exif:Copyright",
           "dc:rights",
           "dc:Rights",
           "tiff:copyright",
           "tiff:Copyright",
           //"iptc:CopyrightNotice",
-        };
-        private static string[] tag_title = new string[] {
+        ];
+        static private string[] tag_title = [
           "exif:ImageDescription",
           "exif:WinXP-Title",
           "dc:title",
           "dc:Title",
           "tiff:title",
           "tiff:Title",
-        };
-        private static string[] tag_subject = new string[] {
+        ];
+        static private string[] tag_subject = [
           "exif:WinXP-Subject",
           "dc:source",
           "dc:Source",
           "tiff:Subject",
           "tiff:subject",
-        };
-        private static string[] tag_comments = new string[] {
+        ];
+        static private string[] tag_comments = [
           "exif:WinXP-Comments",
           "exif:UserComment",
           "dc:description",
@@ -3880,30 +3863,47 @@ namespace PixivWPF.Common
           "tiff:Comments",
           "tiff:imagedescription",
           "tiff:ImageDescription",
-        };
-        private static string[] tag_keywords = new string[] {
+        ];
+        static private string[] tag_keywords = [
           "exif:WinXP-Keywords",
             //"iptc:Keywords",
           "dc:subject",
           "dc:Subject",
-        };
-        private static string[] tag_rating = new string[] {
+        ];
+        static private string[] tag_rating = [
           "Rating",
           "RatingPercent",
           "MicrosoftPhoto:Rating",
           "xmp:rating",
           "xmp:Rating",
-        };
-        private static string[] tag_software = new string[] {
+        ];
+        static private string[] tag_software = [
           "exif:Software",
           "tiff:Software",
           "tiff:software",
           "Software",
           "xmp:CreatorTool",
-        };
+        ];
         #endregion
 
-        private static int RatingToRanking(int rating)
+        #region XMP XML Formating Helper
+        static private List<string> xmp_ns = new(){ "rdf", "xmp", "dc", "exif", "tiff", "iptc", "MicrosoftPhoto" };
+        static private Dictionary<string, string> xmp_ns_lookup = new()
+        {
+            {"rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#" },
+            {"xmp", "http://ns.adobe.com/xap/1.0/" },
+            {"dc", "http://purl.org/dc/elements/1.1/" },
+            {"lr", "http://ns.adobe.com/lightroom/1.0/" },
+            //{"iptc", "http://ns.adobe.com/iptc/1.0/" },
+            {"exif", "http://ns.adobe.com/exif/1.0/" },
+            {"tiff", "http://ns.adobe.com/tiff/1.0/" },
+            {"photoshop", "http://ns.adobe.com/photoshop/1.0/" },
+            {"MicrosoftPhoto", "http://ns.microsoft.com/photo/1.0" },
+            //{"MicrosoftPhoto", "http://ns.microsoft.com/photo/1.0/" },
+            //{"MicrosoftPhoto", "http://ns.microsoft.com/photo/1.2/" },
+        };
+
+        static private int RatingToRanking(int rating)
         {
             var ranking = 0;
             try
@@ -3918,12 +3918,12 @@ namespace PixivWPF.Common
             return (ranking);
         }
 
-        private static int RatingToRanking(int? rating)
+        static private int RatingToRanking(int? rating)
         {
             return (RatingToRanking(rating ?? 0));
         }
 
-        private static int RankingToRating(int ranking)
+        static private int RankingToRating(int ranking)
         {
             var rating = 0;
             try
@@ -3938,12 +3938,12 @@ namespace PixivWPF.Common
             return (rating);
         }
 
-        private static int RankingToRating(int? ranking)
+        static private int RankingToRating(int? ranking)
         {
             return (RankingToRating(ranking ?? 0));
         }
 
-        private static string FormatXML(string xml)
+        static private string FormatXML(string xml)
         {
             var result = xml;
             try
@@ -3956,7 +3956,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static string FormatXML(XmlDocument xml)
+        static private string FormatXML(XmlDocument xml)
         {
             var result = xml.OuterXml;
             using (var ms = new MemoryStream())
@@ -3974,7 +3974,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static string FormatXML(XmlNode xml)
+        static private string FormatXML(XmlNode xml)
         {
             var result = xml.OuterXml;
             using (var ms = new MemoryStream())
@@ -3991,7 +3991,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static string FormatXML(XmlElement xml)
+        static private string FormatXML(XmlElement xml)
         {
             var result = xml.OuterXml;
             using (var ms = new MemoryStream())
@@ -4008,7 +4008,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static string FormatXML(XmlDocument xml, bool merge_nodes)
+        static private string FormatXML(XmlDocument xml, bool merge_nodes)
         {
             var result = FormatXML(xml);
             if (merge_nodes && xml is XmlDocument)
@@ -4106,7 +4106,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static string FormatXML(string xml, bool merge_nodes)
+        static private string FormatXML(string xml, bool merge_nodes)
         {
             var result = xml;
             if (!string.IsNullOrEmpty(xml))
@@ -4118,12 +4118,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static string TouchXMP(FileInfo fi, string xml, MetaInfo meta)
+        static private string TouchXMP(FileInfo fi, string xml, MetaInfo meta)
         {
             return (TouchXMP(xml, fi, meta));
         }
 
-        private static string TouchXMP(string xml, FileInfo fi, MetaInfo meta)
+        static private string TouchXMP(string xml, FileInfo fi, MetaInfo meta)
         {
             if (meta is MetaInfo && fi is FileInfo)
             {
@@ -4724,10 +4724,10 @@ namespace PixivWPF.Common
         #endregion
 
         #region PngCs Routines for Update PNG Image Metadata
-        //private static int GZIP_MAGIC = 35615;
-        private static byte[] GZIP_MAGIC_HEADER = new byte[] { 0x1F, 0x8B, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        //static private int GZIP_MAGIC = 35615;
+        static private byte[] GZIP_MAGIC_HEADER = new byte[] { 0x1F, 0x8B, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
-        private static string GzipBytesToText(byte[] bytes, Encoding encoding = default(Encoding), int skip = 2)
+        static private string GzipBytesToText(byte[] bytes, Encoding encoding = default(Encoding), int skip = 2)
         {
             var result = string.Empty;
             try
@@ -4766,7 +4766,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static Dictionary<string, string> GetPngMetaInfo(FileInfo fileinfo, Encoding encoding = default(Encoding), bool full_field = true)
+        static public Dictionary<string, string> GetPngMetaInfo(FileInfo fileinfo, Encoding encoding = default(Encoding), bool full_field = true)
         {
             var result = new Dictionary<string, string>();
             try
@@ -4784,7 +4784,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static Dictionary<string, string> GetPngMetaInfo(Stream src, Encoding encoding = default(Encoding), bool full_field = true)
+        static public Dictionary<string, string> GetPngMetaInfo(Stream src, Encoding encoding = default(Encoding), bool full_field = true)
         {
             var result = new Dictionary<string, string>();
             try
@@ -4855,7 +4855,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static bool PngUpdateTextMetadata(string fileName, Dictionary<string, string> metainfo, bool keeptime = false)
+        static private bool PngUpdateTextMetadata(string fileName, Dictionary<string, string> metainfo, bool keeptime = false)
         {
             var result = false;
             if (File.Exists(fileName) && metainfo is Dictionary<string, string>)
@@ -4884,7 +4884,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool UpdatePngMetaInfo(this FileInfo fileinfo, DateTime? dt = null, MetaInfo meta = null, Encoding encoding = default(Encoding))
+        static public bool UpdatePngMetaInfo(this FileInfo fileinfo, DateTime? dt = null, MetaInfo meta = null, Encoding encoding = default(Encoding))
         {
             var result = false;
             try
@@ -4913,7 +4913,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool UpdatePngMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", MetaInfo meta = null, Encoding encoding = default(Encoding))
+        static public bool UpdatePngMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", MetaInfo meta = null, Encoding encoding = default(Encoding))
         {
             var result = false;
             try
@@ -4939,7 +4939,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static bool PngUpdateTextMetadata(Stream src, Stream dst, Dictionary<string, string> metainfo)
+        static private bool PngUpdateTextMetadata(Stream src, Stream dst, Dictionary<string, string> metainfo)
         {
             var result = false;
             if (src is Stream && src.CanRead && dst is Stream && dst.CanWrite && src.Length > 0)
@@ -4998,7 +4998,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool UpdatePngMetaInfo(this Stream src, Stream dst, DateTime? dt = null, MetaInfo meta = null, Encoding encoding = default(Encoding))
+        static public bool UpdatePngMetaInfo(this Stream src, Stream dst, DateTime? dt = null, MetaInfo meta = null, Encoding encoding = default(Encoding))
         {
             var result = false;
             try
@@ -5029,7 +5029,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool UpdatePngMetaInfo(this Stream src, Stream dst, FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", MetaInfo meta = null, Encoding encoding = default(Encoding))
+        static public bool UpdatePngMetaInfo(this Stream src, Stream dst, FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", MetaInfo meta = null, Encoding encoding = default(Encoding))
         {
             var result = false;
             try
@@ -5057,7 +5057,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Attach Metadata Helper
-        public static bool HasShellProperty(this Microsoft.WindowsAPICodePack.Shell.ShellObject obj, Microsoft.WindowsAPICodePack.Shell.PropertySystem.PropertyKey property, bool writeable = true)
+        static public bool HasShellProperty(this Microsoft.WindowsAPICodePack.Shell.ShellObject obj, Microsoft.WindowsAPICodePack.Shell.PropertySystem.PropertyKey property, bool writeable = true)
         {
             var result = false;
             if (obj is Microsoft.WindowsAPICodePack.Shell.ShellObject)
@@ -5070,7 +5070,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static MetaInfo MakeMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", bool add_trans = false, bool add_sanity = false, bool add_aigc = false)
+        static public MetaInfo MakeMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", bool add_trans = false, bool add_sanity = false, bool add_aigc = false)
         {
             MetaInfo meta = null;
             #region make meta struct
@@ -5113,7 +5113,7 @@ namespace PixivWPF.Common
             return (meta);
         }
 
-        public static string GetMetaInfo(this FileInfo fileinfo)
+        static public string GetMetaInfo(this FileInfo fileinfo)
         {
             var result = string.Empty;
 
@@ -5203,7 +5203,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string GetMetaInfo(this Stream src)
+        static public string GetMetaInfo(this Stream src)
         {
             var result = string.Empty;
 
@@ -5292,7 +5292,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static ExifData GetExifData(this FileInfo fi)
+        static public ExifData GetExifData(this FileInfo fi)
         {
             ExifData result = null;
             try
@@ -5361,7 +5361,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static ExifData GetExifData(this Stream src, DateTime dt = default(DateTime))
+        static public ExifData GetExifData(this Stream src, DateTime dt = default(DateTime))
         {
             ExifData result = null;
             try
@@ -5430,7 +5430,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static bool UpdateExifData(this ExifData exif, FileInfo fileinfo, DateTime dt = default(DateTime), MetaInfo meta = null)
+        static private bool UpdateExifData(this ExifData exif, FileInfo fileinfo, DateTime dt = default(DateTime), MetaInfo meta = null)
         {
             var result = true;
             try
@@ -5566,7 +5566,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool AttachMetaInfoInternal(this Stream src, Stream dst, FileInfo fileinfo, out bool is_jpg, out int quality, DateTime dt = default(DateTime), string id = "", bool force = false)
+        static public bool AttachMetaInfoInternal(this Stream src, Stream dst, FileInfo fileinfo, out bool is_jpg, out int quality, DateTime dt = default(DateTime), string id = "", bool force = false)
         {
             var result = false;
             is_jpg = false;
@@ -5615,7 +5615,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool AttachMetaInfoInternal(this FileInfo fileinfo, out bool is_jpg, DateTime dt = default(DateTime), string id = "", bool force = false)
+        static public bool AttachMetaInfoInternal(this FileInfo fileinfo, out bool is_jpg, DateTime dt = default(DateTime), string id = "", bool force = false)
         {
             var result = false;
             is_jpg = false;
@@ -5680,7 +5680,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> AttachMetaInfoInternalAsync(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", bool force = false)
+        static public async Task<bool> AttachMetaInfoInternalAsync(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", bool force = false)
         {
             return (await Task.Run<bool>(async () =>
             {
@@ -5691,8 +5691,8 @@ namespace PixivWPF.Common
             }));
         }
 
-        private static ConcurrentDictionary<string, long> LastAttachMetaInfo = new ConcurrentDictionary<string, long>();
-        public static async Task<bool> AttachMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", bool force = false)
+        static private ConcurrentDictionary<string, long> LastAttachMetaInfo = new ConcurrentDictionary<string, long>();
+        static public async Task<bool> AttachMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "", bool force = false)
         {
             var result = false;
             if (fileinfo.Length == 0) { $"{fileinfo.FullName} Zero Length!".ERROR("AttachMetaInfo"); return (result); }
@@ -6002,7 +6002,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async void AttachMetaInfo(this string folder, Action progressAction = null, bool force = false)
+        static public async void AttachMetaInfo(this string folder, Action progressAction = null, bool force = false)
         {
             if (!string.IsNullOrEmpty(folder))
             {
@@ -6032,7 +6032,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void AttachMetaInfo(this DirectoryInfo folderinfo, bool recursion = false, CancellationTokenSource cancelSource = null, Action<BatchProgressInfo> reportAction = null, bool test = false, bool force = false)
+        static public void AttachMetaInfo(this DirectoryInfo folderinfo, bool recursion = false, CancellationTokenSource cancelSource = null, Action<BatchProgressInfo> reportAction = null, bool test = false, bool force = false)
         {
             if (Directory.Exists(folderinfo.FullName))
             {
@@ -6110,7 +6110,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Touch Helper
-        public static void Touch(this DirectoryInfo folderinfo, bool recursion = false, CancellationTokenSource cancelSource = null, Action<BatchProgressInfo> reportAction = null, bool test = false, bool force = false)
+        static public void Touch(this DirectoryInfo folderinfo, bool recursion = false, CancellationTokenSource cancelSource = null, Action<BatchProgressInfo> reportAction = null, bool test = false, bool force = false)
         {
             if (Directory.Exists(folderinfo.FullName))
             {
@@ -6182,8 +6182,8 @@ namespace PixivWPF.Common
             }
         }
 
-        private static ConcurrentDictionary<string, long> LastTouch = new ConcurrentDictionary<string, long>();
-        public static void Touch(this FileInfo fileinfo, string url, bool local = false, bool meta = false, bool force = false, bool fix_name = true)
+        static private ConcurrentDictionary<string, long> LastTouch = new ConcurrentDictionary<string, long>();
+        static public void Touch(this FileInfo fileinfo, string url, bool local = false, bool meta = false, bool force = false, bool fix_name = true)
         {
             try
             {
@@ -6253,7 +6253,7 @@ namespace PixivWPF.Common
             //finally { GC.Collect(); }
         }
 
-        public static void Touch(this string file, string url, bool local = false, bool meta = false, bool force = false)
+        static public void Touch(this string file, string url, bool local = false, bool meta = false, bool force = false)
         {
             try
             {
@@ -6266,12 +6266,12 @@ namespace PixivWPF.Common
             catch (Exception ex) { var id = Path.GetFileName(file); ex.ERROR($"Touch_{id}"); }
         }
 
-        public static void Touch(this string file, Pixeez.Objects.Work Illust, bool local = false, bool meta = false, bool force = false)
+        static public void Touch(this string file, Pixeez.Objects.Work Illust, bool local = false, bool meta = false, bool force = false)
         {
             file.Touch(Illust.GetOriginalUrl(), local, meta, force);
         }
 
-        public static void Touch(this PixivItem item, bool local = false, bool meta = false, bool force = false)
+        static public void Touch(this PixivItem item, bool local = false, bool meta = false, bool force = false)
         {
             if (item.IsPage())
             {
@@ -6289,17 +6289,17 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async void TouchAsync(this string file, string url, bool local = false, bool meta = false, bool force = false)
+        static public async void TouchAsync(this string file, string url, bool local = false, bool meta = false, bool force = false)
         {
             await new Action(() => { Touch(file, url, local, meta, force); }).InvokeAsync();
         }
 
-        public static async void TouchAsync(this PixivItem item, bool local = false, bool meta = true, bool force = false)
+        static public async void TouchAsync(this PixivItem item, bool local = false, bool meta = true, bool force = false)
         {
             await new Action(() => { Touch(item, local, meta, force); }).InvokeAsync();
         }
 
-        public static async void TouchAsync(this IEnumerable<string> files, string url, bool local = false, bool meta = false, bool force = false)
+        static public async void TouchAsync(this IEnumerable<string> files, string url, bool local = false, bool meta = false, bool force = false)
         {
             foreach (var file in files)
             {
@@ -6307,7 +6307,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async void TouchAsync(this IEnumerable<PixivItem> items, bool local = false, bool meta = true, bool force = false)
+        static public async void TouchAsync(this IEnumerable<PixivItem> items, bool local = false, bool meta = true, bool force = false)
         {
             foreach (var item in items)
             {
@@ -6317,7 +6317,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Downloaded Cache routines
-        private static ConcurrentDictionary<string, bool> _cachedDownloadedList = new ConcurrentDictionary<string, bool>();
+        static private ConcurrentDictionary<string, bool> _cachedDownloadedList = new ConcurrentDictionary<string, bool>();
         internal static void UpdateDownloadedListCache(this string folder, bool cached = true, bool subfolder = false)
         {
             if (Directory.Exists(folder) && cached)
@@ -6369,7 +6369,7 @@ namespace PixivWPF.Common
             return (_cachedDownloadedList.ContainsKey(file));
         }
 
-        private static Func<string, bool> DownloadedCacheExistsFunc = x => DownoadedCacheExists(x);
+        static private Func<string, bool> DownloadedCacheExistsFunc = x => DownoadedCacheExists(x);
         internal static bool DownloadedCacheExistsAsync(this string file)
         {
             return (DownloadedCacheExistsFunc(file));
@@ -6409,12 +6409,12 @@ namespace PixivWPF.Common
         }
 
         // Define the event handlers.
-        private static ConcurrentDictionary<string, FileSystemWatcher> _watchers = new ConcurrentDictionary<string, FileSystemWatcher>();
-        private static DateTime lastDownloadEventTick = DateTime.Now;
-        private static string lastDownloadEventFile = string.Empty;
-        private static WatcherChangeTypes lastDownloadEventType = WatcherChangeTypes.All;
+        static private ConcurrentDictionary<string, FileSystemWatcher> _watchers = new ConcurrentDictionary<string, FileSystemWatcher>();
+        static private DateTime lastDownloadEventTick = DateTime.Now;
+        static private string lastDownloadEventFile = string.Empty;
+        static private WatcherChangeTypes lastDownloadEventType = WatcherChangeTypes.All;
 
-        private static void OnDownloadChanged(object source, FileSystemEventArgs e)
+        static private void OnDownloadChanged(object source, FileSystemEventArgs e)
         {
 #if DEBUG
             // Specify what is done when a file is changed, created, or deleted.
@@ -6473,7 +6473,7 @@ namespace PixivWPF.Common
             }
         }
 
-        private static void OnDownloadRenamed(object source, RenamedEventArgs e)
+        static private void OnDownloadRenamed(object source, RenamedEventArgs e)
         {
 #if DEBUG
             // Specify what is done when a file is renamed.
@@ -6505,7 +6505,7 @@ namespace PixivWPF.Common
         }
 
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-        public static void InitDownloadedWatcher(this IEnumerable<StorageType> storages)
+        static public void InitDownloadedWatcher(this IEnumerable<StorageType> storages)
         {
             ConcurrentDictionary<string, StorageType> items = new ConcurrentDictionary<string, StorageType>();
             foreach (var ls in storages)
@@ -6549,7 +6549,7 @@ namespace PixivWPF.Common
         }
 
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-        public static void AddDownloadedWatcher(this string folder, bool IncludeSubFolder = false)
+        static public void AddDownloadedWatcher(this string folder, bool IncludeSubFolder = false)
         {
             if (Directory.Exists(folder) && !_watchers.ContainsKey(folder))
             {
@@ -6571,7 +6571,7 @@ namespace PixivWPF.Common
         }
 
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-        public static void ReleaseDownloadedWatcher(this IEnumerable<StorageType> storages)
+        static public void ReleaseDownloadedWatcher(this IEnumerable<StorageType> storages)
         {
             if (_watchers is ConcurrentDictionary<string, FileSystemWatcher>)
             {
@@ -6590,14 +6590,14 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void UpdateDownloadStateAsync(string illustid = default(string), bool? exists = null)
+        static public void UpdateDownloadStateAsync(string illustid = default(string), bool? exists = null)
         {
             int id = -1;
             int.TryParse(illustid, out id);
             UpdateDownloadStateAsync(id, exists);
         }
 
-        public static async void UpdateDownloadStateAsync(int? illustid = null, bool? exists = null)
+        static public async void UpdateDownloadStateAsync(int? illustid = null, bool? exists = null)
         {
             await new Action(() =>
             {
@@ -6627,7 +6627,7 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         }
 
-        public static async void UpdateDownloadStateAsync(this ImageListGrid list, int? illustid = null, bool? exists = null)
+        static public async void UpdateDownloadStateAsync(this ImageListGrid list, int? illustid = null, bool? exists = null)
         {
             await new Action(() =>
             {
@@ -6635,7 +6635,7 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         }
 
-        public static void UpdateDownloadState(this ImageListGrid list, int? illustid = null, bool? exists = null)
+        static public void UpdateDownloadState(this ImageListGrid list, int? illustid = null, bool? exists = null)
         {
             try
             {
@@ -6644,7 +6644,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR(); }
         }
 
-        public static void UpdateDownloadState(this ItemCollection items, int? illustid = null, bool? exists = null)
+        static public void UpdateDownloadState(this ItemCollection items, int? illustid = null, bool? exists = null)
         {
             try
             {
@@ -6653,7 +6653,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR(); }
         }
 
-        public static async void UpdateDownloadStateAsync(this ObservableCollection<PixivItem> collection, int? illustid = null, bool? exists = null)
+        static public async void UpdateDownloadStateAsync(this ObservableCollection<PixivItem> collection, int? illustid = null, bool? exists = null)
         {
             await new Action(() =>
             {
@@ -6661,7 +6661,7 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         }
 
-        public static void UpdateDownloadState(this ObservableCollection<PixivItem> collection, int? illustid = null, bool? exists = null)
+        static public void UpdateDownloadState(this ObservableCollection<PixivItem> collection, int? illustid = null, bool? exists = null)
         {
             try
             {
@@ -6692,7 +6692,6 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Check Download State routines
         #region IsDownloaded
         private class DownloadState
         {
@@ -6738,13 +6737,13 @@ namespace PixivWPF.Common
             }
         }
 
-        private static Func<string, bool, bool, bool> IsDownloadedFunc = (url, meta, touch) => IsDownloaded(url, meta, touch);
+        static private Func<string, bool, bool, bool> IsDownloadedFunc = (url, meta, touch) => IsDownloaded(url, meta, touch);
         internal static bool IsDownloadedAsync(this string url, bool is_meta_single_page = false, bool touch = false)
         {
             return (IsDownloadedFunc(url, is_meta_single_page, touch));
         }
 
-        private static Func<string, string, bool, bool, DownloadState> IsDownloadedFileFunc = (url, file, meta, touch) =>
+        static private Func<string, string, bool, bool, DownloadState> IsDownloadedFileFunc = (url, file, meta, touch) =>
         {
             var state = new DownloadState();
             file = string.Empty;
@@ -6939,13 +6938,13 @@ namespace PixivWPF.Common
             }
         }
 
-        private static Func<string, bool, bool> IsPartDownloadedFunc = (url, touch) => IsPartDownloaded(url, touch);
+        static private Func<string, bool, bool> IsPartDownloadedFunc = (url, touch) => IsPartDownloaded(url, touch);
         internal static bool IsPartDownloadedAsync(this string url, bool touch = false)
         {
             return (IsPartDownloaded(url, touch));
         }
 
-        private static Func<string, string, bool, DownloadState> IsPartDownloadedFileFunc = (url, file, touch) =>
+        static private Func<string, string, bool, DownloadState> IsPartDownloadedFileFunc = (url, file, touch) =>
         {
             var state = new DownloadState();
             file = string.Empty;
@@ -7057,7 +7056,8 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        public static IEnumerable<string> GetDownloadedFiles(this PixivItem item)
+        #region Get Downloaded List routines
+        static public IEnumerable<string> GetDownloadedFiles(this PixivItem item)
         {
             List<string> result = new List<string>();
             try
@@ -7105,7 +7105,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Download/Convert/Resize Image routines
-        private static Dictionary<string, string[]> exts = new Dictionary<string, string[]>()
+        static private Dictionary<string, string[]> exts = new Dictionary<string, string[]>()
         {
             { ".png", new string[] { ".png", "image/png", "PNG" } },
             { ".bmp", new string[] { ".bmp", "image/bmp", "image/bitmap" } },
@@ -7116,12 +7116,12 @@ namespace PixivWPF.Common
             { ".jpeg", new string[] { ".jpg", "image/jpg", "image/jpeg", ".jpeg" } },
         };
 
-        public static string GetPixivLinkPattern(this string url)
+        static public string GetPixivLinkPattern(this string url)
         {
             return (@"http(s)*://.*?\.((pixiv\..*?)|(pximg\..*?))/");
         }
 
-        public static bool IsPixivImage(this string url)
+        static public bool IsPixivImage(this string url)
         {
             var pattern = @"http(s)*://.*?\.(pximg\.net/.*?)/";
             if (Regex.IsMatch(url, pattern, RegexOptions.IgnoreCase))
@@ -7130,7 +7130,7 @@ namespace PixivWPF.Common
                 return (false);
         }
 
-        public static bool IsPixivLink(this string url)
+        static public bool IsPixivLink(this string url)
         {
             var pattern = url.GetPixivLinkPattern();
             if (Regex.IsMatch(url, pattern, RegexOptions.IgnoreCase))
@@ -7139,7 +7139,7 @@ namespace PixivWPF.Common
                 return (false);
         }
 
-        private static bool IsFileReady(this string filename)
+        static private bool IsFileReady(this string filename)
         {
             // If the file can be opened for exclusive access it means that the file
             // is no longer locked by another process.
@@ -7157,7 +7157,7 @@ namespace PixivWPF.Common
 #endif
         }
 
-        private static void WaitForFile(this string filename, CancellationToken cancel = default(CancellationToken))
+        static private void WaitForFile(this string filename, CancellationToken cancel = default(CancellationToken))
         {
             //This will lock the execution until the file is ready
             //TODO: Add some logic to make it async and cancelable
@@ -7168,7 +7168,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static bool WaitFileUnlock(this FileInfo file, int interval = 50, int times = 20, dynamic timeout = null)
+        static public bool WaitFileUnlock(this FileInfo file, int interval = 50, int times = 20, dynamic timeout = null)
         {
             if (timeout is int && (int)timeout > 0) times = (int)Math.Ceiling(((int)timeout) * 1000.0 / interval);
             else if (timeout is TimeSpan && ((TimeSpan)timeout).Ticks > 0) times = (int)Math.Ceiling(((TimeSpan)timeout).TotalMilliseconds / interval);
@@ -7178,7 +7178,7 @@ namespace PixivWPF.Common
             return (true);
         }
 
-        public static bool WaitFileUnlock(this string filename, int interval = 50, int times = 20, dynamic timeout = null)
+        static public bool WaitFileUnlock(this string filename, int interval = 50, int times = 20, dynamic timeout = null)
         {
             if (timeout is int && (int)timeout > 0) times = (int)Math.Ceiling(((int)timeout) * 1000.0 / interval);
             else if (timeout is TimeSpan && ((TimeSpan)timeout).Ticks > 0) times = (int)Math.Ceiling(((TimeSpan)timeout).TotalMilliseconds / interval);
@@ -7188,7 +7188,7 @@ namespace PixivWPF.Common
             return (true);
         }
 
-        public static async Task<bool> WaitFileUnlockAsync(this FileInfo file, int interval = 50, int times = 20, dynamic timeout = null)
+        static public async Task<bool> WaitFileUnlockAsync(this FileInfo file, int interval = 50, int times = 20, dynamic timeout = null)
         {
             if (timeout is int && (int)timeout > 0) times = (int)Math.Ceiling(((int)timeout) * 1000.0 / interval);
             else if (timeout is TimeSpan && ((TimeSpan)timeout).Ticks > 0) times = (int)Math.Ceiling(((TimeSpan)timeout).TotalMilliseconds / interval);
@@ -7204,7 +7204,7 @@ namespace PixivWPF.Common
             return (true);
         }
 
-        public static async Task<bool> WaitFileUnlockAsync(this string filename, int interval = 50, int times = 20, dynamic timeout = null)
+        static public async Task<bool> WaitFileUnlockAsync(this string filename, int interval = 50, int times = 20, dynamic timeout = null)
         {
             if (timeout is int && (int)timeout > 0) times = (int)Math.Ceiling(((int)timeout) * 1000.0 / interval);
             else if (timeout is TimeSpan && ((TimeSpan)timeout).Ticks > 0) times = (int)Math.Ceiling(((TimeSpan)timeout).TotalMilliseconds / interval);
@@ -7220,7 +7220,7 @@ namespace PixivWPF.Common
             return (true);
         }
 
-        public static bool IsLocked(this string file)
+        static public bool IsLocked(this string file)
         {
             bool result = false;
             FileStream stream = null;
@@ -7249,7 +7249,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsLocked(this FileInfo file)
+        static public bool IsLocked(this FileInfo file)
         {
             bool result = false;
             FileStream stream = null;
@@ -7278,7 +7278,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsCached(this string url)
+        static public bool IsCached(this string url)
         {
             bool result = false;
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
@@ -7288,7 +7288,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static long GetFileLength(this string filename)
+        static public long GetFileLength(this string filename)
         {
             long result = -1;
             if (File.Exists(filename))
@@ -7298,7 +7298,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static FileInfo GetFileInfo(this string filename)
+        static public FileInfo GetFileInfo(this string filename)
         {
             FileInfo result = null;
             if (File.Exists(filename))
@@ -7308,7 +7308,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static DateTime GetFileTime(this string filename, string mode = "m")
+        static public DateTime GetFileTime(this string filename, string mode = "m")
         {
             DateTime result = default(DateTime);
             if (File.Exists(filename))
@@ -7324,7 +7324,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string GetImageName(this string url, bool is_meta_single_page)
+        static public string GetImageName(this string url, bool is_meta_single_page)
         {
             string result = string.Empty;
             if (!string.IsNullOrEmpty(url))
@@ -7335,7 +7335,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string GetImageCacheFile(this string url)
+        static public string GetImageCacheFile(this string url)
         {
             string result = string.Empty;
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
@@ -7345,7 +7345,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string GetImageCachePath(this string url)
+        static public string GetImageCachePath(this string url)
         {
             string result = string.Empty;
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
@@ -7355,7 +7355,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<ImageSource> ToImageSource(this string url, Size size = default(Size))
+        static public async Task<ImageSource> ToImageSource(this string url, Size size = default(Size))
         {
             ImageSource result = null;
 
@@ -7387,7 +7387,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<ImageSource> ToImageSource(this string url, Pixeez.Tokens tokens)
+        static public async Task<ImageSource> ToImageSource(this string url, Pixeez.Tokens tokens)
         {
             ImageSource result = null;
             //url = Regex.Replace(url, @"//.*?\.pixiv.net/", "//i.pximg.net/", RegexOptions.IgnoreCase);
@@ -7401,7 +7401,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<ImageSource> ToImageSource(this Pixeez.AsyncResponse response, Size size = default(Size))
+        static public async Task<ImageSource> ToImageSource(this Pixeez.AsyncResponse response, Size size = default(Size))
         {
             ImageSource result = null;
             using (var stream = await response.GetResponseStreamAsync())
@@ -7413,7 +7413,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<ImageSource> ToImageSource(this ImageSource source, double width, double height)
+        static public async Task<ImageSource> ToImageSource(this ImageSource source, double width, double height)
         {
             ImageSource result = source;
             try
@@ -7433,7 +7433,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<BitmapSource> ToBitmapSource(this byte[] buffer, Size size = default(Size))
+        static public async Task<BitmapSource> ToBitmapSource(this byte[] buffer, Size size = default(Size))
         {
             BitmapSource result = null;
             try
@@ -7452,7 +7452,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<MemoryStream> ToMemoryStream(this BitmapSource bitmap, string fmt = "")
+        static public async Task<MemoryStream> ToMemoryStream(this BitmapSource bitmap, string fmt = "")
         {
             MemoryStream result = new MemoryStream();
             try
@@ -7479,7 +7479,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<MemoryStream> ToMemoryStream(this Pixeez.AsyncResponse response)
+        static public async Task<MemoryStream> ToMemoryStream(this Pixeez.AsyncResponse response)
         {
             MemoryStream result = null;
             using (var stream = await response.GetResponseStreamAsync())
@@ -7490,7 +7490,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static ImageSource ToImageSource(this Stream stream, Size size = default(Size))
+        static public ImageSource ToImageSource(this Stream stream, Size size = default(Size))
         {
             setting = Application.Current.LoadSetting();
             var dpi = DPI.Default;
@@ -7557,7 +7557,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static BitmapSource ToBitmapSource(this ImageSource source, Size size = default(Size))
+        static public BitmapSource ToBitmapSource(this ImageSource source, Size size = default(Size))
         {
             BitmapSource result = source is BitmapSource ? source as BitmapSource : null;
             try
@@ -7598,7 +7598,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static WriteableBitmap ToWriteableBitmap(this Stream stream, Size size = default(Size))
+        static public WriteableBitmap ToWriteableBitmap(this Stream stream, Size size = default(Size))
         {
             WriteableBitmap result = default(WriteableBitmap);
             try
@@ -7616,7 +7616,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static WriteableBitmap ToWriteableBitmap(this BitmapSource bitmap, Size size = default(Size))
+        static public WriteableBitmap ToWriteableBitmap(this BitmapSource bitmap, Size size = default(Size))
         {
             WriteableBitmap result = default(WriteableBitmap);
             try
@@ -7660,7 +7660,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static byte[] ToBytes(this string file)
+        static public byte[] ToBytes(this string file)
         {
             if (string.IsNullOrEmpty(file)) return (null);
 
@@ -7674,20 +7674,20 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<byte[]> ToBytes(this BitmapSource bitmap, string fmt = "")
+        static public async Task<byte[]> ToBytes(this BitmapSource bitmap, string fmt = "")
         {
             if (string.IsNullOrEmpty(fmt)) fmt = ".png";
             return ((await bitmap.ToMemoryStream(fmt)).ToArray());
         }
 
-        public static async Task<byte[]> ToBytes(this byte[] buffer, string fmt = "")
+        static public async Task<byte[]> ToBytes(this byte[] buffer, string fmt = "")
         {
             if (string.IsNullOrEmpty(fmt)) fmt = ".png";
             var bitmap = await buffer.ToBitmapSource();
             return (await bitmap.ToBytes(fmt));
         }
 
-        private static System.Drawing.Imaging.ImageCodecInfo GetEncoderInfo(string mimeType)
+        static private System.Drawing.Imaging.ImageCodecInfo GetEncoderInfo(string mimeType)
         {
             // Get image codecs for all image formats 
             var codecs = System.Drawing.Imaging.ImageCodecInfo.GetImageEncoders();
@@ -7701,24 +7701,24 @@ namespace PixivWPF.Common
             return null;
         }
 
-        private static Guid GetImageEncoderGuid(System.Drawing.Image image)
+        static private Guid GetImageEncoderGuid(System.Drawing.Image image)
         {
             return (image.RawFormat.Guid);
         }
 
-        private static long GetImageColorDepth(System.Drawing.Image image)
+        static private long GetImageColorDepth(System.Drawing.Image image)
         {
             var result = long.Parse(image.GetPropertyItem(0x0102).ToString());
             if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.Indexed) result = 8L;
             return (result);
         }
 
-        private static System.Drawing.Imaging.EncoderParameters GetImageEncoderParams(System.Drawing.Image image)
+        static private System.Drawing.Imaging.EncoderParameters GetImageEncoderParams(System.Drawing.Image image)
         {
             return (image is System.Drawing.Image ? image.GetEncoderParameterList(image.RawFormat.Guid) : new System.Drawing.Imaging.EncoderParameters());
         }
 
-        private static int GetJpegQuality(this string file)
+        static private int GetJpegQuality(this string file)
         {
             var result = -1;
             if (!string.IsNullOrEmpty(file) && File.Exists(file))
@@ -7732,14 +7732,14 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static int GetJpegQuality(this ExifData exif)
+        static private int GetJpegQuality(this ExifData exif)
         {
             var result = 0;
             if (exif is ExifData && exif.ImageType == ImageType.Jpeg) result = exif.JpegQuality == 0 ? 75 : exif.JpegQuality;
             return (result);
         }
 
-        private static System.Drawing.Color[] GetMatrix(System.Drawing.Bitmap bmp, int x, int y, int w, int h)
+        static private System.Drawing.Color[] GetMatrix(System.Drawing.Bitmap bmp, int x, int y, int w, int h)
         {
             var ret = new List<System.Drawing.Color>();
             if (bmp is System.Drawing.Bitmap)
@@ -7759,7 +7759,7 @@ namespace PixivWPF.Common
             return (ret.ToArray());
         }
 
-        private static bool GuessAlpha(this Stream source, int window = 3, int threshold = 255)
+        static private bool GuessAlpha(this Stream source, int window = 3, int threshold = 255)
         {
             var result = false;
             try
@@ -7808,7 +7808,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static bool GuessAlpha(this byte[] buffer, int window = 3, int threshold = 255)
+        static private bool GuessAlpha(this byte[] buffer, int window = 3, int threshold = 255)
         {
             var result = false;
             if (buffer is byte[] && buffer.Length > 0)
@@ -7819,7 +7819,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static bool GuessAlpha(this string file, int window = 3, int threshold = 255)
+        static private bool GuessAlpha(this string file, int window = 3, int threshold = 255)
         {
             var result = false;
 
@@ -7837,7 +7837,7 @@ namespace PixivWPF.Common
         /// <param name="image">要转换为图标的Image对象</param>
         /// <param name="nullTonull">当image为null时是否返回null。false则抛空引用异常</param>
         /// <exception cref="ArgumentNullException" />
-        public static System.Drawing.Icon ConvertToIcon(System.Drawing.Image image, bool nullTonull = false)
+        static public System.Drawing.Icon ConvertToIcon(System.Drawing.Image image, bool nullTonull = false)
         {
             if (image == null)
             {
@@ -7876,7 +7876,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static byte[] ConvertImageTo(this byte[] buffer, string fmt, out string failreason, int quality = 85, bool force = false)
+        static public byte[] ConvertImageTo(this byte[] buffer, string fmt, out string failreason, int quality = 85, bool force = false)
         {
             byte[] result = buffer;
             failreason = string.Empty;
@@ -7964,7 +7964,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> ConvertImageTo(this string file, string fmt, bool keep_name = false, int quality = 85, bool reduce = false, bool force = false)
+        static public async Task<string> ConvertImageTo(this string file, string fmt, bool keep_name = false, int quality = 85, bool reduce = false, bool force = false)
         {
             string result = string.Empty;
             var feature = reduce ? "Reduce" : "Convert";
@@ -8089,12 +8089,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> ReduceImageFileSize(this string file, string fmt, bool keep_name = false, int quality = 85, bool force = false)
+        static public async Task<string> ReduceImageFileSize(this string file, string fmt, bool keep_name = false, int quality = 85, bool force = false)
         {
             return (await ConvertImageTo(file, fmt, keep_name: true, quality: quality, reduce: true, force: force));
         }
 
-        public static BitmapSource ConvertBitmapDPI(this BitmapSource source, double dpiX = 96, double dpiY = 96)
+        static public BitmapSource ConvertBitmapDPI(this BitmapSource source, double dpiX = 96, double dpiY = 96)
         {
             if (dpiX == source.DpiX || dpiY == source.DpiY) return (source);
 
@@ -8153,7 +8153,7 @@ namespace PixivWPF.Common
             return result;
         }
 
-        public static ImageSource ResizeImage(this ImageSource source, Size size)
+        static public ImageSource ResizeImage(this ImageSource source, Size size)
         {
             ImageSource result = source;
             try
@@ -8184,15 +8184,15 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static ImageSource ResizeImage(this ImageSource source, double width, double height)
+        static public ImageSource ResizeImage(this ImageSource source, double width, double height)
         {
             if (width <= 0 || height <= 0) return (source);
             else return (source.ResizeImage(new Size(width, height)));
         }
 
-        private static byte[] ClipboardBuffer = null;
+        static private byte[] ClipboardBuffer = null;
 
-        public static async void CopyImage(this ImageSource source)
+        static public async void CopyImage(this ImageSource source)
         {
             await new Action(async () =>
             {
@@ -8235,7 +8235,7 @@ namespace PixivWPF.Common
             }).InvokeAsync(realtime: false);
         }
 
-        public static async void CopyImage(this string file)
+        static public async void CopyImage(this string file)
         {
             await new Action(async () =>
             {
@@ -8291,7 +8291,7 @@ namespace PixivWPF.Common
             }).InvokeAsync(realtime: false);
         }
 
-        public static void CleenLastDownloaded(this string file)
+        static public void CleenLastDownloaded(this string file)
         {
             byte[] lastdown = null;
             if (DownloadTaskCache.TryRemove(file, out lastdown))
@@ -8300,7 +8300,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void SaveBitmapSource(this BitmapSource source, string file, string fmt = null, int quality = 85, bool force = false)
+        static public void SaveBitmapSource(this BitmapSource source, string file, string fmt = null, int quality = 85, bool force = false)
         {
             if (!string.IsNullOrEmpty(file) && source is BitmapSource)
             {
@@ -8327,7 +8327,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async Task<bool> WriteToFile(this Stream source, string file, ContentRangeHeaderValue range = null, Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null, int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite, byte[] lastdownloaded = null)
+        static public async Task<bool> WriteToFile(this Stream source, string file, ContentRangeHeaderValue range = null, Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null, int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite, byte[] lastdownloaded = null)
         {
             var result = false;
             using (var ms = new MemoryStream())
@@ -8447,7 +8447,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> WriteAllBytesAsync(this string filename, byte[] bytes)
+        static public async Task<bool> WriteAllBytesAsync(this string filename, byte[] bytes)
         {
             var result = false;
             try
@@ -8467,7 +8467,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool WriteAllBytes(this string filename, byte[] bytes)
+        static public bool WriteAllBytes(this string filename, byte[] bytes)
         {
             var result = false;
             try
@@ -8488,9 +8488,9 @@ namespace PixivWPF.Common
         #endregion
 
         #region Load/Save Image routines
-        private static ConcurrentDictionary<string, bool> _Downloading_ = new ConcurrentDictionary<string, bool>();
+        static private ConcurrentDictionary<string, bool> _Downloading_ = new ConcurrentDictionary<string, bool>();
 
-        public static async Task<CustomImageSource> LoadImageFromFile(this string file, Size size = default(Size))
+        static public async Task<CustomImageSource> LoadImageFromFile(this string file, Size size = default(Size))
         {
             CustomImageSource result = new CustomImageSource();
             if (!string.IsNullOrEmpty(file) && File.Exists(file))
@@ -8518,7 +8518,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<CustomImageSource> LoadImageFromUrl(this string url, bool overwrite = false, bool login = false, Size size = default(Size), Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null)
+        static public async Task<CustomImageSource> LoadImageFromUrl(this string url, bool overwrite = false, bool login = false, Size size = default(Size), Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null)
         {
             CustomImageSource result = new CustomImageSource();
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
@@ -8528,7 +8528,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<CustomImageSource> LoadImageFromUri(this Uri uri, bool overwrite = false, Pixeez.Tokens tokens = null, Size size = default(Size), Action<double, double> progressAction = null)
+        static public async Task<CustomImageSource> LoadImageFromUri(this Uri uri, bool overwrite = false, Pixeez.Tokens tokens = null, Size size = default(Size), Action<double, double> progressAction = null)
         {
             CustomImageSource result = new CustomImageSource();
             if (uri.IsUnc || uri.IsFile)
@@ -8538,7 +8538,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> DownloadCacheFile(this string url, bool overwrite = false, Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null)
+        static public async Task<string> DownloadCacheFile(this string url, bool overwrite = false, Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null)
         {
             string result = string.Empty;
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
@@ -8552,12 +8552,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsDownloading(this string file)
+        static public bool IsDownloading(this string file)
         {
             return (_Downloading_ is ConcurrentDictionary<string, bool> && _Downloading_.ContainsKey(file));
         }
 
-        public static long QueryDownloadingState(this string file)
+        static public long QueryDownloadingState(this string file)
         {
             long result = 0;// File.Exists(file) ? new FileInfo(file).Length : 0;
             if (DownloadTaskCache is ConcurrentDictionary<string, byte[]> && DownloadTaskCache.ContainsKey(file))
@@ -8571,7 +8571,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void ClearDownloading(this string file)
+        static public void ClearDownloading(this string file)
         {
             if (_Downloading_ is ConcurrentDictionary<string, bool> && _Downloading_.ContainsKey(file))
             {
@@ -8580,9 +8580,9 @@ namespace PixivWPF.Common
             }
         }
 
-        private static ConcurrentDictionary<string, long?> _ImageFileSizeCache_ = new ConcurrentDictionary<string, long?>();
+        static private ConcurrentDictionary<string, long?> _ImageFileSizeCache_ = new ConcurrentDictionary<string, long?>();
 
-        public static IList<string> TrimImageFileSizeData(this ConcurrentDictionary<string, long?> data, int keep = 10000)
+        static public IList<string> TrimImageFileSizeData(this ConcurrentDictionary<string, long?> data, int keep = 10000)
         {
             List<string> result = new List<string>();
             if (data is ConcurrentDictionary<string, long?>)
@@ -8598,7 +8598,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void SaveImageFileSizeData(this string file)
+        static public void SaveImageFileSizeData(this string file)
         {
             try
             {
@@ -8609,7 +8609,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("SaveImageFileSizeData"); }
         }
 
-        public static void LoadImageFileSizeData(this string file)
+        static public void LoadImageFileSizeData(this string file)
         {
             try
             {
@@ -8633,7 +8633,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("SaveImageFileSizeData"); }
         }
 
-        public static async Task<long?> QueryImageFileSize(this string url, CancellationTokenSource cancelToken = null)
+        static public async Task<long?> QueryImageFileSize(this string url, CancellationTokenSource cancelToken = null)
         {
             long? result = null;
 
@@ -8667,7 +8667,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static Func<string, int, TimeSpan, Task<bool>> WaitDownloadingFunc = async(file, interval, timeout) =>
+        static public Func<string, int, TimeSpan, Task<bool>> WaitDownloadingFunc = async(file, interval, timeout) =>
         {
             bool exists = false;
             int wait_count = timeout.Ticks > 0 ? (int)Math.Ceiling(timeout.TotalMilliseconds / interval) : 100;
@@ -8690,7 +8690,7 @@ namespace PixivWPF.Common
         /// <param name="times">unit: none, default: 100 times</param>
         /// <param name="timeout">unit: miliseconds or TimeSpan, default: null</param>
         /// <returns></returns>
-        public static async Task<bool> WaitDownloading(this string file, int interval = 100, int times = 100, dynamic timeout = null)
+        static public async Task<bool> WaitDownloading(this string file, int interval = 100, int times = 100, dynamic timeout = null)
         {
             bool exists = false;
             if (!string.IsNullOrEmpty(file))
@@ -8712,7 +8712,7 @@ namespace PixivWPF.Common
             return (exists);
         }
 
-        public static async Task<string> DownloadImage(this string url, string file, bool overwrite = true, Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null)
+        static public async Task<string> DownloadImage(this string url, string file, bool overwrite = true, Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null)
         {
             var result = string.Empty;
             if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
@@ -8774,7 +8774,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> DownloadImage(this string url, string file, Pixeez.Tokens tokens, bool overwrite = true, CancellationTokenSource cancelToken = null)
+        static public async Task<string> DownloadImage(this string url, string file, Pixeez.Tokens tokens, bool overwrite = true, CancellationTokenSource cancelToken = null)
         {
             var result = string.Empty;
             if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
@@ -8816,7 +8816,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> SaveImage(this string url, string file, bool overwrite = true, Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null)
+        static public async Task<bool> SaveImage(this string url, string file, bool overwrite = true, Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null)
         {
             bool result = false;
             if (url.IndexOf("https://") > 1 || url.IndexOf("http://") > 1) return (result);
@@ -8843,7 +8843,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> SaveImage(this string url, Pixeez.Tokens tokens, string file, bool overwrite = true, CancellationTokenSource cancelToken = null)
+        static public async Task<bool> SaveImage(this string url, Pixeez.Tokens tokens, string file, bool overwrite = true, CancellationTokenSource cancelToken = null)
         {
             bool result = false;
             if (url.IndexOf("https://") > 1 || url.IndexOf("http://") > 1) return (result);
@@ -8874,7 +8874,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> SaveImage(this string url, Pixeez.Tokens tokens, bool is_meta_single_page = false, bool overwrite = true)
+        static public async Task<string> SaveImage(this string url, Pixeez.Tokens tokens, bool is_meta_single_page = false, bool overwrite = true)
         {
             string result = string.Empty;
 
@@ -8901,7 +8901,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> SaveImage(this string url, Pixeez.Tokens tokens, DateTime dt, bool is_meta_single_page = false, bool overwrite = true, bool jpeg = false, bool largepreview = false)
+        static public async Task<string> SaveImage(this string url, Pixeez.Tokens tokens, DateTime dt, bool is_meta_single_page = false, bool overwrite = true, bool jpeg = false, bool largepreview = false)
         {
             var timer = new Stopwatch();
             timer.Start();
@@ -8948,7 +8948,7 @@ namespace PixivWPF.Common
             return (file);
         }
 
-        public static async Task<List<string>> SaveImage(Dictionary<string, DateTime> files, Pixeez.Tokens tokens, bool is_meta_single_page = false)
+        static public async Task<List<string>> SaveImage(Dictionary<string, DateTime> files, Pixeez.Tokens tokens, bool is_meta_single_page = false)
         {
             List<string> result = new List<string>();
 
@@ -8962,7 +8962,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void SaveImage(this string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true, bool jpeg = false, bool largepreview = false)
+        static public void SaveImage(this string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true, bool jpeg = false, bool largepreview = false)
         {
             Commands.AddDownloadItem.Execute(new DownloadParams()
             {
@@ -8976,7 +8976,7 @@ namespace PixivWPF.Common
             });
         }
 
-        public static void SaveImages(Dictionary<Tuple<string, bool>, Tuple<string, DateTime>> files, bool overwrite = true, bool jpeg = false, bool largepreview = false)
+        static public void SaveImages(Dictionary<Tuple<string, bool>, Tuple<string, DateTime>> files, bool overwrite = true, bool jpeg = false, bool largepreview = false)
         {
             foreach (var file in files)
             {
@@ -8989,7 +8989,7 @@ namespace PixivWPF.Common
             SystemSounds.Beep.Play();
         }
 
-        public static void MakeUgoiraConcatFile(this Pixeez.Objects.UgoiraInfo ugoira_info, string file)
+        static public void MakeUgoiraConcatFile(this Pixeez.Objects.UgoiraInfo ugoira_info, string file)
         {
             if (!string.IsNullOrEmpty(file) && ugoira_info != null)
             {
@@ -9009,28 +9009,28 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Illust routines
-        public static bool IsWork(this Pixeez.Objects.Work work)
+        #region Illust detection routines
+        static public bool IsWork(this Pixeez.Objects.Work work)
         {
             return (work is Pixeez.Objects.Work);
         }
 
-        public static bool IsUgoira(this Pixeez.Objects.Work work)
+        static public bool IsUgoira(this Pixeez.Objects.Work work)
         {
             return (work is Pixeez.Objects.Work && (work.IsUgoira || work.Type.Equals("ugoira", StringComparison.CurrentCultureIgnoreCase)));
         }
 
-        public static bool IsNormalWork(this Pixeez.Objects.Work work)
+        static public bool IsNormalWork(this Pixeez.Objects.Work work)
         {
             return (work is Pixeez.Objects.NormalWork);
         }
 
-        public static bool IsIllustWork(this Pixeez.Objects.Work work)
+        static public bool IsIllustWork(this Pixeez.Objects.Work work)
         {
             return (work is Pixeez.Objects.IllustWork);
         }
 
-        public static bool HasMetadata(this Pixeez.Objects.Work work)
+        static public bool HasMetadata(this Pixeez.Objects.Work work)
         {
             var result = false;
             if (work is Pixeez.Objects.Work)
@@ -9044,17 +9044,17 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool HasUser(this Pixeez.Objects.Work work)
+        static public bool HasUser(this Pixeez.Objects.Work work)
         {
             return (work is Pixeez.Objects.Work && work.User is Pixeez.Objects.UserBase);
         }
 
-        public static bool HasNewUser(this Pixeez.Objects.Work work)
+        static public bool HasNewUser(this Pixeez.Objects.Work work)
         {
             return (work is Pixeez.Objects.Work && work.User is Pixeez.Objects.NewUser);
         }
 
-        private static bool DetectAI(this Pixeez.Objects.Work work)
+        static private bool DetectAI(this Pixeez.Objects.Work work)
         {
             bool result = false;
             try
@@ -9070,7 +9070,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsAI(this Pixeez.Objects.Work work)
+        static public bool IsAI(this Pixeez.Objects.Work work)
         {
             bool result = false;
             try
@@ -9084,7 +9084,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool HasAI(this Pixeez.Objects.Work work)
+        static public bool HasAI(this Pixeez.Objects.Work work)
         {
             bool result = false;
             try
@@ -9098,7 +9098,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static bool DetectSanity(this Pixeez.Objects.Work work)
+        static private bool DetectSanity(this Pixeez.Objects.Work work)
         {
             bool result = false;
             try
@@ -9114,7 +9114,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsSanity(this Pixeez.Objects.Work work)
+        static public bool IsSanity(this Pixeez.Objects.Work work)
         {
             bool result = false;
             try
@@ -9128,7 +9128,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool HasSanity(this Pixeez.Objects.Work work)
+        static public bool HasSanity(this Pixeez.Objects.Work work)
         {
             bool result = false;
             try
@@ -9141,8 +9141,10 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
+        #endregion
 
-        public static JObject IllustToJObject(this Pixeez.Objects.Work work)
+        #region Illust converter routines
+        static public JObject IllustToJObject(this Pixeez.Objects.Work work)
         {
             var result = new JObject();
             try
@@ -9167,7 +9169,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static JArray IllustToJObject(this IEnumerable<Pixeez.Objects.Work> works)
+        static public JArray IllustToJObject(this IEnumerable<Pixeez.Objects.Work> works)
         {
             var result = new JArray();
             try
@@ -9196,17 +9198,17 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string IllustToJSON(this Pixeez.Objects.Work work)
+        static public string IllustToJSON(this Pixeez.Objects.Work work)
         {
             return (JsonConvert.SerializeObject(IllustToJObject(work), Newtonsoft.Json.Formatting.Indented));
         }
 
-        public static string IllustToJSON(this IEnumerable<Pixeez.Objects.Work> works)
+        static public string IllustToJSON(this IEnumerable<Pixeez.Objects.Work> works)
         {
             return (JsonConvert.SerializeObject(IllustToJObject(works), Newtonsoft.Json.Formatting.Indented));
         }
 
-        public static XmlDocument IllustToXmlDocument(this Pixeez.Objects.Work work)
+        static public XmlDocument IllustToXmlDocument(this Pixeez.Objects.Work work)
         {
             XmlDocument result = null;
             try
@@ -9262,7 +9264,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static XmlDocument IllustToXmlDocument(this IEnumerable<Pixeez.Objects.Work> works)
+        static public XmlDocument IllustToXmlDocument(this IEnumerable<Pixeez.Objects.Work> works)
         {
             XmlDocument result = null;
             try
@@ -9282,36 +9284,38 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string IllustToXml(this Pixeez.Objects.Work work)
+        static public string IllustToXml(this Pixeez.Objects.Work work)
         {
             var xml = IllustToXmlDocument(work);
             var xml_out = FormatXML(xml);
             return (xml is XmlDocument ? xml_out : string.Empty);
         }
 
-        public static string IllustToXml(this IEnumerable<Pixeez.Objects.Work> works)
+        static public string IllustToXml(this IEnumerable<Pixeez.Objects.Work> works)
         {
             var xml = IllustToXmlDocument(works);
             var xml_out = FormatXML(xml);
             return (xml is XmlDocument ? xml_out : string.Empty);
         }
+        #endregion
+
         #region SameIllust
-        public static bool IsSameIllust(this string id, int hash)
+        static public bool IsSameIllust(this string id, int hash)
         {
             return (cache.IsSameIllust(hash, id));
         }
 
-        public static bool IsSameIllust(this long id, int hash)
+        static public bool IsSameIllust(this long id, int hash)
         {
             return (cache.IsSameIllust(hash, $"{id}"));
         }
 
-        public static bool IsSameIllust(this long? id, int hash)
+        static public bool IsSameIllust(this long? id, int hash)
         {
             return (cache.IsSameIllust(hash, $"{id ?? -1}"));
         }
 
-        public static bool IsSameIllust(this PixivItem item, int hash)
+        static public bool IsSameIllust(this PixivItem item, int hash)
         {
             bool result = false;
 
@@ -9323,7 +9327,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsSameIllust(this PixivItem item, long id)
+        static public bool IsSameIllust(this PixivItem item, long id)
         {
             bool result = false;
 
@@ -9336,7 +9340,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsSameIllust(this PixivItem item, long? id)
+        static public bool IsSameIllust(this PixivItem item, long? id)
         {
             bool result = false;
 
@@ -9349,7 +9353,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsSameIllust(this PixivItem item, PixivItem item_now)
+        static public bool IsSameIllust(this PixivItem item, PixivItem item_now)
         {
             bool result = false;
 
@@ -9362,7 +9366,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsSameUser(this PixivItem item, Pixeez.Objects.Work work)
+        static public bool IsSameUser(this PixivItem item, Pixeez.Objects.Work work)
         {
             bool result = false;
 
@@ -9375,7 +9379,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsSameUser(this PixivItem item, string id)
+        static public bool IsSameUser(this PixivItem item, string id)
         {
             bool result = false;
 
@@ -9388,7 +9392,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsSameUser(this PixivItem item, long id)
+        static public bool IsSameUser(this PixivItem item, long id)
         {
             bool result = false;
 
@@ -9401,7 +9405,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsSameUser(this PixivItem item, long? id)
+        static public bool IsSameUser(this PixivItem item, long? id)
         {
             bool result = false;
 
@@ -9414,7 +9418,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsSameUser(this PixivItem item, PixivItem item_now)
+        static public bool IsSameUser(this PixivItem item, PixivItem item_now)
         {
             bool result = false;
 
@@ -9427,7 +9431,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static IList<PixivItem> GetSelected(this ImageListGrid gallery, bool WithSelectionOrder = false, bool NonForAll = false)
+        static public IList<PixivItem> GetSelected(this ImageListGrid gallery, bool WithSelectionOrder = false, bool NonForAll = false)
         {
             var result = new List<PixivItem>();
             try
@@ -9451,33 +9455,33 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static IList<PixivItem> GetSelected(this ImageListGrid gallery, bool NonForAll)
+        static public IList<PixivItem> GetSelected(this ImageListGrid gallery, bool NonForAll)
         {
             setting = Application.Current.LoadSetting();
             return (GetSelected(gallery, setting.OpenWithSelectionOrder, NonForAll));
         }
 
-        public static IList<PixivItem> GetSelected(this ImageListGrid gallery)
+        static public IList<PixivItem> GetSelected(this ImageListGrid gallery)
         {
             setting = Application.Current.LoadSetting();
             return (GetSelected(gallery, setting.OpenWithSelectionOrder, setting.AllForSelectionNone));
         }
 
-        public static IList<PixivItem> GetSelected(this ImageListGrid gallery, PixivItemType type)
+        static public IList<PixivItem> GetSelected(this ImageListGrid gallery, PixivItemType type)
         {
             setting = Application.Current.LoadSetting();
             var selected = GetSelected(gallery, setting.OpenWithSelectionOrder, setting.AllForSelectionNone);
             return (selected.Where(i => i.ItemType == type).ToList());
         }
 
-        public static IList<PixivItem> GetSelectedIllusts(this ImageListGrid gallery)
+        static public IList<PixivItem> GetSelectedIllusts(this ImageListGrid gallery)
         {
             setting = Application.Current.LoadSetting();
             var selected = GetSelected(gallery, setting.OpenWithSelectionOrder, setting.AllForSelectionNone);
             return (selected.Where(i => i.IsWork()).ToList());
         }
 
-        public static IList<PixivItem> GetSelectedUsers(this ImageListGrid gallery)
+        static public IList<PixivItem> GetSelectedUsers(this ImageListGrid gallery)
         {
             setting = Application.Current.LoadSetting();
             var selected = GetSelected(gallery, setting.OpenWithSelectionOrder, setting.AllForSelectionNone);
@@ -9486,27 +9490,27 @@ namespace PixivWPF.Common
         #endregion
 
         #region History routines
-        public static bool InHistory(this PixivItem item)
+        static public bool InHistory(this PixivItem item)
         {
             return (Application.Current.InHistory(item));
         }
 
-        public static bool InHistory(this Pixeez.Objects.Work illust)
+        static public bool InHistory(this Pixeez.Objects.Work illust)
         {
             return (Application.Current.InHistory(illust));
         }
 
-        public static bool InHistory(this Pixeez.Objects.User user)
+        static public bool InHistory(this Pixeez.Objects.User user)
         {
             return (Application.Current.InHistory(user));
         }
 
-        public static bool InHistory(this Pixeez.Objects.UserBase user)
+        static public bool InHistory(this Pixeez.Objects.UserBase user)
         {
             return (Application.Current.InHistory(user));
         }
 
-        public static void AddToHistory(this PixivItem item)
+        static public void AddToHistory(this PixivItem item)
         {
             //Commands.AddToHistory.Execute(illust);
             var win = Application.Current.HistoryTitle().GetWindowByTitle();
@@ -9516,7 +9520,7 @@ namespace PixivWPF.Common
                 Application.Current.HistoryAdd(item);
         }
 
-        public static void AddToHistory(this Pixeez.Objects.Work illust)
+        static public void AddToHistory(this Pixeez.Objects.Work illust)
         {
             //Commands.AddToHistory.Execute(illust);
             var win = Application.Current.HistoryTitle().GetWindowByTitle();
@@ -9526,7 +9530,7 @@ namespace PixivWPF.Common
                 Application.Current.HistoryAdd(illust);
         }
 
-        public static void AddToHistory(this Pixeez.Objects.User user)
+        static public void AddToHistory(this Pixeez.Objects.User user)
         {
             //Commands.AddToHistory.Execute(user);
             var win = Application.Current.HistoryTitle().GetWindowByTitle();
@@ -9536,7 +9540,7 @@ namespace PixivWPF.Common
                 Application.Current.HistoryAdd(user);
         }
 
-        public static void AddToHistory(this Pixeez.Objects.UserBase user)
+        static public void AddToHistory(this Pixeez.Objects.UserBase user)
         {
             //Commands.AddToHistory.Execute(user);
             var win = Application.Current.HistoryTitle().GetWindowByTitle();
@@ -9546,14 +9550,14 @@ namespace PixivWPF.Common
                 Application.Current.HistoryAdd(user);
         }
 
-        public static void ShowHistory(this Application app)
+        static public void ShowHistory(this Application app)
         {
             Commands.OpenHistory.Execute(null);
         }
         #endregion
 
         #region Refresh Illust/User Info
-        public static async Task<Pixeez.Objects.Work> RefreshIllust(this Pixeez.Objects.Work Illust, Pixeez.Tokens tokens = null, bool restrict = true)
+        static public async Task<Pixeez.Objects.Work> RefreshIllust(this Pixeez.Objects.Work Illust, Pixeez.Tokens tokens = null, bool restrict = true)
         {
             var result = Illust.Id != null ? await RefreshIllust(Illust.Id.Value, tokens, restrict: restrict) : Illust;
             if (result == null)
@@ -9603,7 +9607,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<Pixeez.Objects.Work> RefreshIllust(this string IllustID, Pixeez.Tokens tokens = null, bool restrict = true)
+        static public async Task<Pixeez.Objects.Work> RefreshIllust(this string IllustID, Pixeez.Tokens tokens = null, bool restrict = true)
         {
             Pixeez.Objects.Work result = null;
             try
@@ -9616,7 +9620,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<Pixeez.Objects.Work> RefreshIllust(this long IllustID, Pixeez.Tokens tokens = null, bool restrict = true)
+        static public async Task<Pixeez.Objects.Work> RefreshIllust(this long IllustID, Pixeez.Tokens tokens = null, bool restrict = true)
         {
             Pixeez.Objects.Work result = null;
             if (IllustID < 0) return result;
@@ -9647,7 +9651,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<Pixeez.Objects.UserBase> RefreshUser(this Pixeez.Objects.Work Illust, Pixeez.Tokens tokens = null, bool restrict = true)
+        static public async Task<Pixeez.Objects.UserBase> RefreshUser(this Pixeez.Objects.Work Illust, Pixeez.Tokens tokens = null, bool restrict = true)
         {
             Pixeez.Objects.UserBase result = Illust.User;
             try
@@ -9663,7 +9667,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<Pixeez.Objects.UserBase> RefreshUser(this Pixeez.Objects.UserBase User, Pixeez.Tokens tokens = null, bool restrict = true)
+        static public async Task<Pixeez.Objects.UserBase> RefreshUser(this Pixeez.Objects.UserBase User, Pixeez.Tokens tokens = null, bool restrict = true)
         {
             var user = await RefreshUser(User.Id.Value);
             try
@@ -9686,7 +9690,7 @@ namespace PixivWPF.Common
             return (user);
         }
 
-        public static async Task<Pixeez.Objects.UserBase> RefreshUser(this string UserID, Pixeez.Tokens tokens = null, bool restrict = true)
+        static public async Task<Pixeez.Objects.UserBase> RefreshUser(this string UserID, Pixeez.Tokens tokens = null, bool restrict = true)
         {
             Pixeez.Objects.UserBase result = null;
             if (!string.IsNullOrEmpty(UserID))
@@ -9700,7 +9704,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<Pixeez.Objects.UserBase> RefreshUser(this long UserID, Pixeez.Tokens tokens = null, bool restrict = true)
+        static public async Task<Pixeez.Objects.UserBase> RefreshUser(this long UserID, Pixeez.Tokens tokens = null, bool restrict = true)
         {
             Pixeez.Objects.UserBase result = null;
             if (UserID < 0) return (result);
@@ -9750,7 +9754,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<Pixeez.Objects.UserInfo> RefreshUserInfo(this string UserID, Pixeez.Tokens tokens = null)
+        static public async Task<Pixeez.Objects.UserInfo> RefreshUserInfo(this string UserID, Pixeez.Tokens tokens = null)
         {
             Pixeez.Objects.UserInfo result = null;
             if (!string.IsNullOrEmpty(UserID))
@@ -9765,7 +9769,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<Pixeez.Objects.UserInfo> RefreshUserInfo(this long UserID, Pixeez.Tokens tokens = null)
+        static public async Task<Pixeez.Objects.UserInfo> RefreshUserInfo(this long UserID, Pixeez.Tokens tokens = null)
         {
             Pixeez.Objects.UserInfo result = null;
             if (UserID < 0) return (result);
@@ -9790,19 +9794,19 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<Pixeez.Objects.UserInfo> RefreshUserInfo(this long? UserID, Pixeez.Tokens tokens = null)
+        static public async Task<Pixeez.Objects.UserInfo> RefreshUserInfo(this long? UserID, Pixeez.Tokens tokens = null)
         {
             return (await RefreshUserInfo(UserID.Value));
         }
 
-        public static async Task<Pixeez.Objects.UserInfo> RefreshUserInfo(this Pixeez.Objects.UserBase User, Pixeez.Tokens tokens = null)
+        static public async Task<Pixeez.Objects.UserInfo> RefreshUserInfo(this Pixeez.Objects.UserBase User, Pixeez.Tokens tokens = null)
         {
             return (await RefreshUserInfo(User.Id));
         }
         #endregion
 
         #region Like helper routines
-        public static bool IsLiked(this Pixeez.Objects.Work illust)
+        static public bool IsLiked(this Pixeez.Objects.Work illust)
         {
             bool result = false;
             if (illust is Pixeez.Objects.Work && illust.User is Pixeez.Objects.UserBase)
@@ -9813,7 +9817,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsLiked(this Pixeez.Objects.UserBase user)
+        static public bool IsLiked(this Pixeez.Objects.UserBase user)
         {
             bool result = false;
             if (user is Pixeez.Objects.UserBase)
@@ -9834,7 +9838,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsLiked(this PixivItem item)
+        static public bool IsLiked(this PixivItem item)
         {
             var result = false;
             if (item.IsUser()) result = item.User.IsLiked();
@@ -9842,7 +9846,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> Like(this PixivItem item, bool pub = true)
+        static public async Task<bool> Like(this PixivItem item, bool pub = true)
         {
             if (item.IsWork())
             {
@@ -9859,7 +9863,7 @@ namespace PixivWPF.Common
             else return false;
         }
 
-        public static async Task<bool> UnLike(this PixivItem item, bool pub = true)
+        static public async Task<bool> UnLike(this PixivItem item, bool pub = true)
         {
             if (item.IsWork())
             {
@@ -9886,7 +9890,7 @@ namespace PixivWPF.Common
             public string Restrict { get; set; } = string.Empty;
         }
 
-        public static async Task<BookmarkState> RefreshIllustBookmarkState(this Pixeez.Objects.Work illust)
+        static public async Task<BookmarkState> RefreshIllustBookmarkState(this Pixeez.Objects.Work illust)
         {
             BookmarkState result = new BookmarkState();
 
@@ -9923,7 +9927,7 @@ namespace PixivWPF.Common
         /// <param name="illust"></param>
         /// <param name="pub"></param>
         /// <returns></returns>
-        public static async Task<Tuple<bool, Pixeez.Objects.Work>> LikeIllust(this Pixeez.Objects.Work illust, bool pub = true)
+        static public async Task<Tuple<bool, Pixeez.Objects.Work>> LikeIllust(this Pixeez.Objects.Work illust, bool pub = true)
         {
             Tuple<bool, Pixeez.Objects.Work> result = new Tuple<bool, Pixeez.Objects.Work>(illust.IsLiked(), illust);
 
@@ -9965,14 +9969,14 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<Tuple<bool, Pixeez.Objects.Work>> Like(this Pixeez.Objects.Work illust, bool pub = true)
+        static public async Task<Tuple<bool, Pixeez.Objects.Work>> Like(this Pixeez.Objects.Work illust, bool pub = true)
         {
             var result = illust.IsLiked() ? new Tuple<bool, Pixeez.Objects.Work>(true, illust) : await illust.LikeIllust(pub);
             UpdateLikeStateAsync((int)(illust.Id.Value), false);
             return (result);
         }
 
-        public static async Task<bool> LikeIllust(this PixivItem item, bool pub = true)
+        static public async Task<bool> LikeIllust(this PixivItem item, bool pub = true)
         {
             bool result = false;
 
@@ -9994,7 +9998,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void LikeIllust(this ObservableCollection<PixivItem> collection, bool pub = true)
+        static public void LikeIllust(this ObservableCollection<PixivItem> collection, bool pub = true)
         {
             var opt = new ParallelOptions();
             opt.MaxDegreeOfParallelism = 5;
@@ -10016,7 +10020,7 @@ namespace PixivWPF.Common
             });
         }
 
-        public static void LikeIllust(this IList<PixivItem> collection, bool pub = true)
+        static public void LikeIllust(this IList<PixivItem> collection, bool pub = true)
         {
             LikeIllust(new ObservableCollection<PixivItem>(collection), pub);
         }
@@ -10026,7 +10030,7 @@ namespace PixivWPF.Common
         /// </summary>
         /// <param name="illust"></param>
         /// <returns></returns>
-        public static async Task<Tuple<bool, Pixeez.Objects.Work>> UnLikeIllust(this Pixeez.Objects.Work illust)
+        static public async Task<Tuple<bool, Pixeez.Objects.Work>> UnLikeIllust(this Pixeez.Objects.Work illust)
         {
             Tuple<bool, Pixeez.Objects.Work> result = new Tuple<bool, Pixeez.Objects.Work>(!illust.IsLiked(), illust);
 
@@ -10082,14 +10086,14 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<Tuple<bool, Pixeez.Objects.Work>> UnLike(this Pixeez.Objects.Work illust)
+        static public async Task<Tuple<bool, Pixeez.Objects.Work>> UnLike(this Pixeez.Objects.Work illust)
         {
             var result = illust.IsLiked() ? await illust.UnLikeIllust() : new Tuple<bool, Pixeez.Objects.Work>(true, illust);
             UpdateLikeStateAsync((int)(illust.Id.Value), false);
             return (result);
         }
 
-        public static async Task<bool> UnLikeIllust(this PixivItem item, bool pub = true)
+        static public async Task<bool> UnLikeIllust(this PixivItem item, bool pub = true)
         {
             bool result = false;
             if (item.IsWork())
@@ -10109,7 +10113,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void UnLikeIllust(this ObservableCollection<PixivItem> collection)
+        static public void UnLikeIllust(this ObservableCollection<PixivItem> collection)
         {
             var opt = new ParallelOptions();
             opt.MaxDegreeOfParallelism = 5;
@@ -10130,7 +10134,7 @@ namespace PixivWPF.Common
             });
         }
 
-        public static void UnLikeIllust(this IList<PixivItem> collection)
+        static public void UnLikeIllust(this IList<PixivItem> collection)
         {
             UnLikeIllust(new ObservableCollection<PixivItem>(collection));
         }
@@ -10141,20 +10145,20 @@ namespace PixivWPF.Common
         /// <param name="user"></param>
         /// <param name="pub"></param>
         /// <returns></returns>
-        public static async Task<Tuple<bool, Pixeez.Objects.Work>> ToggleLikeIllust(this Pixeez.Objects.Work illust, bool pub = true)
+        static public async Task<Tuple<bool, Pixeez.Objects.Work>> ToggleLikeIllust(this Pixeez.Objects.Work illust, bool pub = true)
         {
             var result = illust.IsLiked() ? await illust.UnLikeIllust() : await illust.LikeIllust(pub);
             return (result);
         }
 
-        public static async Task<Tuple<bool, Pixeez.Objects.Work>> ToggleLike(this Pixeez.Objects.Work illust, bool pub = true)
+        static public async Task<Tuple<bool, Pixeez.Objects.Work>> ToggleLike(this Pixeez.Objects.Work illust, bool pub = true)
         {
             var result = await illust.ToggleLikeIllust(pub);
             UpdateLikeStateAsync((int)(illust.Id.Value), false);
             return (result);
         }
 
-        public static async Task<bool> ToggleLikeIllust(this PixivItem item, bool pub = true)
+        static public async Task<bool> ToggleLikeIllust(this PixivItem item, bool pub = true)
         {
             bool result = false;
             if (item.IsWork())
@@ -10169,7 +10173,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void ToggleLikeIllust(this ObservableCollection<PixivItem> collection, bool pub = true)
+        static public void ToggleLikeIllust(this ObservableCollection<PixivItem> collection, bool pub = true)
         {
             var opt = new ParallelOptions();
             opt.MaxDegreeOfParallelism = 5;
@@ -10191,7 +10195,7 @@ namespace PixivWPF.Common
             });
         }
 
-        public static void ToggleLikeIllust(this IList<PixivItem> collection, bool pub = true)
+        static public void ToggleLikeIllust(this IList<PixivItem> collection, bool pub = true)
         {
             ToggleLikeIllust(new ObservableCollection<PixivItem>(collection), pub);
         }
@@ -10204,7 +10208,7 @@ namespace PixivWPF.Common
         /// <param name="user"></param>
         /// <param name="pub"></param>
         /// <returns></returns>
-        public static async Task<Tuple<bool, Pixeez.Objects.UserBase>> LikeUser(this Pixeez.Objects.UserBase user, bool pub = true)
+        static public async Task<Tuple<bool, Pixeez.Objects.UserBase>> LikeUser(this Pixeez.Objects.UserBase user, bool pub = true)
         {
             Tuple<bool, Pixeez.Objects.UserBase> result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
 
@@ -10243,14 +10247,14 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<Tuple<bool, Pixeez.Objects.UserBase>> Like(this Pixeez.Objects.UserBase user, bool pub = true)
+        static public async Task<Tuple<bool, Pixeez.Objects.UserBase>> Like(this Pixeez.Objects.UserBase user, bool pub = true)
         {
             var result = await user.LikeUser(pub);
             UpdateLikeStateAsync((int)(user.Id.Value), true);
             return (result);
         }
 
-        public static async Task<bool> LikeUser(this PixivItem item, bool pub = true)
+        static public async Task<bool> LikeUser(this PixivItem item, bool pub = true)
         {
             bool result = false;
 
@@ -10279,7 +10283,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void LikeUser(this ObservableCollection<PixivItem> collection, bool pub = true)
+        static public void LikeUser(this ObservableCollection<PixivItem> collection, bool pub = true)
         {
             var opt = new ParallelOptions();
             opt.MaxDegreeOfParallelism = 5;
@@ -10301,7 +10305,7 @@ namespace PixivWPF.Common
             });
         }
 
-        public static void LikeUser(this IList<PixivItem> collection, bool pub = true)
+        static public void LikeUser(this IList<PixivItem> collection, bool pub = true)
         {
             LikeUser(new ObservableCollection<PixivItem>(collection), pub);
         }
@@ -10312,7 +10316,7 @@ namespace PixivWPF.Common
         /// <param name="item"></param>
         /// <param name="pub"></param>
         /// <returns></returns>
-        public static async Task<Tuple<bool, Pixeez.Objects.UserBase>> UnLikeUser(this Pixeez.Objects.UserBase user)
+        static public async Task<Tuple<bool, Pixeez.Objects.UserBase>> UnLikeUser(this Pixeez.Objects.UserBase user)
         {
             Tuple<bool, Pixeez.Objects.UserBase> result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
 
@@ -10350,14 +10354,14 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<Tuple<bool, Pixeez.Objects.UserBase>> UnLike(this Pixeez.Objects.UserBase user)
+        static public async Task<Tuple<bool, Pixeez.Objects.UserBase>> UnLike(this Pixeez.Objects.UserBase user)
         {
             var result = await user.UnLikeUser();
             UpdateLikeStateAsync((int)(user.Id.Value), true);
             return (result);
         }
 
-        public static async Task<bool> UnLikeUser(this PixivItem item, bool pub = true)
+        static public async Task<bool> UnLikeUser(this PixivItem item, bool pub = true)
         {
             bool result = false;
 
@@ -10386,7 +10390,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void UnLikeUser(this ObservableCollection<PixivItem> collection)
+        static public void UnLikeUser(this ObservableCollection<PixivItem> collection)
         {
             var opt = new ParallelOptions();
             opt.MaxDegreeOfParallelism = 5;
@@ -10407,7 +10411,7 @@ namespace PixivWPF.Common
             });
         }
 
-        public static void UnLikeUser(this IList<PixivItem> collection)
+        static public void UnLikeUser(this IList<PixivItem> collection)
         {
             UnLikeUser(new ObservableCollection<PixivItem>(collection));
         }
@@ -10418,20 +10422,20 @@ namespace PixivWPF.Common
         /// <param name="user"></param>
         /// <param name="pub"></param>
         /// <returns></returns>
-        public static async Task<Tuple<bool, Pixeez.Objects.UserBase>> ToggleLikeUser(this Pixeez.Objects.UserBase user, bool pub = true)
+        static public async Task<Tuple<bool, Pixeez.Objects.UserBase>> ToggleLikeUser(this Pixeez.Objects.UserBase user, bool pub = true)
         {
             var result = user.IsLiked() ? await user.UnLikeUser() : await user.LikeUser(pub);
             return (result);
         }
 
-        public static async Task<Tuple<bool, Pixeez.Objects.UserBase>> ToggleLike(this Pixeez.Objects.UserBase user, bool pub = true)
+        static public async Task<Tuple<bool, Pixeez.Objects.UserBase>> ToggleLike(this Pixeez.Objects.UserBase user, bool pub = true)
         {
             var result = await user.ToggleLikeUser(pub);
             UpdateLikeStateAsync((int)(user.Id.Value), true);
             return (result);
         }
 
-        public static async Task<bool> ToggleLikeUser(this PixivItem item, bool pub = true)
+        static public async Task<bool> ToggleLikeUser(this PixivItem item, bool pub = true)
         {
             bool result = false;
 
@@ -10455,7 +10459,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void ToggleLikeUser(this ObservableCollection<PixivItem> collection, bool pub = true)
+        static public void ToggleLikeUser(this ObservableCollection<PixivItem> collection, bool pub = true)
         {
             var opt = new ParallelOptions();
             opt.MaxDegreeOfParallelism = 5;
@@ -10477,32 +10481,32 @@ namespace PixivWPF.Common
             });
         }
 
-        public static void ToggleLikeUser(this IList<PixivItem> collection, bool pub = true)
+        static public void ToggleLikeUser(this IList<PixivItem> collection, bool pub = true)
         {
             ToggleLikeUser(new ObservableCollection<PixivItem>(collection), pub);
         }
         #endregion
 
         #region Update/Find Illust/User info cache
-        public static void Cache(this Pixeez.Objects.UserBase user)
+        static public void Cache(this Pixeez.Objects.UserBase user)
         {
             if (user is Pixeez.Objects.UserBase)
                 UserCache[user.Id] = user;
         }
 
-        //public static void Cache(this Pixeez.Objects.User user)
+        //static public void Cache(this Pixeez.Objects.User user)
         //{
         //    if (user is Pixeez.Objects.UserBase)
         //        (user as Pixeez.Objects.UserBase).Cache();
         //}
 
-        //public static void Cache(this Pixeez.Objects.NewUser user)
+        //static public void Cache(this Pixeez.Objects.NewUser user)
         //{
         //    if (user is Pixeez.Objects.UserBase)
         //        (user as Pixeez.Objects.UserBase).Cache();
         //}
 
-        public static void Cache(this Pixeez.Objects.Work illust)
+        static public void Cache(this Pixeez.Objects.Work illust)
         {
             try
             {
@@ -10538,99 +10542,99 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("IllustCache"); }
         }
 
-        //public static void Cache(this Pixeez.Objects.IllustWork illust)
+        //static public void Cache(this Pixeez.Objects.IllustWork illust)
         //{
         //    if (illust is Pixeez.Objects.Work)
         //        (illust as Pixeez.Objects.Work).Cache();
         //}
 
-        //public static void Cache(this Pixeez.Objects.NormalWork illust)
+        //static public void Cache(this Pixeez.Objects.NormalWork illust)
         //{
         //    if (illust is Pixeez.Objects.Work)
         //        (illust as Pixeez.Objects.Work).Cache();
         //}
 
-        public static void Cache(this Pixeez.Objects.UserInfo userinfo)
+        static public void Cache(this Pixeez.Objects.UserInfo userinfo)
         {
             if (userinfo is Pixeez.Objects.UserInfo)
                 UserInfoCache[userinfo.user.Id] = userinfo;
         }
 
-        public static Pixeez.Objects.Work FindIllust(this long id)
+        static public Pixeez.Objects.Work FindIllust(this long id)
         {
             if (IllustCache.ContainsKey(id)) return (IllustCache[id]);
             else return (null);
         }
 
-        public static Pixeez.Objects.Work FindIllust(this long? id)
+        static public Pixeez.Objects.Work FindIllust(this long? id)
         {
             if (id != null && IllustCache.ContainsKey(id)) return (IllustCache[id]);
             else return (null);
         }
 
-        public static Pixeez.Objects.Work FindIllust(this string id)
+        static public Pixeez.Objects.Work FindIllust(this string id)
         {
             long idv = 0;
             if (long.TryParse(id, out idv)) return (FindIllust(idv));
             else return (null);
         }
 
-        public static Pixeez.Objects.Work FindIllust(this Pixeez.Objects.Work work)
+        static public Pixeez.Objects.Work FindIllust(this Pixeez.Objects.Work work)
         {
             return (FindIllust(work));
         }
 
-        public static Pixeez.Objects.UserBase FindUser(this long id)
+        static public Pixeez.Objects.UserBase FindUser(this long id)
         {
             if (UserCache.ContainsKey(id)) return (UserCache[id]);
             else return (null);
         }
 
-        public static Pixeez.Objects.UserBase FindUser(this long? id)
+        static public Pixeez.Objects.UserBase FindUser(this long? id)
         {
             if (id != null && UserCache.ContainsKey(id)) return (UserCache[id]);
             else return (null);
         }
 
-        public static Pixeez.Objects.UserBase FindUser(this string id)
+        static public Pixeez.Objects.UserBase FindUser(this string id)
         {
             long idv = 0;
             if (long.TryParse(id, out idv)) return (FindUser(idv));
             else return (null);
         }
 
-        public static Pixeez.Objects.UserBase FindUser(this Pixeez.Objects.UserBase user)
+        static public Pixeez.Objects.UserBase FindUser(this Pixeez.Objects.UserBase user)
         {
             return (FindUser(user.Id));
         }
 
-        public static Pixeez.Objects.UserInfo FindUserInfo(this long id)
+        static public Pixeez.Objects.UserInfo FindUserInfo(this long id)
         {
             if (UserInfoCache.ContainsKey(id)) return (UserInfoCache[id]);
             else return (null);
         }
 
-        public static Pixeez.Objects.UserInfo FindUserInfo(this long? id)
+        static public Pixeez.Objects.UserInfo FindUserInfo(this long? id)
         {
             if (id != null && UserInfoCache.ContainsKey(id)) return (UserInfoCache[id]);
             else return (null);
         }
 
-        public static Pixeez.Objects.UserInfo FindUserInfo(this string id)
+        static public Pixeez.Objects.UserInfo FindUserInfo(this string id)
         {
             long idv = 0;
             if (long.TryParse(id, out idv)) return (FindUserInfo(idv));
             else return (null);
         }
 
-        public static Pixeez.Objects.UserInfo FindUserInfo(this Pixeez.Objects.UserBase user)
+        static public Pixeez.Objects.UserInfo FindUserInfo(this Pixeez.Objects.UserBase user)
         {
             return (FindUserInfo(user.Id));
         }
         #endregion
 
         #region Get Illust/User/UserInfo
-        public static async Task<Pixeez.Objects.Work> GetIllust(this long id, Pixeez.Tokens tokens = null)
+        static public async Task<Pixeez.Objects.Work> GetIllust(this long id, Pixeez.Tokens tokens = null)
         {
             var illust = id.FindIllust();
             if (!(illust is Pixeez.Objects.Work)) illust = await RefreshIllust(id, tokens);
@@ -10638,7 +10642,7 @@ namespace PixivWPF.Common
             else return (null);
         }
 
-        public static async Task<Pixeez.Objects.Work> GetIllust(this long? id, Pixeez.Tokens tokens = null)
+        static public async Task<Pixeez.Objects.Work> GetIllust(this long? id, Pixeez.Tokens tokens = null)
         {
             var illust = id.FindIllust();
             if (!(illust is Pixeez.Objects.Work)) illust = await RefreshIllust(id.Value, tokens);
@@ -10646,19 +10650,19 @@ namespace PixivWPF.Common
             else return (null);
         }
 
-        public static async Task<Pixeez.Objects.Work> GetIllust(this string id, Pixeez.Tokens tokens = null)
+        static public async Task<Pixeez.Objects.Work> GetIllust(this string id, Pixeez.Tokens tokens = null)
         {
             long idv = 0;
             if (long.TryParse(id, out idv)) return (await GetIllust(idv, tokens));
             else return (null);
         }
 
-        public static async Task<Pixeez.Objects.Work> GetIllust(this Pixeez.Objects.Work work, Pixeez.Tokens tokens = null)
+        static public async Task<Pixeez.Objects.Work> GetIllust(this Pixeez.Objects.Work work, Pixeez.Tokens tokens = null)
         {
             return (await GetIllust(work, tokens));
         }
 
-        public static async Task<Pixeez.Objects.UserBase> GetUser(this long id, Pixeez.Tokens tokens = null)
+        static public async Task<Pixeez.Objects.UserBase> GetUser(this long id, Pixeez.Tokens tokens = null)
         {
             var user = id.FindUser();
             if (!(user is Pixeez.Objects.UserBase)) user = await RefreshUser(id, tokens);
@@ -10666,7 +10670,7 @@ namespace PixivWPF.Common
             else return (null);
         }
 
-        public static async Task<Pixeez.Objects.UserBase> GetUser(this long? id, Pixeez.Tokens tokens = null)
+        static public async Task<Pixeez.Objects.UserBase> GetUser(this long? id, Pixeez.Tokens tokens = null)
         {
             var user = id.FindUser();
             if (!(user is Pixeez.Objects.UserBase)) user = await RefreshUser(id.Value, tokens);
@@ -10674,19 +10678,19 @@ namespace PixivWPF.Common
             else return (null);
         }
 
-        public static async Task<Pixeez.Objects.UserBase> GetUser(this string id, Pixeez.Tokens tokens = null)
+        static public async Task<Pixeez.Objects.UserBase> GetUser(this string id, Pixeez.Tokens tokens = null)
         {
             long idv = 0;
             if (long.TryParse(id, out idv)) return (await GetUser(idv, tokens));
             else return (null);
         }
 
-        public static async Task<Pixeez.Objects.UserBase> GetUser(this Pixeez.Objects.UserBase user, Pixeez.Tokens tokens = null)
+        static public async Task<Pixeez.Objects.UserBase> GetUser(this Pixeez.Objects.UserBase user, Pixeez.Tokens tokens = null)
         {
             return (await GetUser(user.Id, tokens));
         }
 
-        public static async Task<Pixeez.Objects.UserInfo> GetUserInfo(this long id, Pixeez.Tokens tokens = null)
+        static public async Task<Pixeez.Objects.UserInfo> GetUserInfo(this long id, Pixeez.Tokens tokens = null)
         {
             var userinfo = id.FindUserInfo();
             if (!(userinfo is Pixeez.Objects.UserInfo)) userinfo = await RefreshUserInfo(id, tokens);
@@ -10694,7 +10698,7 @@ namespace PixivWPF.Common
             else return (null);
         }
 
-        public static async Task<Pixeez.Objects.UserInfo> GetUserInfo(this long? id, Pixeez.Tokens tokens = null)
+        static public async Task<Pixeez.Objects.UserInfo> GetUserInfo(this long? id, Pixeez.Tokens tokens = null)
         {
             var userinfo = id.FindUserInfo();
             if (!(userinfo is Pixeez.Objects.UserInfo)) userinfo = await RefreshUserInfo(id, tokens);
@@ -10702,19 +10706,19 @@ namespace PixivWPF.Common
             else return (null);
         }
 
-        public static async Task<Pixeez.Objects.UserInfo> GetUserInfo(this string id, Pixeez.Tokens tokens = null)
+        static public async Task<Pixeez.Objects.UserInfo> GetUserInfo(this string id, Pixeez.Tokens tokens = null)
         {
             long idv = 0;
             if (long.TryParse(id, out idv)) return (await GetUserInfo(idv, tokens));
             else return (null);
         }
 
-        public static async Task<Pixeez.Objects.UserInfo> GetUserInfo(this Pixeez.Objects.UserBase user, Pixeez.Tokens tokens = null)
+        static public async Task<Pixeez.Objects.UserInfo> GetUserInfo(this Pixeez.Objects.UserBase user, Pixeez.Tokens tokens = null)
         {
             return (await GetUserInfo(user.Id, tokens));
         }
 
-        public static Func<Pixeez.Objects.UserBase, int> GetTotalIllust = (user) =>
+        static public Func<Pixeez.Objects.UserBase, int> GetTotalIllust = (user) =>
         {
             var result = -1;
             if (user is Pixeez.Objects.UserBase && user.Id != null && user.Id.HasValue)
@@ -10730,19 +10734,19 @@ namespace PixivWPF.Common
         #endregion
 
         #region Sync Illust/User Like State
-        public static void UpdateLikeStateAsync(string illustid = default(string), bool is_user = false)
+        static public void UpdateLikeStateAsync(string illustid = default(string), bool is_user = false)
         {
             int id = -1;
             int.TryParse(illustid, out id);
             UpdateLikeStateAsync(id);
         }
 
-        public static void UpdateLikeStateAsync(this bool is_user, int illustid = -1)
+        static public void UpdateLikeStateAsync(this bool is_user, int illustid = -1)
         {
             UpdateLikeStateAsync(illustid, is_user);
         }
 
-        public static async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
+        static public async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
         {
             await new Action(() =>
             {
@@ -10777,12 +10781,12 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         }
 
-        public static void UpdateLikeState(this ImageListGrid list, int illustid = -1, bool is_user = false)
+        static public void UpdateLikeState(this ImageListGrid list, int illustid = -1, bool is_user = false)
         {
             list.Items.UpdateLikeState(illustid, is_user);
         }
 
-        public static void UpdateLikeState(this ObservableCollection<PixivItem> collection, int illustid = -1, bool is_user = false)
+        static public void UpdateLikeState(this ObservableCollection<PixivItem> collection, int illustid = -1, bool is_user = false)
         {
             foreach (PixivItem item in collection)
             {
@@ -10833,12 +10837,11 @@ namespace PixivWPF.Common
             }
         }
         #endregion
-        #endregion
-
+        
         #region UI Element Related
         // MakePackUri is a utility method for computing a pack uri
         // for the given resource. 
-        public static Uri MakePackUri(this string relativeFile)
+        static public Uri MakePackUri(this string relativeFile)
         {
             Assembly a = typeof(ThresholdEffect).Assembly;
 
@@ -10849,7 +10852,7 @@ namespace PixivWPF.Common
             return new Uri(uriString);
         }
 
-        public static string GetUid(this object obj)
+        static public string GetUid(this object obj)
         {
             string result = string.Empty;
 
@@ -10859,7 +10862,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static UIElement GetContextMenuHost(this UIElement item)
+        static public UIElement GetContextMenuHost(this UIElement item)
         {
             UIElement result = null;
             if (item is MenuItem)
@@ -10873,7 +10876,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static ImageSource CreateThemedImage(this Uri uri)
+        static public ImageSource CreateThemedImage(this Uri uri)
         {
             ImageSource result = new BitmapImage(uri);
             try
@@ -10925,7 +10928,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void UpdateTheme(this Window win, Image icon = null)
+        static public void UpdateTheme(this Window win, Image icon = null)
         {
             try
             {
@@ -10970,7 +10973,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR(); }
         }
 
-        public static void UpdateTheme()
+        static public void UpdateTheme()
         {
             try
             {
@@ -10987,7 +10990,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("UpdateTheme"); }
         }
 
-        public static bool IsVisible(this Window win)
+        static public bool IsVisible(this Window win)
         {
             var result = false;
             if (win is MetroWindow)
@@ -11000,24 +11003,24 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static void Arrange(UIElement element, int width, int height)
+        static private void Arrange(UIElement element, int width, int height)
         {
             element.Measure(new Size(width, height));
             element.Arrange(new Rect(0, 0, width, height));
             element.UpdateLayout();
         }
 
-        public static bool IsShown(this UIElement element)
+        static public bool IsShown(this UIElement element)
         {
             return (element.Visibility == Visibility.Visible ? true : false);
         }
 
-        public static bool IsHidden(this UIElement element)
+        static public bool IsHidden(this UIElement element)
         {
             return (element.Visibility != Visibility.Visible ? true : false);
         }
 
-        public static void Show(this ProgressRing progress, bool show, bool active = true)
+        static public void Show(this ProgressRing progress, bool show, bool active = true)
         {
             if (progress is ProgressRing)
             {
@@ -11036,34 +11039,34 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void Pause(this ProgressRing progress)
+        static public void Pause(this ProgressRing progress)
         {
             progress.IsActive = false;
         }
 
-        public static void Resume(this ProgressRing progress)
+        static public void Resume(this ProgressRing progress)
         {
             progress.IsEnabled = true;
             progress.IsActive = true;
         }
 
-        public static void Disable(this ProgressRing progress)
+        static public void Disable(this ProgressRing progress)
         {
             progress.IsEnabled = false;
             progress.IsActive = false;
         }
 
-        public static void Show(this ProgressRing progress, bool active = true)
+        static public void Show(this ProgressRing progress, bool active = true)
         {
             progress.Show(true, active);
         }
 
-        public static void Hide(this ProgressRing progress)
+        static public void Hide(this ProgressRing progress)
         {
             progress.Show(false, false);
         }
 
-        public static void Show(this UIElement element, bool show, bool parent = false)
+        static public void Show(this UIElement element, bool show, bool parent = false)
         {
             if (element is UIElement)
             {
@@ -11077,27 +11080,27 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void Show(this UIElement element, bool parent = false)
+        static public void Show(this UIElement element, bool parent = false)
         {
             if (element is UIElement) (element as UIElement).Show(true, parent);
         }
 
-        public static void Show(this object element, bool parent = false)
+        static public void Show(this object element, bool parent = false)
         {
             if (element is UIElement) (element as UIElement).Show(parent);
         }
 
-        public static void Hide(this UIElement element, bool parent = false)
+        static public void Hide(this UIElement element, bool parent = false)
         {
             if (element is UIElement) element.Show(false, parent);
         }
 
-        public static void Hide(this object element, bool parent = false)
+        static public void Hide(this object element, bool parent = false)
         {
             if (element is UIElement) (element as UIElement).Hide(parent);
         }
 
-        public static void Enable(this Control element, bool state, bool show = true)
+        static public void Enable(this Control element, bool state, bool show = true)
         {
             if (element is Control)
             {
@@ -11110,7 +11113,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void Enable(this Control element)
+        static public void Enable(this Control element)
         {
             if (element is Control)
             {
@@ -11120,7 +11123,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void Disable(this Control element, bool state, bool show = true)
+        static public void Disable(this Control element, bool state, bool show = true)
         {
             if (element is Control)
             {
@@ -11133,7 +11136,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void Disable(this Control element)
+        static public void Disable(this Control element)
         {
             if (element is Control)
             {
@@ -11145,7 +11148,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Button MouseOver Action
-        public static void MouseOverAction(this ButtonBase button)
+        static public void MouseOverAction(this ButtonBase button)
         {
             if (button is ButtonBase)
             {
@@ -11162,7 +11165,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void MouseEnter(this ButtonBase button)
+        static public void MouseEnter(this ButtonBase button)
         {
             try
             {
@@ -11187,7 +11190,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR(); }
         }
 
-        public static void MouseLeave(this ButtonBase button)
+        static public void MouseLeave(this ButtonBase button)
         {
             try
             {
@@ -11217,29 +11220,29 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR(); }
         }
 
-        public static void ToolButton_MouseEnter(object sender, MouseEventArgs e)
+        static public void ToolButton_MouseEnter(object sender, MouseEventArgs e)
         {
             if (sender is ButtonBase) MouseEnter(sender as ButtonBase);
         }
 
-        public static void ToolButton_MouseLeave(object sender, MouseEventArgs e)
+        static public void ToolButton_MouseLeave(object sender, MouseEventArgs e)
         {
             if (sender is ButtonBase) MouseLeave(sender as ButtonBase);
         }
         #endregion
 
         #region SearchBox common routines
-        private static ObservableCollection<string> auto_suggest_list = new ObservableCollection<string>() {};
-        public static ObservableCollection<string> AutoSuggestList
+        static private ObservableCollection<string> auto_suggest_list = new ObservableCollection<string>() {};
+        static public ObservableCollection<string> AutoSuggestList
         {
             get { return (auto_suggest_list); }
         }
 
-        private static DelayedAction SuggestAction = null;
-        private static Task SearchTask;
-        private static CancellationTokenSource cancelSearchTokenSource;
+        static private DelayedAction SuggestAction = null;
+        static private Task SearchTask;
+        static private CancellationTokenSource cancelSearchTokenSource;
 
-        public static IEnumerable<string> GetSuggestList(this string text, string original = "")
+        static public IEnumerable<string> GetSuggestList(this string text, string original = "")
         {
             List<string> result = new List<string>();
 
@@ -11276,7 +11279,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void SearchBox_TextChanged(object sender, RoutedEventArgs e)
+        static public void SearchBox_TextChanged(object sender, RoutedEventArgs e)
         {
             if (sender is ComboBox)
             {
@@ -11309,7 +11312,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void SearchBox_DropDownOpened(object sender, EventArgs e)
+        static public void SearchBox_DropDownOpened(object sender, EventArgs e)
         {
             if (sender is ComboBox)
             {
@@ -11324,7 +11327,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void SearchBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        static public void SearchBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (sender is ComboBox)
             {
@@ -11350,7 +11353,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void SearchBox_KeyDown(object sender, KeyEventArgs e)
+        static public void SearchBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (sender is ComboBox)
             {
@@ -11366,17 +11369,17 @@ namespace PixivWPF.Common
         #endregion
 
         #region Window routines
-        public static MetroWindow GetMainWindow()
+        static public MetroWindow GetMainWindow()
         {
             return (Application.Current.MainWindow as MetroWindow);
         }
 
-        public static MetroWindow GetMainWindow(this MetroWindow win)
+        static public MetroWindow GetMainWindow(this MetroWindow win)
         {
             return (Application.Current.MainWindow as MetroWindow);
         }
 
-        public static MainWindow GetMainWindow(this Page page)
+        static public MainWindow GetMainWindow(this Page page)
         {
             MainWindow result = null;
             try
@@ -11390,24 +11393,24 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static MetroWindow GetActiveWindow()
+        static public MetroWindow GetActiveWindow()
         {
             MetroWindow window = Application.Current.Windows.OfType<MetroWindow>().SingleOrDefault(x => x.IsActive || x.IsFocused);
             if (window == null) window = Application.Current.MainWindow as MetroWindow;
             return (window);
         }
 
-        public static MetroWindow GetPrevWindow(this MetroWindow window)
+        static public MetroWindow GetPrevWindow(this MetroWindow window)
         {
             return (window.GetWindow(-1));
         }
 
-        public static MetroWindow GetNextWindow(this MetroWindow window)
+        static public MetroWindow GetNextWindow(this MetroWindow window)
         {
             return (window.GetWindow(1));
         }
 
-        public static IList<MetroWindow> GetWindows<T>()
+        static public IList<MetroWindow> GetWindows<T>()
         {
             List<MetroWindow> result = new List<MetroWindow>();
             new Action(() =>
@@ -11420,12 +11423,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static MetroWindow GetWindow<T>()
+        static public MetroWindow GetWindow<T>()
         {
             return (GetWindows<T>().FirstOrDefault());
         }
 
-        public static MetroWindow GetWindow(this MetroWindow window, int index = 0, bool relative = true)
+        static public MetroWindow GetWindow(this MetroWindow window, int index = 0, bool relative = true)
         {
             var wins = Application.Current.Windows.OfType<MetroWindow>().Where(w => !w.Title.Equals(Application.Current.DropboxTitle(), StringComparison.CurrentCultureIgnoreCase)).ToList();
             var active = window is MetroWindow ? window : wins.SingleOrDefault(x => x.IsActive);
@@ -11452,7 +11455,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static IList<MetroWindow> GetWindows(this Page page)
+        static public IList<MetroWindow> GetWindows(this Page page)
         {
             IList<MetroWindow> result = new List<MetroWindow>();
             foreach (var win in Application.Current.Windows)
@@ -11468,12 +11471,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static MetroWindow GetWindow(this Page page)
+        static public MetroWindow GetWindow(this Page page)
         {
             return (GetWindows(page).FirstOrDefault());
         }
 
-        public static IList<MetroWindow> GetWindows<T>(this Page page)
+        static public IList<MetroWindow> GetWindows<T>(this Page page)
         {
             IList<MetroWindow> result = new List<MetroWindow>();
             if (!(page.Parent is MetroWindow))
@@ -11498,17 +11501,17 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static MetroWindow GetWindow<T>(this Page page)
+        static public MetroWindow GetWindow<T>(this Page page)
         {
             return (GetWindows<T>(page).FirstOrDefault());
         }
 
-        public static MetroWindow GetWindowByTitle(this string title)
+        static public MetroWindow GetWindowByTitle(this string title)
         {
             return (GetWindowsByTitle(title).FirstOrDefault());
         }
 
-        public static IList<MetroWindow> GetWindowsByTitle(this string title)
+        static public IList<MetroWindow> GetWindowsByTitle(this string title)
         {
             List<MetroWindow> result = new List<MetroWindow>();
             new Action(() =>
@@ -11528,7 +11531,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void AdjustWindowPos(this MetroWindow window)
+        static public void AdjustWindowPos(this MetroWindow window)
         {
             if (window is ContentWindow)
             {
@@ -11549,7 +11552,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void AdjustWindowPos(this Window window)
+        static public void AdjustWindowPos(this Window window)
         {
             if (window is ContentWindow)
             {
@@ -11557,7 +11560,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void Active(this MetroWindow window)
+        static public void Active(this MetroWindow window)
         {
             if (window is MetroWindow)
             {
@@ -11585,7 +11588,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async Task<bool> ActiveByTitle(this string title)
+        static public async Task<bool> ActiveByTitle(this string title)
         {
             bool result = false;
             await new Action(() =>
@@ -11597,7 +11600,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> ShowByTitle(this string title)
+        static public async Task<bool> ShowByTitle(this string title)
         {
             bool result = false;
             await new Action(() =>
@@ -11608,14 +11611,14 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static Window GetActiveWindow(this Page page)
+        static public Window GetActiveWindow(this Page page)
         {
             var window = Window.GetWindow(page);
             if (window == null) window = GetActiveWindow();
             return (window);
         }
 
-        public static T GetActiveWindow<T>(this Page page) where T : Window
+        static public T GetActiveWindow<T>(this Page page) where T : Window
         {
             var window = Window.GetWindow(page);
             if (window == null) window = GetActiveWindow();
@@ -11625,7 +11628,7 @@ namespace PixivWPF.Common
                 return (default(T));
         }
 
-        public static dynamic GetWindowContent(this MetroWindow window)
+        static public dynamic GetWindowContent(this MetroWindow window)
         {
             dynamic result = null;
             try
@@ -11645,7 +11648,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool WindowExists(string title)
+        static public bool WindowExists(string title)
         {
             bool result = false;
 
@@ -11656,12 +11659,12 @@ namespace PixivWPF.Common
         #endregion
 
         #region Dialog/MessageBox routines
-        public static string ChangeSaveTarget(this string file)
+        static public string ChangeSaveTarget(this string file)
         {
             return (ChangeSaveFolder(file));
         }
 
-        public static string ChangeSaveFolder(string file = "")
+        static public string ChangeSaveFolder(string file = "")
         {
             var result = string.Empty;
             setting = Application.Current.LoadSetting();
@@ -11712,14 +11715,14 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static ConcurrentDictionary<string, string> _MessageDialogList = new ConcurrentDictionary<string, string>();
-        public static bool IsMessagePopup(this string title, string content = "")
+        static private ConcurrentDictionary<string, string> _MessageDialogList = new ConcurrentDictionary<string, string>();
+        static public bool IsMessagePopup(this string title, string content = "")
         {
             var result = _MessageDialogList.ContainsKey(title) && _MessageDialogList[title].Equals(content);
             return (result);
         }
 
-        private static TaskDialog MakeTaskDialog(string title, string content, MessageBoxImage image, TaskDialogStandardButtons buttons)
+        static private TaskDialog MakeTaskDialog(string title, string content, MessageBoxImage image, TaskDialogStandardButtons buttons)
         {
             var dlg_icon = TaskDialogStandardIcon.Information;
             dlg_icon = image switch
@@ -11744,7 +11747,7 @@ namespace PixivWPF.Common
             return (dlg);
         }
 
-        public static async void ShowExceptionMessageBox(this Exception ex, string title)
+        static public async void ShowExceptionMessageBox(this Exception ex, string title)
         {
             ex.LOG(title);
             await Task.Delay(1);
@@ -11766,7 +11769,7 @@ namespace PixivWPF.Common
             _MessageDialogList.TryRemove(title, out value);
         }
 
-        public static async Task<bool> ShowExceptionDialogBox(this Exception ex, string title)
+        static public async Task<bool> ShowExceptionDialogBox(this Exception ex, string title)
         {
             var result = false;
             ex.LOG(title);
@@ -11791,7 +11794,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async void ShowMessageBox(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
+        static public async void ShowMessageBox(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
         {
             content.LOG(title);
 
@@ -11802,7 +11805,7 @@ namespace PixivWPF.Common
             _MessageDialogList.TryRemove(title, out value);
         }
 
-        public static async Task<bool> ShowMessageDialog(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
+        static public async Task<bool> ShowMessageDialog(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
         {
             MessageBoxResult ret = MessageBoxResult.OK;
             content.LOG(title);            
@@ -11816,18 +11819,18 @@ namespace PixivWPF.Common
             return (ret == MessageBoxResult.OK || ret == MessageBoxResult.Yes ? true : false);
         }
 
-        public static async Task ShowMessageBoxAsync(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
+        static public async Task ShowMessageBoxAsync(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
         {
             await ShowMessageDialogAsync(content, title, image);
         }
 
-        public static async Task ShowMessageDialogAsync(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
+        static public async Task ShowMessageDialogAsync(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
         {
             MetroWindow window = GetActiveWindow();
             await window.ShowMessageAsync(content, title);
         }
 
-        public static async void ShowProgressDialog(object sender, RoutedEventArgs e)
+        static public async void ShowProgressDialog(object sender, RoutedEventArgs e)
         {
             var mySettings = new MetroDialogSettings()
             {
@@ -11875,8 +11878,8 @@ namespace PixivWPF.Common
         #endregion
 
         #region Toast routines
-        private static string lastToastTitle = string.Empty;
-        private static string lastToastContent = string.Empty;
+        static private string lastToastTitle = string.Empty;
+        static private string lastToastContent = string.Empty;
         public async static void ShowDownloadToast(this string content, string title = "Pixiv", string imgsrc = "", string file = "", string state = "", string state_description = "", object tag = null)
         {
             try
@@ -11917,7 +11920,7 @@ namespace PixivWPF.Common
                     _dialogService.ShowNotificationWindow(newNotification, cfg);
                     //_dialogService.DoEvents();
                     await Task.Delay(1);
-                }).InvokeAsync(System.Windows.Threading.DispatcherPriority.ContextIdle);
+                }).InvokeAsync(System.Windows.Threading.DispatcherPriority.ApplicationIdle);
             }
             catch (Exception ex) { ex.ERROR("ShowDownloadToast"); }
         }
@@ -11960,7 +11963,7 @@ namespace PixivWPF.Common
                         _dialogService.ShowNotificationWindow(newNotification, cfg);
                         _dialogService.DoEvents();
                         await Task.Delay(1);
-                    }).InvokeAsync(System.Windows.Threading.DispatcherPriority.Background);
+                    }).InvokeAsync(System.Windows.Threading.DispatcherPriority.ContextIdle);
                 }
             }
             catch (Exception ex) { ex.ERROR("ShowToast"); }
@@ -12000,13 +12003,13 @@ namespace PixivWPF.Common
                         _dialogService.ShowNotificationWindow(newNotification, cfg);
                         _dialogService.DoEvents();
                         await Task.Delay(1);
-                    }).InvokeAsync(System.Windows.Threading.DispatcherPriority.Background);
+                    }).InvokeAsync(System.Windows.Threading.DispatcherPriority.ContextIdle);
                 }
             }
             catch (Exception ex) { ex.ERROR("ShowToast"); }
         }
 
-        public static void ShowExceptionToast(this Exception ex, bool messagebox = false, string tag = "")
+        static public void ShowExceptionToast(this Exception ex, bool messagebox = false, string tag = "")
         {
             ex.ERROR(tag);
             ex.Message.ShowToast($"ERROR[{tag}]", messagebox, tag);
@@ -12040,7 +12043,7 @@ namespace PixivWPF.Common
     }
     #endregion
 
-    public static class TaskExtensions
+    static public class TaskExtensions
     {
         /// <summary>
         /// Async Task Wait
@@ -12049,12 +12052,12 @@ namespace PixivWPF.Common
         /// <param name="task">task instance</param>
         /// <param name="timeout">milliseconds timeout</param>
         /// <returns></returns>
-        public static async Task<TResult> WaitAsync<TResult>(this Task<TResult> task, int timeout)
+        static public async Task<TResult> WaitAsync<TResult>(this Task<TResult> task, int timeout)
         {
             return (await WaitAsync(task, TimeSpan.FromMilliseconds(timeout)));
         }
 
-        public static async Task<TResult> WaitAsync<TResult>(this Task<TResult> task, TimeSpan timeout)
+        static public async Task<TResult> WaitAsync<TResult>(this Task<TResult> task, TimeSpan timeout)
         {
             using var timeoutCancellationTokenSource = new CancellationTokenSource();
             var delayTask = Task.Delay(timeout, timeoutCancellationTokenSource.Token);
@@ -12066,21 +12069,21 @@ namespace PixivWPF.Common
             throw new TimeoutException("The operation has timed out.");
         }
 
-        public static bool IsCanceled(this Exception ex, bool manual = false)
+        static public bool IsCanceled(this Exception ex, bool manual = false)
         {
             return ((!manual && ex is TaskCanceledException) || ex is OperationCanceledException || ex is HttpRequestException || ex is WebException);
         }
 
-        public static bool IsNetworkError(this Exception ex)
+        static public bool IsNetworkError(this Exception ex)
         {
             return (ex is ArgumentNullException || ex is ArgumentOutOfRangeException || ex is NotSupportedException || ex is ObjectDisposedException || ex is HttpRequestException || ex is WebException || ex is IOException);
         }
     }
 
-    public static class ExtensionMethods
+    static public class ExtensionMethods
     {
         #region Time Calc Helper
-        public static long MillisecondToTicks(this int millisecond)
+        static public long MillisecondToTicks(this int millisecond)
         {
             long result = 0;
             try
@@ -12091,7 +12094,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static long TicksToMillisecond(this long ticks)
+        static public long TicksToMillisecond(this long ticks)
         {
             long result = 0;
             try
@@ -12102,27 +12105,27 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static long TicksToSecond(this long ticks)
+        static public long TicksToSecond(this long ticks)
         {
             return (ticks / TimeSpan.TicksPerSecond);
         }
 
-        public static long SecondToTicks(this long second)
+        static public long SecondToTicks(this long second)
         {
             return (second * TimeSpan.TicksPerSecond);
         }
 
-        public static long FileTimeToSecond(this long filetime)
+        static public long FileTimeToSecond(this long filetime)
         {
             return (TicksToSecond(filetime));
         }
 
-        public static long SecondToFileTime(this long second)
+        static public long SecondToFileTime(this long second)
         {
             return (SecondToTicks(second));
         }
 
-        public static long DeltaTicks(this long ticks1, long ticks2, bool abs = true)
+        static public long DeltaTicks(this long ticks1, long ticks2, bool abs = true)
         {
             long result = 0;
             try
@@ -12134,7 +12137,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static long DeltaMillisecond(this long ticks1, long ticks2, bool abs = true)
+        static public long DeltaMillisecond(this long ticks1, long ticks2, bool abs = true)
         {
             long result = 0;
             try
@@ -12145,7 +12148,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static long DeltaMillisecond(this DateTime dt1, DateTime dt2, bool abs = true)
+        static public long DeltaMillisecond(this DateTime dt1, DateTime dt2, bool abs = true)
         {
             long result = 0;
             try
@@ -12156,42 +12159,42 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static double DeltaMilliseconds(this DateTime dt1, DateTime dt2, bool abs = true)
+        static public double DeltaMilliseconds(this DateTime dt1, DateTime dt2, bool abs = true)
         {
             var delta = (dt2 - dt1).TotalMilliseconds;
             if (abs) delta = Math.Abs(delta);
             return (delta);
         }
 
-        public static double DeltaSeconds(this DateTime dt1, DateTime dt2, bool abs = true)
+        static public double DeltaSeconds(this DateTime dt1, DateTime dt2, bool abs = true)
         {
             var delta = (dt2 - dt1).TotalSeconds;
             if (abs) delta = Math.Abs(delta);
             return (delta);
         }
 
-        public static double DeltaMinutes(this DateTime dt1, DateTime dt2, bool abs = true)
+        static public double DeltaMinutes(this DateTime dt1, DateTime dt2, bool abs = true)
         {
             var delta = (dt2 - dt1).TotalMinutes;
             if (abs) delta = Math.Abs(delta);
             return (delta);
         }
 
-        public static double DeltaHours(this DateTime dt1, DateTime dt2, bool abs = true)
+        static public double DeltaHours(this DateTime dt1, DateTime dt2, bool abs = true)
         {
             var delta = (dt2 - dt1).TotalHours;
             if (abs) delta = Math.Abs(delta);
             return (delta);
         }
 
-        public static double DeltaDays(this DateTime dt1, DateTime dt2, bool abs = true)
+        static public double DeltaDays(this DateTime dt1, DateTime dt2, bool abs = true)
         {
             var delta = (dt2 - dt1).TotalDays;
             if (abs) delta = Math.Abs(delta);
             return (delta);
         }
 
-        public static TimeSpan Delta(this DateTime dt1, DateTime dt2)
+        static public TimeSpan Delta(this DateTime dt1, DateTime dt2)
         {
             TimeSpan result = TimeSpan.FromTicks(0);
             try
@@ -12202,7 +12205,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static long DeltaNowMillisecond(this long ticks, bool abs = true)
+        static public long DeltaNowMillisecond(this long ticks, bool abs = true)
         {
             long result = 0;
             try
@@ -12213,7 +12216,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static long DeltaNowMillisecond(this DateTime dt, bool abs = true)
+        static public long DeltaNowMillisecond(this DateTime dt, bool abs = true)
         {
             long result = 0;
             try
@@ -12224,7 +12227,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool DeltaNowMillisecond(this long ticks, int millisecond, bool abs = true)
+        static public bool DeltaNowMillisecond(this long ticks, int millisecond, bool abs = true)
         {
             bool result = true;
             try
@@ -12235,7 +12238,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool DeltaNowMillisecond(this DateTime dt, int millisecond, bool abs = true)
+        static public bool DeltaNowMillisecond(this DateTime dt, int millisecond, bool abs = true)
         {
             bool result = true;
             try
@@ -12248,7 +12251,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Media Play
-        public static async void Sound(this object obj, string mode = "")
+        static public async void Sound(this object obj, string mode = "")
         {
             try
             {
@@ -12260,7 +12263,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR(); }
         }
 
-        public static void Sound(string mode)
+        static public void Sound(string mode)
         {
             try
             {
@@ -12301,14 +12304,14 @@ namespace PixivWPF.Common
         #endregion
 
         #region Misc Helper
-        private static string NormalizationFileName(string file, int padding = 16)
+        static private string NormalizationFileName(string file, int padding = 16)
         {
             var f = Path.GetFileName(file);
             f = Regex.IsMatch(f, @"_(master|ugoira|p)?\d+\.(jpg|gif|png)", RegexOptions.IgnoreCase) ? file : Path.ChangeExtension(file, $"_0.{Path.GetExtension(file)}");
             return (Regex.Replace(f, @"\d+", m => m.Value.PadLeft(padding, '0')));
         }
 
-        public static IList<string> NaturalSort(this IList<string> list, int padding = 16, bool descending = false)
+        static public IList<string> NaturalSort(this IList<string> list, int padding = 16, bool descending = false)
         {
             try
             {
@@ -12317,10 +12320,10 @@ namespace PixivWPF.Common
                 else
                     return (list is IList<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); return (list); }
+            catch (Exception ex) { ex.Message.ERROR("NaturalSort_String"); ; return (list); }
         }
 
-        public static IList<FileInfo> NaturalSort(this IList<FileInfo> list, int padding = 16, bool descending = false)
+        static public IList<FileInfo> NaturalSort(this IList<FileInfo> list, int padding = 16, bool descending = false)
         {
             try
             {
@@ -12329,10 +12332,10 @@ namespace PixivWPF.Common
                 else
                     return (list is IList<FileInfo> ? list.OrderBy(x => NormalizationFileName(x.FullName, padding)).ToList() : list);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); return (list); }
+            catch (Exception ex) { ex.Message.ERROR("NaturalSort_FileInfo"); return (list); }
         }
 
-        public static IEnumerable<string> NaturalSort(this IEnumerable<string> list, int padding = 16, bool descending = false)
+        static public IEnumerable<string> NaturalSort(this IEnumerable<string> list, int padding = 16, bool descending = false)
         {
             try
             {
@@ -12341,10 +12344,10 @@ namespace PixivWPF.Common
                 else
                     return (list is IEnumerable<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); return (list); }
+            catch (Exception ex) { ex.Message.ERROR("NaturalSort_String"); return (list); }
         }
 
-        public static IEnumerable<FileInfo> NaturalSort(this IEnumerable<FileInfo> list, int padding = 16, bool descending = false)
+        static public IEnumerable<FileInfo> NaturalSort(this IEnumerable<FileInfo> list, int padding = 16, bool descending = false)
         {
             try
             {
@@ -12353,10 +12356,10 @@ namespace PixivWPF.Common
                 else
                     return (list is IEnumerable<FileInfo> ? list.OrderBy(x => NormalizationFileName(x.FullName, padding)) : list);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); return (list); }
+            catch (Exception ex) { ex.Message.ERROR("NaturalSort_FileInfo"); return (list); }
         }
 
-        public static bool CanRelease(this SemaphoreSlim ss, int? max = null)
+        static public bool CanRelease(this SemaphoreSlim ss, int? max = null)
         {
             max = max ?? -1;
             if (max <= 0)
@@ -12365,7 +12368,7 @@ namespace PixivWPF.Common
                 return (ss is SemaphoreSlim && ss.CurrentCount < max);
         }
 
-        public static void Release(this SemaphoreSlim ss, bool all = false, int? max = null)
+        static public void Release(this SemaphoreSlim ss, bool all = false, int? max = null)
         {
             try
             {
@@ -12384,7 +12387,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("SemaphoreSlimRelease"); }
         }
 
-        public static void Dispose(this Image image)
+        static public void Dispose(this Image image)
         {
             try
             {
@@ -12401,19 +12404,19 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("DisposeImage"); }
         }
 
-        public static void Dispose<T>(this T[] array)
+        static public void Dispose<T>(this T[] array)
         {
             array.Clear();
             array = null;
         }
 
-        public static void Dispose<T>(this T[] array, ref T[] target)
+        static public void Dispose<T>(this T[] array, ref T[] target)
         {
             target.Clear(ref target);
             target = null;
         }
 
-        public static void Clear<T>(this T[] array)
+        static public void Clear<T>(this T[] array)
         {
             try
             {
@@ -12426,7 +12429,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("ClearArray"); }
         }
 
-        public static void Clear<T>(this T[] array, ref T[] target)
+        static public void Clear<T>(this T[] array, ref T[] target)
         {
             try
             {
@@ -12439,7 +12442,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("ClearArray"); }
         }
 
-        public static sbyte Between(this sbyte value, sbyte range_l, sbyte range_h)
+        static public sbyte Between(this sbyte value, sbyte range_l, sbyte range_h)
         {
             if (range_l < range_h)
                 return (Math.Max(range_l, Math.Min(range_h, value)));
@@ -12449,7 +12452,7 @@ namespace PixivWPF.Common
                 return (range_l);
         }
 
-        public static byte Between(this byte value, byte range_l, byte range_h)
+        static public byte Between(this byte value, byte range_l, byte range_h)
         {
             if (range_l < range_h)
                 return (Math.Max(range_l, Math.Min(range_h, value)));
@@ -12459,7 +12462,7 @@ namespace PixivWPF.Common
                 return (range_l);
         }
 
-        public static short Between(this short value, short range_l, short range_h)
+        static public short Between(this short value, short range_l, short range_h)
         {
             if (range_l < range_h)
                 return (Math.Max(range_l, Math.Min(range_h, value)));
@@ -12469,7 +12472,7 @@ namespace PixivWPF.Common
                 return (range_l);
         }
 
-        public static ushort Between(this ushort value, ushort range_l, ushort range_h)
+        static public ushort Between(this ushort value, ushort range_l, ushort range_h)
         {
             if (range_l < range_h)
                 return (Math.Max(range_l, Math.Min(range_h, value)));
@@ -12479,7 +12482,7 @@ namespace PixivWPF.Common
                 return (range_l);
         }
 
-        public static int Between(this int value, int range_l, int range_h)
+        static public int Between(this int value, int range_l, int range_h)
         {
             if (range_l < range_h)
                 return (Math.Max(range_l, Math.Min(range_h, value)));
@@ -12489,7 +12492,7 @@ namespace PixivWPF.Common
                 return (range_l);
         }
 
-        public static uint Between(this uint value, uint range_l, uint range_h)
+        static public uint Between(this uint value, uint range_l, uint range_h)
         {
             if (range_l < range_h)
                 return (Math.Max(range_l, Math.Min(range_h, value)));
@@ -12499,7 +12502,7 @@ namespace PixivWPF.Common
                 return (range_l);
         }
 
-        public static long Between(this long value, long range_l, long range_h)
+        static public long Between(this long value, long range_l, long range_h)
         {
             if (range_l < range_h)
                 return (Math.Max(range_l, Math.Min(range_h, value)));
@@ -12509,7 +12512,7 @@ namespace PixivWPF.Common
                 return (range_l);
         }
 
-        public static ulong Between(this ulong value, ulong range_l, ulong range_h)
+        static public ulong Between(this ulong value, ulong range_l, ulong range_h)
         {
             if (range_l < range_h)
                 return (Math.Max(range_l, Math.Min(range_h, value)));
@@ -12519,7 +12522,7 @@ namespace PixivWPF.Common
                 return (range_l);
         }
 
-        public static decimal Between(this decimal value, decimal range_l, decimal range_h)
+        static public decimal Between(this decimal value, decimal range_l, decimal range_h)
         {
             if (range_l < range_h)
                 return (Math.Max(range_l, Math.Min(range_h, value)));
@@ -12529,7 +12532,7 @@ namespace PixivWPF.Common
                 return (range_l);
         }
 
-        public static float Between(this float value, float range_l, float range_h)
+        static public float Between(this float value, float range_l, float range_h)
         {
             if (range_l < range_h)
                 return (Math.Max(range_l, Math.Min(range_h, value)));
@@ -12539,7 +12542,7 @@ namespace PixivWPF.Common
                 return (range_l);
         }
 
-        public static double Between(this double value, double range_l, double range_h)
+        static public double Between(this double value, double range_l, double range_h)
         {
             if (range_l < range_h)
                 return (Math.Max(range_l, Math.Min(range_h, value)));
@@ -12552,7 +12555,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region WPF UI Helper
-        public static T FindByUid<T>(this DependencyObject element, string uid) where T : FrameworkElement
+        static public T FindByUid<T>(this DependencyObject element, string uid) where T : FrameworkElement
         {
             T result = default(T);
             try
@@ -12572,7 +12575,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static List<T> FindAllByUid<T>(this DependencyObject element, string uid) where T : FrameworkElement
+        static public List<T> FindAllByUid<T>(this DependencyObject element, string uid) where T : FrameworkElement
         {
             List<T> result = new List<T>();
             try
@@ -12591,7 +12594,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static T FindByUid<T>(this FrameworkElement element, string uid) where T : FrameworkElement
+        static public T FindByUid<T>(this FrameworkElement element, string uid) where T : FrameworkElement
         {
             T result = default(T);
             try
@@ -12611,7 +12614,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static List<T> FindAllByUid<T>(this FrameworkElement element, string uid) where T : FrameworkElement
+        static public List<T> FindAllByUid<T>(this FrameworkElement element, string uid) where T : FrameworkElement
         {
             List<T> result = new List<T>();
             try
@@ -12630,7 +12633,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static T FindByName<T>(this DependencyObject element, string name) where T : FrameworkElement
+        static public T FindByName<T>(this DependencyObject element, string name) where T : FrameworkElement
         {
             T result = default(T);
             try
@@ -12642,7 +12645,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static T FindByName<T>(this FrameworkElement element, string name) where T : FrameworkElement
+        static public T FindByName<T>(this FrameworkElement element, string name) where T : FrameworkElement
         {
             T result = default(T);
             try
@@ -12654,7 +12657,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static DependencyObject GetVisualChildFromTreePath(this DependencyObject dpo, int[] path)
+        static public DependencyObject GetVisualChildFromTreePath(this DependencyObject dpo, int[] path)
         {
             if (path.Length == 0) return dpo;
             if (VisualTreeHelper.GetChildrenCount(dpo) == 0) return (dpo);
@@ -12663,7 +12666,7 @@ namespace PixivWPF.Common
             return VisualTreeHelper.GetChild(dpo, path[0]).GetVisualChildFromTreePath(newPath.ToArray());
         }
 
-        public static T FindVisualChild<T>(DependencyObject obj) where T : DependencyObject
+        static public T FindVisualChild<T>(DependencyObject obj) where T : DependencyObject
         {
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
             {
@@ -12680,7 +12683,7 @@ namespace PixivWPF.Common
             return null;
         }
 
-        public static T FindVisualChild<T>(this DependencyObject parent, DependencyObject obj) where T : DependencyObject
+        static public T FindVisualChild<T>(this DependencyObject parent, DependencyObject obj) where T : DependencyObject
         {
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
             {
@@ -12697,7 +12700,7 @@ namespace PixivWPF.Common
             return null;
         }
 
-        public static List<T> GetVisualChildren<T>(this DependencyObject obj) where T : DependencyObject
+        static public List<T> GetVisualChildren<T>(this DependencyObject obj) where T : DependencyObject
         {
             List<T> childList = new List<T>();
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
@@ -12719,7 +12722,7 @@ namespace PixivWPF.Common
             return null;
         }
 
-        public static T GetVisualChild<T>(this Visual referenceVisual) where T : Visual
+        static public T GetVisualChild<T>(this Visual referenceVisual) where T : Visual
         {
             Visual child = null;
             for (Int32 i = 0; i < VisualTreeHelper.GetChildrenCount(referenceVisual); i++)
@@ -12741,7 +12744,7 @@ namespace PixivWPF.Common
             return child as T;
         }
 
-        public static List<T> GetVisualChildren<T>(this Visual obj) where T : Visual
+        static public List<T> GetVisualChildren<T>(this Visual obj) where T : Visual
         {
             List<T> childList = new List<T>();
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
@@ -12759,7 +12762,7 @@ namespace PixivWPF.Common
             return childList;
         }
 
-        public static List<T> GetChildren<T>(this Visual obj) where T : Visual
+        static public List<T> GetChildren<T>(this Visual obj) where T : Visual
         {
             List<T> childList = new List<T>();
             if (obj is Visual)
@@ -12781,13 +12784,13 @@ namespace PixivWPF.Common
             return childList;
         }
 
-        //private static int current_deeper = 0;
-        //public static bool IsVisiualChild(this DependencyObject obj, DependencyObject parent, int deeper = 0)
+        //static private int current_deeper = 0;
+        //static public bool IsVisiualChild(this DependencyObject obj, DependencyObject parent, int deeper = 0)
         //{
         //    return (IsVisiualChild(obj, parent, 0, deeper));
         //}
 
-        public static bool IsVisiualChild(this DependencyObject obj, DependencyObject parent, int max_deeper = 0, int current_deeper = 0)
+        static public bool IsVisiualChild(this DependencyObject obj, DependencyObject parent, int max_deeper = 0, int current_deeper = 0)
         {
             var result = false;
 
@@ -12813,7 +12816,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<Modifier> GetModifierAsync(this Application app)
+        static public async Task<Modifier> GetModifierAsync(this Application app)
         {
             var result = new Modifier();
             var modifiers = await app.Dispatcher.InvokeAsync(() => Keyboard.Modifiers);
@@ -12828,7 +12831,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static Modifier GetModifier(this Application app)
+        static public Modifier GetModifier(this Application app)
         {
             var result = new Modifier();
             var modifiers = app.Dispatcher.Invoke(() => Keyboard.Modifiers);
@@ -12843,7 +12846,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsModifierPressed(this Application app, ModifierKeys key, bool exclude = true)
+        static public bool IsModifierPressed(this Application app, ModifierKeys key, bool exclude = true)
         {
             var result = false;
             var keys = GetModifier(app);
@@ -12864,27 +12867,27 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsShiftPressed(this Application app, bool exclude = true)
+        static public bool IsShiftPressed(this Application app, bool exclude = true)
         {
             return (IsModifierPressed(app, ModifierKeys.Shift, exclude));
         }
 
-        public static bool IsCtrlPressed(this Application app, bool exclude = true)
+        static public bool IsCtrlPressed(this Application app, bool exclude = true)
         {
             return (IsModifierPressed(app, ModifierKeys.Control, exclude));
         }
 
-        public static bool IsAltPressed(this Application app, bool exclude = true)
+        static public bool IsAltPressed(this Application app, bool exclude = true)
         {
             return (IsModifierPressed(app, ModifierKeys.Alt, exclude));
         }
 
-        public static bool IsWinPressed(this Application app, bool exclude = true)
+        static public bool IsWinPressed(this Application app, bool exclude = true)
         {
             return (IsModifierPressed(app, ModifierKeys.Windows, exclude));
         }
 
-        //public static ModifierKeys GetModifiderKeys(this Application app)
+        //static public ModifierKeys GetModifiderKeys(this Application app)
         //{
         //    var result = Application.Current.Dispatcher.BeginInvoke(new Func<ModifierKeys>(delegate
         //    {
@@ -12895,7 +12898,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Graphic Helper
-        public static Tuple<double, double> AspectRatio(this ImageSource image)
+        static public Tuple<double, double> AspectRatio(this ImageSource image)
         {
             double bestDelta = double.MaxValue;
             double i = 1;
@@ -12929,7 +12932,7 @@ namespace PixivWPF.Common
             return (new Tuple<double, double>(bestI, bestJ));
         }
 
-        public static double Distance(this Point src, Point dst)
+        static public double Distance(this Point src, Point dst)
         {
             return (Math.Sqrt(Math.Pow(src.X - dst.X, 2) + Math.Pow(src.Y - dst.Y, 2)));
         }

@@ -74,37 +74,37 @@ namespace PixivWPF.Common
     }
     #endregion
 
-    public static class ApplicationExtensions
+    static public class ApplicationExtensions
     {
         #region Application Const Defines
-        public static string strDownloadTitle { get; } = "Download Manager";
-        public static string DownloadTitle(this Application app) { return (strDownloadTitle); }
-        public static string strDropBoxTitle { get; } = "DropBox";
-        public static string DropboxTitle(this Application app) { return (strDropBoxTitle); }
-        public static string strHistoryTitle { get; } = "History";
-        public static string HistoryTitle(this Application app) { return (strHistoryTitle); }
-        public static string strLoginTitle { get; } = "PIXIV Login";
-        public static string LoginTitle(this Application app) { return (strLoginTitle); }
-        public static string strPediaTitle { get; } = "PixivPedia";
-        public static string PediaTitle(this Application app) { return (strPediaTitle); }
-        public static string strSearchTitle { get; } = "Search";
-        public static string SearchTitle(this Application app) { return (strPediaTitle); }
-        public static string strPreviewTitle { get; } = "Preview";
-        public static string PreviewTitle(this Application app) { return (strPediaTitle); }
+        static public string strDownloadTitle { get; } = "Download Manager";
+        static public string DownloadTitle(this Application app) { return (strDownloadTitle); }
+        static public string strDropBoxTitle { get; } = "DropBox";
+        static public string DropboxTitle(this Application app) { return (strDropBoxTitle); }
+        static public string strHistoryTitle { get; } = "History";
+        static public string HistoryTitle(this Application app) { return (strHistoryTitle); }
+        static public string strLoginTitle { get; } = "PIXIV Login";
+        static public string LoginTitle(this Application app) { return (strLoginTitle); }
+        static public string strPediaTitle { get; } = "PixivPedia";
+        static public string PediaTitle(this Application app) { return (strPediaTitle); }
+        static public string strSearchTitle { get; } = "Search";
+        static public string SearchTitle(this Application app) { return (strPediaTitle); }
+        static public string strPreviewTitle { get; } = "Preview";
+        static public string PreviewTitle(this Application app) { return (strPediaTitle); }
 
-        public static string[] LineBreak { get; private set; } = new string[] { Environment.NewLine, "\r\n", "\n\r", "\n", "\r" };
-        public static string[] LineBreakExtra { get; private set; } = new string[] { Environment.NewLine, "\r\n", "\n\r", "\n", "\r", "<br/>", "<br />", "<br>", "</br>" };
-        public static string[] GetLineBreak(this Application app, bool extra = false)
+        static public string[] LineBreak { get; private set; } = [Environment.NewLine, "\r\n", "\n\r", "\n", "\r"];
+        static public string[] LineBreakExtra { get; private set; } = [Environment.NewLine, "\r\n", "\n\r", "\n", "\r", "<br/>", "<br />", "<br>", "</br>"];
+        static public string[] GetLineBreak(this Application app, bool extra = false)
         {
             return (extra ? LineBreakExtra : LineBreak);
         }
 
-        private static Dictionary<string, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty> _system_meta_names_ = new Dictionary<string, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty>();
-        public static Dictionary<string, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty> SystemMetaNames
+        static private Dictionary<string, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty> _system_meta_names_ = new();
+        static public Dictionary<string, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty> SystemMetaNames
         {
             get
             {
-                if(!(_system_meta_names_ is Dictionary<string, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty>)) _system_meta_names_ = new Dictionary<string, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty>();
+                if (!(_system_meta_names_ is Dictionary<string, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty>)) _system_meta_names_ = new Dictionary<string, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty>();
                 if (_system_meta_names_.Count <= 0 && Microsoft.WindowsAPICodePack.Shell.ShellSearchConnector.IsPlatformSupported)
                 {
                     using (var sh = Microsoft.WindowsAPICodePack.Shell.ShellObject.FromParsingName(Application.Current.GetRoot()))
@@ -126,8 +126,8 @@ namespace PixivWPF.Common
                 return (_system_meta_names_);
             }
         }
-        private static Dictionary<Microsoft.WindowsAPICodePack.Shell.PropertySystem.PropertyKey, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty> _system_meta_list_ = new Dictionary<Microsoft.WindowsAPICodePack.Shell.PropertySystem.PropertyKey, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty>();
-        public static Dictionary<Microsoft.WindowsAPICodePack.Shell.PropertySystem.PropertyKey, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty> SystemMetaList
+        static private Dictionary<Microsoft.WindowsAPICodePack.Shell.PropertySystem.PropertyKey, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty> _system_meta_list_ = new();
+        static public Dictionary<Microsoft.WindowsAPICodePack.Shell.PropertySystem.PropertyKey, Microsoft.WindowsAPICodePack.Shell.PropertySystem.IShellProperty> SystemMetaList
         {
             get
             {
@@ -174,15 +174,15 @@ namespace PixivWPF.Common
         #endregion
 
         #region Application Setting Helper
-        public static Setting CurrentSetting { get { return (Setting.Instance is Setting ? Setting.Instance : Setting.Load()); } }
-        public static Setting LoadSetting(this Application app, bool force = false, bool startup = false)
+        static public Setting CurrentSetting { get { return (Setting.Instance is Setting ? Setting.Instance : Setting.Load()); } }
+        static public Setting LoadSetting(this Application app, bool force = false, bool startup = false)
         {
             if (force) Setting.Load(force, force, startup: startup);
             return (CurrentSetting);
             //return (!force && Setting.Instance is Setting ? Setting.Instance : Setting.Load(force));
         }
 
-        public static void SaveSetting(this Application app, bool full = false)
+        static public void SaveSetting(this Application app, bool full = false)
         {
             try
             {
@@ -196,7 +196,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void ChangeResourceFonts(this Application app, Setting setting = null)
+        static public void ChangeResourceFonts(this Application app, Setting setting = null)
         {
             if (setting == null) setting = app.LoadSetting();
             if (setting is Setting)
@@ -206,7 +206,7 @@ namespace PixivWPF.Common
                     { "MonoSpaceFamily", setting.FontFamilyMono },
                     { "SegoeIconFamily", setting.FontFamilyIcon },
                 };
-                foreach(var family in customfamilies)
+                foreach (var family in customfamilies)
                 {
                     var old_family = app.FindResource(family.Key);
                     if (old_family is FontFamily && !string.IsNullOrEmpty(family.Value))
@@ -220,7 +220,7 @@ namespace PixivWPF.Common
                             app.Resources.Remove(family.Key);
                             app.Resources.Add(family.Key, new_family);
                         }
-                        catch(Exception ex) { ex.ERROR($"ChangeResourceFonts[{family.Key}]"); }
+                        catch (Exception ex) { ex.ERROR($"ChangeResourceFonts[{family.Key}]"); }
                     }
                 }
                 #region Custom Mono Family
@@ -277,7 +277,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async void LoadTags(this Application app, bool all = false, bool force = false)
+        static public async void LoadTags(this Application app, bool all = false, bool force = false)
         {
             await new Action(() =>
             {
@@ -287,13 +287,13 @@ namespace PixivWPF.Common
             //await lt.InvokeAsync();
         }
 
-        public static void SaveTags(this Application app)
+        static public void SaveTags(this Application app)
         {
             if (Setting.Instance is Setting) Setting.Instance.SaveTags();
             return;
         }
 
-        public static async void LoadCustomTemplate(this Application app)
+        static public async void LoadCustomTemplate(this Application app)
         {
             await new Action(() =>
             {
@@ -301,7 +301,7 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         }
 
-        public static string SaveTarget(this Application app, string file = "")
+        static public string SaveTarget(this Application app, string file = "")
         {
             string result = file;
             result = CommonHelper.ChangeSaveTarget(file);
@@ -310,8 +310,8 @@ namespace PixivWPF.Common
         #endregion
 
         #region Application Information
-        private static string root = string.Empty;
-        public static string Root
+        static private string root = string.Empty;
+        static public string Root
         {
             get
             {
@@ -320,25 +320,25 @@ namespace PixivWPF.Common
             }
         }
 
-        public static string GetRoot()
+        static public string GetRoot()
         {
             return (Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString()).Replace("file:\\", ""));
         }
 
-        public static string GetRoot(this Application app)
+        static public string GetRoot(this Application app)
         {
             return (Root);
         }
 
-        public static string Version(this Application app, bool alt = false)
+        static public string Version(this Application app, bool alt = false)
         {
             var version = alt ? Assembly.GetCallingAssembly().GetName().Version : Assembly.GetExecutingAssembly().GetName().Version;
             return (version.ToString());
             //return (Application.ResourceAssembly.GetName().Version.ToString());
         }
 
-        private static int pid = -1;
-        public static int PID
+        static private int pid = -1;
+        static public int PID
         {
             get
             {
@@ -347,13 +347,13 @@ namespace PixivWPF.Common
             }
         }
 
-        public static int GetPID(this Application app)
+        static public int GetPID(this Application app)
         {
             return (PID);
         }
 
-        private static string processor_id = string.Empty;
-        public static string ProcessorID
+        static private string processor_id = string.Empty;
+        static public string ProcessorID
         {
             get
             {
@@ -362,7 +362,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static string GetProcessorID()
+        static public string GetProcessorID()
         {
             string result = string.Empty;
 
@@ -390,13 +390,13 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string GetProcessorID(this Application app)
+        static public string GetProcessorID(this Application app)
         {
             return (ProcessorID);
         }
 
-        private static string machine_id = string.Empty;
-        public static string MachineID
+        static private string machine_id = string.Empty;
+        static public string MachineID
         {
             get
             {
@@ -405,7 +405,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static string GetDeviceId()
+        static public string GetDeviceId()
         {
             var result = ProcessorID;
             try
@@ -433,13 +433,13 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string GetDeviceId(this Application app)
+        static public string GetDeviceId(this Application app)
         {
             return (MachineID);
         }
 
-        private static Process current_process = null;
-        private static Process CurrentProcess
+        static private Process current_process = null;
+        static private Process CurrentProcess
         {
             get
             {
@@ -448,7 +448,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static IList<string> ProcessClipboard(this Application app)
+        static public IList<string> ProcessClipboard(this Application app)
         {
             var links = Clipboard.GetDataObject().ParseDataObject();
             if (links.Count > 0 && Commands.ParallelExecutionConfirm(links))
@@ -464,12 +464,12 @@ namespace PixivWPF.Common
             return (links);
         }
 
-        public static Process GetCurrentProcess(this Application app)
+        static public Process GetCurrentProcess(this Application app)
         {
             return (CurrentProcess);
         }
 
-        public static string GetProcessPathByName(this Application app, string name, bool fuzzy = false)
+        static public string GetProcessPathByName(this Application app, string name, bool fuzzy = false)
         {
             var result = Application.Current.Dispatcher.Invoke(() =>
             {
@@ -497,7 +497,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string GetProcessPathById(this Application app, string id)
+        static public string GetProcessPathById(this Application app, string id)
         {
             var result = Application.Current.Dispatcher.Invoke(() =>
             {
@@ -524,17 +524,17 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string GetProcessPathById(this Application app, int id)
+        static public string GetProcessPathById(this Application app, int id)
         {
             return (GetProcessPathById(app, $"{id}"));
         }
 
-        public static string GetProcessPathById(this Application app, long id)
+        static public string GetProcessPathById(this Application app, long id)
         {
             return (GetProcessPathById(app, $"{id}"));
         }
 
-        public static long MemoryUsage(this Application app, bool is_private = false)
+        static public long MemoryUsage(this Application app, bool is_private = false)
         {
             long result = -1;
             if (current_process == null) current_process = Process.GetCurrentProcess();
@@ -555,7 +555,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void GC(this Application app, string name, bool wait = false, bool system_memory = false)
+        static public void GC(this Application app, string name, bool wait = false, bool system_memory = false)
         {
             long mem_ws_before = 0, mem_pb_before = 0, mem_ws_after = 0, mem_pb_after = 0;
             if (system_memory)
@@ -578,8 +578,8 @@ namespace PixivWPF.Common
             }
         }
 
-        private static CancellationTokenSource _gc_ = new();
-        public static async void DelayGC(this Application app, CancellationTokenSource cancel = null)
+        static private CancellationTokenSource _gc_ = new();
+        static public async void DelayGC(this Application app, CancellationTokenSource cancel = null)
         {
             if (cancel is null)
             {
@@ -602,12 +602,12 @@ namespace PixivWPF.Common
         #endregion
 
         #region Application Config files Watchdog
-        private static ConcurrentDictionary<string, FileSystemWatcher> _watchers = new ConcurrentDictionary<string, FileSystemWatcher>();
-        //private static DateTime lastConfigEventTick = DateTime.Now;
-        //private static string lastConfigEventFile = string.Empty;
-        //private static WatcherChangeTypes lastConfigEventType = WatcherChangeTypes.All;
+        static private ConcurrentDictionary<string, FileSystemWatcher> _watchers = new();
+        //static private DateTime lastConfigEventTick = DateTime.Now;
+        //static private string lastConfigEventFile = string.Empty;
+        //static private WatcherChangeTypes lastConfigEventType = WatcherChangeTypes.All;
 
-        private static void OnConfigChanged(object source, FileSystemEventArgs e)
+        static private void OnConfigChanged(object source, FileSystemEventArgs e)
         {
 #if DEBUG
             // Specify what is done when a file is changed, created, or deleted.
@@ -715,7 +715,7 @@ namespace PixivWPF.Common
             }
         }
 
-        private static void OnConfigRenamed(object source, RenamedEventArgs e)
+        static private void OnConfigRenamed(object source, RenamedEventArgs e)
         {
 #if DEBUG
             // Specify what is done when a file is renamed.
@@ -766,7 +766,7 @@ namespace PixivWPF.Common
         }
 
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-        public static void InitAppWatcher(this Application app, string folder)
+        static public void InitAppWatcher(this Application app, string folder)
         {
             try
             {
@@ -797,7 +797,7 @@ namespace PixivWPF.Common
         }
 
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-        public static void AddAppWatcher(this Application app, string folder, string filter = "*.*", bool IncludeSubFolder = false)
+        static public void AddAppWatcher(this Application app, string folder, string filter = "*.*", bool IncludeSubFolder = false)
         {
             if (Directory.Exists(folder) && !_watchers.ContainsKey(folder))
             {
@@ -820,7 +820,7 @@ namespace PixivWPF.Common
         }
 
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-        public static void ReleaseAppWatcher(this Application app)
+        static public void ReleaseAppWatcher(this Application app)
         {
             if (_watchers is ConcurrentDictionary<string, FileSystemWatcher>)
             {
@@ -841,20 +841,20 @@ namespace PixivWPF.Common
         #endregion
 
         #region Application Theme Helper
-        private static Uri _IconUri = null;
-        private static Uri IconUri { get { if (_IconUri == null) _IconUri = "Resources/pixiv-icon.ico".MakePackUri(); return (_IconUri); } }
-        private static Image DefaultIcon = null;
-        private static Image ThemedIcon = null;
-        private static CustomImageSource ThemedIconSource = null;
+        static private Uri _IconUri = null;
+        static private Uri IconUri { get { if (_IconUri == null) _IconUri = "Resources/pixiv-icon.ico".MakePackUri(); return (_IconUri); } }
+        static private Image DefaultIcon = null;
+        static private Image ThemedIcon = null;
+        static private CustomImageSource ThemedIconSource = null;
 
-        public static CustomImageSource GetThemedIcon(this Application app)
+        static public CustomImageSource GetThemedIcon(this Application app)
         {
             if (DefaultIcon == null || DefaultIcon.Source == null) DefaultIcon = new Image() { Source = new BitmapImage(IconUri) };
             if (ThemedIconSource == null || ThemedIconSource.Source == null) ThemedIconSource = new CustomImageSource() { Source = IconUri.CreateThemedImage() };
             return (ThemedIconSource);
         }
 
-        public static void RefreshThemedIcon(this Application app)
+        static public void RefreshThemedIcon(this Application app)
         {
             app.Dispatcher.Invoke(() =>
             {
@@ -868,150 +868,150 @@ namespace PixivWPF.Common
             });
         }
 
-        public static Image GetIcon(this Application app)
+        static public Image GetIcon(this Application app)
         {
             if (DefaultIcon == null || DefaultIcon.Source == null) DefaultIcon = new Image() { Source = new BitmapImage(IconUri) };
             if (ThemedIcon == null || ThemedIcon.Source == null) ThemedIcon = new Image() { Source = GetThemedIcon(app).Source };
             return (ThemedIcon);
         }
 
-        public static Image GetDefalutIcon(this Application app)
+        static public Image GetDefalutIcon(this Application app)
         {
             if (DefaultIcon == null || DefaultIcon.Source == null) DefaultIcon = new Image() { Source = new BitmapImage(IconUri) };
             return (DefaultIcon);
         }
 
-        public static IList<string> GetAccents(this Application app)
+        static public IList<string> GetAccents(this Application app)
         {
             return (Theme.Accents);
         }
 
-        public static IList<SimpleAccent> GetAccentColorList(this Application app)
+        static public IList<SimpleAccent> GetAccentColorList(this Application app)
         {
             return (Theme.AccentColorList);
         }
 
-        public static string CurrentAccent(this Application app)
+        static public string CurrentAccent(this Application app)
         {
             return (Theme.CurrentAccent);
         }
 
-        public static string CurrentStyle(this Application app)
+        static public string CurrentStyle(this Application app)
         {
             return (Theme.CurrentStyle);
         }
 
-        public static string CurrentTheme(this Application app)
+        static public string CurrentTheme(this Application app)
         {
             return (Theme.CurrentTheme);
         }
 
-        public static string GetAccent(this Application app)
+        static public string GetAccent(this Application app)
         {
             return (Theme.CurrentAccent);
         }
 
-        public static Color GetForegroundColor(this Application app)
+        static public Color GetForegroundColor(this Application app)
         {
             return (Theme.ThemeForegroundColor);
         }
 
-        public static Brush GetForegroundBrush(this Application app)
+        static public Brush GetForegroundBrush(this Application app)
         {
             return (Theme.ThemeForegroundBrush);
         }
 
-        public static Color GetBackgroundColor(this Application app)
+        static public Color GetBackgroundColor(this Application app)
         {
             return (Theme.ThemeBackgroundColor);
         }
 
-        public static Brush GetBackgroundBrush(this Application app)
+        static public Brush GetBackgroundBrush(this Application app)
         {
             return (Theme.ThemeBackgroundBrush);
         }
 
-        public static Color GetTextColor(this Application app)
+        static public Color GetTextColor(this Application app)
         {
             return (Theme.TextColor);
         }
 
-        public static Brush GetTextBrush(this Application app)
+        static public Brush GetTextBrush(this Application app)
         {
             return (Theme.TextBrush);
         }
 
-        public static Color GetIdealTextColor(this Application app)
+        static public Color GetIdealTextColor(this Application app)
         {
             return (Theme.IdealForeground);
         }
 
-        public static Brush GetIdealTextBrush(this Application app)
+        static public Brush GetIdealTextBrush(this Application app)
         {
             return (Theme.IdealForegroundBrush);
         }
 
-        public static Color GetSucceedColor(this Application app)
+        static public Color GetSucceedColor(this Application app)
         {
             return (Theme.SucceedColor);
         }
 
-        public static Brush GetSucceedBrush(this Application app)
+        static public Brush GetSucceedBrush(this Application app)
         {
             return (Theme.SucceedBrush);
         }
 
-        public static Color GetErrorColor(this Application app)
+        static public Color GetErrorColor(this Application app)
         {
             return (Theme.ErrorColor);
         }
 
-        public static Brush GetErrorBrush(this Application app)
+        static public Brush GetErrorBrush(this Application app)
         {
             return (Theme.ErrorBrush);
         }
 
-        public static Color GetWarningColor(this Application app)
+        static public Color GetWarningColor(this Application app)
         {
             return (Theme.WarningColor);
         }
 
-        public static Brush GetWarningBrush(this Application app)
+        static public Brush GetWarningBrush(this Application app)
         {
             return (Theme.WarningBrush);
         }
 
-        public static Color GetFailedColor(this Application app)
+        static public Color GetFailedColor(this Application app)
         {
             return (Theme.FailedColor);
         }
 
-        public static Brush GetFailedBrush(this Application app)
+        static public Brush GetFailedBrush(this Application app)
         {
             return (Theme.FailedBrush);
         }
 
-        public static Color GetNonExistsColor(this Application app)
+        static public Color GetNonExistsColor(this Application app)
         {
             return (Theme.Gray5Color);
         }
 
-        public static Brush GetNonExistsBrush(this Application app)
+        static public Brush GetNonExistsBrush(this Application app)
         {
             return (Theme.Gray5Brush);
         }
 
-        public static string GetStyle(this Application app)
+        static public string GetStyle(this Application app)
         {
             return (Theme.CurrentStyle);
         }
 
-        public static string GetTheme(this Application app)
+        static public string GetTheme(this Application app)
         {
             return (Theme.CurrentTheme);
         }
 
-        public static int GetAccentIndex(this Application app, string accent = "")
+        static public int GetAccentIndex(this Application app, string accent = "")
         {
             var result = 0;
             try
@@ -1028,7 +1028,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void SetAccent(this Application app, string accent)
+        static public void SetAccent(this Application app, string accent)
         {
             try
             {
@@ -1038,7 +1038,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("SetAccent"); }
         }
 
-        public static void SetStyle(this Application app, string style)
+        static public void SetStyle(this Application app, string style)
         {
             try
             {
@@ -1048,7 +1048,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("SetStyle"); }
         }
 
-        public static void SetTheme(this Application app, string theme)
+        static public void SetTheme(this Application app, string theme)
         {
             try
             {
@@ -1058,7 +1058,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("SetTheme"); }
         }
 
-        public static void SetTheme(this Application app, string style, string accent)
+        static public void SetTheme(this Application app, string style, string accent)
         {
             try
             {
@@ -1068,7 +1068,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("SetTheme"); }
         }
 
-        public static void ToggleTheme(this Application app)
+        static public void ToggleTheme(this Application app)
         {
             try
             {
@@ -1078,7 +1078,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("ToggleTheme"); }
         }
 
-        public static void UpdateTheme(this Application app)
+        static public void UpdateTheme(this Application app)
         {
             try
             {
@@ -1088,7 +1088,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("UPDATETHEME"); }
         }
 
-        public static void SetThemeSync(this Application app, string mode = "")
+        static public void SetThemeSync(this Application app, string mode = "")
         {
             try
             {
@@ -1114,12 +1114,12 @@ namespace PixivWPF.Common
         #endregion
 
         #region Application Window Helper
-        private static string[] r15 = new string[] { "xxx", "r18", "r17", "r15", "18+", "17+", "15+" };
-        private static string[] r17 = new string[] { "xxx", "r18", "r17", "18+", "17+", };
-        private static string[] r18 = new string[] { "xxx", "r18", "18+"};
+        static private string[] r15 = ["xxx", "r18", "r17", "r15", "18+", "17+", "15+"];
+        static private string[] r17 = ["xxx", "r18", "r17", "18+", "17+",];
+        static private string[] r18 = ["xxx", "r18", "18+"];
 
-        private static ConcurrentDictionary<string, ContentWindow> _ContentWindows_ = new ConcurrentDictionary<string, ContentWindow>(StringComparer.CurrentCultureIgnoreCase);
-        public static ConcurrentDictionary<string, ContentWindow> ContentWindows
+        static private ConcurrentDictionary<string, ContentWindow> _ContentWindows_ = new(StringComparer.CurrentCultureIgnoreCase);
+        static public ConcurrentDictionary<string, ContentWindow> ContentWindows
         {
             get
             {
@@ -1129,14 +1129,14 @@ namespace PixivWPF.Common
             }
         }
 
-        public static ConcurrentDictionary<string, ContentWindow> GetContentWindows(this Application app)
+        static public ConcurrentDictionary<string, ContentWindow> GetContentWindows(this Application app)
         {
             if (!(_ContentWindows_ is ConcurrentDictionary<string, ContentWindow>))
                 _ContentWindows_ = new ConcurrentDictionary<string, ContentWindow>();
             return (_ContentWindows_);
         }
 
-        public static bool UpdateContentWindows(this Application app, ContentWindow window, string title = "", bool update = true)
+        static public bool UpdateContentWindows(this Application app, ContentWindow window, string title = "", bool update = true)
         {
             bool result = false;
             try
@@ -1160,19 +1160,19 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool RemoveContentWindows(this Application app, ContentWindow window)
+        static public bool RemoveContentWindows(this Application app, ContentWindow window)
         {
             return (UpdateContentWindows(app, window, update: false));
         }
 
-        public static bool ContentWindowExists(this Application app, string title)
+        static public bool ContentWindowExists(this Application app, string title)
         {
             if (!(_ContentWindows_ is ConcurrentDictionary<string, ContentWindow>))
                 _ContentWindows_ = new ConcurrentDictionary<string, ContentWindow>();
             return (_ContentWindows_.ContainsKey(title) && _ContentWindows_[title] is ContentWindow && _ContentWindows_[title].Visibility == Visibility.Visible ? true : false);
         }
 
-        public static MainWindow GetMainWindow(this Application app)
+        static public MainWindow GetMainWindow(this Application app)
         {
             MainWindow result = null;
             try
@@ -1192,7 +1192,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static Window GetActiveWindow(this Application app)
+        static public Window GetActiveWindow(this Application app)
         {
             Window result = null;
             try
@@ -1213,7 +1213,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static Window GetLatestWindow(this Application app)
+        static public Window GetLatestWindow(this Application app)
         {
             Window result = null;
             try
@@ -1235,7 +1235,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static PixivLoginDialog GetLoginWindow(this Application app)
+        static public PixivLoginDialog GetLoginWindow(this Application app)
         {
             PixivLoginDialog result = null;
             try
@@ -1258,7 +1258,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static IList<ContentWindow> OpenedWindows(this Application app)
+        static public IList<ContentWindow> OpenedWindows(this Application app)
         {
             List<ContentWindow> wins = new();
             try
@@ -1291,7 +1291,7 @@ namespace PixivWPF.Common
             return (wins);
         }
 
-        public static IList<string> OpenedWindowTitles(this Application app)
+        static public IList<string> OpenedWindowTitles(this Application app)
         {
             List<string> titles = new List<string>();
             try
@@ -1331,7 +1331,7 @@ namespace PixivWPF.Common
             return (titles);
         }
 
-        public static void ActiveWindowByTitle(this Application app, string title = null)
+        static public void ActiveWindowByTitle(this Application app, string title = null)
         {
             try
             {
@@ -1358,7 +1358,7 @@ namespace PixivWPF.Common
 
         }
 
-        public static void SetTitle(this Application app, string title)
+        static public void SetTitle(this Application app, string title)
         {
             try
             {
@@ -1374,7 +1374,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR(); }
         }
 
-        private static async void MinimizedWindow(MetroWindow win, PixivItem item, string condition)
+        static private async void MinimizedWindow(MetroWindow win, PixivItem item, string condition)
         {
             await new Action(() =>
             {
@@ -1402,7 +1402,7 @@ namespace PixivWPF.Common
             }).InvokeAsync(true);
         }
 
-        public static async void MinimizedWindows(this Application app, string condition = "")
+        static public async void MinimizedWindows(this Application app, string condition = "")
         {
             if (string.IsNullOrEmpty(condition)) return;
             await new Action(async () =>
@@ -1455,12 +1455,12 @@ namespace PixivWPF.Common
             }).InvokeAsync(true);
         }
 
-        public static bool IsLogin(this Application app)
+        static public bool IsLogin(this Application app)
         {
             return (GetLoginWindow(app) != null ? true : false);
         }
 
-        public static bool InSearching(this Application app, bool? focus = null)
+        static public bool InSearching(this Application app, bool? focus = null)
         {
             var win = GetActiveWindow(app);
 
@@ -1479,7 +1479,7 @@ namespace PixivWPF.Common
             else return (false);
         }
 
-        public static bool InSearching(this Page page, bool? focus = null)
+        static public bool InSearching(this Page page, bool? focus = null)
         {
             var win = GetActiveWindow(Application.Current);
 
@@ -1498,7 +1498,7 @@ namespace PixivWPF.Common
             else return (false);
         }
 
-        public static bool InSearching(this Window win, bool? focus = null)
+        static public bool InSearching(this Window win, bool? focus = null)
         {
             if (focus != null && !focus.Value)
             {
@@ -1515,7 +1515,7 @@ namespace PixivWPF.Common
             else return (false);
         }
 
-        public static async void Active(this Application app, string param = "")
+        static public async void Active(this Application app, string param = "")
         {
             try
             {
@@ -1534,7 +1534,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR(); }
         }
 
-        public static bool Activate(this Application app)
+        static public bool Activate(this Application app)
         {
             bool result = false;
             try
@@ -1560,8 +1560,8 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
-        
-        public static bool ReCreateDetailPage(this Application app)
+
+        static public bool ReCreateDetailPage(this Application app)
         {
             var result = false;
             var main = app.GetMainWindow();
@@ -1584,7 +1584,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool ClearHiddenWindows(this Application app)
+        static public bool ClearHiddenWindows(this Application app)
         {
             var result = false;
             foreach (var win in app.Windows)
@@ -1596,12 +1596,12 @@ namespace PixivWPF.Common
                     {
                         if (!w.IsShown()) w.Close();
                     }
-                }                
+                }
             }
             return (result);
         }
-        
-        public static void RefreshThumb(this Application app)
+
+        static public void RefreshThumb(this Application app)
         {
             foreach (var win in ContentWindows.Select(w => w.Value).ToList())
             {
@@ -1618,7 +1618,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Application DropBox
-        private static void DropBox_MouseDown(object sender, MouseButtonEventArgs e)
+        static private void DropBox_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (sender is ContentWindow)
             {
@@ -1646,7 +1646,7 @@ namespace PixivWPF.Common
             }
         }
 
-        private static void DropBox_MouseUp(object sender, MouseButtonEventArgs e)
+        static private void DropBox_MouseUp(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
             {
@@ -1667,7 +1667,7 @@ namespace PixivWPF.Common
             }
         }
 
-        private static void DropBox_MouseMove(object sender, MouseEventArgs e)
+        static private void DropBox_MouseMove(object sender, MouseEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed)
             {
@@ -1686,7 +1686,7 @@ namespace PixivWPF.Common
             }
         }
 
-        private static void DropBox_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        static private void DropBox_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ClickCount >= 3)
             {
@@ -1700,7 +1700,7 @@ namespace PixivWPF.Common
             }
         }
 
-        private static void DropBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        static private void DropBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (sender is ContentWindow)
             {
@@ -1711,7 +1711,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static bool ToggleDropBox(this Application app)
+        static public bool ToggleDropBox(this Application app)
         {
             var win = app.DropBoxExists();
             ContentWindow box = win == null ? null : (ContentWindow)win;
@@ -1783,12 +1783,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string DropBoxTitle(this Application app)
+        static public string DropBoxTitle(this Application app)
         {
             return (strDropBoxTitle);
         }
 
-        public static Window DropBoxExists(this Application app)
+        static public Window DropBoxExists(this Application app)
         {
             Window result = null;
 
@@ -1798,7 +1798,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void SetDropBoxState(this bool state)
+        static public void SetDropBoxState(this bool state)
         {
             new Action(() =>
             {
@@ -1812,8 +1812,8 @@ namespace PixivWPF.Common
         #endregion
 
         #region Application NamedPipe Helper
-        private static string pipe_name = string.Empty;
-        public static string PipeName
+        static private string pipe_name = string.Empty;
+        static public string PipeName
         {
             get
             {
@@ -1822,7 +1822,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static string PipeServerName()
+        static public string PipeServerName()
         {
 #if DEBUG
             return ($"PixivWPF-Search-Debug-{Application.Current.GetPID()}");
@@ -1831,12 +1831,12 @@ namespace PixivWPF.Common
 #endif
         }
 
-        public static string PipeServerName(this Application app)
+        static public string PipeServerName(this Application app)
         {
             return (PipeName);
         }
 
-        public static bool PipeExists(this Application app)
+        static public bool PipeExists(this Application app)
         {
             bool result = false;
             var pipes = Directory.GetFiles("\\\\.\\pipe\\", "PixivWPF*");
@@ -1851,7 +1851,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool ProcessCommand(this Application app, string command)
+        static public bool ProcessCommand(this Application app, string command)
         {
             bool result = false;
             try
@@ -1914,7 +1914,7 @@ namespace PixivWPF.Common
 
         #region Application LOG Helper
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static string GetCurrentMethod(this Application app)
+        static public string GetCurrentMethod(this Application app)
         {
             var st = new StackTrace();
             var sf = st.GetFrame(1);
@@ -1923,12 +1923,12 @@ namespace PixivWPF.Common
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string CurrentMethodName(this Application app)
+        static public string CurrentMethodName(this Application app)
         {
             return (MethodBase.GetCurrentMethod().Name);
         }
 
-        private static bool IsConsole
+        static private bool IsConsole
         {
             get
             {
@@ -1940,8 +1940,8 @@ namespace PixivWPF.Common
             }
         }
 
-        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        public static void TRACE(this string contents, string tag = "")
+        static private NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+        static public void TRACE(this string contents, string tag = "")
         {
             if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
@@ -1954,7 +1954,7 @@ namespace PixivWPF.Common
             }).Invoke(async: false);
         }
 
-        public static void DEBUG(this string contents, string tag = "")
+        static public void DEBUG(this string contents, string tag = "")
         {
             if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
@@ -1967,7 +1967,7 @@ namespace PixivWPF.Common
             }).Invoke(async: false);
         }
 
-        public static void INFO(this string contents, string tag = "")
+        static public void INFO(this string contents, string tag = "")
         {
             if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
@@ -1980,7 +1980,7 @@ namespace PixivWPF.Common
             }).Invoke(async: false);
         }
 
-        public static void WARN(this string contents, string tag = "")
+        static public void WARN(this string contents, string tag = "")
         {
             if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
@@ -1993,7 +1993,7 @@ namespace PixivWPF.Common
             }).Invoke(async: false);
         }
 
-        public static void ERROR(this string contents, string tag = "")
+        static public void ERROR(this string contents, string tag = "")
         {
             if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
@@ -2017,7 +2017,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void FATAL(this string contents, string tag = "")
+        static public void FATAL(this string contents, string tag = "")
         {
             if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
@@ -2030,7 +2030,7 @@ namespace PixivWPF.Common
             }).Invoke(async: false);
         }
 
-        public static void NOTICE(this string contents, string tag = "")
+        static public void NOTICE(this string contents, string tag = "")
         {
             if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
@@ -2046,7 +2046,7 @@ namespace PixivWPF.Common
             }).Invoke(async: false);
         }
 
-        public static void LOG(this string contents, string title = "", string tag = "")
+        static public void LOG(this string contents, string title = "", string tag = "")
         {
             if (logger == null) logger = NLog.LogManager.GetCurrentClassLogger();
             if (title.ToUpper().Contains("INFO")) contents.INFO(tag);
@@ -2056,7 +2056,7 @@ namespace PixivWPF.Common
             else contents.DEBUG();
         }
 
-        public static void TRACE(this Exception ex, string tag = "")
+        static public void TRACE(this Exception ex, string tag = "")
         {
             if (logger == null) StartLog(null);
             List<string> lines = new List<string>();
@@ -2072,7 +2072,7 @@ namespace PixivWPF.Common
             contents.TRACE(tag);
         }
 
-        public static void DEBUG(this Exception ex, string tag = "", bool no_stack = false)
+        static public void DEBUG(this Exception ex, string tag = "", bool no_stack = false)
         {
             if (logger == null) StartLog(null);
             if (!no_stack)
@@ -2090,21 +2090,21 @@ namespace PixivWPF.Common
             else ex.Message.DEBUG(tag);
         }
 
-        public static void INFO(this Exception ex, string tag = "")
+        static public void INFO(this Exception ex, string tag = "")
         {
             if (logger == null) StartLog(null);
             var contents = $"{ex.Message}";
             contents.INFO(tag);
         }
 
-        public static void WARN(this Exception ex, string tag = "")
+        static public void WARN(this Exception ex, string tag = "")
         {
             if (logger == null) StartLog(null);
             var contents = $"{ex.Message}";
             contents.WARN(tag);
         }
 
-        public static void ERROR(this Exception ex, string tag = "", bool no_stack = false)
+        static public void ERROR(this Exception ex, string tag = "", bool no_stack = false)
         {
             if (logger == null) StartLog(null);
             List<string> lines = new List<string>();
@@ -2114,7 +2114,7 @@ namespace PixivWPF.Common
             contents.ERROR(tag);
         }
 
-        public static void FATAL(this Exception ex, string tag = "")
+        static public void FATAL(this Exception ex, string tag = "")
         {
             if (logger == null) StartLog(null);
             List<string> lines = new List<string>();
@@ -2125,7 +2125,7 @@ namespace PixivWPF.Common
             contents.FATAL(tag);
         }
 
-        public static void LOG(this Exception ex, string title = "ERROR", string tag = "")
+        static public void LOG(this Exception ex, string title = "ERROR", string tag = "")
         {
             if (logger == null) StartLog(null);
             if (title.ToUpper().Contains("INFO")) ex.INFO(tag);
@@ -2135,7 +2135,7 @@ namespace PixivWPF.Common
             else ex.ERROR();
         }
 
-        public static void LOG(this object obj, string contents, string title = "INFO")
+        static public void LOG(this object obj, string contents, string title = "INFO")
         {
             if (logger == null) StartLog(null);
             if (obj != null)
@@ -2151,19 +2151,19 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void StartLog(this Application app)
+        static public void StartLog(this Application app)
         {
             NLog.LogManager.AutoShutdown = true;
             NLog.LogManager.Configuration.DefaultCultureInfo = CultureInfo.CurrentCulture;
             if (logger == null) logger = NLog.LogManager.GetCurrentClassLogger();
         }
 
-        public static void StopLog(this Application app)
+        static public void StopLog(this Application app)
         {
             if (logger is NLog.Logger) NLog.LogManager.Shutdown();
         }
 
-        public static string GetLogsFolder(this Application app)
+        static public string GetLogsFolder(this Application app)
         {
             if (logger == null) StartLog(null);
             var logs = string.Empty;
@@ -2186,7 +2186,7 @@ namespace PixivWPF.Common
             return (logs);
         }
 
-        public static IList<string> GetLogs(this Application app)
+        static public IList<string> GetLogs(this Application app)
         {
             if (logger == null) StartLog(null);
             var logs = new List<string>();
@@ -2213,7 +2213,7 @@ namespace PixivWPF.Common
             return (logs);
         }
 
-        public static void CleanLogs(this Application app)
+        static public void CleanLogs(this Application app)
         {
             if (logger == null) StartLog(null);
             var logs = GetLogs(app);
@@ -2225,11 +2225,11 @@ namespace PixivWPF.Common
         #endregion
 
         #region Application Timed Tasks Helper
-        private static System.Timers.Timer autoTaskTimer = null;
-        private static ConcurrentDictionary<Window, long> toast_list = new ConcurrentDictionary<Window, long>();
+        static private System.Timers.Timer autoTaskTimer = null;
+        static private ConcurrentDictionary<Window, long> toast_list = new();
 
-        private static Random _random_ { get; } = new Random(Environment.TickCount);
-        public static int Random(this Application app, int min, int max)
+        static private Random _random_ { get; } = new Random(Environment.TickCount);
+        static public int Random(this Application app, int min, int max)
         {
             var result = 1000;
             try { result = _random_?.Next(min, max) ?? result; }
@@ -2237,23 +2237,23 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static int DownloadRetryDelay(this Application app, int? min = null, int? max = null)
+        static public int DownloadRetryDelay(this Application app, int? min = null, int? max = null)
         {
             return (Random(app, min ?? CurrentSetting.DownloadFailAutoRetryDelayMin, max ?? CurrentSetting.DownloadFailAutoRetryDelayMax));
         }
 
-        public static int DownloadRetryCount(this Application app)
+        static public int DownloadRetryCount(this Application app)
         {
             return (CurrentSetting.DownloadFailAutoRetryCount);
         }
 
-        public static void AddToast(this Application app, Window win)
+        static public void AddToast(this Application app, Window win)
         {
             InitTaskTimer();
             if (toast_list.TryAdd(win, Environment.TickCount)) CloseToastAsync();
         }
 
-        private static async void CloseToastAsync()
+        static private async void CloseToastAsync()
         {
             await new Action(() =>
             {
@@ -2277,7 +2277,7 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         }
 
-        private static void InitTaskTimer()
+        static private void InitTaskTimer()
         {
             try
             {
@@ -2292,14 +2292,14 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("InitTaskTimer"); }
         }
 
-        private static void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        static private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             if (toast_list is ConcurrentDictionary<Window, long> && toast_list.Count > 0) CloseToastAsync();
             Commands.SaveOpenedWindows.Execute(null);
         }
 
-        private static AutoResetEvent _WaitDelayEvent_ = new AutoResetEvent(false);            //定义事件 
-        public static void WaitDelay(int time)
+        static private AutoResetEvent _WaitDelayEvent_ = new AutoResetEvent(false);            //定义事件 
+        static public void WaitDelay(int time)
         {
             System.Timers.Timer _WaitDelayTimer_ = new System.Timers.Timer(time);   //设置定时器
             //调用延迟函数，设置和启动延时定时器，然后等待。
@@ -2312,17 +2312,17 @@ namespace PixivWPF.Common
             _WaitDelayTimer_.Dispose();
         }
 
-        private static void WaitDelayTimer_TimesUp(object sender, System.Timers.ElapsedEventArgs e)
+        static private void WaitDelayTimer_TimesUp(object sender, System.Timers.ElapsedEventArgs e)
         {
             _WaitDelayEvent_.Set();
         }
         #endregion
 
         #region Application Visit History Helper
-        private static ObservableCollection<PixivItem> history = new ObservableCollection<PixivItem>();
-        public static ObservableCollection<PixivItem> History { get { return (HistorySource(null)); } }
+        static private ObservableCollection<PixivItem> history = new();
+        static public ObservableCollection<PixivItem> History { get { return (HistorySource(null)); } }
 
-        public static bool InHistory(this Application app, PixivItem item)
+        static public bool InHistory(this Application app, PixivItem item)
         {
             var result = false;
             try
@@ -2333,7 +2333,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool InHistory(this Application app, Pixeez.Objects.UserBase user)
+        static public bool InHistory(this Application app, Pixeez.Objects.UserBase user)
         {
             var result = false;
             try
@@ -2344,7 +2344,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool InHistory(this Application app, Pixeez.Objects.Work illust)
+        static public bool InHistory(this Application app, Pixeez.Objects.Work illust)
         {
             var result = false;
             try
@@ -2355,7 +2355,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void HistoryAdd(this Application app, Pixeez.Objects.UserBase user, ObservableCollection<PixivItem> source)
+        static public void HistoryAdd(this Application app, Pixeez.Objects.UserBase user, ObservableCollection<PixivItem> source)
         {
             if (source is ObservableCollection<PixivItem>)
             {
@@ -2403,7 +2403,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void HistoryAdd(this Application app, Pixeez.Objects.Work illust, ObservableCollection<PixivItem> source)
+        static public void HistoryAdd(this Application app, Pixeez.Objects.Work illust, ObservableCollection<PixivItem> source)
         {
             if (source is ObservableCollection<PixivItem>)
             {
@@ -2456,7 +2456,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void HistoryAdd(this Application app, PixivItem item, ObservableCollection<PixivItem> source)
+        static public void HistoryAdd(this Application app, PixivItem item, ObservableCollection<PixivItem> source)
         {
             if (source is ObservableCollection<PixivItem>)
             {
@@ -2505,17 +2505,17 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void HistoryAdd(this Application app, Pixeez.Objects.UserBase user)
+        static public void HistoryAdd(this Application app, Pixeez.Objects.UserBase user)
         {
             app.HistoryAdd(user, history);
         }
 
-        public static void HistoryAdd(this Application app, Pixeez.Objects.Work illust)
+        static public void HistoryAdd(this Application app, Pixeez.Objects.Work illust)
         {
             app.HistoryAdd(illust, history);
         }
 
-        public static void HistoryAdd(this Application app, PixivItem item)
+        static public void HistoryAdd(this Application app, PixivItem item)
         {
             if (item.IsWork() || item.IsUser())
             {
@@ -2523,7 +2523,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void HistoryAdd(this Application app, dynamic item)
+        static public void HistoryAdd(this Application app, dynamic item)
         {
             if (item is Pixeez.Objects.Work) app.HistoryAdd(item as Pixeez.Objects.Work);
             else if (item is Pixeez.Objects.User) app.HistoryAdd(item as Pixeez.Objects.User);
@@ -2531,7 +2531,7 @@ namespace PixivWPF.Common
             else if (item is PixivItem) app.HistoryAdd(item as PixivItem);
         }
 
-        public static void HistoryUpdate(this Application app, ObservableCollection<PixivItem> source = null)
+        static public void HistoryUpdate(this Application app, ObservableCollection<PixivItem> source = null)
         {
             if (source is ObservableCollection<PixivItem> && source != history)
             {
@@ -2550,7 +2550,7 @@ namespace PixivWPF.Common
             }
         }
 
-        private static void UpdateHistoryFromCache(IEnumerable<PixivItem> items)
+        static private void UpdateHistoryFromCache(IEnumerable<PixivItem> items)
         {
             foreach (var item in items)
             {
@@ -2575,7 +2575,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static IEnumerable<PixivItem> HistoryList(this Application app, bool full_update = false)
+        static public IEnumerable<PixivItem> HistoryList(this Application app, bool full_update = false)
         {
             var result = new List<PixivItem>();
             if (history is ObservableCollection<PixivItem>)
@@ -2592,7 +2592,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static ObservableCollection<PixivItem> HistorySource(this Application app, bool full_update = false)
+        static public ObservableCollection<PixivItem> HistorySource(this Application app, bool full_update = false)
         {
             if (history is ObservableCollection<PixivItem>)
             {
@@ -2607,7 +2607,7 @@ namespace PixivWPF.Common
             return (history);
         }
 
-        public static PixivItem HistoryRecent(this Application app, int index = 0)
+        static public PixivItem HistoryRecent(this Application app, int index = 0)
         {
             if (history.Count > 0)
             {
@@ -2617,7 +2617,7 @@ namespace PixivWPF.Common
             else return (null);
         }
 
-        public static PixivItem HistoryRecentIllust(this Application app, int index = 0)
+        static public PixivItem HistoryRecentIllust(this Application app, int index = 0)
         {
             if (history.Count > 0)
             {
@@ -2628,7 +2628,7 @@ namespace PixivWPF.Common
             else return (null);
         }
 
-        public static PixivItem HistoryRecentUser(this Application app, int index = 0)
+        static public PixivItem HistoryRecentUser(this Application app, int index = 0)
         {
             if (history.Count > 0)
             {
@@ -2639,7 +2639,7 @@ namespace PixivWPF.Common
             else return (null);
         }
 
-        public static IList<PixivItem> HistoryRecents(this Application app, int num = 1)
+        static public IList<PixivItem> HistoryRecents(this Application app, int num = 1)
         {
             if (history.Count > 0)
             {
@@ -2649,7 +2649,7 @@ namespace PixivWPF.Common
             else return (null);
         }
 
-        public static IList<PixivItem> HistoryRecentIllusts(this Application app, int num = 1)
+        static public IList<PixivItem> HistoryRecentIllusts(this Application app, int num = 1)
         {
             if (history.Count > 0)
             {
@@ -2659,7 +2659,7 @@ namespace PixivWPF.Common
             else return (null);
         }
 
-        public static IList<PixivItem> HistoryRecentUsers(this Application app, int num = 1)
+        static public IList<PixivItem> HistoryRecentUsers(this Application app, int num = 1)
         {
             if (history.Count > 0)
             {
@@ -2672,23 +2672,23 @@ namespace PixivWPF.Common
 
         #region Application Hotkey Helper
         [DllImport("user32.dll", SetLastError = true)]
-        private static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
+        static private extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
 
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool SetKeyboardState(byte[] lpKeyState);
+        static private extern bool SetKeyboardState(byte[] lpKeyState);
 
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool GetKeyboardState(byte[] lpKeyState);
+        static private extern bool GetKeyboardState(byte[] lpKeyState);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true, CallingConvention = CallingConvention.Winapi)]
-        private static extern short GetKeyState(int keyCode);
+        static private extern short GetKeyState(int keyCode);
 
         [DllImport("user32.dll")]
-        private static extern short GetAsyncKeyState(int keyCode);
+        static private extern short GetAsyncKeyState(int keyCode);
 
-        private static void SendKey(Key key)
+        static private void SendKey(Key key)
         {
             if (Keyboard.PrimaryDevice != null)
             {
@@ -2708,7 +2708,7 @@ namespace PixivWPF.Common
             }
         }
 
-        private static bool ClearKeyState(short vKey)
+        static private bool ClearKeyState(short vKey)
         {
             var result = false;
             if (0 < vKey && vKey < 256)
@@ -2725,12 +2725,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static bool ClearKeyState(System.Windows.Forms.Keys vKey)
+        static private bool ClearKeyState(System.Windows.Forms.Keys vKey)
         {
             return (ClearKeyState((short)vKey));
         }
 
-        private static bool ClearKeyState(IEnumerable<short> vKeys)
+        static private bool ClearKeyState(IEnumerable<short> vKeys)
         {
             var result = false;
             try
@@ -2750,22 +2750,22 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static bool ClearKeyState(IEnumerable<System.Windows.Forms.Keys> vKeys)
+        static private bool ClearKeyState(IEnumerable<System.Windows.Forms.Keys> vKeys)
         {
             return (ClearKeyState(vKeys.Select(k => (short)k)));
         }
 
-        private static short GetKeyState(System.Windows.Forms.Keys vKey)
+        static private short GetKeyState(System.Windows.Forms.Keys vKey)
         {
             return (GetKeyState((short)vKey));
         }
 
-        private static short GetAsyncKeyState(System.Windows.Forms.Keys vKey)
+        static private short GetAsyncKeyState(System.Windows.Forms.Keys vKey)
         {
             return (GetAsyncKeyState((short)vKey));
         }
 
-        private static string Key2String(System.Windows.Forms.Keys key)
+        static private string Key2String(System.Windows.Forms.Keys key)
         {
             var result = Dfust.Hotkeys.Util.Keys2String.KeyToString(key);
             result = ApplicationCulture.TextInfo.ToTitleCase(result);
@@ -2781,55 +2781,55 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static bool IsShiftToggled()
+        static private bool IsShiftToggled()
         {
             //return ((GetKeyState(0x10) & 0x0001) != 0 || (GetKeyState(0xA0) & 0x0001) != 0 || (GetKeyState(0xA1) & 0x0001) != 0);
             return ((GetAsyncKeyState(0x10) & 0x0001) != 0 || (GetAsyncKeyState(0xA0) & 0x0001) != 0 || (GetAsyncKeyState(0xA1) & 0x0001) != 0);
         }
 
-        private static bool IsCtrlToggled()
+        static private bool IsCtrlToggled()
         {
             //return ((GetKeyState(0x11) & 0x0001) != 0 || (GetKeyState(0xA2) & 0x0001) != 0 || (GetKeyState(0xA3) & 0x0001) != 0);
             return ((GetAsyncKeyState(0x11) & 0x0001) != 0 || (GetAsyncKeyState(0xA2) & 0x0001) != 0 || (GetAsyncKeyState(0xA3) & 0x0001) != 0);
         }
 
-        private static bool IsAltToggled()
+        static private bool IsAltToggled()
         {
             //return ((GetKeyState(0x12) & 0x0001) != 0 || (GetKeyState(0xA4) & 0x0001) != 0 || (GetKeyState(0xA5) & 0x0001) != 0);
             return ((GetAsyncKeyState(0x12) & 0x0001) != 0 || (GetAsyncKeyState(0xA4) & 0x0001) != 0 || (GetAsyncKeyState(0xA5) & 0x0001) != 0);
         }
 
-        private static bool IsWinToggled()
+        static private bool IsWinToggled()
         {
             //return ((GetKeyState(0x5B) & 0x0001) != 0 || (GetKeyState(0x5C) & 0x0001) != 0);
             return ((GetAsyncKeyState(0x5B) & 0x0001) != 0 || (GetAsyncKeyState(0x5C) & 0x0001) != 0);
         }
 
-        private static bool IsShiftDown()
+        static private bool IsShiftDown()
         {
             //return ((GetKeyState(0x10) & 0x8000) != 0 || (GetKeyState(0xA0) & 0x8000) != 0 || (GetKeyState(0xA1) & 0x8000) != 0);
             return ((GetAsyncKeyState(0x10) & 0x8000) != 0 || (GetAsyncKeyState(0xA0) & 0x8000) != 0 || (GetAsyncKeyState(0xA1) & 0x8000) != 0);
         }
 
-        private static bool IsCtrlDown()
+        static private bool IsCtrlDown()
         {
             //return ((GetKeyState(0x11) & 0x8000) != 0 || (GetKeyState(0xA2) & 0x8000) != 0 || (GetKeyState(0xA3) & 0x8000) != 0);
             return ((GetAsyncKeyState(0x11) & 0x8000) != 0 || (GetAsyncKeyState(0xA2) & 0x8000) != 0 || (GetAsyncKeyState(0xA3) & 0x8000) != 0);
         }
 
-        private static bool IsAltDown()
+        static private bool IsAltDown()
         {
             //return ((GetKeyState(0x12) & 0x8000) != 0 || (GetKeyState(0xA4) & 0x8000) != 0 || (GetKeyState(0xA5) & 0x8000) != 0);
             return ((GetAsyncKeyState(0x12) & 0x8000) != 0 || (GetAsyncKeyState(0xA4) & 0x8000) != 0 || (GetAsyncKeyState(0xA5) & 0x8000) != 0);
         }
 
-        private static bool IsWinDown()
+        static private bool IsWinDown()
         {
             //return ((GetKeyState(0x5B) & 0x8000) != 0 || (GetKeyState(0x5C) & 0x8000) != 0);
             return ((GetAsyncKeyState(0x5B) & 0x8000) != 0 || (GetAsyncKeyState(0x5C) & 0x8000) != 0);
         }
 
-        private static bool IsModifierToggled(ModifierKeys modifier)
+        static private bool IsModifierToggled(ModifierKeys modifier)
         {
             bool result = false;
             var state = Gma.System.MouseKeyHook.Implementation.KeyboardState.GetCurrent();
@@ -2864,7 +2864,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static bool IsModifierDown(ModifierKeys modifier)
+        static private bool IsModifierDown(ModifierKeys modifier)
         {
             bool result = false;
             var state = Gma.System.MouseKeyHook.Implementation.KeyboardState.GetCurrent();
@@ -2899,7 +2899,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void ReleaseKeyboardModifiers(this Application app, bool force = false, bool updown = false, bool use_keybd_event = false, bool use_sendkey = false)
+        static public void ReleaseKeyboardModifiers(this Application app, bool force = false, bool updown = false, bool use_keybd_event = false, bool use_sendkey = false)
         {
             var k = Keyboard.Modifiers;
             List<string> keys = new List<string>();
@@ -2991,7 +2991,7 @@ namespace PixivWPF.Common
             if (keys.Count > 0 && !force) $"{string.Join(", ", keys)} ...".DEBUG("ClearModifierKeyState");
         }
 
-        private static List<HotKeyConfig> HotkeyConfig = new List<HotKeyConfig>()
+        static private List<HotKeyConfig> HotkeyConfig = new()
         {
             #region Application
             new HotKeyConfig() { Name = "RestartApplication", Command = Commands.RestartApplication,
@@ -3082,9 +3082,9 @@ namespace PixivWPF.Common
                                  Keys = System.Windows.Forms.Keys.F8 }
             #endregion
         };
-        private static HotkeyCollection ApplicationHotKeys = new HotkeyCollection(Enums.Scope.Application);
-        private static CultureInfo ApplicationCulture = CultureInfo.CurrentCulture;
-        public static void BindHotkey(this Application app, string name, System.Windows.Forms.Keys key, ICommand command)
+        static private HotkeyCollection ApplicationHotKeys = new HotkeyCollection(Enums.Scope.Application);
+        static private CultureInfo ApplicationCulture = CultureInfo.CurrentCulture;
+        static public void BindHotkey(this Application app, string name, System.Windows.Forms.Keys key, ICommand command)
         {
             try
             {
@@ -3110,7 +3110,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
         }
 
-        public static void BindingHotkeys(this Application app, bool global = false)
+        static public void BindingHotkeys(this Application app, bool global = false)
         {
             if (global)
             {
@@ -3180,25 +3180,25 @@ namespace PixivWPF.Common
         }
 
 #if DEBUG
-        private static void ApplicationHotKeys_ChordStartRecognized(ChordStartRecognizedEventArgs e)
+        static private void ApplicationHotKeys_ChordStartRecognized(ChordStartRecognizedEventArgs e)
         {
             $"Hotkey_ChordStartRecognized: {e.ChordSubpath}, {e.Subpath}".DEBUG();
         }
 
-        private static void ApplicationHotKeys_AllModifiersReleasedAfterHotkey(HotKeyEventArgs e)
+        static private void ApplicationHotKeys_AllModifiersReleasedAfterHotkey(HotKeyEventArgs e)
         {
             var key_name = string.IsNullOrEmpty(e.ChordName) ? string.Join("+", e.Keys.Select(k => k.ToString())) : e.ChordName;
             $"Hotkey_AllModifiersReleased: {e.Description}, Keys: {ApplicationCulture.TextInfo.ToTitleCase(key_name)}".DEBUG();
         }
 
-        private static void ApplicationHotKeys_HotkeyTriggered(HotKeyEventArgs e)
+        static private void ApplicationHotKeys_HotkeyTriggered(HotKeyEventArgs e)
         {
             var key_name = string.IsNullOrEmpty(e.ChordName) ? string.Join("+", e.Keys.Select(k => k.ToString())) : e.ChordName;
             $"Hotkey_Triggered: {e.Description}, Keys: {ApplicationCulture.TextInfo.ToTitleCase(key_name)}".DEBUG();
         }
 #endif
 
-        public static void ReleaseHotkeys(this Application app)
+        static public void ReleaseHotkeys(this Application app)
         {
             try
             {
@@ -3217,7 +3217,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
         }
 
-        public static void RebindHotKeys(this Application app, bool full = true, bool global = false)
+        static public void RebindHotKeys(this Application app, bool full = true, bool global = false)
         {
             try
             {
@@ -3238,22 +3238,22 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
         }
 
-        public static void StartListening(this Application app)
+        static public void StartListening(this Application app)
         {
             ApplicationHotKeys.StartListening();
         }
 
-        public static void StopListening(this Application app)
+        static public void StopListening(this Application app)
         {
             ApplicationHotKeys.StopListening();
         }
         #endregion
 
         #region Application Download Manager
-        private static DownloadManagerPage _downManager_page = new DownloadManagerPage() { Name = "DownloadManager", AutoStart = true };
+        static private DownloadManagerPage _downManager_page = new() { Name = "DownloadManager", AutoStart = true };
 
-        private static SemaphoreSlim OverwritePromptPopup = new SemaphoreSlim(1, 1);
-        public static async Task<bool> OverwritePrompt(this Application app, string file)
+        static private SemaphoreSlim OverwritePromptPopup = new SemaphoreSlim(1, 1);
+        static public async Task<bool> OverwritePrompt(this Application app, string file)
         {
             var result = true;
             try
@@ -3282,14 +3282,14 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static DownloadManagerPage GetDownloadManager(this Application app)
+        static public DownloadManagerPage GetDownloadManager(this Application app)
         {
             if (!(_downManager_page is DownloadManagerPage))
                 _downManager_page = new DownloadManagerPage() { Name = "DownloadManager", AutoStart = true };
             return (_downManager_page);
         }
 
-        public static IEnumerable<DownloadInfo> GetDownloadItems(this Application app, bool seleced = true)
+        static public IEnumerable<DownloadInfo> GetDownloadItems(this Application app, bool seleced = true)
         {
             var dm = GetDownloadManager(app);
             if (dm is DownloadManagerPage)
@@ -3299,7 +3299,7 @@ namespace PixivWPF.Common
             return (new List<DownloadInfo>());
         }
 
-        public static bool DownloadManagerHasSelected(this Application app)
+        static public bool DownloadManagerHasSelected(this Application app)
         {
             var result = false;
             var dm = GetDownloadManager(app);
@@ -3310,7 +3310,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool DownloadManagerHasMultiSelected(this Application app)
+        static public bool DownloadManagerHasMultiSelected(this Application app)
         {
             var result = false;
             var dm = GetDownloadManager(app);
@@ -3321,24 +3321,24 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static int GetDownloadJobsCount(this Application app)
+        static public int GetDownloadJobsCount(this Application app)
         {
             var dm = app.GetDownloadManager();
             return (dm.CurrentJobsCount);
         }
 
-        public static int GetDownloadIdlesCount(this Application app)
+        static public int GetDownloadIdlesCount(this Application app)
         {
             var dm = app.GetDownloadManager();
             return (dm.CurrentIdlesCount);
         }
 
-        public static void SearchInFolder(this Application app, SearchObject search)
+        static public void SearchInFolder(this Application app, SearchObject search)
         {
             SearchInFolder(app, search.Query, search.Folder, search.Scope, search.Mode, search.CopyQueryToClipboard, search.FuzzySearch, search.RawMode, search.HighlightWord);
         }
 
-        public static void SearchInFolder(this Application app, string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And, bool? copyquery = null, bool? fuzzy = null, bool? raw = false, string highlight = null)
+        static public void SearchInFolder(this Application app, string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And, bool? copyquery = null, bool? fuzzy = null, bool? raw = false, string highlight = null)
         {
             if (!string.IsNullOrEmpty(query))
             {
@@ -3477,18 +3477,18 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void SearchInWeb(this Application app, SearchObject search)
+        static public void SearchInWeb(this Application app, SearchObject search)
         {
             SearchInWeb(app, search.Query, search.Folder, search.Scope, search.Mode, search.CopyQueryToClipboard, search.FuzzySearch, search.RawMode);
         }
 
-        public static void SearchInWeb(this Application app, string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And, bool? copyquery = null, bool? fuzzy = null, bool? raw = false)
+        static public void SearchInWeb(this Application app, string query, string folder = "", StorageSearchScope scope = StorageSearchScope.None, StorageSearchMode mode = StorageSearchMode.And, bool? copyquery = null, bool? fuzzy = null, bool? raw = false)
         {
             var href = string.Join(" ", query.Split(LineBreak, StringSplitOptions.RemoveEmptyEntries));
             href.OpenUrlWithShell(search: true);
         }
 
-        public static App.MenuItemSliderData GetDefaultConvertData(this Application app)
+        static public App.MenuItemSliderData GetDefaultConvertData(this Application app)
         {
             var setting = Application.Current.LoadSetting();
             return (new App.MenuItemSliderData()
@@ -3501,7 +3501,7 @@ namespace PixivWPF.Common
             });
         }
 
-        public static App.MenuItemSliderData GetDefaultReduceData(this Application app)
+        static public App.MenuItemSliderData GetDefaultReduceData(this Application app)
         {
             var setting = Application.Current.LoadSetting();
             return (new App.MenuItemSliderData()
@@ -3516,15 +3516,15 @@ namespace PixivWPF.Common
         #endregion
 
         #region Application Disk Caching
-        public static ConcurrentDictionary<string, bool> PrefetchedList { get; private set; } = new ConcurrentDictionary<string, bool>();
+        static public ConcurrentDictionary<string, bool> PrefetchedList { get; private set; } = new ConcurrentDictionary<string, bool>();
 
-        public static ConcurrentDictionary<string, bool> SystemPrefetchedList(this Application app)
+        static public ConcurrentDictionary<string, bool> SystemPrefetchedList(this Application app)
         {
             if (!(PrefetchedList is ConcurrentDictionary<string, bool>)) PrefetchedList = new ConcurrentDictionary<string, bool>();
             return (PrefetchedList);
         }
 
-        public static bool MergeToSystemPrefetchedList(this Application app, ConcurrentDictionary<string, bool> cache)
+        static public bool MergeToSystemPrefetchedList(this Application app, ConcurrentDictionary<string, bool> cache)
         {
             var result = false;
             try
@@ -3534,7 +3534,8 @@ namespace PixivWPF.Common
                     //PrefetchedList = new ConcurrentDictionary<string, bool>(PrefetchedList.Union(cache.Where(kv => !PrefetchedList.ContainsKey(kv.Key))));
                     foreach (var kv in cache)
                     {
-                        try { PrefetchedList.TryAdd(kv.Key, kv.Value); } catch (Exception ex) { ex.ERROR("MergeToSystemPrefetchedList"); };
+                        try { PrefetchedList.TryAdd(kv.Key, kv.Value); } catch (Exception ex) { ex.ERROR("MergeToSystemPrefetchedList"); }
+                        ;
                     }
                     result = true;
                 }
@@ -3543,7 +3544,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static ConcurrentDictionary<string, bool> MergeFromSystemPrefetchedList(this Application app, ConcurrentDictionary<string, bool> cache)
+        static public ConcurrentDictionary<string, bool> MergeFromSystemPrefetchedList(this Application app, ConcurrentDictionary<string, bool> cache)
         {
             ConcurrentDictionary<string, bool> result = new ConcurrentDictionary<string, bool>();
             try
@@ -3556,14 +3557,14 @@ namespace PixivWPF.Common
         #endregion
 
         #region Maybe reduce UI frozen
-        private static object ExitFrame(object state)
+        static private object ExitFrame(object state)
         {
             ((DispatcherFrame)state).Continue = false;
             return null;
         }
 
-        private static SemaphoreSlim CanDoEvents = new SemaphoreSlim(1, 1);
-        public static async void DoEvents()
+        static private SemaphoreSlim CanDoEvents = new SemaphoreSlim(1, 1);
+        static public async void DoEvents()
         {
             if (await CanDoEvents.WaitAsync(0))
             {
@@ -3608,12 +3609,12 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void DoEvents(this object obj)
+        static public void DoEvents(this object obj)
         {
             DoEvents();
         }
 
-        public static void Sleep(int ms)
+        static public void Sleep(int ms)
         {
             //Task.Delay(ms);
             for (int i = 0; i < ms; i += 10)
@@ -3624,27 +3625,27 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void Sleep(this UIElement obj, int ms)
+        static public void Sleep(this UIElement obj, int ms)
         {
             Sleep(ms);
         }
 
-        public static async void Delay(int ms)
+        static public async void Delay(int ms)
         {
             await Task.Delay(ms);
         }
 
-        public static async Task DelayAsync(int ms)
+        static public async Task DelayAsync(int ms)
         {
             await Task.Delay(ms);
         }
 
-        public static void Delay(this object obj, int ms)
+        static public void Delay(this object obj, int ms)
         {
             Delay(ms);
         }
 
-        public static async Task DelayAsync(this object obj, int ms)
+        static public async Task DelayAsync(this object obj, int ms)
         {
             await DelayAsync(ms);
         }
@@ -3665,7 +3666,7 @@ namespace PixivWPF.Common
         /// </typeparam>
         /// <param name="task">异步的带有返回值的任务。</param>
         /// <returns>异步方法在同步返回过程中的返回值。</returns>
-        public static TResult AwaitByPushFrame<TResult>(this Task<TResult> task)
+        static public TResult AwaitByPushFrame<TResult>(this Task<TResult> task)
         {
             if (task == null) throw new ArgumentNullException(nameof(task));
             System.Diagnostics.Contracts.Contract.EndContractBlock();
@@ -3679,7 +3680,7 @@ namespace PixivWPF.Common
             return task.Result;
         }
 
-        public static TResult AwaitByPushFrame<TResult>(this Application app, Task<TResult> task)
+        static public TResult AwaitByPushFrame<TResult>(this Application app, Task<TResult> task)
         {
             if (task == null) throw new ArgumentNullException(nameof(task));
             System.Diagnostics.Contracts.Contract.EndContractBlock();
@@ -3695,11 +3696,11 @@ namespace PixivWPF.Common
         #endregion
 
         #region Network Common Helper
-        private static string ClientID { get; } = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
-        private static string ClientSecret { get; } = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj";
-        private static string HashSecret { get; } = "28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c";
+        static private string ClientID { get; } = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
+        static private string ClientSecret { get; } = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj";
+        static private string HashSecret { get; } = "28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c";
 
-        private static ConcurrentDictionary<string, HttpClient> HttpClientList = new ConcurrentDictionary<string, HttpClient>();
+        static private ConcurrentDictionary<string, HttpClient> HttpClientList = new();
 
         private class PixivClientHash
         {
@@ -3708,12 +3709,12 @@ namespace PixivWPF.Common
             public string Hash { get { return ($"{time}{HashSecret}".MD5Hash()); } }
         }
 
-        private static PixivClientHash CalcHttpClientHash(this Application app)
+        static private PixivClientHash CalcHttpClientHash(this Application app)
         {
             return (new PixivClientHash());
         }
 
-        public static string MD5Hash(this string text)
+        static public string MD5Hash(this string text)
         {
             if (string.IsNullOrEmpty(text)) return null;
             using (var md5 = MD5.Create())
@@ -3726,7 +3727,7 @@ namespace PixivWPF.Common
             }
         }
 
-        private static HttpClient CreateHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0, bool useproxy = false)
+        static private HttpClient CreateHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0, bool useproxy = false)
         {
             var setting = LoadSetting(app);
             var buffersize = 100 * 1024 * 1024;
@@ -3764,7 +3765,7 @@ namespace PixivWPF.Common
                     Timeout = TimeSpan.FromSeconds(setting.DownloadHttpTimeout),
                     MaxResponseContentBufferSize = buffersize
                 };
-                
+
                 //httpClient.DefaultRequestHeaders.Add("Content-Type", "application/octet-stream");
                 httpClient.DefaultRequestHeaders.Add("App-OS", "ios");
                 httpClient.DefaultRequestHeaders.Add("App-OS-Version", "14.6");
@@ -3795,7 +3796,7 @@ namespace PixivWPF.Common
             return (httpClient);
         }
 
-        public static void ReleaseHttpClient(this Application app)
+        static public void ReleaseHttpClient(this Application app)
         {
             if (HttpClientList is ConcurrentDictionary<string, HttpClient>)
             {
@@ -3820,12 +3821,12 @@ namespace PixivWPF.Common
             }
         }
 
-        public static HttpClient GetHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0, bool is_download = false)
+        static public HttpClient GetHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0, bool is_download = false)
         {
             HttpClient httpClient = null;
             var setting = LoadSetting(app);
             var no_proxy = string.IsNullOrEmpty(setting.Proxy);
-            if(no_proxy) "No Proxy Setting!".DEBUG($"GetHttpClient_{setting.Proxy}");
+            if (no_proxy) "No Proxy Setting!".DEBUG($"GetHttpClient_{setting.Proxy}");
             if (!no_proxy && ((setting.UsingProxy && !is_download) || (setting.DownloadUsingProxy && is_download)))
             {
                 if (!HttpClientList.TryGetValue(setting.Proxy, out httpClient) || httpClient == null)
@@ -3848,7 +3849,7 @@ namespace PixivWPF.Common
             return (httpClient);
         }
 
-        public static HttpRequestMessage GetHttpRequest(this Application app, string url, HttpMethod method = null, long? range_start = null, long? range_count = null, bool xclient = true, string cookie = null, string user_id = null)
+        static public HttpRequestMessage GetHttpRequest(this Application app, string url, HttpMethod method = null, long? range_start = null, long? range_count = null, bool xclient = true, string cookie = null, string user_id = null)
         {
             HttpRequestMessage request = null;
             if (!string.IsNullOrEmpty(url))
@@ -3906,7 +3907,7 @@ namespace PixivWPF.Common
             return (request);
         }
 
-        public static WebRequest GetWebRequest(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
+        static public WebRequest GetWebRequest(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
         {
             var setting = LoadSetting(app);
 
@@ -3933,20 +3934,20 @@ namespace PixivWPF.Common
             return (webRequest);
         }
 
-        public static async Task<WebResponse> GetWebResponse(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
+        static public async Task<WebResponse> GetWebResponse(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
         {
             var client = GetWebRequest(app, continuation, range_start, range_count);
             return (await client.GetResponseAsync());
         }
-        
-        public static async Task<HttpResponseMessage> GetAsyncResponse(this Application app, string url, HttpMethod method = null, HttpCompletionOption option = HttpCompletionOption.ResponseHeadersRead, bool xclient = true, string cookie = null, string user_id = null)
+
+        static public async Task<HttpResponseMessage> GetAsyncResponse(this Application app, string url, HttpMethod method = null, HttpCompletionOption option = HttpCompletionOption.ResponseHeadersRead, bool xclient = true, string cookie = null, string user_id = null)
         {
             var request = Application.Current.GetHttpRequest(url, method, xclient: xclient, cookie: cookie, user_id: user_id);
             var httpClient = Application.Current.GetHttpClient();
             return (await httpClient.SendAsync(request, option));
         }
 
-        public static async Task<string> GetResponseContent(this Application app, HttpResponseMessage response)
+        static public async Task<string> GetResponseContent(this Application app, HttpResponseMessage response)
         {
             var result = string.Empty;
 
@@ -3981,7 +3982,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> GetRemoteJsonAsync(this Application app, string url, HttpMethod method = null, string cookie = null, string user_id = null)
+        static public async Task<string> GetRemoteJsonAsync(this Application app, string url, HttpMethod method = null, string cookie = null, string user_id = null)
         {
             string result = null;
             try
@@ -3993,7 +3994,7 @@ namespace PixivWPF.Common
                     {
                         //response.EnsureSuccessStatusCode();
                         if (response != null && response.IsSuccessStatusCode)// && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
-                        {                            
+                        {
                             long length = response.Content.Headers.ContentLength ?? (response.Content.Headers.ContentRange.HasLength ? response.Content.Headers.ContentRange.Length ?? 0 : 0);
                             var encodes = response.Content.Headers.ContentEncoding;
                             if (length > 0)
@@ -4021,8 +4022,8 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR($"GetRemoteJson_{url}"); }
             return (result);
         }
-        
-        public static void CancelHttpRequests(this Application app)
+
+        static public void CancelHttpRequests(this Application app)
         {
             foreach (var client in HttpClientList)
             {
@@ -4036,11 +4037,11 @@ namespace PixivWPF.Common
         #endregion
 
         #region Default Preview/Avatar
-        private static WriteableBitmap NullPreview = null;
-        private static WriteableBitmap NullAvatar = null;
-        private static WriteableBitmap NullThumbnail = null;
+        static private WriteableBitmap NullPreview = null;
+        static private WriteableBitmap NullAvatar = null;
+        static private WriteableBitmap NullThumbnail = null;
 
-        public static BitmapSource GetNullPreview(this Application app)
+        static public BitmapSource GetNullPreview(this Application app)
         {
             if (NullPreview == null)
             {
@@ -4049,7 +4050,7 @@ namespace PixivWPF.Common
             return (NullPreview);
         }
 
-        public static BitmapSource GetNullAvatar(this Application app)
+        static public BitmapSource GetNullAvatar(this Application app)
         {
             if (NullAvatar == null)
             {
@@ -4058,7 +4059,7 @@ namespace PixivWPF.Common
             return (NullAvatar);
         }
 
-        public static BitmapSource GetNullThumbnail(this Application app)
+        static public BitmapSource GetNullThumbnail(this Application app)
         {
             if (NullThumbnail == null)
             {
@@ -4067,22 +4068,22 @@ namespace PixivWPF.Common
             return (NullThumbnail);
         }
 
-        public static Size DefaultThumbSize { get; set; } = new Size(128, 128);
-        public static Size GetDefaultThumbSize(this Application app)
+        static public Size DefaultThumbSize { get; set; } = new Size(128, 128);
+        static public Size GetDefaultThumbSize(this Application app)
         {
             return (DefaultThumbSize);
         }
 
-        public static Size DefaultAvatarSize { get; set; } = new Size(64, 64);
-        public static Size GetDefaultAvatarSize(this Application app)
+        static public Size DefaultAvatarSize { get; set; } = new Size(64, 64);
+        static public Size GetDefaultAvatarSize(this Application app)
         {
             return (DefaultAvatarSize);
         }
         #endregion
 
         #region Invoke/InvokeAsync
-        public static Dispatcher Dispatcher = Application.Current is Application ? Application.Current.Dispatcher : Dispatcher.CurrentDispatcher;
-        public static Dispatcher AppDispatcher(this object obj)
+        static public Dispatcher Dispatcher = Application.Current is Application ? Application.Current.Dispatcher : Dispatcher.CurrentDispatcher;
+        static public Dispatcher AppDispatcher(this object obj)
         {
             if (Application.Current is Application)
                 return (Application.Current.Dispatcher);
@@ -4090,7 +4091,7 @@ namespace PixivWPF.Common
                 return (Dispatcher.CurrentDispatcher);
         }
 
-        public static async void Invoke(this Action action, bool async = false, bool realtime = false, DispatcherPriority priority = DispatcherPriority.Invalid)
+        static public async void Invoke(this Action action, bool async = false, bool realtime = false, DispatcherPriority priority = DispatcherPriority.Invalid)
         {
             if (action is Action)
             {
@@ -4114,7 +4115,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async void Invoke<T1>(this Action<T1> action, bool async = false, bool realtime = false, DispatcherPriority priority = DispatcherPriority.Invalid, params object[] paramlist)
+        static public async void Invoke<T1>(this Action<T1> action, bool async = false, bool realtime = false, DispatcherPriority priority = DispatcherPriority.Invalid, params object[] paramlist)
         {
             if (action is Action<T1>)
             {
@@ -4138,7 +4139,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async Task InvokeAsync(this Action action, bool realtime = false, DispatcherPriority priority = DispatcherPriority.Invalid)
+        static public async Task InvokeAsync(this Action action, bool realtime = false, DispatcherPriority priority = DispatcherPriority.Invalid)
         {
             try
             {
@@ -4154,7 +4155,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("InvokeAsync"); }
         }
 
-        public static async Task InvokeAsync(this Action action, CancellationToken cancelToken, bool realtime = false, DispatcherPriority priority = DispatcherPriority.Invalid)
+        static public async Task InvokeAsync(this Action action, CancellationToken cancelToken, bool realtime = false, DispatcherPriority priority = DispatcherPriority.Invalid)
         {
             try
             {
@@ -4170,7 +4171,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("InvokeAsync"); }
         }
 
-        public static async Task InvokeAsync(this Action action, DispatcherPriority priority)
+        static public async Task InvokeAsync(this Action action, DispatcherPriority priority)
         {
             try
             {
@@ -4180,7 +4181,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("InvokeAsync"); }
         }
 
-        public static async Task InvokeAsync(this Action action, DispatcherPriority priority, CancellationToken cancelToken)
+        static public async Task InvokeAsync(this Action action, DispatcherPriority priority, CancellationToken cancelToken)
         {
             try
             {
@@ -4192,7 +4193,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region AES Encrypt/Decrypt helper
-        public static string AesEncrypt(this string text, string skey, bool auto = true)
+        static public string AesEncrypt(this string text, string skey, bool auto = true)
         {
             string encrypt = string.Empty;
             try
@@ -4255,7 +4256,7 @@ namespace PixivWPF.Common
             return encrypt;
         }
 
-        public static string AesDecrypt(this string text, string skey, bool auto = true)
+        static public string AesDecrypt(this string text, string skey, bool auto = true)
         {
             string decrypt = string.Empty;
             try
@@ -4317,14 +4318,14 @@ namespace PixivWPF.Common
         #endregion
 
         #region Keyboard helper
-        private static List<Key> Modifier = new List<Key>() { Key.LeftCtrl, Key.RightCtrl, Key.LeftShift, Key.RightShift, Key.LeftAlt, Key.RightAlt, Key.LWin, Key.RWin };
+        static private List<Key> Modifier = new() { Key.LeftCtrl, Key.RightCtrl, Key.LeftShift, Key.RightShift, Key.LeftAlt, Key.RightAlt, Key.LWin, Key.RWin };
 
-        public static bool IsModified(this Application app, Key key)
+        static public bool IsModified(this Application app, Key key)
         {
             return (Modifier.Contains(key) ? true : false);
         }
 
-        private static bool IsModifiers(bool Ctrl, bool Shift, bool Alt, bool Win)
+        static private bool IsModifiers(bool Ctrl, bool Shift, bool Alt, bool Win)
         {
             var hasModifiers = true;
             hasModifiers = hasModifiers && !(Ctrl ^ Keyboard.Modifiers.HasFlag(ModifierKeys.Control));
@@ -4334,7 +4335,7 @@ namespace PixivWPF.Common
             return (hasModifiers);
         }
 
-        public static bool IsModifiers(this IEnumerable<ModifierKeys> modifiers)
+        static public bool IsModifiers(this IEnumerable<ModifierKeys> modifiers)
         {
             bool ctrl = false;
             bool shift = false;
@@ -4370,7 +4371,7 @@ namespace PixivWPF.Common
             return (IsModifiers(ctrl, shift, alt, win));
         }
 
-        public static bool IsModified(this ModifierKeys modifier, bool only = false)
+        static public bool IsModified(this ModifierKeys modifier, bool only = false)
         {
             bool result = false;
             if (only)
@@ -4380,7 +4381,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsModified(this IEnumerable<ModifierKeys> modifiers, bool all = false)
+        static public bool IsModified(this IEnumerable<ModifierKeys> modifiers, bool all = false)
         {
             bool result = false;
             foreach (var mod in modifiers)
@@ -4393,32 +4394,32 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsModified(this System.Windows.Input.KeyEventArgs evt, IEnumerable<ModifierKeys> modifiers, bool all = false)
+        static public bool IsModified(this System.Windows.Input.KeyEventArgs evt, IEnumerable<ModifierKeys> modifiers, bool all = false)
         {
             return (IsModified(modifiers, all));
         }
 
-        public static bool IsModified(this KeyEventArgs evt, ModifierKeys modifier, bool only = true)
+        static public bool IsModified(this KeyEventArgs evt, ModifierKeys modifier, bool only = true)
         {
             return (IsModified(modifier, only));
         }
 
-        public static bool IsKey(this KeyEventArgs evt, Key key)
+        static public bool IsKey(this KeyEventArgs evt, Key key)
         {
             return (evt.Key == key || evt.SystemKey == key);
         }
 
-        public static bool IsKey(this KeyEventArgs evt, Key key, ModifierKeys modifier, bool only = true)
+        static public bool IsKey(this KeyEventArgs evt, Key key, ModifierKeys modifier, bool only = true)
         {
             return ((evt.Key == key || evt.SystemKey == key) && (only ? Keyboard.Modifiers == modifier : Keyboard.Modifiers.HasFlag(modifier)));
         }
 
-        public static bool IsKey(this KeyEventArgs evt, Key key, IEnumerable<ModifierKeys> modifiers, bool only = true)
+        static public bool IsKey(this KeyEventArgs evt, Key key, IEnumerable<ModifierKeys> modifiers, bool only = true)
         {
             return ((evt.Key == key || evt.SystemKey == key) && IsModifiers(modifiers));
         }
 
-        public static bool IsKey(this KeyEventArgs evt, Key key, bool Ctrl, bool Shift, bool Alt, bool Win)
+        static public bool IsKey(this KeyEventArgs evt, Key key, bool Ctrl, bool Shift, bool Alt, bool Win)
         {
             return ((evt.Key == key || evt.SystemKey == key) && IsModifiers(Ctrl, Shift, Alt, Win));
         }

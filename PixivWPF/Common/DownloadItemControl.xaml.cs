@@ -1402,6 +1402,7 @@ namespace PixivWPF.Common
         }
 
         private SemaphoreSlim OverwritePromptPopup = new(1, 1);
+        
         /// <summary>
         /// 
         /// </summary>

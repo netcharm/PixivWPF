@@ -89,9 +89,9 @@ namespace PixivWPF.Common
         }
     }
 
-    public static class Commands
+    static public class Commands
     {
-        private static Setting setting = Application.Current.LoadSetting();
+        static private Setting setting = Application.Current.LoadSetting();
 
         private const int WIDTH_MIN = 720;
         private const int HEIGHT_MIN = 524;
@@ -101,13 +101,15 @@ namespace PixivWPF.Common
         private const int WIDTH_PEDIA = 1024;
         private const int WIDTH_SEARCH = 710;
 
-        private static Func<IEnumerable<PixivItem>, bool> ParallelExecutionConfirmFunc = items => { return(ParallelExecutionConfirm(items)); };
-        public static bool ParallelExecutionConfirm<T>(this IEnumerable<T> items)
+        static SemaphoreSlim _confirm_parallel_ = new(1, 1);
+        static private Func<IEnumerable<PixivItem>, bool> ParallelExecutionConfirmFunc = items => { return(ParallelExecutionConfirm(items)); };
+        static public bool ParallelExecutionConfirm<T>(this IEnumerable<T> items)
         {
             var result = true;
             try
             {
-                if (setting.MultipleOpeningConfirm && items is IEnumerable<T>)
+                result = _confirm_parallel_.Wait(0);
+                if (result && setting.MultipleOpeningConfirm && items is IEnumerable<T>)
                 {
                     var count = items.LongCount();
                     if (count > setting.MultipleOpeningThreshold)
@@ -118,16 +120,19 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR("ParallelExecutionConfirm"); }
+            finally { if (_confirm_parallel_?.CurrentCount <= 0) _confirm_parallel_?.Release(); }
             return (result);
         }
 
-        private static Func<DirectoryInfo, bool> HugeFolderOpeningConfirmFunc = folder => { return(HugeFolderOpeningConfirm(folder)); };
-        public static bool HugeFolderOpeningConfirm(this DirectoryInfo folder)
+        static SemaphoreSlim _confirm_huge_folder_ = new(1, 1);
+        static private Func<DirectoryInfo, bool> HugeFolderOpeningConfirmFunc = folder => { return(HugeFolderOpeningConfirm(folder)); };
+        static public bool HugeFolderOpeningConfirm(this DirectoryInfo folder)
         {
             var result = true;
             try
             {
-                if (setting.HugeFolderOpeningConfirm && folder is DirectoryInfo && folder.Exists)
+                result = _confirm_huge_folder_.Wait(0);
+                if (result && setting.HugeFolderOpeningConfirm && folder is DirectoryInfo && folder.Exists)
                 {
                     var count = folder.EnumerateFiles("*.*", SearchOption.TopDirectoryOnly).LongCount();
                     if (count > setting.HugeFolderOpeningThreshold)
@@ -138,10 +143,11 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR("HugeFolderOpeningConfirm"); }
+            finally { if (_confirm_huge_folder_?.CurrentCount <= 0) _confirm_huge_folder_?.Release(); }
             return (result);
         }
 
-        public static bool HugeFolderOpeningConfirm(this string folder)
+        static public bool HugeFolderOpeningConfirm(this string folder)
         {
             var result = true;
             try
@@ -153,7 +159,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static bool IsPagesGallary(ImageListGrid gallery)
+        static private bool IsPagesGallary(ImageListGrid gallery)
         {
             bool result = false;
             try
@@ -165,7 +171,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static bool IsNormalGallary(ImageListGrid gallery)
+        static private bool IsNormalGallary(ImageListGrid gallery)
         {
             bool result = false;
             try
@@ -180,7 +186,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void Invoke(this ICommand cmd, dynamic param)
+        static public void Invoke(this ICommand cmd, dynamic param)
         {
             Dispatcher.CurrentDispatcher.BeginInvoke(new Action(delegate
             {
@@ -188,7 +194,7 @@ namespace PixivWPF.Common
             }));
         }
 
-        public static async void InvokeAsync(this ICommand cmd, dynamic param, bool realtime = false)
+        static public async void InvokeAsync(this ICommand cmd, dynamic param, bool realtime = false)
         {
             await new Action(() =>
             {
@@ -196,7 +202,7 @@ namespace PixivWPF.Common
             }).InvokeAsync(realtime);
         }
 
-        public static ICommand RestartApplication { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand RestartApplication { get; } = new DelegateCommand<dynamic>(obj =>
         {
             try
             {
@@ -223,7 +229,7 @@ namespace PixivWPF.Common
             finally { }
         });
 
-        public static ICommand UpgradeApplication { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand UpgradeApplication { get; } = new DelegateCommand<dynamic>(obj =>
         {
             try
             {
@@ -259,7 +265,7 @@ namespace PixivWPF.Common
             finally { }
         });
 
-        public static ICommand OpenConfig { get; } = new DelegateCommand<string>(async obj =>
+        static public ICommand OpenConfig { get; } = new DelegateCommand<string>(async obj =>
         {
             await new Action(() =>
             {
@@ -271,7 +277,7 @@ namespace PixivWPF.Common
             }).InvokeAsync(true);
         });
 
-        public static ICommand OpenWebViewTemplate { get; } = new DelegateCommand<string>(async obj =>
+        static public ICommand OpenWebViewTemplate { get; } = new DelegateCommand<string>(async obj =>
         {
             await new Action(() =>
             {
@@ -284,7 +290,7 @@ namespace PixivWPF.Common
             }).InvokeAsync(true);
         });
 
-        public static ICommand OpenFullListUsers { get; } = new DelegateCommand<string>(async obj =>
+        static public ICommand OpenFullListUsers { get; } = new DelegateCommand<string>(async obj =>
         {
             await new Action(() =>
             {
@@ -297,7 +303,7 @@ namespace PixivWPF.Common
             }).InvokeAsync(true);
         });
 
-        public static ICommand MaintainCustomTag { get; } = new DelegateCommand<string>(async obj =>
+        static public ICommand MaintainCustomTag { get; } = new DelegateCommand<string>(async obj =>
         {
             await new Action(() =>
             {
@@ -309,7 +315,7 @@ namespace PixivWPF.Common
             }).InvokeAsync(true);
         });
 
-        public static ICommand MaintainNetwork { get; } = new DelegateCommand<string>(async obj =>
+        static public ICommand MaintainNetwork { get; } = new DelegateCommand<string>(async obj =>
         {
             await new Action(() =>
             {
@@ -317,7 +323,7 @@ namespace PixivWPF.Common
             }).InvokeAsync(true);
         });
 
-        public static ICommand MaintainMemoryUsage { get; } = new DelegateCommand<string>(async obj =>
+        static public ICommand MaintainMemoryUsage { get; } = new DelegateCommand<string>(async obj =>
         {
             await new Action(() =>
             {
@@ -325,7 +331,7 @@ namespace PixivWPF.Common
             }).InvokeAsync(true);
         });
 
-        public static ICommand MaintainDetailPage { get; } = new DelegateCommand<string>(async obj =>
+        static public ICommand MaintainDetailPage { get; } = new DelegateCommand<string>(async obj =>
         {
             await new Action(() =>
             {
@@ -333,7 +339,7 @@ namespace PixivWPF.Common
             }).InvokeAsync(true);
         });
 
-        public static ICommand MaintainHiddenWindows { get; } = new DelegateCommand<string>(async obj =>
+        static public ICommand MaintainHiddenWindows { get; } = new DelegateCommand<string>(async obj =>
         {
             await new Action(() =>
             {
@@ -341,7 +347,7 @@ namespace PixivWPF.Common
             }).InvokeAsync(true);
         });
 
-        public static ICommand AlignWindow { get; } = new DelegateCommand<WindowLocation>(obj =>
+        static public ICommand AlignWindow { get; } = new DelegateCommand<WindowLocation>(obj =>
         {
             if (obj is WindowLocation && obj.Win is Window)
             {
@@ -392,7 +398,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Login { get; } = new DelegateCommand(() =>
+        static public ICommand Login { get; } = new DelegateCommand(() =>
         {
             var setting = Application.Current.LoadSetting();
             var dlgLogin = new PixivLoginDialog() { Name = "LoginDialog", AccessToken = setting.AccessToken };
@@ -400,7 +406,7 @@ namespace PixivWPF.Common
             if (ret ?? false) setting.AccessToken = dlgLogin.AccessToken;
         });
 
-        public static ICommand Copy { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand Copy { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is string)
             {
@@ -449,7 +455,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand CopyText { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand CopyText { get; } = new DelegateCommand<dynamic>(obj =>
         {
             try
             {
@@ -478,7 +484,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("CopyText"); }
         });
 
-        public static ICommand CopyHtml { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand CopyHtml { get; } = new DelegateCommand<dynamic>(obj =>
         {
             try
             {
@@ -504,7 +510,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("CopyHtml"); }
         });
 
-        public static ICommand CopyJson { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand CopyJson { get; } = new DelegateCommand<dynamic>(obj =>
         {
             try
             {
@@ -581,7 +587,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("CopyJson"); }
         });
 
-        public static ICommand CopyArtistIDs { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand CopyArtistIDs { get; } = new DelegateCommand<dynamic>(obj =>
         {
             var prefix = Keyboard.Modifiers == ModifierKeys.Control ? "uid:" : string.Empty;
             if (obj is ImageListGrid)
@@ -633,7 +639,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand CopyArtworkIDs { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand CopyArtworkIDs { get; } = new DelegateCommand<dynamic>(obj =>
         {
             var prefix = Keyboard.Modifiers == ModifierKeys.Control ? "id:" : string.Empty;
             if (obj is ImageListGrid)
@@ -688,7 +694,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand CopyArtworkTitles { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand CopyArtworkTitles { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is ImageListGrid)
             {
@@ -740,7 +746,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand CopyArtworkWeblinks { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand CopyArtworkWeblinks { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is ImageListGrid)
             {
@@ -794,7 +800,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand CopyArtistWeblinks { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand CopyArtistWeblinks { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is ImageListGrid)
             {
@@ -842,7 +848,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand CopyDownloadInfo { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand CopyDownloadInfo { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is IEnumerable)
             {
@@ -876,7 +882,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand CopyPediaLink { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand CopyPediaLink { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is string)
             {
@@ -896,7 +902,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand CopyImage { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand CopyImage { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is string)
             {
@@ -954,7 +960,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand CopyDownloadedPath { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand CopyDownloadedPath { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -998,7 +1004,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("OpenDownloaded"); }
         });
 
-        public static ICommand CopyOpenedWindowInfo { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand CopyOpenedWindowInfo { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is System.Windows.Controls.Primitives.ToggleButton)
             {
@@ -1057,7 +1063,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Compare { get; } = new DelegateCommand<dynamic>(async (obj) =>
+        static public ICommand Compare { get; } = new DelegateCommand<dynamic>(async (obj) =>
         {
             if (obj is string)
             {
@@ -1283,7 +1289,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand OpenTouchFolder { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand OpenTouchFolder { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -1367,7 +1373,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ShowExceptionToast(tag: "OpenTouch"); }
         });
 
-        public static ICommand OpenAttachMetaInfo { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand OpenAttachMetaInfo { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -1449,7 +1455,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ShowExceptionToast(tag: "OpenAttachMetaInfo"); }
         });
 
-        public static ICommand OpenItem { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand OpenItem { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -1485,7 +1491,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("OpenItem"); }
         });
 
-        public static ICommand OpenWork { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand OpenWork { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -1591,7 +1597,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("OpenWork"); }
         });
 
-        public static ICommand OpenWorkPreview { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand OpenWorkPreview { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -1662,7 +1668,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ShowExceptionToast(tag: "OpenWorkPreview"); }
         });
 
-        public static ICommand OpenUser { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand OpenUser { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -1740,7 +1746,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ShowExceptionToast(tag: "OpenUser"); }
         });
 
-        public static ICommand OpenGallery { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand OpenGallery { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is ImageListGrid)
             {
@@ -1756,7 +1762,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand OpenDownloaded { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand OpenDownloaded { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -1847,7 +1853,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("OpenDownloaded"); }
         });
 
-        public static ICommand OpenDownloadedWith { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand OpenDownloadedWith { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -1937,7 +1943,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("OpenDownloaded"); }
         });
 
-        public static ICommand ShowMeta { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand ShowMeta { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -2052,7 +2058,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("OpenDownloaded"); }
         });
 
-        public static ICommand TouchMeta { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand TouchMeta { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -2171,13 +2177,13 @@ namespace PixivWPF.Common
                                 }).InvokeAsync();
                             }
                         }).InvokeAsync();
-                    }                
+                    }
                 }
             }
             catch (Exception ex) { ex.ERROR("OpenDownloaded"); }
         });
 
-        public static ICommand OpenCachedImage { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand OpenCachedImage { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -2282,7 +2288,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("OpenCachedImage"); }
         });
 
-        public static ICommand OpenFileProperties { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand OpenFileProperties { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -2375,7 +2381,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("OpenFileProperties"); }
         });
 
-        public static ICommand OpenHistory { get; } = new DelegateCommand(async () =>
+        static public ICommand OpenHistory { get; } = new DelegateCommand(async () =>
         {
             try
             {
@@ -2408,7 +2414,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("OpenHistory"); }
         });
 
-        public static ICommand AddToHistory { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand AddToHistory { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is Pixeez.Objects.Work || obj is Pixeez.Objects.User || obj is Pixeez.Objects.UserBase)
             {
@@ -2432,7 +2438,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Open { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand Open { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is IEnumerable<PixivItem>)
             {
@@ -2490,7 +2496,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand AddDownloadItem { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand AddDownloadItem { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             await new Action(() =>
             {
@@ -2505,7 +2511,7 @@ namespace PixivWPF.Common
                     }
                     else if (obj is IEnumerable<string>)
                     {
-                        foreach(var url in obj as IEnumerable<string>)
+                        foreach (var url in obj as IEnumerable<string>)
                         {
                             var dp = new DownloadParams() { Url = url, Timestamp = url.ParseDateTime() };
                             var id = url.GetIllustId();
@@ -2530,8 +2536,8 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         });
 
-        private static SemaphoreSlim RunningDownloadAction = new SemaphoreSlim(1, 1);
-        public static ICommand RunDownloadItemAction { get; } = new DelegateCommand<dynamic>(async obj =>
+        static private SemaphoreSlim RunningDownloadAction = new(1, 1);
+        static public ICommand RunDownloadItemAction { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is Action<DownloadInfo>)
             {
@@ -2564,12 +2570,12 @@ namespace PixivWPF.Common
                         catch { }
                         finally { RunningDownloadAction.Release(); }
                     }
-                }            
+                }
             }
         });
 
-        private static SemaphoreSlim CanOpenDownloadManager= new SemaphoreSlim(1, 1);
-        public static ICommand OpenDownloadManager { get; } = new DelegateCommand<dynamic>(async obj =>
+        static private SemaphoreSlim CanOpenDownloadManager= new(1, 1);
+        static public ICommand OpenDownloadManager { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (Mouse.RightButton == MouseButtonState.Pressed)
             {
@@ -2618,7 +2624,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand OpenSearch { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand OpenSearch { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is string && !string.IsNullOrEmpty((string)obj))
             {
@@ -2697,7 +2703,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand SearchInStorage { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand SearchInStorage { get; } = new DelegateCommand<dynamic>(obj =>
         {
             try
             {
@@ -2719,7 +2725,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("SearchInStorage"); }
         });
 
-        public static ICommand SearchInWeb { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand SearchInWeb { get; } = new DelegateCommand<dynamic>(obj =>
         {
             try
             {
@@ -2741,7 +2747,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("SearchInStorage"); }
         });
 
-        public static ICommand TransText { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand TransText { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -2758,7 +2764,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("SearchInStorage"); }
         });
 
-        public static ICommand ConvertToJpeg { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand ConvertToJpeg { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -2889,7 +2895,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("OpenDownloaded"); }
         });
 
-        public static ICommand ReduceJpeg { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand ReduceJpeg { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -3287,7 +3293,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("OpenDownloaded"); }
         });
 
-        public static ICommand SaveIllust { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand SaveIllust { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is KeyValuePair<PixivItem, DownloadType>)
             {
@@ -3426,7 +3432,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand SaveIllustAll { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand SaveIllustAll { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is KeyValuePair<PixivItem, DownloadType>)
             {
@@ -3557,7 +3563,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand SavePreviewUgoira { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand SavePreviewUgoira { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is PixivItem)
             {
@@ -3642,7 +3648,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand SaveOriginalUgoira { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand SaveOriginalUgoira { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is PixivItem)
             {
@@ -3727,7 +3733,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand ShellOpenUgoira { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand ShellOpenUgoira { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is string)
             {
@@ -3769,7 +3775,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand OpenDropBox { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand OpenDropBox { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is System.Windows.Controls.Primitives.ToggleButton)
             {
@@ -3795,7 +3801,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand OpenDragDrop { get; } = new DelegateCommand<IEnumerable<string>>(obj =>
+        static public ICommand OpenDragDrop { get; } = new DelegateCommand<IEnumerable<string>>(obj =>
         {
             if (obj is IEnumerable<string>)
             {
@@ -3803,7 +3809,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand SendToOtherInstance { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand SendToOtherInstance { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is string)
             {
@@ -3878,7 +3884,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand ShellSendToOtherInstance { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand ShellSendToOtherInstance { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is string)
             {
@@ -3945,7 +3951,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand OpenPedia { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand OpenPedia { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is string)
             {
@@ -3971,7 +3977,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand ShellOpenPixivPedia { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand ShellOpenPixivPedia { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is string)
             {
@@ -4000,7 +4006,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand ShellOpenFile { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand ShellOpenFile { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is string)
             {
@@ -4041,7 +4047,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand ShellOpenFileProperty { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand ShellOpenFileProperty { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is IEnumerable<string>)
             {
@@ -4090,12 +4096,12 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand SaveTags { get; } = new DelegateCommand(() =>
+        static public ICommand SaveTags { get; } = new DelegateCommand(() =>
         {
             Application.Current.SaveTags();
         });
 
-        public static ICommand OpenTags { get; } = new DelegateCommand<string>(async obj =>
+        static public ICommand OpenTags { get; } = new DelegateCommand<string>(async obj =>
         {
             setting = Application.Current.LoadSetting();
             var root = Application.Current.GetRoot();
@@ -4137,8 +4143,8 @@ namespace PixivWPF.Common
             }
         });
 
-        private static DateTime lastSaveOpenedWindows = setting.LastOpenedFile.GetFileTime();
-        public static ICommand SaveOpenedWindows { get; } = new DelegateCommand<bool?>(async obj =>
+        static private DateTime lastSaveOpenedWindows = setting.LastOpenedFile.GetFileTime();
+        static public ICommand SaveOpenedWindows { get; } = new DelegateCommand<bool?>(async obj =>
         {
             var force = obj is bool ? (bool)obj : false;
             await new Action(() =>
@@ -4163,7 +4169,7 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         });
 
-        public static ICommand LoadLastOpenedWindows { get; } = new DelegateCommand(async () =>
+        static public ICommand LoadLastOpenedWindows { get; } = new DelegateCommand(async () =>
         {
             await new Action(() =>
             {
@@ -4182,7 +4188,7 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         });
 
-        public static ICommand Speech { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand Speech { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is string)
             {
@@ -4194,7 +4200,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand WriteLogs { get; } = new DelegateCommand<string>(obj =>
+        static public ICommand WriteLogs { get; } = new DelegateCommand<string>(obj =>
         {
             if (obj is string)
             {
@@ -4206,7 +4212,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand OpenLogs { get; } = new DelegateCommand<string>(async obj =>
+        static public ICommand OpenLogs { get; } = new DelegateCommand<string>(async obj =>
         {
             var logs = Application.Current.GetLogs();
 
@@ -4244,13 +4250,13 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand CleanLogs { get; } = new DelegateCommand(() =>
+        static public ICommand CleanLogs { get; } = new DelegateCommand(() =>
         {
             Application.Current.CleanLogs();
         });
 
         #region tiles navigation
-        public static ICommand PrevCategory { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand PrevCategory { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
@@ -4263,7 +4269,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand NextCategory { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand NextCategory { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
@@ -4276,7 +4282,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand FirstCategory { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand FirstCategory { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
@@ -4289,7 +4295,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand LastCategory { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand LastCategory { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
@@ -4302,7 +4308,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand RefreshPage { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand RefreshPage { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
@@ -4319,7 +4325,7 @@ namespace PixivWPF.Common
                         var illust = page.Contents.ID.FindIllust();
                         if (illust.IsWork()) item = illust.WorkItem();
                     }
-                    else if(item.IsUser())
+                    else if (item.IsUser())
                     {
                         var user = page.Contents.UserID.FindUser();
                         if (user is Pixeez.Objects.UserBase) item = user.UserItem();
@@ -4349,7 +4355,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand RefreshPageThumb { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand RefreshPageThumb { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
@@ -4388,7 +4394,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand RefreshCancel { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand RefreshCancel { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
@@ -4417,7 +4423,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand AppendTiles { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand AppendTiles { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
@@ -4430,7 +4436,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand ScrollPageFirst { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand ScrollPageFirst { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
@@ -4451,7 +4457,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand ScrollPageLast { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand ScrollPageLast { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
@@ -4472,7 +4478,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand ScrollPageUp { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand ScrollPageUp { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
@@ -4493,7 +4499,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand ScrollPageDown { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand ScrollPageDown { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
@@ -4514,7 +4520,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand PrevIllust { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand PrevIllust { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
@@ -4543,7 +4549,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand NextIllust { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand NextIllust { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
@@ -4572,7 +4578,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand FirstIllust { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand FirstIllust { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
@@ -4601,7 +4607,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand LastIllust { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand LastIllust { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
@@ -4630,7 +4636,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand PrevIllustPage { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand PrevIllustPage { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
@@ -4659,7 +4665,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand NextIllustPage { get; } = new DelegateCommand<dynamic>(obj =>
+        static public ICommand NextIllustPage { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
@@ -4690,7 +4696,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Like/Unlike Work/User Related
-        public static ICommand LikeIllust { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand LikeIllust { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -4716,7 +4722,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("LikeIllust"); }
         });
 
-        public static ICommand UnLikeIllust { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand UnLikeIllust { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -4739,7 +4745,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("UnLikeIllust"); }
         });
 
-        public static ICommand ChangeIllustLikeState { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand ChangeIllustLikeState { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -4828,7 +4834,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("ChangeIllustLikeState"); }
         });
 
-        public static ICommand LikeUser { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand LikeUser { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -4854,7 +4860,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("LikeUser"); }
         });
 
-        public static ICommand UnLikeUser { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand UnLikeUser { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -4877,7 +4883,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("UnLikeUser"); }
         });
 
-        public static ICommand ChangeUserLikeState { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand ChangeUserLikeState { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
             {
@@ -4967,7 +4973,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region PixivPedia Related
-        private static async void OpenPediaWindow(string contents)
+        static private async void OpenPediaWindow(string contents)
         {
             if (!string.IsNullOrEmpty(contents))
             {
