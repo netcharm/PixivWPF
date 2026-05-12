@@ -581,23 +581,27 @@ namespace PixivWPF.Common
         static private CancellationTokenSource _gc_ = new();
         static public async void DelayGC(this Application app, CancellationTokenSource cancel = null)
         {
-            if (cancel is null)
+            try
             {
-                _gc_ ??= new();
-                _gc_?.Cancel();
-                await Task.Delay(250);
-                _gc_ = new();
-                //await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60)); }, _gc_.Token).ContinueWith((t, o) => System.GC.Collect(), _gc_.Token, continuationOptions: TaskContinuationOptions.OnlyOnRanToCompletion);
-                await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60), _gc_.Token); if (_gc_?.IsCancellationRequested ?? false) return; System.GC.Collect(); }, _gc_.Token);
+                if (cancel is null)
+                {
+                    _gc_ ??= new();
+                    _gc_?.Cancel();
+                    await Task.Delay(50);
+                    _gc_ = new();
+                    //await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60)); }, _gc_.Token).ContinueWith((t, o) => System.GC.Collect(), _gc_.Token, continuationOptions: TaskContinuationOptions.OnlyOnRanToCompletion);
+                    await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60), _gc_.Token); if (_gc_?.IsCancellationRequested ?? true) return; System.GC.Collect(); }, _gc_.Token);
+                }
+                else
+                {
+                    cancel?.Cancel();
+                    await Task.Delay(50);
+                    cancel = new();
+                    //await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60)); }, cancel.Token).ContinueWith((t, o) => System.GC.Collect(), _gc_.Token, continuationOptions: TaskContinuationOptions.OnlyOnRanToCompletion);
+                    await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60), cancel.Token); if (cancel?.IsCancellationRequested ?? true) return; System.GC.Collect(); }, cancel.Token);
+                }
             }
-            else
-            {
-                cancel?.Cancel();
-                await Task.Delay(250);
-                cancel = new();
-                //await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60)); }, cancel.Token).ContinueWith((t, o) => System.GC.Collect(), _gc_.Token, continuationOptions: TaskContinuationOptions.OnlyOnRanToCompletion);
-                await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60), cancel.Token); if (cancel?.IsCancellationRequested ?? false) return; System.GC.Collect(); }, cancel.Token);
-            }
+            catch { }
         }
         #endregion
 

@@ -50,7 +50,7 @@ namespace PixivWPF
                 NBug.Settings.Destinations.Add(new NBug.Core.Submission.Custom.Custom());
                 NBug.Settings.CustomSubmissionEvent += Settings_CustomSubmissionEvent;
 
-                this.DispatcherUnhandledException += App_DispatcherUnhandledException;
+                //this.DispatcherUnhandledException += App_DispatcherUnhandledException;
 
                 //add handler on application load
                 AppDomain.CurrentDomain.UnhandledException += NBug.Handler.UnhandledException;
