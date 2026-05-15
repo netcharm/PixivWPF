@@ -723,6 +723,8 @@ namespace ImageSearch.Search
                             if (cancel.IsCancellationRequested) { result = false; break; }
                             result &= await SaveFeatureData(feat_obj);
                             #endregion
+
+                            GC.Collect();
                         }
 
                         feats_list?.Clear();
@@ -735,6 +737,8 @@ namespace ImageSearch.Search
                         diffs = null;
 
                         files = null;
+                        
+                        GC.Collect();
                     }
                 }
                 catch (Exception ex) { ReportMessage(ex); }
