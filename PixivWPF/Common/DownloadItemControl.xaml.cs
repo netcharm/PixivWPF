@@ -933,7 +933,7 @@ namespace PixivWPF.Common
                             cancelReadStreamSource = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
                             using (cancelReadStreamSource.Token.Register(() => cs.Close()))
                             {
-                                bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelReadStreamSource.Token).ConfigureAwait(false);
+                                bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelReadStreamSource.Token);//.ConfigureAwait(false);
                             }
 
                             if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Received <= Length)
@@ -1546,7 +1546,7 @@ namespace PixivWPF.Common
                 PART_Preview = null;
             }
             disposed = true;
-            GC.Collect();
+            Application.Current.DelayGC();
         }
 
         private void Download_Loaded(object sender, RoutedEventArgs e)

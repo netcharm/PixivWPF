@@ -703,7 +703,7 @@ namespace PixivWPF.Pages
                 }).InvokeAsync();
             }
             catch (Exception ex) { ex.ERROR("DOWNLOADMANAGER"); }
-            if (DownloadItems.Items.Count <= 0) GC.Collect();
+            if (DownloadItems.Items.Count <= 0) Application.Current.DelayGC();
         }
 
         private async void PART_RemoveAll_Context_Click(object sender, RoutedEventArgs e)

@@ -589,7 +589,7 @@ namespace PixivWPF.Common
                     this.DoEvents();
                     #endregion
                 }
-                GC.Collect();
+                Application.Current.DelayGC();
 
                 if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; State = TaskStatus.Canceled; return; }
                 if (count >= 0 && total > 0)
@@ -630,7 +630,7 @@ namespace PixivWPF.Common
                 catch (Exception ex) { ex.ERROR("PREFETCHED"); }
                 if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
                 LastStartTime = DateTime.Now;
-                GC.Collect();
+                Application.Current.DelayGC();
             }
         }
 
@@ -784,6 +784,7 @@ namespace PixivWPF.Common
                 if (PrefetchingBgWorker is BackgroundWorker) PrefetchingBgWorker.Dispose();
                 PrefetchedList.Clear();
                 Items.Clear();
+                Application.Current.DelayGC();
             }
             disposed = true;
         }

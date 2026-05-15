@@ -95,8 +95,6 @@ namespace PixivWPF.Pages
             }
         }
 
-        //private CancellationTokenSource _detail_gc = new();
-
         private void ShowHistory(bool overwrite = false)
         {
             try
@@ -137,8 +135,6 @@ namespace PixivWPF.Pages
                 HistoryItems.Ready();
                 this.DoEvents();
                 Application.Current.DelayGC();
-                //Application.Current.DelayGC(_detail_gc);
-                //GC.Collect();
             }
         }
 
@@ -353,6 +349,7 @@ namespace PixivWPF.Pages
                 Contents = null;
             }
             catch (Exception ex) { ex.ERROR("DisposeHistory"); }
+            finally { Application.Current.DelayGC(); }
         }
 
         public HistoryPage()

@@ -8371,7 +8371,7 @@ namespace PixivWPF.Common
                                     {
                                         //try
                                         //{
-                                        bytesread = await source.ReadAsync(bytes, 0, bufferSize, cancelToken.Token).ConfigureAwait(false);
+                                        bytesread = await source.ReadAsync(bytes, 0, bufferSize, cancelToken.Token);//.ConfigureAwait(false);
                                         //}
                                         //catch { }
                                         //catch (Exception exx) { exx.ERROR($"WriteToFile_StreamClosed{fn}", no_stack: exx.IsNetworkError()); }

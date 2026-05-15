@@ -3019,7 +3019,7 @@ namespace PixivWPF.Pages
                         Contents.Source = null;
                     }
                     catch (Exception ex) { ex.ERROR("DisposeIllustDetail"); }
-                    finally { GC.Collect(); }
+                    finally { Application.Current.DelayGC(); }
                 }
 
                 // TODO: 释放未托管的资源(未托管的对象)并在以下内容中替代终结器。
@@ -3182,7 +3182,7 @@ namespace PixivWPF.Pages
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             //Dispose();
-            GC.Collect();
+            Application.Current.DelayGC();
         }
 
         private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)

@@ -1116,8 +1116,6 @@ namespace PixivWPF.Pages
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
                 Application.Current.DelayGC();
-                //Application.Current.DelayGC(_detail_gc);
-                //C.Collect();
             }
         }
 
@@ -1170,9 +1168,7 @@ namespace PixivWPF.Pages
             {
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
-                Application.Current.DelayGC();
-                //Application.Current.DelayGC(_detail_gc);
-                //C.Collect();                
+                Application.Current.DelayGC();            
             }
         }
 
@@ -1226,8 +1222,6 @@ namespace PixivWPF.Pages
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
                 Application.Current.DelayGC();
-                //Application.Current.DelayGC(_detail_gc);
-                //C.Collect();
             }
         }
 
@@ -1281,8 +1275,6 @@ namespace PixivWPF.Pages
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
                 Application.Current.DelayGC();
-                //Application.Current.DelayGC(_detail_gc);
-                //C.Collect();
             }
         }
 
@@ -1339,8 +1331,6 @@ namespace PixivWPF.Pages
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
                 Application.Current.DelayGC();
-                //Application.Current.DelayGC(_detail_gc);
-                //C.Collect();
             }
         }
 
@@ -1399,8 +1389,6 @@ namespace PixivWPF.Pages
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
                 Application.Current.DelayGC();
-                //Application.Current.DelayGC(_detail_gc);
-                //C.Collect();
             }
         }
 
@@ -1457,8 +1445,6 @@ namespace PixivWPF.Pages
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
                 Application.Current.DelayGC();
-                //Application.Current.DelayGC(_detail_gc);
-                //C.Collect();
             }
         }
 
@@ -1524,8 +1510,6 @@ namespace PixivWPF.Pages
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
                 Application.Current.DelayGC();
-                //Application.Current.DelayGC(_detail_gc);
-                //C.Collect();
             }
         }
 
@@ -1588,8 +1572,6 @@ namespace PixivWPF.Pages
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
                 Application.Current.DelayGC();
-                //Application.Current.DelayGC(_detail_gc);
-                //C.Collect();
             }
         }
 
@@ -1617,8 +1599,6 @@ namespace PixivWPF.Pages
                 Commands.Open.Execute(user);
             }
             Application.Current.DelayGC();
-            //Application.Current.DelayGC(_detail_gc);
-            //C.Collect();
         }
 
         private async void ShowMyFollower(long uid, string nexturl = null)
@@ -1674,8 +1654,6 @@ namespace PixivWPF.Pages
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
                 Application.Current.DelayGC();
-                //Application.Current.DelayGC(_detail_gc);
-                //C.Collect();
             }
         }
 
@@ -1733,8 +1711,6 @@ namespace PixivWPF.Pages
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
                 Application.Current.DelayGC();
-                //Application.Current.DelayGC(_detail_gc);
-                //C.Collect();
             }
         }
 
@@ -1791,8 +1767,6 @@ namespace PixivWPF.Pages
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
                 Application.Current.DelayGC();
-                //Application.Current.DelayGC(_detail_gc);
-                //C.Collect();
             }
         }
 
@@ -1849,8 +1823,6 @@ namespace PixivWPF.Pages
                 ImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
                 Application.Current.DelayGC();
-                //Application.Current.DelayGC(_detail_gc);
-                //C.Collect();
             }
         }
         #endregion

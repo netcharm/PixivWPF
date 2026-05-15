@@ -68,8 +68,6 @@ namespace PixivWPF.Pages
 
         private SemaphoreSlim CanUpdateing = new SemaphoreSlim(1, 1);
 
-        //private CancellationTokenSource _detail_gc = new();
-
         public async void UpdateDetail(string content)
         {
             if (CanUpdateing.Wait(0))
@@ -97,8 +95,6 @@ namespace PixivWPF.Pages
                     if (ParentWindow != null) ParentWindow.SizeToContent = SizeToContent.WidthAndHeight;
                     if (CanUpdateing is SemaphoreSlim && CanUpdateing.CurrentCount <= 0) CanUpdateing.Release();
                     Application.Current.DelayGC();
-                    //Application.Current.DelayGC(_detail_gc);
-                    //GC.Collect();
                 }
             }
         }
@@ -298,7 +294,7 @@ namespace PixivWPF.Pages
                 Contents = null;
             }
             catch (Exception ex) { ex.ERROR("DisposeSearchResult"); }
-            finally { GC.Collect(); }
+            finally { Application.Current.DelayGC(); }
         }
 
         public SearchResultPage()
@@ -417,7 +413,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                         this.DoEvents();
-                        GC.Collect();
+                        Application.Current.DelayGC();
                     }
                 }
                 else if (content.StartsWith("IllustID:", StringComparison.CurrentCultureIgnoreCase))
@@ -439,7 +435,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                         this.DoEvents();
-                        GC.Collect();
+                        Application.Current.DelayGC();
                     }
                 }
                 else if (content.StartsWith("User:", StringComparison.CurrentCultureIgnoreCase))
@@ -462,7 +458,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                         this.DoEvents();
-                        GC.Collect();
+                        Application.Current.DelayGC();
                     }
                 }
                 else if (content.StartsWith("Fuzzy:", StringComparison.CurrentCultureIgnoreCase))
@@ -483,7 +479,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                         this.DoEvents();
-                        GC.Collect();
+                        Application.Current.DelayGC();
                     }
                 }
                 else if (content.StartsWith("Tag:", StringComparison.CurrentCultureIgnoreCase))
@@ -506,7 +502,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                         this.DoEvents();
-                        GC.Collect();
+                        Application.Current.DelayGC();
                     }
                 }
                 else if (content.StartsWith("Fuzzy Tag:", StringComparison.CurrentCultureIgnoreCase))
@@ -528,7 +524,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                         this.DoEvents();
-                        GC.Collect();
+                        Application.Current.DelayGC();
                     }
                 }
                 else if (content.StartsWith("Caption:", StringComparison.CurrentCultureIgnoreCase))
@@ -550,7 +546,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                         this.DoEvents();
-                        GC.Collect();
+                        Application.Current.DelayGC();
                     }
                 }
                 ResultItems.UpdateTilesImage(touch: ResultItems.Count > 1);
@@ -592,7 +588,7 @@ namespace PixivWPF.Pages
                     ResultItems.Ready();
                     (ParentWindow as MetroWindow).AdjustWindowPos();
                 }
-                GC.Collect();
+                Application.Current.DelayGC();
             }
         }
 
