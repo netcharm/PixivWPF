@@ -51,10 +51,10 @@ namespace PixivWPF.Pages
         public bool AutoStart { get; set; } = true;
 
         [DefaultValue(10)]
-        public int SimultaneousJobs 
-        { 
-            get { return (setting.DownloadSimultaneous); } 
-            set 
+        public int SimultaneousJobs
+        {
+            get => setting.DownloadSimultaneous;
+            set
             {
                 if (value != SimultaneousJobs && value > 0 && value <= MaxSimultaneousJobs)
                 {
@@ -69,7 +69,7 @@ namespace PixivWPF.Pages
         }
 
         [DefaultValue(25)]
-        public int MaxSimultaneousJobs { get { return (setting.DownloadMaxSimultaneous); } }
+        public int MaxSimultaneousJobs => setting.DownloadMaxSimultaneous;
 
         public IEnumerable<DownloadInfo> CurrentJobs
         {
@@ -80,10 +80,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public int CurrentJobsCount
-        {
-            get { return CurrentJobs.Count(); }
-        }
+        public int CurrentJobsCount => CurrentJobs.Count();
 
         public IEnumerable<DownloadInfo> CurrentIdles
         {
@@ -94,12 +91,9 @@ namespace PixivWPF.Pages
             }
         }
 
-        public int CurrentIdlesCount
-        {
-            get { return CurrentIdles.Count(); }
-        }
+        public int CurrentIdlesCount => CurrentIdles.Count();
 
-        public bool CanStartDownload { get { return (CurrentJobsCount < SimultaneousJobs); } }
+        public bool CanStartDownload => CurrentJobsCount < SimultaneousJobs;
         #endregion
 
         #region Time Checking
@@ -263,10 +257,7 @@ namespace PixivWPF.Pages
         private SemaphoreSlim CanUpdateState = new(1, 1);
 
         private ObservableCollection<DownloadInfo> items = [];
-        public ObservableCollection<DownloadInfo> Items
-        {
-            get { return items; }
-        }
+        public ObservableCollection<DownloadInfo> Items => items;
 
         internal void Refresh()
         {
@@ -329,7 +320,7 @@ namespace PixivWPF.Pages
                     var now = TimeZoneInfo.ConvertTime(DateTime.Now, CommonHelper.TokoyTimeZone);
                     var ndays = now.Date - TimeSpan.FromDays(Math.Max(0, days - 1));
                     ndays = TimeZoneInfo.ConvertTime(ndays, CommonHelper.TokoyTimeZone, CommonHelper.LocalTimeZone);
-                    result = results.Where(i => i.Key < ndays).Select(i => i.Value).ToList();
+                    result = [.. results.Where(i => i.Key < ndays).Select(i => i.Value)];
                 }
             }
             catch(Exception ex) { ex.ERROR("GetOlderDownloadedItems[Older then {days}(s)]"); }
@@ -559,8 +550,7 @@ namespace PixivWPF.Pages
                     if (IsLoaded)
                     {
                         setting = Application.Current.LoadSetting();
-                        var value = Convert.ToInt32(PART_MaxJobs.Value);
-                        if (value != SimultaneousJobs) SimultaneousJobs = value;
+                        if (e.NewValue != SimultaneousJobs) SimultaneousJobs = Convert.ToInt32(e.NewValue);
                     }
                 }).InvokeAsync();
             }
@@ -763,13 +753,13 @@ namespace PixivWPF.Pages
 
                     if (state == DownloadItemState.Older)
                     {
-                        targets = GetOlderItems().ToList();
+                        targets = [.. GetOlderItems()];
                         state = DownloadItemState.Finished;
                     }
                     else if (state == DownloadItemState.NDays)
                     {
                         setting = Application.Current.LoadSetting();
-                        targets = GetOlderItems(setting.DownloadRemoveNDays).ToList();
+                        targets = [.. GetOlderItems(setting.DownloadRemoveNDays)];
                         state = DownloadItemState.Finished;
                     }
 
