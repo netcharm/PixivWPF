@@ -51,7 +51,22 @@ namespace PixivWPF.Pages
         public bool AutoStart { get; set; } = true;
 
         [DefaultValue(10)]
-        public int SimultaneousJobs { get { return (setting.DownloadSimultaneous); } set { setting.DownloadSimultaneous = value; } }
+        public int SimultaneousJobs 
+        { 
+            get { return (setting.DownloadSimultaneous); } 
+            set 
+            {
+                if (value != SimultaneousJobs && value > 0 && value <= MaxSimultaneousJobs)
+                {
+                    PART_MaxJobs?.Dispatcher.Invoke(() =>
+                    {
+                        setting.DownloadSimultaneous = value;
+                        PART_MaxJobs.Value = value;
+                        PART_MaxJobs.ToolTip = $"Max Simultaneous Jobs: {SimultaneousJobs} / {MaxSimultaneousJobs}";
+                    });
+                }
+            }
+        }
 
         [DefaultValue(25)]
         public int MaxSimultaneousJobs { get { return (setting.DownloadMaxSimultaneous); } }
@@ -452,9 +467,8 @@ namespace PixivWPF.Pages
             ParentWindow = Window.GetWindow(this);
 
             setting = Application.Current.LoadSetting();
-            if (PART_MaxJobs.Value != SimultaneousJobs) PART_MaxJobs.Value = SimultaneousJobs;
             if (PART_MaxJobs.Maximum != MaxSimultaneousJobs) PART_MaxJobs.Maximum = MaxSimultaneousJobs;
-            PART_MaxJobs.ToolTip = $"Max Simultaneous Jobs: {SimultaneousJobs} / {MaxSimultaneousJobs}";
+            if (PART_MaxJobs.Value != SimultaneousJobs) PART_MaxJobs.Value = SimultaneousJobs;
 
             // add keyboard accelerators for backwards navigation
             RoutedUICommand cmd_PasteUrl = new(){ Text = "Paste Url To Download Manager" };
@@ -545,8 +559,8 @@ namespace PixivWPF.Pages
                     if (IsLoaded)
                     {
                         setting = Application.Current.LoadSetting();
-                        SimultaneousJobs = Convert.ToInt32(PART_MaxJobs.Value);
-                        PART_MaxJobs.ToolTip = $"Max Simultaneous Jobs: {SimultaneousJobs} / {MaxSimultaneousJobs}";
+                        var value = Convert.ToInt32(PART_MaxJobs.Value);
+                        if (value != SimultaneousJobs) SimultaneousJobs = value;
                     }
                 }).InvokeAsync();
             }
