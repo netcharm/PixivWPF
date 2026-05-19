@@ -800,19 +800,29 @@ namespace ImageViewer
             result = await Task.Run(async () =>
             {
                 var ret = false;
-                var images = await ImageViewer.GetFileList();
-                if (images.Any())
+                //(_, var count) = await ImageViewer.GetIndex();
+                var info = ImageViewer.GetInformation();
+                if (info is not null)
                 {
-                    DataObject dataPackage = new();
-                    dataPackage.SetData(DataFormats.FileDrop, images);
-                    dataPackage.SetData(DataFormats.UnicodeText, string.Join(Environment.NewLine, images));
-                    dataPackage.SetData(DataFormats.OemText, string.Join(Environment.NewLine, images));
-                    dataPackage.SetData(DataFormats.Text, string.Join(Environment.NewLine, images));
-                    await Application.Current?.Dispatcher?.InvokeAsync(() =>
+                    (_, var count) = await info.GetIndex();
+                    if (count > 0 && count <= 256)
                     {
-                        Clipboard.SetDataObject(dataPackage, true);
-                    });
-                    ret = true;
+                        //var images = await ImageViewer.GetFileList();
+                        var images = await info.GetFileList();
+                        if (images.Any())
+                        {
+                            DataObject dataPackage = new();
+                            dataPackage.SetData(DataFormats.FileDrop, images);
+                            dataPackage.SetData(DataFormats.UnicodeText, string.Join(Environment.NewLine, images));
+                            dataPackage.SetData(DataFormats.OemText, string.Join(Environment.NewLine, images));
+                            dataPackage.SetData(DataFormats.Text, string.Join(Environment.NewLine, images));
+                            await Application.Current?.Dispatcher?.InvokeAsync(() =>
+                            {
+                                Clipboard.SetDataObject(dataPackage, true);
+                            });
+                            ret = true;
+                        }
+                    }
                 }
                 return (ret);
             });

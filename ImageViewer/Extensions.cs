@@ -2579,13 +2579,13 @@ namespace ImageViewer
         #endregion
 
         #region File List && File System Watcher
-        private static List<string> ext_imgs = new List<string>() { ".png", ".jpg", ".gif", ".bmp", ".webp", ".tif", ".tiff", ".apng", ".mng", ".jpeg", ".jfif", ".heif", ".heic" };
-        private static List<string> ext_movs = new List<string>() { ".webm", ".mp4", ".mov", ".ogv", ".ogg", ".gif", ".apng", ".mng" };
+        private static List<string> ext_imgs = [".png", ".jpg", ".gif", ".bmp", ".webp", ".tif", ".tiff", ".apng", ".mng", ".jpeg", ".jfif", ".heif", ".heic"];
+        private static List<string> ext_movs = [".webm", ".mp4", ".mov", ".ogv", ".ogg", ".gif", ".apng", ".mng"];
 
-        private static ConcurrentDictionary<string, DateTime?> _file_list_storage_ = new ConcurrentDictionary<string, DateTime?>();
-        private static string[] _file_list_ = new string[0];
-        private static SemaphoreSlim _file_list_updating_ = new SemaphoreSlim(1);
-        private static CancellationTokenSource _file_list_updating_cancel_ = new CancellationTokenSource();
+        private static ConcurrentDictionary<string, DateTime?> _file_list_storage_ = new();
+        private static string[] _file_list_ = [];
+        private static SemaphoreSlim _file_list_updating_ = new(1);
+        private static CancellationTokenSource _file_list_updating_cancel_ = new();
 
         public static bool IsUpdatingFileList(this object obj)
         {
@@ -2616,7 +2616,20 @@ namespace ImageViewer
             return (files.Distinct().ToList());
         }
 
-        public static async Task<string[]> GetFileList(this object file)
+        public static async Task<(int, int)> GetIndex(this object obj)
+        {
+            var result = (-1, 0);
+            try
+            {
+                var list = await GetFileList(obj);
+                var index = obj is string && string.IsNullOrEmpty(obj as string) ? Array.IndexOf(list, obj as string) : -1;
+                result = (index, list.Length);
+            }
+            catch { }
+            return (result);
+        }
+
+        public static async Task<string[]> GetFileList(this object obj)
         {
             var result = new string[0];
             //if (!MonitorFS) await UpdateFileList();
@@ -2669,8 +2682,8 @@ namespace ImageViewer
             });
         }
 
-        private static List<string> _path_list_ = new List<string>();
-        private static List<FileSystemWatcher> _file_watcher_ = new List<FileSystemWatcher>();
+        private static List<string> _path_list_ = [];
+        private static List<FileSystemWatcher> _file_watcher_ = [];
         private static WatcherChangeTypes _FS_Change_Type_ = WatcherChangeTypes.All;
 
         public static async Task<bool> InitFileList(this IEnumerable<string> files)
