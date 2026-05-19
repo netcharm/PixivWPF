@@ -284,6 +284,8 @@
                                 </Rectangle.RenderTransform>
                             </Rectangle>
                         </Canvas>
+                        <Image x:Name="BirdViewMask" x:Uid="BirdViewMask" SnapsToDevicePixels="True" MouseMove="BirdView_MouseMove"
+                               Width="{Binding ActualWidth, ElementName=BirdViewCanvas}" Height="{Binding ActualHeight, ElementName=BirdViewCanvas}"/>
                     </Grid>
                 </Border>
             </Grid>

@@ -2112,6 +2112,36 @@ namespace ImageViewer
                 BirdViewArea.Height = ah;
                 Canvas.SetLeft(BirdViewArea, tx);
                 Canvas.SetTop(BirdViewArea, ty);
+
+                var bw = BirdViewBorder.ActualWidth;
+                var bh = BirdViewBorder.ActualHeight;
+
+                BirdViewMask.Width = bw;
+                BirdViewMask.Height = bh;
+
+
+                var dpi = this.GetSystemDPI();
+                DrawingVisual mask = new();
+                DrawingContext mask_context = mask.RenderOpen();
+                
+                //context.DrawRectangle(new SolidColorBrush(Color.FromArgb(128, 128, 128, 128)), null, new Rect(0, 0, bw, bh));
+                mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(0, 0, 0, 0)), null, new Rect(tx, ty, aw, ah));
+                
+                mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(200, 128, 128, 128)), null, new Rect(0, 0, bw, ty));
+                mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(200, 128, 128, 128)), null, new Rect(0, ty + ah, bw, bh - ty - ah));
+
+                //mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(200, 128, 128, 128)), null, new Rect(0, ty, tx, ah));
+                //mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(200, 128, 128, 128)), null, new Rect(tx + aw, ty, bw - tx - aw, ah));
+                mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(200, 128, 128, 128)), null, new Rect(0, 0, tx, bh));
+                mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(200, 128, 128, 128)), null, new Rect(tx + aw, 0, bw - tx - aw, bh));
+                mask_context.Close();
+
+                RenderTargetBitmap mask_target = new((int)Math.Ceiling(bw), (int)Math.Ceiling(bh), dpi.X, dpi.Y, PixelFormats.Pbgra32);
+                mask_target.Render(mask);
+
+                //target.ToMagickImage().Write("aaaa.png");
+
+                BirdViewMask.Source = mask_target;
             });
         }
 
@@ -2169,7 +2199,7 @@ namespace ImageViewer
         {
             double offset_x = ImageViewerScroll.Dispatcher.Invoke(() => ImageViewerScroll.HorizontalOffset);
             double offset_y = ImageViewerScroll.Dispatcher.Invoke(() => ImageViewerScroll.VerticalOffset);
-            if (Ready && BirdView.Source != null && (sender == BirdView || sender == BirdViewCanvas || sender == BirdViewArea))
+            if (Ready && BirdView.Source != null && (sender == BirdView || sender == BirdViewCanvas || sender == BirdViewArea || sender == BirdViewMask))
             {
                 try
                 {

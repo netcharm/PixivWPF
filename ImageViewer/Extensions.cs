@@ -2347,8 +2347,11 @@ namespace ImageViewer
         public static MagickImage ToMagickImage(this ImageSource source, Size size = default)
         {
             MagickImage result = null;
-            if (source is ImageSource && source.Width > 0 && source.Height > 0 && size.Width > 0 && size.Height > 0 && (source.Width != size.Width || source.Height != size.Height))
+
+            if (source is ImageSource && source.Width > 0 && source.Height > 0)
             {
+                if (source.Width != size.Width || source.Height != size.Height) size = new Size(size.Width > 0 ? size.Width : source.Width, size.Height > 0 ? size.Height : source.Height);
+
                 var dpi = GetSystemDPI(Application.Current);
                 RenderTargetBitmap target = null;
                 if (size != default && size.Width > 0 && size.Height > 0)
@@ -2363,10 +2366,22 @@ namespace ImageViewer
                 }
                 target.Render(drawingVisual);
 
+                result = ToMagickImage(target, size);
+            }
+            return (result);
+        }
+
+        public static MagickImage ToMagickImage(this RenderTargetBitmap source, Size size = default)
+        {
+            MagickImage result = null;
+            if (source is not null && source.Width > 0 && source.Height > 0)
+            {
+                if (source.Width != size.Width || source.Height != size.Height) size = new Size(size.Width > 0 ? size.Width : source.Width, size.Height > 0 ? size.Height : source.Height);
+
                 using (MemoryStream stm = new MemoryStream())
                 {
                     PngBitmapEncoder png = new PngBitmapEncoder();
-                    png.Frames.Add(BitmapFrame.Create(target));
+                    png.Frames.Add(BitmapFrame.Create(source));
                     png.Save(stm);
                     stm.Seek(0, SeekOrigin.Begin);
                     result = new MagickImage(stm);
