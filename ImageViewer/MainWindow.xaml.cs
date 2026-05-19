@@ -2058,6 +2058,7 @@ namespace ImageViewer
         #endregion
 
         #region Bird View Helper
+        private CancellationTokenSource _birdview_ = new();
         /// <summary>
         /// 
         /// </summary>
@@ -2096,9 +2097,14 @@ namespace ImageViewer
         /// <summary>
         /// 
         /// </summary>
-        private void UpdateBirdViewArea()
+        private async void UpdateBirdViewArea()
         {
-            BirdViewPanel.Dispatcher.InvokeAsync(() =>
+            _birdview_ ??= new();
+            _birdview_?.Cancel();
+            await Task.Delay(20);
+            _birdview_ = new();
+
+            await BirdViewPanel.Dispatcher.InvokeAsync(() =>
             {
                 var src = ImageViewer;
                 var scroll = ImageViewerScroll;
@@ -2108,6 +2114,7 @@ namespace ImageViewer
                 var ah = (src.DesiredSize.Height < scroll.ViewportHeight ? src.DesiredSize.Height : scroll.ViewportHeight) * ratio;
                 var tx = scroll.HorizontalOffset * ratio;
                 var ty = scroll.VerticalOffset * ratio;
+
                 BirdViewArea.Width = aw;
                 BirdViewArea.Height = ah;
                 Canvas.SetLeft(BirdViewArea, tx);
@@ -2119,30 +2126,26 @@ namespace ImageViewer
                 BirdViewMask.Width = bw;
                 BirdViewMask.Height = bh;
 
+                DrawingVisual mask = new();
+                using (DrawingContext mask_context = mask.RenderOpen())
+                {
+                    mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(0, 0, 0, 0)), null, new Rect(tx, ty, aw, ah));
+
+                    mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(200, 128, 128, 128)), null, new Rect(0, 0, bw, ty));
+                    mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(200, 128, 128, 128)), null, new Rect(0, ty + ah, bw, bh - ty - ah));
+
+                    mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(200, 128, 128, 128)), null, new Rect(0, 0, tx, bh));
+                    mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(200, 128, 128, 128)), null, new Rect(tx + aw, 0, bw - tx - aw, bh));
+                    //mask_context.Close();
+                };
 
                 var dpi = this.GetSystemDPI();
-                DrawingVisual mask = new();
-                DrawingContext mask_context = mask.RenderOpen();
-                
-                //context.DrawRectangle(new SolidColorBrush(Color.FromArgb(128, 128, 128, 128)), null, new Rect(0, 0, bw, bh));
-                mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(0, 0, 0, 0)), null, new Rect(tx, ty, aw, ah));
-                
-                mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(200, 128, 128, 128)), null, new Rect(0, 0, bw, ty));
-                mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(200, 128, 128, 128)), null, new Rect(0, ty + ah, bw, bh - ty - ah));
-
-                //mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(200, 128, 128, 128)), null, new Rect(0, ty, tx, ah));
-                //mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(200, 128, 128, 128)), null, new Rect(tx + aw, ty, bw - tx - aw, ah));
-                mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(200, 128, 128, 128)), null, new Rect(0, 0, tx, bh));
-                mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(200, 128, 128, 128)), null, new Rect(tx + aw, 0, bw - tx - aw, bh));
-                mask_context.Close();
 
                 RenderTargetBitmap mask_target = new((int)Math.Ceiling(bw), (int)Math.Ceiling(bh), dpi.X, dpi.Y, PixelFormats.Pbgra32);
                 mask_target.Render(mask);
 
-                //target.ToMagickImage().Write("aaaa.png");
-
                 BirdViewMask.Source = mask_target;
-            });
+            }, DispatcherPriority.Render, _birdview_.Token);
         }
 
         /// <summary>
