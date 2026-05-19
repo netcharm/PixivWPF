@@ -43,7 +43,6 @@
         <StackPanel Grid.Row="0" Margin="2,4,2,4" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
             <Slider x:Name="PART_MaxJobs" HorizontalAlignment="Right" VerticalAlignment="Center" Width="133" Margin="4,10" 
                     Minimum="1" SmallChange="1" LargeChange="5" 
-                    Value="{Binding Path=SimultaneousJobs, ElementName=page, IsAsync=True, Mode=TwoWay}" 
                     Maximum="{Binding Path=MaxSimultaneousJobs, ElementName=page, IsAsync=True, Mode=OneWay}" 
                     ValueChanged="PART_MaxJobs_ValueChanged"/>
             <Button x:Name="PART_ChangeFolder" x:Uid="ChangeFolder" Margin="2,0,2,0" Click="PART_ChangeFolder_Click"

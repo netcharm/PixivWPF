@@ -555,30 +555,63 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        static public void GC(this Application app, string name, bool wait = false, bool system_memory = false)
+        static public (long, long) MemoryUsage(this Application app)
         {
-            long mem_ws_before = 0, mem_pb_before = 0, mem_ws_after = 0, mem_pb_after = 0;
-            if (system_memory)
+            long ws = -1;
+            long pb = -1;
+            if (current_process == null) current_process = Process.GetCurrentProcess();
+            try
             {
-                mem_ws_before = Application.Current.MemoryUsage();// process.WorkingSet64;
-                mem_pb_before = Application.Current.MemoryUsage(true);// process.PrivateMemorySize64;
+                using (PerformanceCounter PC = new())
+                {
+                    PC.InstanceName = current_process.ProcessName;
+                    PC.CategoryName = "Process";
+                    
+                    PC.CounterName = "Private Bytes";
+                    pb = Convert.ToInt64(PC.NextValue());
+
+                    PC.CounterName = "Working Set"; // "Working Set - Private";
+                    ws = Convert.ToInt64(PC.NextValue());
+                    
+                    PC.Close();
+                }
             }
-
-            var before = System.GC.GetTotalMemory(true);
-            System.GC.Collect();
-            if (wait) System.GC.WaitForPendingFinalizers();
-            var after = System.GC.GetTotalMemory(true);
-            $"Managed Memory Usage: {before.SmartFileSize()} => {after.SmartFileSize()}".DEBUG(name ?? string.Empty);
-
-            if (system_memory)
+            catch (Exception ex) { ex.ERROR("MEMORYUSAGE"); }
+            finally
             {
-                mem_ws_after = Application.Current.MemoryUsage();// process.WorkingSet64;
-                mem_pb_after = Application.Current.MemoryUsage(true);// process.PrivateMemorySize64;
-                $"System Memory Usage (WS/PB): {mem_ws_before.SmartFileSize()} / {mem_pb_before.SmartFileSize()} => {mem_ws_after.SmartFileSize()} / {mem_pb_after.SmartFileSize()}".DEBUG(name ?? string.Empty);
+                if (ws <= 0) ws = current_process.WorkingSet64;
+                if (pb <= 0) pb = current_process.PrivateMemorySize64;
             }
+            return (ws, pb);
         }
 
         static private CancellationTokenSource _gc_ = new();
+        static public async void GC(this Application app, string name, bool wait = false, bool system_memory = false)
+        {
+            _gc_ ??= new();
+
+            await Task.Run(async () =>
+            {
+                await Task.Delay(TimeSpan.FromSeconds(60), _gc_.Token);
+                if (_gc_?.IsCancellationRequested ?? true) return;
+
+                long mem_ws_before = 0, mem_pb_before = 0, mem_ws_after = 0, mem_pb_after = 0;
+                if (system_memory) (mem_ws_before, mem_pb_before) = Application.Current.MemoryUsage();
+
+                var before = System.GC.GetTotalMemory(true);
+                System.GC.Collect();
+                if (wait) System.GC.WaitForPendingFinalizers();
+                var after = System.GC.GetTotalMemory(true);
+                $"Managed Memory Usage: {before.SmartFileSize()} => {after.SmartFileSize()}".DEBUG(name ?? string.Empty);
+
+                if (system_memory)
+                {
+                    (mem_ws_after, mem_pb_after) = Application.Current.MemoryUsage();
+                    $"System Memory Usage (WS/PB): {mem_ws_before.SmartFileSize()} / {mem_pb_before.SmartFileSize()} => {mem_ws_after.SmartFileSize()} / {mem_pb_after.SmartFileSize()}".DEBUG(name ?? string.Empty);
+                }
+            }, _gc_.Token);
+        }
+
         static public async void DelayGC(this Application app, CancellationTokenSource cancel = null)
         {
             try
@@ -590,7 +623,7 @@ namespace PixivWPF.Common
                     await Task.Delay(50);
                     _gc_ = new();
                     //await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60)); }, _gc_.Token).ContinueWith((t, o) => System.GC.Collect(), _gc_.Token, continuationOptions: TaskContinuationOptions.OnlyOnRanToCompletion);
-                    await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60), _gc_.Token); if (_gc_?.IsCancellationRequested ?? true) return; System.GC.Collect(); }, _gc_.Token);
+                    await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60), _gc_.Token); if (_gc_?.IsCancellationRequested ?? true) return; System.GC.Collect(); "DelayGC".INFO("Executed"); }, _gc_.Token);
                 }
                 else
                 {
@@ -598,7 +631,7 @@ namespace PixivWPF.Common
                     await Task.Delay(50);
                     cancel = new();
                     //await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60)); }, cancel.Token).ContinueWith((t, o) => System.GC.Collect(), _gc_.Token, continuationOptions: TaskContinuationOptions.OnlyOnRanToCompletion);
-                    await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60), cancel.Token); if (cancel?.IsCancellationRequested ?? true) return; System.GC.Collect(); }, cancel.Token);
+                    await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60), cancel.Token); if (cancel?.IsCancellationRequested ?? true) return; System.GC.Collect(); "DelayGC".INFO("Executed"); }, cancel.Token);
                 }
             }
             catch { }
