@@ -2055,6 +2055,30 @@ namespace ImageViewer
             }) ?? ImageType.None;
             return (result);
         }
+        
+        private void QualityChangerCompareStart()
+        {
+            if (IsQualityChanger)
+            {
+                QualityChanger?.Dispatcher?.Invoke(() =>
+                {
+                    if (!Ready || !(_quality_info_?.ValidCurrent ?? false)) return;
+                    SetImageSource(ImageViewer, _quality_orig_ ?? null);
+                });
+            }
+        }
+
+        private void QualityChangerCompareStop()
+        {
+            if (IsQualityChanger)
+            {
+                QualityChanger?.Dispatcher?.Invoke(() =>
+                {
+                    if (!Ready || !(_quality_info_?.ValidCurrent ?? false)) return;
+                    SetImageSource(ImageViewer, _quality_info_ ?? null, update_tooltip: false);
+                });
+            }
+        }
         #endregion
 
         #region Bird View Helper
@@ -3967,13 +3991,10 @@ namespace ImageViewer
                 {
                     e.Handled = true;
                     var km = this.GetModifier();
-                    if (km.OnlyCtrl && (e.Key == Key.W || e.SystemKey == Key.W))
+
+                    if (e.Key == Key.System || e.SystemKey == Key.F10)
                     {
-                        Close();
-                    }
-                    else if (km.OnlyAlt && (e.Key == Key.T || e.SystemKey == Key.T))
-                    {
-                        ImageViewerScroll.ContextMenu?.IsOpen = true;
+                        if (km.None) ImageViewerScroll.ContextMenu?.IsOpen = true;
                     }
                     else if (e.Key == Key.Escape || e.SystemKey == Key.Escape)
                     {
@@ -3994,7 +4015,6 @@ namespace ImageViewer
                             Close();
                         }
                     }
-
                     else if (e.Key == Key.Delete || e.SystemKey == Key.Delete)
                     {
                         var image = ImageViewer.GetInformation();
@@ -4029,25 +4049,20 @@ namespace ImageViewer
                     {
                         ToggleZoomMode(full: true, direction: km.OnlyShift ? FlowDirection.LeftToRight : FlowDirection.RightToLeft);
                     }
-
-                    else if (km.OnlyCtrl && (e.Key == Key.C || e.SystemKey == Key.C))
+                    else if (e.Key == Key.F10 || e.SystemKey == Key.F10)
                     {
-                        //if (!IsBusy) await CopyImageToClipboard();
-                        await CopyImageToClipboard();
-                    }
-                    else if (km.OnlyCtrl && (e.Key == Key.V || e.SystemKey == Key.V))
-                    {
-                        //if (!IsBusy) await LoadImageFromClipboard();
-                        await LoadImageFromClipboard();
-                    }
-                    else if (km.OnlyShift && (e.Key == Key.C || e.SystemKey == Key.C))
-                    {
-                        await CopyImageListToClipboard();
+                        if (km.None) ImageViewerScroll.ContextMenu?.IsOpen = true;
                     }
 
                     else if (e.Key == Key.B || e.SystemKey == Key.B)
                     {
                         ToggleBirdView();
+                    }
+                    else if (e.Key == Key.C || e.SystemKey == Key.C)
+                    {
+                        if (km.OnlyCtrl) await CopyImageToClipboard();
+                        else if (km.OnlyShift) await CopyImageListToClipboard();
+                        else if (km.None && IsQualityChanger) QualityChangerCompareStart();
                     }
                     else if (e.Key == Key.I || e.SystemKey == Key.I)
                     {
@@ -4066,6 +4081,10 @@ namespace ImageViewer
                     else if (e.Key == Key.O || e.SystemKey == Key.O)
                     {
                         OpenImageWith();
+                    }
+                    else if (e.Key == Key.Q || e.SystemKey == Key.Q)
+                    {
+                        OpenQualityChanger();
                     }
                     else if (e.Key == Key.R || e.SystemKey == Key.R)
                     {
@@ -4088,9 +4107,17 @@ namespace ImageViewer
                         if (km.OnlyCtrl) await SaveImageAs(overwrite: false);
                         else if (km.OnlyShift) await SaveImageAs(overwrite: true);
                     }
-                    else if (e.Key == Key.Q || e.SystemKey == Key.Q)
+                    else if (e.Key == Key.T || e.SystemKey == Key.T)
                     {
-                        OpenQualityChanger();
+                        if (km.OnlyAlt) ImageViewerScroll.ContextMenu?.IsOpen = true;
+                    }
+                    else if (e.Key == Key.V || e.SystemKey == Key.V)
+                    {
+                        if (km.OnlyCtrl) await LoadImageFromClipboard();
+                    }
+                    else if (e.Key == Key.W || e.SystemKey == Key.W)
+                    {
+                        if (km.OnlyCtrl) Close();
                     }
                     else if (e.Key == Key.Z || e.SystemKey == Key.Z)
                     {
@@ -4138,12 +4165,46 @@ namespace ImageViewer
                     else e.Handled = false;
                     _last_key_ = e.Key;
                     _last_key_time_ = DateTime.Now;
-                    //Debug.WriteLine(e.Key);
-
-                    Focusable = true;
-                    Focus();
+                    Debug.WriteLine($"[Key Down]Key = {e.Key}, SystemKey = ({e.SystemKey})");
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
+                finally
+                {
+                    if (!ImageViewerScroll.ContextMenu?.IsOpen ?? false)
+                    {
+                        Focusable = true;
+                        Focus();
+                    }
+                }
+            }
+        }
+
+        private void Window_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (!Ready || IsBusy) return;
+            if (e.IsUp)
+            {
+                try
+                {
+                    e.Handled = true;
+                    var km = this.GetModifier();
+
+                    if (e.Key == Key.C || e.SystemKey == Key.C)
+                    {
+                        if (km.None && IsQualityChanger) QualityChangerCompareStop();
+                    }
+                    else e.Handled = false;
+                    Debug.WriteLine($"[Key Up]Key = {e.Key}, SystemKey = ({e.SystemKey})");
+                }
+                catch (Exception ex) { ex.ShowMessage(); }
+                finally
+                {
+                    if (!ImageViewerScroll.ContextMenu?.IsOpen ?? false)
+                    {
+                        Focusable = true;
+                        Focus();
+                    }
+                }
             }
         }
         #endregion
@@ -4548,7 +4609,9 @@ namespace ImageViewer
                 SyncColorLighting();
             }
         }
+        #endregion
 
+        #region QualityChanger Events
         private DateTime _last_quality_change = default;
         private void QualityChangerSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
@@ -4601,14 +4664,12 @@ namespace ImageViewer
 
         private void QualityChangerCompare_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (!Ready || !(_quality_info_?.ValidCurrent ?? false)) return;
-            SetImageSource(ImageViewer, _quality_orig_ ?? null);
+            QualityChangerCompareStart();
         }
 
         private void QualityChangerCompare_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            if (!Ready || !(_quality_info_?.ValidCurrent ?? false)) return;
-            SetImageSource(ImageViewer, _quality_info_ ?? null, update_tooltip: false);
+            QualityChangerCompareStop();
         }
         #endregion
 
