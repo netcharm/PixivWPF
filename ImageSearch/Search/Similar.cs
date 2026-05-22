@@ -336,7 +336,7 @@ namespace ImageSearch.Search
 
             if (info is not null && BatchTaskIdle?.CurrentCount <= 0)
             {
-                if (_model_ == null) await LoadModel();
+                if (_model_ is null) await LoadModel();
 
                 SemaphoreSlim MultiTask = new(info.ParallelLimit, info.ParallelLimit);
 
@@ -370,7 +370,7 @@ namespace ImageSearch.Search
                         var npz_file = $@"data\{dir_name}_checkpoint_latest.npz";
 
                         var feat_obj = GetFeatureData(feats_db);
-                        if (feat_obj == null)
+                        if (feat_obj is null)
                         {
                             if (File.Exists(storage.DatabaseFile) && await LoadFeatureData(storage))
                             {
@@ -789,7 +789,7 @@ namespace ImageSearch.Search
 #if DEBUG
         private static double[] Norm(IEnumerable<double> array, bool zscore = false)
         {
-            if (array == null) return ([]);
+            if (array is null) return ([]);
             if (zscore)
             {
                 var mean = array.Average();
@@ -807,7 +807,7 @@ namespace ImageSearch.Search
 
         private static float[] Norm(IEnumerable<float> array, bool zscore = false)
         {
-            if (array == null) return ([]);
+            if (array is null) return ([]);
             if (zscore)
             {
                 var mean = array.Average();
@@ -1027,7 +1027,7 @@ namespace ImageSearch.Search
                 return (null);
             }
 
-            if ((_model_ == null || reload) && await ModelLoadedState.WaitAsync(0))
+            if ((_model_ is null || reload) && await ModelLoadedState.WaitAsync(0))
             {
                 var sw = Stopwatch.StartNew();
                 ReportMessage($"Loading Model from {model_file}", RunningStatue);
@@ -1298,7 +1298,7 @@ namespace ImageSearch.Search
                     try
                     {
                         var feat_obj = feats_obj.ExtraFeatureDatas.Where(x => x.Equals(storage.DatabaseFile)).FirstOrDefault();
-                        if (feat_obj == null || !feat_obj.Loaded || reload)
+                        if (feat_obj is null || !feat_obj.Loaded || reload)
                         {
                             float[,] feats;
                             string[] names;
@@ -1309,7 +1309,7 @@ namespace ImageSearch.Search
                                 ReportMessage($"Loading Extra Feature DataTable from {file}", RunningStatue);
                                 if (names.Length > 0 && feats.Length > 0)
                                 {
-                                    if (feat_obj == null)
+                                    if (feat_obj is null)
                                     {
                                         feats_obj.ExtraFeatureDatas.Add(new ExtraFeatureData()
                                         {
@@ -1357,7 +1357,7 @@ namespace ImageSearch.Search
                     {
                         var feat_obj = GetFeatureData(storage.DatabaseFile);
 
-                        if (feat_obj == null || !feat_obj.Loaded || reload)
+                        if (feat_obj is null || !feat_obj.Loaded || reload)
                         {
                             float[,] feats;
                             string[] names;
@@ -1368,7 +1368,7 @@ namespace ImageSearch.Search
                                 ReportMessage($"Loading Feature DataTable from {file}", RunningStatue);
                                 if (names.Length > 0 && feats.Length > 0)
                                 {
-                                    if (feat_obj == null)
+                                    if (feat_obj is null)
                                     {
                                         _features_.Add(new FeatureData()
                                         {
@@ -1805,7 +1805,7 @@ namespace ImageSearch.Search
         {
             var result = false;
 
-            if (feature is null || files == null || files.Length == 0) return (result);
+            if (feature is null || files is null || files.Length == 0) return (result);
 
             result = await Task.Run(async () =>
             {
@@ -1905,7 +1905,7 @@ namespace ImageSearch.Search
 
             if (image is not null)
             {
-                if (_model_ == null) await LoadModel();
+                if (_model_ is null) await LoadModel();
 
                 var sw = Stopwatch.StartNew();
                 ReportMessage($"Quering Label for Memory Image", RunningStatue);
@@ -1927,10 +1927,10 @@ namespace ImageSearch.Search
         {
             LabeledObject[]? label = null;
 
-            if (_model_ == null) await LoadModel();
+            if (_model_ is null) await LoadModel();
 
             file = GetAbsolutePath(file);
-            if (File.Exists(file) && _model_ is not null && _predictionEngine_ != null)
+            if (File.Exists(file) && _model_ is not null && _predictionEngine_ is not null)
             {
                 try
                 {
@@ -1953,10 +1953,10 @@ namespace ImageSearch.Search
             float[]? feature = null;
             LabeledObject[]? label = null;
 
-            if (_model_ == null) await LoadModel();
+            if (_model_ is null) await LoadModel();
 
             file = GetAbsolutePath(file);
-            if (File.Exists(file) && _model_ is not null && _predictionEngine_ != null)
+            if (File.Exists(file) && _model_ is not null && _predictionEngine_ is not null)
             {
                 try
                 {
@@ -1980,7 +1980,7 @@ namespace ImageSearch.Search
 
             if (image is not null)
             {
-                if (_model_ == null) await LoadModel();
+                if (_model_ is null) await LoadModel();
 
                 var sw = Stopwatch.StartNew();
                 ReportMessage($"Extracting Feature from Memory Image", RunningStatue);
@@ -2000,7 +2000,7 @@ namespace ImageSearch.Search
                     {
                         var img_data = MeanStd(img.GetBGRPixels.Select(b => (float)b).ToArray());
                         feature = _predictionEngine_?.Predict(new ModelInput { Data = img_data }).Feature;
-                        if (feature != null)
+                        if (feature is not null)
                         {
                             if (labels) label = await GetImageLabel(feature, !ModelHasSoftMax);
                             //if (!ModelHasSoftMax) feature = SoftMax(feature);
@@ -2026,7 +2026,7 @@ namespace ImageSearch.Search
         private async Task<double> CompareImage(float[]? feature0, float[]? feature1, int padding = 0)
         {
             double result = 0;
-            if (feature0 == null || feature1 == null) return (result);
+            if (feature0 is null || feature1 is null) return (result);
 
             var sw = Stopwatch.StartNew();
             if (await ModelLoadedState?.WaitAsync(TimeSpan.FromSeconds(30)) && await FeatureLoadedState?.WaitAsync(TimeSpan.FromSeconds(30)))
@@ -2151,7 +2151,7 @@ namespace ImageSearch.Search
         private async Task<FeatureData?> GetSubFeatDB(IEnumerable<string>? subfiles, FeatureData? feats_obj)
         {
             FeatureData? result = null;
-            if (subfiles != null && subfiles.Any() && feats_obj != null && feats_obj.Names?.Length > 0 && feats_obj.Feats?.shape[0] > 0)
+            if (subfiles is not null && subfiles.Any() && feats_obj is not null && feats_obj.Names?.Length > 0 && feats_obj.Feats?.shape[0] > 0)
             {
                 result = await Task.Run(async () =>
                 {
@@ -2234,7 +2234,7 @@ namespace ImageSearch.Search
         private async Task<ExtraFeatureData?> GetSubExtraFeatDB(IEnumerable<string>? subfiles, ExtraFeatureData? feats_obj)
         {
             ExtraFeatureData? result = null;
-            if (subfiles != null && subfiles.Any() && feats_obj != null && feats_obj.Names?.Length > 0 && feats_obj.Feats?.shape[0] > 0)
+            if (subfiles is not null && subfiles.Any() && feats_obj is not null && feats_obj.Names?.Length > 0 && feats_obj.Feats?.shape[0] > 0)
             {
                 result = await Task.Run(async () =>
                 {
@@ -2326,7 +2326,7 @@ namespace ImageSearch.Search
         private async Task<List<KeyValuePair<string, double>>> QueryImageScore(float[]? feature, string? feature_db = null, double limit = 10, int padding = 0, IEnumerable<string>? files = null)
         {
             var result = new List<KeyValuePair<string, double>>();
-            if (feature == null) return (result);
+            if (feature is null) return (result);
 
             var sw = Stopwatch.StartNew();
             if (_features_.Count > 0 && await ModelLoadedState?.WaitAsync(TimeSpan.FromSeconds(30)) && await FeatureLoadedState?.WaitAsync(TimeSpan.FromSeconds(30)))
