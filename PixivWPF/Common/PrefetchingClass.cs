@@ -391,6 +391,8 @@ namespace PixivWPF.Common
                     }
                     //GC.Collect();
                 }
+                //catch (TaskCanceledException ex) { }
+                catch (TaskCanceledException ex) { ex.DEBUG("GetOriginalImageSize"); }
                 catch (Exception ex) { ex.ERROR("GetOriginalImageSize"); }
                 $"Query Original Imagee File Size : {Environment.NewLine}  Done [ {originals.Count} ]".ShowToast("INFO", tag: args.Name ?? Name ?? GetType().Name);
                 State = count <= 0 ? TaskStatus.RanToCompletion : TaskStatus.Faulted;

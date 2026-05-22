@@ -1143,6 +1143,8 @@ namespace PixivWPF.Common
                     }
                 }
             }
+            //catch (TaskCanceledException ex) { ex.DEBUG("ShowLogin_WaitFailed"); }
+            catch (TaskCanceledException) { }
             catch (Exception ex) { ex.ERROR("ShowLogin_WaitFailed"); }
             finally
             {
@@ -8662,6 +8664,8 @@ namespace PixivWPF.Common
                     }
                     request.Dispose();
                 }
+                //catch (TaskCanceledException ex) { }
+                catch (TaskCanceledException ex) { ex.Message.DEBUG($"QueryImageFileSize_{Path.GetFileName(url)}"); }
                 catch (Exception ex) { ex.Message.ERROR($"QueryImageFileSize_{Path.GetFileName(url)}"); }
             }
             return (result);
@@ -8761,6 +8765,8 @@ namespace PixivWPF.Common
                         }
                         while (string.IsNullOrEmpty(result) && count > 0);
                     }
+                    //catch (TaskCanceledException ex) { }
+                    catch (TaskCanceledException ex) { ex.DEBUG($"DownloadImage_{Path.GetFileName(file)}"); }
                     catch (Exception ex) { ex.ERROR($"DownloadImage_{Path.GetFileName(file)}"); }
                     finally
                     {
@@ -8804,6 +8810,8 @@ namespace PixivWPF.Common
                         }
                         while (string.IsNullOrEmpty(result) && count > 0);
                     }
+                    //catch (TaskCanceledException ex) { }
+                    catch (TaskCanceledException ex) { ex.DEBUG($"DownloadImage_{Path.GetFileName(file)}"); }
                     catch (Exception ex) { ex.ERROR($"DownloadImage_{Path.GetFileName(file)}"); }
                     finally
                     {

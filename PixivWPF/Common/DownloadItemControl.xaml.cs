@@ -16,6 +16,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Xml.Linq;
 
 namespace PixivWPF.Common
 {
@@ -317,7 +318,7 @@ namespace PixivWPF.Common
                 NotifyPropertyChanged("StateChanged");
                 NotifyPropertyChanged();
             }
-            $"{FileName} : {State}[{illustid}{(exists != null ? ", " : "")}{exists}]".DEBUG("UpdateDownloadState");
+            $"{FileName} : {State}[{illustid}{(exists is null ? "" : ", " + exists)}]".DEBUG("UpdateDownloadState");
         }
 
         public void UpdateLikeState()
@@ -1127,6 +1128,8 @@ namespace PixivWPF.Common
                         EndTick = DateTime.Now;
                         await DownloadStreamAsync(response, continuation);
                     }
+                    //catch (TaskCanceledException ex) { }
+                    catch (TaskCanceledException ex) { ex.DEBUG($"DownloadDirectAsync_{Path.GetFileName(FileName)}", no_stack: true); }
                     catch (IOException ex)
                     {
                         if (retry > 0)

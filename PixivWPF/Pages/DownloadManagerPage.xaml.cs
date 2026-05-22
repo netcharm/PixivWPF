@@ -161,10 +161,21 @@ namespace PixivWPF.Pages
             {
                 if (item is not null)
                 {
-                    await new Action(() =>
+                    if (illustid is null)
                     {
-                        item.UpdateDownloadState(illustid, exists);
-                    }).InvokeAsync(true);
+                        await new Action(() =>
+                        {
+                            item.UpdateDownloadState((int)item.IllustID, exists);
+                        }).InvokeAsync(true);
+                    }
+                    else if (item.IllustID == illustid)
+                    {
+                        await new Action(() =>
+                        {
+                            item.UpdateDownloadState(illustid, exists);
+                        }).InvokeAsync(true);
+                        break;
+                    }
                 }
             }
         }

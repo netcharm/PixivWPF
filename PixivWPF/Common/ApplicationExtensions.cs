@@ -589,27 +589,32 @@ namespace PixivWPF.Common
         static public async void GC(this Application app, string name, bool wait = false, bool system_memory = false)
         {
             _gc_ ??= new();
-
-            await Task.Run(async () =>
+            try
             {
-                await Task.Delay(TimeSpan.FromSeconds(60), _gc_.Token);
-                if (_gc_?.IsCancellationRequested ?? true) return;
-
-                long mem_ws_before = 0, mem_pb_before = 0, mem_ws_after = 0, mem_pb_after = 0;
-                if (system_memory) (mem_ws_before, mem_pb_before) = Application.Current.MemoryUsage();
-
-                var before = System.GC.GetTotalMemory(true);
-                System.GC.Collect();
-                if (wait) System.GC.WaitForPendingFinalizers();
-                var after = System.GC.GetTotalMemory(true);
-                $"Managed Memory Usage: {before.SmartFileSize()} => {after.SmartFileSize()}".DEBUG(name ?? string.Empty);
-
-                if (system_memory)
+                await Task.Run(async () =>
                 {
-                    (mem_ws_after, mem_pb_after) = Application.Current.MemoryUsage();
-                    $"System Memory Usage (WS/PB): {mem_ws_before.SmartFileSize()} / {mem_pb_before.SmartFileSize()} => {mem_ws_after.SmartFileSize()} / {mem_pb_after.SmartFileSize()}".DEBUG(name ?? string.Empty);
-                }
-            }, _gc_.Token);
+                    await Task.Delay(TimeSpan.FromSeconds(60), _gc_.Token);
+                    if (_gc_?.IsCancellationRequested ?? true) return;
+
+                    long mem_ws_before = 0, mem_pb_before = 0, mem_ws_after = 0, mem_pb_after = 0;
+                    if (system_memory) (mem_ws_before, mem_pb_before) = Application.Current.MemoryUsage();
+
+                    var before = System.GC.GetTotalMemory(true);
+                    System.GC.Collect();
+                    if (wait) System.GC.WaitForPendingFinalizers();
+                    var after = System.GC.GetTotalMemory(true);
+                    $"Managed Memory Usage: {before.SmartFileSize()} => {after.SmartFileSize()}".DEBUG(name ?? string.Empty);
+
+                    if (system_memory)
+                    {
+                        (mem_ws_after, mem_pb_after) = Application.Current.MemoryUsage();
+                        $"System Memory Usage (WS/PB): {mem_ws_before.SmartFileSize()} / {mem_pb_before.SmartFileSize()} => {mem_ws_after.SmartFileSize()} / {mem_pb_after.SmartFileSize()}".DEBUG(name ?? string.Empty);
+                    }
+                }, _gc_.Token);
+            }
+            //catch (TaskCanceledException ex) { ex.DEBUG($"ApplicationGC, {name}, {wait}"); }
+            catch (TaskCanceledException) { }
+            catch (Exception ex) { ex.DEBUG($"ApplicationGC, {name}, {wait}"); }
         }
 
         static public async void DelayGC(this Application app, CancellationTokenSource cancel = null)
@@ -623,7 +628,7 @@ namespace PixivWPF.Common
                     await Task.Delay(50);
                     _gc_ = new();
                     //await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60)); }, _gc_.Token).ContinueWith((t, o) => System.GC.Collect(), _gc_.Token, continuationOptions: TaskContinuationOptions.OnlyOnRanToCompletion);
-                    await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60), _gc_.Token); if (_gc_?.IsCancellationRequested ?? true) return; System.GC.Collect(); "DelayGC".INFO("Executed"); }, _gc_.Token);
+                    await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60), _gc_.Token); if (_gc_?.IsCancellationRequested ?? true) return; System.GC.Collect(); }, _gc_.Token);
                 }
                 else
                 {
@@ -631,10 +636,12 @@ namespace PixivWPF.Common
                     await Task.Delay(50);
                     cancel = new();
                     //await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60)); }, cancel.Token).ContinueWith((t, o) => System.GC.Collect(), _gc_.Token, continuationOptions: TaskContinuationOptions.OnlyOnRanToCompletion);
-                    await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60), cancel.Token); if (cancel?.IsCancellationRequested ?? true) return; System.GC.Collect(); "DelayGC".INFO("Executed"); }, cancel.Token);
+                    await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60), cancel.Token); if (cancel?.IsCancellationRequested ?? true) return; System.GC.Collect(); }, cancel.Token);
                 }
             }
-            catch { }
+            //catch (TaskCanceledException ex) { ex.DEBUG("DelayGC"); }
+            catch (TaskCanceledException) { }
+            catch (Exception ex) { ex.ERROR("DelayGC"); }
         }
         #endregion
 
