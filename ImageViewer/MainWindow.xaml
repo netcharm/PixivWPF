@@ -267,25 +267,13 @@
                             MouseMove="BirdView_MouseMove"/>
                         <Canvas x:Name="BirdViewCanvas" x:Uid="BirdViewCanvas" SnapsToDevicePixels="True" Background="#00000000" MouseMove="BirdView_MouseMove"
                             Width="{Binding Width, ElementName=BirdView, Mode=TwoWay}" Height="{Binding Height, ElementName=BirdView, Mode=TwoWay}">
-                            <!--<Canvas.OpacityMask>
-                                <VisualBrush Stretch="None" ViewboxUnits="Absolute">
-                                    <VisualBrush.Visual>
-                                        <Rectangle x:Name="BirdViewArea" x:Uid="BirdViewArea" Stroke="Coral" StrokeThickness="1" SnapsToDevicePixels="True">
-                                            <Rectangle.RenderTransform>
-                                                <TranslateTransform x:Name="BirdViewAreaTrans" x:Uid="BirdViewAreaTrans"/>
-                                            </Rectangle.RenderTransform>
-                                        </Rectangle>
-                                    </VisualBrush.Visual>
-                                </VisualBrush>
-                            </Canvas.OpacityMask>-->
                             <Rectangle x:Name="BirdViewArea" x:Uid="BirdViewArea" Stroke="Coral" StrokeThickness="1" SnapsToDevicePixels="True">
                                 <Rectangle.RenderTransform>
                                     <TranslateTransform x:Name="BirdViewAreaTrans" x:Uid="BirdViewAreaTrans"/>
                                 </Rectangle.RenderTransform>
                             </Rectangle>
                         </Canvas>
-                        <Image x:Name="BirdViewMask" x:Uid="BirdViewMask" SnapsToDevicePixels="True" MouseMove="BirdView_MouseMove"
-                               Width="{Binding ActualWidth, ElementName=BirdViewCanvas}" Height="{Binding ActualHeight, ElementName=BirdViewCanvas}"/>
+                        <Path x:Name="BirdViewMask" x:Uid="BirdViewMask" Stroke="Coral" StrokeThickness="1" SnapsToDevicePixels="True" Fill="Transparent" />
                     </Grid>
                 </Border>
             </Grid>

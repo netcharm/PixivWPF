@@ -12,6 +12,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Resources;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Security.Permissions;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -2082,7 +2083,9 @@ namespace ImageViewer
         #endregion
 
         #region Bird View Helper
+        private SolidColorBrush BirdViewMaskBrush = new(Color.FromArgb(200, 128, 128, 128));
         private CancellationTokenSource _birdview_ = new();
+
         /// <summary>
         /// 
         /// </summary>
@@ -2149,26 +2152,12 @@ namespace ImageViewer
 
                 BirdViewMask.Width = bw;
                 BirdViewMask.Height = bh;
+                BirdViewMask.Fill = BirdViewMaskBrush;
+                BirdViewMask.Data = new CombinedGeometry(GeometryCombineMode.Exclude,
+                    new RectangleGeometry(new Rect(0, 0, bw, bh)),
+                    new RectangleGeometry(new Rect(tx, ty, aw, ah))
+                );
 
-                DrawingVisual mask = new();
-                using (DrawingContext mask_context = mask.RenderOpen())
-                {
-                    mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(0, 0, 0, 0)), null, new Rect(tx, ty, aw, ah));
-
-                    mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(200, 128, 128, 128)), null, new Rect(0, 0, bw, ty));
-                    mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(200, 128, 128, 128)), null, new Rect(0, ty + ah, bw, bh - ty - ah));
-
-                    mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(200, 128, 128, 128)), null, new Rect(0, 0, tx, bh));
-                    mask_context.DrawRectangle(new SolidColorBrush(Color.FromArgb(200, 128, 128, 128)), null, new Rect(tx + aw, 0, bw - tx - aw, bh));
-                    //mask_context.Close();
-                };
-
-                var dpi = this.GetSystemDPI();
-
-                RenderTargetBitmap mask_target = new((int)Math.Ceiling(bw), (int)Math.Ceiling(bh), dpi.X, dpi.Y, PixelFormats.Pbgra32);
-                mask_target.Render(mask);
-
-                BirdViewMask.Source = mask_target;
             }, DispatcherPriority.Render, _birdview_.Token);
         }
 
