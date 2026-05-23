@@ -383,10 +383,14 @@ namespace ImageViewer
         private bool? AutoHideToolTip { get; set; } = false;
         private int ToolTipDuration { get; set; } = 5000;
 
-        private double ImageMagnifierZoomFactor { get; set; } = 0.25;
-        private double ImageMagnifierRadius { get; set; } = 100;
-        private double ImageMagnifierBorderThickness { get; set; } = 1;
-        private Color ImageMagnifierBorderBrush { get; set; } = Colors.Silver;
+        private static double ImageMagnifierZoomFactor { get; set; } = 0.25;
+        private static double ImageMagnifierRadius { get; set; } = 100;
+        private static double ImageMagnifierBorderThickness { get; set; } = 1;
+        private static Color ImageMagnifierBorderColor { get; set; } = Colors.Silver;
+
+        private static double BirdviewBorderThickness { get; set; } = 1;
+        private static Color BirdviewBorderColor { get; set; } = Colors.Transparent;
+        private static Color BirdviewMaskColor { get; set; } = Color.FromArgb(200, 128, 128, 128);
 
         private readonly SemaphoreSlim _CanUpdate_ = new(1, 1);
         private readonly Dictionary<Color, string> ColorNames = [];
@@ -2083,8 +2087,12 @@ namespace ImageViewer
         #endregion
 
         #region Bird View Helper
-        private SolidColorBrush BirdViewMaskBrush = new(Color.FromArgb(200, 128, 128, 128));
         private CancellationTokenSource _birdview_ = new();
+
+        private Size BirdviewSize { get => new(BirdViewBorder.ActualWidth, BirdViewBorder.ActualHeight); }
+        private Size BirdviewSrcSize => Dispatcher.Invoke(() => new Size(ImageViewer.DesiredSize.Width, ImageViewer.DesiredSize.Height));
+        private Size ScrollViewport => Dispatcher.Invoke(() => new Size(ImageViewerScroll.ViewportWidth, ImageViewerScroll.ViewportHeight));
+        private Size ScrollOffset => Dispatcher.Invoke(() => new Size(ImageViewerScroll.HorizontalOffset, ImageViewerScroll.VerticalOffset));
 
         /// <summary>
         /// 
@@ -2137,27 +2145,19 @@ namespace ImageViewer
                 var scroll = ImageViewerScroll;
                 var ratio = Math.Min(250f / (src.DesiredSize.Width), 250f / (src.DesiredSize.Height));
 
-                var aw = (src.DesiredSize.Width < scroll.ViewportWidth ? src.DesiredSize.Width : scroll.ViewportWidth) * ratio;
-                var ah = (src.DesiredSize.Height < scroll.ViewportHeight ? src.DesiredSize.Height : scroll.ViewportHeight) * ratio;
-                var tx = scroll.HorizontalOffset * ratio;
-                var ty = scroll.VerticalOffset * ratio;
-
-                BirdViewArea.Width = aw;
-                BirdViewArea.Height = ah;
-                Canvas.SetLeft(BirdViewArea, tx);
-                Canvas.SetTop(BirdViewArea, ty);
-
+                var tx = scroll.HorizontalOffset * ratio + BirdviewBorderThickness;
+                var ty = scroll.VerticalOffset * ratio + BirdviewBorderThickness;
+                var aw = (src.DesiredSize.Width < scroll.ViewportWidth ? src.DesiredSize.Width : scroll.ViewportWidth) * ratio - BirdviewBorderThickness * 2;
+                var ah = (src.DesiredSize.Height < scroll.ViewportHeight ? src.DesiredSize.Height : scroll.ViewportHeight) * ratio - BirdviewBorderThickness * 2;
                 var bw = BirdViewBorder.ActualWidth;
                 var bh = BirdViewBorder.ActualHeight;
 
                 BirdViewMask.Width = bw;
                 BirdViewMask.Height = bh;
-                BirdViewMask.Fill = BirdViewMaskBrush;
                 BirdViewMask.Data = new CombinedGeometry(GeometryCombineMode.Exclude,
                     new RectangleGeometry(new Rect(0, 0, bw, bh)),
                     new RectangleGeometry(new Rect(tx, ty, aw, ah))
                 );
-
             }, DispatcherPriority.Render, _birdview_.Token);
         }
 
@@ -2182,21 +2182,16 @@ namespace ImageViewer
                         var bw = BirdViewBorder.BorderThickness.Left + BirdViewBorder.BorderThickness.Right;
                         var bh = BirdViewBorder.BorderThickness.Top + BirdViewBorder.BorderThickness.Bottom;
 
-                        BirdViewCanvas.Width = tw;
-                        BirdViewCanvas.Height = th;
                         BirdViewPanel.Width = tw + bw;
                         BirdViewPanel.Height = th + bh;
                         BirdViewBorder.Width = tw + bw;
                         BirdViewBorder.Height = th + bh;
 
-                        //BirdView.Source = ImageViewer.ToBitmapSource(new Size(tw, th));
-                        //BirdView.Source = ImageViewer.ToMagickImage(new Size(tw, th)).ToBitmapSource();
                         BirdView.Source = ImageViewer.CreateThumb(new Size(tw, th));
 
                         BirdView.UpdateLayout();
-                        BirdViewCanvas.UpdateLayout();
-                        BirdViewPanel.UpdateLayout();
                         BirdViewBorder.UpdateLayout();
+                        BirdViewPanel.UpdateLayout();
 
                         UpdateBirdViewArea();
                     }
@@ -2215,19 +2210,19 @@ namespace ImageViewer
         {
             double offset_x = ImageViewerScroll.Dispatcher.Invoke(() => ImageViewerScroll.HorizontalOffset);
             double offset_y = ImageViewerScroll.Dispatcher.Invoke(() => ImageViewerScroll.VerticalOffset);
-            if (Ready && BirdView.Source != null && (sender == BirdView || sender == BirdViewCanvas || sender == BirdViewArea || sender == BirdViewMask))
+            if (Ready && BirdView.Source != null && (sender == BirdView || sender == BirdViewMask))
             {
                 try
                 {
                     sender.Dispatcher.Invoke(() =>
                     {
                         var src = ImageViewerBox;
+                        var scroll = ImageViewerScroll;
                         var ratio = Math.Max(src.DesiredSize.Width / 250f, src.DesiredSize.Height / 250f);
 
-                        //var ax = Canvas.GetLeft(BirdViewArea);
-                        //var ay = Canvas.GetTop(BirdViewArea);
-                        var aw = BirdViewArea.DesiredSize.Width;
-                        var ah = BirdViewArea.DesiredSize.Height;
+                        var aw = (src.DesiredSize.Width < scroll.ViewportWidth ? src.DesiredSize.Width : scroll.ViewportWidth) / ratio;
+                        var ah = (src.DesiredSize.Height < scroll.ViewportHeight ? src.DesiredSize.Height : scroll.ViewportHeight) / ratio;
+
                         var acw = aw / 2f;
                         var ach = ah / 2f;
 
@@ -3174,6 +3169,45 @@ namespace ImageViewer
         #endregion
 
         #region Main Window Helper
+
+        private DragDropEffects _draging_effect_ = DragDropEffects.Copy;
+        private bool IsDragingOut => _draging_effect_ == DragDropEffects.None;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void DragingOut()
+        {
+            try
+            {
+                if (Ready && ImageViewer?.Source is not null)
+                {
+                    var dp = new DataObject();
+                    var image = ImageViewer.GetInformation();
+                    if (!string.IsNullOrEmpty(image.FileName) && File.Exists(image.FileName))
+                    {
+                        dp.SetFileDropList([image.FileName]);
+                        dp.SetText(image.FileName);
+                    }
+                    else
+                        dp.SetImage((BitmapSource)ImageViewer.Source);
+
+                    AllowDrop = false;
+                    ImageViewer.AllowDrop = false;
+                    ImageViewerScroll.AllowDrop = false;
+                    _draging_effect_ = DragDrop.DoDragDrop(this, dp, DragDropEffects.Copy);
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage("DragingOut"); }
+            finally
+            {
+                AllowDrop = true;
+                ImageViewer.AllowDrop = true;
+                ImageViewerScroll.AllowDrop = true;
+                _draging_effect_ = DragDropEffects.Copy;
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -3509,11 +3543,11 @@ namespace ImageViewer
                     var value = ImageMagnifierRadius;
                     if (double.TryParse(appSection.Settings["ImageMagnifierRadius"].Value, out value)) ImageMagnifierRadius = value;
                 }
-                if (appSection.Settings.AllKeys.Contains("ImageMagnifierBorderBrush"))
+                if (appSection.Settings.AllKeys.Contains("ImageMagnifierBorderColor"))
                 {
                     try
                     {
-                        ImageMagnifierBorderBrush = (Color)ColorConverter.ConvertFromString(appSection.Settings["ImageMagnifierBorderBrush"].Value);
+                        ImageMagnifierBorderColor = (Color)ColorConverter.ConvertFromString(appSection.Settings["ImageMagnifierBorderColor"].Value);
                     }
                     catch { }
                 }
@@ -3521,6 +3555,28 @@ namespace ImageViewer
                 {
                     var value = ImageMagnifierBorderThickness;
                     if (double.TryParse(appSection.Settings["ImageMagnifierBorderThickness"].Value, out value)) ImageMagnifierBorderThickness = value;
+                }
+
+                if (appSection.Settings.AllKeys.Contains("BirdviewMaskColor"))
+                {
+                    try
+                    {
+                        BirdviewMaskColor = (Color)ColorConverter.ConvertFromString(appSection.Settings["BirdviewMaskColor"].Value);
+                    }
+                    catch { }
+                }
+                if (appSection.Settings.AllKeys.Contains("BirdviewBorderColor"))
+                {
+                    try
+                    {
+                        BirdviewBorderColor = (Color)ColorConverter.ConvertFromString(appSection.Settings["BirdviewBorderColor"].Value);
+                    }
+                    catch { }
+                }
+                if (appSection.Settings.AllKeys.Contains("BirdviewBorderThickness"))
+                {
+                    var value = BirdviewBorderThickness;
+                    if (double.TryParse(appSection.Settings["BirdviewBorderThickness"].Value, out value)) BirdviewBorderThickness = value;
                 }
 
                 if (appSection.Settings.AllKeys.Contains("LastHaldFolder"))
@@ -3616,16 +3672,29 @@ namespace ImageViewer
                     else
                         appSection.Settings.Add("ImageMagnifierRadius", ImageMagnifierRadius.ToString());
 
-                    if (appSection.Settings.AllKeys.Contains("ImageMagnifierBorderBrush"))
-                        appSection.Settings["ImageMagnifierBorderBrush"].Value = ImageMagnifierBorderBrush.ToString();
+                    if (appSection.Settings.AllKeys.Contains("ImageMagnifierBorderColor"))
+                        appSection.Settings["ImageMagnifierBorderColor"].Value = ImageMagnifierBorderColor.ToString();
                     else
-                        appSection.Settings.Add("ImageMagnifierBorderBrush", ImageMagnifierBorderBrush.ToString());
+                        appSection.Settings.Add("ImageMagnifierBorderColor", ImageMagnifierBorderColor.ToString());
 
                     if (appSection.Settings.AllKeys.Contains("ImageMagnifierBorderThickness"))
                         appSection.Settings["ImageMagnifierBorderThickness"].Value = ImageMagnifierBorderThickness.ToString();
                     else
                         appSection.Settings.Add("ImageMagnifierBorderThickness", ImageMagnifierBorderThickness.ToString());
 
+                    if (appSection.Settings.AllKeys.Contains("BirdviewMaskColor"))
+                        appSection.Settings["BirdviewMaskColor"].Value = BirdviewMaskColor.ToString();
+                    else
+                        appSection.Settings.Add("BirdviewMaskColor", BirdviewMaskColor.ToString());
+                    if (appSection.Settings.AllKeys.Contains("BirdviewBorderColor"))
+                        appSection.Settings["BirdviewBorderColor"].Value = BirdviewBorderColor.ToString();
+                    else
+                        appSection.Settings.Add("BirdviewBorderColor", BirdviewBorderColor.ToString());
+                    if (appSection.Settings.AllKeys.Contains("BirdviewBorderThickness"))
+                        appSection.Settings["BirdviewBorderThickness"].Value = BirdviewBorderThickness.ToString();
+                    else
+                        appSection.Settings.Add("BirdviewBorderThickness", BirdviewBorderThickness.ToString());
+                    
                     var rect = new Rect(
                         LastPositionSize.Left, LastPositionSize.Top,
                         Math.Min(MaxWidth, Math.Max(MinWidth, LastPositionSize.Width)),
@@ -3877,9 +3946,15 @@ namespace ImageViewer
             //ImageMagnifier.FrameType = FrameType.Rectangle;
             ImageMagnifier.Visibility = Visibility.Collapsed;
             ImageMagnifier.Radius = ImageMagnifierRadius;
-            ImageMagnifier.BorderBrush = new SolidColorBrush(ImageMagnifierBorderBrush);
+            ImageMagnifier.BorderBrush = new SolidColorBrush(ImageMagnifierBorderColor);
             ImageMagnifier.BorderThickness = new Thickness(ImageMagnifierBorderThickness);
             ImageMagnifier.ZoomFactor = ImageMagnifierZoomFactor;
+            #endregion
+
+            #region Birdview Init
+            BirdViewMask.Fill = new SolidColorBrush(BirdviewMaskColor);
+            BirdViewMask.Stroke = new SolidColorBrush(BirdviewBorderColor);
+            BirdViewMask.StrokeThickness = BirdviewBorderThickness;
             #endregion
 
             SyncColorLighting();
@@ -3930,6 +4005,8 @@ namespace ImageViewer
         private void Window_DragOver(object sender, DragEventArgs e)
         {
             if (!Ready) return;
+            if (IsDragingOut) return;
+
             var fmts = e.Data.GetFormats(true);
 #if DEBUG
             Debug.WriteLine(string.Join(", ", fmts));
@@ -3943,6 +4020,8 @@ namespace ImageViewer
         private void Window_Drop(object sender, DragEventArgs e)
         {
             if (!Ready) return;
+            if (IsDragingOut) return;
+
             var fmts = e.Data.GetFormats(true);
             if (e.Data.GetDataPresent("FileDrop"))
             {
@@ -4282,7 +4361,7 @@ namespace ImageViewer
                 if (e.Device is MouseDevice)
                 {
                     var km = this.GetModifier();
-                    if      (e.ChangedButton == MouseButton.XButton1 && e.LeftButton == MouseButtonState.Pressed)
+                    if (e.ChangedButton == MouseButton.XButton1 && e.LeftButton == MouseButtonState.Pressed)
                     {
                         e.Handled = true;
                         if (e.ClickCount == 1) ToggleZoomMode();
@@ -4290,13 +4369,7 @@ namespace ImageViewer
                     else if (e.ChangedButton == MouseButton.Left && km.OnlyShift)
                     {
                         e.Handled = true;
-                        var dp = new DataObject();
-                        var image = ImageViewer.GetInformation();
-                        if (!string.IsNullOrEmpty(image.FileName) && File.Exists(image.FileName))
-                            dp.SetFileDropList([image.FileName]);
-                        else
-                            dp.SetImage((BitmapSource)ImageViewer.Source);
-                        DragDrop.DoDragDrop(this, dp, DragDropEffects.Copy);
+                        DragingOut();
                     }
                     else if (e.ChangedButton == MouseButton.Left && e.ClickCount >= 2)
                     {
@@ -4390,6 +4463,17 @@ namespace ImageViewer
 
         #region Birds Eye View
         private void BirdView_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (!Ready) return;
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                e.Handled = true;
+                var offset = CalcBirdViewOffset(sender as FrameworkElement, e);
+                SyncScrollOffset(offset);
+            }
+        }
+
+        private void BirdView_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (!Ready) return;
             if (e.LeftButton == MouseButtonState.Pressed)

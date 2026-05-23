@@ -254,8 +254,8 @@
             </ScrollViewer>
             <Grid Grid.Row="1" x:Name="BirdViewPanel" x:Uid="BirdViewPanel" Width="250" Height="250" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="16">
                 <Grid.Background>
-                    <ImageBrush x:Uid="CanvasBackImageBrush" ImageSource="pack://application:,,,/ImageViewer;component/Resources/CheckboardPattern_32.png" 
-                TileMode="Tile" Opacity="0.10" ViewportUnits="Absolute" Viewport="0,0,16,16"/>
+                    <ImageBrush x:Uid="CanvasBackImageBrush" TileMode="Tile" Opacity="0.10" ViewportUnits="Absolute" Viewport="0,0,16,16"
+                                ImageSource="pack://application:,,,/ImageViewer;component/Resources/CheckboardPattern_32.png"/>
                 </Grid.Background>
                 <Border x:Name="BirdViewBorder" x:Uid="BirdViewPanelBorder" BorderThickness="1" BorderBrush="#202020">
                     <Border.Effect>
@@ -265,15 +265,7 @@
                         <Image x:Name="BirdView" x:Uid="BirdView" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" SnapsToDevicePixels="True"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                             MouseMove="BirdView_MouseMove"/>
-                        <Canvas x:Name="BirdViewCanvas" x:Uid="BirdViewCanvas" SnapsToDevicePixels="True" Background="#00000000" MouseMove="BirdView_MouseMove"
-                            Width="{Binding Width, ElementName=BirdView, Mode=TwoWay}" Height="{Binding Height, ElementName=BirdView, Mode=TwoWay}">
-                            <Rectangle x:Name="BirdViewArea" x:Uid="BirdViewArea" Stroke="Coral" StrokeThickness="1" SnapsToDevicePixels="True">
-                                <Rectangle.RenderTransform>
-                                    <TranslateTransform x:Name="BirdViewAreaTrans" x:Uid="BirdViewAreaTrans"/>
-                                </Rectangle.RenderTransform>
-                            </Rectangle>
-                        </Canvas>
-                        <Path x:Name="BirdViewMask" x:Uid="BirdViewMask" Stroke="Coral" StrokeThickness="1" SnapsToDevicePixels="True" Fill="Transparent" />
+                        <Path x:Name="BirdViewMask" x:Uid="BirdViewMask" Stroke="Transparent" StrokeThickness="1" SnapsToDevicePixels="True" Fill="Transparent" MouseMove="BirdView_MouseMove" MouseLeftButtonDown="BirdView_MouseLeftButtonDown"/>
                     </Grid>
                 </Border>
             </Grid>
