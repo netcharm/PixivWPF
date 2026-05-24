@@ -36,13 +36,13 @@ namespace ImageViewer
         {
             get
             {
-                //if (_pid_ < 0) _pid_ = Environment.ProcessId;
-                if (_pid_ < 0) _pid_ = System.Diagnostics.Process.GetCurrentProcess().Id;
+                //if (_pid_ <= 0) _pid_ = Environment.ProcessId;
+                if (_pid_ <= 0) _pid_ = System.Diagnostics.Process.GetCurrentProcess().Id;
                 return (_pid_);
             }
         }
 
-        #region Named Pipe Heler
+        #region Named Pipe Helper
         public class NamedPipeContent
         {
             public string Command { get; set; }
@@ -51,28 +51,25 @@ namespace ImageViewer
         }
 
         private static string _pipe_name_ = string.Empty;
-
-        private NamedPipeServerStream _pipeServer_;
-        //private IAsyncResult? _pipeResult_;
-        private bool _pipOnClosing_ = false;
-
-        public static string PipeServerName()
-        {
-#if DEBUG
-            return ($"{APP_NAME}-DEBUG");
-#else
-            return ($"{APP_NAME}");
-#endif
-        }
-
         public static string PipeName
         {
             get
             {
-                if (string.IsNullOrEmpty(_pipe_name_)) _pipe_name_ = PipeServerName();
+                if (string.IsNullOrEmpty(_pipe_name_))
+                {
+#if DEBUG
+                    _pipe_name_ = $"{APP_NAME}-DEBUG";
+#else
+                    _pipe_name_ = APP_NAME;
+#endif
+                }
                 return (_pipe_name_);
             }
         }
+
+        private NamedPipeServerStream _pipeServer_;
+        //private IAsyncResult? _pipeResult_;
+        private bool _pipeOnClosing_ = false;
 
         private bool CreateNamedPipeServer()
         {
@@ -80,7 +77,7 @@ namespace ImageViewer
             {
                 ReleaseNamedPipeServer();
                 var pipeSec = new PipeSecurity();
-                SecurityIdentifier securityIdentifier = new SecurityIdentifier(WellKnownSidType.AuthenticatedUserSid, null);
+                SecurityIdentifier securityIdentifier = new(WellKnownSidType.AuthenticatedUserSid, null);
                 pipeSec.AddAccessRule(new PipeAccessRule(securityIdentifier, PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance, AccessControlType.Allow));
                 //pipeSec.SetAccessRule(new PipeAccessRule("Everyone", PipeAccessRights.ReadWrite, System.Security.AccessControl.AccessControlType.Allow));
                 _pipeServer_ = new NamedPipeServerStream($"{PipeName}-{PID}", PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous, 0, 0, pipeSecurity: pipeSec);
@@ -95,7 +92,7 @@ namespace ImageViewer
         {
             if (_pipeServer_ != null)
             {
-                _pipOnClosing_ = true;
+                _pipeOnClosing_ = true;
                 try
                 {
                     if (_pipeServer_.IsConnected) _pipeServer_?.Disconnect();
@@ -112,7 +109,7 @@ namespace ImageViewer
                 }
                 catch (Exception ex) { ReportMessage(ex); }
                 _pipeServer_ = null;
-                _pipOnClosing_ = false;
+                _pipeOnClosing_ = false;
             }
             return (true);
         }
@@ -126,37 +123,30 @@ namespace ImageViewer
         {
             try
             {
-                if (!_pipOnClosing_ && result != null && result.IsCompleted)
+                if (!_pipeOnClosing_ && result != null && result.IsCompleted)
                 {
-                    using (NamedPipeServerStream ps = result.AsyncState as NamedPipeServerStream)
-                    {
-                        if (!ps.IsConnected) ps.EndWaitForConnection(result);
+                    using NamedPipeServerStream ps = result.AsyncState as NamedPipeServerStream;
+                    if (!ps.IsConnected) ps.EndWaitForConnection(result);
 
-                        if (ps.CanRead)
+                    if (ps.CanRead)
+                    {
+                        using StreamReader sw = new(ps);
+                        var contents = sw.ReadToEnd().Trim();
+                        if (string.IsNullOrEmpty(contents))
+                            Current?.Dispatcher?.Invoke(() => { Current?.MainWindow?.Activate(); });
+                        else
                         {
-                            using (StreamReader sw = new StreamReader(ps))
+                            var content = new NamedPipeContent() { Command = "view", Args = contents.Split([Environment.NewLine, "\r\n", "\n\r", "\r", "\n" ], StringSplitOptions.RemoveEmptyEntries) };
+                            if (content?.Args.Length > 0 && Current?.MainWindow is MainWindow)
                             {
-                                var contents = sw.ReadToEnd().Trim();
-                                if (string.IsNullOrEmpty(contents))
-                                    Current?.Dispatcher?.Invoke(() => { Current?.MainWindow?.Activate(); });
-                                else
+                                Current?.Dispatcher?.Invoke(async () =>
                                 {
-                                    var content = new NamedPipeContent() { Command = "view", Args = contents.Split([Environment.NewLine, "\r\n", "\n\r", "\r", "\n" ], StringSplitOptions.RemoveEmptyEntries) };
-                                    if (content?.Args.Length > 0)
-                                    {
-                                        Current?.Dispatcher?.Invoke(async () =>
-                                        {
-                                            if (Current?.MainWindow is MainWindow && content.Args.Length > 0)
-                                            {
-                                                await (Current?.MainWindow as MainWindow).LoadImageFromFiles(content.Args);
-                                            }
-                                        });
-                                    }
-                                }
+                                    await (Current?.MainWindow as MainWindow).LoadImageFromFiles(content.Args);
+                                });
                             }
                         }
-                        if (ps.IsConnected) ps.Disconnect();
                     }
+                    if (ps.IsConnected) ps.Disconnect();
                 }
             }
             catch (Exception ex) { ReportMessage(ex); }
@@ -174,12 +164,12 @@ namespace ImageViewer
             }
         }
 
-        private static string[] GetPipeServer(string server = ".")
+        private string[] GetPipeServer(string server = ".")
         {
-            return (Directory.GetFiles($"\\\\{server}\\pipe\\", $"{PipeName}-*").Select(p => p.Replace($"\\\\{server}\\pipe\\", "")).ToArray());
+            return ([.. Directory.GetFiles($"\\\\{server}\\pipe\\", $"{PipeName}-*").Select(p => p.Replace($"\\\\{server}\\pipe\\", ""))]);
         }
 
-        public static bool DetectPipeServer(string server = ".")
+        public bool DetectPipeServer(string server = ".")
         {
             var result = false;
             try
@@ -191,7 +181,7 @@ namespace ImageViewer
             return (result);
         }
 
-        public static bool SendToPipeServer(string content, string server = ".")
+        public bool SendToPipeServer(string content, string server = ".")
         {
             var result = false;
             try
@@ -200,15 +190,11 @@ namespace ImageViewer
                 if (pipes.Length > 0 && !string.IsNullOrEmpty(content))
                 {
                     var pipe = pipes.First();
-                    using (var pipeClient = new NamedPipeClientStream(server, pipe, PipeDirection.Out, PipeOptions.Asynchronous, System.Security.Principal.TokenImpersonationLevel.Impersonation))
-                    {
-                        pipeClient.Connect(server.Equals(".") ? 1000 : 5000);
-                        using (StreamWriter sw = new StreamWriter(pipeClient))
-                        {
-                            sw.WriteLine(content);
-                            sw.Flush();
-                        }
-                    }
+                    using var pipeClient = new NamedPipeClientStream(server, pipe, PipeDirection.Out, PipeOptions.Asynchronous, TokenImpersonationLevel.Impersonation);
+                    pipeClient.Connect(server.Equals(".") ? 1000 : 5000);
+                    using StreamWriter sw = new(pipeClient);
+                    sw.WriteLine(content);
+                    sw.Flush();
                 }
             }
             catch (Exception ex) { ReportMessage(ex); }
