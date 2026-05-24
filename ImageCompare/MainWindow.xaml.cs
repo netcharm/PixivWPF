@@ -2911,6 +2911,7 @@ namespace ImageCompare
                 });
 
                 var image = source == ImageType.Source ? ImageSource : ImageTarget;
+                var info = image.GetInformation();
                 var scaler = source == ImageType.Source ? ImageSourceScale : ImageTargetScale;
                 var rotater = source == ImageType.Source ? ImageSourceRotate : ImageTargetRotate;
 
@@ -2922,9 +2923,12 @@ namespace ImageCompare
                 var size = SizeChanger.Dispatcher.Invoke(() => SizeChangeValue.Value ?? 0);
                 var scale = SizeChanger.Dispatcher.Invoke(()=> SizeChangeScaleValue.Value ?? 0);
 
-                var angle = rotater.Dispatcher?.Invoke(() => rotater.Angle % 360) ?? 0;
-                var flipx = scaler.Dispatcher?.Invoke(() => scaler.ScaleX < 0) ?? false;
-                var flipy = scaler.Dispatcher?.Invoke(() => scaler.ScaleY < 0) ?? false;
+                //var angle = rotater.Dispatcher?.Invoke(() => rotater.Angle % 360) ?? 0;
+                //var flipx = scaler.Dispatcher?.Invoke(() => scaler.ScaleX < 0) ?? info.FlipX;
+                //var flipy = scaler.Dispatcher?.Invoke(() => scaler.ScaleY < 0) ?? info.FlipY;
+                var angle = info.Rotated;
+                var flipx = info.FlipX;
+                var flipy = info.FlipY;
 
                 var align = SizeChangerAlign;
                 if (angle != 0) align = Rotate(align, angle);
