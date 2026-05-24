@@ -141,26 +141,20 @@ namespace ImageViewer
                                     Current?.Dispatcher?.Invoke(() => { Current?.MainWindow?.Activate(); });
                                 else
                                 {
-                                    var content = new NamedPipeContent() { Command = "compare", Args = contents.Split(new string[]{ Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries) };
-                                    if (content != null)
+                                    var content = new NamedPipeContent() { Command = "view", Args = contents.Split([Environment.NewLine, "\r\n", "\n\r", "\r", "\n" ], StringSplitOptions.RemoveEmptyEntries) };
+                                    if (content?.Args.Length > 0)
                                     {
-                                        if (content.Command.Equals("active", StringComparison.CurrentCultureIgnoreCase))
-                                            Current?.Dispatcher?.Invoke(() => { Current?.MainWindow?.Activate(); });
-                                        else if (content.Command.Equals("compare", StringComparison.CurrentCultureIgnoreCase))
+                                        Current?.Dispatcher?.Invoke(async () =>
                                         {
-                                            Current?.Dispatcher?.Invoke(async () =>
+                                            if (Current?.MainWindow is MainWindow && content.Args.Length > 0)
                                             {
-                                                if (Current?.MainWindow is MainWindow && content.Args.Length > 0)
-                                                {
-                                                    await (Current?.MainWindow as MainWindow).LoadImageFromFiles(content.Args);
-                                                }
-                                            });
-                                        }
+                                                await (Current?.MainWindow as MainWindow).LoadImageFromFiles(content.Args);
+                                            }
+                                        });
                                     }
                                 }
                             }
                         }
-
                         if (ps.IsConnected) ps.Disconnect();
                     }
                 }
