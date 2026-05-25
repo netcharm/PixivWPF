@@ -337,9 +337,9 @@ namespace ImageViewer
 //                    Debug.WriteLine(string.Join(", ", OpenCL.Devices.Select(d => d.Name)));
 //#endif
 //                }
-                ResourceLimits.MaxMemoryRequest = 4 * GB;
-                ResourceLimits.Memory = 4 * GB;
-                ResourceLimits.LimitMemory(new Percentage(10));
+                ResourceLimits.MaxMemoryRequest = 6 * GB;
+                ResourceLimits.Memory = 6 * GB;
+                ResourceLimits.LimitMemory(new Percentage(15));
                 ResourceLimits.Thread = 4;
                 //ResourceLimits.Area = 4096 * 4096;
                 //ResourceLimits.Throttle =
