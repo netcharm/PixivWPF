@@ -1951,7 +1951,7 @@ namespace ImageViewer
                     {
                         if (drop) return;
                         var image_s = ImageViewer.GetInformation();
-                        if (image_s.ValidCurrent)
+                        if ((image_s?.ValidCurrent ?? false) && (_quality_info_?.ValidCurrent ?? false))
                         {
                             if (restore)
                             {
@@ -1963,9 +1963,6 @@ namespace ImageViewer
                                 var quality = (uint)QualityChangerSlider.Value;
                                 if (quality < image_s.OriginalQuality)
                                 {
-                                    //if (_quality_info_.IsRotated) RotateImage(true, (int)_quality_info_.Rotated);
-                                    //if (_quality_info_.FlipX) FlopImage(true);
-                                    //if (_quality_info_.FlipY) FlipImage(true);
                                     image_s.Current = _quality_info_.Current;
                                     image_s.Current.Format = MagickFormat.Jpeg;
                                     image_s.Current.Quality = quality;
