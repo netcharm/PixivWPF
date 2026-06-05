@@ -136,7 +136,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (is_movie == null) is_movie = this.IsMovie() || this.IsUgoira();
+                is_movie ??= this.IsMovie() || this.IsUgoira();
                 return (is_movie ?? (this.IsMovie() || this.IsUgoira()));
             }
         }
@@ -146,7 +146,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (is_mmd == null) is_mmd = this.IsMMD();
+                is_mmd ??= this.IsMMD();
                 return (is_mmd ?? this.IsMMD());
             }
         }
@@ -162,7 +162,7 @@ namespace PixivWPF.Common
         [DefaultValue(false)]
         public bool IsFavorited
         {
-            get { return (FavMarkVisibility == Visibility.Visible ? true : Illust.IsLiked()); }
+            get { return (FavMarkVisibility == Visibility.Visible || Illust.IsLiked()); }
             set
             {
                 if (IsDisplayFavMark && value) FavMarkVisibility = Visibility.Visible;
@@ -199,7 +199,7 @@ namespace PixivWPF.Common
                 if (this.HasUser())
                 {
                     var ui = User.FindUserInfo();
-                    if (ui is Pixeez.Objects.UserInfo) count = ui.profile.total_follow_users;
+                    if (ui is not null) count = ui.profile.total_follow_users;
                 }
                 return (count);
             }
@@ -213,7 +213,7 @@ namespace PixivWPF.Common
         [DefaultValue(false)]
         public bool IsFollowed
         {
-            get { return (FollowMarkVisibility == Visibility.Visible ? true : User.IsLiked()); }
+            get { return (FollowMarkVisibility == Visibility.Visible || User.IsLiked()); }
             set
             {
                 if (IsDisplayFavMark && value) FollowMarkVisibility = Visibility.Visible;
@@ -233,8 +233,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (BadgeVisibility == Visibility.Visible) return true;
-                else return false;
+                return BadgeVisibility == Visibility.Visible;
             }
             set
             {
@@ -250,8 +249,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (TitleVisibility == Visibility.Visible) return true;
-                else return false;
+                return TitleVisibility == Visibility.Visible;
             }
             set
             {
@@ -268,7 +266,7 @@ namespace PixivWPF.Common
         [DefaultValue(false)]
         public bool IsPartDownloaded
         {
-            get { return (IsPartDownloadedVisibility == Visibility.Visible ? true : false); }
+            get { return (IsPartDownloadedVisibility == Visibility.Visible); }
             set
             {
                 if (value) IsPartDownloadedVisibility = Visibility.Visible;
@@ -292,9 +290,9 @@ namespace PixivWPF.Common
             get
             {
                 if (UsePartDownloaded)
-                    return (IsPartDownloadedVisibility == Visibility.Visible ? true : Illust.IsPartDownloaded(touch: false));
+                    return (IsPartDownloadedVisibility == Visibility.Visible || Illust.IsPartDownloaded(touch: false));
                 else
-                    return (IsDownloadedVisibility == Visibility.Visible ? true : Illust.IsDownloaded(Count <= 1, index: Index, touch: false));
+                    return (IsDownloadedVisibility == Visibility.Visible || Illust.IsDownloaded(Count <= 1, index: Index, touch: false));
             }
             set
             {

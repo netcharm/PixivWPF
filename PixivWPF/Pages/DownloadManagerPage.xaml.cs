@@ -560,6 +560,8 @@ namespace PixivWPF.Pages
                 {
                     if (IsLoaded)
                     {
+                        e.Handled = true;
+                        //e.OriginalSource = null;
                         setting = Application.Current.LoadSetting();
                         if (e.NewValue != SimultaneousJobs) SimultaneousJobs = Convert.ToInt32(e.NewValue);
                     }

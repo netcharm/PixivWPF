@@ -1349,14 +1349,16 @@ namespace PixivWPF.Common
                                     bool download = item.Illust.IsDownloadedAsync(out f,  false, index: item.Index, touch: touch);
                                     item.IsDownloaded = download;
                                     item.DownloadedFilePath = f;
+                                    item.UsePartDownloaded = false;
                                 }
-                                else if (item.IsWork())
+                                else
                                 {
                                     string f = string.Empty;
                                     bool part_down = item.Illust.IsPartDownloadedAsync(out f, touch: touch);
+                                    item.IsDownloaded = part_down;
                                     item.IsPartDownloaded = part_down;
-                                    item.IsDownloaded = item.IsPartDownloaded;
                                     item.DownloadedFilePath = f;
+                                    item.UsePartDownloaded = true;
 #if DEBUG
                                     this.Invoke(() => { ($"{Name ?? "Gallary"}_{item.ID}").DEBUG("UpdateTilesState"); });
 #endif
