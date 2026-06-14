@@ -1047,6 +1047,20 @@ namespace ImageCompare
         /// <summary>
         /// 
         /// </summary>
+        private CancellationTokenSource _update_cancel_ = new CancellationTokenSource();
+        public CancellationToken CancelUpdateViewerToken => _update_cancel_?.Token ?? CancellationToken.None;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void CancelUpdateImageViewer()
+        {
+            _update_cancel_?.Cancel();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="compose"></param>
         /// <param name="assign"></param>
         /// <param name="reload"></param>
@@ -1198,7 +1212,8 @@ namespace ImageCompare
 
                         if (image_r.ValidCurrent) image_r.Dispose();
 
-                        image_r.Original = await Compare(image_s.Current, image_t.Current, compose: compose);
+                        _update_cancel_ = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+                        image_r.Original = await Compare(image_s.Current, image_t.Current, compose: compose, canceltoken: CancelUpdateViewerToken);
                         image_r.Type = ImageType.Result;
                         image_r.OpMode = LastOpIsComposite ? ImageOpMode.Compose : ImageOpMode.Compare;
                         image_r.ColorFuzzy = DefaultColorFuzzy;
@@ -4140,7 +4155,8 @@ namespace ImageCompare
                     var km = this.GetModifier();
                     if      (e.Key == Key.Escape || e.SystemKey == Key.Escape)
                     {
-                        if (IsMagnifier)
+                        if (IsBusy) CancelUpdateImageViewer();
+                        else if (IsMagnifier)
                         {
                             e.Handled = true;
                             ToggleMagnifier(state: false, change_state: true);

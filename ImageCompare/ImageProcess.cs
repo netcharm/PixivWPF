@@ -2295,24 +2295,24 @@ namespace ImageCompare
         /// <param name="target"></param>
         /// <param name="compose"></param>
         /// <returns></returns>
-        private async Task<MagickImage> Compare(MagickImage source, MagickImage target, bool compose = false)
+        private async Task<MagickImage> Compare(MagickImage source, MagickImage target, bool compose = false, CancellationToken canceltoken = default)
         {
             MagickImage result = null;
             var st = Stopwatch.StartNew();
             var tip = new List<string>();
             try
             {
-                Func<MagickImage, MagickImage> ToGray = (im) =>
+                MagickImage ToGray(MagickImage im)
                 {
                     var im_out = new MagickImage(im);
                     im_out.Grayscale(GrayscaleMode);
                     im_out.MatteColor = MasklightColor;
                     im_out.ColorSpace = ColorSpace.scRGB;
                     im_out.ColorType = im.HasAlpha ? ColorType.TrueColorAlpha : ColorType.TrueColor;
-                    return(im_out);
-                };
+                    return (im_out);
+                }
 
-                Func<MagickImage, MagickImage> ToColor = (im) =>
+                MagickImage ToColor(MagickImage im)
                 {
                     var im_out = new MagickImage(im);
                     if (im_out.ColorSpace == ColorSpace.Gray || im_out.ColorSpace == ColorSpace.LinearGray ||
@@ -2321,13 +2321,10 @@ namespace ImageCompare
                         im_out.ColorSpace = ColorSpace.scRGB;
                         im_out.ColorType = im_out.HasAlpha ? ColorType.TrueColorAlpha : ColorType.TrueColor;
                     }
-                    return(im_out);
-                };
+                    return (im_out);
+                }
 
-                Action<IMagickImage<float>, uint, uint> NormSize = (im, w, h) =>
-                {
-                    im.Extent(w, h, DefaultMatchAlign);
-                };
+                void NormSize(IMagickImage<float> im, uint w, uint h) => im.Extent(w, h, DefaultMatchAlign);
 
                 if (source is MagickImage && target is MagickImage)
                 {
@@ -2338,92 +2335,105 @@ namespace ImageCompare
                     var max_w = Math.Max(source.Width, target.Width);
                     var max_h = Math.Max(source.Height, target.Height);
 
-                    if (compose)
+                    (tip, result) = await Task.Run(() =>
                     {
-                        var source_x = source.Clone();
-                        var target_x = target.Clone();
+                        var _tip_ = new List<string>();
+                        MagickImage _result_ = null;
 
-                        NormSize(source_x, max_w, max_h);
-                        NormSize(target_x, max_w, max_h);
-
-                        var blend = ImageCompositeBlend.Dispatcher.Invoke(() => ImageCompositeBlend.Value);
-                        var args = $"{blend:F0},{100-blend:F0}";
-                        target_x.Composite(source_x, DefaultMatchAlign, CompositeMode, args, CompareImageChannels);
-
-                        result = new MagickImage(target_x)
+                        if (compose)
                         {
-                            ColorFuzz = fuzzy,
-                            //ColorSpace = ColorSpace.sRGB,
-                            //Comment = "NetCharm Created",
-                            //VirtualPixelMethod = VirtualPixelMethod.CheckerTile,
-                            VirtualPixelMethod = VirtualPixelMethod.Transparent
-                        };
-                        result.SetArtifact("composite:align", $"{DefaultMatchAlign}");
-                        result.SetArtifact("composite:channels", $"{CompareImageChannels}");
-                        result.SetArtifact("composite:mode", $"{CompositeMode}");
-                        result.SetArtifact("composite:args", $"{args}");
+                            var source_x = source.Clone();
+                            var target_x = target.Clone();
 
-                        tip.Add($"{"ResultTipMode".T()} {CompositeMode}");
+                            NormSize(source_x, max_w, max_h);
+                            NormSize(target_x, max_w, max_h);
 
-                        source_x.Dispose();
-                        target_x.Dispose();
-                    }
-                    else
-                    {
-                        var setting = new CompareSettings(ErrorMetricMode)
+                            var blend = ImageCompositeBlend.Dispatcher.Invoke(() => ImageCompositeBlend.Value);
+                            var args = $"{blend:F0},{100-blend:F0}";
+                            target_x.Composite(source_x, DefaultMatchAlign, CompositeMode, args, CompareImageChannels);
+
+                            _result_ = new MagickImage(target_x)
+                            {
+                                ColorFuzz = fuzzy,
+                                //ColorSpace = ColorSpace.sRGB,
+                                //Comment = "NetCharm Created",
+                                //VirtualPixelMethod = VirtualPixelMethod.CheckerTile,
+                                VirtualPixelMethod = VirtualPixelMethod.Transparent
+                            };
+                            _result_.SetArtifact("composite:datetime", $"{DateTime.Now}");
+                            _result_.SetArtifact("composite:align", $"{DefaultMatchAlign}");
+                            _result_.SetArtifact("composite:channels", $"{CompareImageChannels}");
+                            _result_.SetArtifact("composite:mode", $"{CompositeMode}");
+                            _result_.SetArtifact("composite:args", $"{args}");
+
+                            _tip_.Add($"{"ResultTipMode".T()} {CompositeMode}");
+
+                            source_x.Dispose();
+                            target_x.Dispose();
+                        }
+                        else
                         {
-                            HighlightColor = HighlightColor,
-                            LowlightColor = LowlightColor,
-                            MasklightColor = MasklightColor
-                        };
+                            var setting = new CompareSettings(ErrorMetricMode)
+                            {
+                                HighlightColor = HighlightColor,
+                                LowlightColor = LowlightColor,
+                                MasklightColor = MasklightColor
+                            };
 
-                        var source_x = CompareImageForceColor ? ToColor(source) : ToGray(source);
-                        var target_x = CompareImageForceColor ? ToColor(target) : ToGray(target);
+                            var source_x = CompareImageForceColor ? ToColor(source) : ToGray(source);
+                            var target_x = CompareImageForceColor ? ToColor(target) : ToGray(target);
 
-                        NormSize(source_x, max_w, max_h);
-                        NormSize(target_x, max_w, max_h);
+                            NormSize(source_x, max_w, max_h);
+                            NormSize(target_x, max_w, max_h);
 
-                        var diff = source_x.Compare(target_x, setting, CompareImageChannels, out var distance);
+                            var diff = source_x.Compare(target_x, setting, CompareImageChannels, out var distance);
 
-                        result = new MagickImage(diff)
-                        {
-                            ColorFuzz = fuzzy,
-                            ColorSpace = ColorSpace.sRGB,
-                            //Comment = "NetCharm Created",
-                            //VirtualPixelMethod = VirtualPixelMethod.CheckerTile,
-                            VirtualPixelMethod = VirtualPixelMethod.Transparent
-                        };
-                        result.SetArtifact("compare:align", $"{DefaultMatchAlign}");
-                        result.SetArtifact("compare:channels", $"{CompareImageChannels}");
-                        result.SetArtifact("compare:mode", $"{ErrorMetricMode}, {(CompareImageForceColor ? "Color" : "Gray")}");
-                        result.SetArtifact("compare:fuzzy", $"{fuzzy:P2}");
-                        result.SetArtifact("compare:distance", $"{distance:F4}");
-                        result.SetArtifact("compare:difference", $"{distance:P2}");
-                        result.SetArtifact("compare:similarity", $"{1 - distance:P2}");
+                            _result_ = new MagickImage(diff)
+                            {
+                                ColorFuzz = fuzzy,
+                                ColorSpace = ColorSpace.sRGB,
+                                //Comment = "NetCharm Created",
+                                //VirtualPixelMethod = VirtualPixelMethod.CheckerTile,
+                                VirtualPixelMethod = VirtualPixelMethod.Transparent
+                            };
+                            _result_.SetArtifact("compare:datetime", $"{DateTime.Now}");
+                            _result_.SetArtifact("compare:align", $"{DefaultMatchAlign}");
+                            _result_.SetArtifact("compare:channels", $"{CompareImageChannels}");
+                            _result_.SetArtifact("compare:mode", $"{ErrorMetricMode}, {(CompareImageForceColor ? "Color" : "Gray")}");
+                            _result_.SetArtifact("compare:fuzzy", $"{fuzzy:P2}");
+                            _result_.SetArtifact("compare:distance", $"{distance:F4}");
+                            _result_.SetArtifact("compare:difference", $"{distance:P2}");
+                            _result_.SetArtifact("compare:similarity", $"{1 - distance:P2}");
 
-                        tip.Add($"{"ResultTipMode".T()} {ErrorMetricMode}");
-                        tip.Add($"{"ResultTipDifference".T()} {distance:F4}");
+                            _tip_.Add($"{"ResultTipMode".T()} {ErrorMetricMode}");
+                            _tip_.Add($"{"ResultTipDifference".T()} {distance:F4}");
 
-                        source_x.Dispose();
-                        target_x.Dispose();
-                    }
+                            source_x.Dispose();
+                            target_x.Dispose();
+                        }
+                        return (_tip_, _result_);
+                    }, canceltoken);
                 }
             }
+            catch (TaskCanceledException) { }
             catch (Exception ex) { ex.ShowMessage(); }
             finally
             {
                 st?.Stop();
                 tip.Add($"{"ResultTipElapsed".T()} {TimeSpan.FromTicks(st.ElapsedTicks).TotalSeconds:F4} s");
+
+                string MakeToolTip(List<string> tips, string text) => (tips.Count > 1 ? $"{text}{Environment.NewLine}{Environment.NewLine}{string.Join(Environment.NewLine, tips)}" : text);
+
                 await Dispatcher.InvokeAsync(() =>
                 {
                     if (compose)
                     {
                         ImageCompare.ToolTip = DefaultCompareToolTip;
-                        ImageCompose.ToolTip = tip.Count > 1 ? $"{DefaultComposeToolTip}{Environment.NewLine}{Environment.NewLine}{string.Join(Environment.NewLine, tip)}" : DefaultComposeToolTip;
+                        ImageCompose.ToolTip = MakeToolTip(tip, DefaultComposeToolTip);
                     }
                     else
                     {
-                        ImageCompare.ToolTip = tip.Count > 1 ? $"{DefaultCompareToolTip}{Environment.NewLine}{Environment.NewLine}{string.Join(Environment.NewLine, tip)}" : DefaultCompareToolTip;
+                        ImageCompare.ToolTip = MakeToolTip(tip, DefaultCompareToolTip);
                         ImageCompose.ToolTip = DefaultComposeToolTip;
                     }
                 }, DispatcherPriority.Normal);
