@@ -1,23 +1,23 @@
-﻿using System;
+﻿using ImageMagick;
+using Mono.Options;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-
-using ImageMagick;
-using Mono.Options;
 using Xceed.Wpf.Toolkit;
 
 namespace ImageCompare
@@ -1494,7 +1494,156 @@ namespace ImageCompare
             }
             return (result);
         }
-#endregion
+        #endregion
+
+        #region Keyboard Modifier
+        /// <summary>
+        ///
+        /// </summary>
+        public class Modifier
+        {
+            public bool None { get; set; } = true;
+
+            public bool Shift { get; set; } = false;
+            public bool Ctrl { get; set; } = false;
+            public bool Alt { get; set; } = false;
+            public bool Win { get; set; } = false;
+
+            public bool OnlyShift { get; set; } = false;
+            public bool OnlyCtrl { get; set; } = false;
+            public bool OnlyAlt { get; set; } = false;
+            public bool OnlyWin { get; set; } = false;
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="modifiers"></param>
+        /// <returns></returns>
+        private static Modifier CalcModifier(ModifierKeys modifiers)
+        {
+            var result = new Modifier();
+            result.Shift = modifiers.HasFlag(ModifierKeys.Shift);
+            result.Ctrl = modifiers.HasFlag(ModifierKeys.Control);
+            result.Alt = modifiers.HasFlag(ModifierKeys.Alt);
+            result.Win = modifiers.HasFlag(ModifierKeys.Windows);
+            result.OnlyShift = modifiers == ModifierKeys.Shift;
+            result.OnlyCtrl = modifiers == ModifierKeys.Control;
+            result.OnlyAlt = modifiers == ModifierKeys.Alt;
+            result.OnlyWin = modifiers == ModifierKeys.Windows;
+            result.None = modifiers == ModifierKeys.None;
+            return (result);
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="app"></param>
+        /// <returns></returns>
+        public static async Task<Modifier> GetModifierAsync(this Application app)
+        {
+            var result = new Modifier();
+            var modifiers = await app.Dispatcher.InvokeAsync(() => Keyboard.Modifiers);
+            result = CalcModifier(modifiers);
+            return (result);
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        public static Modifier GetModifier(this FrameworkElement element)
+        {
+            var result = new Modifier();
+            var modifiers = element?.Dispatcher.Invoke(() => Keyboard.Modifiers) ?? ModifierKeys.None;
+            result = CalcModifier(modifiers);
+            return (result);
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="key"></param>
+        /// <param name="exclude"></param>
+        /// <returns></returns>
+        public static bool IsModifierPressed(this FrameworkElement element, ModifierKeys key, bool exclude = true)
+        {
+            var result = false;
+            var keys = GetModifier(element);
+            if (exclude)
+            {
+                if (key == ModifierKeys.Shift) result = keys.OnlyShift; // keys.Shift && !keys.Alt && !keys.Ctrl && !keys.Win;
+                else if (key == ModifierKeys.Alt) result = keys.OnlyAlt; // !keys.Shift && keys.Alt && !keys.Ctrl && !keys.Win;
+                else if (key == ModifierKeys.Control) result = keys.OnlyCtrl; // !keys.Shift && !keys.Alt && keys.Ctrl && !keys.Win;
+                else if (key == ModifierKeys.Windows) result = keys.OnlyWin; // !keys.Shift && !keys.Alt && !keys.Ctrl && keys.Win;
+            }
+            else
+            {
+                if (key == ModifierKeys.Shift) result = keys.Shift;
+                else if (key == ModifierKeys.Alt) result = keys.Alt;
+                else if (key == ModifierKeys.Control) result = keys.Ctrl;
+                else if (key == ModifierKeys.Windows) result = keys.Win;
+            }
+            return (result);
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="exclude"></param>
+        /// <returns></returns>
+        public static bool IsShiftPressed(this FrameworkElement element, bool exclude = true)
+        {
+            return (IsModifierPressed(element, ModifierKeys.Shift, exclude));
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="exclude"></param>
+        /// <returns></returns>
+        public static bool IsCtrlPressed(this FrameworkElement element, bool exclude = true)
+        {
+            return (IsModifierPressed(element, ModifierKeys.Control, exclude));
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="exclude"></param>
+        /// <returns></returns>
+        public static bool IsAltPressed(this FrameworkElement element, bool exclude = true)
+        {
+            return (IsModifierPressed(element, ModifierKeys.Alt, exclude));
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="exclude"></param>
+        /// <returns></returns>
+        public static bool IsWinPressed(this FrameworkElement element, bool exclude = true)
+        {
+            return (IsModifierPressed(element, ModifierKeys.Windows, exclude));
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public static bool NoModifier(this FrameworkElement element)
+        {
+            return (GetModifier(element).None);
+        }
+        #endregion
 
         #region Misc
         public static IList<string> NaturalSort(this IList<string> list, int padding = 16, bool ascendin = true)

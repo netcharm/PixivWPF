@@ -385,6 +385,7 @@
         <StackPanel x:Name="ViewerPanel" Grid.Row="1" Orientation="Horizontal">
             <!-- Image Source Preview -->
             <Grid x:Name="ImageSourceGrid" x:Uid="ImageSourceGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MinWidth="240">
+                <Rectangle x:Name="ImageSourceInfo" x:Uid="ImageSourceInfo" Fill="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center" Width="0" Height="0" Visibility="Collapsed"/>
                 <ScrollViewer x:Name="ImageSourceScroll" x:Uid="ImageSourceScroll" AllowDrop="True" Focusable="False"
                     ScrollChanged="ImageScroll_ScrollChanged" PreviewMouseWheel="ImageBox_MouseWheel"
                     MouseDown="ImageScroll_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave"
@@ -414,6 +415,7 @@
             </Grid>
             <!-- Image Result Preview -->
             <Grid x:Name="ImageResultGrid" x:Uid="ImageResultGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MinWidth="240">
+                <Rectangle x:Name="ImageResultInfo" x:Uid="ImageResultInfo" Fill="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center" Width="0" Height="0" Visibility="Collapsed"/>
                 <ScrollViewer x:Name="ImageResultScroll" x:Uid="ImageResultScroll" Focusable="False"  MinWidth="240"
                     ScrollChanged="ImageScroll_ScrollChanged" PreviewMouseWheel="ImageBox_MouseWheel"
                     MouseDown="ImageScroll_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave"
@@ -443,6 +445,7 @@
             </Grid>
             <!-- Image Target Preview -->
             <Grid x:Name="ImageTargetGrid" x:Uid="ImageTargetGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MinWidth="240">
+                <Rectangle x:Name="ImageTargetInfo" x:Uid="ImageTargetInfo" Fill="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center" Width="0" Height="0" Visibility="Collapsed"/>
                 <ScrollViewer x:Name="ImageTargetScroll" x:Uid="ImageTargetScroll" AllowDrop="True" Focusable="False" 
                     ScrollChanged="ImageScroll_ScrollChanged" PreviewMouseWheel="ImageBox_MouseWheel"
                     MouseDown="ImageScroll_MouseDown" MouseMove="ImageBox_MouseMove" MouseEnter="ImageBox_MouseEnter" MouseLeave="ImageBox_MouseLeave"

@@ -1890,9 +1890,9 @@ namespace ImageCompare
             ZoomRatio.ToolTip = $"{"Zoom Ratio".T(culture)}: {ZoomRatio.Value:F2}X";
 
             WaitingString = DefaultWaitingString.T(culture);
-            ImageSource.ToolTip = new ToolTip() { Content = WaitingString };
-            ImageTarget.ToolTip = new ToolTip() { Content = WaitingString };
-            ImageResult.ToolTip = new ToolTip() { Content = WaitingString };
+            SetToolTip(ImageSource, WaitingString);
+            SetToolTip(ImageTarget, WaitingString);
+            SetToolTip(ImageResult, WaitingString);
 
             #region Create Image Flip/Rotate/Effects Menu
             CreateImageOpMenu(ImageSourceScroll);
@@ -3037,14 +3037,22 @@ namespace ImageCompare
             var result = false;
             try
             {
-                if (element?.ToolTip is string)
-                {
-                    result = Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).IsOpen);
-                }
-                else if (element?.ToolTip is ToolTip && (element?.ToolTip as ToolTip).Content is string)
-                {
-                    result = Dispatcher.Invoke(() => (element?.ToolTip as ToolTip).IsOpen);
-                }
+                FrameworkElement target = element;
+                Dispatcher.Invoke(() => 
+                { 
+                    if (element == ImageSource) target = ImageSourceInfo;
+                    if (element == ImageTarget) target = ImageTargetInfo;
+                    if (element == ImageResult) target = ImageResultInfo;
+
+                    if (target?.ToolTip is string)
+                    {
+                        result = (target?.ToolTip as ToolTip).IsOpen;
+                    }
+                    else if (target?.ToolTip is ToolTip && (target?.ToolTip as ToolTip).Content is string)
+                    {
+                        result = (target?.ToolTip as ToolTip).IsOpen;
+                    }
+                });
             }
             catch { }
             return (result);
@@ -3060,13 +3068,19 @@ namespace ImageCompare
             var result = Dispatcher.Invoke(() =>
             {
                 var ret = string.Empty;
-                if (element?.ToolTip is string)
+
+                FrameworkElement target = element;
+                if (element == ImageSource) target = ImageSourceInfo;
+                if (element == ImageTarget) target = ImageTargetInfo;
+                if (element == ImageResult) target = ImageResultInfo;
+
+                if (target?.ToolTip is string)
                 {
-                    ret = element?.ToolTip as string;
+                    ret = target?.ToolTip as string;
                 }
-                else if (element?.ToolTip is ToolTip && (element?.ToolTip as ToolTip).Content is string)
+                else if (target?.ToolTip is ToolTip && (target?.ToolTip as ToolTip).Content is string)
                 {
-                    ret = (element?.ToolTip as ToolTip).Content as string;
+                    ret = (target?.ToolTip as ToolTip).Content as string;
                 }
                 return(ret);
             });
@@ -3082,24 +3096,29 @@ namespace ImageCompare
         {
             Dispatcher.Invoke(() =>
             {
-                if (element?.ToolTip is string)
+                FrameworkElement target = element;
+                if (element == ImageSource) target = ImageSourceInfo;
+                if (element == ImageTarget) target = ImageTargetInfo;
+                if (element == ImageResult) target = ImageResultInfo;
+
+                if (target?.ToolTip is string)
                 {
-                    element.ToolTip = tooltip;
+                    target.ToolTip = tooltip;
                 }
-                else if (element?.ToolTip is ToolTip)
+                else if (target?.ToolTip is ToolTip)
                 {
-                    (element.ToolTip as ToolTip).Content = tooltip;
+                    (target.ToolTip as ToolTip).Content = tooltip;
                 }
-                else if (element?.ToolTip is null && !string.IsNullOrEmpty(tooltip))
+                else if (target?.ToolTip is null && !string.IsNullOrEmpty(tooltip))
                 {
-                    element.ToolTip = new ToolTip() { Content = tooltip };
+                    target.ToolTip = new ToolTip() { Content = tooltip };
                 }
                 else if (string.IsNullOrEmpty(tooltip))
                 {
-                    element.ToolTip = null;
+                    target.ToolTip = null;
                 }
                 DoEvents();
-                ToolTipService.SetShowDuration(element, AutoHideToolTip ?? false ? ToolTipDuration : int.MaxValue);
+                ToolTipService.SetShowDuration(target, AutoHideToolTip ?? false ? ToolTipDuration : int.MaxValue);
             });
         }
 
@@ -3113,13 +3132,18 @@ namespace ImageCompare
             {
                 try
                 {
-                    if (element?.ToolTip is string)
+                    FrameworkElement target = element;
+                    if (element == ImageSource) target = ImageSourceInfo;
+                    if (element == ImageTarget) target = ImageTargetInfo;
+                    if (element == ImageResult) target = ImageResultInfo;
+
+                    if (target?.ToolTip is string)
                     {
-                        (element?.ToolTip as ToolTip).IsOpen = true;
+                        (target?.ToolTip as ToolTip).IsOpen = true;
                     }
-                    else if (element?.ToolTip is ToolTip && (element?.ToolTip as ToolTip).Content is string)
+                    else if (target?.ToolTip is ToolTip && (target?.ToolTip as ToolTip).Content is string)
                     {
-                        (element?.ToolTip as ToolTip).IsOpen = true;
+                        (target?.ToolTip as ToolTip).IsOpen = true;
                     }
                 }
                 catch { }
@@ -3136,13 +3160,18 @@ namespace ImageCompare
             {
                 try
                 {
-                    if (element?.ToolTip is string)
+                    FrameworkElement target = element;
+                    if (element == ImageSource) target = ImageSourceInfo;
+                    if (element == ImageTarget) target = ImageTargetInfo;
+                    if (element == ImageResult) target = ImageResultInfo;
+
+                    if (target?.ToolTip is string)
                     {
-                        (element?.ToolTip as ToolTip).IsOpen = false;
+                        (target?.ToolTip as ToolTip).IsOpen = false;
                     }
-                    else if (element?.ToolTip is ToolTip && (element?.ToolTip as ToolTip).Content is string)
+                    else if (target?.ToolTip is ToolTip && (target?.ToolTip as ToolTip).Content is string)
                     {
-                        (element?.ToolTip as ToolTip).IsOpen = false;
+                        (target?.ToolTip as ToolTip).IsOpen = false;
                     }
                 }
                 catch { }
@@ -3168,13 +3197,18 @@ namespace ImageCompare
         {
             element?.Dispatcher.InvokeAsync(() =>
             {
-                if (element?.ToolTip is string)
+                FrameworkElement target = element;
+                if (element == ImageSource) target = ImageSourceInfo;
+                if (element == ImageTarget) target = ImageTargetInfo;
+                if (element == ImageResult) target = ImageResultInfo;
+
+                if (target?.ToolTip is string)
                 {
-                    (element?.ToolTip as ToolTip).Visibility = Visibility.Visible;
+                    (target?.ToolTip as ToolTip).Visibility = Visibility.Visible;
                 }
-                else if (element?.ToolTip is ToolTip && (element?.ToolTip as ToolTip).Content is string)
+                else if (target?.ToolTip is ToolTip && (target?.ToolTip as ToolTip).Content is string)
                 {
-                    (element?.ToolTip as ToolTip).Visibility = Visibility.Visible;
+                    (target?.ToolTip as ToolTip).Visibility = Visibility.Visible;
                 }
             });
         }
@@ -3187,13 +3221,18 @@ namespace ImageCompare
         {
             element?.Dispatcher.InvokeAsync(() =>
             {
-                if (element?.ToolTip is string)
+                FrameworkElement target = element;
+                if (element == ImageSource) target = ImageSourceInfo;
+                if (element == ImageTarget) target = ImageTargetInfo;
+                if (element == ImageResult) target = ImageResultInfo;
+
+                if (target?.ToolTip is string)
                 {
-                    (element?.ToolTip as ToolTip).Visibility = Visibility.Collapsed;
+                    (target?.ToolTip as ToolTip).Visibility = Visibility.Collapsed;
                 }
-                else if (element?.ToolTip is ToolTip && (element?.ToolTip as ToolTip).Content is string)
+                else if (target?.ToolTip is ToolTip && (target?.ToolTip as ToolTip).Content is string)
                 {
-                    (element?.ToolTip as ToolTip).Visibility = Visibility.Collapsed;
+                    (target?.ToolTip as ToolTip).Visibility = Visibility.Collapsed;
                 }
             });
         }
@@ -4098,18 +4137,8 @@ namespace ImageCompare
                 try
                 {
                     e.Handled = false;
-                    if      (Keyboard.Modifiers == ModifierKeys.Control && (e.Key == Key.W || e.SystemKey == Key.W))
-                    {
-                        e.Handled = true;
-                        Close();
-                    }
-                    else if (Keyboard.Modifiers == ModifierKeys.Alt && (e.Key == Key.T || e.SystemKey == Key.T))
-                    {
-                        e.Handled = true;
-                        if (ImageSourceScroll.IsMouseOver && ImageSource.Source != null && ImageSourceScroll.ContextMenu != null) ImageSourceScroll.ContextMenu.IsOpen = true;
-                        else if (ImageTargetScroll.IsMouseOver && ImageTarget.Source != null && ImageTargetScroll.ContextMenu != null) ImageTargetScroll.ContextMenu.IsOpen = true;
-                    }
-                    else if (e.Key == Key.Escape || e.SystemKey == Key.Escape)
+                    var km = this.GetModifier();
+                    if      (e.Key == Key.Escape || e.SystemKey == Key.Escape)
                     {
                         if (IsMagnifier)
                         {
@@ -4130,11 +4159,11 @@ namespace ImageCompare
                     else if (e.Key == Key.F1 || e.SystemKey == Key.F1)
                     {
                         e.Handled = true;
-                        if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        if (km.OnlyShift)
                             Dispatcher.Invoke(async () => await LoadImageFromPrevFile(true));
-                        else if (Keyboard.Modifiers == ModifierKeys.Control)
+                        else if (km.OnlyCtrl)
                             Dispatcher.Invoke(async () => await LoadImageFromNextFile(true));
-                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        else if (km.OnlyAlt)
                             CreateColorImage(true);
                         else
                             ImageActions_Click(ImageOpenSource, e);
@@ -4142,11 +4171,11 @@ namespace ImageCompare
                     else if (e.Key == Key.F2 || e.SystemKey == Key.F2)
                     {
                         e.Handled = true;
-                        if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        if (km.OnlyShift)
                             Dispatcher.Invoke(async () => await LoadImageFromPrevFile(false));
-                        else if (Keyboard.Modifiers == ModifierKeys.Control)
+                        else if (km.OnlyCtrl)
                             Dispatcher.Invoke(async () => await LoadImageFromNextFile(false));
-                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        else if (km.OnlyAlt)
                             CreateColorImage(false);
                         else
                             ImageActions_Click(ImageOpenTarget, e);
@@ -4164,7 +4193,7 @@ namespace ImageCompare
                     else if (e.Key == Key.F5 || e.SystemKey == Key.F5)
                     {
                         e.Handled = true;
-                        if (Keyboard.Modifiers == ModifierKeys.Shift && ImageCompare.ContextMenu is ContextMenu)
+                        if (km.OnlyShift && ImageCompare.ContextMenu is ContextMenu)
                             ImageCompare.ContextMenu.IsOpen = true;
                         else
                             ImageActions_Click(ImageCompare, e);
@@ -4172,7 +4201,7 @@ namespace ImageCompare
                     else if (e.Key == Key.F6 || e.SystemKey == Key.F6)
                     {
                         e.Handled = true;
-                        if (Keyboard.Modifiers == ModifierKeys.Shift && ImageCompose.ContextMenu is ContextMenu)
+                        if (km.OnlyShift && ImageCompose.ContextMenu is ContextMenu)
                             ImageCompose.ContextMenu.IsOpen = true;
                         else
                             ImageActions_Click(ImageCompose, e);
@@ -4190,7 +4219,7 @@ namespace ImageCompare
                     else if (e.Key == Key.F9 || e.SystemKey == Key.F9)
                     {
                         e.Handled = true;
-                        if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        if (km.OnlyShift)
                         {
                             if (ZoomFitNone.IsChecked ?? false) { ZoomFitHeight.IsChecked = true; ImageActions_Click(ZoomFitHeight, e); }
                             else if (ZoomFitAll.IsChecked ?? false) { ZoomFitNone.IsChecked = true; ImageActions_Click(ZoomFitNone, e); }
@@ -4211,7 +4240,7 @@ namespace ImageCompare
                         ImageExchange.IsChecked = !ImageExchange.IsChecked;
                         ImageActions_Click(ImageExchange, e);
                     }
-                    else if (Keyboard.Modifiers == ModifierKeys.Control && (e.Key == Key.C || e.SystemKey == Key.C))
+                    else if (km.OnlyCtrl && (e.Key == Key.C || e.SystemKey == Key.C))
                     {
                         Dispatcher.Invoke(async () =>
                         {
@@ -4220,7 +4249,7 @@ namespace ImageCompare
                             else if (ImageResultScroll.IsMouseOver) await CopyImageToClipboard(ImageType.Result);
                         });
                     }
-                    else if (Keyboard.Modifiers == ModifierKeys.Control && (e.Key == Key.V || e.SystemKey == Key.V))
+                    else if (km.OnlyCtrl && (e.Key == Key.V || e.SystemKey == Key.V))
                     {
                         Dispatcher.Invoke(async () =>
                         {
@@ -4228,9 +4257,20 @@ namespace ImageCompare
                             else if (ImageTargetScroll.IsMouseOver) await LoadImageFromClipboard(ImageType.Target);
                         });
                     }
+                    else if (km.OnlyCtrl && (e.Key == Key.W || e.SystemKey == Key.W))
+                    {
+                        e.Handled = true;
+                        Close();
+                    }
+                    else if (km.OnlyAlt && (e.Key == Key.T || e.SystemKey == Key.T))
+                    {
+                        e.Handled = true;
+                        if (ImageSourceScroll.IsMouseOver && ImageSource.Source != null && ImageSourceScroll.ContextMenu != null) ImageSourceScroll.ContextMenu.IsOpen = true;
+                        else if (ImageTargetScroll.IsMouseOver && ImageTarget.Source != null && ImageTargetScroll.ContextMenu != null) ImageTargetScroll.ContextMenu.IsOpen = true;
+                    }
                     else if (e.Key == Key.I || e.SystemKey == Key.I)
                     {
-                        if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        if (km.OnlyShift)
                         {
                             ShowImageInfo.IsChecked = !ShowImageInfo.IsChecked ?? false; 
                             ToggleToolTipState();
@@ -4245,17 +4285,17 @@ namespace ImageCompare
                     }
                     else if (e.Key == Key.R || e.SystemKey == Key.R)
                     {
-                        if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        if (km.OnlyShift)
                         {
                             if (ImageSourceScroll.IsMouseOver) ResetImage(true);
                             else if (ImageTargetScroll.IsMouseOver) ResetImage(false);
                         }
-                        else if (Keyboard.Modifiers == ModifierKeys.Control)
+                        else if (km.OnlyCtrl)
                         {
                             if (ImageSourceScroll.IsMouseOver) ReloadImage(true);
                             else if (ImageTargetScroll.IsMouseOver) ReloadImage(false);
                         }
-                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        else if (km.OnlyAlt)
                         {
                             if (ImageSourceScroll.IsMouseOver) ReloadImage(true, info_only: true);
                             else if (ImageTargetScroll.IsMouseOver) ReloadImage(false, info_only: true);
@@ -4460,24 +4500,12 @@ namespace ImageCompare
                 }
                 else if (sender is FrameworkElement)
                 {
-                    var tooltip_opened = false;
                     foreach (var element in new FrameworkElement[] { ImageSource, ImageTarget, ImageResult })
                     {
-                        if (element.ToolTip is ToolTip && (element.ToolTip as ToolTip).IsOpen)
-                        {
-                            (element.ToolTip as ToolTip).IsOpen = false;
-                            tooltip_opened = true;
-                            break;
-                        }
-                    }
-                    if (tooltip_opened)
-                    {
-                        var image = GetImageControl(sender as FrameworkElement);
-                        var tooltip = GetToolTip(image);
-                        if (image?.Source != null && !string.IsNullOrEmpty(tooltip) && image.ToolTip is ToolTip)
-                        {
-                            (image.ToolTip as ToolTip).IsOpen = true;
-                        }
+#if DEBUG
+                        Debug.WriteLine($"Cloing ToolTip {element}");
+#endif
+                        CloseToolTip(element);
                     }
                 }
             }
@@ -4513,7 +4541,10 @@ namespace ImageCompare
                         {
                             tooltip = await image.GetInformation().GetImageInfo();
                             DoEvents();
-                            if (!string.IsNullOrEmpty(tooltip)) SetToolTip(image, tooltip);
+                            if (!string.IsNullOrEmpty(tooltip))
+                            {
+                                SetToolTip(image, tooltip);
+                            }
                         }
                     }
                 }
