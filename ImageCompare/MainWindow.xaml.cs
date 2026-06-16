@@ -356,7 +356,6 @@ namespace ImageCompare
             CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
             #endregion
         }
-
         #endregion
 
         #region Image Display Helper
@@ -1061,6 +1060,14 @@ namespace ImageCompare
         /// <summary>
         /// 
         /// </summary>
+        private void ResetCancelUpdateViewerToken()
+        {
+            _update_cancel_ = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="compose"></param>
         /// <param name="assign"></param>
         /// <param name="reload"></param>
@@ -1212,7 +1219,7 @@ namespace ImageCompare
 
                         if (image_r.ValidCurrent) image_r.Dispose();
 
-                        _update_cancel_ = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+                        ResetCancelUpdateViewerToken();
                         image_r.Original = await Compare(image_s.Current, image_t.Current, compose: compose, canceltoken: CancelUpdateViewerToken);
                         image_r.Type = ImageType.Result;
                         image_r.OpMode = LastOpIsComposite ? ImageOpMode.Compose : ImageOpMode.Compare;
@@ -1234,6 +1241,7 @@ namespace ImageCompare
 
                     CalcDisplay(set_ratio: false);
                 }
+                catch (TaskCanceledException) { }
                 catch (Exception ex) { ex.ShowMessage(); }
                 finally
                 {
@@ -1655,6 +1663,684 @@ namespace ImageCompare
         }
         #endregion
 
+        #region Quality Changer Helper
+        /// <summary>
+        /// 
+        /// </summary>
+        private void AdjustQualityChangerPos()
+        {
+            QualityChanger.Dispatcher.InvokeAsync(() =>
+            {
+                if (QualityChanger.IsVisible && QualityChanger.Tag is ImageType)
+                {
+                    QualityChanger.WindowStartupLocation = Xceed.Wpf.Toolkit.WindowStartupLocation.Manual;
+                    var source = (ImageType)QualityChanger.Tag;
+                    var is_hor = ViewerPanel.Orientation == Orientation.Horizontal;
+                    var pw = ViewerPanel.DesiredSize.Width;
+                    var ph = ViewerPanel.DesiredSize.Height;
+                    var factor_x = pw / 6f;
+                    var factor_y = ph / 6f;
+                    var offset_x = SystemParameters.WindowCornerRadius.TopLeft;
+                    var offset_y = SystemParameters.WindowCornerRadius.TopLeft;
+                    var center_x = !is_hor ? pw / 2f : (source == ImageType.Source ?  factor_x : factor_x * 5f);
+                    var center_y = is_hor ? ph : (source == ImageType.Source ?  factor_y * 2f : ph);
+                    QualityChanger.Left = center_x - (QualityChanger.DesiredSize.Width / 2f);
+                    QualityChanger.Top = center_y - (QualityChanger.DesiredSize.Height * 1.5);
+                }
+            });
+        }
+
+        private DispatcherTimer QualityChangerDelay = null;
+        private DispatcherTimer FuzzyChangeDelay = null;
+        private DispatcherTimer BlendChangeDelay = null;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void InitCoutDownTimer()
+        {
+            if (QualityChangerDelay == null)
+            {
+                QualityChangerDelay = new DispatcherTimer(DispatcherPriority.Normal) { IsEnabled = false, Interval = TimeSpan.FromMilliseconds(CountDownTimeOut) };
+                QualityChangerDelay.Tick += QualityChangerDelay_Tick;
+            }
+            if (FuzzyChangeDelay == null)
+            {
+                FuzzyChangeDelay = new DispatcherTimer(DispatcherPriority.Normal) { IsEnabled = false, Interval = TimeSpan.FromMilliseconds(CountDownTimeOut) };
+                FuzzyChangeDelay.Tick += FuzzyChangeDelay_Tick;
+            }
+            if (BlendChangeDelay == null)
+            {
+                BlendChangeDelay = new DispatcherTimer(DispatcherPriority.Normal) { IsEnabled = false, Interval = TimeSpan.FromMilliseconds(CountDownTimeOut) };
+                BlendChangeDelay.Tick += BlendChangeDelay_Tick;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void FuzzyChangeDelay_Tick(object sender, EventArgs e)
+        {
+            ImageCompareFuzzy.Dispatcher.InvokeAsync(() =>
+            {
+                FuzzyChangeDelay.Stop();
+                ImageCompareFuzzy.ToolTip = $"{"Tolerances".T(DefaultCultureInfo)}: {ImageCompareFuzzy.Value:F1}%";
+                if (ImageSource.GetInformation().ValidCurrent && ImageTarget.GetInformation().ValidCurrent)
+                    RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite));
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void BlendChangeDelay_Tick(object sender, EventArgs e)
+        {
+            ImageCompositeBlend.Dispatcher.InvokeAsync(() =>
+            {
+                BlendChangeDelay.Stop();
+                ImageCompositeBlend.ToolTip = $"{"Blend".T(DefaultCultureInfo)}: {ImageCompositeBlend.Value:F0}%";
+                if (LastOpIsComposite && ImageSource.GetInformation().ValidCurrent && ImageTarget.GetInformation().ValidCurrent)
+                    RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite));
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void QualityChangerDelay_Tick(object sender, EventArgs e)
+        {
+            QualityChangerDelay.Stop();
+            if (IsQualityChanger && QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
+            {
+                var source = (ImageType)(QualityChanger.Tag);
+                var quality = (uint)(QualityChangerSlider.Value);
+
+                RenderRun(async () =>
+                {
+                    try
+                    {
+                        if (source == ImageType.Source) IsProcessingSource = true;
+                        else if (source == ImageType.Target) IsProcessingTarget = true;
+
+                        var image_s = source == ImageType.Source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                        var image = image_s.Original;
+                        var quality_o = image_s.OriginalQuality;
+
+                        var result = quality < quality_o ? await ChangeQuality(image, quality) : new MagickImage(image);
+                        if (CompareImageForceScale) result.Resize(CompareResizeGeometry);
+                        image_s.Current = new MagickImage(result);
+                        result.Dispose();
+
+                        UpdateImageViewer(LastOpIsComposite, assign: true, reload: false, reload_type: source);
+
+                        if (await UpdateImageViewerFinished(TaskTimeOutSeconds) && ImageResult.GetInformation().ValidCurrent)
+                        {
+                            var diff = ImageResult.GetInformation().Current?.GetArtifact("compare:difference");
+                            SetQualityChangerTitle(string.IsNullOrEmpty(diff) ? null : $"{image_s.CurrentQuality}, {"ResultTipDifference".T()} {diff}");
+                        }
+                    }
+                    catch (Exception ex) { ex.ShowMessage(); }
+                });
+            }
+        }
+
+        private string QualityChangeerTitle = string.Empty;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="info"></param>
+        private void OpenQualityChanger(ImageType source)
+        {
+            if (Ready && !IsQualityChanger)
+            {
+                InitCoutDownTimer();
+                QualityChanger.Dispatcher.InvokeAsync(() =>
+                {
+                    var info = source == ImageType.Source ? ImageSource.GetInformation() : (source == ImageType.Target ? ImageTarget.GetInformation() : new ImageInformation());
+                    if (info.ValidCurrent)
+                    {
+                        var image = info?.Current;
+                        var quality = image.Quality();
+                        var quality_str = quality > 0  ? $"{quality}" : "Unknown";
+                        QualityChangeerTitle = $"{"InfoTipQuality".T().Trim('=').Trim()} : {quality_str}";
+                        QualityChanger.Tag = source;
+                        QualityChanger.Caption = QualityChangeerTitle;
+                        QualityChanger.FocusedElement = QualityChangerSlider;
+                        QualityChangerSlider.Maximum = quality > 0 ? quality : 100;
+                        QualityChangerSlider.Width = 300;
+                        QualityChangerSlider.IsSnapToTickEnabled = true;
+                        QualityChangerSlider.Tag = new MagickImage(image);
+                        QualityChangerSlider.Ticks = new DoubleCollection() { 10, 25, 30, 35, 55, 60, 65, 70, 75, 85, 95 };
+                        QualityChangerSlider.TickPlacement = System.Windows.Controls.Primitives.TickPlacement.Both;
+                        QualityChangerSlider.LargeChange = 5;
+                        QualityChangerSlider.SmallChange = 1;
+                        QualityChangerSlider.Value = quality > 0 ? quality : 100;
+                        QualityChanger.Show();
+                        QualityChanger.UpdateLayout();
+
+                        DoEvents();
+                        AdjustQualityChangerPos();
+
+                        QualityChangerSlider.Focusable = true;
+                        QualityChangerSlider.Focus();
+
+                        if (QualityChangerDelay is DispatcherTimer)
+                        {
+                            QualityChangerDelay.IsEnabled = true;
+                            QualityChangerDelay.Stop();
+                        }
+                    }
+                });
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void CloseQualityChanger(bool restore = false, ImageType source = ImageType.All)
+        {
+            if (Ready && IsQualityChanger && (source == GetQualityChangerSource() || source == ImageType.All))
+            {
+                QualityChanger.Dispatcher.InvokeAsync(() =>
+                {
+                    if (restore)
+                        QualityChanger_CloseButtonClicked(QualityChanger, null);
+                    else
+                        QualityChangerSlider.Tag = null;
+
+                    QualityChanger.Close();
+                });
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="title"></param>
+        private void SetQualityChangerTitle(string title = null)
+        {
+            QualityChanger.Dispatcher.InvokeAsync(() =>
+            {
+                title = title.Trim();
+                QualityChanger.Caption = string.IsNullOrEmpty(title) ? $"{QualityChangeerTitle}" : $"{QualityChangeerTitle} => {title}";
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="diff"></param>
+        private void UpdateQualityChangerTitle(string diff = null)
+        {
+            if (IsQualityChanger && !string.IsNullOrEmpty(diff))
+            {
+                QualityChanger.Dispatcher.InvokeAsync(() =>
+                {
+                    if (Regex.IsMatch(QualityChanger.Caption, $"{"ResultTipDifference".T()}", RegexOptions.IgnoreCase))
+                    {
+                        QualityChanger.Caption = Regex.Replace(QualityChanger.Caption, $"{"ResultTipDifference".T()}.*?$", $"{"ResultTipDifference".T()} {diff}", RegexOptions.IgnoreCase);
+                    }
+                });
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="diff"></param>
+        private void UpdateQualityChangerTitle(double? diff = null)
+        {
+            if (IsQualityChanger && diff != null && diff != double.NaN)
+            {
+                QualityChanger.Dispatcher.InvokeAsync(() =>
+                {
+                    if (Regex.IsMatch(QualityChanger.Caption, $"{"ResultTipDifference".T()}", RegexOptions.IgnoreCase))
+                    {
+                        QualityChanger.Caption = Regex.Replace(QualityChanger.Caption, $"{"ResultTipDifference".T()}.*?$", $"{"ResultTipDifference".T()} {diff:P2}", RegexOptions.IgnoreCase);
+                    }
+                });
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private ImageType GetQualityChangerSource()
+        {
+            var result = ImageType.None;
+            result = QualityChanger.Dispatcher.Invoke(() =>
+            {
+                var source = ImageType.None;
+                if (IsQualityChanger && QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
+                {
+                    source = (ImageType)(QualityChanger.Tag ?? ImageType.None);
+                }
+                return (source);
+            });
+            return (result);
+        }
+        #endregion
+
+        #region Size Changer Helper
+        private Gravity SizeChangerAlign = Gravity.Center;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="uid"></param>
+        private void OpenSizeChanger(bool source, string uid = null)
+        {
+            OpenSizeChanger(source ? ImageType.Source : ImageType.Target, uid);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="uid"></param>
+        private void OpenSizeChanger(ImageType source, string uid = null)
+        {
+            SizeChanger.Dispatcher.Invoke(() =>
+            {
+                if (!string.IsNullOrEmpty(uid))
+                {
+                    if (uid == "CropImageEdge") { SizeChangeCrop.Focus(); }
+                    else if (uid == "ExtentImageEdge") { SizeChangeExtent.Focus(); }
+                    else if (uid == "PanImageEdge") { }
+                }
+                SizeChanger.Tag = source;
+                SizeChanger.Show();
+                DoEvents();
+
+                AdjustSizeChangerPos();
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        private async void ApplySizeChanger(FrameworkElement sender)
+        {
+            try
+            {
+                var source = SizeChanger.Dispatcher.Invoke(() =>
+                {
+                    var ret = ImageType.None;
+                    if (SizeChanger.Tag is ImageType) ret = (ImageType)(SizeChanger.Tag);
+                    return(ret);
+                });
+
+                var image = source == ImageType.Source ? ImageSource : ImageTarget;
+                var info = image.GetInformation();
+                var scaler = source == ImageType.Source ? ImageSourceScale : ImageTargetScale;
+                var rotater = source == ImageType.Source ? ImageSourceRotate : ImageTargetRotate;
+
+                var indicator = source == ImageType.Source ? IsProcessingSource : IsProcessingTarget;
+
+                if (!Ready || IsImageNull(image) || indicator) return;
+
+                var mode = SizeChanger.Dispatcher.Invoke(() => SizeChangeUnitMode.IsChecked ?? true);
+                var size = SizeChanger.Dispatcher.Invoke(() => SizeChangeValue.Value ?? 0);
+                var scale = SizeChanger.Dispatcher.Invoke(()=> SizeChangeScaleValue.Value ?? 0);
+
+                //var angle = rotater.Dispatcher?.Invoke(() => rotater.Angle % 360) ?? 0;
+                //var flipx = scaler.Dispatcher?.Invoke(() => scaler.ScaleX < 0) ?? info.FlipX;
+                //var flipy = scaler.Dispatcher?.Invoke(() => scaler.ScaleY < 0) ?? info.FlipY;
+                var angle = info.Rotated;
+                var flipx = info.FlipX;
+                var flipy = info.FlipY;
+
+                var align = SizeChangerAlign;
+                if (angle != 0) align = Rotate(align, angle);
+                if (flipx) align = FlipX(align);
+                if (flipy) align = FlipY(align);
+
+                if (sender == SizeChangeExtent && size > 0)
+                {
+                    RenderRun(() => { ExtentImageEdge(source == ImageType.Source, size, mode, align); });
+                    if (await UpdateImageViewerFinished()) indicator = false;
+                }
+                else if (sender == SizeChangeCrop && size > 0)
+                {
+                    RenderRun(() => { CropImageEdge(source == ImageType.Source, -1 * size, mode, align); });
+                    if (await UpdateImageViewerFinished()) indicator = false;
+                }
+                else if (sender == SizeChangeEnlarge && scale > 0)
+                {
+                    RenderRun(() => { ScaleImage(source == ImageType.Source, scale, mode); });
+                    if (await UpdateImageViewerFinished()) indicator = false;
+                }
+                else if (sender == SizeChangeShrink && scale > 0)
+                {
+                    RenderRun(() => { ScaleImage(source == ImageType.Source, -1 * scale, mode); });
+                    if (await UpdateImageViewerFinished()) indicator = false;
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void AdjustSizeChangerPos()
+        {
+            SizeChanger.Dispatcher.InvokeAsync(() =>
+            {
+                if (SizeChanger.IsVisible && SizeChanger.Tag is ImageType)
+                {
+                    SizeChanger.UpdateLayout();
+                    SizeChanger.WindowStartupLocation = Xceed.Wpf.Toolkit.WindowStartupLocation.Manual;
+                    var source = (ImageType)SizeChanger.Tag;
+                    var is_hor = ViewerPanel.Orientation == Orientation.Horizontal;
+                    var pw = ViewerPanel.DesiredSize.Width;
+                    var ph = ViewerPanel.DesiredSize.Height;
+                    var factor_x = pw / 6f;
+                    var factor_y = ph / 6f;
+                    var offset_x = SystemParameters.WindowCornerRadius.TopLeft;
+                    var offset_y = SystemParameters.WindowCornerRadius.TopLeft;
+                    var center_x = !is_hor ? pw / 2f : (source == ImageType.Source ?  factor_x : factor_x * 5f);
+                    var center_y = is_hor ? ph : (source == ImageType.Source ?  factor_y * 2f : ph);
+                    SizeChanger.Left = center_x - (SizeChanger.DesiredSize.Width / 2f);
+                    SizeChanger.Top = center_y - (SizeChanger.DesiredSize.Height * 1.5);
+                }
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void CloseSizeChanger()
+        {
+            SizeChanger.Dispatcher.Invoke(() =>
+            {
+                SizeChanger.Close();
+            });
+        }
+        #endregion
+
+        #region ToolTip Helper
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        private FrameworkElement GetToolTipTarget(FrameworkElement element)
+        {
+            FrameworkElement target = element;
+            if (element == ImageSource) target = ImageSourceInfo;
+            if (element == ImageTarget) target = ImageTargetInfo;
+            if (element == ImageResult) target = ImageResultInfo;
+            return (target);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        private bool IsToolTipOpen(FrameworkElement element)
+        {
+            var result = false;
+            try
+            {
+                result = Dispatcher.Invoke(() =>
+                {
+                    var _result_ = false;
+                    FrameworkElement target = GetToolTipTarget(element);
+
+                    if (target?.ToolTip is string)
+                    {
+                        _result_ = (target?.ToolTip as ToolTip).IsOpen;
+                    }
+                    else if (target?.ToolTip is ToolTip && (target?.ToolTip as ToolTip).Content is string)
+                    {
+                        _result_ = (target?.ToolTip as ToolTip).IsOpen;
+                    }
+                    return (_result_);
+                });
+            }
+            catch { }
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        private string GetToolTip(FrameworkElement element)
+        {
+            var result = Dispatcher.Invoke(() =>
+            {
+                var ret = string.Empty;
+
+                FrameworkElement target = GetToolTipTarget(element);
+
+                if (target?.ToolTip is string)
+                {
+                    ret = target?.ToolTip as string;
+                }
+                else if (target?.ToolTip is ToolTip && (target?.ToolTip as ToolTip).Content is string)
+                {
+                    ret = (target?.ToolTip as ToolTip).Content as string;
+                }
+                return (ret);
+            });
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="tooltip"></param>
+        private void SetToolTip(FrameworkElement element, string tooltip)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                FrameworkElement target = GetToolTipTarget(element);
+
+                if (target?.ToolTip is string)
+                {
+                    target.ToolTip = tooltip;
+                }
+                else if (target?.ToolTip is ToolTip)
+                {
+                    (target.ToolTip as ToolTip).Content = tooltip;
+                }
+                else if (target?.ToolTip is null && !string.IsNullOrEmpty(tooltip))
+                {
+                    target.ToolTip = new ToolTip() { Content = tooltip };
+                }
+                else if (string.IsNullOrEmpty(tooltip))
+                {
+                    target.ToolTip = null;
+                }
+                DoEvents();
+                ToolTipService.SetShowDuration(target, AutoHideToolTip ?? false ? ToolTipDuration : int.MaxValue);
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        private void OpenToolTip(FrameworkElement element)
+        {
+            element?.Dispatcher.InvokeAsync(() =>
+            {
+                try
+                {
+                    FrameworkElement target = GetToolTipTarget(element);
+
+                    if (target?.ToolTip is string)
+                    {
+                        (target?.ToolTip as ToolTip).IsOpen = true;
+                    }
+                    else if (target?.ToolTip is ToolTip && (target?.ToolTip as ToolTip).Content is string)
+                    {
+                        (target?.ToolTip as ToolTip).IsOpen = true;
+                    }
+                }
+                catch { }
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        private void CloseToolTip(FrameworkElement element)
+        {
+            element?.Dispatcher.Invoke(() =>
+            {
+                try
+                {
+                    FrameworkElement target = GetToolTipTarget(element);
+
+                    if (target?.ToolTip is string)
+                    {
+                        (target?.ToolTip as ToolTip).IsOpen = false;
+                    }
+                    else if (target?.ToolTip is ToolTip && (target?.ToolTip as ToolTip).Content is string)
+                    {
+                        (target?.ToolTip as ToolTip).IsOpen = false;
+                    }
+                }
+                catch { }
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        private void ToggleToolTip(FrameworkElement element)
+        {
+            var show = !IsToolTipOpen(element);
+            if (show) OpenToolTip(element);
+            else CloseToolTip(element);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        private void ShowToolTip(FrameworkElement element)
+        {
+            element?.Dispatcher.InvokeAsync(() =>
+            {
+                FrameworkElement target = GetToolTipTarget(element);
+                ToolTipService.SetIsEnabled(target, true);
+                if (target?.ToolTip is string)
+                {
+                    (target?.ToolTip as ToolTip).Visibility = Visibility.Visible;
+                }
+                else if (target?.ToolTip is ToolTip && (target?.ToolTip as ToolTip).Content is string)
+                {
+                    (target?.ToolTip as ToolTip).Visibility = Visibility.Visible;
+                }
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        private void HideToolTip(FrameworkElement element)
+        {
+            element?.Dispatcher.InvokeAsync(() =>
+            {
+                FrameworkElement target = GetToolTipTarget(element);
+                ToolTipService.SetIsEnabled(target, false);
+                if (target?.ToolTip is string)
+                {
+                    (target?.ToolTip as ToolTip).Visibility = Visibility.Collapsed;
+                }
+                else if (target?.ToolTip is ToolTip && (target?.ToolTip as ToolTip).Content is string)
+                {
+                    (target?.ToolTip as ToolTip).Visibility = Visibility.Collapsed;
+                }
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="state"></param>
+        private void SetToolTipState(FrameworkElement element, bool state)
+        {
+            if (state) ShowToolTip(element);
+            else HideToolTip(element);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void ToggleToolTipState()
+        {
+            ShowImageInfo.Dispatcher.InvokeAsync(() =>
+            {
+                try
+                {
+                    var info = ShowImageInfo.IsChecked ?? false;
+                    if (!info)
+                    {
+                        CloseToolTip(ImageSource);
+                        CloseToolTip(ImageTarget);
+                        CloseToolTip(ImageResult);
+                    }
+                    SetToolTipState(ImageSource, info);
+                    SetToolTipState(ImageTarget, info);
+                    SetToolTipState(ImageResult, info);
+                }
+                catch { }
+            });
+        }
+        #endregion
+
+        #region Magnifier Helper
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="change_state"></param>
+        private void ToggleMagnifier(bool? state = null, bool change_state = false)
+        {
+            ImageMagnifier.Dispatcher.Invoke(() =>
+            {
+                if (ImageSource.Source == null && ImageTarget.Source == null && ImageResult.Source == null) return;
+
+                var mag = ImageMagnifier.IsEnabled;
+                if (state == null) { mag = !mag; }
+                else mag = state ?? false;
+
+                if (change_state) MagnifierMode.IsChecked = mag;
+                SetToolTipState(ImageSource, !mag);
+                SetToolTipState(ImageTarget, !mag);
+                SetToolTipState(ImageResult, !mag);
+                if (mag)
+                {
+                    CloseToolTip(ImageSource);
+                    CloseToolTip(ImageTarget);
+                    CloseToolTip(ImageResult);
+                }
+                ImageMagnifier.IsEnabled = mag;
+                ImageMagnifier.Visibility = mag ? Visibility.Visible : Visibility.Collapsed;
+            });
+        }
+        #endregion
+
         #region UI Indicator
         /// <summary>
         /// 
@@ -1780,6 +2466,15 @@ namespace ImageCompare
         private bool IsQualityChanger
         {
             get => QualityChanger.Dispatcher.Invoke(() => { return (QualityChanger.IsVisible); });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private bool IsShowImageInfo
+        {
+            get => ShowImageInfo.Dispatcher.Invoke(() => ShowImageInfo.IsChecked ?? true);
+            set => ShowImageInfo.Dispatcher.Invoke(() => ShowImageInfo.IsChecked = value);
         }
         #endregion
 
@@ -2606,694 +3301,6 @@ namespace ImageCompare
                 case Orientation.Vertical: break;
                 default: break;
             }
-        }
-
-        #region Quality Changer Helper
-        /// <summary>
-        /// 
-        /// </summary>
-        private void AdjustQualityChangerPos()
-        {
-            QualityChanger.Dispatcher.InvokeAsync(() =>
-            {
-                if (QualityChanger.IsVisible && QualityChanger.Tag is ImageType)
-                {
-                    QualityChanger.WindowStartupLocation = Xceed.Wpf.Toolkit.WindowStartupLocation.Manual;
-                    var source = (ImageType)QualityChanger.Tag;
-                    var is_hor = ViewerPanel.Orientation == Orientation.Horizontal;
-                    var pw = ViewerPanel.DesiredSize.Width;
-                    var ph = ViewerPanel.DesiredSize.Height;
-                    var factor_x = pw / 6f;
-                    var factor_y = ph / 6f;
-                    var offset_x = SystemParameters.WindowCornerRadius.TopLeft;
-                    var offset_y = SystemParameters.WindowCornerRadius.TopLeft;
-                    var center_x = !is_hor ? pw / 2f : (source == ImageType.Source ?  factor_x : factor_x * 5f);
-                    var center_y = is_hor ? ph : (source == ImageType.Source ?  factor_y * 2f : ph);
-                    QualityChanger.Left = center_x - (QualityChanger.DesiredSize.Width / 2f);
-                    QualityChanger.Top = center_y - (QualityChanger.DesiredSize.Height * 1.5);
-                }
-            });
-        }
-
-        private DispatcherTimer QualityChangerDelay = null;
-        private DispatcherTimer FuzzyChangeDelay = null;
-        private DispatcherTimer BlendChangeDelay = null;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void InitCoutDownTimer()
-        {
-            if (QualityChangerDelay == null)
-            {
-                QualityChangerDelay = new DispatcherTimer(DispatcherPriority.Normal) { IsEnabled = false, Interval = TimeSpan.FromMilliseconds(CountDownTimeOut) };
-                QualityChangerDelay.Tick += QualityChangerDelay_Tick;
-            }
-            if (FuzzyChangeDelay == null)
-            {
-                FuzzyChangeDelay = new DispatcherTimer(DispatcherPriority.Normal) { IsEnabled = false, Interval = TimeSpan.FromMilliseconds(CountDownTimeOut) };
-                FuzzyChangeDelay.Tick += FuzzyChangeDelay_Tick;
-            }
-            if (BlendChangeDelay == null)
-            {
-                BlendChangeDelay = new DispatcherTimer(DispatcherPriority.Normal) { IsEnabled = false, Interval = TimeSpan.FromMilliseconds(CountDownTimeOut) };
-                BlendChangeDelay.Tick += BlendChangeDelay_Tick;
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void FuzzyChangeDelay_Tick(object sender, EventArgs e)
-        {
-            ImageCompareFuzzy.Dispatcher.InvokeAsync(() =>
-            {
-                FuzzyChangeDelay.Stop();
-                ImageCompareFuzzy.ToolTip = $"{"Tolerances".T(DefaultCultureInfo)}: {ImageCompareFuzzy.Value:F1}%";
-                if (ImageSource.GetInformation().ValidCurrent && ImageTarget.GetInformation().ValidCurrent)
-                    RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite));
-            });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void BlendChangeDelay_Tick(object sender, EventArgs e)
-        {
-            ImageCompositeBlend.Dispatcher.InvokeAsync(() =>
-            {
-                BlendChangeDelay.Stop();
-                ImageCompositeBlend.ToolTip = $"{"Blend".T(DefaultCultureInfo)}: {ImageCompositeBlend.Value:F0}%";
-                if (LastOpIsComposite && ImageSource.GetInformation().ValidCurrent && ImageTarget.GetInformation().ValidCurrent)
-                    RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite));
-            });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void QualityChangerDelay_Tick(object sender, EventArgs e)
-        {
-            QualityChangerDelay.Stop();
-            if (IsQualityChanger && QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
-            {
-                var source = (ImageType)(QualityChanger.Tag);
-                var quality = (uint)(QualityChangerSlider.Value);
-
-                RenderRun(async () =>
-                {
-                    try
-                    {
-                        if (source == ImageType.Source) IsProcessingSource = true;
-                        else if (source == ImageType.Target) IsProcessingTarget = true;
-
-                        var image_s = source == ImageType.Source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
-                        var image = image_s.Original;
-                        var quality_o = image_s.OriginalQuality;
-
-                        var result = quality < quality_o ? await ChangeQuality(image, quality) : new MagickImage(image);
-                        if (CompareImageForceScale) result.Resize(CompareResizeGeometry);
-                        image_s.Current = new MagickImage(result);
-                        result.Dispose();
-                        
-                        UpdateImageViewer(LastOpIsComposite, assign: true, reload: false, reload_type: source);
-
-                        if (await UpdateImageViewerFinished(TaskTimeOutSeconds) && ImageResult.GetInformation().ValidCurrent)
-                        {
-                            var diff = ImageResult.GetInformation().Current?.GetArtifact("compare:difference");
-                            SetQualityChangerTitle(string.IsNullOrEmpty(diff) ? null : $"{image_s.CurrentQuality}, {"ResultTipDifference".T()} {diff}");
-                        }
-                    }
-                    catch (Exception ex) { ex.ShowMessage(); }
-                });
-            }
-        }
-
-        private string QualityChangeerTitle = string.Empty;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="info"></param>
-        private void OpenQualityChanger(ImageType source)
-        {
-            if (Ready && !IsQualityChanger)
-            {
-                InitCoutDownTimer();
-                QualityChanger.Dispatcher.InvokeAsync(() =>
-                {
-                    var info = source == ImageType.Source ? ImageSource.GetInformation() : (source == ImageType.Target ? ImageTarget.GetInformation() : new ImageInformation());
-                    if (info.ValidCurrent)
-                    {
-                        var image = info?.Current;
-                        var quality = image.Quality();
-                        var quality_str = quality > 0  ? $"{quality}" : "Unknown";
-                        QualityChangeerTitle = $"{"InfoTipQuality".T().Trim('=').Trim()} : {quality_str}";
-                        QualityChanger.Tag = source;
-                        QualityChanger.Caption = QualityChangeerTitle;
-                        QualityChanger.FocusedElement = QualityChangerSlider;
-                        QualityChangerSlider.Maximum = quality > 0 ? quality : 100;
-                        QualityChangerSlider.Width = 300;
-                        QualityChangerSlider.IsSnapToTickEnabled = true;
-                        QualityChangerSlider.Tag = new MagickImage(image);
-                        QualityChangerSlider.Ticks = new DoubleCollection() { 10, 25, 30, 35, 55, 60, 65, 70, 75, 85, 95 };
-                        QualityChangerSlider.TickPlacement = System.Windows.Controls.Primitives.TickPlacement.Both;
-                        QualityChangerSlider.LargeChange = 5;
-                        QualityChangerSlider.SmallChange = 1;
-                        QualityChangerSlider.Value = quality > 0 ? quality : 100;
-                        QualityChanger.Show();
-                        QualityChanger.UpdateLayout();
-
-                        DoEvents();
-                        AdjustQualityChangerPos();
-
-                        QualityChangerSlider.Focusable = true;
-                        QualityChangerSlider.Focus();
-
-                        if (QualityChangerDelay is DispatcherTimer)
-                        {
-                            QualityChangerDelay.IsEnabled = true;
-                            QualityChangerDelay.Stop();
-                        }
-                    }
-                });
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void CloseQualityChanger(bool restore = false, ImageType source = ImageType.All)
-        {
-            if (Ready && IsQualityChanger && (source == GetQualityChangerSource() || source == ImageType.All))
-            {
-                QualityChanger.Dispatcher.InvokeAsync(() =>
-                {
-                    if (restore)
-                        QualityChanger_CloseButtonClicked(QualityChanger, null);
-                    else
-                        QualityChangerSlider.Tag = null;
-
-                    QualityChanger.Close();
-                });
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="title"></param>
-        private void SetQualityChangerTitle(string title = null)
-        {
-            QualityChanger.Dispatcher.InvokeAsync(() =>
-            {
-                title = title.Trim();
-                QualityChanger.Caption = string.IsNullOrEmpty(title) ? $"{QualityChangeerTitle}" : $"{QualityChangeerTitle} => {title}";
-            });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="diff"></param>
-        private void UpdateQualityChangerTitle(string diff = null)
-        {
-            if (IsQualityChanger && !string.IsNullOrEmpty(diff))
-            {
-                QualityChanger.Dispatcher.InvokeAsync(() =>
-                {
-                    if (Regex.IsMatch(QualityChanger.Caption, $"{"ResultTipDifference".T()}", RegexOptions.IgnoreCase))
-                    {
-                        QualityChanger.Caption = Regex.Replace(QualityChanger.Caption, $"{"ResultTipDifference".T()}.*?$", $"{"ResultTipDifference".T()} {diff}", RegexOptions.IgnoreCase);
-                    }
-                });
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="diff"></param>
-        private void UpdateQualityChangerTitle(double? diff = null)
-        {
-            if (IsQualityChanger && diff != null && diff != double.NaN)
-            {
-                QualityChanger.Dispatcher.InvokeAsync(() =>
-                {
-                    if (Regex.IsMatch(QualityChanger.Caption, $"{"ResultTipDifference".T()}", RegexOptions.IgnoreCase))
-                    {
-                        QualityChanger.Caption = Regex.Replace(QualityChanger.Caption, $"{"ResultTipDifference".T()}.*?$", $"{"ResultTipDifference".T()} {diff:P2}", RegexOptions.IgnoreCase);
-                    }
-                });
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        private ImageType GetQualityChangerSource()
-        {
-            var result = ImageType.None;
-            result = QualityChanger.Dispatcher.Invoke(() =>
-            {
-                var source = ImageType.None;
-                if (IsQualityChanger && QualityChanger.Tag is ImageType && QualityChangerSlider.Tag is MagickImage)
-                {
-                    source = (ImageType)(QualityChanger.Tag ?? ImageType.None);
-                }
-                return (source);
-            });
-            return (result);
-        }
-        #endregion
-
-        #region Size Changer Helper
-        private Gravity SizeChangerAlign = Gravity.Center;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="uid"></param>
-        private void OpenSizeChanger(bool source, string uid = null)
-        {
-            OpenSizeChanger(source ? ImageType.Source : ImageType.Target, uid);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="uid"></param>
-        private void OpenSizeChanger(ImageType source, string uid = null)
-        {
-            SizeChanger.Dispatcher.Invoke(() =>
-            {
-                if (!string.IsNullOrEmpty(uid))
-                {
-                    if (uid == "CropImageEdge") { SizeChangeCrop.Focus(); }
-                    else if (uid == "ExtentImageEdge") { SizeChangeExtent.Focus(); }
-                    else if (uid == "PanImageEdge") { }
-                }
-                SizeChanger.Tag = source;
-                SizeChanger.Show();
-                DoEvents();
-
-                AdjustSizeChangerPos();
-            });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        private async void ApplySizeChanger(FrameworkElement sender)
-        {
-            try
-            {
-                var source = SizeChanger.Dispatcher.Invoke(() =>
-                {
-                    var ret = ImageType.None;
-                    if (SizeChanger.Tag is ImageType) ret = (ImageType)(SizeChanger.Tag);
-                    return(ret);
-                });
-
-                var image = source == ImageType.Source ? ImageSource : ImageTarget;
-                var info = image.GetInformation();
-                var scaler = source == ImageType.Source ? ImageSourceScale : ImageTargetScale;
-                var rotater = source == ImageType.Source ? ImageSourceRotate : ImageTargetRotate;
-
-                var indicator = source == ImageType.Source ? IsProcessingSource : IsProcessingTarget;
-
-                if (!Ready || IsImageNull(image) || indicator) return;
-
-                var mode = SizeChanger.Dispatcher.Invoke(() => SizeChangeUnitMode.IsChecked ?? true);
-                var size = SizeChanger.Dispatcher.Invoke(() => SizeChangeValue.Value ?? 0);
-                var scale = SizeChanger.Dispatcher.Invoke(()=> SizeChangeScaleValue.Value ?? 0);
-
-                //var angle = rotater.Dispatcher?.Invoke(() => rotater.Angle % 360) ?? 0;
-                //var flipx = scaler.Dispatcher?.Invoke(() => scaler.ScaleX < 0) ?? info.FlipX;
-                //var flipy = scaler.Dispatcher?.Invoke(() => scaler.ScaleY < 0) ?? info.FlipY;
-                var angle = info.Rotated;
-                var flipx = info.FlipX;
-                var flipy = info.FlipY;
-
-                var align = SizeChangerAlign;
-                if (angle != 0) align = Rotate(align, angle);
-                if (flipx) align = FlipX(align);
-                if (flipy) align = FlipY(align);
-
-                if (sender == SizeChangeExtent && size > 0)
-                {
-                    RenderRun(() => { ExtentImageEdge(source == ImageType.Source, size, mode, align); });
-                    if (await UpdateImageViewerFinished()) indicator = false;
-                }
-                else if (sender == SizeChangeCrop && size > 0)
-                {
-                    RenderRun(() => { CropImageEdge(source == ImageType.Source, -1 * size, mode, align); });
-                    if (await UpdateImageViewerFinished()) indicator = false;
-                }
-                else if (sender == SizeChangeEnlarge && scale > 0)
-                {
-                    RenderRun(() => { ScaleImage(source == ImageType.Source, scale, mode); });
-                    if (await UpdateImageViewerFinished()) indicator = false;
-                }
-                else if (sender == SizeChangeShrink && scale > 0)
-                {
-                    RenderRun(() => { ScaleImage(source == ImageType.Source, -1 * scale, mode); });
-                    if (await UpdateImageViewerFinished()) indicator = false;
-                }
-            }
-            catch(Exception ex) { ex.ShowMessage(); }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void AdjustSizeChangerPos()
-        {
-            SizeChanger.Dispatcher.InvokeAsync(() =>
-            {
-                if (SizeChanger.IsVisible && SizeChanger.Tag is ImageType)
-                {
-                    SizeChanger.UpdateLayout();
-                    SizeChanger.WindowStartupLocation = Xceed.Wpf.Toolkit.WindowStartupLocation.Manual;
-                    var source = (ImageType)SizeChanger.Tag;
-                    var is_hor = ViewerPanel.Orientation == Orientation.Horizontal;
-                    var pw = ViewerPanel.DesiredSize.Width;
-                    var ph = ViewerPanel.DesiredSize.Height;
-                    var factor_x = pw / 6f;
-                    var factor_y = ph / 6f;
-                    var offset_x = SystemParameters.WindowCornerRadius.TopLeft;
-                    var offset_y = SystemParameters.WindowCornerRadius.TopLeft;
-                    var center_x = !is_hor ? pw / 2f : (source == ImageType.Source ?  factor_x : factor_x * 5f);
-                    var center_y = is_hor ? ph : (source == ImageType.Source ?  factor_y * 2f : ph);
-                    SizeChanger.Left = center_x - (SizeChanger.DesiredSize.Width / 2f);
-                    SizeChanger.Top = center_y - (SizeChanger.DesiredSize.Height * 1.5);
-                }
-            });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void CloseSizeChanger()
-        {
-            SizeChanger.Dispatcher.Invoke(() =>
-            {
-                SizeChanger.Close();
-            });
-        }
-        #endregion
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="change_state"></param>
-        private void ToggleMagnifier(bool? state = null, bool change_state = false)
-        {
-            ImageMagnifier.Dispatcher.Invoke(() =>
-            {
-                if (ImageSource.Source == null && ImageTarget.Source == null && ImageResult.Source == null) return;
-
-                var mag = ImageMagnifier.IsEnabled;
-                if (state == null) { mag = !mag; }
-                else mag = state ?? false;
-
-                if (change_state) MagnifierMode.IsChecked = mag;
-                ToolTipService.SetIsEnabled(ImageSource, !mag);
-                ToolTipService.SetIsEnabled(ImageTarget, !mag);
-                ToolTipService.SetIsEnabled(ImageResult, !mag);
-                if (mag)
-                {
-                    CloseToolTip(ImageSource);
-                    CloseToolTip(ImageTarget);
-                    CloseToolTip(ImageResult);
-                }
-                ImageMagnifier.IsEnabled = mag;
-                ImageMagnifier.Visibility = mag ? Visibility.Visible : Visibility.Collapsed;
-            });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="element"></param>
-        /// <returns></returns>
-        private bool IsToolTipOpen(FrameworkElement element)
-        {
-            var result = false;
-            try
-            {
-                FrameworkElement target = element;
-                Dispatcher.Invoke(() => 
-                { 
-                    if (element == ImageSource) target = ImageSourceInfo;
-                    if (element == ImageTarget) target = ImageTargetInfo;
-                    if (element == ImageResult) target = ImageResultInfo;
-
-                    if (target?.ToolTip is string)
-                    {
-                        result = (target?.ToolTip as ToolTip).IsOpen;
-                    }
-                    else if (target?.ToolTip is ToolTip && (target?.ToolTip as ToolTip).Content is string)
-                    {
-                        result = (target?.ToolTip as ToolTip).IsOpen;
-                    }
-                });
-            }
-            catch { }
-            return (result);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="element"></param>
-        /// <returns></returns>
-        private string GetToolTip(FrameworkElement element)
-        {
-            var result = Dispatcher.Invoke(() =>
-            {
-                var ret = string.Empty;
-
-                FrameworkElement target = element;
-                if (element == ImageSource) target = ImageSourceInfo;
-                if (element == ImageTarget) target = ImageTargetInfo;
-                if (element == ImageResult) target = ImageResultInfo;
-
-                if (target?.ToolTip is string)
-                {
-                    ret = target?.ToolTip as string;
-                }
-                else if (target?.ToolTip is ToolTip && (target?.ToolTip as ToolTip).Content is string)
-                {
-                    ret = (target?.ToolTip as ToolTip).Content as string;
-                }
-                return(ret);
-            });
-            return (result);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="element"></param>
-        /// <param name="tooltip"></param>
-        private void SetToolTip(FrameworkElement element, string tooltip)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                FrameworkElement target = element;
-                if (element == ImageSource) target = ImageSourceInfo;
-                if (element == ImageTarget) target = ImageTargetInfo;
-                if (element == ImageResult) target = ImageResultInfo;
-
-                if (target?.ToolTip is string)
-                {
-                    target.ToolTip = tooltip;
-                }
-                else if (target?.ToolTip is ToolTip)
-                {
-                    (target.ToolTip as ToolTip).Content = tooltip;
-                }
-                else if (target?.ToolTip is null && !string.IsNullOrEmpty(tooltip))
-                {
-                    target.ToolTip = new ToolTip() { Content = tooltip };
-                }
-                else if (string.IsNullOrEmpty(tooltip))
-                {
-                    target.ToolTip = null;
-                }
-                DoEvents();
-                ToolTipService.SetShowDuration(target, AutoHideToolTip ?? false ? ToolTipDuration : int.MaxValue);
-            });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="element"></param>
-        private void OpenToolTip(FrameworkElement element)
-        {
-            element?.Dispatcher.InvokeAsync(() =>
-            {
-                try
-                {
-                    FrameworkElement target = element;
-                    if (element == ImageSource) target = ImageSourceInfo;
-                    if (element == ImageTarget) target = ImageTargetInfo;
-                    if (element == ImageResult) target = ImageResultInfo;
-
-                    if (target?.ToolTip is string)
-                    {
-                        (target?.ToolTip as ToolTip).IsOpen = true;
-                    }
-                    else if (target?.ToolTip is ToolTip && (target?.ToolTip as ToolTip).Content is string)
-                    {
-                        (target?.ToolTip as ToolTip).IsOpen = true;
-                    }
-                }
-                catch { }
-            });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="element"></param>
-        private void CloseToolTip(FrameworkElement element)
-        {
-            element?.Dispatcher.Invoke(() =>
-            {
-                try
-                {
-                    FrameworkElement target = element;
-                    if (element == ImageSource) target = ImageSourceInfo;
-                    if (element == ImageTarget) target = ImageTargetInfo;
-                    if (element == ImageResult) target = ImageResultInfo;
-
-                    if (target?.ToolTip is string)
-                    {
-                        (target?.ToolTip as ToolTip).IsOpen = false;
-                    }
-                    else if (target?.ToolTip is ToolTip && (target?.ToolTip as ToolTip).Content is string)
-                    {
-                        (target?.ToolTip as ToolTip).IsOpen = false;
-                    }
-                }
-                catch { }
-            });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="element"></param>
-        private void ToggleToolTip(FrameworkElement element)
-        {
-            var show = !IsToolTipOpen(element);
-            if (show) OpenToolTip(element);
-            else CloseToolTip(element);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="element"></param>
-        private void ShowToolTip(FrameworkElement element)
-        {
-            element?.Dispatcher.InvokeAsync(() =>
-            {
-                FrameworkElement target = element;
-                if (element == ImageSource) target = ImageSourceInfo;
-                if (element == ImageTarget) target = ImageTargetInfo;
-                if (element == ImageResult) target = ImageResultInfo;
-
-                if (target?.ToolTip is string)
-                {
-                    (target?.ToolTip as ToolTip).Visibility = Visibility.Visible;
-                }
-                else if (target?.ToolTip is ToolTip && (target?.ToolTip as ToolTip).Content is string)
-                {
-                    (target?.ToolTip as ToolTip).Visibility = Visibility.Visible;
-                }
-            });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="element"></param>
-        private void HideToolTip(FrameworkElement element)
-        {
-            element?.Dispatcher.InvokeAsync(() =>
-            {
-                FrameworkElement target = element;
-                if (element == ImageSource) target = ImageSourceInfo;
-                if (element == ImageTarget) target = ImageTargetInfo;
-                if (element == ImageResult) target = ImageResultInfo;
-
-                if (target?.ToolTip is string)
-                {
-                    (target?.ToolTip as ToolTip).Visibility = Visibility.Collapsed;
-                }
-                else if (target?.ToolTip is ToolTip && (target?.ToolTip as ToolTip).Content is string)
-                {
-                    (target?.ToolTip as ToolTip).Visibility = Visibility.Collapsed;
-                }
-            });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="element"></param>
-        /// <param name="state"></param>
-        private void SetToolTipState(FrameworkElement element, bool state)
-        {
-            if (state) ShowToolTip(element);
-            else HideToolTip(element);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private bool IsShowImageInfo 
-        { 
-            get => ShowImageInfo.Dispatcher.Invoke(() => ShowImageInfo.IsChecked ?? true); 
-            set => ShowImageInfo.Dispatcher.Invoke(() => ShowImageInfo.IsChecked = value);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void ToggleToolTipState()
-        {
-            ShowImageInfo.Dispatcher.InvokeAsync(() =>
-            {
-                try
-                {
-                    var info = ShowImageInfo.IsChecked ?? false;
-                    if (!info)
-                    {
-                        CloseToolTip(ImageSource);
-                        CloseToolTip(ImageTarget);
-                        CloseToolTip(ImageResult);
-                    }
-                    SetToolTipState(ImageSource, info);
-                    SetToolTipState(ImageTarget, info);
-                    SetToolTipState(ImageResult, info);
-                }
-                catch { }
-            });
         }
 
         /// <summary>
