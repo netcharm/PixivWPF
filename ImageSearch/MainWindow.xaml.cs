@@ -211,7 +211,7 @@ namespace ImageSearch
             else return (null);
         }
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", CharSet = CharSet.Auto, BestFitMapping = true, SetLastError = true)]
         private static extern int ShowWindow(IntPtr hWnd, uint Msg);
 
         private const uint SW_RESTORE = 0x09;
@@ -220,7 +220,11 @@ namespace ImageSearch
         {
             try
             {
-                if (WindowState == WindowState.Minimized) ShowWindow(new WindowInteropHelper(this).Handle, SW_RESTORE); ;
+                if (WindowState == WindowState.Minimized)
+                {
+                    int hr = ShowWindow(new WindowInteropHelper(this).Handle, SW_RESTORE);
+                    if (hr != 0) return;
+                }
                 Activate();
             }
             catch (Exception ex) { ReportMessage(ex); }
@@ -1404,21 +1408,23 @@ namespace ImageSearch
                         var feature_db = all_db ? string.Empty : storage.DatabaseFile;
                         _filter_files_ = [.. files.Select(f => f.Trim('"')).Select(f => Path.IsPathRooted(f) ? f : Path.Combine(folder, f)).Distinct()];
                         var tooltip = $"Filter Filss: {_filter_files_.Count}";
-                        ToolTipService.SetToolTip(PasteFilesFilter, tooltip);
+                        ToolTipService.SetToolTip(SetFileFilter, tooltip);
                         //if (Clipboard.ContainsText()) Clipboard.Clear();
+                        SetFilesFilterIndicator.Visibility = _filter_files_ != null && _filter_files_.Any() ? Visibility.Visible : Visibility.Collapsed;
                         ReportMessage(tooltip);
                     }
                 });
             }
         }
 
-        internal protected void ClsFilesFilter()
+        internal protected void ClearFilesFilter()
         {
             Dispatcher.Invoke(() =>
             {
                 _filter_files_?.Clear();
                 _filter_files_ = null;
-                ToolTipService.SetToolTip(PasteFilesFilter, null);
+                ToolTipService.SetToolTip(SetFileFilter, null);
+                SetFilesFilterIndicator.Visibility = _filter_files_ != null && _filter_files_.Any() ? Visibility.Visible : Visibility.Collapsed;
                 ReportMessage("Filter Filss Cleared");
             });
         }
@@ -1899,7 +1905,7 @@ namespace ImageSearch
             }
         }
 
-        private void PasteFilesFilter_Click(object sender, RoutedEventArgs e)
+        private void SetFileFilter_Click(object sender, RoutedEventArgs e)
         {
             if (Clipboard.ContainsText())
             {
@@ -1908,9 +1914,9 @@ namespace ImageSearch
             }
         }
 
-        private void ClearFilesFilter_Click(object sender, RoutedEventArgs e)
+        private void ClearFileFilter_Click(object sender, RoutedEventArgs e)
         {
-            ClsFilesFilter();
+            ClearFilesFilter();
         }
 
         private void IsQueryRotatedImage_Checked(object sender, RoutedEventArgs e)

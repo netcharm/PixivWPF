@@ -201,23 +201,32 @@
                       ScrollViewer.VerticalScrollBarVisibility="Auto"/>
             <ToggleButton x:Name="DarkBG" x:Uid="DarkBG" Margin="4" Width="22" IsChecked="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Click="DarkBG_Click">
                 <ToggleButton.Content>
-                    <TextBlock x:Uid="DarkBGIcon" Text="&#xE793;" Margin="1,1,0,0" Style="{DynamicResource MenuItemIcon}"/>
+                    <Grid>
+                        <TextBlock x:Uid="DarkBGIcon" Text="&#xE793;" Margin="1,1,0,0" Style="{DynamicResource MenuItemIcon}"/>
+                        <Ellipse x:Name="DarkBGIndicator" x:Uid="DarkBGIndicator" Width="4" Height="4" Fill="Green" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="{Binding ElementName=DarkBG, Path=IsChecked, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                    </Grid>
                 </ToggleButton.Content>
             </ToggleButton>
             <ToggleButton x:Name="AlwaysOnTop" x:Uid="AlwaysOnTop" Margin="4" Width="22" IsChecked="False" 
                           ToolTip="Always On Top" HorizontalAlignment="Right" Click="AlwaysOnTop_Click">
                 <ToggleButton.Content>
-                    <TextBlock x:Uid="AlwaysOnTopIcon" Text="&#xE840;" Margin="1,1,0,0" Style="{DynamicResource MenuItemIcon}"/>
+                    <Grid>
+                        <TextBlock x:Uid="AlwaysOnTopIcon" Text="&#xE840;" Margin="1,1,0,0" Style="{DynamicResource MenuItemIcon}"/>
+                        <Ellipse x:Name="AlwaysOnTopIndicator" x:Uid="AlwaysOnTopIndicator" Width="4" Height="4" Fill="Green" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="{Binding ElementName=AlwaysOnTop, Path=IsChecked, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                    </Grid>
                 </ToggleButton.Content>
             </ToggleButton>
             <CheckBox x:Name="IsQueryRotatedImage" x:Uid="IsQueryRotatedImage" Content="Rotated Image?" Margin="4" HorizontalAlignment="Center" VerticalAlignment="Center" Checked="IsQueryRotatedImage_Checked" Unchecked="IsQueryRotatedImage_Checked"/>
-            <Button x:Name="PasteFilesFilter" x:Uid="PasteFilesFilter" Width="22" Margin="4" Click="PasteFilesFilter_Click" 
-                    ToolTip="Paste To Filter Files" HorizontalAlignment="Center" VerticalAlignment="Stretch">
+            <Button x:Name="SetFileFilter" x:Uid="SetFileFilter" Width="22" Margin="4" Click="SetFileFilter_Click" 
+                    ToolTip="Set Filter Files" HorizontalAlignment="Center" VerticalAlignment="Stretch">
                 <Button.Content>
-                    <TextBlock x:Uid="PasteFilesFilterIcon" Text="&#xE133;" Margin="1,1,0,0" Style="{DynamicResource MenuItemIcon}"/>
+                    <Grid>
+                        <TextBlock x:Uid="SetFilesFilterIcon" Text="&#xE133;" Margin="1,1,0,0" Style="{DynamicResource MenuItemIcon}"/>
+                        <Ellipse x:Name="SetFilesFilterIndicator" x:Uid="SetFilesFilterIndicator" Width="4" Height="4" Fill="Red" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Collapsed" />
+                    </Grid>
                 </Button.Content>
             </Button>
-            <Button x:Name="ClearFilesFilter" x:Uid="ClearFilesFilter" Width="22" Margin="2,4,4,4" Click="ClearFilesFilter_Click" 
+            <Button x:Name="ClearFileFilter" x:Uid="ClearFileFilter" Width="22" Margin="2,4,4,4" Click="ClearFileFilter_Click" 
                     ToolTip="Clear Filter Files" HorizontalAlignment="Center" VerticalAlignment="Stretch">
                 <Button.Content>
                     <TextBlock x:Uid="ClearFilesFilterIcon" Text="&#xE107;" Margin="1,1,0,0" Style="{DynamicResource MenuItemIcon}"/>
