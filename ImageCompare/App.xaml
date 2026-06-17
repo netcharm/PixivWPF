@@ -12,7 +12,9 @@
             Segoe MDL2 Assets, Segoe UI Emoji, Segoe UI Symbol, 霞骛文楷, LXGW WenKai, FontAwesome, Twemoji Mozilla, EmojiOne Mozilla, EmojiOne Color, Noto Color Emoji, Noto Emoji, Sarasa Gothic J, 更纱黑体 SC, Segoe UI
         </FontFamily>
         <sys:Double x:Uid="MonoSpaceSize" x:Key="MonoSpaceSize">14</sys:Double>
-
+        
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        
         <ScaleTransform x:Key="FlipX">
             <ScaleTransform.CenterX>0.5</ScaleTransform.CenterX>
             <ScaleTransform.CenterY>0.5</ScaleTransform.CenterY>
