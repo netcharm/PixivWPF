@@ -1309,7 +1309,7 @@ namespace PixivWPF.Common
         public async void UpdateTilesState(PixivItem work = null, long? id = -1, bool is_user = false, bool touch = false)
         {
             if (IsTileUpdating || IsBusy) return;
-            if (Items is ObservableCollection<PixivItem> && Items.Count > 0)
+            if (Items is not null && Items.Count > 0)
             {
                 try
                 {
@@ -1324,7 +1324,7 @@ namespace PixivWPF.Common
                             new Action(async () =>
                             {
                                 var thumb = await item.Illust.GetThumbnailUrl(item.Index).LoadImageFromUrl(size: thumb_size);
-                                if (thumb is CustomImageSource && thumb.Source != null)
+                                if (thumb is not null && thumb.Source != null)
                                 {
                                     item.Source = thumb.Source;
                                     item.State = TaskStatus.RanToCompletion;
@@ -1338,7 +1338,7 @@ namespace PixivWPF.Common
                                 (work.IsUser() && item.UserID.Equals(work.UserID)) ||
                                 (!is_user && item.Illust.Id == id) ||
                                 (is_user && item.User.Id == id) ||
-                                (id == -1 && work == null))
+                                (work == null && (item.Illust.Id == id || id == -1)))
                             {
                                 item.IsFavorited = item.Illust.IsLiked();
                                 item.IsFollowed = item.User.IsLiked();
