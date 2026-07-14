@@ -2204,8 +2204,8 @@ namespace ImageSearch.Search
                                 }
                                 else
                                 {
-                                    names.Add(f_name);
-                                    feats.Add(np.zeros<float>(1000).ToArray<float>());
+                                    //names.Add(f_name);
+                                    //feats.Add(np.zeros<float>(1000).ToArray<float>());
                                 }
                             }
                             if (names.Count > 0 && feats.Count > 0)
@@ -2372,6 +2372,8 @@ namespace ImageSearch.Search
                             GC.Collect();
                         }
                     }
+                    var files_padding = files?.Where(f => result.Select(r => r.Key).ToList().IndexOf(f) < 0);
+                    if (files_padding?.Any() ?? false) result.AddRange(files_padding.Select(p => new KeyValuePair<string, double>(p, 0.000)));
                     result = result.DistinctBy(r => r.Key).OrderByDescending(r => r.Value).ThenByDescending(r => r.Key).Take(limit > 1 ? (int)limit : ResultMax).ToList();
                 }
                 catch (Exception ex) { ReportMessage(ex); }
