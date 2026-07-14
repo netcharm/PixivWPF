@@ -367,6 +367,7 @@ namespace PixivWPF.Common
                     finally
                     {
                         if (Thumbnail == null) Instance?.PART_ThumbnailWait.Fail();
+                        else Instance?.PART_ThumbnailWait.Hide();
                         NotifyPropertyChanged("Thumbnail");
                     }
                 }).InvokeAsync(cancelToken: _thumb_cancel_.Token);
