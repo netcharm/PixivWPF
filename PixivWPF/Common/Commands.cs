@@ -1006,33 +1006,14 @@ namespace PixivWPF.Common
 
         static public ICommand CopyOpenedWindowInfo { get; } = new DelegateCommand<dynamic>(async obj =>
         {
-            if (obj is System.Windows.Controls.Primitives.ToggleButton)
+            await new Action(() =>
             {
-                var sender = obj as System.Windows.Controls.Primitives.ToggleButton;
-                await new Action(() =>
+                var infos = new List<string>();
+                var wins = Application.Current.OpenedWindows();
+                if (Keyboard.Modifiers == ModifierKeys.Control)
                 {
-                    var wins = Application.Current.OpenedWindows();
-                    if (Keyboard.Modifiers == ModifierKeys.Control)
+                    foreach (var win in wins)
                     {
-                        var infos = new List<string>();
-                        foreach (var win in wins)
-                        {
-                            var page = win.Content;
-                            if (page is IllustDetailPage && ((page as IllustDetailPage).Contents?.IsWork() ?? false))
-                            {
-                                infos.AddRange((page as IllustDetailPage)?.Contents?.DownloadedFilePaths);
-                            }
-                            else if (page is IllustImageViewerPage && ((page as IllustImageViewerPage).Contents?.IsWork() ?? false))
-                            {
-                                infos.AddRange((page as IllustImageViewerPage)?.Contents?.DownloadedFilePaths);
-                            }
-                        }
-                        if (infos.Any()) CopyText.Execute(string.Join(Environment.NewLine, infos.Distinct().NaturalSort()));
-                    }
-                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                    {
-                        var infos = new List<string>();
-                        var win = Application.Current.GetActiveWindow();
                         var page = win.Content;
                         if (page is IllustDetailPage && ((page as IllustDetailPage).Contents?.IsWork() ?? false))
                         {
@@ -1042,25 +1023,52 @@ namespace PixivWPF.Common
                         {
                             infos.AddRange((page as IllustImageViewerPage)?.Contents?.DownloadedFilePaths);
                         }
-                        else if (page is TilesPage)
+                    }
+                }
+                else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                {
+                    var win = Application.Current.GetActiveWindow();
+                    var page = win.Content;
+                    if (page is IllustDetailPage && ((page as IllustDetailPage).Contents?.IsWork() ?? false))
+                    {
+                        infos.AddRange((page as IllustDetailPage)?.Contents?.DownloadedFilePaths);
+                    }
+                    else if (page is IllustImageViewerPage && ((page as IllustImageViewerPage).Contents?.IsWork() ?? false))
+                    {
+                        infos.AddRange((page as IllustImageViewerPage)?.Contents?.DownloadedFilePaths);
+                    }
+                    else if (page is TilesPage)
+                    {
+                        foreach (var item in (page as TilesPage).ImageTiles.FiltedList)
                         {
-                            foreach (var item in (page as TilesPage).ImageTiles.FiltedList)
-                            {
-                                infos.AddRange(item.DownloadedFilePaths);
-                            }
+                            infos.AddRange(item.DownloadedFilePaths);
                         }
-                        if (infos.Any()) CopyText.Execute(string.Join(Environment.NewLine, infos.Distinct().NaturalSort()));
                     }
-                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                    if (infos.Any()) CopyText.Execute(string.Join(Environment.NewLine, infos.Distinct().NaturalSort()));
+                }
+                else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                {
+                    foreach (var win in wins)
                     {
-
+                        var page = win.Content;
+                        if (page is IllustDetailPage || page is IllustImageViewerPage)
+                        {
+                            infos.Add(win.Title);
+                        }
                     }
-                    else if (Keyboard.Modifiers == ModifierKeys.None)
+                    if (infos.Any()) CopyText.Execute(string.Join(Environment.NewLine, infos.Distinct().NaturalSort()));
+                }
+                else if (Keyboard.Modifiers == ModifierKeys.None)
+                {
+                    var win = Application.Current.GetActiveWindow();
+                    var page = win.Content;
+                    if (page is IllustDetailPage || page is IllustImageViewerPage)
                     {
-
+                        infos.Add(win.Title);
                     }
-                }).InvokeAsync(true);
-            }
+                }
+                if (infos.Any()) CopyText.Execute(string.Join(Environment.NewLine, infos.Distinct().NaturalSort()));
+            }).InvokeAsync(true);
         });
 
         static public ICommand Compare { get; } = new DelegateCommand<dynamic>(async (obj) =>
