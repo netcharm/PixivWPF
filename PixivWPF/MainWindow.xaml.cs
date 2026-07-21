@@ -1279,6 +1279,8 @@ namespace PixivWPF
 
             var filter = new FilterParam()
             {
+                ContentExclude = LiveFilterExclude.Text.Trim(),
+                ContentInclude = LiveFilterInclude.Text.Trim(),
                 Type = filter_type,
                 FavoitedRange = filter_fav_no,
                 Fast = filter_fast,

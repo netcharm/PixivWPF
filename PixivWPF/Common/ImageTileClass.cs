@@ -38,6 +38,8 @@ namespace PixivWPF.Common
         public string FullListed { get; set; } = string.Empty;
         public string Sanity { get; set; } = string.Empty;
         public bool SanityOption_IncludeUnder { get; set; } = true;
+        public string ContentInclude { get; set; } = string.Empty;
+        public string ContentExclude { get; set; } = string.Empty;
     }
 
     public class PixivItem : FrameworkElement, INotifyPropertyChanged, IDisposable
@@ -646,6 +648,9 @@ namespace PixivWPF.Common
                 var filter_full = string.IsNullOrEmpty(filter.FullListed) ? string.Empty : filter.FullListed.ToLower();
                 var filter_sanity = string.IsNullOrEmpty(filter.Sanity) ? string.Empty : filter.Sanity.ToLower();
 
+                var content_include = filter.ContentInclude.Trim();
+                var content_exclude = filter.ContentExclude.Trim();
+
                 if (filter_fav_no.Length > 10) filter_fav_no = filter_fav_no.Substring(10);
                 if (filter_fast.Length > 5) filter_fast = filter_fast.Substring(5);
                 if (filter_sanity.Length > 7) filter_sanity = filter_sanity.Substring(7);
@@ -947,6 +952,33 @@ namespace PixivWPF.Common
                                 else if (not_sanity_age == 18)
                                     result = result && !sanity.Equals("18+");
                             }
+                        }
+                        #endregion
+                        #region by contents
+                        if (item.IsWork())
+                        {
+                            var work = item.Illust;
+                            var title = work.Title.Trim();
+                            var uname = work.User is not null ? $"{work.User.Name}" : "";
+                            var caption = work.Caption.HtmlToText(decode: true, br: false);
+                            var tags = work.Tags.Count > 0 ? $"#{string.Join(" #", work.Tags)}" : "";
+
+                            result &= title.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
+                                      caption.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
+                                      uname.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
+                                      tags.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0;
+
+                            result &= title.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0 &&
+                                      caption.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0 &&
+                                      uname.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0 &&
+                                      tags.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0;
+                        }
+                        else if (item.IsUser())
+                        {
+                            var user = item.User;
+                            var uname = $"{user?.Name}";
+                            result &= uname.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0;
+                            result &= uname.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0;
                         }
                         #endregion
                     }

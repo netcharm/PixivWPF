@@ -120,6 +120,15 @@
                 </mah:DropDownButton.Icon>
                 <mah:DropDownButton.Items>
                     <MenuItem x:Name="LiveFilterNone" x:Uid="LiveFilterNone" Header="None" IsChecked="True" Click="LiveFilterItem_Click"/>
+                    <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                        <TextBlock Text="Include: " HorizontalAlignment="Left"  VerticalAlignment="Center"/>
+                        <TextBox x:Name="LiveFilterInclude" x:Uid="LiveFilterInclude" HorizontalAlignment="Stretch"  VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                        <TextBlock Text="Exclude: " HorizontalAlignment="Left"  VerticalAlignment="Center"/>
+                        <TextBox x:Name="LiveFilterExclude" x:Uid="LiveFilterExclude" HorizontalAlignment="Stretch"  VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <MenuItem x:Name="LiveFilterApplyContents" x:Uid="LiveFilterApplyContents" Header="None" IsChecked="False" IsCheckable="False" Click="LiveFilterItem_Click"/>
                     <Separator/>
                     <MenuItem x:Name="LiveFilterFavoritedRange" x:Uid="LiveFilterFavoritedRange" Header="Total Favorited" >
                         <MenuItem x:Name="LiveFilterFavorited_00000" x:Uid="LiveFilterFavorited_00000" Header="Favorited Any+" Click="LiveFilterItem_Click"/>
