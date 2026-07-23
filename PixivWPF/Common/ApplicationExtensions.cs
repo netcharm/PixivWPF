@@ -4039,7 +4039,7 @@ namespace PixivWPF.Common
                         //response.EnsureSuccessStatusCode();
                         if (response != null && response.IsSuccessStatusCode)// && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
                         {
-                            long length = response.Content.Headers.ContentLength ?? (response.Content.Headers.ContentRange.HasLength ? response.Content.Headers.ContentRange.Length ?? 0 : 0);
+                            long length = response.Content.Headers.ContentLength ?? ((response.Content.Headers.ContentRange != null && response.Content.Headers.ContentRange.HasLength) ? response.Content.Headers.ContentRange.Length ?? 0 : 0);
                             var encodes = response.Content.Headers.ContentEncoding;
                             if (length > 0)
                             {

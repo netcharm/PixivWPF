@@ -962,23 +962,27 @@ namespace PixivWPF.Common
                             var uname = work.User is not null ? $"{work.User.Name}" : "";
                             var caption = work.Caption.HtmlToText(decode: true, br: false);
                             var tags = work.Tags.Count > 0 ? $"#{string.Join(" #", work.Tags)}" : "";
-
-                            result &= title.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
-                                      caption.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
-                                      uname.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
-                                      tags.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0;
-
-                            result &= title.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0 &&
-                                      caption.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0 &&
-                                      uname.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0 &&
-                                      tags.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0;
+                            if (!string.IsNullOrEmpty(content_include))
+                            {
+                                result &= title.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
+                                          caption.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
+                                          uname.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
+                                          tags.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0;
+                            }
+                            if (!string.IsNullOrEmpty(content_exclude))
+                            {
+                                result &= title.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0 &&
+                                          caption.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0 &&
+                                          uname.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0 &&
+                                          tags.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0;
+                            }
                         }
                         else if (item.IsUser())
                         {
                             var user = item.User;
                             var uname = $"{user?.Name}";
-                            result &= uname.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0;
-                            result &= uname.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0;
+                            result &= !string.IsNullOrEmpty(content_include) && uname.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0;
+                            result &= !string.IsNullOrEmpty(content_exclude) && uname.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0;
                         }
                         #endregion
                     }
