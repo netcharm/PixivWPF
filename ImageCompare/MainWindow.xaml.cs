@@ -2471,6 +2471,14 @@ namespace ImageCompare
         /// <summary>
         /// 
         /// </summary>
+        private bool IsSizeChanger
+        {
+            get => SizeChanger.Dispatcher.Invoke(() => { return (SizeChanger.IsVisible); });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         private bool IsShowImageInfo
         {
             get => ShowImageInfo.Dispatcher.Invoke(() => ShowImageInfo.IsChecked ?? true);
@@ -4173,12 +4181,18 @@ namespace ImageCompare
                             e.Handled = true;
                             CloseQualityChanger(restore: true);
                         }
+                        else if (IsSizeChanger)
+                        {
+                            e.Handled = true;
+                            CloseSizeChanger();
+                        }
                         else if (_last_key_ == Key.Escape && (DateTime.Now - _last_key_time_).TotalMilliseconds < 200)
                         {
                             e.Handled = true;
                             Close();
                         }
                     }
+
                     else if (e.Key == Key.F1 || e.SystemKey == Key.F1)
                     {
                         e.Handled = true;
@@ -4263,6 +4277,7 @@ namespace ImageCompare
                         ImageExchange.IsChecked = !ImageExchange.IsChecked;
                         ImageActions_Click(ImageExchange, e);
                     }
+
                     else if (km.OnlyCtrl && (e.Key == Key.C || e.SystemKey == Key.C))
                     {
                         Dispatcher.Invoke(async () =>
@@ -4285,12 +4300,14 @@ namespace ImageCompare
                         e.Handled = true;
                         Close();
                     }
+
                     else if (km.OnlyAlt && (e.Key == Key.T || e.SystemKey == Key.T))
                     {
                         e.Handled = true;
                         if (ImageSourceScroll.IsMouseOver && ImageSource.Source != null && ImageSourceScroll.ContextMenu != null) ImageSourceScroll.ContextMenu.IsOpen = true;
                         else if (ImageTargetScroll.IsMouseOver && ImageTarget.Source != null && ImageTargetScroll.ContextMenu != null) ImageTargetScroll.ContextMenu.IsOpen = true;
                     }
+
                     else if (e.Key == Key.I || e.SystemKey == Key.I)
                     {
                         if (km.OnlyShift)
@@ -4329,6 +4346,11 @@ namespace ImageCompare
                     {
                         if (ImageSourceScroll.IsMouseOver) OpenQualityChanger(ImageType.Source);
                         else if (ImageTargetScroll.IsMouseOver) OpenQualityChanger(ImageType.Target);
+                    }
+                    else if (e.Key == Key.Z || e.SystemKey == Key.Z)
+                    {
+                        if (ImageSourceScroll.IsMouseOver) OpenSizeChanger(ImageType.Source);
+                        else if (ImageTargetScroll.IsMouseOver) OpenSizeChanger(ImageType.Target);
                     }
 
                     _last_key_ = e.Key;
