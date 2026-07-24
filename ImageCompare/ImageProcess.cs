@@ -424,7 +424,8 @@ namespace ImageCompare
                 CloseQualityChanger(source: source ? ImageType.Source : ImageType.Target);
                 UpdateIndaicatorState(source, true, true);
 
-                var reload = ImageType.None;
+                var reload = !info_only;
+                var target = ImageType.None;
                 var action = false;
                 var size = CompareImageForceScale ? MaxCompareSize : 0;
                 if (source)
@@ -437,7 +438,7 @@ namespace ImageCompare
                     }
                     else
                     {
-                        reload = ImageSource.GetInformation().IsRotated ? ImageType.All : ImageType.Source;
+                        target = ImageSource.GetInformation().IsRotated ? ImageType.All : ImageType.Source;
                         action = await ImageSource.GetInformation().Reload(size, reload: true);
                     }
                 }
@@ -451,14 +452,14 @@ namespace ImageCompare
                     }
                     else
                     {
-                        reload = ImageTarget.GetInformation().IsRotated ? ImageType.All : ImageType.Target;
+                        target = ImageTarget.GetInformation().IsRotated ? ImageType.All : ImageType.Target;
                         action = await ImageTarget.GetInformation().Reload(size, reload: true);
                     }
                 }
 
                 LastMatchedImage = ImageType.None;
 
-                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: false, reload_type: reload);
+                if (action) UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: reload, reload_type: target);
                 else UpdateIndaicatorState(source, false, true);
             }
             catch (Exception ex) { ex.ShowMessage(); }
