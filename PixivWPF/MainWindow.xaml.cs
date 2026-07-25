@@ -1068,7 +1068,12 @@ namespace PixivWPF
             string filter_mmd = string.Empty;
             string filter_full = string.Empty;
             string filter_sanity = string.Empty;
-
+            
+            bool sanity_opt_include_under = LiveFilterSanity_OptIncludeUnder.IsChecked;
+            
+            string filter_exclude = LiveFilterExclude.Text.Trim();
+            string filter_include = LiveFilterInclude.Text.Trim();
+            
             var menu = sender as MenuItem;
 
             LiveFilterFavoritedRange.IsChecked = false;
@@ -1279,8 +1284,10 @@ namespace PixivWPF
 
             var filter = new FilterParam()
             {
-                ContentExclude = LiveFilterExclude.Text.Trim(),
-                ContentInclude = LiveFilterInclude.Text.Trim(),
+                // ContentExclude = none ? string.Empty : filter_exclude,
+                // ContentInclude = none ? string.Empty : filter_include,
+                ContentExclude = filter_exclude,
+                ContentInclude = filter_include,
                 Type = filter_type,
                 FavoitedRange = filter_fav_no,
                 Fast = filter_fast,
@@ -1292,11 +1299,10 @@ namespace PixivWPF
                 MMD = filter_mmd,
                 FullListed = filter_full,
                 Sanity = filter_sanity,
-                SanityOption_IncludeUnder = LiveFilterSanity_OptIncludeUnder.IsChecked
+                SanityOption_IncludeUnder = sanity_opt_include_under
             };
 
             if (Contents is Pages.TilesPage) Contents.SetFilter(filter);
         }
-
     }
 }

@@ -3911,11 +3911,14 @@ namespace PixivWPF.Common
 
                     if (!string.IsNullOrEmpty(cookie))
                     {
-                        request.Headers.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
+                        //request.Headers.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
+                        request.Headers.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
                         //request.Headers.Add("Accept-Encoding", setting.SupportBrotli ? "gzip, deflate, br" : "gzip, deflate");
-                        request.Headers.Add("Accept-Encoding", "gzip, deflate, br");
-                        request.Headers.Add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-US;q=0.7,zh-TW;q=0.6,ja;q=0.5,ko;q=0.4,zh-HK;q=0.3,en-GB;q=0.2");
-                        request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 Edg/115.0.1901.183");
+                        //request.Headers.Add("Accept-Encoding", "gzip, deflate, br");
+                        request.Headers.Add("Accept-Encoding", "gzip, deflate");
+                        //request.Headers.Add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-US;q=0.7,zh-TW;q=0.6,ja;q=0.5,ko;q=0.4,zh-HK;q=0.3,en-GB;q=0.2");
+                        request.Headers.Add("Accept-Language", "zh,zh-CN;q=0.9,zh-TW;q=0.8,en;q=0.7,ja;q=0.6,zh-HK;q=0.5");
+                        request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:152.0) Gecko/20100101 Firefox/152.0");
                         //request.Headers.Add("Host", "accounts.pixiv.net");
                         //request.Headers.Add("Origin", "https://accounts.pixiv.net");
                         //request.Headers.Add("Referer", "https://accounts.pixiv.net/login?lang=zh&source=pc&view_type=page&ref=wwwtop_accounts_index");
@@ -3923,15 +3926,17 @@ namespace PixivWPF.Common
                         request.Headers.Add("Origin", "https://www.pixiv.net/");
                         request.Headers.Add("Referer", "https://www.pixiv.net/");
                         request.Headers.Add("Cookie", cookie);
+                        request.Headers.Add("Priority", "u=0, i");
                         request.Headers.Add("Dnt", "1");
 
-                        request.Headers.Add("Sec-Ch-Ua", "\"Not / A)Brand\";v=\"99\", \"Microsoft Edge\";v=\"115\", \"Chromium\";v=\"115\"");
-                        request.Headers.Add("Sec-Ch-Ua-Mobile", "?0");
-                        request.Headers.Add("Sec-Ch-Ua-Platform", "\"Windows\"");
+                        //request.Headers.Add("Sec-Ch-Ua", "\"Not / A)Brand\";v=\"99\", \"Microsoft Edge\";v=\"115\", \"Chromium\";v=\"115\"");
+                        //request.Headers.Add("Sec-Ch-Ua-Mobile", "?0");
+                        //request.Headers.Add("Sec-Ch-Ua-Platform", "\"Windows\"");
                         request.Headers.Add("Sec-Fetch-Dest", "document");
                         request.Headers.Add("Sec-Fetch-Mode", "navigate");
-                        request.Headers.Add("Sec-Fetch-Site", "none");
+                        request.Headers.Add("Sec-Fetch-Site", "same-origin");
                         request.Headers.Add("Sec-Fetch-User", "?1");
+                        request.Headers.Add("Sec-GPC", "1");
                         request.Headers.Add("Upgrade-Insecure-Requests", "1");
                         //if (!string.IsNullOrEmpty(user_id))
                         //{
@@ -4034,7 +4039,7 @@ namespace PixivWPF.Common
                 if (!string.IsNullOrEmpty(url))
                 {
                     //using (var response = await Application.Current.GetHttpClient().GetAsync(url))
-                    using (var response = await Application.Current.GetAsyncResponse(url, xclient: false, cookie: cookie, user_id: user_id))
+                    using (var response = await Application.Current.GetAsyncResponse(url, method: method, option: HttpCompletionOption.ResponseContentRead, xclient: false, cookie: cookie, user_id: user_id))
                     {
                         //response.EnsureSuccessStatusCode();
                         if (response != null && response.IsSuccessStatusCode)// && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
