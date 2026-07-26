@@ -1,13 +1,14 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Pixeez.Objects;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Windows;
-using System.Globalization;
 
 namespace PixivWPF.Common
 {
@@ -608,6 +609,10 @@ namespace PixivWPF.Common
         #endregion
 
         #region Illust and MetaPage Helper
+        private static string pat_imgurl_thumb = @"(c/)(250x250_80_a2|360x360_70)(/img-master/.*?_)(square1200)";
+        private static string pat_imgurl_medium = "${1}540x540_70${3}master1200";
+        private static string pat_imgurl_large = "${1}600x1200_90${3}master1200";
+
         public static string GetAjaxMetaPageUrl(this string id)
         {
             if (string.IsNullOrEmpty(id)) return (string.Empty);
@@ -676,6 +681,19 @@ namespace PixivWPF.Common
                                 Original = page.ImageUrls.Original,
                             }
                         };
+
+                        if (string.IsNullOrEmpty(p.ImageUrls.Medium))
+                            p.ImageUrls.Medium = Regex.Replace(p.ImageUrls.Px128x128, pat_imgurl_thumb, pat_imgurl_medium, RegexOptions.IgnoreCase);
+                        else
+                            p.ImageUrls.Medium = Regex.Replace(p.ImageUrls.Medium, pat_imgurl_thumb, pat_imgurl_medium, RegexOptions.IgnoreCase);
+
+                        if (string.IsNullOrEmpty(p.ImageUrls.Large))
+                            p.ImageUrls.Large = Regex.Replace(p.ImageUrls.Px128x128, pat_imgurl_thumb, pat_imgurl_large, RegexOptions.IgnoreCase);
+                        else
+                            p.ImageUrls.Large = Regex.Replace(p.ImageUrls.Large, pat_imgurl_thumb, pat_imgurl_large, RegexOptions.IgnoreCase);
+
+                        p.ImageUrls.Px480mw = p.ImageUrls.Medium;
+
                         result.Add(p);
                     }
                 }
@@ -796,6 +814,18 @@ namespace PixivWPF.Common
                             image_urls.Px480mw = illust.ImageUrls.Medium;
                             image_urls.Large = illust.ImageUrls.Large;
                             image_urls.Original = illust.ImageUrls.Original;
+
+                            if (string.IsNullOrEmpty(image_urls.Medium))
+                                image_urls.Medium = Regex.Replace(image_urls.Px128x128, pat_imgurl_thumb, pat_imgurl_medium, RegexOptions.IgnoreCase);
+                            else
+                                image_urls.Medium = Regex.Replace(image_urls.Medium, pat_imgurl_thumb, pat_imgurl_medium, RegexOptions.IgnoreCase);
+
+                            if (string.IsNullOrEmpty(image_urls.Large))
+                                image_urls.Large = Regex.Replace(image_urls.Px128x128, pat_imgurl_thumb, pat_imgurl_large, RegexOptions.IgnoreCase);
+                            else
+                                image_urls.Large = Regex.Replace(image_urls.Large, pat_imgurl_thumb, pat_imgurl_large, RegexOptions.IgnoreCase);
+
+                            image_urls.Px480mw = image_urls.Medium;
                         }
                         #endregion
 

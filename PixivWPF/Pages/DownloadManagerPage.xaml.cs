@@ -552,11 +552,11 @@ namespace PixivWPF.Pages
             Application.Current.SaveTarget(string.Empty);
         }
 
-        private async void PART_MaxJobs_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void PART_MaxJobs_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             try
             {
-                await new Action(() =>
+                new Action(() =>
                 {
                     if (IsLoaded)
                     {
@@ -565,7 +565,7 @@ namespace PixivWPF.Pages
                         setting = Application.Current.LoadSetting();
                         if (e.NewValue != SimultaneousJobs) SimultaneousJobs = Convert.ToInt32(e.NewValue);
                     }
-                }).InvokeAsync();
+                }).Invoke();
             }
             catch (Exception ex) { ex.ERROR(); }
         }
