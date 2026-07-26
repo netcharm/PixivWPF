@@ -609,9 +609,35 @@ namespace PixivWPF.Common
         #endregion
 
         #region Illust and MetaPage Helper
-        private static string pat_imgurl_thumb = @"(c/)(250x250_80_a2|360x360_70)(/img-master/.*?_)(square1200)";
-        private static string pat_imgurl_medium = "${1}540x540_70${3}master1200";
-        private static string pat_imgurl_large = "${1}600x1200_90${3}master1200";
+        private static string pat_imgurl_thumb = @"(c/)(128x128|250x250_80_a2|360x360_70)(/custom-thumb)?(/img(-master)?/)(.*?)(_)(square1200|custom1200)(.*?)";
+        private static string pat_imgurl_medium = "${1}540x540_70${4}${6}${7}master1200${9}";
+        private static string pat_imgurl_large = "${1}600x1200_90${4}${6}${7}master1200${9}";
+        private static string pat_imgurl_original = "img-original/${4}${6}${9}";
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="urls"></param>
+        /// <returns></returns>
+        private static Pixeez.Objects.ImageUrls FixImageUrls(Pixeez.Objects.ImageUrls urls)
+        {
+            if (string.IsNullOrEmpty(urls.Medium))
+                urls.Medium = Regex.Replace(urls.Px128x128, pat_imgurl_thumb, pat_imgurl_medium, RegexOptions.IgnoreCase);
+            else
+                urls.Medium = Regex.Replace(urls.Medium, pat_imgurl_thumb, pat_imgurl_medium, RegexOptions.IgnoreCase);
+
+            if (string.IsNullOrEmpty(urls.Large))
+                urls.Large = Regex.Replace(urls.Px128x128, pat_imgurl_thumb, pat_imgurl_large, RegexOptions.IgnoreCase);
+            else
+                urls.Large = Regex.Replace(urls.Large, pat_imgurl_thumb, pat_imgurl_large, RegexOptions.IgnoreCase);
+
+            if (string.IsNullOrEmpty(urls.Original))
+                urls.Original = Regex.Replace(urls.Px128x128, pat_imgurl_thumb, pat_imgurl_original, RegexOptions.IgnoreCase);
+
+            urls.Px480mw = urls.Medium;
+
+            return (urls);
+        }
 
         public static string GetAjaxMetaPageUrl(this string id)
         {
@@ -682,17 +708,22 @@ namespace PixivWPF.Common
                             }
                         };
 
-                        if (string.IsNullOrEmpty(p.ImageUrls.Medium))
-                            p.ImageUrls.Medium = Regex.Replace(p.ImageUrls.Px128x128, pat_imgurl_thumb, pat_imgurl_medium, RegexOptions.IgnoreCase);
-                        else
-                            p.ImageUrls.Medium = Regex.Replace(p.ImageUrls.Medium, pat_imgurl_thumb, pat_imgurl_medium, RegexOptions.IgnoreCase);
+                        p.ImageUrls = FixImageUrls(p.ImageUrls);
 
-                        if (string.IsNullOrEmpty(p.ImageUrls.Large))
-                            p.ImageUrls.Large = Regex.Replace(p.ImageUrls.Px128x128, pat_imgurl_thumb, pat_imgurl_large, RegexOptions.IgnoreCase);
-                        else
-                            p.ImageUrls.Large = Regex.Replace(p.ImageUrls.Large, pat_imgurl_thumb, pat_imgurl_large, RegexOptions.IgnoreCase);
+                        //if (string.IsNullOrEmpty(p.ImageUrls.Medium))
+                        //    p.ImageUrls.Medium = Regex.Replace(p.ImageUrls.Px128x128, pat_imgurl_thumb, pat_imgurl_medium, RegexOptions.IgnoreCase);
+                        //else
+                        //    p.ImageUrls.Medium = Regex.Replace(p.ImageUrls.Medium, pat_imgurl_thumb, pat_imgurl_medium, RegexOptions.IgnoreCase);
 
-                        p.ImageUrls.Px480mw = p.ImageUrls.Medium;
+                        //if (string.IsNullOrEmpty(p.ImageUrls.Large))
+                        //    p.ImageUrls.Large = Regex.Replace(p.ImageUrls.Px128x128, pat_imgurl_thumb, pat_imgurl_large, RegexOptions.IgnoreCase);
+                        //else
+                        //    p.ImageUrls.Large = Regex.Replace(p.ImageUrls.Large, pat_imgurl_thumb, pat_imgurl_large, RegexOptions.IgnoreCase);
+
+                        //if (string.IsNullOrEmpty(p.ImageUrls.Original))
+                        //    p.ImageUrls.Original = Regex.Replace(p.ImageUrls.Px128x128, pat_imgurl_thumb, pat_imgurl_original, RegexOptions.IgnoreCase);
+
+                        //p.ImageUrls.Px480mw = p.ImageUrls.Medium;
 
                         result.Add(p);
                     }
@@ -815,17 +846,22 @@ namespace PixivWPF.Common
                             image_urls.Large = illust.ImageUrls.Large;
                             image_urls.Original = illust.ImageUrls.Original;
 
-                            if (string.IsNullOrEmpty(image_urls.Medium))
-                                image_urls.Medium = Regex.Replace(image_urls.Px128x128, pat_imgurl_thumb, pat_imgurl_medium, RegexOptions.IgnoreCase);
-                            else
-                                image_urls.Medium = Regex.Replace(image_urls.Medium, pat_imgurl_thumb, pat_imgurl_medium, RegexOptions.IgnoreCase);
+                            image_urls = FixImageUrls(image_urls);
 
-                            if (string.IsNullOrEmpty(image_urls.Large))
-                                image_urls.Large = Regex.Replace(image_urls.Px128x128, pat_imgurl_thumb, pat_imgurl_large, RegexOptions.IgnoreCase);
-                            else
-                                image_urls.Large = Regex.Replace(image_urls.Large, pat_imgurl_thumb, pat_imgurl_large, RegexOptions.IgnoreCase);
+                            //if (string.IsNullOrEmpty(image_urls.Medium))
+                            //    image_urls.Medium = Regex.Replace(image_urls.Px128x128, pat_imgurl_thumb, pat_imgurl_medium, RegexOptions.IgnoreCase);
+                            //else
+                            //    image_urls.Medium = Regex.Replace(image_urls.Medium, pat_imgurl_thumb, pat_imgurl_medium, RegexOptions.IgnoreCase);
 
-                            image_urls.Px480mw = image_urls.Medium;
+                            //if (string.IsNullOrEmpty(image_urls.Large))
+                            //    image_urls.Large = Regex.Replace(image_urls.Px128x128, pat_imgurl_thumb, pat_imgurl_large, RegexOptions.IgnoreCase);
+                            //else
+                            //    image_urls.Large = Regex.Replace(image_urls.Large, pat_imgurl_thumb, pat_imgurl_large, RegexOptions.IgnoreCase);
+
+                            //if (string.IsNullOrEmpty(image_urls.Original))
+                            //    image_urls.Original = Regex.Replace(image_urls.Px128x128, pat_imgurl_thumb, pat_imgurl_original, RegexOptions.IgnoreCase);
+
+                            //image_urls.Px480mw = image_urls.Medium;
                         }
                         #endregion
 
