@@ -424,6 +424,7 @@ namespace PixivWPF.Pages
                 var target = results.FirstOrDefault();
                 ImageTiles.ScrollIntoView(target);
                 ImageTiles.SelectedItem = target;
+                $"ID: {id}, {target?.Illust?.Title}".INFO("JumpTo");
             }
             else
             {
