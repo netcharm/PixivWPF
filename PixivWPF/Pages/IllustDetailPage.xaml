@@ -202,6 +202,11 @@
                 </MenuItem>
             </MenuItem>
             <Separator x:Uid="ActionConvertIllustJpegSep"/>
+            <MenuItem x:Uid="ActionChangeOriginalFmtToPNG" Header="Change Original Format to PNG" Click="ActionSaveIllust_Click">
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE105;" Style="{DynamicResource MenuItemIcon16}"/>
+                </MenuItem.Icon>
+            </MenuItem>
             <MenuItem x:Uid="ActionConvertIllustJpeg" Header="Convert Downloaded To JPEG" Click="ActionSaveIllust_Click">
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE105;" Style="{DynamicResource MenuItemIcon16}"/>

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
+using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -4910,6 +4912,43 @@ namespace PixivWPF.Pages
             else if (uid.Equals("ActionSaveIllustJpeg")) type |= DownloadType.AsJPEG;
             else if (uid.Equals("ActionReduceJpegSizeTo")) type |= DownloadType.AsJPEG;
             else if (uid.Equals("ActionSaveIllustPreview")) type |= DownloadType.UseLargePreview;
+
+            if (uid.Equals("ActionChangeOriginalFmtToPNG") && Contents.IsWork())
+            {
+                try
+                {
+                    if (Contents.HasPages())
+                    {
+                        var illust = Contents.Illust;
+                        if (illust is Pixeez.Objects.IllustWork)
+                        {
+                            var i = illust as Pixeez.Objects.IllustWork;
+                            var pages = i.meta_pages;
+                            for (var idx = 0; idx < pages?.Length; idx++)
+                            {
+                                pages[idx].ImageUrls.Original = System.IO.Path.ChangeExtension(pages[idx].ImageUrls.Original, ".png");
+                            }
+
+                        }
+                        else if (illust is Pixeez.Objects.NormalWork)
+                        {
+                            var i = illust as Pixeez.Objects.NormalWork;
+                            var pages = i.Metadata.Pages;
+                            for (var idx = 0; idx < pages?.Count; idx++)
+                            {
+                                pages[idx].ImageUrls.Original = System.IO.Path.ChangeExtension(pages[idx].ImageUrls.Original, ".png");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var illust = Contents.Illust;
+                        illust.ImageUrls.Original = System.IO.Path.ChangeExtension(illust.ImageUrls.Original, ".png");
+                    }
+                }
+                catch (Exception ex) { ex.ERROR("ActionChangeOriginalFmtToPNG"); }
+                return;
+            }
 
             if (SubIllusts.SelectedItems != null && SubIllusts.SelectedItems.Count > 0)
             {

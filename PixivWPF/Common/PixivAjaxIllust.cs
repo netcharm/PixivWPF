@@ -226,7 +226,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                List<Pixeez.Objects.MoreTag> tg = new List<Pixeez.Objects.MoreTag>();
+                List<Pixeez.Objects.MoreTag> tg = [];
                 if (_Tags_.Tags is IEnumerable<AjaxTag>)
                 {
                     foreach (var tag in _Tags_.Tags)
@@ -622,17 +622,17 @@ namespace PixivWPF.Common
         private static Pixeez.Objects.ImageUrls FixImageUrls(Pixeez.Objects.ImageUrls urls)
         {
             if (string.IsNullOrEmpty(urls.Medium))
-                urls.Medium = Regex.Replace(urls.Px128x128, pat_imgurl_thumb, pat_imgurl_medium, RegexOptions.IgnoreCase);
+                urls.Medium = Regex.Replace(urls.Px128x128, pat_imgurl_thumb, pat_imgurl_medium, RegexOptions.IgnoreCase).Replace("//", "/");
             else
-                urls.Medium = Regex.Replace(urls.Medium, pat_imgurl_thumb, pat_imgurl_medium, RegexOptions.IgnoreCase);
+                urls.Medium = Regex.Replace(urls.Medium, pat_imgurl_thumb, pat_imgurl_medium, RegexOptions.IgnoreCase).Replace("//", "/");
 
             if (string.IsNullOrEmpty(urls.Large))
-                urls.Large = Regex.Replace(urls.Px128x128, pat_imgurl_thumb, pat_imgurl_large, RegexOptions.IgnoreCase);
+                urls.Large = Regex.Replace(urls.Px128x128, pat_imgurl_thumb, pat_imgurl_large, RegexOptions.IgnoreCase).Replace("//", "/");
             else
-                urls.Large = Regex.Replace(urls.Large, pat_imgurl_thumb, pat_imgurl_large, RegexOptions.IgnoreCase);
+                urls.Large = Regex.Replace(urls.Large, pat_imgurl_thumb, pat_imgurl_large, RegexOptions.IgnoreCase).Replace("//", "/");
 
             if (string.IsNullOrEmpty(urls.Original))
-                urls.Original = Regex.Replace(urls.Px128x128, pat_imgurl_thumb, pat_imgurl_original, RegexOptions.IgnoreCase);
+                urls.Original = Regex.Replace(urls.Px128x128, pat_imgurl_thumb, pat_imgurl_original, RegexOptions.IgnoreCase).Replace("-master/", "/").Replace("//", "/");
 
             urls.Px480mw = urls.Medium;
 
