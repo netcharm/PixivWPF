@@ -418,7 +418,7 @@ namespace PixivWPF.Pages
 
         public void JumpTo(string id)
         {
-            var results = ImageTiles.Items.Where(item => item.ID.Equals(id));
+            var results = ImageTiles.FiltedList?.Where(item => item.ID.Equals(id));
             if (results.Count() > 0)
             {
                 var target = results.FirstOrDefault();
@@ -428,7 +428,7 @@ namespace PixivWPF.Pages
             else
             {
                 var illust = id.FindIllust();
-                if (illust is Pixeez.Objects.Work)
+                if (illust is not null)
                     Commands.OpenWork.Execute(illust);
             }
         }
@@ -549,10 +549,12 @@ namespace PixivWPF.Pages
 
         public dynamic GetTilesCount()
         {
-            List<string> tips = new List<string>();
-            tips.Add($"Illust  : {ImageTiles.ItemsCount} of {ImageTiles.Items.Count}");
-            tips.Add($"Page    : {ImageTiles.CurrentPage} of {ImageTiles.TotalPages}");
-            if (DetailPage is IllustDetailPage)
+            List<string> tips =
+            [
+                $"Illust  : {ImageTiles.ItemsCount} of {ImageTiles.Items.Count}",
+                $"Page    : {ImageTiles.CurrentPage} of {ImageTiles.TotalPages}",
+            ];
+            if (DetailPage is not null)
                 tips.Add(DetailPage.GetTilesCount());
             return (string.Join(Environment.NewLine, tips));
         }

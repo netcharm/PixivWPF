@@ -260,7 +260,7 @@ namespace PixivWPF.Common
 
         [JsonProperty("bookmarkData")]
         public AjaxBookmarkData BookmarkData { get; set; }
-        
+
         [JsonProperty("likeData")]
         public bool LikeData { get; set; }
 
@@ -300,7 +300,7 @@ namespace PixivWPF.Common
 
     public class AjaxIllustNoLoginData
     {
-       // noLogin
+        // noLogin
     }
 
     public class AjaxIllustData
@@ -1113,8 +1113,6 @@ namespace PixivWPF.Common
             }
             return (result);
         }
-
-
         #endregion
     }
 }

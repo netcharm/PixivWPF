@@ -29,10 +29,10 @@ namespace PixivWPF.Common
     public partial class ImageListGrid : UserControl, INotifyPropertyChanged, IDisposable
     {
         #region Tile Items
-        private ConcurrentDictionary<string, ProgressRingCloud> RingList = new ConcurrentDictionary<string, ProgressRingCloud>();
-        private ConcurrentDictionary<string, Canvas> CanvasList = new ConcurrentDictionary<string, Canvas>();
-        private ConcurrentDictionary<string, Image> ImageList = new ConcurrentDictionary<string, Image>();
-        private ObservableCollection<PixivItem> ItemList = new ObservableCollection<PixivItem>();
+        private ConcurrentDictionary<string, ProgressRingCloud> RingList = new();
+        private ConcurrentDictionary<string, Canvas> CanvasList = new();
+        private ConcurrentDictionary<string, Image> ImageList = new();
+        private ObservableCollection<PixivItem> ItemList = [];
         [Description("Get or Set Image Tiles List")]
         [Category("Common Properties")]
         public ObservableCollection<PixivItem> Items

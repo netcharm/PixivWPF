@@ -229,13 +229,13 @@ namespace PixivWPF.Pages
                             int h_max = 480;
 
                             var host = GetHtmlHost(browser);
-                            if (host is System.Windows.Forms.Integration.WindowsFormsHost)
+                            if (host is not null)
                             {
                                 h_min = (int)(host.MinHeight);
                                 h_max = (int)(host.MaxHeight);
                             }
                             this.DoEvents();
-                            if (browser is System.Windows.Forms.WebBrowser &&
+                            if (browser is not null && !browser.IsDisposed &&
                                 browser.Document is System.Windows.Forms.HtmlDocument &&
                                 browser.Document.Body is System.Windows.Forms.HtmlElement)
                             {

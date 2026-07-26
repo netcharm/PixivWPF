@@ -174,7 +174,7 @@ namespace PixivWPF.Common
                 if (!string.IsNullOrEmpty(id))
                 {
                     var win = this.GetMainWindow();
-                    if (win is MainWindow && (win as MainWindow).Contents is TilesPage)
+                    if (win is MainWindow && (win as MainWindow).Contents is not null)
                     {
                         (win as MainWindow).Contents.JumpTo(id);
                     }
@@ -510,7 +510,7 @@ namespace PixivWPF.Common
             //var contents = recents.Select(item => $"ID: {item.ID}, {item.Illust.Title}").ToList();
             foreach (var item in recents)
             {
-                RecentsList.Items.Add($"ID: {item.ID}, {new string(item.Illust.Title.Take(32).ToArray())} ");
+                RecentsList.Items.Add($"ID: {item.ID}, {new string([.. item.Illust.Title.Take(32)])} ");
             }
             RecentsPopup.IsOpen = true;
         }
