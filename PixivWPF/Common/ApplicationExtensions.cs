@@ -3740,30 +3740,58 @@ namespace PixivWPF.Common
         #endregion
 
         #region Web Login Helper
+        static public Dictionary<string, string> CookieDict { get; set; } = new();
         static public string CookieData { get; set; } = string.Empty;
         static public string CookieUserID { get; set; } = string.Empty;
 
-        public static string LoadWebCookie(this Application app)
+        public enum CookieFileFormat { Text, Json, Xml, Binary }
+
+        public static string LoadWebCookie(this Application app, CookieFileFormat cookie_fmt = CookieFileFormat.Text)
         {
             var setting = Application.Current.LoadSetting();
             if (System.IO.File.Exists(setting.PixivCookieFile))
             {
-                CookieData = System.IO.File.ReadAllText(setting.PixivCookieFile).Trim();
-                var queries = CookieData.Split(';').Select(q => q.Trim());
-                foreach (var q in queries)
+                try
                 {
-                    var kvs = q.Split('=').Select(kv => kv.Trim());
-                    if (kvs.Count() >= 2)
+                    CookieData = System.IO.File.ReadAllText(setting.PixivCookieFile).Trim();
+                    if (cookie_fmt == CookieFileFormat.Text)
                     {
-                        var k = kvs.First();
-                        var v = string.Join("=", kvs.Skip(1));
-                        if (k.Equals("PHPSESSID"))
+                        CookieDict ??= new();
+                        CookieDict?.Clear();
+
+                        var queries = CookieData.Split(';').Select(q => q.Trim());
+                        foreach (var q in queries)
                         {
-                            CookieUserID = v.Split('_').FirstOrDefault();
-                            break;
+                            var kvs = q.Split('=').Select(kv => kv.Trim());
+                            if (kvs.Count() >= 2)
+                            {
+                                CookieDict[kvs.First()] = string.Join("=", kvs.Skip(1));
+
+                                var k = kvs.First();
+                                var v = string.Join("=", kvs.Skip(1));
+                                if (k.Equals("PHPSESSID"))
+                                {
+                                    CookieUserID = v.Split('_').FirstOrDefault();
+                                    //break;
+                                }
+                            }
+                        }
+                    }
+                    else if (cookie_fmt == CookieFileFormat.Json)
+                    {
+                        CookieDict ??= new();
+                        CookieDict?.Clear();
+                        CookieDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(CookieData);
+                        if (CookieDict is not null)
+                        {
+                            if (CookieDict.TryGetValue("PHPSESSID", out var phpsessid))
+                            {
+                                CookieUserID = phpsessid.Split('_').FirstOrDefault();
+                            }
                         }
                     }
                 }
+                catch(Exception ex) { ex.ERROR("LoadWebCookie"); }
             }
             return (CookieData);
         }
@@ -3858,6 +3886,14 @@ namespace PixivWPF.Common
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls13 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls | SecurityProtocolType.Ssl3;
             try
             {
+                CookieContainer cookies = new CookieContainer();
+                CookieDict ??= new();
+                var url = new Uri("https://www.pixiv.net/");
+                foreach (var kv in CookieDict)
+                {
+                    cookies.Add(url, new Cookie(kv.Key, kv.Value));
+                }
+
                 HttpClientHandler handler = new HttpClientHandler()
                 {
                     //SslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls | SslProtocols.Ssl3 | SslProtocols.Ssl2,
@@ -3868,7 +3904,7 @@ namespace PixivWPF.Common
                     //AutomaticDecompression = DecompressionMethods.None | DecompressionMethods.Deflate | DecompressionMethods.GZip,
                     AutomaticDecompression = DecompressionMethods.None | DecompressionMethods.Deflate,
                     UseCookies = false,
-                    //CookieContainer = new CookieContainer(),
+                    //CookieContainer = cookies,
                     MaxAutomaticRedirections = 15,
                     //MaxConnectionsPerServer = 30,
                     MaxRequestContentBufferSize = buffersize,
@@ -3939,8 +3975,7 @@ namespace PixivWPF.Common
                     }
                     catch (Exception ex) { ex.ERROR($"ReleaseHttpClient_{client}"); }
                 }
-            }
-            Application.Current.LoadWebCookie();
+            }            
         }
 
         static public HttpClient GetHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0, bool is_download = false)

@@ -320,6 +320,7 @@ namespace PixivWPF.Common
             await new Action(() =>
             {
                 Application.Current.ReleaseHttpClient();
+                Application.Current.LoadWebCookie();
             }).InvokeAsync(true);
         });
 
