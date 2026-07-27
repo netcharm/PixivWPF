@@ -526,7 +526,7 @@ namespace PixivWPF.Common
                             Cache.LoadImageFileSizeData();
                             Cache.LoadFullListedUserState(force: startup);
 
-                            PixivAjaxHelper.LoadWebCookie();
+                            Application.Current.LoadWebCookie();
 
                             if (StartUp) "Config Setting Reloaded".ShowToast("INFO");
                         }

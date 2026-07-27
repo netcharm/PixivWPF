@@ -1,4 +1,6 @@
 ﻿using MahApps.Metro.Controls;
+using PixivWPF.Pages;
+using Prism.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -1660,6 +1662,16 @@ namespace PixivWPF.Common
                     Commands.CopyText.Execute(Info.FileName);
                 else
                     Commands.CopyDownloadInfo.Execute(Info);
+            }
+            else if (sender == miChangeUrl)
+            {
+                var win = Application.Current.GetActiveWindow() as MetroWindow;
+                var url = await MahApps.Metro.Controls.Dialogs.DialogManager.ShowInputAsync(win, "Change Download URL", "Changing...", new MahApps.Metro.Controls.Dialogs.MetroDialogSettings() { DefaultText = Url });
+                if (!string.IsNullOrEmpty(url) && !url.Equals(Url))
+                {
+                    Url = url;
+                    PART_FileURL.Text = url;
+                }
             }
             else if (sender == miRefreshThumb || sender == PART_ThumbnailWait)
             {

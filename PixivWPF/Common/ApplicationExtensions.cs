@@ -3739,6 +3739,81 @@ namespace PixivWPF.Common
         }
         #endregion
 
+        #region Web Login Helper
+        static public string CookieData { get; set; } = string.Empty;
+        static public string CookieUserID { get; set; } = string.Empty;
+
+        public static string LoadWebCookie(this Application app)
+        {
+            var setting = Application.Current.LoadSetting();
+            if (System.IO.File.Exists(setting.PixivCookieFile))
+            {
+                CookieData = System.IO.File.ReadAllText(setting.PixivCookieFile).Trim();
+                var queries = CookieData.Split(';').Select(q => q.Trim());
+                foreach (var q in queries)
+                {
+                    var kvs = q.Split('=').Select(kv => kv.Trim());
+                    if (kvs.Count() >= 2)
+                    {
+                        var k = kvs.First();
+                        var v = string.Join("=", kvs.Skip(1));
+                        if (k.Equals("PHPSESSID"))
+                        {
+                            CookieUserID = v.Split('_').FirstOrDefault();
+                            break;
+                        }
+                    }
+                }
+            }
+            return (CookieData);
+        }
+
+        public static async Task<bool> WebLogin(string user, string pass, string cookie = "")
+        {
+            var result = false;
+            if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(pass))
+            {
+                var web_login_url = "https://accounts.pixiv.net/login";
+                //var web_post_url = "https://accounts.pixiv.net/api/login?lang=en";
+
+                //url.DEBUG("WebLogin");
+                var web_header = new System.Net.WebHeaderCollection();
+                web_header.Add(System.Net.HttpRequestHeader.UserAgent, @"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.96 Safari/537.36");
+                if (string.IsNullOrEmpty(CookieData) && CookieData.Contains("PHPSESSID=")) web_header.Add(System.Net.HttpRequestHeader.Cookie, CookieData);
+
+                var web_params = new Dictionary<string, string>()
+                {
+                    { "lang", "en" },
+                    { "source", "pc" },
+                    { "view_type", "page" },
+                    { "ref", "wwwtop_accounts_index" }
+                };
+
+                var web_datas = new Dictionary<string, string>()
+                {
+                    { "pixiv_id",  $"{user}" },
+                    { "password", $"{pass}" },
+                    { "captcha", "" },
+                    { "g_reaptcha_response", "" },
+                    { "post_key", "" },
+                    { "source", "pc" },
+                    { "ref", "wwwtop_accounts_indes" },
+                    { "return_to", "https://www.pixiv.net/" }
+                };
+
+                var http = Application.Current.GetHttpClient();
+                http.DefaultRequestHeaders.Add("User-Agent", @"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.96 Safari/537.36");
+                http.DefaultRequestHeaders.Add("Cookie", $"{cookie}");
+                var response = await http.GetAsync(web_login_url);
+                var content = Application.Current.GetResponseContent(response);
+
+                //var pages_json_text = await Application.Current.GetRemoteJsonAsync(url);
+
+            }
+            return (result);
+        }
+        #endregion
+
         #region Network Common Helper
         static private string ClientID { get; } = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
         static private string ClientSecret { get; } = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj";
@@ -3771,7 +3846,7 @@ namespace PixivWPF.Common
             }
         }
 
-        static private HttpClient CreateHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0, bool useproxy = false)
+        static private HttpClient CreateHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0, bool useproxy = false, string referrer = "")
         {
             var setting = LoadSetting(app);
             var buffersize = 100 * 1024 * 1024;
@@ -3792,8 +3867,8 @@ namespace PixivWPF.Common
                     ///
                     //AutomaticDecompression = DecompressionMethods.None | DecompressionMethods.Deflate | DecompressionMethods.GZip,
                     AutomaticDecompression = DecompressionMethods.None | DecompressionMethods.Deflate,
-                    UseCookies = true,
-                    CookieContainer = new CookieContainer(),
+                    UseCookies = false,
+                    //CookieContainer = new CookieContainer(),
                     MaxAutomaticRedirections = 15,
                     //MaxConnectionsPerServer = 30,
                     MaxRequestContentBufferSize = buffersize,
@@ -3815,7 +3890,8 @@ namespace PixivWPF.Common
                 httpClient.DefaultRequestHeaders.Add("App-OS-Version", "14.6");
                 //httpClient.DefaultRequestHeaders.Add("App-Version", "7.6.2");
                 httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/7.13.3 (iOS 14.6; iPhone13,2)");
-                httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
+                httpClient.DefaultRequestHeaders.Add("Referer", string.IsNullOrEmpty(referrer) ? "https://app-api.pixiv.net/" : referrer);
+                httpClient.DefaultRequestHeaders.Add("Referrer", string.IsNullOrEmpty(referrer) ? "https://app-api.pixiv.net/" : referrer);
                 //httpClient.DefaultRequestHeaders.Add("Connection", "Close");
                 httpClient.DefaultRequestHeaders.Add("Connection", "Keep-Alive");
                 //httpClient.DefaultRequestHeaders.Add("Keep-Alive", "300");
@@ -3842,19 +3918,20 @@ namespace PixivWPF.Common
 
         static public void ReleaseHttpClient(this Application app)
         {
-            if (HttpClientList is ConcurrentDictionary<string, HttpClient>)
+            HttpClientList ??= new();
+            if (HttpClientList is not null)
             {
-                foreach (var client in HttpClientList.Keys.ToList())
+                foreach (var client in HttpClientList?.Keys.ToList())
                 {
                     try
                     {
                         HttpClient httpClient = null;
                         if (HttpClientList.TryRemove(client, out httpClient))
                         {
-                            if (httpClient is HttpClient)
+                            if (httpClient is not null)
                             {
-                                httpClient.CancelPendingRequests();
-                                httpClient.Dispose();
+                                httpClient?.CancelPendingRequests();
+                                httpClient?.Dispose();
                                 httpClient = null;
                                 "Releasing Successes!".DEBUG($"ReleaseHttpClient_{client}");
                             }
@@ -3863,6 +3940,7 @@ namespace PixivWPF.Common
                     catch (Exception ex) { ex.ERROR($"ReleaseHttpClient_{client}"); }
                 }
             }
+            Application.Current.LoadWebCookie();
         }
 
         static public HttpClient GetHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0, bool is_download = false)
@@ -3907,27 +3985,35 @@ namespace PixivWPF.Common
                     if (xclient) request.Headers.Add("X-Client-Hash", clientHash.Hash);
                     request.Properties["RequestTimeout"] = TimeSpan.FromSeconds(setting.DownloadHttpTimeout);
                     //request.Properties["ProtocolVersion"] = HttpVersion.Version10;
+                    //request.Properties["ProtocolVersion"] = HttpVersion.Version11;
                     request.Version = setting.HttpVersion;
 
                     if (!string.IsNullOrEmpty(cookie))
                     {
                         //request.Headers.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
-                        request.Headers.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
                         //request.Headers.Add("Accept-Encoding", setting.SupportBrotli ? "gzip, deflate, br" : "gzip, deflate");
                         //request.Headers.Add("Accept-Encoding", "gzip, deflate, br");
-                        request.Headers.Add("Accept-Encoding", "gzip, deflate");
                         //request.Headers.Add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-US;q=0.7,zh-TW;q=0.6,ja;q=0.5,ko;q=0.4,zh-HK;q=0.3,en-GB;q=0.2");
-                        request.Headers.Add("Accept-Language", "zh,zh-CN;q=0.9,zh-TW;q=0.8,en;q=0.7,ja;q=0.6,zh-HK;q=0.5");
+
                         request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:152.0) Gecko/20100101 Firefox/152.0");
+                        request.Headers.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+                        request.Headers.Add("Accept-Language", "zh,zh-CN;q=0.9,zh-TW;q=0.8,en;q=0.7,ja;q=0.6,zh-HK;q=0.5");
+                        request.Headers.Add("Accept-Encoding", "gzip, deflate");
+
                         //request.Headers.Add("Host", "accounts.pixiv.net");
                         //request.Headers.Add("Origin", "https://accounts.pixiv.net");
                         //request.Headers.Add("Referer", "https://accounts.pixiv.net/login?lang=zh&source=pc&view_type=page&ref=wwwtop_accounts_index");
                         request.Headers.Add("Host", "www.pixiv.net");
                         request.Headers.Add("Origin", "https://www.pixiv.net/");
-                        request.Headers.Add("Referer", "https://www.pixiv.net/");
+                        request.Headers.Add("Referrer", "https://www.pixiv.net/");
                         request.Headers.Add("Cookie", cookie);
                         request.Headers.Add("Priority", "u=0, i");
                         request.Headers.Add("Dnt", "1");
+
+                        request.Properties["Cookie"] = cookie;
+                        //request.Properties["Origin"] = "https://www.pixiv.net/";
+                        //request.Properties["Referrer"] = "https://www.pixiv.net/";
+                        //request.Properties["User-Agent"] = "https://www.pixiv.net/";
 
                         //request.Headers.Add("Sec-Ch-Ua", "\"Not / A)Brand\";v=\"99\", \"Microsoft Edge\";v=\"115\", \"Chromium\";v=\"115\"");
                         //request.Headers.Add("Sec-Ch-Ua-Mobile", "?0");
@@ -3945,6 +4031,8 @@ namespace PixivWPF.Common
                         //}
                         //request.Headers.Add("Upgrade-Insecure-Requests", "0");
                         //request.Headers.Add("X-Frame-Options", "SAMEORIGIN");
+
+                        //request.Headers.AcceptLanguage.Add("")
                     }
 
                     var start = (range_start ?? 0) <= 0 ? "0" : $"{range_start}";
@@ -3993,6 +4081,7 @@ namespace PixivWPF.Common
         {
             var request = Application.Current.GetHttpRequest(url, method, xclient: xclient, cookie: cookie, user_id: user_id);
             var httpClient = Application.Current.GetHttpClient();
+            //var httpClient = Application.Current.CreateHttpClient(referrer : "https://www.pixiv.net/");
             return (await httpClient.SendAsync(request, option));
         }
 
@@ -4038,6 +4127,9 @@ namespace PixivWPF.Common
             {
                 if (!string.IsNullOrEmpty(url))
                 {
+                    cookie ??= CookieData;
+                    user_id ??= CookieUserID;
+
                     //using (var response = await Application.Current.GetHttpClient().GetAsync(url))
                     using (var response = await Application.Current.GetAsyncResponse(url, method: method, option: HttpCompletionOption.ResponseContentRead, xclient: false, cookie: cookie, user_id: user_id))
                     {

@@ -1000,7 +1000,7 @@ namespace PixivWPF.Common
             setting = Application.Current.LoadSetting();
 
             //var web_ret = await PixivAjaxHelper.WebLogin(setting.User, setting.Pass);
-            PixivAjaxHelper.LoadWebCookie();
+            Application.Current.LoadWebCookie();
 
             CancelRefreshSource = cancelToken == null ? new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout)) : cancelToken;
             if (await CanRefreshToken.WaitAsync(TimeSpan.FromSeconds(setting.DownloadHttpTimeout), CancelRefreshSource.Token))
