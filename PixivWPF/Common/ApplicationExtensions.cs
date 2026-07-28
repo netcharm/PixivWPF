@@ -3744,9 +3744,14 @@ namespace PixivWPF.Common
         static public string CookieData { get; set; } = string.Empty;
         static public string CookieUserID { get; set; } = string.Empty;
 
-        public enum CookieFileFormat { Text, Json, Xml, Binary }
+        public enum CookieFileFormat { Auto, Text, Json, Xml, Binary }
 
-        public static string LoadWebCookie(this Application app, CookieFileFormat cookie_fmt = CookieFileFormat.Text)
+        public class CookieJson
+        {
+            public Dictionary<string, string> Cookie { get; set; } = new();
+        }
+
+        public static string LoadWebCookie(this Application app, CookieFileFormat cookie_fmt = CookieFileFormat.Auto)
         {
             var setting = Application.Current.LoadSetting();
             if (System.IO.File.Exists(setting.PixivCookieFile))
@@ -3754,6 +3759,24 @@ namespace PixivWPF.Common
                 try
                 {
                     CookieData = System.IO.File.ReadAllText(setting.PixivCookieFile).Trim();
+
+                    if(cookie_fmt == CookieFileFormat.Auto)
+                    {
+                        var ext = System.IO.Path.GetExtension(setting.PixivCookieFile).ToLower();
+                        if (ext == ".json" && (CookieData.StartsWith("{") && CookieData.EndsWith("}")))
+                        {
+                            cookie_fmt = CookieFileFormat.Json;
+                        }
+                        else if (ext == ".xml" && (CookieData.StartsWith("<") && CookieData.EndsWith(">")))
+                        {
+                            cookie_fmt = CookieFileFormat.Xml;
+                        }
+                        else
+                        {
+                            cookie_fmt = CookieFileFormat.Text;
+                        }
+                    }
+
                     if (cookie_fmt == CookieFileFormat.Text)
                     {
                         CookieDict ??= new();
@@ -3779,9 +3802,8 @@ namespace PixivWPF.Common
                     }
                     else if (cookie_fmt == CookieFileFormat.Json)
                     {
-                        CookieDict ??= new();
-                        CookieDict?.Clear();
-                        CookieDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(CookieData);
+                        var cookie = JsonConvert.DeserializeObject<CookieJson>(CookieData);
+                        CookieDict = cookie?.Cookie;
                         if (CookieDict is not null)
                         {
                             if (CookieDict.TryGetValue("PHPSESSID", out var phpsessid))

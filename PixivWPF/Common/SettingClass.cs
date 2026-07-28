@@ -445,7 +445,7 @@ namespace PixivWPF.Common
 
                     if (startup) Backup();
 
-                    if (!(Cache is Setting) || (force && lastConfigUpdate.DeltaMilliseconds(filetime) > 250))
+                    if (Cache is null || (force && lastConfigUpdate.DeltaMilliseconds(filetime) > 250))
                     {
                         lastConfigUpdate = filetime;
                         if (exists && configfile.WaitFileUnlock())
@@ -455,9 +455,9 @@ namespace PixivWPF.Common
                             var dict = JsonConvert.DeserializeObject<Dictionary<string, object>>(text, dso);
                             var empty = dict.Count() <= 0;
 
-                            var lastfolder = Cache is Setting ? Cache.LastFolder : string.Empty;
-                            var user = Cache is Setting ? Cache.username : string.Empty;
-                            var pass = Cache is Setting ? Cache.password : string.Empty;
+                            var lastfolder = Cache is null ? string.Empty : Cache.LastFolder;
+                            var user = Cache is null ? string.Empty : Cache.username;
+                            var pass = Cache is null ? string.Empty : Cache.password;
 
                             Cache = empty ? new Setting() : JsonConvert.DeserializeObject<Setting>(text, dso);
 
@@ -469,7 +469,7 @@ namespace PixivWPF.Common
                             Cache.ProxyBypass = JsonConvert.DeserializeObject<List<string>>(dict["ProxyBypass"].ToString(), dso);
                             Cache.UpgradeFiles = JsonConvert.DeserializeObject<List<string>>(dict["UpgradeFiles"].ToString(), dso);
 
-                            Cache.LocalStorage = JsonConvert.DeserializeObject<List<StorageType>>(dict["LocalStorage"].ToString() , dso); 
+                            Cache.LocalStorage = JsonConvert.DeserializeObject<List<StorageType>>(dict["LocalStorage"].ToString(), dso);
                             Cache.LocalStorage = Cache.LocalStorage.Distinct(new StorageTypeComparer()).ToList();
 
                             if (Cache.LocalStorage.Count <= 0 && !string.IsNullOrEmpty(Cache.SaveFolder))
