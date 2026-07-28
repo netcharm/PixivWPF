@@ -410,6 +410,7 @@
                         </Viewbox.LayoutTransform>
                     </Viewbox>
                 </ScrollViewer>
+                <TextBlock x:Name="ImageSourceInfoText" x:Uid="ImageSourceInfoText" Text="" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="8"/>
                 <xctk:BusyIndicator x:Uid="LoadingIndicator" x:Name="IndicatorSource" BusyContent="Loading ..." Background="Transparent"
                     HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" />
             </Grid>
@@ -470,6 +471,7 @@
                         </Viewbox.LayoutTransform>
                     </Viewbox>
                 </ScrollViewer>
+                <TextBlock x:Name="ImageTargetInfoText" x:Uid="ImageTargetInfoText" Text="" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="8"/>
                 <xctk:BusyIndicator x:Uid="LoadingIndicator" x:Name="IndicatorTarget"  BusyContent="Loading ..." Background="Transparent"
                     HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" />
             </Grid>

@@ -1177,7 +1177,7 @@ namespace ImageCompare
                                 if (exchanged) (image_s.Current, image_t.Current) = (new MagickImage(image_t.Current), new MagickImage(image_s.Current));
                             }
 
-                            if (image_s.ValidCurrent && image_t.ValidCurrent)
+                            if ((image_s?.ValidCurrent ?? false) && (image_t?.ValidCurrent ?? false))
                             {
                                 ShowGeometry = new MagickGeometry()
                                 {
@@ -1189,9 +1189,12 @@ namespace ImageCompare
 
                             foreach (var image in new ImageInformation[] { image_s, image_t })
                             {
-                                image.SourceParams.Geometry = ShowGeometry;
-                                image.SourceParams.Align = DefaultMatchAlign;
-                                image.SourceParams.FillColor = MasklightColor;
+                                if (!(image is null))
+                                {
+                                    image.SourceParams.Geometry = ShowGeometry;
+                                    image.SourceParams.Align = DefaultMatchAlign;
+                                    image.SourceParams.FillColor = MasklightColor;
+                                }
                             }
 
                             var size_source = GetImageSize(ImageSource);
@@ -1240,6 +1243,13 @@ namespace ImageCompare
                     }
 
                     CalcDisplay(set_ratio: false);
+
+                    Dispatcher.Invoke(() => 
+                    {
+                        var sf = ImageExchange.IsChecked ?? false;
+                        ImageSourceInfoText.Text = System.IO.Path.GetFileName(sf ? image_t.FileName : image_s.FileName);
+                        ImageTargetInfoText.Text = System.IO.Path.GetFileName(sf ? image_s.FileName : image_t.FileName);
+                    });
                 }
                 catch (TaskCanceledException) { }
                 catch (Exception ex) { ex.ShowMessage(); }
@@ -2519,6 +2529,11 @@ namespace ImageCompare
                     }
                     ImageCanvas.Background = new ImageBrush(pattern.ToBitmapSource()) { TileMode = TileMode.Tile, Opacity = opacity, ViewportUnits = BrushMappingMode.Absolute, Viewport = new Rect(0, 0, 32, 32) };
                     ImageCanvas.InvalidateVisual();
+
+                    ImageSourceInfoText.Foreground = DarkTheme ? Brushes.White : Brushes.Black;
+                    ImageTargetInfoText.Foreground = DarkTheme ? Brushes.White : Brushes.Black;
+                    ImageSourceInfoText.Opacity = 0.85;
+                    ImageTargetInfoText.Opacity = 0.85;
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
