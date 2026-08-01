@@ -11030,67 +11030,65 @@ namespace PixivWPF.Common
 
         static public void Show(this ProgressRing progress, bool show, bool active = true)
         {
-            if (progress is ProgressRing)
+            if (progress is not null)
             {
                 if (show)
                 {
-                    progress.Visibility = Visibility.Visible;
-                    progress.IsEnabled = true;
-                    progress.IsActive = active;
+                    progress?.Visibility = Visibility.Visible;
+                    progress?.IsEnabled = true;
+                    progress?.IsActive = active;
                 }
                 else
                 {
-                    progress.Visibility = Visibility.Collapsed;
-                    progress.IsEnabled = false;
-                    progress.IsActive = false;
+                    progress?.Visibility = Visibility.Collapsed;
+                    progress?.IsEnabled = false;
+                    progress?.IsActive = false;
                 }
             }
         }
 
         static public void Pause(this ProgressRing progress)
         {
-            progress.IsActive = false;
+            progress?.IsActive = false;
         }
 
         static public void Resume(this ProgressRing progress)
         {
-            progress.IsEnabled = true;
-            progress.IsActive = true;
+            progress?.IsEnabled = true;
+            progress?.IsActive = true;
         }
 
         static public void Disable(this ProgressRing progress)
         {
-            progress.IsEnabled = false;
-            progress.IsActive = false;
+            progress?.IsEnabled = false;
+            progress?.IsActive = false;
         }
 
         static public void Show(this ProgressRing progress, bool active = true)
         {
-            progress.Show(true, active);
+            progress?.Show(true, active);
         }
 
         static public void Hide(this ProgressRing progress)
         {
-            progress.Show(false, false);
+            progress?.Show(false, false);
         }
 
         static public void Show(this UIElement element, bool show, bool parent = false)
         {
-            if (element is UIElement)
-            {
-                if (show)
-                    element.Visibility = Visibility.Visible;
-                else
-                    element.Visibility = Visibility.Collapsed;
+            if (element is null) return;
+            if (show)
+                element?.Visibility = Visibility.Visible;
+            else
+                element?.Visibility = Visibility.Collapsed;
 
-                if (parent && element.GetParentObject() is UIElement)
-                    (element.GetParentObject() as UIElement).Visibility = element.Visibility;
-            }
+            if (parent && element?.GetParentObject() is UIElement)
+                (element?.GetParentObject() as UIElement).Visibility = element.Visibility;
         }
 
         static public void Show(this UIElement element, bool parent = false)
         {
-            if (element is UIElement) (element as UIElement).Show(true, parent);
+            element?.Show(true, parent);
         }
 
         static public void Show(this object element, bool parent = false)
@@ -11110,47 +11108,49 @@ namespace PixivWPF.Common
 
         static public void Enable(this Control element, bool state, bool show = true)
         {
-            if (element is Control)
+            if (element is not null)
             {
                 element.IsEnabled = state;
-                if (!(element is MenuItem)) element.Foreground = state ? Theme.AccentBrush : Theme.GrayBrush;
+                if (element is not MenuItem) { element?.Foreground = state ? Theme.AccentBrush : Theme.GrayBrush; }
+
                 if (show)
-                    element.Visibility = Visibility.Visible;
+                    element?.Visibility = Visibility.Visible;
                 else
-                    element.Visibility = Visibility.Collapsed;
+                    element?.Visibility = Visibility.Collapsed;
             }
         }
 
         static public void Enable(this Control element)
         {
-            if (element is Control)
+            if (element is not null)
             {
                 element.IsEnabled = true;
-                if (!(element is MenuItem)) element.Foreground = Theme.AccentBrush;
-                element.Visibility = Visibility.Visible;
+                if (element is not MenuItem) { element?.Foreground = Theme.AccentBrush; }
+                element?.Visibility = Visibility.Visible;
             }
         }
 
         static public void Disable(this Control element, bool state, bool show = true)
         {
-            if (element is Control)
+            if (element is not null)
             {
                 element.IsEnabled = !state;
-                if (!(element is MenuItem)) element.Foreground = state ? Theme.GrayBrush : Theme.AccentBrush;
+                if (element is not MenuItem) { element?.Foreground = state ? Theme.GrayBrush : Theme.AccentBrush; }
+
                 if (show)
-                    element.Visibility = Visibility.Visible;
+                    element?.Visibility = Visibility.Visible;
                 else
-                    element.Visibility = Visibility.Collapsed;
+                    element?.Visibility = Visibility.Collapsed;
             }
         }
 
         static public void Disable(this Control element)
         {
-            if (element is Control)
+            if (element is not null)
             {
-                element.IsEnabled = false;
-                if (!(element is MenuItem)) element.Foreground = Theme.GrayBrush;
-                element.Visibility = Visibility.Visible;
+                element?.IsEnabled = false;
+                if (element is not MenuItem) { element?.Foreground = Theme.GrayBrush; }
+                element?.Visibility = Visibility.Visible;
             }
         }
         #endregion

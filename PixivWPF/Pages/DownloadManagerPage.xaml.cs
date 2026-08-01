@@ -570,6 +570,53 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(); }
         }
 
+        private void PART_FastFilter_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender == PART_FastFilter_Clear)
+            {
+                DownloadItems.Items.Filter = null;
+                PART_FastFilter_Indicator.Hide();
+            }
+            else if (sender == PART_FastFilter_Apply)
+            {
+                var filter_include = PART_FastFilter_Include.Text.Trim();
+                var filter_exclude = PART_FastFilter_Exclude.Text.Trim();
+                DownloadItems.Items.Filter = (o) =>
+                {
+                    var result = true;
+                    if (o is DownloadInfo)
+                    {
+                        try
+                        {
+                            var item = o as DownloadInfo;
+
+                            if (!string.IsNullOrEmpty(filter_include))
+                            {
+                                result &= item.IllustID.ToString().Contains(filter_include);
+                                result &= item.UserID.ToString().Contains(filter_include);
+                                result &= item.FileName?.IndexOf(filter_include, StringComparison.CurrentCultureIgnoreCase) >= 0;
+                                result &= item.ToolTip?.IndexOf(filter_include, StringComparison.CurrentCultureIgnoreCase) >= 0;
+                                //result &= item.Url.IndexOf(filter_include, StringComparison.CurrentCultureIgnoreCase) >= 0;
+                                //result &= item.ThumbnailUrl.IndexOf(filter_include, StringComparison.CurrentCultureIgnoreCase) >= 0;
+                            }
+                            if (!string.IsNullOrEmpty(filter_exclude))
+                            {
+                                result &= !item.IllustID.ToString().Contains(filter_exclude);
+                                result &= !item.UserID.ToString().Contains(filter_exclude);
+                                result &= item.FileName.IndexOf(filter_exclude, StringComparison.CurrentCultureIgnoreCase) < 0;
+                                result &= item.ToolTip?.IndexOf(filter_include, StringComparison.CurrentCultureIgnoreCase) < 0;
+                                //result &= !(item.Url.IndexOf(filter_exclude, StringComparison.CurrentCultureIgnoreCase) >= 0);
+                                //result &= !(item.ThumbnailUrl.IndexOf(filter_exclude, StringComparison.CurrentCultureIgnoreCase) >= 0);
+                            }
+                        }
+                        catch (Exception ex) { ex.ERROR("DownloadManagerFilter"); }
+                    }
+                    return (result);
+                };
+                PART_FastFilter_Indicator.Show(!string.IsNullOrEmpty(filter_include) && !string.IsNullOrEmpty(filter_exclude));
+            }
+        }
+
         private async void PART_CopyInfo_Click(object sender, RoutedEventArgs e)
         {
             var shift = Keyboard.Modifiers == ModifierKeys.Shift;

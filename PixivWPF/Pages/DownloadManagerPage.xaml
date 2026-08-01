@@ -54,6 +54,36 @@
                     <TextBlock Text="&#xED25;" Style="{DynamicResource ButtonIcon16}"/>
                 </StackPanel>
             </Button>
+            <mah:DropDownButton x:Name="PART_FastFilter" x:Uid="FastFilter" Margin="2,0,2,0"
+                    ToolTip="Filter Items"
+                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Style="{DynamicResource SquareButton}">
+                <mah:DropDownButton.Content>
+                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+                        <iconPacks:PackIconModern Kind="Filter"  Style="{DynamicResource PackIcon}" Grid.Column="0" Grid.Row="0"/>
+                        <iconPacks:PackIconModern x:Name="PART_FastFilter_Indicator" Kind="Information"  Style="{DynamicResource PackIcon8}" Width="8" Height="8" Margin="5,6,0,0" Grid.Column="0" Grid.Row="0"/>
+                    </Grid>
+                </mah:DropDownButton.Content>
+                <mah:DropDownButton.Items>
+                    <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
+                        <TextBlock Text="Include:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <TextBox x:Name="PART_FastFilter_Include" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
+                        <TextBlock Text="Exclude:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <TextBox x:Name="PART_FastFilter_Exclude" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <MenuItem x:Name="PART_FastFilter_Apply" Header="All" Click="PART_FastFilter_Click"/>
+                    <MenuItem x:Name="PART_FastFilter_Clear" Header="All" Click="PART_FastFilter_Click"/>
+                </mah:DropDownButton.Items>
+            </mah:DropDownButton>
             <Button x:Name="PART_CopyInfo" x:Uid="CopyInfo" Margin="2,0,2,0" Click="PART_CopyInfo_Click"
                     ToolTip="Copy All/Selected Items Infomation To Clipboard"
                     HorizontalAlignment="Right" VerticalAlignment="Center"
