@@ -1690,6 +1690,143 @@ namespace ImageViewer
         /// 
         /// </summary>
         /// <param name="file"></param>
+        /// <param name="force"></param>
+        /// <param name="dtc"></param>
+        /// <param name="dtm"></param>
+        /// <param name="dta"></param>
+        /// <param name="MetaSrc"></param>
+        public static void CopyMetaInfo(string file, bool force = false, DateTime? dtc = null, DateTime? dtm = null, DateTime? dta = null, string MetaSrc = null)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(file) && !string.IsNullOrEmpty(MetaSrc) && File.Exists(file) && File.Exists(MetaSrc))
+                {
+                    try
+                    {
+                        var fi = new FileInfo(file);
+                        var dc = dtc ?? fi.CreationTime;
+                        var dm = dtm ?? fi.LastWriteTime;
+                        var da = dta ?? fi.LastAccessTime;
+
+                        var fi_src = new FileInfo(MetaSrc);
+                        dc = dtc ?? fi_src.CreationTime;
+                        dm = dtm ?? fi_src.LastWriteTime;
+                        da = dta ?? fi_src.LastAccessTime;
+
+                        var exif = new CompactExifLib.ExifData(file);
+                        var meta_src =  new CompactExifLib.ExifData(MetaSrc);
+                        if (exif is CompactExifLib.ExifData && meta_src is CompactExifLib.ExifData)
+                        {
+                            exif.ReplaceAllTagsBy(meta_src);
+                            exif.Save();
+
+                            fi.CreationTime = dc;
+                            fi.LastWriteTime = dm;
+                            fi.LastAccessTime = da;
+                            fi.Refresh();
+                        }
+                    }
+                    catch (Exception ex) { ex.ShowMessage(); }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Error occurred while reading image file
+                $"File \"{file}\" touching failed!{Environment.NewLine}Error: {ex.Message}".ShowMessage();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="format"></param>
+        private void SetParameters(MagickImage image, MagickFormat format)
+        {
+            if (image is MagickImage)
+            {
+                var fmt_no_alpha = new MagickFormat[] { MagickFormat.Jpg, MagickFormat.Jpeg, MagickFormat.Jpe, MagickFormat.Bmp2, MagickFormat.Bmp3 };
+                var ext_no_alpha = new string[] { ".jpg", ".jpeg", ".jpe", ".bmp" };
+                if (image.HasAlpha && fmt_no_alpha.Contains(format))
+                {
+                    image.Settings.SetDefine("bmp3:alpha", "true");
+                    image.Settings.SetDefine("webp:alpha-compression", "1");
+                    image.ColorAlpha(MasklightColor ?? image.BackgroundColor);
+                }
+                if (format == MagickFormat.Png8)
+                {
+                    image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                    image.ColormapSize = 256;
+                    image.ColorType = ColorType.Palette;
+                    image.SetCompression(CompressionMethod.Zip);
+                    image.Format = MagickFormat.Png8;
+                }
+                else if (format.IsPNG())
+                {
+                    image.Settings.SetDefine("png:compression-level", "9");
+                    image.SetCompression(CompressionMethod.Zip);
+                    image.Settings.Compression = CompressionMethod.Zip;
+                    //target.Settings.Interlace = image.Interlace;
+                    //target.Settings.SetDefine(MagickFormat.Png, "png:IHDR.interlace_method", "0");
+                    image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                    image.Quality = image.Quality == 0 ? 100 : image.Quality;
+                    image.Format = MagickFormat.Png;
+                }
+                else if (format.IsTIF())
+                {
+                    image.Settings.SetDefine("tiff:preserve-compression", "true");
+                    image.SetCompression(CompressionMethod.Zip);
+                    image.Settings.Compression = CompressionMethod.Zip;
+                    image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                    image.Quality = image.Quality == 0 ? 100 : image.Quality;
+                    image.Format = MagickFormat.Tiff;
+                }
+                else if (format.IsGIF())
+                {
+                    image.GifDisposeMethod = GifDisposeMethod.Background;
+                    image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                    image.Format = MagickFormat.Gif;
+                }
+                else if (format.IsWEBP())
+                {
+                    image.Settings.SetDefine("webp:alpha-compression", "1");
+                    image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                    image.Quality = image.Quality == 0 ? 75 : image.Quality;
+                    image.Format = MagickFormat.WebP;
+                }
+                else if (format.IsBMP())
+                {
+                    image.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                    image.Format = MagickFormat.Bmp;
+                }
+                else if (format.IsJPG())
+                {
+                    //target.Settings.SetDefine("jpeg:arithmetic-coding", "on");
+                    image.Settings.SetDefine("jpeg:block-smoothing", "on");
+                    image.Settings.SetDefine("jpeg:optimize-coding", "on");
+                    image.Settings.SetDefine("sampling-factor", "4:2:0");
+                    image.Settings.SetDefine("dct-method", "float");
+                    image.Quality = image.Quality == 0 ? 75 : image.Quality;
+                    image.Format = MagickFormat.Jpeg;
+                }
+
+                //if (image.ColorSpace == ColorSpace.scRGB) image.ColorSpace = ColorSpace.sRGB;
+                image.Settings.AntiAlias = true;
+                image.Settings.Endian = image.Endian;
+                //target.Settings.Interlace = Interlace.Plane;
+                image.BackgroundColor = MasklightColor ?? image.BackgroundColor;
+                image.MatteColor = MasklightColor ?? image.BackgroundColor;
+                image.Density = image.Density;
+                //target.Format = image.Format;
+                //target.Quality = image.Quality;
+                image.Endian = image.Endian;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="file"></param>
         /// <param name="image"></param>
         /// <returns></returns>
         public bool SaveTopazMask(string file, MagickImage image)
@@ -1779,7 +1916,7 @@ namespace ImageViewer
 
                     FixDPI(image);
 
-                    var target = image.Clone();
+                    var target = new MagickImage(image); //.Clone();
                     if (format == MagickFormat.Png8 || e.Equals(".png8", StringComparison.CurrentCultureIgnoreCase))
                     {
                         target.VirtualPixelMethod = VirtualPixelMethod.Transparent;
@@ -1873,6 +2010,14 @@ namespace ImageViewer
                         foreach (var profile in image.ProfileNames) { if (image.HasProfile(profile)) target.SetProfile(image.GetProfile(profile)); }
                         foreach (var attr in image.AttributeNames) target.SetAttribute(attr, image.GetAttribute(attr));
 
+                        #region touch software
+                        var tag_software = "Software";
+                        if (target.AttributeNames.Contains(tag_software) && !target.AttributeNames.Contains($"exif:{tag_software}"))
+                            target.SetAttribute($"exif:{tag_software}", image.GetAttribute(tag_software));
+                        if (!target.AttributeNames.Contains(tag_software) && target.AttributeNames.Contains($"exif:{tag_software}"))
+                            target.SetAttribute(tag_software, image.GetAttribute($"exif:{tag_software}"));
+                        #endregion
+
                         if (!target.HasProfile("xmp") && target.AttributeNames.Contains("exif:ExtensibleMetadataPlatform"))
                         {
                             var exif = target.GetExifProfile();
@@ -1884,6 +2029,8 @@ namespace ImageViewer
                         }
 
                         target.Write(file, format);
+                        if (!string.IsNullOrEmpty(FileName))
+                            CopyMetaInfo(file, MetaSrc: FileName);
                     }
                     result = true;
                 }
