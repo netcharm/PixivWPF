@@ -2412,6 +2412,7 @@ namespace ImageViewer
                     Header = "Resize Image",
                     Uid = "ResizeImage",
                     Tag = source,
+                    InputGestureText = "Z".PadLeft(10, ' '),
                     Icon = new TextBlock() { Text = "\xE123", Style = style }
                 };
                 var item_size_cropedge = new MenuItem()
@@ -2456,6 +2457,7 @@ namespace ImageViewer
                     Header = "Change Image Quality",
                     Uid = "QualityImage",
                     Tag = source,
+                    InputGestureText = "Q".PadLeft(10, ' '),
                     Icon = new TextBlock() { Text = "\uE91B", Style = style }
                 };
 
@@ -2465,6 +2467,7 @@ namespace ImageViewer
                     Header = "Reset Image",
                     Uid = "ResetImage",
                     Tag = source,
+                    InputGestureText = "Shift+R".PadLeft(10, ' '),
                     Icon = new TextBlock() { Text = "\uE117", Style = style }
                 };
                 var item_reload = new MenuItem()
@@ -2472,6 +2475,7 @@ namespace ImageViewer
                     Header = "Reload Image",
                     Uid = "ReloadImage",
                     Tag = source,
+                    InputGestureText = "Ctrl+R".PadLeft(10, ' '),
                     Icon = new TextBlock() { Text = "\uE117", Style = style }
                 };
                 var item_colorcalc = new MenuItem()
@@ -2486,6 +2490,7 @@ namespace ImageViewer
                     Header = "Copy Current Image List",
                     Uid = "CopyImageList",
                     Tag = source,
+                    InputGestureText = "Shift+C".PadLeft(10, ' '),
                     Icon = new TextBlock() { Text = "\uE16F", Style = style }
                 };
                 var item_copyinfo = new MenuItem()
@@ -2500,6 +2505,7 @@ namespace ImageViewer
                     Header = "Copy Image",
                     Uid = "CopyImage",
                     Tag = source,
+                    InputGestureText = "Ctrl+C".PadLeft(10, ' '),
                     Icon = new TextBlock() { Text = "\uE16F", Style = style }
                 };
                 var item_saveas = new MenuItem()
@@ -2507,6 +2513,7 @@ namespace ImageViewer
                     Header = "Save As ...",
                     Uid = "SaveAs",
                     Tag = source,
+                    InputGestureText = "Ctrl+S".PadLeft(10, ' '),
                     Icon = new TextBlock() { Text = "\uE105", Style = style }
                 };
                 #endregion
@@ -2570,6 +2577,7 @@ namespace ImageViewer
                 items.Add(item_reload);
                 if (jumplist_tasks?.Count > 0)
                 {
+                    var idx = 0;
                     foreach (var task in jumplist_tasks)
                     {
                         MagickImage img = null;
@@ -2583,6 +2591,20 @@ namespace ImageViewer
                         var menu = new MenuItem(){ Header = task.Title, Tag = task, Icon = new Image() { Source = img?.ToBitmapSource() } };
                         menu.Click += (obj, evt) => ShellRunJumpTask(task);
                         item_openwith.Items.Add(menu);
+                        if (idx < 10)
+                        {
+                            menu.InputGestureText = $"Alt+{idx}";
+                            //Key key = (Key)Enum.Parse(typeof(Key), $"D{idx}", true);
+                            //RoutedUICommand cmd_menu = new(){ Text = task.Title };
+                            //cmd_menu.InputGestures.Add(new KeyGesture(key, ModifierKeys.Windows, menu.InputGestureText));
+                            //CommandBindings.Add(new CommandBinding(cmd_menu, (obj, evt) =>
+                            //{
+                            //    evt.Handled = true;
+                            //    ShellRunJumpTask(task);
+                            //}));
+                            //menu.Command = cmd_menu;
+                        }
+                        idx++;
                     }
                     items.Add(new Separator());
                     items.Add(item_openwith);
@@ -4057,7 +4079,8 @@ namespace ImageViewer
                     e.Handled = true;
                     var km = this.GetModifier();
 
-                    if (e.Key == Key.System || e.SystemKey == Key.F10)
+                    //if (e.Key == Key.System) { e.Handled = false; }
+                    if (e.Key == Key.F10 || e.SystemKey == Key.F10)
                     {
                         if (km.None) ImageViewerScroll.ContextMenu?.IsOpen = true;
                     }
@@ -4227,6 +4250,35 @@ namespace ImageViewer
                         ToggleZoomMode();
                     }
 
+                    else if ((e.Key >= Key.D0 && e.Key <= Key.D9) ||
+                             (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9) ||
+                             (e.SystemKey >= Key.D0 && e.SystemKey <= Key.D9) ||
+                             (e.SystemKey >= Key.NumPad0 && e.SystemKey <= Key.NumPad9))
+                    {
+                        if (km.OnlyAlt)
+                        {
+                            int idx = -1;
+                            if (e.SystemKey == Key.System)
+                            {
+                                if (e.SystemKey >= Key.NumPad0)
+                                    idx = e.SystemKey - Key.NumPad0;
+                                else if (e.SystemKey >= Key.D0)
+                                    idx = e.SystemKey - Key.D0;
+                            }
+                            else
+                            {
+                                if (e.Key >= Key.NumPad0)
+                                    idx = e.Key - Key.NumPad0;
+                                else if (e.Key >= Key.D0)
+                                    idx = e.Key - Key.D0;
+                            }
+                            if (idx >= 0 && idx < jumplist_tasks?.Count)
+                            {
+                                ShellRunJumpTask(jumplist_tasks[idx]);
+                            }
+                        }
+                    }
+
                     else e.Handled = false;
                     _last_key_ = e.Key;
                     _last_key_time_ = DateTime.Now;
@@ -4258,6 +4310,36 @@ namespace ImageViewer
                     {
                         if (km.None && IsQualityChanger) QualityChangerCompareStop();
                     }
+
+                    else if ((e.Key >= Key.D0 && e.Key <= Key.D9) ||
+                             (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9) ||
+                             (e.SystemKey >= Key.D0 && e.SystemKey <= Key.D9) ||
+                             (e.SystemKey >= Key.NumPad0 && e.SystemKey <= Key.NumPad9))
+                    {
+                        if (km.OnlyAlt)
+                        {
+                            int idx = -1;
+                            if (e.Key == Key.System)
+                            {
+                                if (e.SystemKey >= Key.NumPad0)
+                                    idx = e.SystemKey - Key.NumPad0;
+                                else if (e.SystemKey >= Key.D0)
+                                    idx = e.SystemKey - Key.D0;
+                            }
+                            else
+                            {
+                                if (e.Key >= Key.NumPad0)
+                                    idx = e.Key - Key.NumPad0;
+                                else if (e.Key >= Key.D0)
+                                    idx = e.Key - Key.D0;
+                            }
+                            if (idx >= 0 && idx < jumplist_tasks?.Count)
+                            {
+                                ShellRunJumpTask(jumplist_tasks[idx]);
+                            }
+                        }
+                    }
+
                     else e.Handled = false;
                     Debug.WriteLine($"[Key Up]Key = {e.Key}, SystemKey = ({e.SystemKey})");
                 }
