@@ -1174,8 +1174,25 @@ namespace ImageViewer
             {
                 if (files == null || files.Length == 0)
                 {
-                    return (ret);
+                    IsProcessingViewer = false;
+                    IsLoadingViewer = false;
+                    var file_str = "AllSupportedImageFiles".T();
+                    var dlgOpen = new Microsoft.Win32.OpenFileDialog
+                    {
+                        Multiselect = true,
+                        CheckFileExists = true,
+                        CheckPathExists = true,
+                        ValidateNames = true,
+                        //Filter = $"{file_str}|{AllSupportedFiles}|{AllSupportedFilters}";
+                        Filter = $"{file_str}|{Extensions.AllSupportedFiles}"
+                    };
+                    if (dlgOpen.ShowDialog() ?? false)
+                    {
+                        files = dlgOpen.FileNames;
+                    }
                 }
+
+                if (files == null || files.Length == 0) return (ret);
                 else
                 {
                     files = [.. files.Select(f => f.Trim().Trim('\"')).Where(f => f.IsSupportedExt()).Where(f => !string.IsNullOrEmpty(f) && File.Exists(f)).Distinct().NaturalSort()];
@@ -1209,6 +1226,7 @@ namespace ImageViewer
                 }
             }
             catch (Exception ex) { ex.ShowMessage(); }
+            finally { GC.Collect(); }
             return (ret);
         }
 
@@ -4168,27 +4186,23 @@ namespace ImageViewer
                     }
                     else if (e.Key == Key.O || e.SystemKey == Key.O)
                     {
-                        OpenImageWith();
+                        if (km.OnlyCtrl) ImageActions_Click(ImageOpen, e);
+                        else if (km.OnlyAlt) OpenImageWith();
                     }
                     else if (e.Key == Key.Q || e.SystemKey == Key.Q)
                     {
-                        OpenQualityChanger();
+                        if (km.None) OpenQualityChanger();
                     }
                     else if (e.Key == Key.R || e.SystemKey == Key.R)
                     {
                         if (km.OnlyShift)
-                        {
                             ResetImage(true);
-                        }
                         else if (km.OnlyCtrl)
-                        {
                             ReloadImage(true);
-                        }
                         else if (km.OnlyAlt)
-                        {
                             ReloadImage(true, info_only: true);
-                        }
-                        else RenderRun(LastAction);
+                        else if (km.None)
+                            RenderRun(LastAction);
                     }
                     else if (e.Key == Key.S || e.SystemKey == Key.S)
                     {
@@ -4209,7 +4223,7 @@ namespace ImageViewer
                     }
                     else if (e.Key == Key.Z || e.SystemKey == Key.Z)
                     {
-                        OpenSizeChanger();
+                        if (km.None) OpenSizeChanger();
                     }
 
                     else if (e.Key == Key.Home || e.SystemKey == Key.Home)

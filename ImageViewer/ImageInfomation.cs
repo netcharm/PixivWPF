@@ -1571,6 +1571,7 @@ namespace ImageViewer
                 if (dlgOpen.ShowDialog() ?? false)
                 {
                     var file = dlgOpen.FileName;
+                    //var files = dlgOpen.FileNames;
                     result = await LoadImageFromFile(file);
                 }
             }
