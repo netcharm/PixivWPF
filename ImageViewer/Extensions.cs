@@ -2446,6 +2446,25 @@ namespace ImageViewer
 
         #region Keyboard Modifier
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        public static Key RealKey(this KeyEventArgs e)
+        {
+            var key = e.Key;
+            try
+            {
+                if (e.Key == Key.System) key = e.SystemKey;
+                else if (e.Key == Key.ImeProcessed) key = e.ImeProcessedKey;
+                else if (e.Key == Key.DeadCharProcessed) key = e.DeadCharProcessedKey;
+                else key = e.Key;
+            }
+            catch(Exception ex) { ex.ShowMessage(); }
+            return (key);
+        }
+
+        /// <summary>
         ///
         /// </summary>
         public class Modifier
@@ -2470,16 +2489,18 @@ namespace ImageViewer
         /// <returns></returns>
         private static Modifier CalcModifier(ModifierKeys modifiers)
         {
-            var result = new Modifier();
-            result.Shift = modifiers.HasFlag(ModifierKeys.Shift);
-            result.Ctrl = modifiers.HasFlag(ModifierKeys.Control);
-            result.Alt = modifiers.HasFlag(ModifierKeys.Alt);
-            result.Win = modifiers.HasFlag(ModifierKeys.Windows);
-            result.OnlyShift = modifiers == ModifierKeys.Shift;
-            result.OnlyCtrl = modifiers == ModifierKeys.Control;
-            result.OnlyAlt = modifiers == ModifierKeys.Alt;
-            result.OnlyWin = modifiers == ModifierKeys.Windows;
-            result.None = modifiers == ModifierKeys.None;
+            var result = new Modifier
+            {
+                Shift = modifiers.HasFlag(ModifierKeys.Shift),
+                Ctrl = modifiers.HasFlag(ModifierKeys.Control),
+                Alt = modifiers.HasFlag(ModifierKeys.Alt),
+                Win = modifiers.HasFlag(ModifierKeys.Windows),
+                OnlyShift = modifiers == ModifierKeys.Shift,
+                OnlyCtrl = modifiers == ModifierKeys.Control,
+                OnlyAlt = modifiers == ModifierKeys.Alt,
+                OnlyWin = modifiers == ModifierKeys.Windows,
+                None = modifiers == ModifierKeys.None
+            };
             return (result);
         }
 
@@ -2504,8 +2525,24 @@ namespace ImageViewer
         public static Modifier GetModifier(this FrameworkElement element)
         {
             var result = new Modifier();
+            element ??= Application.Current?.MainWindow;
             var modifiers = element?.Dispatcher.Invoke(() => Keyboard.Modifiers) ?? ModifierKeys.None;
             result = CalcModifier(modifiers);
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        public static Modifier GetModifier(this KeyEventArgs e)
+        {
+            var result = new Modifier();
+            if (e is not null)
+            {
+                result = CalcModifier(e.KeyboardDevice?.Modifiers ?? ModifierKeys.None);
+            }
             return (result);
         }
 

@@ -4096,13 +4096,11 @@ namespace ImageViewer
                 {
                     e.Handled = true;
                     var km = this.GetModifier();
+                    var key = e.RealKey();
 
-                    //if (e.Key == Key.System) { e.Handled = false; }
-                    if (e.Key == Key.F10 || e.SystemKey == Key.F10)
-                    {
-                        if (km.None) ImageViewerScroll.ContextMenu?.IsOpen = true;
-                    }
-                    else if (e.Key == Key.Escape || e.SystemKey == Key.Escape)
+                    if (key == Key.LeftAlt || key == Key.RightAlt) { e.Handled = false; }
+
+                    else if (key == Key.Escape)
                     {
                         if (IsMagnifier)
                         {
@@ -4121,7 +4119,7 @@ namespace ImageViewer
                             Close();
                         }
                     }
-                    else if (e.Key == Key.Delete || e.SystemKey == Key.Delete)
+                    else if (key == Key.Delete)
                     {
                         var image = ImageViewer.GetInformation();
                         var file = image?.FileName;
@@ -4136,7 +4134,7 @@ namespace ImageViewer
                         }
                     }
 
-                    else if (e.Key == Key.F1 || e.SystemKey == Key.F1)
+                    else if (key == Key.F1)
                     {
                         if (km.OnlyShift)
                             await LoadImageFromPrevFile();
@@ -4147,30 +4145,30 @@ namespace ImageViewer
                         else
                             ImageActions_Click(ImageOpen, e);
                     }
-                    else if (e.Key == Key.F3 || e.SystemKey == Key.F3)
+                    else if (key == Key.F3)
                     {
                         ImageActions_Click(ImagePaste, e);
                     }
-                    else if (e.Key == Key.F9 || e.SystemKey == Key.F9)
+                    else if (key == Key.F9)
                     {
                         ToggleZoomMode(full: true, direction: km.OnlyShift ? FlowDirection.LeftToRight : FlowDirection.RightToLeft);
                     }
-                    else if (e.Key == Key.F10 || e.SystemKey == Key.F10)
+                    else if (key == Key.F10)
                     {
                         if (km.None) ImageViewerScroll.ContextMenu?.IsOpen = true;
                     }
 
-                    else if (e.Key == Key.B || e.SystemKey == Key.B)
+                    else if (key == Key.B)
                     {
                         ToggleBirdView();
                     }
-                    else if (e.Key == Key.C || e.SystemKey == Key.C)
+                    else if (key == Key.C)
                     {
                         if (km.OnlyCtrl) await CopyImageToClipboard();
                         else if (km.OnlyShift) await CopyImageListToClipboard();
                         else if (km.None && IsQualityChanger) QualityChangerCompareStart();
                     }
-                    else if (e.Key == Key.I || e.SystemKey == Key.I)
+                    else if (key == Key.I)
                     {
                         if (km.OnlyCtrl)
                             ImageViewer.GetInformation().FileName.ShowProperties();
@@ -4180,20 +4178,20 @@ namespace ImageViewer
                             ToggleToolTip(ImageInfoBox);
                         }
                     }
-                    else if (e.Key == Key.M || e.SystemKey == Key.M)
+                    else if (key == Key.M)
                     {
                         ToggleMagnifier(change_state: true);
                     }
-                    else if (e.Key == Key.O || e.SystemKey == Key.O)
+                    else if (key == Key.O)
                     {
                         if (km.OnlyCtrl) ImageActions_Click(ImageOpen, e);
                         else if (km.OnlyAlt) OpenImageWith();
                     }
-                    else if (e.Key == Key.Q || e.SystemKey == Key.Q)
+                    else if (key == Key.Q)
                     {
                         if (km.None) OpenQualityChanger();
                     }
-                    else if (e.Key == Key.R || e.SystemKey == Key.R)
+                    else if (key == Key.R)
                     {
                         if (km.OnlyShift)
                             ResetImage(true);
@@ -4204,88 +4202,76 @@ namespace ImageViewer
                         else if (km.None)
                             RenderRun(LastAction);
                     }
-                    else if (e.Key == Key.S || e.SystemKey == Key.S)
+                    else if (key == Key.S)
                     {
                         if (km.OnlyCtrl) await SaveImageAs(overwrite: false);
                         else if (km.OnlyShift) await SaveImageAs(overwrite: true);
                     }
-                    else if (e.Key == Key.T || e.SystemKey == Key.T)
+                    else if (key == Key.T)
                     {
                         if (km.OnlyAlt) ImageViewerScroll.ContextMenu?.IsOpen = true;
                     }
-                    else if (e.Key == Key.V || e.SystemKey == Key.V)
+                    else if (key == Key.V)
                     {
                         if (km.OnlyCtrl) await LoadImageFromClipboard();
                     }
-                    else if (e.Key == Key.W || e.SystemKey == Key.W)
+                    else if (key == Key.W)
                     {
                         if (km.OnlyCtrl) Close();
                     }
-                    else if (e.Key == Key.Z || e.SystemKey == Key.Z)
+                    else if (key == Key.Z)
                     {
                         if (km.None) OpenSizeChanger();
                     }
 
-                    else if (e.Key == Key.Home || e.SystemKey == Key.Home)
+                    else if (key == Key.Home)
                     {
                         if (!IsQualityChanger) await LoadImageFromFirstFile();
                     }
-                    else if (e.Key == Key.Left || e.SystemKey == Key.Left)
+                    else if (key == Key.Left)
                     {
                         if (IsQualityChanger) e.Handled = false;
                         else await LoadImageFromPrevFile();
                     }
-                    else if (e.Key == Key.Right || e.SystemKey == Key.Right)
+                    else if (key == Key.Right)
                     {
                         if (IsQualityChanger) e.Handled = false;
                         else await LoadImageFromNextFile();
                     }
-                    else if (e.Key == Key.End || e.SystemKey == Key.End)
+                    else if (key == Key.End)
                     {
                         if (!IsQualityChanger) await LoadImageFromLastFile();
                     }
 
-                    else if (e.Key == Key.Add || e.SystemKey == Key.Add || e.Key == Key.OemPlus || e.SystemKey == Key.OemPlus)
+                    else if (key == Key.Add || key == Key.OemPlus)
                     {
                         CurrentZoomFitMode = ZoomFitMode.None;
                         ZoomRatio.Value += ZoomRatio.SmallChange;
                     }
-                    else if (e.Key == Key.Subtract || e.SystemKey == Key.Subtract || e.Key == Key.OemMinus || e.Key == Key.OemMinus)
+                    else if (key == Key.Subtract || key == Key.OemMinus)
                     {
                         CurrentZoomFitMode = ZoomFitMode.None;
                         ZoomRatio.Value -= ZoomRatio.SmallChange;
                     }
-                    else if (e.Key == Key.Multiply || e.Key == Key.Multiply)
+                    else if (key == Key.Multiply)
                     {
                         CurrentZoomFitMode = ZoomFitMode.NoZoom;
                     }
-                    else if (e.Key == Key.Divide || e.Key == Key.Divide)
+                    else if (key == Key.Divide)
                     {
                         ToggleZoomMode();
                     }
 
-                    else if ((e.Key >= Key.D0 && e.Key <= Key.D9) ||
-                             (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9) ||
-                             (e.SystemKey >= Key.D0 && e.SystemKey <= Key.D9) ||
-                             (e.SystemKey >= Key.NumPad0 && e.SystemKey <= Key.NumPad9))
+                    else if ((key >= Key.D0 && key <= Key.D9) || (key >= Key.NumPad0 && key <= Key.NumPad9))
                     {
                         if (km.OnlyAlt)
                         {
                             int idx = -1;
-                            if (e.SystemKey == Key.System)
-                            {
-                                if (e.SystemKey >= Key.NumPad0)
-                                    idx = e.SystemKey - Key.NumPad0;
-                                else if (e.SystemKey >= Key.D0)
-                                    idx = e.SystemKey - Key.D0;
-                            }
-                            else
-                            {
-                                if (e.Key >= Key.NumPad0)
-                                    idx = e.Key - Key.NumPad0;
-                                else if (e.Key >= Key.D0)
-                                    idx = e.Key - Key.D0;
-                            }
+                            if (key >= Key.NumPad0)
+                                idx = key - Key.NumPad0;
+                            else if (key >= Key.D0)
+                                idx = key - Key.D0;
+
                             if (idx >= 0 && idx < jumplist_tasks?.Count)
                             {
                                 ShellRunJumpTask(jumplist_tasks[idx]);
@@ -4296,7 +4282,8 @@ namespace ImageViewer
                     else e.Handled = false;
                     _last_key_ = e.Key;
                     _last_key_time_ = DateTime.Now;
-                    Debug.WriteLine($"[Key Down]Key = {e.Key}, SystemKey = ({e.SystemKey})");
+                    Debug.WriteLine($"[Key Down]Key = {e.Key}, SystemKey = ({e.SystemKey}), ImeProcessedKey = ({e.ImeProcessedKey}), DeadCharProcessedKey = ({e.DeadCharProcessedKey})");
+
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
                 finally
@@ -4319,34 +4306,23 @@ namespace ImageViewer
                 {
                     e.Handled = true;
                     var km = this.GetModifier();
+                    var key = e.RealKey();
 
-                    if (e.Key == Key.C || e.SystemKey == Key.C)
+                    if (key == Key.C)
                     {
                         if (km.None && IsQualityChanger) QualityChangerCompareStop();
                     }
 
-                    else if ((e.Key >= Key.D0 && e.Key <= Key.D9) ||
-                             (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9) ||
-                             (e.SystemKey >= Key.D0 && e.SystemKey <= Key.D9) ||
-                             (e.SystemKey >= Key.NumPad0 && e.SystemKey <= Key.NumPad9))
+                    else if ((key >= Key.D0 && key <= Key.D9) || (key >= Key.NumPad0 && key <= Key.NumPad9))
                     {
                         if (km.OnlyAlt)
                         {
                             int idx = -1;
-                            if (e.Key == Key.System)
-                            {
-                                if (e.SystemKey >= Key.NumPad0)
-                                    idx = e.SystemKey - Key.NumPad0;
-                                else if (e.SystemKey >= Key.D0)
-                                    idx = e.SystemKey - Key.D0;
-                            }
-                            else
-                            {
-                                if (e.Key >= Key.NumPad0)
-                                    idx = e.Key - Key.NumPad0;
-                                else if (e.Key >= Key.D0)
-                                    idx = e.Key - Key.D0;
-                            }
+                            if (key >= Key.NumPad0)
+                                idx = key - Key.NumPad0;
+                            else if (key >= Key.D0)
+                                idx = key - Key.D0;
+
                             if (idx >= 0 && idx < jumplist_tasks?.Count)
                             {
                                 ShellRunJumpTask(jumplist_tasks[idx]);
@@ -4355,7 +4331,8 @@ namespace ImageViewer
                     }
 
                     else e.Handled = false;
-                    Debug.WriteLine($"[Key Up]Key = {e.Key}, SystemKey = ({e.SystemKey})");
+                    Debug.WriteLine($"[Key Up]Key = {e.Key}, SystemKey = ({e.SystemKey}), ImeProcessedKey = ({e.ImeProcessedKey}), DeadCharProcessedKey = ({e.DeadCharProcessedKey})");
+
                 }
                 catch (Exception ex) { ex.ShowMessage(); }
                 finally
