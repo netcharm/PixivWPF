@@ -132,7 +132,7 @@ namespace PixivWPF.Common
 
         public string IllustSID { get { return (Url.GetIllustId()); } }
         public Pixeez.Objects.Work Illust { get { return (IllustSID.FindIllust()); } }
-        public long IllustID => (long.TryParse(Url.GetIllustId(), out long id) ? id : -1L);
+        public long IllustID => (long)(Illust is null ? (long.TryParse(Url.GetIllustId(), out long id) ? id : -1L) : Illust.Id);
         public long UserID
         {
             get
@@ -206,6 +206,9 @@ namespace PixivWPF.Common
             get { return (is_follow); }
             set { is_follow = value; NotifyPropertyChanged("IsFollow"); }
         }
+
+        public string IllustTitle => (Illust is not null ? Illust.Title : string.Empty);
+        public string IllustTag => (Illust is not null ? string.Join(" ", Illust.Tags.Select(t => $"#{t}")) : string.Empty);
 
         [DefaultValue(false)]
         public bool IsStart

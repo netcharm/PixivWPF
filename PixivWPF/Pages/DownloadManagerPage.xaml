@@ -82,6 +82,20 @@
                     </StackPanel>
                     <MenuItem x:Name="PART_FastFilter_Apply" Header="All" Click="PART_FastFilter_Click"/>
                     <MenuItem x:Name="PART_FastFilter_Clear" Header="All" Click="PART_FastFilter_Click"/>
+                    <Separator/>
+                    <MenuItem x:Name="PART_SortItemsBy" Header="Sort By ...">
+                        <MenuItem x:Name="PART_SortItemsBy_AddedTime" Header="Added Time" Click="PART_SortItemsBy_Click"/>
+                        <MenuItem x:Name="PART_SortItemsBy_DownloadState" Header="Download State" Click="PART_SortItemsBy_Click"/>
+                        <MenuItem x:Name="PART_SortItemsBy_FileName" Header="File Name" Click="PART_SortItemsBy_Click"/>
+                        <MenuItem x:Name="PART_SortItemsBy_FileSize" Header="File Size" Click="PART_SortItemsBy_Click"/>
+                        <MenuItem x:Name="PART_SortItemsBy_IllustDate" Header="Illust Date" Click="PART_SortItemsBy_Click"/>
+                        <MenuItem x:Name="PART_SortItemsBy_IllustId" Header="Illust ID" Click="PART_SortItemsBy_Click"/>
+                        <MenuItem x:Name="PART_SortItemsBy_IllustAuthor" Header="Illust Author" Click="PART_SortItemsBy_Click"/>
+                        <MenuItem x:Name="PART_SortItemsBy_IllustFavorited" Header="Illust Favorited" Click="PART_SortItemsBy_Click"/>
+                        <MenuItem x:Name="PART_SortItemsBy_IllustFollowed" Header="Illust Followed" Click="PART_SortItemsBy_Click"/>
+                        <MenuItem x:Name="PART_SortItemsBy_IllustTitle" Header="Illust Title" Click="PART_SortItemsBy_Click"/>
+                        <MenuItem x:Name="PART_SortItemsBy_IllustTag" Header="Illust Tag" Click="PART_SortItemsBy_Click"/>
+                    </MenuItem>
                 </mah:DropDownButton.Items>
             </mah:DropDownButton>
             <Button x:Name="PART_CopyInfo" x:Uid="CopyInfo" Margin="2,0,2,0" Click="PART_CopyInfo_Click"

@@ -875,5 +875,76 @@ namespace PixivWPF.Pages
             PART_RemoveAll_NDays.Header = $"Remove Before {setting.DownloadRemoveNDays} Days";
         }
 
+        private void PART_SortItemsBy_Click(object sender, RoutedEventArgs e)
+        {
+            var current_sort = DownloadItems.Items.SortDescriptions.FirstOrDefault();
+
+            foreach (var item in PART_SortItemsBy.Items)
+            {
+                if (item is MenuItem)
+                {
+                    var mi = item as MenuItem;
+                    mi.IsChecked = false;
+                    if (mi == sender) mi.IsChecked = true;
+                }
+            }
+
+            if (sender == PART_SortItemsBy_AddedTime)
+            {
+                DownloadItems.Items.SortDescriptions.Clear();
+                DownloadItems.Items.SortDescriptions.Add(new SortDescription("AddedTimeStamp", ListSortDirection.Descending));
+            }
+            else if (sender == PART_SortItemsBy_DownloadState)
+            {
+                DownloadItems.Items.SortDescriptions.Clear();
+                DownloadItems.Items.SortDescriptions.Add(new SortDescription("DownloadState", ListSortDirection.Descending));
+            }
+            else if (sender == PART_SortItemsBy_FileName)
+            {
+                DownloadItems.Items.SortDescriptions.Clear();
+                DownloadItems.Items.SortDescriptions.Add(new SortDescription("FileName", ListSortDirection.Descending));
+            }
+            else if (sender == PART_SortItemsBy_FileSize)
+            {
+                DownloadItems.Items.SortDescriptions.Clear();
+                DownloadItems.Items.SortDescriptions.Add(new SortDescription("Length", ListSortDirection.Descending));
+            }
+            else if (sender == PART_SortItemsBy_IllustId)
+            {
+                DownloadItems.Items.SortDescriptions.Clear();
+                DownloadItems.Items.SortDescriptions.Add(new SortDescription("IllustID", ListSortDirection.Descending));
+            }
+            else if (sender == PART_SortItemsBy_IllustAuthor)
+            {
+                DownloadItems.Items.SortDescriptions.Clear();
+                DownloadItems.Items.SortDescriptions.Add(new SortDescription("UserId", ListSortDirection.Descending));
+            }
+            else if (sender == PART_SortItemsBy_IllustDate)
+            {
+                DownloadItems.Items.SortDescriptions.Clear();
+                DownloadItems.Items.SortDescriptions.Add(new SortDescription("FileTime", ListSortDirection.Descending));
+            }
+            else if (sender == PART_SortItemsBy_IllustTitle)
+            {
+                DownloadItems.Items.SortDescriptions.Clear();
+                DownloadItems.Items.SortDescriptions.Add(new SortDescription("IllustTitle", ListSortDirection.Descending));
+            }
+            else if (sender == PART_SortItemsBy_IllustTag)
+            {
+                DownloadItems.Items.SortDescriptions.Clear();
+                DownloadItems.Items.SortDescriptions.Add(new SortDescription("IllustTag", ListSortDirection.Descending));
+            }
+            else if (sender == PART_SortItemsBy_IllustFavorited)
+            {
+                DownloadItems.Items.SortDescriptions.Clear();
+                DownloadItems.Items.SortDescriptions.Add(new SortDescription("IsFav", ListSortDirection.Descending));
+            }
+            else if (sender == PART_SortItemsBy_IllustFollowed)
+            {
+                DownloadItems.Items.SortDescriptions.Clear();
+                DownloadItems.Items.SortDescriptions.Add(new SortDescription("IsFollow", ListSortDirection.Descending));
+            }
+            DownloadItems.Items.IsLiveSorting = true;
+        }
     }
 }
