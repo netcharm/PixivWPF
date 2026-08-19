@@ -379,6 +379,37 @@ namespace PixivWPF.Pages
             return (result);
         }
 
+        internal void ScrollToItem(DownloadInfo item)
+        {
+            if (item is DownloadInfo)
+            {
+                foreach (var i in DownloadItems.Items)
+                {
+                    if (i is DownloadInfo && (i as DownloadInfo).Url == item.Url)
+                    {
+                        DownloadItems.ScrollIntoView(i);
+                        break;
+                    }
+                }
+            }
+        }
+
+        internal void ScrollToItem(PixivItem item)
+        {
+            if (item.IsWork())
+            {
+                foreach (var i in DownloadItems.Items)
+                {
+                    var url = item.IsPage() ? item.Illust.GetOriginalUrl(item.Index) : item.Illust.GetOriginalUrl();
+                    if (i is DownloadInfo && (i as DownloadInfo).Url == url)
+                    {
+                        DownloadItems.ScrollIntoView(i);
+                        break;
+                    }
+                }
+            }
+        }
+
         internal async void Add(DownloadInfo item)
         {
             if (item is not null && !IsExists(item))

@@ -2768,11 +2768,13 @@ namespace PixivWPF.Pages
 
                         if (SubIllusts.SelectedIndex < 0)
                             SubIllusts.SelectedIndex = 0;
+                        Commands.ScrollToDownloadItem.Execute(SubIllusts.SelectedItem);
                     }
                     else
                     {
                         btnSubPageNext.Hide();
                         btnSubPagePrev.Hide();
+                        Commands.ScrollToDownloadItem.Execute(Contents);
                     }
                 }
                 this.DoEvents();
@@ -5082,6 +5084,7 @@ namespace PixivWPF.Pages
                 int.TryParse(RelatedItems.SelectedItem.ID, out id);
                 false.UpdateLikeStateAsync(id);
                 RelatedItems.SelectedItem.Focus();
+                Commands.ScrollToDownloadItem.Execute(RelatedItems.SelectedItem);
             }
             e.Handled = true;
         }
@@ -5203,6 +5206,7 @@ namespace PixivWPF.Pages
                 int.TryParse(FavoriteItems.SelectedItem.ID, out id);
                 false.UpdateLikeStateAsync(id);
                 FavoriteItems.SelectedItem.Focus();
+                Commands.ScrollToDownloadItem.Execute(FavoriteItems.SelectedItem);
             }
             e.Handled = true;
         }

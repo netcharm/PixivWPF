@@ -2633,6 +2633,34 @@ namespace PixivWPF.Common
             }
         });
 
+        static public ICommand ScrollToDownloadItem { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            if (obj is DownloadInfo)
+            {
+                var item = obj as DownloadInfo;
+                var _downManager = Application.Current.GetDownloadManager();
+                if (_downManager is DownloadManagerPage)
+                {
+                    await new Action(() =>
+                    {
+                        _downManager.ScrollToItem(item);
+                    }).InvokeAsync();
+                }
+            }
+            else if (obj is PixivItem)
+            {
+                var item = obj as PixivItem;
+                var _downManager = Application.Current.GetDownloadManager();
+                if (_downManager is DownloadManagerPage)
+                {
+                    await new Action(() =>
+                    {
+                        _downManager.ScrollToItem(item);
+                    }).InvokeAsync();
+                }
+            }
+        });
+
         static public ICommand OpenSearch { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is string && !string.IsNullOrEmpty((string)obj))
