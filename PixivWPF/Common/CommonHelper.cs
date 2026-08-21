@@ -6594,12 +6594,12 @@ namespace PixivWPF.Common
 
         static public void UpdateDownloadStateAsync(string illustid = default(string), bool? exists = null)
         {
-            int id = -1;
-            int.TryParse(illustid, out id);
+            long id = -1;
+            long.TryParse(illustid, out id);
             UpdateDownloadStateAsync(id, exists);
         }
 
-        static public async void UpdateDownloadStateAsync(int? illustid = null, bool? exists = null)
+        static public async void UpdateDownloadStateAsync(long? illustid = null, bool? exists = null)
         {
             await new Action(() =>
             {
@@ -6629,7 +6629,7 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         }
 
-        static public async void UpdateDownloadStateAsync(this ImageListGrid list, int? illustid = null, bool? exists = null)
+        static public async void UpdateDownloadStateAsync(this ImageListGrid list, long? illustid = null, bool? exists = null)
         {
             await new Action(() =>
             {
@@ -6637,7 +6637,7 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         }
 
-        static public void UpdateDownloadState(this ImageListGrid list, int? illustid = null, bool? exists = null)
+        static public void UpdateDownloadState(this ImageListGrid list, long? illustid = null, bool? exists = null)
         {
             try
             {
@@ -6646,7 +6646,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR(); }
         }
 
-        static public void UpdateDownloadState(this ItemCollection items, int? illustid = null, bool? exists = null)
+        static public void UpdateDownloadState(this ItemCollection items, long? illustid = null, bool? exists = null)
         {
             try
             {
@@ -6655,7 +6655,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR(); }
         }
 
-        static public async void UpdateDownloadStateAsync(this ObservableCollection<PixivItem> collection, int? illustid = null, bool? exists = null)
+        static public async void UpdateDownloadStateAsync(this ObservableCollection<PixivItem> collection, long? illustid = null, bool? exists = null)
         {
             await new Action(() =>
             {
@@ -6663,7 +6663,7 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         }
 
-        static public void UpdateDownloadState(this ObservableCollection<PixivItem> collection, int? illustid = null, bool? exists = null)
+        static public void UpdateDownloadState(this ObservableCollection<PixivItem> collection, long? illustid = null, bool? exists = null)
         {
             try
             {
@@ -6808,7 +6808,9 @@ namespace PixivWPF.Common
                 foreach (var local in setting.LocalStorage)
                 {
                     if (string.IsNullOrEmpty(local.Folder)) continue;
+                    Application.Current.DoEvents();
 
+                    var nested = local.IncludeSubFolder ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
                     var folder = local.Folder.FolderMacroReplace(id);
                     if (Directory.Exists(folder))
                     {
@@ -6823,7 +6825,7 @@ namespace PixivWPF.Common
                             }
                             else if (!orig)
                             {
-                                var files = Directory.EnumerateFiles(folder, $"{id}{sep}.*");
+                                var files = Directory.EnumerateFiles(folder, $"{id}{sep}.*", nested);
                                 if (files.Count() > 0)
                                 {
                                     //filepath = Path.Combine(folder, $"{id}{Path.GetExtension(f)}");
@@ -6843,7 +6845,7 @@ namespace PixivWPF.Common
                             }
                             else if (!orig)
                             {
-                                var files = Directory.EnumerateFiles(folder, $"{id}{sep}.*");
+                                var files = Directory.EnumerateFiles(folder, $"{id}{sep}.*", nested);
                                 if (files.Count() > 0)
                                 {
                                     //filepath = Path.Combine(folder, $"{id}{Path.GetExtension(f)}");
@@ -6981,6 +6983,7 @@ namespace PixivWPF.Common
                     if (string.IsNullOrEmpty(local.Folder)) continue;
 
                     var id = url.GetIllustId();
+                    var nested = local.IncludeSubFolder ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
                     var folder = local.Folder.FolderMacroReplace(id);
                     if (Directory.Exists(folder))
                     {
@@ -6998,7 +7001,7 @@ namespace PixivWPF.Common
                         if (result) break;
 
                         var fn = Path.GetFileNameWithoutExtension(file_s);
-                        var files = Directory.EnumerateFiles(folder, $"{id}*_*.*").NaturalSort();
+                        var files = Directory.EnumerateFiles(folder, $"{id}*_*.*", nested).NaturalSort();
                         if (files.Count() > 0)
                         {
                             if (touch) { files.Skip(1).TouchAsync(url, meta: touch); }
@@ -7007,7 +7010,7 @@ namespace PixivWPF.Common
                         }
                         if (result) break;
 
-                        files = Directory.EnumerateFiles(folder, $"{id}*.*").NaturalSort();
+                        files = Directory.EnumerateFiles(folder, $"{id}*.*", nested).NaturalSort();
                         if (files.Count() > 0)
                         {
                             if (touch) { files.Skip(1).TouchAsync(url, meta: touch); }
@@ -10744,17 +10747,17 @@ namespace PixivWPF.Common
         #region Sync Illust/User Like State
         static public void UpdateLikeStateAsync(string illustid = default(string), bool is_user = false)
         {
-            int id = -1;
-            int.TryParse(illustid, out id);
+            long id = -1;
+            long.TryParse(illustid, out id);
             UpdateLikeStateAsync(id);
         }
 
-        static public void UpdateLikeStateAsync(this bool is_user, int illustid = -1)
+        static public void UpdateLikeStateAsync(this bool is_user, long illustid = -1)
         {
             UpdateLikeStateAsync(illustid, is_user);
         }
 
-        static public async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
+        static public async void UpdateLikeStateAsync(long illustid = -1, bool is_user = false)
         {
             await new Action(() =>
             {
@@ -10773,35 +10776,26 @@ namespace PixivWPF.Common
                     }
                     else if (win is ContentWindow)
                     {
-                        var w = win as ContentWindow;
-                        if (w.Content is IllustDetailPage)
-                            (w.Content as IllustDetailPage).UpdateLikeStateAsync(illustid, is_user);
-                        else if (w.Content is IllustImageViewerPage)
-                            (w.Content as IllustImageViewerPage).UpdateLikeStateAsync(illustid, is_user);
-                        else if (w.Content is SearchResultPage)
-                            (w.Content as SearchResultPage).UpdateLikeStateAsync(illustid, is_user);
-                        else if (w.Content is DownloadManagerPage)
-                            (w.Content as DownloadManagerPage).UpdateLikeStateAsync(illustid, is_user);
-                        else if (w.Content is HistoryPage)
-                            (w.Content as HistoryPage).UpdateLikeStateAsync(illustid, is_user);
+                        var cw = win as ContentWindow;
+                        cw.UpdateLikeState(illustid, is_user);
                     }
                 }
             }).InvokeAsync();
         }
 
-        static public void UpdateLikeState(this ImageListGrid list, int illustid = -1, bool is_user = false)
+        static public void UpdateLikeState(this ImageListGrid list, long illustid = -1, bool is_user = false)
         {
             list.Items.UpdateLikeState(illustid, is_user);
         }
 
-        static public void UpdateLikeState(this ObservableCollection<PixivItem> collection, int illustid = -1, bool is_user = false)
+        static public void UpdateLikeState(this ObservableCollection<PixivItem> collection, long illustid = -1, bool is_user = false)
         {
             foreach (PixivItem item in collection)
             {
-                int item_id = -1;
-                int.TryParse(item.ID, out item_id);
-                int user_id = -1;
-                int.TryParse(item.UserID, out user_id);
+                long item_id = -1;
+                long.TryParse(item.ID, out item_id);
+                long user_id = -1;
+                long.TryParse(item.UserID, out user_id);
 
                 try
                 {

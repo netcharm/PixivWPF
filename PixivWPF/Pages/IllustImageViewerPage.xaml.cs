@@ -66,7 +66,7 @@ namespace PixivWPF.Pages
             btnSavePage.Enable(btnViewNextPage.IsEnabled, btnSavePage.IsVisible);
         }
 
-        public void UpdateDownloadState(int? illustid = null, bool? exists = null)
+        public void UpdateDownloadState(long? illustid = null, bool? exists = null)
         {
             try
             {
@@ -90,7 +90,7 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR("DOWNLOADSTATE"); }
         }
 
-        public async void UpdateDownloadStateAsync(int? illustid = null, bool? exists = null)
+        public async void UpdateDownloadStateAsync(long? illustid = null, bool? exists = null)
         {
             await new Action(() =>
             {
@@ -98,7 +98,7 @@ namespace PixivWPF.Pages
             }).InvokeAsync();
         }
 
-        public void UpdateLikeState(int illustid = -1, bool is_user = false)
+        public void UpdateLikeState(long illustid = -1, bool is_user = false)
         {
             try
             {
@@ -124,7 +124,7 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR("LIKESTATE"); }
         }
 
-        public async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
+        public async void UpdateLikeStateAsync(long illustid = -1, bool is_user = false)
         {
             await new Action(() =>
             {

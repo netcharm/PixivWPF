@@ -309,7 +309,7 @@ namespace PixivWPF.Common
             disposed = true;
         }
 
-        public void UpdateDownloadState(int? illustid = null, bool? exists = null)
+        public void UpdateDownloadState(long? illustid = null, bool? exists = null)
         {
             if (ProgressPercent == 100)
             {

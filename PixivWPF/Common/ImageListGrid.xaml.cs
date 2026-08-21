@@ -109,7 +109,6 @@ namespace PixivWPF.Common
         [Description("Get Total Image Tiles Count")]
         [Category("Common Properties")]
         public int TotalCount { get { return (ItemList is ObservableCollection<PixivItem> ? ItemList.Count : 0); } }
-
         #endregion
 
         #region Tiles Layout
@@ -1336,8 +1335,7 @@ namespace PixivWPF.Common
                         {
                             if ((work.IsWork() && item.ID.Equals(work.ID)) ||
                                 (work.IsUser() && item.UserID.Equals(work.UserID)) ||
-                                (!is_user && item.Illust.Id == id) ||
-                                (is_user && item.User.Id == id) ||
+                                (is_user ? item.User.Id == id : item.Illust.Id == id) ||
                                 (work == null && (item.Illust.Id == id || id == -1)))
                             {
                                 item.IsFavorited = item.Illust.IsLiked();

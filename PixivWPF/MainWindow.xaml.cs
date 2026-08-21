@@ -189,7 +189,7 @@ namespace PixivWPF
             }
         }
 
-        public void UpdateDownloadState(int? illustid = null, bool? exists = null)
+        public void UpdateDownloadState(long? illustid = null, bool? exists = null)
         {
             if (Contents is Pages.TilesPage)
             {
@@ -202,7 +202,7 @@ namespace PixivWPF
             }
         }
 
-        public void UpdateLikeState(int illustid = -1, bool is_user = false)
+        public void UpdateLikeState(long illustid = -1, bool is_user = false)
         {
             if (Contents is Pages.TilesPage)
             {

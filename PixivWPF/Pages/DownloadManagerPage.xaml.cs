@@ -18,9 +18,9 @@ using System.Windows.Threading;
 
 namespace PixivWPF.Pages
 {
-    #pragma warning disable IDE0079
-    #pragma warning disable IDE0044
-    #pragma warning disable IDE1006
+#pragma warning disable IDE0079
+#pragma warning disable IDE0044
+#pragma warning disable IDE1006
 
     public class DownloadParams
     {
@@ -155,7 +155,7 @@ namespace PixivWPF.Pages
             UpdateDownloadStateAsync();
         }
 
-        private async void UpdateDownloadState(int? illustid = null, bool? exists = null)
+        private async void UpdateDownloadState(long? illustid = null, bool? exists = null)
         {
             foreach (var item in Items.ToArray())
             {
@@ -165,7 +165,7 @@ namespace PixivWPF.Pages
                     {
                         await new Action(() =>
                         {
-                            item.UpdateDownloadState((int)item.IllustID, exists);
+                            item.UpdateDownloadState(item.IllustID, exists);
                         }).InvokeAsync(true);
                     }
                     else if (item.IllustID == illustid)
@@ -180,7 +180,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public async void UpdateDownloadStateAsync(int? illustid = null, bool? exists = false)
+        public async void UpdateDownloadStateAsync(long? illustid = null, bool? exists = false)
         {
             await Task.Run(() =>
             {
@@ -245,7 +245,7 @@ namespace PixivWPF.Pages
                                     items.Remove(remove[i]);
                                 }
                                 if (remove_count >= 30 && DownloadItems.HasItems)
-                                {                                    
+                                {
                                     //items = new ObservableCollection<DownloadInfo>(Items.ToList());
                                     DownloadItems.ItemsSource = items;
                                 }
@@ -334,7 +334,7 @@ namespace PixivWPF.Pages
                     result = [.. results.Where(i => i.Key < ndays).Select(i => i.Value)];
                 }
             }
-            catch(Exception ex) { ex.ERROR("GetOlderDownloadedItems[Older then {days}(s)]"); }
+            catch (Exception ex) { ex.ERROR("GetOlderDownloadedItems[Older then {days}(s)]"); }
             return (result);
         }
 
@@ -614,7 +614,7 @@ namespace PixivWPF.Pages
                 var filter_exclude = PART_FastFilter_Exclude.Text.Trim();
                 DownloadItems.Items.Filter = (o) =>
                 {
-                    var result = true;
+                    var result = false;
                     if (o is DownloadInfo)
                     {
                         try
@@ -623,10 +623,10 @@ namespace PixivWPF.Pages
 
                             if (!string.IsNullOrEmpty(filter_include))
                             {
-                                result &= item.IllustID.ToString().Contains(filter_include);
-                                result &= item.UserID.ToString().Contains(filter_include);
-                                result &= item.FileName?.IndexOf(filter_include, StringComparison.CurrentCultureIgnoreCase) >= 0;
-                                result &= item.ToolTip?.IndexOf(filter_include, StringComparison.CurrentCultureIgnoreCase) >= 0;
+                                result |= item.IllustID.ToString().Contains(filter_include);
+                                result |= item.UserID.ToString().Contains(filter_include);
+                                result |= item.FileName?.IndexOf(filter_include, StringComparison.CurrentCultureIgnoreCase) >= 0;
+                                result |= item.ToolTip?.IndexOf(filter_include, StringComparison.CurrentCultureIgnoreCase) >= 0;
                                 //result &= item.Url.IndexOf(filter_include, StringComparison.CurrentCultureIgnoreCase) >= 0;
                                 //result &= item.ThumbnailUrl.IndexOf(filter_include, StringComparison.CurrentCultureIgnoreCase) >= 0;
                             }
@@ -878,73 +878,93 @@ namespace PixivWPF.Pages
         private void PART_SortItemsBy_Click(object sender, RoutedEventArgs e)
         {
             var current_sort = DownloadItems.Items.SortDescriptions.FirstOrDefault();
+            var sort_dir = current_sort.Direction;
+            var sort_field = current_sort.PropertyName;
 
-            foreach (var item in PART_SortItemsBy.Items)
+            try
             {
-                if (item is MenuItem)
+                foreach (var item in PART_SortItemsBy.Items)
                 {
-                    var mi = item as MenuItem;
-                    mi.IsChecked = false;
-                    if (mi == sender) mi.IsChecked = true;
+                    if (item is MenuItem)
+                    {
+                        if (item == PART_SortItemsBy_Ascending || item == PART_SortItemsBy_Descending)
+                        {
+                            PART_SortItemsBy_Ascending.IsChecked = sort_dir == ListSortDirection.Ascending;
+                            PART_SortItemsBy_Descending.IsChecked = sort_dir == ListSortDirection.Descending;
+                        }
+                        else
+                        {
+                            var mi = item as MenuItem;
+                            mi.IsChecked = false;
+                            if (mi == sender) mi.IsChecked = true;
+                        }
+                    }
                 }
-            }
 
-            if (sender == PART_SortItemsBy_AddedTime)
-            {
+                if (sender == PART_SortItemsBy_Ascending)
+                {
+                    PART_SortItemsBy_Ascending.IsChecked = true;
+                    PART_SortItemsBy_Descending.IsChecked = false;
+                    sort_dir = ListSortDirection.Ascending;
+                }
+                else if (sender == PART_SortItemsBy_Descending)
+                {
+                    PART_SortItemsBy_Ascending.IsChecked = false;
+                    PART_SortItemsBy_Descending.IsChecked = true;
+                    sort_dir = ListSortDirection.Descending;
+                }
+                else if (sender == PART_SortItemsBy_AddedTime)
+                {
+                    sort_field = "AddedTimeStamp";
+                }
+                else if (sender == PART_SortItemsBy_DownloadState)
+                {
+                    sort_field = "State";
+                }
+                else if (sender == PART_SortItemsBy_FileName)
+                {
+                    sort_field = "FileName";
+                }
+                else if (sender == PART_SortItemsBy_FileSize)
+                {
+                    sort_field = "Length";
+                }
+                else if (sender == PART_SortItemsBy_IllustId)
+                {
+                    sort_field = "IllustID";
+                }
+                else if (sender == PART_SortItemsBy_IllustAuthor)
+                {
+                    sort_field = "UserID";
+                }
+                else if (sender == PART_SortItemsBy_IllustDate)
+                {
+                    sort_field = "FileTime";
+                }
+                else if (sender == PART_SortItemsBy_IllustTitle)
+                {
+                    sort_field = "IllustTitle";
+                }
+                else if (sender == PART_SortItemsBy_IllustTag)
+                {
+                    sort_field = "IllustTag";
+                }
+                else if (sender == PART_SortItemsBy_IllustFavorited)
+                {
+                    sort_field = "IsFav";
+                }
+                else if (sender == PART_SortItemsBy_IllustFollowed)
+                {
+                    sort_field = "IsFollow";
+                }
                 DownloadItems.Items.SortDescriptions.Clear();
-                DownloadItems.Items.SortDescriptions.Add(new SortDescription("AddedTimeStamp", ListSortDirection.Descending));
+                DownloadItems.Items.SortDescriptions.Add(new SortDescription(sort_field, sort_dir));
+                DownloadItems.Items.IsLiveSorting = true;
             }
-            else if (sender == PART_SortItemsBy_DownloadState)
+            catch (Exception ex)
             {
-                DownloadItems.Items.SortDescriptions.Clear();
-                DownloadItems.Items.SortDescriptions.Add(new SortDescription("DownloadState", ListSortDirection.Descending));
+                ex.ERROR("SortDownloadItemsBy");
             }
-            else if (sender == PART_SortItemsBy_FileName)
-            {
-                DownloadItems.Items.SortDescriptions.Clear();
-                DownloadItems.Items.SortDescriptions.Add(new SortDescription("FileName", ListSortDirection.Descending));
-            }
-            else if (sender == PART_SortItemsBy_FileSize)
-            {
-                DownloadItems.Items.SortDescriptions.Clear();
-                DownloadItems.Items.SortDescriptions.Add(new SortDescription("Length", ListSortDirection.Descending));
-            }
-            else if (sender == PART_SortItemsBy_IllustId)
-            {
-                DownloadItems.Items.SortDescriptions.Clear();
-                DownloadItems.Items.SortDescriptions.Add(new SortDescription("IllustID", ListSortDirection.Descending));
-            }
-            else if (sender == PART_SortItemsBy_IllustAuthor)
-            {
-                DownloadItems.Items.SortDescriptions.Clear();
-                DownloadItems.Items.SortDescriptions.Add(new SortDescription("UserId", ListSortDirection.Descending));
-            }
-            else if (sender == PART_SortItemsBy_IllustDate)
-            {
-                DownloadItems.Items.SortDescriptions.Clear();
-                DownloadItems.Items.SortDescriptions.Add(new SortDescription("FileTime", ListSortDirection.Descending));
-            }
-            else if (sender == PART_SortItemsBy_IllustTitle)
-            {
-                DownloadItems.Items.SortDescriptions.Clear();
-                DownloadItems.Items.SortDescriptions.Add(new SortDescription("IllustTitle", ListSortDirection.Descending));
-            }
-            else if (sender == PART_SortItemsBy_IllustTag)
-            {
-                DownloadItems.Items.SortDescriptions.Clear();
-                DownloadItems.Items.SortDescriptions.Add(new SortDescription("IllustTag", ListSortDirection.Descending));
-            }
-            else if (sender == PART_SortItemsBy_IllustFavorited)
-            {
-                DownloadItems.Items.SortDescriptions.Clear();
-                DownloadItems.Items.SortDescriptions.Add(new SortDescription("IsFav", ListSortDirection.Descending));
-            }
-            else if (sender == PART_SortItemsBy_IllustFollowed)
-            {
-                DownloadItems.Items.SortDescriptions.Clear();
-                DownloadItems.Items.SortDescriptions.Add(new SortDescription("IsFollow", ListSortDirection.Descending));
-            }
-            DownloadItems.Items.IsLiveSorting = true;
         }
     }
 }

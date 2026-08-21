@@ -167,6 +167,20 @@ namespace PixivWPF.Common
             });
         }
 
+        public void UpdateLikeState(long illustid = -1, bool is_user = false)
+        {
+            if (Content is IllustDetailPage)
+                (Content as IllustDetailPage).UpdateLikeStateAsync(illustid, is_user);
+            else if (Content is IllustImageViewerPage)
+                (Content as IllustImageViewerPage).UpdateLikeStateAsync(illustid, is_user);
+            else if (Content is SearchResultPage)
+                (Content as SearchResultPage).UpdateLikeStateAsync(illustid, is_user);
+            else if (Content is DownloadManagerPage)
+                (Content as DownloadManagerPage).UpdateLikeStateAsync(illustid, is_user);
+            else if (Content is HistoryPage)
+                (Content as HistoryPage).UpdateLikeStateAsync(illustid, is_user);
+        }
+        
         public void JumpTo(string id)
         {
             try

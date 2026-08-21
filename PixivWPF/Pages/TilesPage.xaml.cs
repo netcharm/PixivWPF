@@ -121,7 +121,7 @@ namespace PixivWPF.Pages
             UpdateWebContentAsync();
         }
 
-        public void UpdateDownloadState(int? illustid = null, bool? exists = null)
+        public void UpdateDownloadState(long? illustid = null, bool? exists = null)
         {
             if (ImageTiles.Items is ObservableCollection<PixivItem>)
             {
@@ -129,7 +129,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public async void UpdateDownloadStateAsync(int? illustid = null, bool? exists = null)
+        public async void UpdateDownloadStateAsync(long? illustid = null, bool? exists = null)
         {
             await Task.Run(() =>
             {
@@ -137,7 +137,7 @@ namespace PixivWPF.Pages
             });
         }
 
-        public void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
+        public void UpdateLikeStateAsync(long illustid = -1, bool is_user = false)
         {
             if (ImageTiles.Items is ObservableCollection<PixivItem>)
             {

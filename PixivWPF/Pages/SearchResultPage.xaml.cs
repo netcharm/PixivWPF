@@ -37,12 +37,12 @@ namespace PixivWPF.Pages
 
         public string Contents { get; set; } = string.Empty;
 
-        private void UpdateDownloadState(int? illustid = null, bool? exists = null)
+        private void UpdateDownloadState(long? illustid = null, bool? exists = null)
         {
             ResultItems.UpdateDownloadStateAsync(illustid, exists);
         }
 
-        public async void UpdateDownloadStateAsync(int? illustid = null, bool? exists = false)
+        public async void UpdateDownloadStateAsync(long? illustid = null, bool? exists = false)
         {
             await Task.Run(() =>
             {
@@ -50,7 +50,7 @@ namespace PixivWPF.Pages
             });
         }
 
-        public async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
+        public async void UpdateLikeStateAsync(long illustid = -1, bool is_user = false)
         {
             await new Action(() =>
             {
@@ -58,7 +58,7 @@ namespace PixivWPF.Pages
             }).InvokeAsync();
         }
 
-        public void UpdateLikeState(int illustid = -1, bool is_user = false)
+        public void UpdateLikeState(long illustid = -1, bool is_user = false)
         {
             if (ResultExpander.IsExpanded)
             {

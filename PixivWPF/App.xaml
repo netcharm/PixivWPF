@@ -168,6 +168,19 @@
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
 
+            <Style x:Key="SquareDropDownButton" TargetType="{x:Type mah:DropDownButton}" BasedOn="{StaticResource MahApps.Styles.DropDownButton.WindowCommands}">
+                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <!--<Setter Property="Width" Value="24"/>
+                <Setter Property="Height" Value="24"/>-->
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+            </Style>
+            
             <Style x:Key="SquareButton" TargetType="{x:Type ButtonBase}" BasedOn="{StaticResource MahApps.Styles.Button.Square}">
                 <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
                 <Setter Property="Background" Value="Transparent"/>
@@ -515,6 +528,14 @@
                 <Setter Property="BorderBrush" Value="{DynamicResource MahApps.Brushes.SystemControlErrorTextForeground}"/>
             </Style>
 
+            <Style x:Key="Indicator" TargetType="{x:Type Ellipse}">
+                <Setter Property="HorizontalAlignment" Value="Right"/>
+                <Setter Property="VerticalAlignment" Value="Bottom"/>
+                <Setter Property="Width" Value="4"/>
+                <Setter Property="Height" Value="4"/>
+                <Setter Property="Fill" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+            </Style>
+            
             <DataTemplate x:Key="GradientProgressContent">
                 <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
                    TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow">

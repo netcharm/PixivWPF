@@ -124,6 +124,8 @@ namespace PixivWPF.Common
         {
             CultureInfo result = CultureInfo.CurrentCulture;
 
+            text = Regex.Replace(text, pattern_symbol, "", RegexOptions.IgnoreCase);
+
             var regex_opt = RegexOptions.Multiline;
             //var regex_opt = RegexOptions.Multiline | RegexOptions.IgnoreCase;
 
@@ -352,7 +354,8 @@ namespace PixivWPF.Common
         public int PlaySlowRate { get; internal set; } = -5;
         public int PlayVolume { get; internal set; } = 100;
 
-        private static Dictionary<CultureInfo, List<string>> nametable = new Dictionary<CultureInfo, List<string>>() {
+        private static Dictionary<CultureInfo, List<string>> nametable = new Dictionary<CultureInfo, List<string>>() 
+        {
             { CultureInfo.GetCultureInfo("zh-CN"), new List<string>() { "huihui", "yaoyao", "lili", "kangkang" } },
             { CultureInfo.GetCultureInfo("zh-TW"), new List<string>() { "hanhan", "yating", "zhiwei" } },
             { CultureInfo.GetCultureInfo("ja-JP"), new List<string>() { "haruka", "ayumi", "sayaka", "ichiro" } },
