@@ -540,6 +540,7 @@ namespace PixivWPF.Common
 #endif
                 finally
                 {
+                    Commands.Setting = Cache;
                     StartUp = true;
                     if (CanConfigRead is SemaphoreSlim && CanConfigRead.CurrentCount <= 0) CanConfigRead.Release();
                 }
@@ -1723,6 +1724,17 @@ namespace PixivWPF.Common
             {
                 auto_convert_dpi = value;
                 if (Cache is Setting) Cache.auto_convert_dpi = auto_convert_dpi;
+            }
+        }
+
+        private bool auto_visiable_down_item = true;
+        public bool AutoVisiableDownItem
+        {
+            get { return (Cache is Setting ? Cache.auto_visiable_down_item : auto_visiable_down_item); }
+            set
+            {
+                auto_visiable_down_item = value;
+                if (Cache is Setting) Cache.auto_visiable_down_item = auto_visiable_down_item;
             }
         }
 

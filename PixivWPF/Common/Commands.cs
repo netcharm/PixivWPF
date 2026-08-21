@@ -91,7 +91,8 @@ namespace PixivWPF.Common
 
     static public class Commands
     {
-        static private Setting setting = Application.Current.LoadSetting();
+        static internal Setting setting = Application.Current.LoadSetting();
+        internal static Setting Setting { get => setting; set => setting = value; }
 
         private const int WIDTH_MIN = 720;
         private const int HEIGHT_MIN = 524;
@@ -2635,6 +2636,8 @@ namespace PixivWPF.Common
 
         static public ICommand ScrollToDownloadItem { get; } = new DelegateCommand<dynamic>(async obj =>
         {
+            //setting = Application.Current.LoadSetting();
+            if (!setting.AutoVisiableDownItem) return;
             if (obj is DownloadInfo)
             {
                 var item = obj as DownloadInfo;
