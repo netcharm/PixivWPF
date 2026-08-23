@@ -2587,12 +2587,12 @@ namespace ImageViewer
                 //items.Add(item_size_extentedge);
                 //items.Add(item_size_panedge);
                 items.Add(new Separator());
-                items.Add(item_load_prev);
-                items.Add(item_load_next);
-                items.Add(new Separator());
                 //items.Add(item_reset_image);
                 items.Add(item_quality_image);
                 items.Add(item_reload);
+                items.Add(new Separator());
+                items.Add(item_load_prev);
+                items.Add(item_load_next);
                 if (jumplist_tasks?.Count > 0)
                 {
                     var idx = 0;
@@ -2624,13 +2624,13 @@ namespace ImageViewer
                         }
                         idx++;
                     }
-                    items.Add(new Separator());
+                    //items.Add(new Separator());
                     items.Add(item_openwith);
                 }
                 items.Add(new Separator());
                 items.Add(item_colorcalc);
-                items.Add(item_copyimagelist);
                 items.Add(item_copyinfo);
+                items.Add(item_copyimagelist);
                 items.Add(item_copyimage);
                 items.Add(item_saveas);
 #endregion
@@ -2900,8 +2900,7 @@ namespace ImageViewer
                     var image = ImageViewer;
                     if (image.Source == null) { evt.Handled = true; return; }
 
-                    var show_load = false;
-                    if (image is not null) { show_load = !string.IsNullOrEmpty(image.GetInformation().FileName); }
+                    var show_load = image is not null && !string.IsNullOrEmpty(image?.GetInformation()?.FileName);
                     item_load_prev.Visibility = show_load ? Visibility.Visible : Visibility.Collapsed;
                     item_load_next.Visibility = show_load ? Visibility.Visible : Visibility.Collapsed;
                 };
