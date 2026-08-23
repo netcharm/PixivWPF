@@ -4261,22 +4261,22 @@ namespace ImageViewer
                         ToggleZoomMode();
                     }
 
-                    else if ((key >= Key.D0 && key <= Key.D9) || (key >= Key.NumPad0 && key <= Key.NumPad9))
-                    {
-                        if (km.OnlyAlt)
-                        {
-                            int idx = -1;
-                            if (key >= Key.NumPad0)
-                                idx = key - Key.NumPad0;
-                            else if (key >= Key.D0)
-                                idx = key - Key.D0;
-
-                            if (idx >= 0 && idx < jumplist_tasks?.Count)
-                            {
-                                ShellRunJumpTask(jumplist_tasks[idx]);
-                            }
-                        }
-                    }
+                    //else if ((key >= Key.D0 && key <= Key.D9) || (key >= Key.NumPad0 && key <= Key.NumPad9))
+                    //{
+                    //    if (km.OnlyAlt)
+                    //    {
+                    //        int idx = -1;
+                    //        if (key >= Key.NumPad0)
+                    //            idx = key - Key.NumPad0;
+                    //        else if (key >= Key.D0)
+                    //            idx = key - Key.D0;
+                    //
+                    //        if (idx >= 0 && idx < jumplist_tasks?.Count)
+                    //        {
+                    //            ShellRunJumpTask(jumplist_tasks[idx]);
+                    //        }
+                    //    }
+                    //}
 
                     else e.Handled = false;
                     _last_key_ = e.Key;
