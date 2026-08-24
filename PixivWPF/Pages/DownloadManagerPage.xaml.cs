@@ -1,4 +1,5 @@
-﻿using NLog.LayoutRenderers;
+﻿using ControlzEx.Standard;
+using NLog.LayoutRenderers;
 using PixivWPF.Common;
 using System;
 using System.Collections;
@@ -650,8 +651,8 @@ namespace PixivWPF.Pages
 
         private async void PART_CopyInfo_Click(object sender, RoutedEventArgs e)
         {
-            var shift = Keyboard.Modifiers == ModifierKeys.Shift;
-            var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+            //var shift = Keyboard.Modifiers == ModifierKeys.Shift;
+            //var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
 
             await new Action(() =>
             {
@@ -678,6 +679,20 @@ namespace PixivWPF.Pages
                     }
                 }
                 //Commands.CopyArtworkIDs.Execute(targets);
+                Commands.CopyText.Execute(targets);
+            }).InvokeAsync(true);
+        }
+
+        private async void PART_CopyDownloadedList_Click(object sender, RoutedEventArgs e)
+        {
+            await new Action(() =>
+            {
+                var targets = new List<string>();
+                var items = DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1 ? DownloadItems.SelectedItems : DownloadItems.Items;
+                foreach (var item in items)
+                {
+                    if (item is DownloadInfo && (item as DownloadInfo).State == DownloadItemState.Finished) { targets.Add((item as DownloadInfo).FileName); }
+                }
                 Commands.CopyText.Execute(targets);
             }).InvokeAsync(true);
         }
@@ -966,5 +981,6 @@ namespace PixivWPF.Pages
                 ex.ERROR("SortDownloadItemsBy");
             }
         }
+
     }
 }

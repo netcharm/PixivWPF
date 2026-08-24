@@ -767,7 +767,7 @@ namespace PixivWPF.Common
         public async void Clear(bool batch = true, bool force = false)
         {
             Cancel();
-            var count = ItemList is ObservableCollection<PixivItem> ? ItemList.Count : 0;
+            var count = ItemList is not null ? ItemList.Count : 0;
             try
             {
                 if (force || await CanUpdateItems.WaitAsync(TimeSpan.FromMilliseconds(100)))
@@ -775,7 +775,9 @@ namespace PixivWPF.Common
                     UpdateGalleryTooltip(this, clear: true);
                     if (count > 0)
                     {
-                        var items = ItemList is ObservableCollection<PixivItem> ? ItemList.ToList() : new List<PixivItem>();
+                        SelectedItems.Clear();
+                        SelectedItem = null;
+                        var items = ItemList is not null ? ItemList.ToList() : [];
 
                         for (var i = 0; i < items.Count; i++)
                         {
@@ -783,17 +785,17 @@ namespace PixivWPF.Common
                             if (RingList.ContainsKey(id))
                             {
                                 ProgressRingCloud ring = null;
-                                if (RingList.TryRemove(id, out ring) && ring is ProgressRingCloud) ring.Dispose();
+                                if (RingList.TryRemove(id, out ring) && ring is not null) ring.Dispose();
                             }
                             if (ImageList.ContainsKey(id))
                             {
                                 Image image = null;
-                                if (ImageList.TryRemove(id, out image) && image is Image) RenderImage(image, null, batch);
+                                if (ImageList.TryRemove(id, out image) && image is not null) RenderImage(image, null, batch);
                             }
                             if (CanvasList.ContainsKey(id))
                             {
                                 Canvas canvas = null;
-                                if (CanvasList.TryRemove(id, out canvas) && canvas is Canvas) RenderCanvas(canvas, null, batch);
+                                if (CanvasList.TryRemove(id, out canvas) && canvas is not null) RenderCanvas(canvas, null, batch);
                             }
                             if (!force) ItemList.Remove(items[i]);
                             this.DoEvents();
@@ -830,7 +832,7 @@ namespace PixivWPF.Common
 
         public async void ClearAsync(bool batch = true, bool force = false)
         {
-            if (ItemList is ObservableCollection<PixivItem> && ItemList.Count > 0)
+            if (ItemList is not null && ItemList.Count > 0)
             {
                 await new Action(() =>
                 {

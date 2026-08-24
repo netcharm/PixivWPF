@@ -61,7 +61,7 @@
                     Style="{DynamicResource SquareDropDownButton}">
                 <mah:DropDownButton.Content>
                     <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock Text="&#xE16E;" Style="{DynamicResource CommandButtonIcon}"/>
+                        <TextBlock Text="&#xE16E;" Style="{DynamicResource TextIcon}"/>
                         <Ellipse x:Name="PART_FastFilter_Indicator" x:Uid="PART_FastFilter_Indicator" Style="{DynamicResource Indicator}" Visibility="Collapsed" />
                     </Grid>
                 </mah:DropDownButton.Content>
@@ -76,6 +76,10 @@
                     </StackPanel>
                     <MenuItem x:Name="PART_FastFilter_Apply" Header="Apply Contents Filter" Click="PART_FastFilter_Click"/>
                     <MenuItem x:Name="PART_FastFilter_Clear" Header="Clear Contents Filter" Click="PART_FastFilter_Click"/>
+                    <Separator/>
+                    <MenuItem x:Name="PART_CopyItemInfo" Header="Copy Download Items Info" Click="PART_CopyInfo_Click"/>
+                    <MenuItem x:Name="PART_CopyDownloadedList" Header="Copy Downloaded List" Click="PART_CopyDownloadedList_Click"/>
+                    <MenuItem x:Name="PART_CopyItemID" Header="Copy Download Item IDs" Click="PART_CopyID_Click"/>
                     <Separator/>
                     <MenuItem x:Name="PART_SortItemsBy" Header="Sort By ...">
                         <MenuItem x:Name="PART_SortItemsBy_AddedTime" Header="Added Time" Click="PART_SortItemsBy_Click"/>
