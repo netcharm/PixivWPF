@@ -1844,6 +1844,26 @@ namespace PixivWPF.Common
             }
             return (url);
         }
+
+        public static List<string> GetOriginalUrls(this Pixeez.Objects.Work Illust)
+        {
+            var result = new List<string>();
+            var count = Illust.PageCount ?? 1;
+            if (count > 1)
+            {
+                for (var i = 0; i < count; i++)
+                {
+                    var url = Illust.GetOriginalUrl(i).Trim();
+                    if (!string.IsNullOrEmpty(url)) result.Add(url);
+                }
+            }
+            else
+            {
+                var url = Illust.GetOriginalUrl().Trim();
+                if (!string.IsNullOrEmpty(url)) result.Add(url);
+            }
+            return (result.Distinct().ToList());
+        }
         #endregion
 
         #region Ugoira Helper

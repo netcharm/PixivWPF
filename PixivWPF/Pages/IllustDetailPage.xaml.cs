@@ -3131,7 +3131,7 @@ namespace PixivWPF.Pages
             ContextMenuBookmarkActions = (ContextMenu)TryFindResource("ActionBookmarkIllust");
             ContextMenuFollowActions = (ContextMenu)TryFindResource("ActionFollowAuthor");
             ContextMenuIllustActions = (ContextMenu)TryFindResource("ActionIllust");
-            if (ContextMenuBookmarkActions is ContextMenu && ContextMenuBookmarkActions.HasItems)
+            if (ContextMenuBookmarkActions is not null && ContextMenuBookmarkActions.HasItems)
             {
                 foreach (var item in ContextMenuBookmarkActions.Items)
                 {
@@ -3144,7 +3144,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            if (ContextMenuFollowActions is ContextMenu && ContextMenuFollowActions.HasItems)
+            if (ContextMenuFollowActions is not null && ContextMenuFollowActions.HasItems)
             {
                 foreach (var item in ContextMenuFollowActions.Items)
                 {
@@ -3155,7 +3155,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            if (ContextMenuIllustActions is ContextMenu && ContextMenuIllustActions.HasItems)
+            if (ContextMenuIllustActions is not null && ContextMenuIllustActions.HasItems)
             {
                 foreach (var item in ContextMenuIllustActions.Items)
                 {
@@ -3691,6 +3691,13 @@ namespace PixivWPF.Pages
                     Commands.TouchMeta.Execute(Contents);
                 else
                     Commands.TouchMeta.Execute(SubIllusts);
+            }
+            else if (uid.Equals("ActionJumpDownloaded", StringComparison.CurrentCultureIgnoreCase))
+            {
+                if (single)
+                    Commands.ScrollToDownloadItem.Execute(Contents);
+                else if (SubIllusts.IsReady) 
+                    Commands.ScrollToDownloadItem.Execute(SubIllusts.SelectedItem);
             }
         }
 
@@ -4591,10 +4598,8 @@ namespace PixivWPF.Pages
                 }
                 PopupOpen(sender, IllustActions.ContextMenu);
             }
-            //UpdateLikeState(-1, is_user);
-            int id = -1;
-            int.TryParse(Contents.ID, out id);
-            if (Contents.HasUser()) is_user.UpdateLikeStateAsync(id);
+            long id = -1;
+            if (long.TryParse(Contents.ID, out id) && Contents.HasUser()) id.UpdateLikeStateAsync(is_user);
         }
 
         private async void ActionBookmarkIllust_Click(object sender, RoutedEventArgs e)
@@ -5076,18 +5081,22 @@ namespace PixivWPF.Pages
 
         private void RelatedItems_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            e.Handled = false;
-            RelatedItems.UpdateTilesState();
+            //RelatedItems.UpdateTilesState();
             //UpdateLikeState();
-            if (RelatedItems.SelectedItem.IsWork())
+            if (RelatedItems.IsReady && RelatedItems.SelectedItems?.Count == 1 && RelatedItems.SelectedItem.IsWork())
             {
-                int id = -1;
-                int.TryParse(RelatedItems.SelectedItem.ID, out id);
-                false.UpdateLikeStateAsync(id);
-                RelatedItems.SelectedItem.Focus();
-                if (RelatedItems.IsReady) Commands.ScrollToDownloadItem.Execute(RelatedItems.SelectedItem);
+                //RelatedItems.UpdateTilesState(RelatedItems.SelectedItem);
+                //if (RelatedItems.IsReady) Commands.ScrollToDownloadItem.Execute(RelatedItems.SelectedItem);
+                long id = -1;
+                if (long.TryParse(RelatedItems.SelectedItem.ID, out id))
+                {
+                    e.Handled = true;
+                    id.UpdateLikeStateAsync(false);
+                    RelatedItems.SelectedItem.Focus();
+                    Commands.ScrollToDownloadItem.Execute(RelatedItems.SelectedItem);
+                    RelatedItems.UpdateTilesState(RelatedItems.SelectedItem);
+                }
             }
-            e.Handled = true;
         }
 
         private void RelatedItems_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -5198,18 +5207,22 @@ namespace PixivWPF.Pages
 
         private void FavriteIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            e.Handled = false;
-            FavoriteItems.UpdateTilesState();
+            //FavoriteItems.UpdateTilesState();
             //UpdateLikeState();
-            if (FavoriteItems.SelectedItem.IsWork())
+            if (FavoriteItems.IsReady && FavoriteItems.SelectedItems?.Count == 1 && FavoriteItems.SelectedItem.IsWork())
             {
-                int id = -1;
-                int.TryParse(FavoriteItems.SelectedItem.ID, out id);
-                false.UpdateLikeStateAsync(id);
-                FavoriteItems.SelectedItem.Focus();
-                if (FavoriteItems.IsReady) Commands.ScrollToDownloadItem.Execute(FavoriteItems.SelectedItem);
+                //FavoriteItems.UpdateTilesState(FavoriteItems.SelectedItem);
+                //if (FavoriteItems.IsReady) Commands.ScrollToDownloadItem.Execute(FavoriteItems.SelectedItem);
+                long id = -1;
+                if (long.TryParse(FavoriteItems.SelectedItem.ID, out id))
+                {
+                    e.Handled = true;
+                    id.UpdateLikeStateAsync(false);
+                    FavoriteItems.SelectedItem.Focus();
+                    Commands.ScrollToDownloadItem.Execute(FavoriteItems.SelectedItem);
+                    FavoriteItems.UpdateTilesState(FavoriteItems.SelectedItem);
+                }
             }
-            e.Handled = true;
         }
 
         private void FavriteIllusts_MouseWheel(object sender, MouseWheelEventArgs e)

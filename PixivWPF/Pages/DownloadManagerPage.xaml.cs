@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Contexts;
 using System.Security.Policy;
 using System.Threading;
 using System.Threading.Tasks;
@@ -382,7 +383,7 @@ namespace PixivWPF.Pages
 
         internal void ScrollToItem(DownloadInfo item)
         {
-            if (item is DownloadInfo)
+            if (item is not null)
             {
                 foreach (var i in DownloadItems.Items)
                 {
@@ -399,13 +400,40 @@ namespace PixivWPF.Pages
         {
             if (item.IsWork())
             {
+                try
+                {
+                    List<string> urls = [];
+                    if (item.HasPages()) { urls.AddRange(item.Illust.GetOriginalUrls()); }
+                    else { urls.Add(item.IsPage() ? item.Illust.GetOriginalUrl(item.Index) : item.Illust.GetOriginalUrl()); }
+                    urls = [.. urls.Distinct()];
+
+                    var items = DownloadItems.Items?.Cast<DownloadInfo>()?.Where(i => i is not null && urls.Contains(i.Url));
+                    if (items.Any()) { DownloadItems.ScrollIntoView(items.First()); }
+                }
+                catch (Exception ex) { ex.ERROR("DownloadManagerScrollToItem"); }
+            }
+        }
+
+        internal void ScrollToItem(string item)
+        {
+            if (!string.IsNullOrEmpty(item))
+            {
+                item = item.Trim([' ', '\"', '\'', ';', ',', '|', '<', '>']);
                 foreach (var i in DownloadItems.Items)
                 {
-                    var url = item.IsPage() ? item.Illust.GetOriginalUrl(item.Index) : item.Illust.GetOriginalUrl();
-                    if (i is DownloadInfo && (i as DownloadInfo).Url == url)
+                    if (i is DownloadInfo)
                     {
-                        DownloadItems.ScrollIntoView(i);
-                        break;
+                        var di = i as DownloadInfo;
+                        if (di.Url.Equals(item, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            DownloadItems.ScrollIntoView(i);
+                            break;
+                        }
+                        else if (di.FileName.Equals(item, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            DownloadItems.ScrollIntoView(i);
+                            break;
+                        }
                     }
                 }
             }
@@ -695,6 +723,16 @@ namespace PixivWPF.Pages
                 }
                 Commands.CopyText.Execute(targets);
             }).InvokeAsync(true);
+        }
+
+        private void PART_CopyOpenedWindowsInfo_Click(object sender, RoutedEventArgs e)
+        {
+            Commands.CopyOpenedWindowsInfo.Execute(this);
+        }
+
+        private void PART_CopyOpenedWindowsDownInfo_Click(object sender, RoutedEventArgs e)
+        {
+            Commands.CopyOpenedWindowsDownInfo.Execute(this);
         }
 
         private async void PART_Compare_Click(object sender, RoutedEventArgs e)

@@ -294,6 +294,11 @@
                     <TextBlock Text="&#xE114;" Style="{DynamicResource MenuItemIcon16}"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <MenuItem x:Uid="ActionJumpDownloaded" Header="Scroll Download Manager To Item" Click="ActionOpenIllust_Click">
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE118;" Style="{DynamicResource MenuItemIcon16}"/>
+                </MenuItem.Icon>
+            </MenuItem>
             <MenuItem x:Uid="ActionOpenDownloaded" Header="Open Downloaded Illust" Click="ActionOpenIllust_Click">
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE118;" Style="{DynamicResource MenuItemIcon16}"/>

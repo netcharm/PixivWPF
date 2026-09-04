@@ -41,7 +41,7 @@
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Row="0" x:Name="PART_DownloadState" Margin="2,4,2,4" HorizontalAlignment="Left" VerticalAlignment="Center"/>
         <StackPanel Grid.Row="0" Margin="2,4,2,4" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-            <Slider x:Name="PART_MaxJobs" HorizontalAlignment="Right" VerticalAlignment="Center" Width="133" Margin="4,10" 
+            <Slider x:Name="PART_MaxJobs" HorizontalAlignment="Right" VerticalAlignment="Center" Width="108" Margin="4,10" 
                     Minimum="1" SmallChange="1" LargeChange="5" 
                     Maximum="{Binding Path=MaxSimultaneousJobs, ElementName=page, IsAsync=True, Mode=OneWay}" 
                     ValueChanged="PART_MaxJobs_ValueChanged"/>
@@ -80,6 +80,8 @@
                     <MenuItem x:Name="PART_CopyItemInfo" Header="Copy Download Items Info" Click="PART_CopyInfo_Click"/>
                     <MenuItem x:Name="PART_CopyDownloadedList" Header="Copy Downloaded List" Click="PART_CopyDownloadedList_Click"/>
                     <MenuItem x:Name="PART_CopyItemID" Header="Copy Download Item IDs" Click="PART_CopyID_Click"/>
+                    <MenuItem x:Name="PART_CopyOpenedWindowsInfo" Header="Copy Opened Windows Info" Click="PART_CopyOpenedWindowsInfo_Click"/>
+                    <MenuItem x:Name="PART_CopyOpenedWindowsDownInfo" Header="Copy Opened Windows Download Info" Click="PART_CopyOpenedWindowsDownInfo_Click"/>
                     <Separator/>
                     <MenuItem x:Name="PART_SortItemsBy" Header="Sort By ...">
                         <MenuItem x:Name="PART_SortItemsBy_AddedTime" Header="Added Time" Click="PART_SortItemsBy_Click"/>

@@ -39,7 +39,6 @@ namespace PixivWPF.Common
     using Microsoft.WindowsAPICodePack.Dialogs;
     using Newtonsoft.Json;
     using Prism.Commands;
-
     using PixivWPF.Pages;
 
     #region ICommand Json Converter
@@ -1006,30 +1005,33 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("OpenDownloaded"); }
         });
 
-        static public ICommand CopyOpenedWindowInfo { get; } = new DelegateCommand<dynamic>(async obj =>
+        static public ICommand CopyOpenedWindowsInfo { get; } = new DelegateCommand(() =>
         {
-            await new Action(() =>
+            try
             {
                 var infos = new List<string>();
                 var wins = Application.Current.OpenedWindows();
-                if (Keyboard.Modifiers == ModifierKeys.Control)
+                foreach (var win in wins)
                 {
-                    foreach (var win in wins)
+                    var page = win.Content;
+                    if (page is IllustDetailPage || page is IllustImageViewerPage)
                     {
-                        var page = win.Content;
-                        if (page is IllustDetailPage && ((page as IllustDetailPage).Contents?.IsWork() ?? false))
-                        {
-                            infos.AddRange((page as IllustDetailPage)?.Contents?.DownloadedFilePaths);
-                        }
-                        else if (page is IllustImageViewerPage && ((page as IllustImageViewerPage).Contents?.IsWork() ?? false))
-                        {
-                            infos.AddRange((page as IllustImageViewerPage)?.Contents?.DownloadedFilePaths);
-                        }
+                        infos.Add(win.Title);
                     }
                 }
-                else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                if (infos.Any()) CopyText.Execute(string.Join(Environment.NewLine, infos.Distinct().NaturalSort()));
+            }
+            catch (Exception ex) { ex.ERROR("CopyActiveWindowsInfo"); }
+        });
+
+        static public ICommand CopyOpenedWindowsDownInfo { get; } = new DelegateCommand(() =>
+        {
+            try
+            {
+                var infos = new List<string>();
+                var wins = Application.Current.OpenedWindows();
+                foreach (var win in wins)
                 {
-                    var win = Application.Current.GetActiveWindow();
                     var page = win.Content;
                     if (page is IllustDetailPage && ((page as IllustDetailPage).Contents?.IsWork() ?? false))
                     {
@@ -1039,37 +1041,86 @@ namespace PixivWPF.Common
                     {
                         infos.AddRange((page as IllustImageViewerPage)?.Contents?.DownloadedFilePaths);
                     }
-                    else if (page is TilesPage)
+                }
+                if (infos.Any()) CopyText.Execute(string.Join(Environment.NewLine, infos.Distinct().NaturalSort()));
+            }
+            catch (Exception ex) { ex.ERROR("CopyActiveWindowsDownInfo"); }
+        });
+
+        static public ICommand CopyActiveWindowsDownInfo { get; } = new DelegateCommand(() =>
+        {
+            try
+            {
+                var infos = new List<string>();
+                var win = Application.Current.GetActiveWindow();
+                var page = win.Content;
+                if (page is IllustDetailPage && ((page as IllustDetailPage)?.Contents?.IsWork() ?? false))
+                {
+                    var illustpage = (page as IllustDetailPage);
+                    infos.AddRange(illustpage?.Contents?.DownloadedFilePaths);
+                    foreach (var gallery in new List<ImageListGrid>() { illustpage.SubIllusts, illustpage.RelatedItems, illustpage.FavoriteItems })
                     {
-                        foreach (var item in (page as TilesPage).ImageTiles.FiltedList)
+                        foreach (var item in gallery?.Items)
+                        {
+                            infos.AddRange(item.DownloadedFilePaths);
+                        }
+                    }                    
+                }
+                else if (page is IllustDetailPage && ((page as IllustDetailPage)?.Contents?.IsUser() ?? false))
+                {
+                    var illustpage = (page as IllustDetailPage);
+                    foreach (var gallery in new List<ImageListGrid>() { illustpage.RelatedItems, illustpage.FavoriteItems })
+                    {
+                        foreach (var item in gallery?.Items)
                         {
                             infos.AddRange(item.DownloadedFilePaths);
                         }
                     }
-                    if (infos.Any()) CopyText.Execute(string.Join(Environment.NewLine, infos.Distinct().NaturalSort()));
                 }
-                else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                else if (page is IllustImageViewerPage && ((page as IllustImageViewerPage).Contents?.IsWork() ?? false))
                 {
-                    foreach (var win in wins)
+                    infos.AddRange((page as IllustImageViewerPage)?.Contents?.DownloadedFilePaths);
+                }
+                else if (page is TilesPage)
+                {
+                    foreach (var item in (page as TilesPage).ImageTiles.FiltedList)
                     {
-                        var page = win.Content;
-                        if (page is IllustDetailPage || page is IllustImageViewerPage)
-                        {
-                            infos.Add(win.Title);
-                        }
+                        infos.AddRange(item.DownloadedFilePaths);
                     }
-                    if (infos.Any()) CopyText.Execute(string.Join(Environment.NewLine, infos.Distinct().NaturalSort()));
                 }
-                else if (Keyboard.Modifiers == ModifierKeys.None)
+                if (infos.Any()) CopyText.Execute(string.Join(Environment.NewLine, infos.Distinct().NaturalSort()));
+            }
+            catch (Exception ex) { ex.ERROR("CopyActiveWindowsDownInfo"); }
+        });
+
+        static public ICommand CopyOpenedWindowInfo { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            var km = await Application.Current.GetModifierAsync();
+            await new Action(() =>
+            {
+                if (km.OnlyShift)
                 {
+                    CopyActiveWindowsDownInfo.Execute(obj);
+                }
+                else if (km.OnlyCtrl)
+                {
+                    CopyOpenedWindowsDownInfo.Execute(obj);
+                }
+                else if (km.OnlyAlt)
+                {
+                    CopyOpenedWindowsInfo.Execute(obj);
+                }
+                else if (km.None)
+                {
+                    var infos = new List<string>();
                     var win = Application.Current.GetActiveWindow();
                     var page = win.Content;
                     if (page is IllustDetailPage || page is IllustImageViewerPage)
                     {
                         infos.Add(win.Title);
                     }
+                    if (infos.Any()) CopyText.Execute(string.Join(Environment.NewLine, infos.Distinct().NaturalSort()));
                 }
-                if (infos.Any()) CopyText.Execute(string.Join(Environment.NewLine, infos.Distinct().NaturalSort()));
             }).InvokeAsync(true);
         });
 
@@ -2634,34 +2685,44 @@ namespace PixivWPF.Common
             }
         });
 
+        static private CancellationTokenSource _ScrollToDownloadItemCancel_ = new();
         static public ICommand ScrollToDownloadItem { get; } = new DelegateCommand<dynamic>(async obj =>
         {
+            if (obj is null) return;
+
             //setting = Application.Current.LoadSetting();
             if (!setting.AutoVisiableDownItem) return;
-            if (obj is DownloadInfo)
+
+            _ScrollToDownloadItemCancel_ ??= new();
+            _ScrollToDownloadItemCancel_.Cancel();
+            await Task.Delay(25);
+            _ScrollToDownloadItemCancel_ = new();
+
+            await Task.Run(async () =>
             {
-                var item = obj as DownloadInfo;
+                await Task.Delay(250, _ScrollToDownloadItemCancel_.Token);
+                if (_ScrollToDownloadItemCancel_?.IsCancellationRequested ?? true) return;
+
                 var _downManager = Application.Current.GetDownloadManager();
-                if (_downManager is DownloadManagerPage)
+                if (_downManager is not null)
                 {
-                    await new Action(() =>
+                    if (obj is DownloadInfo)
                     {
-                        _downManager.ScrollToItem(item);
-                    }).InvokeAsync();
-                }
-            }
-            else if (obj is PixivItem)
-            {
-                var item = obj as PixivItem;
-                var _downManager = Application.Current.GetDownloadManager();
-                if (_downManager is DownloadManagerPage)
-                {
-                    await new Action(() =>
+                        var item = obj as DownloadInfo;
+                        await _downManager.Dispatcher.InvokeAsync(() => { _downManager.ScrollToItem(item); });
+                    }
+                    else if (obj is PixivItem)
                     {
-                        _downManager.ScrollToItem(item);
-                    }).InvokeAsync();
+                        var item = obj as PixivItem;
+                        await _downManager.Dispatcher.InvokeAsync(() => { _downManager.ScrollToItem(item); });
+                    }
+                    else if (obj is string)
+                    {
+                        var item = obj as string;
+                        await _downManager.Dispatcher.InvokeAsync(() => { _downManager.ScrollToItem(item); });
+                    }
                 }
-            }
+            }, _ScrollToDownloadItemCancel_.Token);
         });
 
         static public ICommand OpenSearch { get; } = new DelegateCommand<dynamic>(async obj =>
@@ -4242,13 +4303,9 @@ namespace PixivWPF.Common
 
         static public ICommand WriteLogs { get; } = new DelegateCommand<string>(obj =>
         {
-            if (obj is string)
+            if (!string.IsNullOrEmpty(obj))
             {
-                var content = obj as string;
-                if (!string.IsNullOrEmpty(content))
-                {
-                    content.INFO();
-                }
+                    obj.INFO();
             }
         });
 
@@ -4256,7 +4313,7 @@ namespace PixivWPF.Common
         {
             var logs = Application.Current.GetLogs();
 
-            var content = obj is string && !string.IsNullOrEmpty(obj as string) ? obj as string : "INFO";
+            var content = !string.IsNullOrEmpty(obj) ? obj as string : "INFO";
             if (content.ToLower().Contains("folder"))
             {
                 if (logs.Count > 0)
@@ -4290,10 +4347,7 @@ namespace PixivWPF.Common
             }
         });
 
-        static public ICommand CleanLogs { get; } = new DelegateCommand(() =>
-        {
-            Application.Current.CleanLogs();
-        });
+        static public ICommand CleanLogs { get; } = new DelegateCommand(Application.Current.CleanLogs);
 
         #region tiles navigation
         static public ICommand PrevCategory { get; } = new DelegateCommand<dynamic>(obj =>

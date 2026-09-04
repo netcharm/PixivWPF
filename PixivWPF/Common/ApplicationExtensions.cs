@@ -1921,7 +1921,11 @@ namespace PixivWPF.Common
                 }
                 else if (action.StartsWith("cleanlog", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    if (!string.IsNullOrEmpty(param)) Commands.CleanLogs.Execute(null);
+                    Commands.CleanLogs.Execute(param);
+                }
+                else if (action.StartsWith("scrolldm", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    Commands.ScrollToDownloadItem.Execute(param);
                 }
                 else
                 {
@@ -1936,9 +1940,9 @@ namespace PixivWPF.Common
                                 new Action(() =>
                                 {
                                     var win = Application.Current.GetActiveWindow();
-                                    if (win == null) Application.Current.GetLatestWindow();
+                                    if (win == null) win = Application.Current.GetLatestWindow();
                                     if (win == null) win = Application.Current.GetMainWindow();
-                                    if (win is Window)
+                                    if (win is not null)
                                     {
                                         if (win.InSearching()) win.InSearching(focus: false);
                                         hotkey.Command.Execute(win);
@@ -1950,6 +1954,7 @@ namespace PixivWPF.Common
                         catch (Exception ex) { ex.ERROR("NAMEDPIPE_CMD"); }
                     }
                 }
+                $"{action} => {param} .".INFO("ProcessCommand");
             }
             catch (Exception ex) { ex.ERROR(); }
             return (result);

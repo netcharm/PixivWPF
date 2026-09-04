@@ -140,6 +140,8 @@ namespace PixivWPF.Common
 
     public class Modifier
     {
+        public bool None { get; set; } = true;
+
         public bool Shift { get; set; } = false;
         public bool Ctrl { get; set; } = false;
         public bool Alt { get; set; } = false;
@@ -9862,13 +9864,13 @@ namespace PixivWPF.Common
             if (item.IsWork())
             {
                 var result = item.Illust.IsLiked() ? true : await item.LikeIllust(pub);
-                UpdateLikeStateAsync((int)(item.Illust.Id));
+                (item.Illust.Id ?? -1).UpdateLikeStateAsync(false);
                 return (result);
             }
             else if (item.IsUser())
             {
                 var result = item.User.IsLiked() ? true : await item.LikeUser(pub);
-                UpdateLikeStateAsync((int)(item.User.Id), true);
+                (item.User.Id ?? -1).UpdateLikeStateAsync(true);
                 return (result);
             }
             else return false;
@@ -9886,7 +9888,7 @@ namespace PixivWPF.Common
             {
                 var result = item.User.IsLiked() ? await item.UnLikeUser(pub) : false;
                 item.IsFavorited = result;
-                UpdateLikeStateAsync((int)(item.User.Id), true);
+                (item.User.Id ?? -1).UpdateLikeStateAsync(true);
                 return (result);
             }
             else return false;
@@ -9983,7 +9985,7 @@ namespace PixivWPF.Common
         static public async Task<Tuple<bool, Pixeez.Objects.Work>> Like(this Pixeez.Objects.Work illust, bool pub = true)
         {
             var result = illust.IsLiked() ? new Tuple<bool, Pixeez.Objects.Work>(true, illust) : await illust.LikeIllust(pub);
-            UpdateLikeStateAsync((int)(illust.Id.Value), false);
+            (illust.Id ?? -1).UpdateLikeStateAsync(false);
             return (result);
         }
 
@@ -10100,7 +10102,7 @@ namespace PixivWPF.Common
         static public async Task<Tuple<bool, Pixeez.Objects.Work>> UnLike(this Pixeez.Objects.Work illust)
         {
             var result = illust.IsLiked() ? await illust.UnLikeIllust() : new Tuple<bool, Pixeez.Objects.Work>(true, illust);
-            UpdateLikeStateAsync((int)(illust.Id.Value), false);
+            (illust.Id ?? -1).UpdateLikeStateAsync(false);
             return (result);
         }
 
@@ -10165,7 +10167,7 @@ namespace PixivWPF.Common
         static public async Task<Tuple<bool, Pixeez.Objects.Work>> ToggleLike(this Pixeez.Objects.Work illust, bool pub = true)
         {
             var result = await illust.ToggleLikeIllust(pub);
-            UpdateLikeStateAsync((int)(illust.Id.Value), false);
+            (illust.Id ?? -1).UpdateLikeStateAsync(false);
             return (result);
         }
 
@@ -10261,7 +10263,7 @@ namespace PixivWPF.Common
         static public async Task<Tuple<bool, Pixeez.Objects.UserBase>> Like(this Pixeez.Objects.UserBase user, bool pub = true)
         {
             var result = await user.LikeUser(pub);
-            UpdateLikeStateAsync((int)(user.Id.Value), true);
+            (user.Id ?? -1).UpdateLikeStateAsync(true);
             return (result);
         }
 
@@ -10368,7 +10370,7 @@ namespace PixivWPF.Common
         static public async Task<Tuple<bool, Pixeez.Objects.UserBase>> UnLike(this Pixeez.Objects.UserBase user)
         {
             var result = await user.UnLikeUser();
-            UpdateLikeStateAsync((int)(user.Id.Value), true);
+            (user.Id ?? -1).UpdateLikeStateAsync(true);
             return (result);
         }
 
@@ -10442,7 +10444,7 @@ namespace PixivWPF.Common
         static public async Task<Tuple<bool, Pixeez.Objects.UserBase>> ToggleLike(this Pixeez.Objects.UserBase user, bool pub = true)
         {
             var result = await user.ToggleLikeUser(pub);
-            UpdateLikeStateAsync((int)(user.Id.Value), true);
+            (user.Id ?? -1).UpdateLikeStateAsync(true);
             return (result);
         }
 
@@ -10752,12 +10754,7 @@ namespace PixivWPF.Common
             UpdateLikeStateAsync(id);
         }
 
-        static public void UpdateLikeStateAsync(this bool is_user, long illustid = -1)
-        {
-            UpdateLikeStateAsync(illustid, is_user);
-        }
-
-        static public async void UpdateLikeStateAsync(long illustid = -1, bool is_user = false)
+        static public async void UpdateLikeStateAsync(this long illustid, bool is_user = false)
         {
             await new Action(() =>
             {
@@ -12830,6 +12827,7 @@ namespace PixivWPF.Common
             result.OnlyCtrl = modifiers == ModifierKeys.Control;
             result.OnlyAlt = modifiers == ModifierKeys.Alt;
             result.OnlyWin = modifiers == ModifierKeys.Windows;
+            result.None = modifiers == ModifierKeys.None;
             return (result);
         }
 
@@ -12845,6 +12843,7 @@ namespace PixivWPF.Common
             result.OnlyCtrl = modifiers == ModifierKeys.Control;
             result.OnlyAlt = modifiers == ModifierKeys.Alt;
             result.OnlyWin = modifiers == ModifierKeys.Windows;
+            result.None = modifiers == ModifierKeys.None;
             return (result);
         }
 
