@@ -967,7 +967,7 @@ namespace ImageSearch
             }
         }
 
-        private void ShellOpen(string[] files, bool openwith = false, bool viewinfo = false)
+        private async void ShellOpen(string[] files, bool openwith = false, bool viewinfo = false)
         {
             if (files is not null && files.Length > 0)
             {
@@ -976,14 +976,15 @@ namespace ImageSearch
                 var cmd_view = string.IsNullOrEmpty(settings.ImageViewerCmd) || !File.Exists(settings.ImageViewerCmd) ? "explorer.exe" : settings.ImageViewerCmd;
                 var cmd_view_opt = string.IsNullOrEmpty(settings.ImageViewerOpt) ? string.Empty : settings.ImageViewerOpt.Trim() + ' ';
 
-                files = [.. files.Where(f => File.Exists(f)).Select(f => $"{f}")];
+                files = [.. files.Where(File.Exists).Select(f => $"{f}")];
 
                 if (openwith) Process.Start("openwith.exe", files);
                 else
                 {
                     foreach (var file in files)
                     {
-                        Task.Run(() =>
+                        await Task.Delay(100);
+                        await Task.Run(() =>
                         {
                             try
                             {
