@@ -3934,6 +3934,10 @@ namespace ImageViewer
             QualityChangerSlider.MouseWheel += Slider_MouseWheel;
             //ImageViewerScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
             //ImageViewerScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+#if DEBUG
+            //Activated += (obj, evt) => { InputMethod.Current.ImeState = InputMethodState.On; InputLanguageManager.SetInputLanguage(this, CultureInfo.GetCultureInfo("ja-JP")); };
+#endif
+            Activated += (obj, evt) => { InputMethod.Current.ImeState = InputMethodState.Off; };
             #endregion
 
             #region Default Zoom Ratio
