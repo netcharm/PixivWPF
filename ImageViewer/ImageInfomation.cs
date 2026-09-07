@@ -766,6 +766,36 @@ namespace ImageViewer
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public string GetFileFromIndex(int index)
+        {
+            string result = null;
+            if (index >= 0 && index < _last_file_list_?.Length)
+            {
+                result = _last_file_list_[index];
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="position"></param>
+        /// <returns></returns>
+        public string GetFileFromIndex(ListPosition position)
+        {
+            string result = null;
+            if (position != ListPosition.Current && (_last_file_list_ is null || _last_file_list_.Length <= 1)) return (result);
+
+            var index = CalcFileIndex(position);
+            result = GetFileFromIndex(index);
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <returns></returns>
         public async Task<string[]> GetFileList()
         {

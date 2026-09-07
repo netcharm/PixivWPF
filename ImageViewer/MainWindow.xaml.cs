@@ -163,17 +163,64 @@ namespace ImageViewer
             });
         }
 
-        private void ShellRunJumpTask(JumpTask task)
+        private async void ShellRunJumpTask(JumpTask task)
         {
             try
             {
                 if (task is not null && !string.IsNullOrEmpty(task.ApplicationPath) && File.Exists(task.ApplicationPath))
                 {
-                    var filename = GetSource().FileName.Trim('"');
+                    char[] tmc = [' ', '"', '\''];
+                    var image = GetSource();
+                    var filename = image?.FileName.Trim('"');
+                    var opts = task.Arguments.Trim(tmc);
+                    if (string.IsNullOrEmpty(opts))
+                    {
+                        opts = string.IsNullOrEmpty(filename) ? string.Empty : $"\"{filename}\"";
+                    }
+                    else
+                    {
+                        var args = opts.Split([' '], StringSplitOptions.RemoveEmptyEntries).Select(o => o.Trim(tmc)).Where(o => !string.IsNullOrEmpty(o)).ToArray();
+                        var files = new List<string>();
+                        var current = await image.GetIndex();
+                        foreach (var arg in args)
+                        {
+                            if (Regex.IsMatch(arg, @"^[%$]([+-]?\d+)$"))
+                            {
+                                if (int.TryParse(Regex.Match(arg, @"([+-]?\d+)").Value.TrimStart('+'), out int idx))
+                                {
+                                    var f = image.GetFileFromIndex(current.Item1 + idx);
+                                    opts = opts.Replace(arg, $"\"{f}\"");
+                                }
+                            }
+                        }
+
+                        //if (args.Length >= 2 && Regex.IsMatch(args[0], "^[%$][1]$") && Regex.IsMatch(args[1], "^[%$][2]$"))
+                        //{
+                        //    var f_1 = image.GetFileFromIndex(ListPosition.Current);
+                        //    var f_2 = image?.GetFileFromIndex(ListPosition.Next) ?? image.GetFileFromIndex(ListPosition.Prev);
+                        //    if (!string.IsNullOrEmpty(f_1) && !string.IsNullOrEmpty(f_2))
+                        //        opts = $"\"{f_1}\" \"{f_2}\"";
+                        //    else if (!string.IsNullOrEmpty(f_1))
+                        //        opts = $"\"{f_1}\"";
+                        //    else if (!string.IsNullOrEmpty(f_2))
+                        //        opts = $"\"{f_2}\"";
+                        //    else 
+                        //        opts = string.IsNullOrEmpty(filename) ? $"{opts}" : $"{opts} \"{filename}\"";
+                        //}
+                        //else if (args.Length >= 1 && Regex.IsMatch(args[0], "^[%$][1f]$"))
+                        //{
+                        //    opts = string.IsNullOrEmpty(filename) ? $"{opts}" : $"{opts} \"{filename}\"";
+                        //}
+                        //else
+                        //{
+                        //    opts = string.IsNullOrEmpty(filename) ? $"{opts}" : $"{opts} \"{filename}\"";
+                        //}                            
+                    }
+
                     var start = new ProcessStartInfo
                     {
                         FileName = task.ApplicationPath,
-                        Arguments = string.IsNullOrEmpty(filename) ? $"{task.Arguments}" : $"{task.Arguments} \"{filename}\"",
+                        Arguments = opts,
                         WorkingDirectory = string.IsNullOrEmpty(task.WorkingDirectory) ? null : task.WorkingDirectory,
                         ErrorDialog = true,
                         UseShellExecute = false
