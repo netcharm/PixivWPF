@@ -1609,7 +1609,7 @@ namespace ImageCompare
             {
                 files = files.Select(f => f.Trim()).Where(f => f.IsSupportedExt()).Where(f => !string.IsNullOrEmpty(f) && File.Exists(f)).ToArray();
                 var count = files.Length;
-                if (count >= 0)
+                if (count > 0)
                 {
                     var load_type = source != null ? (source ?? false ? ImageType.Source : ImageType.Target) : (_last_loading_ != ImageType.Source ? ImageType.Source : ImageType.Target);
 
@@ -1632,7 +1632,7 @@ namespace ImageCompare
                         action |= await image_t.LoadImageFromFile(file_t);
                         load_type = ImageType.All;
                     }
-                    else if (count >= 0)
+                    else
                     {
                         if (new ImageType[] { load_type, ImageType.All }.Contains(GetQualityChangerSource()))
                         {
@@ -1643,7 +1643,7 @@ namespace ImageCompare
                         else if (load_type == ImageType.Target) IsLoadingTarget = true;
 
                         var image  = load_type == ImageType.Source ? image_s : image_t;
-                        action |= count == 0 ? await image.LoadImageFromFile() : await image.LoadImageFromFile(files.First());
+                        action |= await image.LoadImageFromFile(files.First());
                     }
                     if (action)
                     {
@@ -3917,6 +3917,8 @@ namespace ImageCompare
             ProcessStatus.Opacity = 0.66;
             Icon = new BitmapImage(new Uri("pack://application:,,,/ImageCompare;component/Resources/Compare.ico"));
             ChangeTheme();
+
+            Activated += (obj, evt) => { InputMethod.Current.ImeState = InputMethodState.Off; };
             #endregion
 
             #region Default Zoom Ratio
