@@ -954,7 +954,7 @@ namespace PixivWPF.Common
                             }
                         }
                         #endregion
-                        #region by contents
+                        #region filter by contents
                         if (item.IsWork())
                         {
                             var work = item.Illust;
@@ -991,11 +991,19 @@ namespace PixivWPF.Common
 
                 if (filter_action != null)
                     result_filter = new Predicate<object>(filter_action);
-                else
-                    result_filter = null;
             }
 
             return (result_filter);
+        }
+
+        public async static Task<Predicate<object>> GetFilterAsync(this string filter)
+        {
+            return (await Task.Run(() => { return (filter.GetFilter()); }));
+        }
+
+        public async static Task<Predicate<object>> GetFilterAsync(this FilterParam filter)
+        {
+            return (await Task.Run(() => { return (filter.GetFilter()); }));
         }
         #endregion
 

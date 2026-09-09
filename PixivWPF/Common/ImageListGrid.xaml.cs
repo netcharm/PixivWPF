@@ -601,12 +601,13 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public void SetFilter(string filter)
+        public async void SetFilter(string filter)
         {
             try
             {
                 if (string.IsNullOrEmpty(filter)) Filter = null;
-                else Filter = filter.GetFilter();
+                //else Filter = await Dispatcher.InvokeAsync(() => { return (filter.GetFilter()); });
+                else Filter = await filter.GetFilterAsync();
             }
             catch (Exception ex)
             {
@@ -614,12 +615,13 @@ namespace PixivWPF.Common
             }
         }
 
-        public void SetFilter(FilterParam filter)
+        public async void SetFilter(FilterParam filter)
         {
             try
             {
                 if (filter is FilterParam)
-                    Filter = filter.GetFilter();
+                    //Filter = await Dispatcher.InvokeAsync(() => { return (filter.GetFilter()); });
+                    Filter = await filter.GetFilterAsync();
                 else Filter = null;
             }
             catch (Exception ex)
@@ -1320,19 +1322,6 @@ namespace PixivWPF.Common
                     {
                         if (item.Illust == null) continue;
 
-                        if (item.Source == null)
-                        {
-                            new Action(async () =>
-                            {
-                                var thumb = await item.Illust.GetThumbnailUrl(item.Index).LoadImageFromUrl(size: thumb_size);
-                                if (thumb is not null && thumb.Source != null)
-                                {
-                                    item.Source = thumb.Source;
-                                    item.State = TaskStatus.RanToCompletion;
-                                }
-                            }).Invoke(async: true);
-                        }
-
                         if (item.IsWork())
                         {
                             if ((work.IsWork() && item.ID.Equals(work.ID)) ||
@@ -1340,6 +1329,19 @@ namespace PixivWPF.Common
                                 (is_user ? item.User.Id == id : item.Illust.Id == id) ||
                                 (work == null && (item.Illust.Id == id || id == -1)))
                             {
+                                if (item.Source == null)
+                                {
+                                    new Action(async () =>
+                                    {
+                                        var thumb = await item.Illust.GetThumbnailUrl(item.Index).LoadImageFromUrl(size: thumb_size);
+                                        if (thumb is not null && thumb.Source != null)
+                                        {
+                                            item.Source = thumb.Source;
+                                            item.State = TaskStatus.RanToCompletion;
+                                        }
+                                    }).Invoke(async: true);
+                                }
+
                                 item.IsFavorited = item.Illust.IsLiked();
                                 item.IsFollowed = item.User.IsLiked();
 

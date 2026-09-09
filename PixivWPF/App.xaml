@@ -150,6 +150,11 @@
 
             <Style x:Key="TextIcon" TargetType="{x:Type TextBlock}">
                 <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                <Setter Property="FontFamily" Value="{DynamicResource SegoeIconFamily}"/>
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="Margin" Value="4,0,0,0"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
             
             <Style x:Key="TextContent" TargetType="{x:Type TextBlock}">

@@ -5083,7 +5083,7 @@ namespace PixivWPF.Pages
         {
             //RelatedItems.UpdateTilesState();
             //UpdateLikeState();
-            if (RelatedItems.IsReady && RelatedItems.SelectedItems?.Count == 1 && RelatedItems.SelectedItem.IsWork())
+            if (RelatedItems.IsReady && RelatedItems.Items.Count > 0 && RelatedItems.SelectedItems?.Count == 1 && RelatedItems.SelectedItem.IsWork())
             {
                 //RelatedItems.UpdateTilesState(RelatedItems.SelectedItem);
                 //if (RelatedItems.IsReady) Commands.ScrollToDownloadItem.Execute(RelatedItems.SelectedItem);
@@ -5209,7 +5209,7 @@ namespace PixivWPF.Pages
         {
             //FavoriteItems.UpdateTilesState();
             //UpdateLikeState();
-            if (FavoriteItems.IsReady && FavoriteItems.SelectedItems?.Count == 1 && FavoriteItems.SelectedItem.IsWork())
+            if (FavoriteItems.IsReady && FavoriteItems.Items.Count > 0 && FavoriteItems.SelectedItems?.Count == 1 && FavoriteItems.SelectedItem.IsWork())
             {
                 //FavoriteItems.UpdateTilesState(FavoriteItems.SelectedItem);
                 //if (FavoriteItems.IsReady) Commands.ScrollToDownloadItem.Execute(FavoriteItems.SelectedItem);

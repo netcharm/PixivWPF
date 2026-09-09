@@ -61,7 +61,7 @@
                     Style="{DynamicResource SquareDropDownButton}">
                 <mah:DropDownButton.Content>
                     <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock Text="&#xE16E;" Style="{DynamicResource TextIcon}"/>
+                        <TextBlock Text="&#xE16E;" Style="{DynamicResource TextIcon}" />
                         <Ellipse x:Name="PART_FastFilter_Indicator" x:Uid="PART_FastFilter_Indicator" Style="{DynamicResource Indicator}" Visibility="Collapsed" />
                     </Grid>
                 </mah:DropDownButton.Content>
