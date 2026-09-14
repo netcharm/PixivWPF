@@ -393,7 +393,7 @@ namespace PixivWPF.Common
                                 }
                             }
                         }
-                    }).Invoke(async: false);
+                    }).Invoke(async: true);
                 }
             }
         }
@@ -702,7 +702,7 @@ namespace PixivWPF.Common
                                 if (batch) canvas.InvalidateVisual();
                                 else canvas.UpdateLayout();
                                 canvas.DoEvents();
-                                Task.Delay(1).GetAwaiter().GetResult();
+                                //Task.Delay(1).GetAwaiter().GetResult();
                             }
                         }
                         else
@@ -732,7 +732,7 @@ namespace PixivWPF.Common
                             if (batch) image.InvalidateVisual();
                             else image.UpdateLayout();
                             image.DoEvents();
-                            Task.Delay(1).GetAwaiter().GetResult();
+                            //Task.Delay(1).GetAwaiter().GetResult();
                         }
                     }
                     else

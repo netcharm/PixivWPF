@@ -52,17 +52,19 @@ namespace PixivWPF.Common
     #pragma warning disable IDE0270
     #pragma warning disable IDE1006
 
-    using Microsoft.Win32;
-    using Microsoft.WindowsAPICodePack.Dialogs;
+    using CompactExifLib;
+    using ControlzEx.Standard;
     using MahApps.Metro.Controls;
     using MahApps.Metro.Controls.Dialogs;
+    using Microsoft.Win32;
+    using Microsoft.WindowsAPICodePack.Dialogs;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using NLog.Filters;
+    using PixivWPF.Pages;
     using WPFNotification.Core.Configuration;
     using WPFNotification.Model;
     using WPFNotification.Services;
-    using CompactExifLib;
-    using PixivWPF.Pages;
 
     #region Page enmu type
     public enum PixivPage
@@ -905,6 +907,28 @@ namespace PixivWPF.Common
                 PropertiesMap.Add(Prop.Name, Prop);
             }
             return PropertiesMap;
+        }
+
+        static private Everything _everything_instcnce_ = new();
+        static private IEnumerable<string> GetFiles(string folder, string pattern, bool nested = false)
+        {
+            var result = new List<string>();
+            _everything_instcnce_ ??= new();
+            if (setting.UsingEverything && (_everything_instcnce_?.IsAvailable ?? false))
+            {
+                result = _everything_instcnce_.GetFiles(folder, pattern, nested).ToList();
+            }
+            else
+            {
+                result = Directory.EnumerateFiles(folder, pattern, nested ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).NaturalSort().ToList();
+            }
+            return (result);
+        }
+
+        static private bool FileExists(string folder, string pattern, bool nested = false)
+        {
+            var files = GetFiles(folder, pattern, nested);
+            return (files.Any());
         }
         #endregion
 
@@ -6467,6 +6491,13 @@ namespace PixivWPF.Common
                         }
                     }
                 }
+                if (e.ChangeType != WatcherChangeTypes.All && e.ChangeType != WatcherChangeTypes.Renamed && setting.UsingEverything && _everything_instcnce_.IsAvailable)
+                {
+                    var path = Path.GetDirectoryName(System.IO.Path.GetDirectoryName(e.FullPath));
+                    var storage = setting.LocalStorage.Where(f => f.Folder.Equals(path, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
+                    var nested = storage?.IncludeSubFolder ?? false;
+                    _everything_instcnce_.UpdateFiles(path, "*.*", true);
+                }
             }
             catch (Exception ex) { ex.ERROR("DOWNLOADWATCHER"); }
             finally
@@ -6496,6 +6527,13 @@ namespace PixivWPF.Common
                     {
                         UpdateDownloadStateAsync(GetIllustId(e.Name));
                         lastDownloadEventTick = DateTime.Now;
+                    }
+                    if (setting.UsingEverything && _everything_instcnce_.IsAvailable)
+                    {
+                        var path = Path.GetDirectoryName(System.IO.Path.GetDirectoryName(e.FullPath));
+                        var storage = setting.LocalStorage.Where(f => f.Folder.Equals(path, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
+                        var nested = storage?.IncludeSubFolder ?? false;
+                        _everything_instcnce_.UpdateFiles(path, "*.*", true);
                     }
                 }
             }
@@ -6827,7 +6865,8 @@ namespace PixivWPF.Common
                             }
                             else if (!orig)
                             {
-                                var files = Directory.EnumerateFiles(folder, $"{id}{sep}.*", nested);
+                                //var files = Directory.EnumerateFiles(folder, $"{id}{sep}.*", nested);
+                                var files = GetFiles(folder, $"{id}{sep}.*", local.IncludeSubFolder);
                                 if (files.Count() > 0)
                                 {
                                     //filepath = Path.Combine(folder, $"{id}{Path.GetExtension(f)}");
@@ -6847,7 +6886,8 @@ namespace PixivWPF.Common
                             }
                             else if (!orig)
                             {
-                                var files = Directory.EnumerateFiles(folder, $"{id}{sep}.*", nested);
+                                //var files = Directory.EnumerateFiles(folder, $"{id}{sep}.*", nested);
+                                var files = GetFiles(folder, $"{id}{sep}.*", local.IncludeSubFolder);
                                 if (files.Count() > 0)
                                 {
                                     //filepath = Path.Combine(folder, $"{id}{Path.GetExtension(f)}");
@@ -7003,7 +7043,8 @@ namespace PixivWPF.Common
                         if (result) break;
 
                         var fn = Path.GetFileNameWithoutExtension(file_s);
-                        var files = Directory.EnumerateFiles(folder, $"{id}*_*.*", nested).NaturalSort();
+                        //var files = Directory.EnumerateFiles(folder, $"{id}*_*.*", nested).NaturalSort();
+                        var files = GetFiles(folder, $"{id}*_*.*", local.IncludeSubFolder);
                         if (files.Count() > 0)
                         {
                             if (touch) { files.Skip(1).TouchAsync(url, meta: touch); }
@@ -7012,7 +7053,8 @@ namespace PixivWPF.Common
                         }
                         if (result) break;
 
-                        files = Directory.EnumerateFiles(folder, $"{id}*.*", nested).NaturalSort();
+                        //files = Directory.EnumerateFiles(folder, $"{id}*.*", nested).NaturalSort();
+                        files = GetFiles(folder, $"{id}*_*.*", local.IncludeSubFolder);
                         if (files.Count() > 0)
                         {
                             if (touch) { files.Skip(1).TouchAsync(url, meta: touch); }

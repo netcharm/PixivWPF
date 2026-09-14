@@ -2693,40 +2693,44 @@ namespace PixivWPF.Common
             //setting = Application.Current.LoadSetting();
             if (!setting.AutoVisiableDownItem) return;
 
-            _ScrollToDownloadItemCancel_ ??= new();
-            _ScrollToDownloadItemCancel_?.Cancel();
-            await Task.Delay(50);
-            _ScrollToDownloadItemCancel_ = new();
-
-            await Task.Run(async () =>
+            try
             {
-                try
+                var _downManager = Application.Current.GetDownloadManager();
+                if (_downManager?.HasItems ?? false)
                 {
-                    await Task.Delay(250, _ScrollToDownloadItemCancel_?.Token ?? CancellationToken.None);
-                    if (_ScrollToDownloadItemCancel_?.IsCancellationRequested ?? true) return;
+                    //_ScrollToDownloadItemCancel_ ??= new();
+                    //_ScrollToDownloadItemCancel_?.Cancel();
+                    //await Task.Delay(50);
+                    //_ScrollToDownloadItemCancel_ = new();
 
-                    var _downManager = Application.Current.GetDownloadManager();
-                    if (_downManager is not null && _downManager.Items.Any())
+                    await Task.Run(() =>
                     {
-                        if (obj is DownloadInfo)
+                        try
                         {
-                            var item = obj as DownloadInfo;
-                            await _downManager.Dispatcher.InvokeAsync(() => { _downManager.ScrollToItem(item); });
+                            //await Task.Delay(250, _ScrollToDownloadItemCancel_?.Token ?? CancellationToken.None);
+                            //if (_ScrollToDownloadItemCancel_?.IsCancellationRequested ?? true) return;
+
+                            if (obj is DownloadInfo)
+                            {
+                                var item = obj as DownloadInfo;
+                                _downManager.ScrollToItem(item);
+                            }
+                            else if (obj is PixivItem)
+                            {
+                                var item = obj as PixivItem;
+                                _downManager.ScrollToItem(item);
+                            }
+                            else if (obj is string)
+                            {
+                                var item = obj as string;
+                                _downManager.ScrollToItem(item);
+                            }
                         }
-                        else if (obj is PixivItem)
-                        {
-                            var item = obj as PixivItem;
-                            await _downManager.Dispatcher.InvokeAsync(() => { _downManager.ScrollToItem(item); });
-                        }
-                        else if (obj is string)
-                        {
-                            var item = obj as string;
-                            await _downManager.Dispatcher.InvokeAsync(() => { _downManager.ScrollToItem(item); });
-                        }
-                    }
+                        catch (Exception ex) { ex.ERROR("ScrollToDownloadItem"); }
+                    }, _ScrollToDownloadItemCancel_?.Token ?? CancellationToken.None);
                 }
-                catch (Exception ex) { ex.ERROR("ScrollToDownloadItem"); }
-            }, _ScrollToDownloadItemCancel_?.Token ?? CancellationToken.None);
+            }
+            catch (Exception ex) { ex.ERROR("ScrollToDownloadItem"); }
         });
 
         static public ICommand OpenSearch { get; } = new DelegateCommand<dynamic>(async obj =>

@@ -96,6 +96,8 @@ namespace PixivWPF.Pages
         public int CurrentIdlesCount => CurrentIdles.Count();
 
         public bool CanStartDownload => CurrentJobsCount < SimultaneousJobs;
+
+        public bool HasItems => Dispatcher.Invoke(() => items is not null && items.Count > 0);
         #endregion
 
         #region Time Checking
@@ -381,34 +383,55 @@ namespace PixivWPF.Pages
             return (result);
         }
 
+        private CancellationTokenSource _scroll_cancel_ = new();
         internal void ScrollToItem(DownloadInfo item)
         {
-            if (item is not null)
+            if (item is not null && HasItems)
             {
-                foreach (var i in DownloadItems.Items)
+                try
                 {
-                    if (i is DownloadInfo && (i as DownloadInfo).Url == item.Url)
+                    Dispatcher.InvokeAsync(async () =>
                     {
-                        DownloadItems.ScrollIntoView(i);
-                        break;
-                    }
+                        _scroll_cancel_ ??= new();
+                        _scroll_cancel_?.Cancel();
+                        await Task.Delay(50);
+                        _scroll_cancel_ = new();
+
+                        foreach (var i in DownloadItems.Items)
+                        {
+                            if (i is DownloadInfo && (i as DownloadInfo).Url == item.Url)
+                            {
+                                DownloadItems.ScrollIntoView(i);
+                                break;
+                            }
+                        }
+                    }, DispatcherPriority.Background, cancellationToken: _scroll_cancel_?.Token ?? CancellationToken.None);
                 }
+                catch (Exception ex) { ex.ERROR("DownloadManagerScrollToItem"); }
             }
         }
 
         internal void ScrollToItem(PixivItem item)
         {
-            if (item.IsWork())
+            if (item.IsWork() && HasItems)
             {
                 try
                 {
-                    List<string> urls = [];
-                    if (item.HasPages()) { urls.AddRange(item.Illust.GetOriginalUrls()); }
-                    else { urls.Add(item.IsPage() ? item.Illust.GetOriginalUrl(item.Index) : item.Illust.GetOriginalUrl()); }
-                    urls = [.. urls.Distinct()];
+                    Dispatcher.InvokeAsync(async () =>
+                    {
+                        _scroll_cancel_ ??= new();
+                        _scroll_cancel_?.Cancel();
+                        await Task.Delay(50);
+                        _scroll_cancel_ = new();
 
-                    var items = DownloadItems.Items?.Cast<DownloadInfo>()?.Where(i => i is not null && urls.Contains(i.Url));
-                    if (items.Any()) { DownloadItems.ScrollIntoView(items.First()); }
+                        List<string> urls = [];
+                        if (item.HasPages()) { urls.AddRange(item.Illust.GetOriginalUrls()); }
+                        else { urls.Add(item.IsPage() ? item.Illust.GetOriginalUrl(item.Index) : item.Illust.GetOriginalUrl()); }
+                        urls = [.. urls.Distinct()];
+
+                        var items = DownloadItems.Items?.Cast<DownloadInfo>()?.Where(i => i is not null && urls.Contains(i.Url));
+                        if (items.Any()) { DownloadItems.ScrollIntoView(items.First()); }
+                    }, DispatcherPriority.Background, cancellationToken: _scroll_cancel_?.Token ?? CancellationToken.None);
                 }
                 catch (Exception ex) { ex.ERROR("DownloadManagerScrollToItem"); }
             }
@@ -416,26 +439,38 @@ namespace PixivWPF.Pages
 
         internal void ScrollToItem(string item)
         {
-            if (!string.IsNullOrEmpty(item))
+            if (!string.IsNullOrEmpty(item) && HasItems)
             {
-                item = item.Trim([' ', '\"', '\'', ';', ',', '|', '<', '>']);
-                foreach (var i in DownloadItems.Items)
+                try
                 {
-                    if (i is DownloadInfo)
+                    Dispatcher.InvokeAsync(async () =>
                     {
-                        var di = i as DownloadInfo;
-                        if (di.Url.Equals(item, StringComparison.CurrentCultureIgnoreCase))
+                        _scroll_cancel_ ??= new();
+                        _scroll_cancel_?.Cancel();
+                        await Task.Delay(50);
+                        _scroll_cancel_ = new();
+
+                        item = item.Trim([' ', '\"', '\'', ';', ',', '|', '<', '>']);
+                        foreach (var i in DownloadItems.Items)
                         {
-                            DownloadItems.ScrollIntoView(i);
-                            break;
+                            if (i is DownloadInfo)
+                            {
+                                var di = i as DownloadInfo;
+                                if (di.Url.Equals(item, StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    DownloadItems.ScrollIntoView(i);
+                                    break;
+                                }
+                                else if (di.FileName.Equals(item, StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    DownloadItems.ScrollIntoView(i);
+                                    break;
+                                }
+                            }
                         }
-                        else if (di.FileName.Equals(item, StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            DownloadItems.ScrollIntoView(i);
-                            break;
-                        }
-                    }
+                    }, DispatcherPriority.Background, cancellationToken: _scroll_cancel_?.Token ?? CancellationToken.None);
                 }
+                catch (Exception ex) { ex.ERROR("DownloadManagerScrollToItem"); }
             }
         }
 

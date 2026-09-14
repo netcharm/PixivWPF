@@ -266,6 +266,7 @@
     <Compile Include="Common\DownloadItemControl.xaml.cs">
       <DependentUpon>DownloadItemControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Common\Everything.cs" />
     <Compile Include="Common\ExifData.cs" />
     <Compile Include="Common\FakeStylusPlugIn.cs" />
     <Compile Include="Common\HistoryClass.cs" />

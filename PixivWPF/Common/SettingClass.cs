@@ -1189,6 +1189,17 @@ namespace PixivWPF.Common
         #endregion
 
         #region Download Related
+        private bool using_everything = true;
+        public bool UsingEverything
+        {
+            get { return (Cache is Setting ? Cache.using_everything : using_everything); }
+            set
+            {
+                using_everything = value;
+                if (Cache is Setting) Cache.using_everything = using_everything;
+            }
+        }
+
         private bool download_with_bookmarked = true;
         public bool DownloadWithBookmarked
         {

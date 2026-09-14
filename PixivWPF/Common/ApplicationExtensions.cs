@@ -591,6 +591,10 @@ namespace PixivWPF.Common
             _gc_ ??= new();
             try
             {
+                _gc_?.Cancel();
+                await Task.Delay(50);
+                _gc_ = new();
+
                 await Task.Run(async () =>
                 {
                     await Task.Delay(TimeSpan.FromSeconds(60), _gc_.Token);
@@ -640,7 +644,7 @@ namespace PixivWPF.Common
                 }
             }
             //catch (TaskCanceledException ex) { ex.DEBUG("DelayGC"); }
-            catch (TaskCanceledException) { }
+            catch (TaskCanceledException) { "Global Canceled".DEBUG("DelayGC"); }
             catch (Exception ex) { ex.ERROR("DelayGC"); }
         }
         #endregion
@@ -3333,8 +3337,11 @@ namespace PixivWPF.Common
 
         static public DownloadManagerPage GetDownloadManager(this Application app)
         {
-            if (!(_downManager_page is DownloadManagerPage))
-                _downManager_page = new DownloadManagerPage() { Name = "DownloadManager", AutoStart = true };
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                if (!(_downManager_page is DownloadManagerPage))
+                    _downManager_page = new DownloadManagerPage() { Name = "DownloadManager", AutoStart = true };
+            });
             return (_downManager_page);
         }
 
