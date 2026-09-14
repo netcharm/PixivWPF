@@ -19,7 +19,7 @@ namespace PixivWPF.Common
         private Everything64 everything64;
 
         private ConcurrentDictionary<string, List<string>> _files_;
-        private DispatcherTimer _timer_;
+        //private DispatcherTimer _timer_;
 
         public bool IsAvailable
         {
@@ -81,8 +81,8 @@ namespace PixivWPF.Common
             }
             if (_files_.ContainsKey(path))
             {
-                result = nested ? [.. _files_[path].Where(f => path.Equals(System.IO.Path.GetDirectoryName(f), StringComparison.CurrentCultureIgnoreCase))] : [.. _files_[path]];
-                result = [.. result.Where(f => Regex.IsMatch(f, pattern, RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f))];
+                //result = nested ? [.. _files_[path].Where(f => f.StartsWith(path, StringComparison.CurrentCultureIgnoreCase))] : [.. _files_[path]];
+                result = [.. _files_[path].Where(f => Regex.IsMatch(f, $"\\{pattern}", RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f))];
             }
             return (result);
         }
@@ -348,7 +348,7 @@ namespace PixivWPF.Common
             {
                 Everything_Reset();
                 if (nested)
-                    Everything_SetSearchW($"file:{System.IO.Path.Combine(path, pattern)}");
+                    Everything_SetSearchW($"file:{path.TrimEnd('\\')}\\ {pattern}");
                 else
                     Everything_SetSearchW($"file:{System.IO.Path.Combine(path, pattern)} parent:{path}");
                 Everything_SetMatchPath(true);
@@ -359,7 +359,11 @@ namespace PixivWPF.Common
                 var count = Everything_GetNumResults();
                 for (uint i = 0; i < count; i++)
                 {
-                    result.Add(Marshal.PtrToStringUni(Everything_GetResultFileName(i)));
+                    var fullpath = new StringBuilder(260);
+                    Everything_GetResultFullPathName(i, fullpath, 260);
+                    result.Add(fullpath.ToString().Replace(path, "").TrimStart('\\'));
+                    //var f = Marshal.PtrToStringUni(Everything_GetResultFileName(i));
+                    //result.Add(Marshal.PtrToStringUni(Everything_GetResultFileName(i)));
                 }
             }
             catch (Exception ex) { ex.ERROR("EverythingGetFiles"); }
@@ -575,7 +579,11 @@ namespace PixivWPF.Common
                 var count = Everything_GetNumResults();
                 for (uint i = 0; i < count; i++)
                 {
-                    result.Add(Marshal.PtrToStringUni(Everything_GetResultFileName(i)));
+                    var fullpath = new StringBuilder(260);
+                    Everything_GetResultFullPathName(i, fullpath, 260);
+                    result.Add(fullpath.ToString().Replace(path, "").TrimStart('\\'));
+                    //var f = Marshal.PtrToStringUni(Everything_GetResultFileName(i));
+                    //result.Add(Marshal.PtrToStringUni(Everything_GetResultFileName(i)));
                 }
             }
             catch (Exception ex){ ex.ERROR("EverythingGetFiles"); }

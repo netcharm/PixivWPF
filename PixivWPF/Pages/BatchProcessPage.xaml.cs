@@ -78,7 +78,8 @@ namespace PixivWPF.Pages
                 var setting = Application.Current.LoadSetting();
                 var search_opt = Recursion ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
                 var folderinfo = new DirectoryInfo(Contents);
-                var files = folderinfo.EnumerateFiles("*.*", search_opt);
+                //var files = folderinfo.EnumerateFiles("*.*", search_opt);
+                var files = folderinfo.GetFileInfos("*.*", Recursion);
                 var flist = files.Where(f => ext_imgs.Contains(f.Extension)).Distinct().NaturalSort().ToList();
                 var parallel = setting.PrefetchingDownloadParallel;
                 var rnd = new Random();

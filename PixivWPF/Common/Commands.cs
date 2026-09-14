@@ -134,7 +134,8 @@ namespace PixivWPF.Common
                 result = _confirm_huge_folder_.Wait(0);
                 if (result && setting.HugeFolderOpeningConfirm && folder is DirectoryInfo && folder.Exists)
                 {
-                    var count = folder.EnumerateFiles("*.*", SearchOption.TopDirectoryOnly).LongCount();
+                    //var count = folder.EnumerateFiles("*.*", SearchOption.TopDirectoryOnly).LongCount();
+                    var count = folder.GetFiles("*.*", false).LongCount();
                     if (count > setting.HugeFolderOpeningThreshold)
                     {
                         var ret = MessageBox.Show($"\"{folder.FullName}\" Contains {count} Files, More Then {setting.HugeFolderOpeningThreshold} Files!", "Continue?", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes);

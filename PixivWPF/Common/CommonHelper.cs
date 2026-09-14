@@ -910,7 +910,22 @@ namespace PixivWPF.Common
         }
 
         static private Everything _everything_instcnce_ = new();
-        static private IEnumerable<string> GetFiles(string folder, string pattern, bool nested = false)
+        static public IEnumerable<string> GetFiles(this DirectoryInfo folder, string pattern, bool nested = false)
+        {
+            return (GetFiles(folder.FullName, pattern, nested));
+        }
+
+        static public IEnumerable<FileInfo> GetFileInfos(this DirectoryInfo folder, string pattern, bool nested = false)
+        {
+            return (GetFiles(folder.FullName, pattern, nested).Select(f => new FileInfo(f)));
+        }
+
+        static public IEnumerable<FileInfo> GetFileInfos(this string folder, string pattern, bool nested = false)
+        {
+            return (GetFiles(folder, pattern, nested).Select(f => new FileInfo(f)));
+        }
+
+        static public IEnumerable<string> GetFiles(this string folder, string pattern, bool nested = false)
         {
             var result = new List<string>();
             _everything_instcnce_ ??= new();
@@ -6355,7 +6370,8 @@ namespace PixivWPF.Common
                     if (!_cachedDownloadedList.ContainsKey(folder))
                     {
                         _cachedDownloadedList[folder] = cached;
-                        var files = Directory.EnumerateFiles(folder, "*.*", subfolder ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+                        //var files = Directory.EnumerateFiles(folder, "*.*", subfolder ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+                        var files = GetFiles(folder, "*.*", subfolder);
                         foreach (var f in files)
                         {
                             if (ext_imgs.Contains(Path.GetExtension(f).ToLower()))
@@ -6394,7 +6410,7 @@ namespace PixivWPF.Common
 
         internal static bool DownoadedCacheExists(this string file)
         {
-            return (_cachedDownloadedList.ContainsKey(file));
+            return (_cachedDownloadedList.ContainsKey(file) || File.Exists(file));
         }
 
         static private Func<string, bool> DownloadedCacheExistsFunc = x => DownoadedCacheExists(x);
@@ -6496,7 +6512,7 @@ namespace PixivWPF.Common
                     var path = Path.GetDirectoryName(System.IO.Path.GetDirectoryName(e.FullPath));
                     var storage = setting.LocalStorage.Where(f => f.Folder.Equals(path, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
                     var nested = storage?.IncludeSubFolder ?? false;
-                    _everything_instcnce_.UpdateFiles(path, "*.*", true);
+                    _everything_instcnce_.UpdateFilesAsync(path, "*.*", nested);
                 }
             }
             catch (Exception ex) { ex.ERROR("DOWNLOADWATCHER"); }
@@ -6533,7 +6549,7 @@ namespace PixivWPF.Common
                         var path = Path.GetDirectoryName(System.IO.Path.GetDirectoryName(e.FullPath));
                         var storage = setting.LocalStorage.Where(f => f.Folder.Equals(path, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
                         var nested = storage?.IncludeSubFolder ?? false;
-                        _everything_instcnce_.UpdateFiles(path, "*.*", true);
+                        _everything_instcnce_.UpdateFilesAsync(path, "*.*", nested);
                     }
                 }
             }
@@ -7137,7 +7153,8 @@ namespace PixivWPF.Common
                             else
                             {
                                 var sep = has_page || is_ugoira ? "_*" : "";
-                                var files = Directory.EnumerateFiles(folder, $"{id}{sep}.*").NaturalSort();
+                                //var files = Directory.EnumerateFiles(folder, $"{id}{sep}.*").NaturalSort();
+                                var files = GetFiles(folder, $"{id}{sep}.*").NaturalSort();
                                 if (files.Count() > 0)
                                 {
                                     result.AddRange(files);
