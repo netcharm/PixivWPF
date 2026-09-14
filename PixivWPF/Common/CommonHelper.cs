@@ -680,7 +680,7 @@ namespace PixivWPF.Common
     static public class CommonHelper
     {
         static private Setting setting = Application.Current.LoadSetting();
-        static private CacheImage cache = new CacheImage();
+        static private CacheImage cache = new();
         static private ConcurrentDictionary<long?, Pixeez.Objects.Work> IllustCache = new ConcurrentDictionary<long?, Pixeez.Objects.Work>();
         static private ConcurrentDictionary<long?, Pixeez.Objects.UserBase> UserCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserBase>();
         static private ConcurrentDictionary<long?, Pixeez.Objects.UserInfo> UserInfoCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserInfo>();
@@ -8370,25 +8370,23 @@ namespace PixivWPF.Common
         {
             if (!string.IsNullOrEmpty(file) && source is BitmapSource)
             {
-                using (var fs = new FileStream(file, FileMode.Create, FileAccess.Write))
-                {
-                    PngBitmapEncoder encode = new PngBitmapEncoder();
-                    encode.Frames.Add(BitmapFrame.Create(source));
-                    var ms = new MemoryStream();
-                    encode.Save(ms);
-                    ms.Seek(0, SeekOrigin.Begin);
-                    var bytes = ms.ToArray();
+                using var fs = new FileStream(file, FileMode.Create, FileAccess.Write);
+                PngBitmapEncoder encode = new PngBitmapEncoder();
+                encode.Frames.Add(BitmapFrame.Create(source));
+                var ms = new MemoryStream();
+                encode.Save(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                var bytes = ms.ToArray();
 
-                    if (string.IsNullOrEmpty(fmt)) fmt = Path.GetExtension(file).TrimStart('.');
-                    if (string.IsNullOrEmpty(fmt)) { fmt = "png"; Path.ChangeExtension(file, ".png"); }
-                    else file = Path.ChangeExtension(file, $".{fmt.TrimStart('.')}");
-                    if (!fmt.Equals("png", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        string reason = string.Empty;
-                        bytes = ConvertImageTo(bytes, fmt, out reason, quality: quality, force: force);
-                    }
-                    fs.Write(bytes, 0, bytes.Length);
+                if (string.IsNullOrEmpty(fmt)) fmt = Path.GetExtension(file).TrimStart('.');
+                if (string.IsNullOrEmpty(fmt)) { fmt = "png"; Path.ChangeExtension(file, ".png"); }
+                else file = Path.ChangeExtension(file, $".{fmt.TrimStart('.')}");
+                if (!fmt.Equals("png", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    string reason = string.Empty;
+                    bytes = ConvertImageTo(bytes, fmt, out reason, quality: quality, force: force);
                 }
+                fs.Write(bytes, 0, bytes.Length);
                 //GC.Collect();
             }
         }

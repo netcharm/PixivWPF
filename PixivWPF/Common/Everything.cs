@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.InteropServices;
-using NLog.Targets;
 using System.Collections.Concurrent;
-using System.Windows.Threading;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.ServiceModel.Dispatcher;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.ServiceModel.Dispatcher;
+using System.Threading.Tasks;
+using System.Windows.Threading;
+
+using NLog.Targets;
 
 namespace PixivWPF.Common
 {
@@ -19,16 +20,15 @@ namespace PixivWPF.Common
         private Everything64 everything64;
 
         private ConcurrentDictionary<string, List<string>> _files_;
-        //private DispatcherTimer _timer_;
 
         public bool IsAvailable
         {
             get
             {
                 if (Environment.Is64BitProcess)
-                    return (everything64 != null);
+                    return (everything64 != null && everything64.Loaded);
                 else
-                    return (everything32 != null);
+                    return (everything32 != null && everything32.Loaded);
             }
         }
 
@@ -48,15 +48,6 @@ namespace PixivWPF.Common
                 if (System.IO.File.Exists(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Everything32.dll")))
                     everything32 = new Everything32();
             }
-            //_timer_ ??= new() { Interval = TimeSpan.FromSeconds(15), IsEnabled = false };
-            //_timer_.Tick += (s, e) =>
-            //{
-            //    _timer_.Stop();
-            //    _files_ ??= new();
-            //    try { _files_?.Clear(); }
-            //    catch { }
-            //    finally { _timer_.Start(); }
-            //};
         }
 
         public IEnumerable<string> GetFiles(string path, string pattern = "*.*", bool nested = false)
@@ -85,6 +76,13 @@ namespace PixivWPF.Common
                 result = [.. _files_[path].Where(f => Regex.IsMatch(f, $"\\{pattern}", RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f))];
             }
             return (result);
+        }
+
+        public IEnumerable<string> EnumerateFiles(string path, string pattern = "*.*", bool nested = false)
+        {
+            var files = Environment.Is64BitProcess ? everything64?.EnumerateFiles(path, "*.*", nested) : everything32?.EnumerateFiles(path, "*.*", nested);
+            var result = files.Where(f => Regex.IsMatch(f, $"\\{pattern}", RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f));
+            foreach (var f in result) yield return (f);
         }
 
         private CancellationTokenSource _cancel_update_ = new();
@@ -132,7 +130,12 @@ namespace PixivWPF.Common
                     }
                 }, _cancel_update_.Token);
             }
-            catch(Exception ex) { ex.ERROR("EverythingUpdateFilesAsync"); }
+            catch (Exception ex) { ex.ERROR("EverythingUpdateFilesAsync"); }
+        }
+
+        public bool FileExists(string path, string pattern = "*.*", bool nested = false)
+        {
+            return (Environment.Is64BitProcess ? everything64?.FileExists(path, pattern, nested) : everything32?.FileExists(path, pattern, nested)) ?? false;
         }
     }
 
@@ -339,6 +342,10 @@ namespace PixivWPF.Common
         public static extern UInt32 Everything_IncRunCountFromFileName(string lpFileName);
         #endregion
 
+        const int MAX_PATH = 260;
+
+        public bool Loaded => Everything_IsDBLoaded();
+
         public uint LastError => Everything_GetLastError();
 
         public IEnumerable<string> GetFiles(string path, string pattern = "*.*", bool nested = false)
@@ -346,11 +353,10 @@ namespace PixivWPF.Common
             var result = new List<string>();
             try
             {
-                Everything_Reset();
-                if (nested)
-                    Everything_SetSearchW($"file:{path.TrimEnd('\\')}\\ {pattern}");
-                else
-                    Everything_SetSearchW($"file:{System.IO.Path.Combine(path, pattern)} parent:{path}");
+                var query = nested ? $"file:{path.TrimEnd('\\')}\\ {pattern}" : $"file:{System.IO.Path.Combine(path, pattern)} parent:{path}";
+                
+                //Everything_Reset();
+                Everything_SetSearchW(query);
                 Everything_SetMatchPath(true);
                 Everything_SetRequestFlags(EVERYTHING_REQUEST_FILE_NAME | EVERYTHING_REQUEST_PATH | EVERYTHING_REQUEST_DATE_MODIFIED | EVERYTHING_REQUEST_SIZE);
                 Everything_SetSort(EVERYTHING_SORT_NAME_ASCENDING);
@@ -359,8 +365,8 @@ namespace PixivWPF.Common
                 var count = Everything_GetNumResults();
                 for (uint i = 0; i < count; i++)
                 {
-                    var fullpath = new StringBuilder(260);
-                    Everything_GetResultFullPathName(i, fullpath, 260);
+                    var fullpath = new StringBuilder(MAX_PATH);
+                    Everything_GetResultFullPathName(i, fullpath, MAX_PATH);
                     result.Add(fullpath.ToString().Replace(path, "").TrimStart('\\'));
                     //var f = Marshal.PtrToStringUni(Everything_GetResultFileName(i));
                     //result.Add(Marshal.PtrToStringUni(Everything_GetResultFileName(i)));
@@ -370,12 +376,38 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public bool FileExists(string path, string pattern = "*.*")
+        public IEnumerable<string> EnumerateFiles(string path, string pattern = "*.*", bool nested = false)
+        {
+            var result = new List<string>();
+            try
+            {
+                var query = nested ? $"file:{path.TrimEnd('\\')}\\ {pattern}" : $"file:{System.IO.Path.Combine(path, pattern)} parent:{path}";
+
+                //Everything_Reset();
+                Everything_SetSearchW(query);
+                Everything_SetMatchPath(true);
+                Everything_SetRequestFlags(EVERYTHING_REQUEST_FILE_NAME | EVERYTHING_REQUEST_PATH | EVERYTHING_REQUEST_DATE_MODIFIED | EVERYTHING_REQUEST_SIZE);
+                Everything_SetSort(EVERYTHING_SORT_NAME_ASCENDING);
+                Everything_QueryW(true);
+
+            }
+            catch (Exception ex) { ex.ERROR("EverythingGetFiles"); }
+
+            var count = Everything_GetNumResults();
+            for (uint i = 0; i < count; i++)
+            {
+                var fullpath = new StringBuilder(MAX_PATH);
+                Everything_GetResultFullPathName(i, fullpath, MAX_PATH);
+                yield return (fullpath.ToString().Replace(path, "").TrimStart('\\'));
+            }
+        }
+
+        public bool FileExists(string path, string pattern = "*.*", bool nested = false)
         {
             var result = false;
             try
             {
-                var files = GetFiles(path, pattern);
+                var files = GetFiles(path, pattern, nested);
                 result = files.Any();
             }
             catch (Exception ex)
@@ -506,11 +538,42 @@ namespace PixivWPF.Common
         public static extern bool Everything_IsFileResult(UInt32 nIndex);
         [DllImport("Everything64.dll", CharSet = CharSet.Unicode)]
         public static extern void Everything_GetResultFullPathName(UInt32 nIndex, StringBuilder lpString, UInt32 nMaxCount);
-        [DllImport("Everything64.dll")]
-        public static extern void Everything_Reset();
 
         [DllImport("Everything64.dll", CharSet = CharSet.Unicode)]
         public static extern IntPtr Everything_GetResultFileName(UInt32 nIndex);
+
+        [DllImport("Everything64.dll")]
+        public static extern void Everything_Reset();
+        [DllImport("Everything64.dll")]
+        public static extern void Everything_CleanUp();
+        [DllImport("Everything64.dll")]
+        public static extern UInt32 Everything_GetMajorVersion();
+        [DllImport("Everything64.dll")]
+        public static extern UInt32 Everything_GetMinorVersion();
+        [DllImport("Everything64.dll")]
+        public static extern UInt32 Everything_GetRevision();
+        [DllImport("Everything64.dll")]
+        public static extern UInt32 Everything_GetBuildNumber();
+        [DllImport("Everything64.dll")]
+        public static extern bool Everything_Exit();
+        [DllImport("Everything64.dll")]
+        public static extern bool Everything_IsDBLoaded();
+        [DllImport("Everything64.dll")]
+        public static extern bool Everything_IsAdmin();
+        [DllImport("Everything64.dll")]
+        public static extern bool Everything_IsAppData();
+        [DllImport("Everything64.dll")]
+        public static extern bool Everything_RebuildDB();
+        [DllImport("Everything64.dll")]
+        public static extern bool Everything_UpdateAllFolderIndexes();
+        [DllImport("Everything64.dll")]
+        public static extern bool Everything_SaveDB();
+        [DllImport("Everything64.dll")]
+        public static extern bool Everything_SaveRunHistory();
+        [DllImport("Everything64.dll")]
+        public static extern bool Everything_DeleteRunHistory();
+        [DllImport("Everything64.dll")]
+        public static extern UInt32 Everything_GetTargetMachine();
 
         // Everything 1.4
         [DllImport("Everything64.dll")]
@@ -559,6 +622,10 @@ namespace PixivWPF.Common
         public static extern UInt32 Everything_IncRunCountFromFileName(string lpFileName);
         #endregion
 
+        const int MAX_PATH = 260;
+
+        public bool Loaded => Everything_IsDBLoaded();
+
         public uint LastError => Everything_GetLastError();
 
         public IEnumerable<string> GetFiles(string path, string pattern = "*.*", bool nested = false)
@@ -566,11 +633,10 @@ namespace PixivWPF.Common
             var result = new List<string>();
             try
             {
-                Everything_Reset();
-                if (nested)
-                    Everything_SetSearchW($"file:{System.IO.Path.Combine(path, pattern)}");
-                else
-                    Everything_SetSearchW($"file:{System.IO.Path.Combine(path, pattern)} parent:{path}");
+                var query = nested ? $"file:{path.TrimEnd('\\')}\\ {pattern}" : $"file:{System.IO.Path.Combine(path, pattern)} parent:{path}";
+                
+                //Everything_Reset();
+                Everything_SetSearchW(query);
                 Everything_SetMatchPath(true);
                 Everything_SetRequestFlags(EVERYTHING_REQUEST_FILE_NAME | EVERYTHING_REQUEST_PATH | EVERYTHING_REQUEST_DATE_MODIFIED | EVERYTHING_REQUEST_SIZE);
                 Everything_SetSort(EVERYTHING_SORT_NAME_ASCENDING);
@@ -579,8 +645,8 @@ namespace PixivWPF.Common
                 var count = Everything_GetNumResults();
                 for (uint i = 0; i < count; i++)
                 {
-                    var fullpath = new StringBuilder(260);
-                    Everything_GetResultFullPathName(i, fullpath, 260);
+                    var fullpath = new StringBuilder(MAX_PATH);
+                    Everything_GetResultFullPathName(i, fullpath, MAX_PATH);
                     result.Add(fullpath.ToString().Replace(path, "").TrimStart('\\'));
                     //var f = Marshal.PtrToStringUni(Everything_GetResultFileName(i));
                     //result.Add(Marshal.PtrToStringUni(Everything_GetResultFileName(i)));
@@ -590,12 +656,38 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public bool FileExists(string path, string pattern = "*.*")
+        public IEnumerable<string> EnumerateFiles(string path, string pattern = "*.*", bool nested = false)
+        {
+            var result = new List<string>();
+            try
+            {
+                var query = nested ? $"file:{path.TrimEnd('\\')}\\ {pattern}" : $"file:{System.IO.Path.Combine(path, pattern)} parent:{path}";
+
+                //Everything_Reset();
+                Everything_SetSearchW(query);
+                Everything_SetMatchPath(true);
+                Everything_SetRequestFlags(EVERYTHING_REQUEST_FILE_NAME | EVERYTHING_REQUEST_PATH | EVERYTHING_REQUEST_DATE_MODIFIED | EVERYTHING_REQUEST_SIZE);
+                Everything_SetSort(EVERYTHING_SORT_NAME_ASCENDING);
+                Everything_QueryW(true);
+
+            }
+            catch (Exception ex) { ex.ERROR("EverythingGetFiles"); }
+
+            var count = Everything_GetNumResults();
+            for (uint i = 0; i < count; i++)
+            {
+                var fullpath = new StringBuilder(MAX_PATH);
+                Everything_GetResultFullPathName(i, fullpath, MAX_PATH);
+                yield return (fullpath.ToString().Replace(path, "").TrimStart('\\'));
+            }
+        }
+
+        public bool FileExists(string path, string pattern = "*.*", bool nested = false)
         {
             var result = false;
             try
             {
-                var files = GetFiles(path, pattern);
+                var files = GetFiles(path, pattern, nested);
                 result = files.Any();
             }
             catch (Exception ex)
