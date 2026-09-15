@@ -47,6 +47,14 @@ namespace PixivWPF.Common
             }
         }
 
+        #region File Exists
+        public bool FileExists(string path, string pattern = "*.*", bool nested = false)
+        {
+            return (Environment.Is64BitProcess ? everything64?.FileExists(path, pattern, nested) : everything32?.FileExists(path, pattern, nested)) ?? false;
+        }
+        #endregion
+
+        #region Get Files
         public IEnumerable<string> GetFiles(string path, string pattern = "*.*", bool nested = false)
         {
             var result = new List<string>();
@@ -81,7 +89,48 @@ namespace PixivWPF.Common
             var result = files.Where(f => Regex.IsMatch(f, $"\\{pattern}", RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f));
             foreach (var f in result) yield return (f);
         }
-        
+        #endregion
+
+        #region Update Files
+        private CancellationTokenSource _cancel_update_ = new();
+        private SemaphoreSlim _update_files_ = new(1, 1);
+        public async Task<bool> UpdateFilesAsync(string path, string pattern = "*.*", bool nested = false)
+        {
+            var result = false;
+            _cancel_update_ ??= new();
+            _cancel_update_.Cancel();
+            await Task.Delay(50);
+            _cancel_update_ = new();
+            try
+            {
+                result = await Task.Run(async () =>
+                {
+                    var ret = false;
+                    if (await _update_files_?.WaitAsync(TimeSpan.FromSeconds(5), _cancel_update_?.Token ?? CancellationToken.None))
+                    {
+                        try
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(5), _cancel_update_.Token);
+                            _cancel_update_.Token.ThrowIfCancellationRequested();
+                            ret = UpdateFiles(path, pattern, nested);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            // Handle cancellation if needed
+                            "Update Canceled".DEBUG("EverythingUpdateFiles");
+                        }
+                        finally
+                        {
+                            if (_update_files_?.CurrentCount == 0) _update_files_?.Release();
+                        }
+                    }
+                    return (ret);
+                }, _cancel_update_?.Token ?? CancellationToken.None);
+            }
+            catch (Exception ex) { ex.ERROR("EverythingUpdateFilesAsync"); }
+            return (result);
+        }
+
         public bool UpdateFiles(string path, string pattern = "*.*", bool nested = false)
         {
             var result = false;
@@ -106,39 +155,40 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private CancellationTokenSource _cancel_update_ = new();
-        private SemaphoreSlim _update_files_ = new(1, 1);
-        public async void UpdateFilesAsync(string path, string pattern = "*.*", bool nested = false)
+        private SemaphoreSlim _update_file_ = new(1, 1);
+        public async Task<bool> UpdateFileAsync(string file_new, string file_old = "", WatcherChangeTypes change = WatcherChangeTypes.All)
         {
-            _cancel_update_ ??= new();
-            _cancel_update_.Cancel();
-            await Task.Delay(50);
-            _cancel_update_ = new();
+            var result = false;
             try
             {
-                await Task.Run(async () =>
+                _update_file_ ??= new(1, 1);
+                result = await Task.Run(async () =>
                 {
-                    if (await _update_files_?.WaitAsync(TimeSpan.FromSeconds(5), _cancel_update_.Token))
+                    var ret = false;
+                    if (await _update_file_?.WaitAsync(TimeSpan.FromSeconds(5), _cancel_update_?.Token ?? CancellationToken.None))
                     {
                         try
                         {
-                            await Task.Delay(TimeSpan.FromSeconds(5), _cancel_update_.Token);
-                            _cancel_update_.Token.ThrowIfCancellationRequested();
-                            UpdateFiles(path, pattern, nested);
+                            ret = UpdateFile(file_new, file_old, change);
                         }
                         catch (OperationCanceledException)
                         {
                             // Handle cancellation if needed
-                            "Update Canceled".DEBUG("EverythingUpdateFiles");
+                            if (string.IsNullOrEmpty(file_old.Trim()))
+                                $"Update \"{file_new}\" Canceled".DEBUG("EverythingUpdateFile");
+                            else
+                                $"Update from \"{file_old}\" to \"{file_new}\" Canceled".DEBUG("EverythingUpdateFile");
                         }
                         finally
                         {
-                            if (_update_files_?.CurrentCount == 0) _update_files_?.Release();
+                            if (_update_file_?.CurrentCount == 0) _update_file_?.Release();
                         }
                     }
-                }, _cancel_update_.Token);
+                    return (ret);
+                }, _cancel_update_?.Token ?? CancellationToken.None);
             }
             catch (Exception ex) { ex.ERROR("EverythingUpdateFilesAsync"); }
+            return (result);
         }
 
         public bool UpdateFile(string file_new, string file_old = "", WatcherChangeTypes change = WatcherChangeTypes.All)
@@ -203,43 +253,54 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("EverythingUpdateFile"); }
             return (result);
         }
+        #endregion
 
-        private SemaphoreSlim _update_file_ = new(1, 1);
-        public async void UpdateFileAsync(string file_new, string file_old = "", WatcherChangeTypes change = WatcherChangeTypes.All)
+        #region Refresh Files
+        private CancellationTokenSource _cancel_refresh_ = new();
+        private SemaphoreSlim _refresh_files_ = new(1, 1);
+        public bool Refresh()
         {
-            try
+            var result = true;
+            if (!IsAvailable) return (false);
+            foreach (var path in _files_?.Keys ?? Enumerable.Empty<string>())
             {
-                _update_file_ ??= new(1, 1);
-                await Task.Run(async () =>
-                {
-                    if (await _update_file_?.WaitAsync(TimeSpan.FromSeconds(5), _cancel_update_?.Token ?? CancellationToken.None))
-                    {
-                        try
-                        {
-                            UpdateFile(file_new, file_old, change);
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            // Handle cancellation if needed
-                            if (string.IsNullOrEmpty(file_old.Trim()))
-                                $"Update \"{file_new}\" Canceled".DEBUG("EverythingUpdateFile");
-                            else
-                                $"Update from \"{file_old}\" to \"{file_new}\" Canceled".DEBUG("EverythingUpdateFile");
-                        }
-                        finally
-                        {
-                            if (_update_file_?.CurrentCount == 0) _update_file_?.Release();
-                        }
-                    }
-                }, _cancel_update_?.Token ?? CancellationToken.None);
+                if (_cancel_refresh_?.Token.IsCancellationRequested ?? false) { result = false; break; }
+                result &= UpdateFiles(path);
             }
-            catch (Exception ex) { ex.ERROR("EverythingUpdateFilesAsync"); }
+            return (result);
         }
 
-        public bool FileExists(string path, string pattern = "*.*", bool nested = false)
+        public async Task<bool> RefreshAsync()
         {
-            return (Environment.Is64BitProcess ? everything64?.FileExists(path, pattern, nested) : everything32?.FileExists(path, pattern, nested)) ?? false;
+            var result = false;
+
+            _cancel_refresh_ ??= new();
+            _refresh_files_ ??= new(1, 1);
+
+            if (await _refresh_files_.WaitAsync(TimeSpan.FromSeconds(5), _cancel_refresh_?.Token ?? CancellationToken.None))
+            {
+                try
+                {
+                    result = await Task.Run(async () =>
+                    {
+                        var ret = true;
+                        foreach (var path in _files_?.Keys ?? Enumerable.Empty<string>())
+                        {
+                            if (_cancel_refresh_?.Token.IsCancellationRequested ?? false) { ret = false; break; }
+                            ret &= await Task.Run(() => UpdateFiles(path));
+                        }
+                        return (ret);
+                    }, _cancel_refresh_?.Token ?? CancellationToken.None);
+                }
+                catch (Exception ex) { ex.ERROR("EverythingRefreshAsync"); }
+                finally
+                {
+                    if (_refresh_files_?.CurrentCount == 0) _refresh_files_?.Release();
+                }
+            }
+            return (result);
         }
+        #endregion
     }
 
     internal class Everything32
@@ -451,6 +512,34 @@ namespace PixivWPF.Common
 
         public uint LastError => Everything_GetLastError();
 
+        public bool FileExists(string path, string pattern = "*.*", bool nested = false)
+        {
+            var result = false;
+            try
+            {
+                //var files = GetFiles(path, pattern, nested);
+                //result = files.Any();
+
+                var query = nested ? $"file:{path.TrimEnd('\\')}\\ {pattern}" : $"file:{System.IO.Path.Combine(path, pattern)} parent:{path}";
+
+                //Everything_Reset();
+                Everything_SetSearchW(query);
+                Everything_SetMatchPath(true);
+                Everything_SetRequestFlags(EVERYTHING_REQUEST_FILE_NAME | EVERYTHING_REQUEST_PATH | EVERYTHING_REQUEST_DATE_MODIFIED | EVERYTHING_REQUEST_SIZE);
+                Everything_SetSort(EVERYTHING_SORT_NAME_ASCENDING);
+                Everything_QueryW(true);
+                var count = Everything_GetNumResults();
+                result = count > 0;
+            }
+            catch (Exception ex)
+            {
+                // Handle the exception as needed
+                //Console.WriteLine($"Error checking file existence: {ex.Message}");
+                ex.ERROR("EverythingFileExists");
+            }
+            return (result);
+        }
+
         public IEnumerable<string> GetFiles(string path, string pattern = "*.*", bool nested = false)
         {
             var result = new List<string>();
@@ -505,22 +594,6 @@ namespace PixivWPF.Common
             }
         }
 
-        public bool FileExists(string path, string pattern = "*.*", bool nested = false)
-        {
-            var result = false;
-            try
-            {
-                var files = GetFiles(path, pattern, nested);
-                result = files.Any();
-            }
-            catch (Exception ex)
-            {
-                // Handle the exception as needed
-                //Console.WriteLine($"Error checking file existence: {ex.Message}");
-                ex.ERROR("EverythingFileExists");
-            }
-            return (result);
-        }
     }
 
     internal class Everything64
@@ -731,6 +804,34 @@ namespace PixivWPF.Common
 
         public uint LastError => Everything_GetLastError();
 
+        public bool FileExists(string path, string pattern = "*.*", bool nested = false)
+        {
+            var result = false;
+            try
+            {
+                //var files = GetFiles(path, pattern, nested);
+                //result = files.Any();
+
+                var query = nested ? $"file:{path.TrimEnd('\\')}\\ {pattern}" : $"file:{System.IO.Path.Combine(path, pattern)} parent:{path}";
+
+                //Everything_Reset();
+                Everything_SetSearchW(query);
+                Everything_SetMatchPath(true);
+                Everything_SetRequestFlags(EVERYTHING_REQUEST_FILE_NAME | EVERYTHING_REQUEST_PATH | EVERYTHING_REQUEST_DATE_MODIFIED | EVERYTHING_REQUEST_SIZE);
+                Everything_SetSort(EVERYTHING_SORT_NAME_ASCENDING);
+                Everything_QueryW(true);
+                var count = Everything_GetNumResults();
+                result = count > 0;
+            }
+            catch (Exception ex)
+            {
+                // Handle the exception as needed
+                //Console.WriteLine($"Error checking file existence: {ex.Message}");
+                ex.ERROR("EverythingFileExists");
+            }
+            return (result);
+        }
+
         public IEnumerable<string> GetFiles(string path, string pattern = "*.*", bool nested = false)
         {
             var result = new List<string>();
@@ -785,21 +886,5 @@ namespace PixivWPF.Common
             }
         }
 
-        public bool FileExists(string path, string pattern = "*.*", bool nested = false)
-        {
-            var result = false;
-            try
-            {
-                var files = GetFiles(path, pattern, nested);
-                result = files.Any();
-            }
-            catch (Exception ex)
-            {
-                // Handle the exception as needed
-                //Console.WriteLine($"Error checking file existence: {ex.Message}");
-                ex.ERROR("EverythingFileExists");
-            }
-            return (result);
-        }
     }
 }

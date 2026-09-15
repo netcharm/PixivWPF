@@ -407,6 +407,11 @@
                                 <TextBlock Text="&#xE964;" Style="{DynamicResource MenuItemIcon16}"/>
                             </MenuItem.Icon>
                         </MenuItem>
+                        <MenuItem x:Name="CommandMaintainEverythingCache" x:Uid="CommandMaintainEverythingCache" Header="Maintain Everything Cache" Click="CommandApplication_Click" >
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE7C5;" Style="{DynamicResource MenuItemIcon16}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
                         <MenuItem x:Name="CommandMaintainDetailPage" x:Uid="CommandMaintainDetailPage" Header="Maintain Detail Display" Click="CommandApplication_Click" >
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE12A;" Style="{DynamicResource MenuItemIcon16}"/>

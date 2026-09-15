@@ -58,6 +58,7 @@ namespace PixivWPF.Common
     using MahApps.Metro.Controls.Dialogs;
     using Microsoft.Win32;
     using Microsoft.WindowsAPICodePack.Dialogs;
+    using MS.WindowsAPICodePack.Internal;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using NLog.Filters;
@@ -908,21 +909,39 @@ namespace PixivWPF.Common
             }
             return PropertiesMap;
         }
+        #endregion
 
+        #region Everything Helper
         static private Everything _everything_instcnce_ = new();
-        static public IEnumerable<string> GetFiles(this DirectoryInfo folder, string pattern, bool nested = false)
-        {
-            return (GetFiles(folder.FullName, pattern, nested));
-        }
 
         static public IEnumerable<FileInfo> GetFileInfos(this DirectoryInfo folder, string pattern, bool nested = false)
         {
             return (GetFiles(folder.FullName, pattern, nested).Select(f => new FileInfo(f)));
         }
 
+        static public IEnumerable<FileInfo> EnumerateFileInfos(this DirectoryInfo folder, string pattern, bool nested = false)
+        {
+            return (EnumerateFiles(folder.FullName, pattern, nested).Select(f => new FileInfo(f)));
+        }
+
         static public IEnumerable<FileInfo> GetFileInfos(this string folder, string pattern, bool nested = false)
         {
             return (GetFiles(folder, pattern, nested).Select(f => new FileInfo(f)));
+        }
+
+        static public IEnumerable<FileInfo> EnumerateFileInfos(this string folder, string pattern, bool nested = false)
+        {
+            return (EnumerateFiles(folder, pattern, nested).Select(f => new FileInfo(f)));
+        }
+
+        static public IEnumerable<string> GetFiles(this DirectoryInfo folder, string pattern, bool nested = false)
+        {
+            return (GetFiles(folder.FullName, pattern, nested));
+        }
+
+        static public IEnumerable<string> EnumerateFiles(this DirectoryInfo folder, string pattern, bool nested = false)
+        {
+            return (EnumerateFiles(folder.FullName, pattern, nested));
         }
 
         static public IEnumerable<string> GetFiles(this string folder, string pattern, bool nested = false)
@@ -931,19 +950,51 @@ namespace PixivWPF.Common
             _everything_instcnce_ ??= new();
             if (setting.UsingEverything && (_everything_instcnce_?.IsAvailable ?? false))
             {
-                result = _everything_instcnce_.GetFiles(folder, pattern, nested).ToList();
+                result = [.. _everything_instcnce_.GetFiles(folder, pattern, nested).NaturalSort()];
             }
             else
             {
-                result = Directory.EnumerateFiles(folder, pattern, nested ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).NaturalSort().ToList();
+                result = [.. Directory.GetFiles(folder, pattern, nested ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).NaturalSort()];
             }
             return (result);
         }
 
-        static private bool FileExists(string folder, string pattern, bool nested = false)
+        static public IEnumerable<string> EnumerateFiles(this string folder, string pattern, bool nested = false)
         {
-            var files = GetFiles(folder, pattern, nested);
-            return (files.Any());
+            _everything_instcnce_ ??= new();
+            if (setting.UsingEverything && (_everything_instcnce_?.IsAvailable ?? false))
+            {
+                return (_everything_instcnce_.EnumerateFiles(folder, pattern, nested).NaturalSort());
+            }
+            else
+            {
+                return (Directory.EnumerateFiles(folder, pattern, nested ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).NaturalSort());
+            }
+        }
+
+        static public bool FileExists(string folder, string pattern, bool nested = false)
+        {
+            var result = false;
+            _everything_instcnce_ ??= new();
+            if (setting.UsingEverything && (_everything_instcnce_?.IsAvailable ?? false))
+            {
+                result = _everything_instcnce_?.FileExists(folder, pattern, nested) ?? false;
+            }
+            else
+            {
+                var files = GetFiles(folder, pattern, nested);
+                result = files.Any();
+            }
+            return (result);
+        }
+
+        static public void RefreshEverything()
+        {
+            _everything_instcnce_ ??= new();
+            if (setting.UsingEverything && (_everything_instcnce_?.IsAvailable ?? false))
+            {
+                _everything_instcnce_?.RefreshAsync();
+            }
         }
         #endregion
 
@@ -6887,7 +6938,8 @@ namespace PixivWPF.Common
                             else if (!orig)
                             {
                                 //var files = Directory.EnumerateFiles(folder, $"{id}{sep}.*", nested);
-                                var files = GetFiles(folder, $"{id}{sep}.*", local.IncludeSubFolder);
+                                //var files = GetFiles(folder, $"{id}{sep}.*", local.IncludeSubFolder);
+                                var files = EnumerateFiles(folder, $"{id}{sep}.*", local.IncludeSubFolder);
                                 if (files.Count() > 0)
                                 {
                                     //filepath = Path.Combine(folder, $"{id}{Path.GetExtension(f)}");
@@ -6908,7 +6960,8 @@ namespace PixivWPF.Common
                             else if (!orig)
                             {
                                 //var files = Directory.EnumerateFiles(folder, $"{id}{sep}.*", nested);
-                                var files = GetFiles(folder, $"{id}{sep}.*", local.IncludeSubFolder);
+                                //var files = GetFiles(folder, $"{id}{sep}.*", local.IncludeSubFolder);
+                                var files = EnumerateFiles(folder, $"{id}{sep}.*", local.IncludeSubFolder);
                                 if (files.Count() > 0)
                                 {
                                     //filepath = Path.Combine(folder, $"{id}{Path.GetExtension(f)}");
@@ -7065,7 +7118,8 @@ namespace PixivWPF.Common
 
                         var fn = Path.GetFileNameWithoutExtension(file_s);
                         //var files = Directory.EnumerateFiles(folder, $"{id}*_*.*", nested).NaturalSort();
-                        var files = GetFiles(folder, $"{id}*_*.*", local.IncludeSubFolder);
+                        //var files = GetFiles(folder, $"{id}*_*.*", local.IncludeSubFolder);
+                        var files = EnumerateFiles(folder, $"{id}*_*.*", local.IncludeSubFolder);
                         if (files.Count() > 0)
                         {
                             if (touch) { files.Skip(1).TouchAsync(url, meta: touch); }
@@ -7075,7 +7129,8 @@ namespace PixivWPF.Common
                         if (result) break;
 
                         //files = Directory.EnumerateFiles(folder, $"{id}*.*", nested).NaturalSort();
-                        files = GetFiles(folder, $"{id}*_*.*", local.IncludeSubFolder);
+                        //files = GetFiles(folder, $"{id}*_*.*", local.IncludeSubFolder);
+                        files = EnumerateFiles(folder, $"{id}*_*.*", local.IncludeSubFolder);
                         if (files.Count() > 0)
                         {
                             if (touch) { files.Skip(1).TouchAsync(url, meta: touch); }
@@ -12377,9 +12432,9 @@ namespace PixivWPF.Common
             try
             {
                 if (descending)
-                    return (list is IList<string> ? list.OrderByDescending(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
+                    return (list is not null ? [.. list.OrderByDescending(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0')))] : list);
                 else
-                    return (list is IList<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
+                    return (list is not null ? [.. list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0')))] : list);
             }
             catch (Exception ex) { ex.Message.ERROR("NaturalSort_String"); ; return (list); }
         }
@@ -12401,9 +12456,9 @@ namespace PixivWPF.Common
             try
             {
                 if (descending)
-                    return (list is IEnumerable<string> ? list.OrderByDescending(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
+                    return (list is not null ? list.OrderByDescending(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
                 else
-                    return (list is IEnumerable<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
+                    return (list is not null ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
             }
             catch (Exception ex) { ex.Message.ERROR("NaturalSort_String"); return (list); }
         }
@@ -12413,9 +12468,9 @@ namespace PixivWPF.Common
             try
             {
                 if (descending)
-                    return (list is IEnumerable<FileInfo> ? list.OrderByDescending(x => NormalizationFileName(x.FullName, padding)) : list);
+                    return (list is not null ? list.OrderByDescending(x => NormalizationFileName(x.FullName, padding)) : list);
                 else
-                    return (list is IEnumerable<FileInfo> ? list.OrderBy(x => NormalizationFileName(x.FullName, padding)) : list);
+                    return (list is not null ? list.OrderBy(x => NormalizationFileName(x.FullName, padding)) : list);
             }
             catch (Exception ex) { ex.Message.ERROR("NaturalSort_FileInfo"); return (list); }
         }

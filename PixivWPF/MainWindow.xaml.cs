@@ -730,6 +730,8 @@ namespace PixivWPF
                 Commands.MaintainNetwork.Execute(null);
             else if (sender == CommandMaintainMemoryUsage)
                 Commands.MaintainMemoryUsage.Execute(null);
+            else if (sender == CommandMaintainEverythingCache)
+                Commands.MaintainEverythingCache.Execute(null);
             else if (sender == CommandMaintainDetailPage)
                 Commands.MaintainDetailPage.Execute(null);
             else if (sender == CommandMaintainHiddenWindow)

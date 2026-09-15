@@ -647,6 +647,15 @@ namespace PixivWPF.Common
             catch (TaskCanceledException) { "Global Canceled".DEBUG("DelayGC"); }
             catch (Exception ex) { ex.ERROR("DelayGC"); }
         }
+
+        static public void RefreshEverythingCache(this Application app)
+        {
+            var setting = LoadSetting(app);
+            if (setting.UsingEverything)
+            {
+                CommonHelper.RefreshEverything();
+            }
+        }
         #endregion
 
         #region Application Config files Watchdog

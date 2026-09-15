@@ -349,6 +349,14 @@ namespace PixivWPF.Common
             }).InvokeAsync(true);
         });
 
+        static public ICommand MaintainEverythingCache { get; } = new DelegateCommand<string>(async obj =>
+        {
+            await new Action(() =>
+            {
+                Application.Current.RefreshEverythingCache();
+            }).InvokeAsync(true);
+        });
+
         static public ICommand AlignWindow { get; } = new DelegateCommand<WindowLocation>(obj =>
         {
             if (obj is WindowLocation && obj.Win is Window)
