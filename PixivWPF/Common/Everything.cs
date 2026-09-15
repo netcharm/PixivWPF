@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -13,10 +14,12 @@ namespace PixivWPF.Common
 {
     internal class Everything
     {
-        private Everything32 everything32;
-        private Everything64 everything64;
+        private readonly Everything32 everything32;
+        private readonly Everything64 everything64;
 
-        private ConcurrentDictionary<string, List<string>> _files_;
+        //private ConcurrentDictionary<string, List<string>> _files_;
+        private ConcurrentDictionary<string, Dictionary<string, bool>> _files_;
+        private ConcurrentDictionary<string, bool> _files_nested_;
 
         public bool IsAvailable
         {
@@ -60,41 +63,50 @@ namespace PixivWPF.Common
             var result = new List<string>();
             //
             _files_ ??= new();
+            _files_nested_ ??= new();
             if (_files_.IsEmpty || !_files_.ContainsKey(path) || _files_[path] == null || !_files_[path].Any())
             {
-                UpdateFiles(path, pattern, nested);
-                ////var files = Environment.Is64BitProcess ? everything64?.GetFiles(path, pattern) : everything32?.GetFiles(path, pattern);
-                //var files = Environment.Is64BitProcess ? everything64?.GetFiles(path, "*.*", nested) : everything32?.GetFiles(path, "*.*", nested);
-                //if (files.Any())
-                //{
-                //    _files_[path] = [];
-                //    if (nested) 
-                //        _files_[path].AddRange(files);
-                //    else
-                //        _files_[path].AddRange(files.Where(f => string.IsNullOrEmpty(System.IO.Path.GetDirectoryName(f))));
-                //    $"Get {result.Count} Files".DEBUG("EverythingGetFiles");
-                //}
+                UpdateFiles(path, nested);
             }
             if (_files_.ContainsKey(path))
             {
-                //result = nested ? [.. _files_[path].Where(f => f.StartsWith(path, StringComparison.CurrentCultureIgnoreCase))] : [.. _files_[path]];
-                result = [.. _files_[path].Where(f => Regex.IsMatch(f, $"\\{pattern}", RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f))];
+                result = [.. _files_[path].Where(f => Regex.IsMatch(f.Key, $"\\{pattern}", RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f.Key))];
             }
             return (result);
         }
 
         public IEnumerable<string> EnumerateFiles(string path, string pattern = "*.*", bool nested = false)
         {
-            var files = Environment.Is64BitProcess ? everything64?.EnumerateFiles(path, "*.*", nested) : everything32?.EnumerateFiles(path, "*.*", nested);
-            var result = files.Where(f => Regex.IsMatch(f, $"\\{pattern}", RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f));
-            foreach (var f in result) yield return (f);
+            _files_ ??= new();
+            _files_nested_ ??= new();
+            _files_nested_[path] = nested;
+
+            var prefix = nested ? $"{System.IO.Path.PathSeparator}" : "";
+            if (_files_.IsEmpty || !_files_.ContainsKey(path) || _files_[path] == null || !_files_[path].Any())
+            {
+                _files_[path] ??= [];
+                var files = Environment.Is64BitProcess ? everything64?.EnumerateFiles(path, "*.*", nested) : everything32?.EnumerateFiles(path, "*.*", nested);
+                foreach (var f in files)
+                {
+                    _files_[path][f] = nested;
+                    if (Regex.IsMatch(f, $"{prefix}{pattern}", RegexOptions.IgnoreCase))
+                    {
+                        yield return (System.IO.Path.Combine(path, f));
+                    }
+                }
+            }
+            else if (_files_?.ContainsKey(path) ?? false)
+            {
+                var result = _files_[path].Where(f => Regex.IsMatch(f.Key, $"{prefix}{pattern}", RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f.Key));
+                foreach (var f in result) { yield return (f); }
+            }
         }
         #endregion
 
         #region Update Files
         private CancellationTokenSource _cancel_update_ = new();
-        private SemaphoreSlim _update_files_ = new(1, 1);
-        public async Task<bool> UpdateFilesAsync(string path, string pattern = "*.*", bool nested = false)
+        private readonly SemaphoreSlim _update_files_ = new(1, 1);
+        public async Task<bool> UpdateFilesAsync(string path, bool nested = false)
         {
             var result = false;
             _cancel_update_ ??= new();
@@ -112,7 +124,7 @@ namespace PixivWPF.Common
                         {
                             await Task.Delay(TimeSpan.FromSeconds(5), _cancel_update_.Token);
                             _cancel_update_.Token.ThrowIfCancellationRequested();
-                            ret = UpdateFiles(path, pattern, nested);
+                            ret = UpdateFiles(path, nested);
                         }
                         catch (OperationCanceledException)
                         {
@@ -131,27 +143,28 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public bool UpdateFiles(string path, string pattern = "*.*", bool nested = false)
+        public bool UpdateFiles(string path, bool nested = false)
         {
             var result = false;
-            _files_ ??= new();
             try
             {
+                _files_ ??= new();
+                _files_nested_ ??= new();
+
                 if (_files_.ContainsKey(path)) _files_[path] = [];
                 else _files_.TryAdd(path, []);
+                _files_nested_[path] = nested;
 
                 var files = Environment.Is64BitProcess ? everything64?.GetFiles(path, "*.*", nested) : everything32?.GetFiles(path, "*.*", nested);
                 if (files.Any())
                 {
-                    if (nested)
-                        _files_[path].AddRange(files.Distinct());
-                    else
-                        _files_[path].AddRange(files.Where(f => string.IsNullOrEmpty(System.IO.Path.GetDirectoryName(f))).Distinct());
+                    _files_[path] = files.Distinct().ToDictionary(f => f, f => nested);
                     result = true;
                     $"Update {files.Count()} Files".DEBUG("EverythingUpdateFiles");
                 }
             }
             catch (Exception ex) { ex.ERROR("EverythingUpdateFiles"); }
+            finally { GC.Collect(); }
             return (result);
         }
 
@@ -194,15 +207,17 @@ namespace PixivWPF.Common
         public bool UpdateFile(string file_new, string file_old = "", WatcherChangeTypes change = WatcherChangeTypes.All)
         {
             var result = false;
-            _files_ ??= new();
             try
             {
+                _files_ ??= new();
+                _files_nested_ ??= new();
+                
                 if (string.IsNullOrEmpty(file_new.Trim()) || change == WatcherChangeTypes.All || change == WatcherChangeTypes.Changed) return (false);
 
                 if (!System.IO.Path.IsPathRooted(file_new)) file_new = System.IO.Path.GetFullPath(file_new);
                 var fn_path = System.IO.Path.GetDirectoryName(file_new);
                 var fn_name = System.IO.Path.GetFileName(file_new);
-                foreach (var folder in _files_.Keys.OrderBy(k => k.Length))
+                foreach (var folder in _files_.Keys.OrderByDescending(k => k.Length))
                 {
                     if (file_new.StartsWith(folder, StringComparison.CurrentCultureIgnoreCase))
                     {
@@ -214,7 +229,7 @@ namespace PixivWPF.Common
                 if (!_files_.ContainsKey(fn_path)) _files_[fn_path] = [];
                 if (change == WatcherChangeTypes.Deleted)
                 {
-                    _files_[fn_path].RemoveAll(f => string.Equals(f, fn_name, StringComparison.CurrentCultureIgnoreCase));
+                    _files_[fn_path].Remove(fn_name);
                     result = true;
                     $"Delete File: \"{file_new}\"".DEBUG("EverythingUpdateFile");
                 }
@@ -224,7 +239,7 @@ namespace PixivWPF.Common
                     if (!System.IO.Path.IsPathRooted(file_old)) file_old = System.IO.Path.GetFullPath(file_old);
                     var fo_path = System.IO.Path.GetDirectoryName(file_old);
                     var fo_name = System.IO.Path.GetFileName(file_old);
-                    foreach (var folder in _files_.Keys.OrderBy(k => k.Length))
+                    foreach (var folder in _files_.Keys.OrderByDescending(k => k.Length))
                     {
                         if (file_new.StartsWith(folder, StringComparison.CurrentCultureIgnoreCase))
                         {
@@ -233,14 +248,14 @@ namespace PixivWPF.Common
                             break;
                         }
                     }
-                    _files_[fo_path].RemoveAll(f => string.Equals(f, fo_name, StringComparison.CurrentCultureIgnoreCase));
-                    _files_[fn_path].Add(fn_name);
+                    _files_[fo_path].Remove(fo_name);
+                    _files_[fn_path][fn_name] = _files_nested_[fn_path];
                     result = true;
                     $"Rename File: from \"{file_old}\" to \"{file_new}\"".DEBUG("EverythingUpdateFile");
                 }
                 else if (change == WatcherChangeTypes.Created)
                 {
-                    _files_[fn_path].Add(fn_name);
+                    _files_[fn_path][fn_name] = _files_nested_[fn_path];
                     result = true;
                     $"Change File: \"{file_new}\"".DEBUG("EverythingUpdateFile");
                 }
@@ -265,7 +280,11 @@ namespace PixivWPF.Common
             foreach (var path in _files_?.Keys ?? Enumerable.Empty<string>())
             {
                 if (_cancel_refresh_?.Token.IsCancellationRequested ?? false) { result = false; break; }
-                result &= UpdateFiles(path);
+                try
+                {
+                    result &= UpdateFiles(path, nested: _files_nested_[path]);
+                }
+                catch (Exception ex) { ex.ERROR("RefreshEverythingFiles"); }
             }
             return (result);
         }
@@ -287,12 +306,12 @@ namespace PixivWPF.Common
                         foreach (var path in _files_?.Keys ?? Enumerable.Empty<string>())
                         {
                             if (_cancel_refresh_?.Token.IsCancellationRequested ?? false) { ret = false; break; }
-                            ret &= await Task.Run(() => UpdateFiles(path));
+                            ret &= await Task.Run(() => UpdateFiles(path, nested: _files_nested_[path]));
                         }
                         return (ret);
                     }, _cancel_refresh_?.Token ?? CancellationToken.None);
                 }
-                catch (Exception ex) { ex.ERROR("EverythingRefreshAsync"); }
+                catch (Exception ex) { ex.ERROR("RefreshEverythingFilesAsync"); }
                 finally
                 {
                     if (_refresh_files_?.CurrentCount == 0) _refresh_files_?.Release();
@@ -570,7 +589,6 @@ namespace PixivWPF.Common
 
         public IEnumerable<string> EnumerateFiles(string path, string pattern = "*.*", bool nested = false)
         {
-            var result = new List<string>();
             try
             {
                 var query = nested ? $"file:{path.TrimEnd('\\')}\\ {pattern}" : $"file:{System.IO.Path.Combine(path, pattern)} parent:{path}";
@@ -862,7 +880,6 @@ namespace PixivWPF.Common
 
         public IEnumerable<string> EnumerateFiles(string path, string pattern = "*.*", bool nested = false)
         {
-            var result = new List<string>();
             try
             {
                 var query = nested ? $"file:{path.TrimEnd('\\')}\\ {pattern}" : $"file:{System.IO.Path.Combine(path, pattern)} parent:{path}";
