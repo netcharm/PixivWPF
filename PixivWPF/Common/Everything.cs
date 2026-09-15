@@ -26,9 +26,9 @@ namespace PixivWPF.Common
             get
             {
                 if (Environment.Is64BitProcess)
-                    return (everything64 != null && everything64.Loaded);
+                    return (everything64 != null);// && everything64.Loaded);
                 else
-                    return (everything32 != null && everything32.Loaded);
+                    return (everything32 != null);// && everything32.Loaded);
             }
         }
 
@@ -70,7 +70,7 @@ namespace PixivWPF.Common
             }
             if (_files_.ContainsKey(path))
             {
-                result = [.. _files_[path].Where(f => Regex.IsMatch(f.Key, $"\\{pattern}", RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f.Key))];
+                result = [.. _files_[path].Where(f => Regex.IsMatch(f.Key, $"\\{pattern}", RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f.Key)).Where(f => !f.EndsWith(".TMP", StringComparison.CurrentCultureIgnoreCase))];
             }
             return (result);
         }
@@ -86,7 +86,7 @@ namespace PixivWPF.Common
             {
                 _files_[path] ??= [];
                 var files = Environment.Is64BitProcess ? everything64?.EnumerateFiles(path, "*.*", nested) : everything32?.EnumerateFiles(path, "*.*", nested);
-                foreach (var f in files)
+                foreach (var f in files.Where(f => !f.EndsWith(".TMP", StringComparison.CurrentCultureIgnoreCase)))
                 {
                     _files_[path][f] = nested;
                     if (Regex.IsMatch(f, $"{prefix}{pattern}", RegexOptions.IgnoreCase))
@@ -97,7 +97,7 @@ namespace PixivWPF.Common
             }
             else if (_files_?.ContainsKey(path) ?? false)
             {
-                var result = _files_[path].Where(f => Regex.IsMatch(f.Key, $"{prefix}{pattern}", RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f.Key));
+                var result = _files_[path].Where(f => Regex.IsMatch(f.Key, $"{prefix}{pattern}", RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f.Key)).Where(f => !f.EndsWith(".TMP", StringComparison.CurrentCultureIgnoreCase));
                 foreach (var f in result) { yield return (f); }
             }
         }
@@ -158,7 +158,7 @@ namespace PixivWPF.Common
                 var files = Environment.Is64BitProcess ? everything64?.GetFiles(path, "*.*", nested) : everything32?.GetFiles(path, "*.*", nested);
                 if (files.Any())
                 {
-                    _files_[path] = files.Distinct().ToDictionary(f => f, f => nested);
+                    _files_[path] = files.Where(f => !f.EndsWith(".TMP", StringComparison.CurrentCultureIgnoreCase)).Distinct().ToDictionary(f => f, f => nested);
                     result = true;
                     $"Update {files.Count()} Files".DEBUG("EverythingUpdateFiles");
                 }

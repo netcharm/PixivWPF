@@ -6385,19 +6385,22 @@ namespace PixivWPF.Common
 
         static public async void TouchAsync(this string file, string url, bool local = false, bool meta = false, bool force = false)
         {
-            await new Action(() => { Touch(file, url, local, meta, force); }).InvokeAsync();
+            //await new Action(() => { Touch(file, url, local, meta, force); }).InvokeAsync();
+            await Task.Run(() => { Touch(file, url, local, meta, force); });
         }
 
         static public async void TouchAsync(this PixivItem item, bool local = false, bool meta = true, bool force = false)
         {
-            await new Action(() => { Touch(item, local, meta, force); }).InvokeAsync();
+            //await new Action(() => { Touch(item, local, meta, force); }).InvokeAsync();
+            await Task.Run(() => { Touch(item, local, meta, force); });
         }
 
         static public async void TouchAsync(this IEnumerable<string> files, string url, bool local = false, bool meta = false, bool force = false)
         {
             foreach (var file in files)
             {
-                await new Action(() => { Touch(file, url, local, meta, force); }).InvokeAsync();
+                //await new Action(() => { Touch(file, url, local, meta, force); }).InvokeAsync();
+                await Task.Run(() => { Touch(file, url, local, meta, force); });
             }
         }
 
@@ -6461,7 +6464,7 @@ namespace PixivWPF.Common
 
         internal static bool DownoadedCacheExists(this string file)
         {
-            return (_cachedDownloadedList.ContainsKey(file) || File.Exists(file));
+            return (_cachedDownloadedList.ContainsKey(file));// || File.Exists(file));
         }
 
         static private Func<string, bool> DownloadedCacheExistsFunc = x => DownoadedCacheExists(x);
@@ -6947,6 +6950,12 @@ namespace PixivWPF.Common
                                     result = true;
                                     break;
                                 }
+                            }
+                            else if (File.Exists(f))
+                            {
+                                filepath = f;
+                                result = true;
+                                break;
                             }
                         }
                         else
