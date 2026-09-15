@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.ServiceModel.Dispatcher;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Threading;
-
-using NLog.Targets;
 
 namespace PixivWPF.Common
 {
@@ -84,10 +81,10 @@ namespace PixivWPF.Common
             var result = files.Where(f => Regex.IsMatch(f, $"\\{pattern}", RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f));
             foreach (var f in result) yield return (f);
         }
-
-        private CancellationTokenSource _cancel_update_ = new();
-        public void UpdateFiles(string path, string pattern = "*.*", bool nested = false)
+        
+        public bool UpdateFiles(string path, string pattern = "*.*", bool nested = false)
         {
+            var result = false;
             _files_ ??= new();
             try
             {
@@ -98,15 +95,19 @@ namespace PixivWPF.Common
                 if (files.Any())
                 {
                     if (nested)
-                        _files_[path].AddRange(files);
+                        _files_[path].AddRange(files.Distinct());
                     else
-                        _files_[path].AddRange(files.Where(f => string.IsNullOrEmpty(System.IO.Path.GetDirectoryName(f))));
+                        _files_[path].AddRange(files.Where(f => string.IsNullOrEmpty(System.IO.Path.GetDirectoryName(f))).Distinct());
+                    result = true;
                     $"Update {files.Count()} Files".DEBUG("EverythingUpdateFiles");
                 }
             }
             catch (Exception ex) { ex.ERROR("EverythingUpdateFiles"); }
+            return (result);
         }
 
+        private CancellationTokenSource _cancel_update_ = new();
+        private SemaphoreSlim _update_files_ = new(1, 1);
         public async void UpdateFilesAsync(string path, string pattern = "*.*", bool nested = false)
         {
             _cancel_update_ ??= new();
@@ -117,18 +118,120 @@ namespace PixivWPF.Common
             {
                 await Task.Run(async () =>
                 {
-                    try
+                    if (await _update_files_?.WaitAsync(TimeSpan.FromSeconds(5), _cancel_update_.Token))
                     {
-                        await Task.Delay(TimeSpan.FromSeconds(5), _cancel_update_.Token);
-                        _cancel_update_.Token.ThrowIfCancellationRequested();
-                        UpdateFiles(path, pattern, nested);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        // Handle cancellation if needed
-                        "Update Canceled".DEBUG("EverythingUpdateFiles");
+                        try
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(5), _cancel_update_.Token);
+                            _cancel_update_.Token.ThrowIfCancellationRequested();
+                            UpdateFiles(path, pattern, nested);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            // Handle cancellation if needed
+                            "Update Canceled".DEBUG("EverythingUpdateFiles");
+                        }
+                        finally
+                        {
+                            if (_update_files_?.CurrentCount == 0) _update_files_?.Release();
+                        }
                     }
                 }, _cancel_update_.Token);
+            }
+            catch (Exception ex) { ex.ERROR("EverythingUpdateFilesAsync"); }
+        }
+
+        public bool UpdateFile(string file_new, string file_old = "", WatcherChangeTypes change = WatcherChangeTypes.All)
+        {
+            var result = false;
+            _files_ ??= new();
+            try
+            {
+                if (string.IsNullOrEmpty(file_new.Trim()) || change == WatcherChangeTypes.All || change == WatcherChangeTypes.Changed) return (false);
+
+                if (!System.IO.Path.IsPathRooted(file_new)) file_new = System.IO.Path.GetFullPath(file_new);
+                var fn_path = System.IO.Path.GetDirectoryName(file_new);
+                var fn_name = System.IO.Path.GetFileName(file_new);
+                foreach (var folder in _files_.Keys.OrderBy(k => k.Length))
+                {
+                    if (file_new.StartsWith(folder, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        fn_path = folder;
+                        fn_name = file_new.Substring(folder.Length).TrimStart('\\');
+                        break;
+                    }
+                }
+                if (!_files_.ContainsKey(fn_path)) _files_[fn_path] = [];
+                if (change == WatcherChangeTypes.Deleted)
+                {
+                    _files_[fn_path].RemoveAll(f => string.Equals(f, fn_name, StringComparison.CurrentCultureIgnoreCase));
+                    result = true;
+                    $"Delete File: \"{file_new}\"".DEBUG("EverythingUpdateFile");
+                }
+                else if (change == WatcherChangeTypes.Renamed && !string.IsNullOrEmpty(file_old.Trim()))
+                {
+                    // Handle rename logic if needed
+                    if (!System.IO.Path.IsPathRooted(file_old)) file_old = System.IO.Path.GetFullPath(file_old);
+                    var fo_path = System.IO.Path.GetDirectoryName(file_old);
+                    var fo_name = System.IO.Path.GetFileName(file_old);
+                    foreach (var folder in _files_.Keys.OrderBy(k => k.Length))
+                    {
+                        if (file_new.StartsWith(folder, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            fo_path = folder;
+                            fo_name = file_new.Substring(folder.Length).TrimStart('\\');
+                            break;
+                        }
+                    }
+                    _files_[fo_path].RemoveAll(f => string.Equals(f, fo_name, StringComparison.CurrentCultureIgnoreCase));
+                    _files_[fn_path].Add(fn_name);
+                    result = true;
+                    $"Rename File: from \"{file_old}\" to \"{file_new}\"".DEBUG("EverythingUpdateFile");
+                }
+                else if (change == WatcherChangeTypes.Created)
+                {
+                    _files_[fn_path].Add(fn_name);
+                    result = true;
+                    $"Change File: \"{file_new}\"".DEBUG("EverythingUpdateFile");
+                }
+                else
+                {
+                    //if (!_files_[path].Contains(filename)) _files_[path].Add(filename);
+                    //$"Add/Update File: {file}".DEBUG("EverythingUpdateFile");
+                }
+            }
+            catch (Exception ex) { ex.ERROR("EverythingUpdateFile"); }
+            return (result);
+        }
+
+        private SemaphoreSlim _update_file_ = new(1, 1);
+        public async void UpdateFileAsync(string file_new, string file_old = "", WatcherChangeTypes change = WatcherChangeTypes.All)
+        {
+            try
+            {
+                _update_file_ ??= new(1, 1);
+                await Task.Run(async () =>
+                {
+                    if (await _update_file_?.WaitAsync(TimeSpan.FromSeconds(5), _cancel_update_?.Token ?? CancellationToken.None))
+                    {
+                        try
+                        {
+                            UpdateFile(file_new, file_old, change);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            // Handle cancellation if needed
+                            if (string.IsNullOrEmpty(file_old.Trim()))
+                                $"Update \"{file_new}\" Canceled".DEBUG("EverythingUpdateFile");
+                            else
+                                $"Update from \"{file_old}\" to \"{file_new}\" Canceled".DEBUG("EverythingUpdateFile");
+                        }
+                        finally
+                        {
+                            if (_update_file_?.CurrentCount == 0) _update_file_?.Release();
+                        }
+                    }
+                }, _cancel_update_?.Token ?? CancellationToken.None);
             }
             catch (Exception ex) { ex.ERROR("EverythingUpdateFilesAsync"); }
         }

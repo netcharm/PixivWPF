@@ -6481,6 +6481,8 @@ namespace PixivWPF.Common
                                 e.FullPath.DownloadedCacheAdd();
                                 UpdateDownloadStateAsync(GetIllustId(e.Name), true);
                                 lastDownloadEventTick = DateTime.Now;
+                                if (setting.UsingEverything && (_everything_instcnce_?.IsAvailable ?? false))
+                                    _everything_instcnce_?.UpdateFileAsync(e.FullPath, "", e.ChangeType);
                             }
                         }
                     }
@@ -6504,16 +6506,18 @@ namespace PixivWPF.Common
                             e.FullPath.DownloadedCacheRemove();
                             UpdateDownloadStateAsync(GetIllustId(e.Name), false);
                             lastDownloadEventTick = DateTime.Now;
+                            if (setting.UsingEverything && (_everything_instcnce_?.IsAvailable ?? false))
+                                _everything_instcnce_?.UpdateFileAsync(e.FullPath, "", e.ChangeType);
                         }
                     }
                 }
-                if (e.ChangeType != WatcherChangeTypes.All && e.ChangeType != WatcherChangeTypes.Renamed && setting.UsingEverything && _everything_instcnce_.IsAvailable)
-                {
-                    var path = Path.GetDirectoryName(System.IO.Path.GetDirectoryName(e.FullPath));
-                    var storage = setting.LocalStorage.Where(f => f.Folder.Equals(path, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
-                    var nested = storage?.IncludeSubFolder ?? false;
-                    _everything_instcnce_.UpdateFilesAsync(path, "*.*", nested);
-                }
+                //if (e.ChangeType != WatcherChangeTypes.All && e.ChangeType != WatcherChangeTypes.Renamed && setting.UsingEverything && _everything_instcnce_.IsAvailable)
+                //{
+                //    var path = Path.GetDirectoryName(System.IO.Path.GetDirectoryName(e.FullPath));
+                //    var storage = setting.LocalStorage.Where(f => f.Folder.Equals(path, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
+                //    var nested = storage?.IncludeSubFolder ?? false;
+                //    _everything_instcnce_.UpdateFilesAsync(path, "*.*", nested);
+                //}
             }
             catch (Exception ex) { ex.ERROR("DOWNLOADWATCHER"); }
             finally
@@ -6544,12 +6548,13 @@ namespace PixivWPF.Common
                         UpdateDownloadStateAsync(GetIllustId(e.Name));
                         lastDownloadEventTick = DateTime.Now;
                     }
-                    if (setting.UsingEverything && _everything_instcnce_.IsAvailable)
+                    if (setting.UsingEverything && (_everything_instcnce_?.IsAvailable ?? false))
                     {
-                        var path = Path.GetDirectoryName(System.IO.Path.GetDirectoryName(e.FullPath));
-                        var storage = setting.LocalStorage.Where(f => f.Folder.Equals(path, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
-                        var nested = storage?.IncludeSubFolder ?? false;
-                        _everything_instcnce_.UpdateFilesAsync(path, "*.*", nested);
+                        _everything_instcnce_?.UpdateFileAsync(e.FullPath, e.OldFullPath, e.ChangeType);
+                        //var path = Path.GetDirectoryName(System.IO.Path.GetDirectoryName(e.FullPath));
+                        //var storage = setting.LocalStorage.Where(f => f.Folder.Equals(path, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
+                        //var nested = storage?.IncludeSubFolder ?? false;
+                        //_everything_instcnce_?.UpdateFilesAsync(path, "*.*", nested);
                     }
                 }
             }
