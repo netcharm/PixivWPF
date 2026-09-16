@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -1062,7 +1063,7 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR("UpdateDownloadedMark"); }
         }
 
-        private void UpdateDownloadedMark(PixivItem item, bool? exists = null, bool? downloaded = null)
+        private async void UpdateDownloadedMark(PixivItem item, bool? exists = null, bool? downloaded = null)
         {
             try
             {
@@ -1073,7 +1074,9 @@ namespace PixivWPF.Pages
                     var count = item.Count;
                     if (count > 1 && index < 0)
                     {
-                        var download = downloaded ?? item.Illust.IsPartDownloadedAsync(out fp, touch: exists ?? false);
+                        var state = await item.Illust.IsPartDownloadedAsync(touch: exists ?? false);
+                        fp = state.Path;
+                        var download = downloaded ?? state.Exists;
                         item.IsDownloaded = download;
                         if (download)
                         {
@@ -1094,7 +1097,9 @@ namespace PixivWPF.Pages
                     }
                     else
                     {
-                        var download = downloaded ?? item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(out fp, (item.Illust.PageCount ?? 0) <= 1, touch: exists ?? false);
+                        var state = await item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync((item.Illust.PageCount ?? 0) <= 1, touch: exists ?? false);
+                        fp = state.Path;
+                        var download = downloaded ?? state.Exists;
                         item.IsDownloaded = download;
                         if (download)
                         {
@@ -2269,14 +2274,17 @@ namespace PixivWPF.Pages
                 FavoriteNextPage.Hide();
                 FavoriteItemsExpander.IsExpanded = false;
 
-                await Task.Delay(1);
+                //await Task.Delay(1);
+                await Task.Yield();
                 this.DoEvents();
                 ActionRefreshAvatar();
-                await Task.Delay(1);
+                //await Task.Delay(1);
+                await Task.Yield();
                 this.DoEvents();
                 user_backgroundimage_url = nprof.background_image_url is string ? nprof.background_image_url as string : nuser.GetPreviewUrl();
                 UpdateUserBackground();
-                await Task.Delay(1);
+                //await Task.Delay(1);
+                await Task.Yield();
                 this.DoEvents();
             }
             catch (Exception ex)
@@ -2370,7 +2378,10 @@ namespace PixivWPF.Pages
                     if (SubIllusts.SelectedIndex != index) SubIllusts.SelectedIndex = index;
                     UpdateDownloadedMark(SubIllusts.SelectedItem);
 
-                    this.DoEvents();
+                    this.DoEvents();                     
+                    await Task.Yield();
+                    await Task.Delay(250);
+
                     if (ParentWindow is MainWindow) SubIllusts.UpdateTilesImage(touch: false);
                     else if (ParentWindow is ContentWindow) UpdateThumb(prefetching: PrefetchingImagesTask.State == TaskStatus.Created);
                 }
@@ -2475,6 +2486,9 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                         this.DoEvents();
+                        await Task.Yield();
+                        await Task.Delay(250);
+
                         //RelatedItems.UpdateTilesImage();
                         if (related.illusts.Count() <= 0) "No Result".ShowToast("INFO", tag: "ShowRelated");
                         else UpdateThumb();
@@ -2611,6 +2625,9 @@ namespace PixivWPF.Pages
                                     this.DoEvents();
                                 }
                                 this.DoEvents();
+                                await Task.Yield();
+                                await Task.Delay(250);
+
                                 //RelatedItems.UpdateTilesImage();
                                 if (related.illusts.Count() <= 0) { "No Result".ShowToast("INFO", tag: "ShowUserWorks"); break; }
                                 else UpdateThumb(prefetching: !append_all);
@@ -2719,6 +2736,9 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                         this.DoEvents();
+                        await Task.Yield();
+                        await Task.Delay(250);
+
                         //FavoriteItems.UpdateTilesImage();
                         if (favorites.illusts.Count() <= 0) "No Result".ShowToast("INFO", tag: "ShowFavorite");
                         else UpdateThumb();
@@ -3059,6 +3079,10 @@ namespace PixivWPF.Pages
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             ParentWindow = Window.GetWindow(this);
+
+            SubIllusts.Tiles.SortDescriptions.Clear();
+            SubIllusts.Tiles.SortDescriptions.Add(new SortDescription("Index", ListSortDirection.Ascending));
+            SubIllusts.Tiles.IsLiveSorting = true;
 
             RelatedItems.Columns = 5;
             FavoriteItems.Columns = 5;
@@ -4210,7 +4234,7 @@ namespace PixivWPF.Pages
                         if (item.IsWork())
                         {
                             var illust = Contents.ID.FindIllust();
-                            if (illust.IsWork()) item = illust.WorkItem();
+                            if (illust.IsWork()) item = await illust.WorkItem();
                         }
                         else if (item.IsUser())
                         {
@@ -4225,7 +4249,7 @@ namespace PixivWPF.Pages
                         if (item.IsWork())
                         {
                             var illust = Contents.ID.FindIllust();
-                            if (illust.IsWork()) item = illust.WorkItem();
+                            if (illust.IsWork()) item = await illust.WorkItem();
                         }
                         else if (item.IsUser())
                         {
@@ -4274,7 +4298,7 @@ namespace PixivWPF.Pages
                         if (illust.IsWork())
                         {
                             if (!illust.HasMetadata()) illust.Metadata = await illust.GetMetaData(null);
-                            Contents = illust.WorkItem();
+                            Contents = await illust.WorkItem();
                             ShowIllustPagesAsync(Contents, force: true);
                         }
                     }
@@ -4997,7 +5021,7 @@ namespace PixivWPF.Pages
             UpdateIllustStateInfo(querysize: false);
         }
 
-        private void ActionSaveIllustAll_Click(object sender, RoutedEventArgs e)
+        private async void ActionSaveIllustAll_Click(object sender, RoutedEventArgs e)
         {
             setting = Application.Current.LoadSetting();
             var uid = sender.GetUid();
@@ -5014,7 +5038,7 @@ namespace PixivWPF.Pages
 
             if (Contents.IsWork() && Contents.Count > 0)
             {
-                var item = new KeyValuePair<PixivItem, DownloadType>(Contents.Illust.WorkItem(), type);
+                var item = new KeyValuePair<PixivItem, DownloadType>(await Contents.Illust.WorkItem(), type);
                 if (uid.Equals("ActionConvertIllustJpegAll"))
                     Commands.ConvertToJpeg.Execute(item);
                 else if (uid.Equals("ActionReduceIllustJpegAll"))
@@ -5284,7 +5308,8 @@ namespace PixivWPF.Pages
                     //{
                     //    //comment.
                     //}
-                    await Task.Delay(1);
+                    //await Task.Delay(1);
+                    await Task.Yield();
                     this.DoEvents();
                 }
                 catch (Exception ex) { ex.ERROR("IllustComments"); }
@@ -5905,7 +5930,7 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR("SaveIllusts"); }
         }
 
-        private void ActionSaveIllustsAll_Click(object sender, RoutedEventArgs e)
+        private async void ActionSaveIllustsAll_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -5935,7 +5960,7 @@ namespace PixivWPF.Pages
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
-                            var items = new KeyValuePair<PixivItem, DownloadType>(Contents.Illust.WorkItem(), type);
+                            var items = new KeyValuePair<PixivItem, DownloadType>(await Contents.Illust.WorkItem(), type);
                             if (uid.Equals("ActionConvertIllustsJpegAll"))
                                 Commands.ConvertToJpeg.Execute(items);
                             else if (uid.Equals("ActionReduceIllustsJpegAll"))

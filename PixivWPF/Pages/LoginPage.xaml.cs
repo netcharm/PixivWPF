@@ -144,7 +144,8 @@ namespace PixivWPF.Pages
                         setting.UsingProxy = useproxy;
                         setting.DownloadUsingProxy = useproxydown;
                         setting.Proxy = proxy;
-                        await Task.Delay(1);
+                        //await Task.Delay(1);
+                        await Task.Yield();
                         this.DoEvents();
                         setting.User = user;
                         setting.Pass = pass;

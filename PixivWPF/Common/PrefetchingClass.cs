@@ -384,7 +384,7 @@ namespace PixivWPF.Common
                                         }
                                     }
                                     catch (Exception ex) { ex.ERROR("PREFETCHING"); }
-                                    finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallels) tasks.Release(); this.DoEvents(); await Task.Delay(1); }
+                                    finally { if (tasks?.CurrentCount < parallels) tasks?.Release(); this.DoEvents(); await Task.Yield(); }
                                 }).Invoke(async: false);
                             }
                         }
@@ -528,12 +528,12 @@ namespace PixivWPF.Common
                             Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
                             Comments = $"Prefetching [ {count} / {total}, I:{illusts.Count} / A:{avatars.Count} / T:{page_thumbs.Count} / P:{page_previews.Count} ]";
                             State = TaskStatus.Running;
-                            if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
-                            else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke((double)this.Percentage, Comments, State);
+                            if (ReportProgressSlim is not null) ReportProgressSlim?.Invoke(async: false);
+                            else if (ReportProgress is not null) ReportProgress.Invoke((double)Percentage, Comments, State);
                             this.DoEvents();
                         }
                         catch (Exception ex) { ex.ERROR("PREFETCHING"); }
-                        finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
+                        finally { this.DoEvents(); Task.Yield().GetAwaiter().GetResult(); }
                     });
                     #endregion
                 }
@@ -546,7 +546,7 @@ namespace PixivWPF.Common
                         if (escape.IsEscaped) { e.Cancel = true; break; }
                         if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; break; }
                         if (PrefetchingTaskCancelTokenSource.IsCancellationRequested) { e.Cancel = true; break; }
-                        if (tasks.Wait(-1, PrefetchingTaskCancelTokenSource.Token))
+                        if (tasks.Wait(TimeSpan.FromSeconds(60), PrefetchingTaskCancelTokenSource.Token))
                         {
                             new Action(async () =>
                             {
@@ -584,7 +584,7 @@ namespace PixivWPF.Common
                                     this.DoEvents();
                                 }
                                 catch (Exception ex) { ex.ERROR("PREFETCHING"); }
-                                finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallels) tasks.Release(); this.DoEvents(); await Task.Delay(1); }
+                                finally { if (tasks?.CurrentCount < parallels) tasks?.Release(); this.DoEvents(); await Task.Yield(); }
                             }).Invoke(async: false);
                         }
                     }

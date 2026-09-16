@@ -596,7 +596,8 @@ namespace PixivWPF.Common
 
         public async void Play(PromptBuilder prompt, string locale, bool async = true)
         {
-            await Task.Delay(1);
+            //await Task.Delay(1);
+            await Task.Yield();
             Play(prompt, FindCultureByName(locale), async);
         }
 
@@ -673,7 +674,8 @@ namespace PixivWPF.Common
 
         public async void Play(string text, string locale, bool async = true)
         {
-            await Task.Delay(1);
+            //await Task.Delay(1);
+            await Task.Yield();
             this.DoEvents();
             Play(text, FindCultureByName(locale), async);
         }
@@ -812,7 +814,8 @@ namespace PixivWPF.Common
                         CancelRequested = true;
                         if (lastPrompt is Prompt) synth.SpeakAsyncCancel(lastPrompt);
                         synth.SpeakAsyncCancelAll();
-                        await Task.Delay(1);
+                        //await Task.Delay(1);
+                        await Task.Yield();
                     }
                 }
             }

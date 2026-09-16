@@ -132,7 +132,7 @@ namespace PixivWPF.Pages
             }).InvokeAsync();
         }
 
-        private void ChangeIllustPage(int offset)
+        private async void ChangeIllustPage(int offset)
         {
             if (Contents.IsWork())
             {
@@ -146,7 +146,7 @@ namespace PixivWPF.Pages
                 if (index_n >= Contents.Count - 1) index_n = Contents.Count - 1;
                 if (index_n == index_p) return;
                 
-                var i = illust.WorkItem();
+                var i = await illust.WorkItem();
                 if (i.IsWork())
                 {
                     i.IsFavorited = illust.IsLiked();

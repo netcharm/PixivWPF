@@ -1017,7 +1017,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static PixivItem WorkItem(this Pixeez.Objects.Work illust, string url = "", string nexturl = "", PixivItemType work_type = PixivItemType.Work)
+        public static async Task<PixivItem> WorkItem(this Pixeez.Objects.Work illust, string url = "", string nexturl = "", PixivItemType work_type = PixivItemType.Work)
         {
             PixivItem result = null;
             try
@@ -1085,7 +1085,7 @@ namespace PixivWPF.Common
                             Caption = illust.Caption,
                             AIType = illust.AIType,
                             ToolTip = $"📅[{illust.GetDateTime()}][{illust.Id}]{tooltip}",
-                            IsDownloaded = work_type != PixivItemType.Work || illust == null ? false : illust.IsPartDownloadedAsync(touch: false),
+                            IsDownloaded = work_type != PixivItemType.Work || illust == null ? false : (await illust.IsPartDownloadedAsync(touch: false)).Exists,
                             Tag = illust
                         };
                     }
@@ -1208,13 +1208,13 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static PixivItem PageItem(this Pixeez.Objects.Page page, Pixeez.Objects.Work illust, int index, string nexturl = "", bool touch = false)
+        public static async Task<PixivItem> PageItem(this Pixeez.Objects.Page page, Pixeez.Objects.Work illust, int index, string nexturl = "", bool touch = false)
         {
             PixivItem p = null;
             var url = page.GetThumbnailUrl();
             if (!string.IsNullOrEmpty(url))
             {
-                p = illust.WorkItem(url, nexturl, work_type: PixivItemType.Page);
+                p = await illust.WorkItem(url, nexturl, work_type: PixivItemType.Page);
                 if (p is PixivItem)
                 {
                     p.DisplayTitle = false;
@@ -1225,7 +1225,7 @@ namespace PixivWPF.Common
                     p.IsDisplayFavMark = false;
                     p.BadgeValue = (index + 1).ToString();
                     p.Subject = $"{p.Subject} - {index + 1}/{illust.PageCount ?? 0}";
-                    p.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloadedAsync(false, touch: touch);
+                    p.IsDownloaded = illust == null ? false : (await page.GetOriginalUrl().IsDownloadedAsync(false, touch: touch)).Exists;
                     p.Tag = page;
                     p.DoEvents();
                 }
@@ -1233,13 +1233,13 @@ namespace PixivWPF.Common
             return (p);
         }
 
-        public static PixivItem PageItem(this Pixeez.Objects.MetaPages page, Pixeez.Objects.Work illust, int index, string nexturl = "", bool touch = false)
+        public static async Task<PixivItem> PageItem(this Pixeez.Objects.MetaPages page, Pixeez.Objects.Work illust, int index, string nexturl = "", bool touch = false)
         {
             PixivItem p = null;
             var url = page.GetThumbnailUrl();
             if (!string.IsNullOrEmpty(url))
             {
-                p = illust.WorkItem(url, nexturl, work_type: PixivItemType.Pages);
+                p = await illust.WorkItem(url, nexturl, work_type: PixivItemType.Pages);
                 if (p is PixivItem)
                 {
                     p.DisplayTitle = false;
@@ -1250,7 +1250,7 @@ namespace PixivWPF.Common
                     p.IsDisplayFavMark = false;
                     p.BadgeValue = (index + 1).ToString();
                     p.Subject = $"{p.Subject} - {index + 1}/{illust.PageCount ?? 0}";
-                    p.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloadedAsync(false, touch: touch);
+                    p.IsDownloaded = illust == null ? false : (await page.GetOriginalUrl().IsDownloadedAsync(false, touch: touch)).Exists;
                     p.Tag = page;
                     p.DoEvents();
                 }
@@ -1271,8 +1271,8 @@ namespace PixivWPF.Common
                     for (int i = 0; i < count; i++)
                     {
                         var page = subset.meta_pages[i];
-                        var p = PageItem(page, illust, i, nexturl, touch);
-                        if (p is PixivItem) result.Add(p);
+                        var p = await PageItem(page, illust, i, nexturl, touch);
+                        if (p is not null) result.Add(p);
                     }
                 }
             }
@@ -1292,8 +1292,8 @@ namespace PixivWPF.Common
                         var pages = illust.Metadata.Pages;
                         for (var i = 0; i < pages.Count; i++)
                         {
-                            var p = pages[i].PageItem(illust, i, nexturl, touch);
-                            if (p is PixivItem) result.Add(p);
+                            var p = await pages[i].PageItem(illust, i, nexturl, touch);
+                            if (p is not null) result.Add(p);
                         }
                     }
                 }
@@ -1307,7 +1307,8 @@ namespace PixivWPF.Common
             foreach (var illust in works)
             {
                 illust.AddTo(Collection, nexturl);
-                await Task.Delay(1);
+                //await Task.Delay(1);
+                await Task.Yield();
                 Application.Current.DoEvents();
             }
         }
@@ -1321,13 +1322,14 @@ namespace PixivWPF.Common
                     var url = illust.GetThumbnailUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
-                        var i = illust.WorkItem(url, nexturl);
+                        var i = await illust.WorkItem(url, nexturl);
                         if (i is PixivItem)
                         {
                             i.ItemIndex = Collection.Count > 0 ? Collection.Max(ci => ci.ItemIndex) + 1 : 0;
                             i.ToolTip = $"🗨[{Collection.Count + 1}], {i.ToolTip}";
                             Collection.Add(i);
-                            await Task.Delay(1);
+                            //await Task.Delay(1);
+                            await Task.Yield();
                             i.DoEvents();
                         }
                     }
@@ -1345,11 +1347,12 @@ namespace PixivWPF.Common
             {
                 if (pages is Pixeez.Objects.MetaPages && Collection is IList<PixivItem>)
                 {
-                    var p = PageItem(pages, illust, index, nexturl);
+                    var p = await PageItem(pages, illust, index, nexturl);
                     if (p is PixivItem)
                     {
                         Collection.Add(p);
-                        await Task.Delay(1);
+                        //await Task.Delay(1);
+                        await Task.Yield();
                         p.DoEvents();
                     }
                 }
@@ -1366,11 +1369,12 @@ namespace PixivWPF.Common
             {
                 if (page is Pixeez.Objects.Page && Collection is IList<PixivItem>)
                 {
-                    var p = PageItem(page, illust, index, nexturl);
-                    if (p is PixivItem)
+                    var p = await PageItem(page, illust, index, nexturl);
+                    if (p is not null)
                     {
                         Collection.Add(p);
-                        await Task.Delay(1);
+                        //await Task.Delay(1);
+                        await Task.Yield();
                         p.DoEvents();
                     }
                 }
@@ -1385,11 +1389,12 @@ namespace PixivWPF.Common
         {
             try
             {
-                if (user is Pixeez.Objects.UserBase && Collection is IList<PixivItem>)
+                if (user is not null && Collection is not null)
                 {
                     var u = user.UserItem(nexturl);
                     Collection.Add(u);
-                    await Task.Delay(1);
+                    //await Task.Delay(1);
+                    await Task.Yield();
                     u.DoEvents();
                 }
             }

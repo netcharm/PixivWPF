@@ -1173,8 +1173,9 @@ namespace PixivWPF.Common
                         }
 
                         if (GetWindow<PixivLoginDialog>() is MetroWindow) return (result);
+                        //await Task.Delay(1);
+                        await Task.Yield();
                         Application.Current.DoEvents();
-                        await Task.Delay(1);
 
                         if (!force && setting.ExpTime > DateTime.Now &&
                             !string.IsNullOrEmpty(setting.AccessToken) &&
@@ -1230,7 +1231,7 @@ namespace PixivWPF.Common
                     finally
                     {
                         if (result == null) "Request Token Error!".ShowToast("ERROR", tag: "ShowLogin");
-                        if (CanShowLogin is SemaphoreSlim && CanShowLogin.CurrentCount <= 0) CanShowLogin.Release();
+                        if (CanShowLogin?.CurrentCount <= 0) CanShowLogin?.Release();
                         if (CancelShowLoginSource is CancellationTokenSource) CancelShowLoginSource.Cancel();
                     }
                 }
@@ -2668,7 +2669,8 @@ namespace PixivWPF.Common
                     {
                         var mw = win as MainWindow;
                         mw.UpdateIllustTagsAsync();
-                        await Task.Delay(1);
+                        //await Task.Delay(1);
+                        await Task.Yield();
                         mw.DoEvents();
                     }
                     else if (win is ContentWindow)
@@ -2677,7 +2679,8 @@ namespace PixivWPF.Common
                         if (w.Content is IllustDetailPage)
                         {
                             (w.Content as IllustDetailPage).UpdateIllustTags();
-                            await Task.Delay(1);
+                            //await Task.Delay(1);
+                            await Task.Yield();
                             w.DoEvents();
                         }
                     }
@@ -3870,7 +3873,7 @@ namespace PixivWPF.Common
         static private bool IsShellSupported = Microsoft.WindowsAPICodePack.Shell.ShellObject.IsPlatformSupported;
         static private ConcurrentDictionary<string, long> _Touching_ = new ConcurrentDictionary<string, long>();
         static private ConcurrentDictionary<string, long> _Attaching_ = new ConcurrentDictionary<string, long>();
-        static private SemaphoreSlim _CanAttaching_ = new SemaphoreSlim(5, 5);
+        static private SemaphoreSlim _CanAttaching_ = new(5, 5);
 
         static private bool IsMetaAttaching(this string file)
         {
@@ -5801,10 +5804,12 @@ namespace PixivWPF.Common
             var aigc = setting.DownloadAttachMetaInfoTagAI;
             var trans = setting.DownloadAttachMetaInfoTagTranslated;
 
+            _CanAttaching_ ??= new(5, 5);
             if (IsShellSupported && (force || !_Attaching_.ContainsKey(fileinfo.FullName) || now - _Attaching_[fileinfo.FullName] > TimeSpan.FromMilliseconds(interval).Ticks) && await _CanAttaching_.WaitAsync(TimeSpan.FromSeconds(60)))
             {
                 try
                 {
+                    await Task.Yield();
                     _Attaching_.AddOrUpdate(fileinfo.FullName, now, (k, v) => now);
 #if DEBUG
                     System.Diagnostics.Debug.WriteLine($"=> Touching Meta : {fileinfo.Name} Started ...");
@@ -5819,8 +5824,9 @@ namespace PixivWPF.Common
 #endif
                         if (string.IsNullOrEmpty(id)) id = GetIllustId(fileinfo.Name);
                         var illust = id.FindIllust();
-                        if (illust is Pixeez.Objects.Work && (dt != null || dt.Ticks > 0) && fileinfo.Length > 0)
+                        if (illust is not null && (dt != null || dt.Ticks > 0) && fileinfo.Length > 0)
                         {
+                            await Task.Yield();
                             if (!illust.HasUser())
                             {
                                 throw new Exception("Illust No User Info");
@@ -5844,34 +5850,41 @@ namespace PixivWPF.Common
                                    (sh.Properties.System.Photo.DateTaken.Value == null ||
                                     sh.Properties.System.Photo.DateTaken.Value.Value.Ticks != dt.Ticks))
                                     sh.Properties.System.Photo.DateTaken.Value = dt;
+                                await Task.Yield();
 
                                 if (using_shell && !is_png)
                                 {
                                     #region jpg
                                     if (sh.Properties.System.DateAcquired.Value == null || sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks)
                                         sh.Properties.System.DateAcquired.Value = dt;
+                                    await Task.Yield();
 
                                     sh.Properties.System.Subject.AllowSetTruncatedValue = true;
                                     if (sh.Properties.System.Subject.Value == null || !sh.Properties.System.Subject.Value.Equals(id.ArtworkLink()))
                                         sh.Properties.System.Subject.Value = id.ArtworkLink();
+                                    await Task.Yield();
 
                                     var title = illust.Title.KatakanaHalfToFull().FilterInvalidChar().TrimEnd();
                                     sh.Properties.System.Title.AllowSetTruncatedValue = true;
                                     if (sh.Properties.System.Title.Value == null || !sh.Properties.System.Title.Value.Equals(title))
                                         sh.Properties.System.Title.Value = title;
+                                    await Task.Yield();
 
                                     sh.Properties.System.Author.AllowSetTruncatedValue = true;
                                     if (sh.Properties.System.Author.Value == null || !sh.Properties.System.Author.Value.Contains(authors[0]) || !sh.Properties.System.Author.Value.Contains(authors[1]))
                                         sh.Properties.System.Author.Value = authors;
+                                    await Task.Yield();
 
                                     sh.Properties.System.Copyright.AllowSetTruncatedValue = true;
                                     if (sh.Properties.System.Copyright.Value == null || !sh.Properties.System.Author.Value.Contains(authors[0]) || !sh.Properties.System.Author.Value.Contains(authors[1]))
                                         sh.Properties.System.Copyright.Value = string.Join("; ", authors);
+                                    await Task.Yield();
 
                                     var tags = illust.Tags(add_sanity: sanity, add_aigc: aigc, add_trans: trans).ToArray();
                                     sh.Properties.System.Keywords.AllowSetTruncatedValue = true;
                                     if (sh.Properties.System.Keywords.Value == null || sh.Properties.System.Keywords.Value.Length != tags.Length)
                                         sh.Properties.System.Keywords.Value = tags;
+                                    await Task.Yield();
 
                                     var comment = illust.Caption.HtmlToText();
                                     sh.Properties.System.Comment.AllowSetTruncatedValue = true;
@@ -5880,6 +5893,7 @@ namespace PixivWPF.Common
                                         if (string.IsNullOrEmpty(comment)) sh.Properties.System.Comment.ClearValue();
                                         else sh.Properties.System.Comment.Value = comment;
                                     }
+                                    await Task.Yield();
 
                                     var exifversion = "0230";
                                     sh.Properties.System.Photo.EXIFVersion.AllowSetTruncatedValue = true;
@@ -5888,6 +5902,7 @@ namespace PixivWPF.Common
                                         if (string.IsNullOrEmpty(exifversion)) sh.Properties.System.Photo.EXIFVersion.ClearValue();
                                         else sh.Properties.System.Photo.EXIFVersion.Value = exifversion;
                                     }
+                                    await Task.Yield();
 
                                     //if (sh.Properties.System.Contact.Webpage.Value == null) sh.Properties.System.Contact.Webpage.Value = id.ArtworkLink();
 
@@ -5904,6 +5919,8 @@ namespace PixivWPF.Common
                                         if (sh.Properties.System.SimpleRating.Value != null)
                                             sh.Properties.System.SimpleRating.ClearValue();
                                     }
+                                    await Task.Yield();
+
                                     result = true;
                                     #endregion
                                 }
@@ -5922,6 +5939,7 @@ namespace PixivWPF.Common
                                             if (sh.Properties.System.Photo.DateTaken.Value == null ||
                                                 sh.Properties.System.Photo.DateTaken.Value.Value.Ticks != dt.Ticks)
                                                 sh.Properties.System.Photo.DateTaken.Value = dt;
+                                            await Task.Yield();
                                         }
                                         catch (Exception exx) { exx.ERROR($"ShellPropertiesSet_DateTaken_{fileinfo.Name}"); }
                                         try
@@ -5929,6 +5947,7 @@ namespace PixivWPF.Common
                                             if (sh.Properties.System.DateAcquired.Value == null ||
                                                 sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks)
                                                 sh.Properties.System.DateAcquired.Value = dt;
+                                            await Task.Yield();
                                         }
                                         catch (Exception exx) { exx.ERROR($"ShellPropertiesSet_DateAcquired_{fileinfo.Name}"); }
 #if DEBUG
@@ -5939,6 +5958,7 @@ namespace PixivWPF.Common
                                                    (sh.Properties.System.DateImported.Value == null ||
                                                     sh.Properties.System.DateImported.Value.Value.Ticks != dt.Ticks))
                                                     sh.Properties.System.DateImported.Value = dt;
+                                                    await Task.Yield();
                                             }
                                             catch (Exception exx) { exx.ERROR($"ShellPropertiesSet_DateImported_{fileinfo.Name}"); }
 #endif
@@ -5950,24 +5970,29 @@ namespace PixivWPF.Common
                                 #region mov
                                 if (sh.Properties.System.DateAcquired.Value == null || sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks)
                                     sh.Properties.System.DateAcquired.Value = dt;
+                                await Task.Yield();
 
                                 sh.Properties.System.Subject.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Subject.Value == null || !sh.Properties.System.Subject.Value.Equals(id.ArtworkLink()))
                                     sh.Properties.System.Subject.Value = id.ArtworkLink();
+                                await Task.Yield();
 
                                 var title = illust.Title.FilterInvalidChar().TrimEnd();
                                 sh.Properties.System.Title.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Title.Value == null || !sh.Properties.System.Title.Value.Equals(title))
                                     sh.Properties.System.Title.Value = title;
+                                await Task.Yield();
 
                                 sh.Properties.System.Author.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Author.Value == null)
                                     sh.Properties.System.Author.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+                                await Task.Yield();
 
                                 var tags = illust.Tags(add_sanity: sanity, add_aigc: aigc, add_trans: trans).ToArray();
                                 sh.Properties.System.Keywords.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Keywords.Value == null || sh.Properties.System.Keywords.Value.Length != tags.Length)
                                     sh.Properties.System.Keywords.Value = tags;
+                                await Task.Yield();
 
                                 //sh.Properties.System.Copyright.AllowSetTruncatedValue = true;
                                 //if (sh.Properties.System.Copyright.Value == null)
@@ -5980,6 +6005,7 @@ namespace PixivWPF.Common
                                     if (string.IsNullOrEmpty(comment)) sh.Properties.System.Comment.ClearValue();
                                     else sh.Properties.System.Comment.Value = comment;
                                 }
+                                await Task.Yield();
 
                                 if (illust.IsLiked())
                                 {
@@ -5991,21 +6017,29 @@ namespace PixivWPF.Common
                                     if (sh.Properties.System.SimpleRating.Value != null)
                                         sh.Properties.System.SimpleRating.ClearValue();
                                 }
+                                await Task.Yield();
 
                                 if (sh.Properties.System.Media.DateEncoded.Value == null || sh.Properties.System.Media.DateEncoded.Value.Value.Ticks != dt.Ticks)
                                     sh.Properties.System.Media.DateEncoded.Value = dt;
+                                await Task.Yield();
+
                                 if (sh.Properties.System.Media.DateReleased.Value == null)
                                     sh.Properties.System.Media.DateReleased.Value = dt.ToString("yyyy/MM/ddTHH:mm:sszzz");
+                                await Task.Yield();
+
                                 if (sh.Properties.System.Media.Year.Value == null)
                                     sh.Properties.System.Media.Year.Value = (uint)dt.Year;
+                                await Task.Yield();
 
                                 sh.Properties.System.Media.Subtitle.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Media.Subtitle.Value == null || !sh.Properties.System.Media.Subtitle.Value.Equals(id.ArtworkLink()))
                                     sh.Properties.System.Media.Subtitle.Value = id.ArtworkLink();
+                                await Task.Yield();
 
                                 sh.Properties.System.Media.ContentDistributor.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Media.ContentDistributor.Value == null)
                                     sh.Properties.System.Media.ContentDistributor.Value = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}".Trim(';');
+                                await Task.Yield();
 
                                 if (sh.Properties.System.Media.AuthorUrl.Value == null)
                                     sh.Properties.System.Media.AuthorUrl.Value = uid.ArtistLink();
@@ -6013,52 +6047,77 @@ namespace PixivWPF.Common
                                     sh.Properties.System.Media.UserWebUrl.Value = uid.ArtistLink();
                                 if (sh.Properties.System.Media.PromotionUrl.Value == null)
                                     sh.Properties.System.Media.PromotionUrl.Value = id.ArtworkLink();
+                                await Task.Yield();
 
                                 sh.Properties.System.Media.Producer.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Media.Producer.Value == null)
                                     sh.Properties.System.Media.Producer.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+                                await Task.Yield();
+
                                 sh.Properties.System.Media.Writer.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Media.Writer.Value == null)
                                     sh.Properties.System.Media.Writer.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+                                await Task.Yield();
+
                                 sh.Properties.System.Media.EncodedBy.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Media.EncodedBy.Value == null)
                                     sh.Properties.System.Media.EncodedBy.Value = illust.User.Name;
+                                await Task.Yield();
+
                                 sh.Properties.System.Media.Publisher.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Media.Publisher.Value == null)
                                     sh.Properties.System.Media.Publisher.Value = illust.User.Name;
+                                await Task.Yield();
 
                                 sh.Properties.System.Media.MetadataContentProvider.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Media.MetadataContentProvider.Value == null)
                                     sh.Properties.System.Media.MetadataContentProvider.Value = illust.User.Name;
+                                await Task.Yield();
 
                                 sh.Properties.System.Video.Director.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Video.Director.Value == null)
                                     sh.Properties.System.Video.Director.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+                                await Task.Yield();
 
                                 sh.Properties.System.Music.Artist.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Music.Artist.Value == null)
                                     sh.Properties.System.Music.Artist.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+                                await Task.Yield(); 
+                                
                                 sh.Properties.System.Music.AlbumArtist.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Music.AlbumArtist.Value == null)
                                     sh.Properties.System.Music.AlbumArtist.Value = illust.User.Name;
+                                await Task.Yield(); 
+                                
                                 sh.Properties.System.Music.AlbumTitle.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Music.AlbumTitle.Value == null)
                                     sh.Properties.System.Music.AlbumTitle.Value = title;
+                                await Task.Yield(); 
+                                
                                 sh.Properties.System.Music.Composer.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Music.Composer.Value == null)
                                     sh.Properties.System.Music.Composer.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+                                await Task.Yield();
+
                                 sh.Properties.System.Music.Conductor.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Music.Conductor.Value == null)
                                     sh.Properties.System.Music.Conductor.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+                                await Task.Yield();
+
                                 sh.Properties.System.Music.Genre.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Music.Genre.Value == null)
                                     sh.Properties.System.Music.Genre.Value = new string[] { "Pixiv", "Comic", "Anime", "Game", "CG", "Japan" };
+                                await Task.Yield();
+
                                 sh.Properties.System.Music.Mood.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Music.Mood.Value == null)
                                     sh.Properties.System.Music.Mood.Value = "Happy";
+                                await Task.Yield();
+
                                 sh.Properties.System.Music.Period.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Music.Period.Value == null)
                                     sh.Properties.System.Music.Period.Value = dt.ToString("yyyy");
+                                await Task.Yield();
 
                                 #endregion
                                 result = true;
@@ -6069,7 +6128,9 @@ namespace PixivWPF.Common
                         }
                         fileinfo.Refresh();
                         //await Task.Delay(25);
+                        await Task.Yield();
                         WaitForFile(fileinfo.FullName, new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout)).Token);
+                        await Task.Yield();
                         if (fileinfo.CreationTime.Ticks != dt.Ticks) fileinfo.CreationTime = dt;
                         if (fileinfo.LastWriteTime.Ticks != dt.Ticks) fileinfo.LastWriteTime = dt;
                         if (fileinfo.LastAccessTime.Ticks != dt.Ticks) fileinfo.LastAccessTime = dt;
@@ -6081,7 +6142,8 @@ namespace PixivWPF.Common
                 catch (Exception ex) { ex.ERROR($"AttachMetaInfo_{fileinfo.Name}"); }
                 finally
                 {
-                    if (_CanAttaching_ is SemaphoreSlim && _CanAttaching_.CurrentCount < 5) _CanAttaching_.Release();
+                    await Task.Yield();
+                    if (_CanAttaching_?.CurrentCount < 5) _CanAttaching_?.Release();
                     result = true;
                     long tick;
                     _Attaching_.TryRemove(fileinfo.FullName, out tick);
@@ -6117,7 +6179,7 @@ namespace PixivWPF.Common
                             {
                                 var fi = new FileInfo(folder);
                                 var meta = await AttachMetaInfo(fi, dt);
-                                if (meta) Touch(fi, url, meta: false);
+                                if (meta) TouchAsync(fi, url, meta: false);
                             }
                         }
                     }
@@ -6172,7 +6234,7 @@ namespace PixivWPF.Common
                                         if (!test)
                                         {
                                             var meta = await AttachMetaInfo(f, dt);
-                                            if (meta) Touch(f, url, meta: false);
+                                            if (meta) TouchAsync(f, url, meta: false);
                                         }
                                         current_info.Result = $"{f.Name} processing successed";
                                     }
@@ -6194,7 +6256,7 @@ namespace PixivWPF.Common
                                 Application.Current.DoEvents();
                             }
                             catch (Exception ex) { ex.ERROR($"BatchProcessing_{f.Name}"); }
-                            finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); Application.Current.DoEvents(); await Task.Delay(1); }
+                            finally { if (tasks?.CurrentCount < parallel) tasks?.Release(); Application.Current.DoEvents(); await Task.Yield(); }
                         }).Invoke(async: false);
                     }
                 }
@@ -6219,7 +6281,7 @@ namespace PixivWPF.Common
                 for (int i = 0; i < flist.Count; i++)
                 {
                     if (cancelSource.IsCancellationRequested) { break; }
-                    if (tasks.Wait(-1, cancelSource.Token))
+                    if (tasks.Wait(TimeSpan.FromSeconds(60), cancelSource.Token))
                     {
                         if (cancelSource.IsCancellationRequested) { break; }
                         new Action(async () =>
@@ -6247,7 +6309,7 @@ namespace PixivWPF.Common
                                     var dt = url.ParseDateTime();
                                     if (dt.Ticks > 0)
                                     {
-                                        if (!test) Touch(f, url);
+                                        if (!test) TouchAsync(f, url);
                                         current_info.Result = $"{f.Name} processing successed";
                                     }
                                     else
@@ -6268,7 +6330,7 @@ namespace PixivWPF.Common
                                 Application.Current.DoEvents();
                             }
                             catch (Exception ex) { ex.ERROR($"BatchProcessing_{f.Name}"); }
-                            finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); Application.Current.DoEvents(); await Task.Delay(1); }
+                            finally { if (tasks?.CurrentCount < parallel) tasks?.Release(); Application.Current.DoEvents(); await Task.Yield(); }
                         }).Invoke(async: false);
                     }
                 }
@@ -6277,7 +6339,7 @@ namespace PixivWPF.Common
         }
 
         static private ConcurrentDictionary<string, long> LastTouch = new ConcurrentDictionary<string, long>();
-        static public void Touch(this FileInfo fileinfo, string url, bool local = false, bool meta = false, bool force = false, bool fix_name = true)
+        static public async Task Touch(this FileInfo fileinfo, string url, bool local = false, bool meta = false, bool force = false, bool fix_name = true)
         {
             try
             {
@@ -6297,48 +6359,53 @@ namespace PixivWPF.Common
 
                         if (url.StartsWith("http", StringComparison.CurrentCultureIgnoreCase))
                         {
-                            new Action(async () =>
+                            try
                             {
-                                try
+                                await Task.Run(async () =>
                                 {
-                                    var fdt = url.ParseDateTime();
-                                    if (fdt.Year <= 1601) return;
-                                    var meta_ret = true;
-                                    setting = Application.Current.LoadSetting();
-                                    //if (setting.DownloadAttachMetaInfo && meta && await fileinfo.WaitFileUnlockAsync())
-                                    if (setting.DownloadAttachMetaInfo && meta && fileinfo.WaitFileUnlock())
+                                    try
                                     {
-                                        meta_ret = await fileinfo.AttachMetaInfo(dt: fdt, force: force);
-                                        fileinfo = new FileInfo(fileinfo.FullName);
-                                    }
-                                    //if (await fileinfo.WaitFileUnlockAsync())
-                                    if (meta_ret && fileinfo.WaitFileUnlock())
-                                    {
-#if DEBUG
-                                        Debug.WriteLine($"=> Touching Time : {fileinfo.Name}");
-#endif
-                                        if (fileinfo.CreationTime.Ticks != fdt.Ticks) fileinfo.CreationTime = fdt;
-                                        if (fileinfo.LastWriteTime.Ticks != fdt.Ticks) fileinfo.LastWriteTime = fdt;
-                                        if (fileinfo.LastAccessTime.Ticks != fdt.Ticks) fileinfo.LastAccessTime = fdt;
-
-                                        if (fix_name)
+                                        var fdt = url.ParseDateTime();
+                                        if (fdt.Year <= 1601) return;
+                                        var meta_ret = true;
+                                        setting = Application.Current.LoadSetting();
+                                        //if (setting.DownloadAttachMetaInfo && meta && await fileinfo.WaitFileUnlockAsync())
+                                        if (setting.DownloadAttachMetaInfo && meta && fileinfo.WaitFileUnlock())
                                         {
-                                            if (fileinfo.Extension.Equals(".png", StringComparison.CurrentCultureIgnoreCase) ||
-                                                fileinfo.Extension.Equals(".jpg", StringComparison.CurrentCultureIgnoreCase) ||
-                                                fileinfo.Extension.Equals(".webp", StringComparison.CurrentCultureIgnoreCase) ||
-                                                fileinfo.Extension.Equals(".gif", StringComparison.CurrentCultureIgnoreCase))
+                                            await Task.Yield();
+                                            meta_ret = await fileinfo.AttachMetaInfo(dt: fdt, force: force);
+                                            fileinfo = new FileInfo(fileinfo.FullName);
+                                        }
+                                        //if (await fileinfo.WaitFileUnlockAsync())
+                                        if (meta_ret && fileinfo.WaitFileUnlock())
+                                        {
+#if DEBUG
+                                            Debug.WriteLine($"=> Touching Time : {fileinfo.Name}");
+#endif
+                                            if (fileinfo.CreationTime.Ticks != fdt.Ticks) fileinfo.CreationTime = fdt;
+                                            if (fileinfo.LastWriteTime.Ticks != fdt.Ticks) fileinfo.LastWriteTime = fdt;
+                                            if (fileinfo.LastAccessTime.Ticks != fdt.Ticks) fileinfo.LastAccessTime = fdt;
+
+                                            if (fix_name)
                                             {
-                                                int idx = -1;
-                                                var illust = await fileinfo.FullName.GetIllustId(out idx).GetIllust();
-                                                var fname = illust.GetOriginalUrl(idx).GetImageName((illust.PageCount ?? 0) <= 1);
-                                                if (!fileinfo.Name.Equals(fname)) fileinfo.MoveTo(Path.Combine(fileinfo.DirectoryName, fname));
+                                                if (fileinfo.Extension.Equals(".png", StringComparison.CurrentCultureIgnoreCase) ||
+                                                    fileinfo.Extension.Equals(".jpg", StringComparison.CurrentCultureIgnoreCase) ||
+                                                    fileinfo.Extension.Equals(".webp", StringComparison.CurrentCultureIgnoreCase) ||
+                                                    fileinfo.Extension.Equals(".gif", StringComparison.CurrentCultureIgnoreCase))
+                                                {
+                                                    int idx = -1;
+                                                    var illust = await fileinfo.FullName.GetIllustId(out idx).GetIllust();
+                                                    var fname = illust.GetOriginalUrl(idx).GetImageName((illust.PageCount ?? 0) <= 1);
+                                                    if (!fileinfo.Name.Equals(fname)) fileinfo.MoveTo(Path.Combine(fileinfo.DirectoryName, fname));
+                                                }
                                             }
                                         }
                                     }
-                                }
-                                catch (Exception ex) { var id = fileinfo is FileInfo ? fileinfo.Name : url.GetIllustId(); ex.ERROR($"Touch_{id}"); }
-                                finally { long ticks; _Touching_.TryRemove(fileinfo.FullName, out ticks); }
-                            }).Invoke(async: true);
+                                    catch (Exception ex) { var id = fileinfo is FileInfo ? fileinfo.Name : url.GetIllustId(); ex.ERROR($"Touch_{id}"); }
+                                    finally { long ticks; _Touching_.TryRemove(fileinfo.FullName, out ticks); }
+                                }, new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token);
+                            }
+                            catch (Exception ex) { ex.ERROR("Touch"); }
                         }
                     }
                 }
@@ -6383,16 +6450,22 @@ namespace PixivWPF.Common
             }
         }
 
+        static public async void TouchAsync(this FileInfo fileinfo, string url, bool local = false, bool meta = false, bool force = false)
+        {
+            //await new Action(() => { Touch(file, url, local, meta, force); }).InvokeAsync();
+            await Task.Run(() => { Touch(fileinfo, url, local, meta, force); }, new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token);
+        }
+
         static public async void TouchAsync(this string file, string url, bool local = false, bool meta = false, bool force = false)
         {
             //await new Action(() => { Touch(file, url, local, meta, force); }).InvokeAsync();
-            await Task.Run(() => { Touch(file, url, local, meta, force); });
+            await Task.Run(() => { Touch(file, url, local, meta, force); }, new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token);
         }
 
         static public async void TouchAsync(this PixivItem item, bool local = false, bool meta = true, bool force = false)
         {
             //await new Action(() => { Touch(item, local, meta, force); }).InvokeAsync();
-            await Task.Run(() => { Touch(item, local, meta, force); });
+            await Task.Run(() => { Touch(item, local, meta, force); }, new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token);
         }
 
         static public async void TouchAsync(this IEnumerable<string> files, string url, bool local = false, bool meta = false, bool force = false)
@@ -6400,7 +6473,7 @@ namespace PixivWPF.Common
             foreach (var file in files)
             {
                 //await new Action(() => { Touch(file, url, local, meta, force); }).InvokeAsync();
-                await Task.Run(() => { Touch(file, url, local, meta, force); });
+                await Task.Run(() => { Touch(file, url, local, meta, force); }, new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token);
             }
         }
 
@@ -6408,7 +6481,7 @@ namespace PixivWPF.Common
         {
             foreach (var item in items)
             {
-                await new Action(() => { Touch(item, local, meta, force); }).InvokeAsync();
+                await Task.Run(() => { Touch(item, local, meta, force); }, new CancellationTokenSource(TimeSpan.FromSeconds(1)).Token);
             }
         }
         #endregion
@@ -6778,7 +6851,7 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         }
 
-        static public void UpdateDownloadState(this ObservableCollection<PixivItem> collection, long? illustid = null, bool? exists = null)
+        static public async void UpdateDownloadState(this ObservableCollection<PixivItem> collection, long? illustid = null, bool? exists = null)
         {
             try
             {
@@ -6787,20 +6860,16 @@ namespace PixivWPF.Common
                 {
                     if (item.IsPage() || item.IsPages())
                     {
-                        item.IsDownloaded = item.Illust.IsDownloadedAsync(item.Index);
+                        item.IsDownloaded = (await item.Illust.IsDownloadedAsync(item.Index)).Exists;
                     }
                     else if (item.IsWork())
                     {
-                        var part_down = item.Illust.IsPartDownloadedAsync();
+                        var part_down = (await item.Illust.IsPartDownloadedAsync()).Exists;
                         item.IsPartDownloaded = part_down;
-                        if (id == -1)
-                            item.IsDownloaded = part_down;
+                        if (id == -1) item.IsDownloaded = part_down;
                         else if (id == (int)(item.Illust.Id))
                         {
-                            if (item.Count > 1)
-                                item.IsDownloaded = part_down;
-                            else
-                                item.IsDownloaded = exists ?? part_down;
+                            item.IsDownloaded = item.Count > 1 ? part_down : exists ?? part_down;
                         }
                     }
                 }
@@ -6810,71 +6879,65 @@ namespace PixivWPF.Common
         #endregion
 
         #region IsDownloaded
-        private class DownloadState
+        public class DownloadState
         {
             public string Path { get; set; } = string.Empty;
             public bool Exists { get; set; } = false;
         }
 
-        internal static bool IsDownloadedAsync(this Pixeez.Objects.Work illust, bool is_meta_single_page = false, int index = -1, bool touch = false)
+        internal static async Task<DownloadState> IsDownloadedAsync(this Pixeez.Objects.Work illust, bool is_meta_single_page = false, int index = -1, bool touch = false)
+        {
+            if (illust is not null)
+            {
+                await Task.Yield();
+                var result = await illust.GetOriginalUrl(index).IsDownloadedAsync(is_meta_single_page, touch);
+                return (result);
+            }
+            else
+            {
+                return (new DownloadState());
+            }
+        }
+
+        internal static async Task<DownloadState> IsDownloadedAsync(this Pixeez.Objects.Work illust, int index = -1, bool touch = false)
         {
             if (illust is Pixeez.Objects.Work)
-                return (illust.GetOriginalUrl(index).IsDownloadedAsync(is_meta_single_page, touch));
+                return (await illust.GetOriginalUrl(index).IsDownloadedAsync(touch: touch));
+            else
+                return (new DownloadState());
+        }
+
+        internal static async Task<DownloadState> IsDownloadedAsync(this string url, bool is_meta_single_page = false, bool touch = false)
+        {
+            var result = await Task.Run(async () =>
+            {
+                await Task.Yield();
+                var state = new DownloadState();
+                var file = string.Empty;
+                state.Exists = IsDownloaded(url, out file, is_meta_single_page, touch);
+                state.Path = file;
+                return(state);
+            });
+            return (result);
+        }
+
+        internal static bool IsDownloaded(this PixivItem item, bool touch = false)
+        {
+            if (item.Illust is Pixeez.Objects.Work)
+                return (item.Illust.GetOriginalUrl().IsDownloaded(touch));
             else
                 return (false);
         }
 
-        internal static bool IsDownloadedAsync(this Pixeez.Objects.Work illust, out string filepath, bool is_meta_single_page = false, int index = -1, bool touch = false)
+        internal static bool IsDownloaded(this PixivItem item, out string filepath, bool touch = false)
         {
-            if (illust is Pixeez.Objects.Work)
-                return (illust.GetOriginalUrl(index).IsDownloadedAsync(out filepath, is_meta_single_page, touch));
+            if (item.Illust is Pixeez.Objects.Work)
+                return (item.Illust.GetOriginalUrl().IsDownloaded(out filepath, touch));
             else
             {
                 filepath = string.Empty;
                 return (false);
             }
-        }
-
-        internal static bool IsDownloadedAsync(this Pixeez.Objects.Work illust, int index = -1, bool touch = false)
-        {
-            if (illust is Pixeez.Objects.Work)
-                return (illust.GetOriginalUrl(index).IsDownloadedAsync(touch: touch));
-            else
-                return (false);
-        }
-
-        internal static bool IsDownloadedAsync(this Pixeez.Objects.Work illust, out string filepath, int index = -1, bool is_meta_single_page = false, bool touch = false)
-        {
-            if (illust is Pixeez.Objects.Work)
-                return (illust.GetOriginalUrl(index).IsDownloadedAsync(out filepath, is_meta_single_page, touch));
-            else
-            {
-                filepath = string.Empty;
-                return (false);
-            }
-        }
-
-        static private Func<string, bool, bool, bool> IsDownloadedFunc = (url, meta, touch) => IsDownloaded(url, meta, touch);
-        internal static bool IsDownloadedAsync(this string url, bool is_meta_single_page = false, bool touch = false)
-        {
-            return (IsDownloadedFunc(url, is_meta_single_page, touch));
-        }
-
-        static private Func<string, string, bool, bool, DownloadState> IsDownloadedFileFunc = (url, file, meta, touch) =>
-        {
-            var state = new DownloadState();
-            file = string.Empty;
-            state.Exists = IsDownloaded(url, out file, meta, touch);
-            state.Path = file;
-            return(state);
-        };
-
-        internal static bool IsDownloadedAsync(this string url, out string filepath, bool is_meta_single_page = false, bool touch = false)
-        {
-            filepath = string.Empty;
-            var result = IsDownloadedFileFunc(url, filepath, is_meta_single_page, touch);
-            filepath = result.Path;
-            return (result.Exists); ;
         }
 
         internal static bool IsDownloaded(this Pixeez.Objects.Work illust, bool is_meta_single_page = false, int index = -1, bool touch = false)
@@ -6991,12 +7054,38 @@ namespace PixivWPF.Common
         #endregion
 
         #region IsPartDownloaded
-        internal static bool IsPartDownloadedAsync(this PixivItem item, bool touch = false)
+        internal static async Task<DownloadState> IsPartDownloadedAsync(this PixivItem item, bool touch = false)
         {
             if (item.Illust is Pixeez.Objects.Work)
-                return (item.Illust.GetOriginalUrl().IsPartDownloadedAsync(touch));
+                return (await item.Illust.GetOriginalUrl().IsPartDownloadedAsync(touch));
             else
-                return (false);
+            {
+                return (new DownloadState());
+            }
+        }
+
+        internal static async Task<DownloadState> IsPartDownloadedAsync(this Pixeez.Objects.Work illust, bool touch = false)
+        {
+            if (illust is Pixeez.Objects.Work)
+                return (await illust.GetOriginalUrl().IsPartDownloadedAsync(touch: touch));
+            else
+            {
+                return (new DownloadState());
+            }
+        }
+
+        internal static async Task<DownloadState> IsPartDownloadedAsync(this string url, bool touch = false)
+        {
+            var result = await Task.Run(async () =>
+            {
+                await Task.Yield();
+                var state = new DownloadState();
+                var file = string.Empty;
+                state.Exists = IsPartDownloaded(url, out file, touch);
+                state.Path = file;
+                return(state);
+            });
+            return (result);
         }
 
         internal static bool IsPartDownloaded(this PixivItem item, bool touch = false)
@@ -7005,17 +7094,6 @@ namespace PixivWPF.Common
                 return (item.Illust.GetOriginalUrl().IsPartDownloaded(touch));
             else
                 return (false);
-        }
-
-        internal static bool IsPartDownloadedAsync(this PixivItem item, out string filepath, bool touch = false)
-        {
-            if (item.Illust is Pixeez.Objects.Work)
-                return (item.Illust.GetOriginalUrl().IsPartDownloadedAsync(out filepath, touch));
-            else
-            {
-                filepath = string.Empty;
-                return (false);
-            }
         }
 
         internal static bool IsPartDownloaded(this PixivItem item, out string filepath, bool touch = false)
@@ -7029,31 +7107,12 @@ namespace PixivWPF.Common
             }
         }
 
-        internal static bool IsPartDownloadedAsync(this Pixeez.Objects.Work illust, bool touch = false)
-        {
-            if (illust is Pixeez.Objects.Work)
-                return (illust.GetOriginalUrl().IsPartDownloadedAsync(touch: touch));
-            else
-                return (false);
-        }
-
         internal static bool IsPartDownloaded(this Pixeez.Objects.Work illust, bool touch = false)
         {
             if (illust is Pixeez.Objects.Work)
                 return (illust.GetOriginalUrl().IsPartDownloaded(touch: touch));
             else
                 return (false);
-        }
-
-        internal static bool IsPartDownloadedAsync(this Pixeez.Objects.Work illust, out string filepath, bool touch = false)
-        {
-            if (illust is Pixeez.Objects.Work)
-                return (illust.GetOriginalUrl().IsPartDownloadedAsync(out filepath, touch: touch));
-            else
-            {
-                filepath = string.Empty;
-                return (false);
-            }
         }
 
         internal static bool IsPartDownloaded(this Pixeez.Objects.Work illust, out string filepath, bool touch = false)
@@ -7065,29 +7124,6 @@ namespace PixivWPF.Common
                 filepath = string.Empty;
                 return (false);
             }
-        }
-
-        static private Func<string, bool, bool> IsPartDownloadedFunc = (url, touch) => IsPartDownloaded(url, touch);
-        internal static bool IsPartDownloadedAsync(this string url, bool touch = false)
-        {
-            return (IsPartDownloaded(url, touch));
-        }
-
-        static private Func<string, string, bool, DownloadState> IsPartDownloadedFileFunc = (url, file, touch) =>
-        {
-            var state = new DownloadState();
-            file = string.Empty;
-            state.Exists = IsPartDownloaded(url, out file, touch);
-            state.Path = file;
-            return(state);
-        };
-
-        internal static bool IsPartDownloadedAsync(this string url, out string filepath, bool touch = false)
-        {
-            filepath = string.Empty;
-            var result = IsPartDownloadedFileFunc(url, filepath, touch);
-            filepath = result.Path;
-            return (result.Exists);
         }
 
         internal static bool IsPartDownloaded(this string url, bool touch = false)
@@ -11875,7 +11911,8 @@ namespace PixivWPF.Common
         static public async void ShowExceptionMessageBox(this Exception ex, string title)
         {
             ex.LOG(title);
-            await Task.Delay(1);
+            //await Task.Delay(1);
+            await Task.Yield();
             _MessageDialogList[title] = ex.Message;
             var dialog = new TaskDialog()
             {
@@ -11898,7 +11935,8 @@ namespace PixivWPF.Common
         {
             var result = false;
             ex.LOG(title);
-            await Task.Delay(1);
+            //await Task.Delay(1);
+            await Task.Yield();
             _MessageDialogList[title] = ex.Message;
             var dialog = new TaskDialog()
             {
@@ -11923,7 +11961,8 @@ namespace PixivWPF.Common
         {
             content.LOG(title);
 
-            await Task.Delay(1);
+            //await Task.Delay(1);
+            await Task.Yield();
             _MessageDialogList[title] = content;
             MessageBox.Show(content, title, MessageBoxButton.OK, image);
             var value = string.Empty;
@@ -11934,7 +11973,8 @@ namespace PixivWPF.Common
         {
             MessageBoxResult ret = MessageBoxResult.OK;
             content.LOG(title);            
-            await Task.Delay(1);
+            //await Task.Delay(1);
+            await Task.Yield();
             if (_MessageDialogList.TryAdd(title, content))
             {
                 ret = MessageBox.Show(content, title, MessageBoxButton.OKCancel, image);
@@ -12044,7 +12084,8 @@ namespace PixivWPF.Common
                     _dialogService.ClearNotifications();
                     _dialogService.ShowNotificationWindow(newNotification, cfg);
                     //_dialogService.DoEvents();
-                    await Task.Delay(1);
+                    //await Task.Delay(1);
+                    await Task.Yield();
                 }).InvokeAsync(System.Windows.Threading.DispatcherPriority.ApplicationIdle);
             }
             catch (Exception ex) { ex.ERROR("ShowDownloadToast"); }
@@ -12087,7 +12128,8 @@ namespace PixivWPF.Common
                         _dialogService.ClearNotifications();
                         _dialogService.ShowNotificationWindow(newNotification, cfg);
                         _dialogService.DoEvents();
-                        await Task.Delay(1);
+                        //await Task.Delay(1);
+                        await Task.Yield();
                     }).InvokeAsync(System.Windows.Threading.DispatcherPriority.ContextIdle);
                 }
             }
@@ -12127,7 +12169,8 @@ namespace PixivWPF.Common
                         _dialogService.ClearNotifications();
                         _dialogService.ShowNotificationWindow(newNotification, cfg);
                         _dialogService.DoEvents();
-                        await Task.Delay(1);
+                        //await Task.Delay(1);
+                        await Task.Yield();
                     }).InvokeAsync(System.Windows.Threading.DispatcherPriority.ContextIdle);
                 }
             }
@@ -12488,9 +12531,9 @@ namespace PixivWPF.Common
         {
             max = max ?? -1;
             if (max <= 0)
-                return (ss is SemaphoreSlim && ss.CurrentCount <= 0);
+                return (ss?.CurrentCount <= 0);
             else
-                return (ss is SemaphoreSlim && ss.CurrentCount < max);
+                return (ss?.CurrentCount < max);
         }
 
         static public void Release(this SemaphoreSlim ss, bool all = false, int? max = null)
@@ -12502,10 +12545,10 @@ namespace PixivWPF.Common
                 {
                     if (all)
                     {
-                        if (max > 0) ss.Release(max.Value - ss.CurrentCount);
-                        else { while (ss.Release() == -1) ; }
+                        if (max > 0) ss?.Release(max.Value - ss?.CurrentCount ?? 0);
+                        else { while (ss?.Release() == -1) ; }
                     }
-                    else { ss.Release(); }
+                    else { ss?.Release(); }
                 }
             }
             catch (SemaphoreFullException) { }

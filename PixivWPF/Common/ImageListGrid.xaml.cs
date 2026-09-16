@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MahApps.Metro.Controls;
+using Pixeez.Objects;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -18,8 +20,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-
-using MahApps.Metro.Controls;
 
 namespace PixivWPF.Common
 {
@@ -517,7 +517,7 @@ namespace PixivWPF.Common
         [Category("Common Properties")]
         public bool IsBusy
         {
-            get { return ((CanUpdateItems is SemaphoreSlim && CanUpdateItems.CurrentCount < CanUpdateItemsMax)); }
+            get { return (CanUpdateItems?.CurrentCount < CanUpdateItemsMax); }
         }
 
         [Description("Get Gallery Busy or Not")]
@@ -529,11 +529,8 @@ namespace PixivWPF.Common
 
         private void ReleaseUpdateLock(bool all = false)
         {
-            if (CanUpdateItems is SemaphoreSlim)
-            {
-                if (all) CanUpdateItems.Release(CanUpdateItemsMax - CanUpdateItems.CurrentCount);
-                else if (CanUpdateItems.CurrentCount < CanUpdateItemsMax) CanUpdateItems.Release();
-            }
+            if (all) CanUpdateItems?.Release(CanUpdateItemsMax - (CanUpdateItems?.CurrentCount ?? 0));
+            else if (CanUpdateItems?.CurrentCount < CanUpdateItemsMax) CanUpdateItems?.Release();
         }
 
         public void Wait()
@@ -667,6 +664,7 @@ namespace PixivWPF.Common
             {
                 if (async)
                 {
+                    await Task.Yield();
                     await new Action(async () =>
                     {
                         if (source == null)
@@ -677,7 +675,8 @@ namespace PixivWPF.Common
                                 if (batch) canvas.InvalidateVisual();
                                 else canvas.UpdateLayout();
                                 canvas.DoEvents();
-                                await Task.Delay(1);
+                                //await Task.Delay(1);
+                                await Task.Yield();
                             }
                         }
                         else
@@ -802,7 +801,8 @@ namespace PixivWPF.Common
                             if (!force) ItemList.Remove(items[i]);
                             this.DoEvents();
                         }
-                        await Task.Delay(1);
+                        //await Task.Delay(1);
+                        await Task.Yield();
                         items.Clear();
                         this.DoEvents();
                         if (force)
@@ -812,12 +812,14 @@ namespace PixivWPF.Common
                             RingList.Clear();
                             ItemList.Clear();
                         }
-                        await Task.Delay(1);
+                        //await Task.Delay(1);
+                        await Task.Yield();
                         //if (batch) PART_ImageTiles.UpdateLayout();
                         //else PART_ImageTiles.InvalidateVisual();
                         PART_ImageTiles.UpdateLayout();
                         this.DoEvents();
-                        await Task.Delay(1);
+                        //await Task.Delay(1);
+                        await Task.Yield();
                     }
                 }
             }
@@ -828,7 +830,8 @@ namespace PixivWPF.Common
                 UpdateGalleryTooltip(this);
                 if (AutoGC && count > 0) Application.Current.GC(Name, WaitGC, CalcSystemMemoryUsage);
                 this.DoEvents();
-                await Task.Delay(1);
+                //await Task.Delay(1);
+                await Task.Yield();
             }
         }
 
@@ -981,13 +984,13 @@ namespace PixivWPF.Common
                         #endregion
 
                         #region Touch filted downloaded
-                        new Action(async () => { this.DoEvents(); await Task.Delay(1); }).Invoke(async: true, priority: System.Windows.Threading.DispatcherPriority.Background);
+                        new Action(async () => { this.DoEvents(); await Task.Yield(); }).Invoke(async: true, priority: System.Windows.Threading.DispatcherPriority.Background);
                         UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(120));
                         opt.CancellationToken = UpdateTileTaskCancelSrc.Token;
                         Parallel.ForEach(downloaded_v, opt, (item, loopstate, itemIndex) =>
                         {
                             if (UpdateTileTask.CancellationPending || UpdateTileTaskCancelSrc.IsCancellationRequested) { e.Cancel = true; loopstate.Stop(); }
-                            try { item.Touch(); }
+                            try { item.TouchAsync(); }
                             catch (Exception ex) { ex.ERROR("TouchDownloaded"); }
                             finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
                         });
@@ -996,13 +999,13 @@ namespace PixivWPF.Common
                         #endregion
 
                         #region Touch downloaded
-                        new Action(async () => { this.DoEvents(); await Task.Delay(1); }).Invoke(async: true, priority: System.Windows.Threading.DispatcherPriority.Background);
+                        new Action(async () => { this.DoEvents(); await Task.Yield(); }).Invoke(async: true, priority: System.Windows.Threading.DispatcherPriority.Background);
                         UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(120));
                         opt.CancellationToken = UpdateTileTaskCancelSrc.Token;
                         Parallel.ForEach(downloaded_a, opt, (item, loopstate, itemIndex) =>
                         {
                             if (UpdateTileTask.CancellationPending || UpdateTileTaskCancelSrc.IsCancellationRequested) { e.Cancel = true; loopstate.Stop(); }
-                            try { item.Touch(); }
+                            try { item.TouchAsync(); }
                             catch (Exception ex) { ex.ERROR("TouchDownloaded"); }
                             finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
                         });
@@ -1051,7 +1054,7 @@ namespace PixivWPF.Common
                         foreach (var item in cached)
                         {
                             if (UpdateTileTask.CancellationPending || UpdateTileTaskCancelSrc.IsCancellationRequested) { tasks.Release(tasks.CurrentCount); e.Cancel = true; break; }
-                            if (tasks.Wait(-1, UpdateTileTaskCancelSrc.Token))
+                            if (tasks.Wait(TimeSpan.FromSeconds(60), UpdateTileTaskCancelSrc.Token))
                             {
                                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; break; }
                                 new Action(async () =>
@@ -1066,7 +1069,8 @@ namespace PixivWPF.Common
                                                 if (item.Source == null) item.Source = img.Source;
                                                 if (item.Source is ImageSource) item.State = TaskStatus.RanToCompletion;
                                                 this.DoEvents();
-                                                await Task.Delay(1);
+                                                //await Task.Delay(1);
+                                                await Task.Yield();
                                             }
                                             if (UpdateTileTask.CancellationPending)
                                             {
@@ -1084,8 +1088,10 @@ namespace PixivWPF.Common
                                     catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
                                     finally
                                     {
-                                        this.DoEvents(); await Task.Delay(1);
-                                        if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release();
+                                        this.DoEvents(); 
+                                        //await Task.Delay(1);
+                                        await Task.Yield();
+                                        if (tasks?.CurrentCount < parallel) tasks?.Release();
                                     }
                                 }).Invoke(async: true, priority: System.Windows.Threading.DispatcherPriority.Background);
                                 this.DoEvents();
@@ -1102,7 +1108,7 @@ namespace PixivWPF.Common
                         foreach (var item in needUpdate_v)
                         {
                             if (UpdateTileTask.CancellationPending || UpdateTileTaskCancelSrc.IsCancellationRequested) { tasks.Release(tasks.CurrentCount); e.Cancel = true; break; }
-                            if (tasks.Wait(-1, UpdateTileTaskCancelSrc.Token))
+                            if (tasks.Wait(TimeSpan.FromSeconds(60), UpdateTileTaskCancelSrc.Token))
                             {
                                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; break; }
                                 new Action(async () =>
@@ -1125,8 +1131,10 @@ namespace PixivWPF.Common
                                     catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
                                     finally
                                     {
-                                        if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release();
-                                        this.DoEvents(); await Task.Delay(1);
+                                        if (tasks?.CurrentCount < parallel) tasks?.Release();
+                                        this.DoEvents(); 
+                                        //await Task.Delay(1);
+                                        await Task.Yield();
                                     }
                                 }).Invoke(async: true, priority: System.Windows.Threading.DispatcherPriority.Background);
                                 this.DoEvents();
@@ -1137,22 +1145,24 @@ namespace PixivWPF.Common
                         #endregion
 
                         #region Touch filted downloaded
-                        new Action(async () => { this.DoEvents(); await Task.Delay(1); }).Invoke(async: true);
+                        new Action(async () => { this.DoEvents(); await Task.Yield(); }).Invoke(async: true);
                         UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(60));
                         foreach (var item in downloaded_v)
                         {
                             if (UpdateTileTask.CancellationPending || UpdateTileTaskCancelSrc.IsCancellationRequested) { tasks.Release(tasks.CurrentCount); e.Cancel = true; break; }
-                            if (tasks.Wait(-1, UpdateTileTaskCancelSrc.Token))
+                            if (tasks.Wait(TimeSpan.FromSeconds(60), UpdateTileTaskCancelSrc.Token))
                             {
                                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; break; }
                                 new Action(async () =>
                                 {
-                                    try { item.Touch(); }
+                                    try { item.TouchAsync(); }
                                     catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
                                     finally
                                     {
-                                        if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release();
-                                        this.DoEvents(); await Task.Delay(1);
+                                        if (tasks?.CurrentCount < parallel) tasks?.Release();
+                                        this.DoEvents(); 
+                                        //await Task.Delay(1);
+                                        await Task.Yield();
                                     }
                                 }).Invoke(async: true, priority: System.Windows.Threading.DispatcherPriority.Background);
                             }
@@ -1162,22 +1172,22 @@ namespace PixivWPF.Common
                         #endregion
 
                         #region Touch downloaded
-                        new Action(async () => { this.DoEvents(); await Task.Delay(1); }).Invoke(async: true);
+                        new Action(async () => { this.DoEvents(); await Task.Yield(); }).Invoke(async: true);
                         UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(60));
                         foreach (var item in downloaded_a)
                         {
                             if (UpdateTileTask.CancellationPending || UpdateTileTaskCancelSrc.IsCancellationRequested) { tasks.Release(tasks.CurrentCount); e.Cancel = true; break; }
-                            if (tasks.Wait(-1, UpdateTileTaskCancelSrc.Token))
+                            if (tasks.Wait(TimeSpan.FromSeconds(60), UpdateTileTaskCancelSrc.Token))
                             {
                                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; break; }
                                 new Action(async () =>
                                 {
-                                    try { item.Touch(); }
+                                    try { item.TouchAsync(); }
                                     catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
                                     finally
                                     {
-                                        if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release();
-                                        this.DoEvents(); await Task.Delay(1);
+                                        if (tasks?.CurrentCount < parallel) tasks?.Release();
+                                        this.DoEvents(); await Task.Yield();
                                     }
                                 }).Invoke(async: true, priority: System.Windows.Threading.DispatcherPriority.Background);
                             }
@@ -1191,7 +1201,7 @@ namespace PixivWPF.Common
                         foreach (var item in needUpdate_a)
                         {
                             if (UpdateTileTask.CancellationPending || UpdateTileTaskCancelSrc.IsCancellationRequested) { tasks.Release(tasks.CurrentCount); e.Cancel = true; break; }
-                            if (tasks.Wait(-1, UpdateTileTaskCancelSrc.Token))
+                            if (tasks.Wait(TimeSpan.FromSeconds(60), UpdateTileTaskCancelSrc.Token))
                             {
                                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; break; }
                                 new Action(async () =>
@@ -1214,8 +1224,10 @@ namespace PixivWPF.Common
                                     catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
                                     finally
                                     {
-                                        if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release();
-                                        this.DoEvents(); await Task.Delay(1);
+                                        if (tasks?.CurrentCount < parallel) tasks?.Release();
+                                        this.DoEvents(); 
+                                        //await Task.Delay(1);
+                                        await Task.Yield();
                                     }
                                 }).Invoke(async: true, priority: System.Windows.Threading.DispatcherPriority.Background);
                                 this.DoEvents();
@@ -1303,7 +1315,8 @@ namespace PixivWPF.Common
                 catch (Exception ex) { ex.ERROR(Name ?? "UpdateTilesTask"); }
                 finally
                 {
-                    if (!UpdateTileTask.IsBusy && !UpdateTileTask.CancellationPending) ReleaseUpdateLock();
+                    //if (!UpdateTileTask.IsBusy && !UpdateTileTask.CancellationPending) ReleaseUpdateLock();
+                    ReleaseUpdateLock();
                     //GC.Collect();
                 }
             }
@@ -1318,8 +1331,10 @@ namespace PixivWPF.Common
                 {
                     //foreach (var item in SelectedItems.Count > 0 ? SelectedItems : Items)
                     var thumb_size = Application.Current.GetDefaultThumbSize();
-                    foreach (var item in Items)
+                    foreach (var item in Tiles.Cast<PixivItem>().ToList())
                     {
+                        await Task.Yield();
+
                         if (item.Illust == null) continue;
 
                         if (item.IsWork())
@@ -1347,20 +1362,25 @@ namespace PixivWPF.Common
 
                                 if (item.IsPage() || item.IsPages())
                                 {
-                                    string f = string.Empty;
-                                    bool download = item.Illust.IsDownloadedAsync(out f,  false, index: item.Index, touch: touch);
+                                    var state = await item.Illust.IsDownloadedAsync(false, index: item.Index, touch: touch);
+                                    string f = state.Path;
+                                    bool download = state.Exists;
                                     item.IsDownloaded = download;
                                     item.DownloadedFilePath = f;
                                     item.UsePartDownloaded = false;
+                                    if (item.DisplayBadge) item.DisplayBadge = true;
                                 }
                                 else
                                 {
-                                    string f = string.Empty;
-                                    bool part_down = item.Illust.IsPartDownloadedAsync(out f, touch: touch);
+                                    var state = await item.Illust.IsPartDownloadedAsync(touch: touch);
+                                    string f = state.Path;
+                                    bool part_down = state.Exists;
                                     item.IsDownloaded = part_down;
                                     item.IsPartDownloaded = part_down;
                                     item.DownloadedFilePath = f;
                                     item.UsePartDownloaded = true;
+                                    if (item.DisplayBadge != item.HasPages()) item.DisplayBadge = item.HasPages();
+
 #if DEBUG
                                     this.Invoke(() => { ($"{Name ?? "Gallary"}_{item.ID}").DEBUG("UpdateTilesState"); });
 #endif
@@ -1375,7 +1395,8 @@ namespace PixivWPF.Common
                         }
                         this.DoEvents();
                     }
-                    await Task.Delay(1);
+                    //await Task.Delay(1);
+                    await Task.Yield();
                     //GC.Collect();
                 }
                 catch (Exception ex) { ex.ERROR("UpdateTilesState"); }

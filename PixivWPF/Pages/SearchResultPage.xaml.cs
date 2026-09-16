@@ -564,7 +564,8 @@ namespace PixivWPF.Pages
                     if (ParentWindow != null)
                     {
                         this.DoEvents();
-                        await Task.Delay(1);
+                        //await Task.Delay(1);
+                        await Task.Yield();
                         ParentWindow.Close();
                     }
                 }

@@ -162,7 +162,7 @@ namespace PixivWPF.Pages
                                 this.DoEvents();
                             }
                             catch (Exception ex) { ex.ERROR($"BatchProcessing_{f.Name}"); }
-                            finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); this.DoEvents(); await Task.Delay(1); }
+                            finally { if (tasks?.CurrentCount < parallel) tasks?.Release(); this.DoEvents(); await Task.Yield(); }
                         }).Invoke(async: false);
                     }
                 }

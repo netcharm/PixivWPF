@@ -635,7 +635,8 @@ namespace PixivWPF.Pages
 
             await new Action(async () =>
             {
-                await Task.Delay(1);
+                //await Task.Delay(1);
+                await Task.Yield();
                 IllustDetail.Content = DetailPage;
                 this.DoEvents();
                 CategoryMenu.IsPaneOpen = false;
@@ -882,7 +883,7 @@ namespace PixivWPF.Pages
                     }
                     else
                     {
-                        item.IsDownloaded = item.Illust.IsPartDownloadedAsync(touch: false);
+                        item.IsDownloaded = (await item.Illust.IsPartDownloadedAsync(touch: false)).Exists;
                         item.IsFavorited = item.IsLiked();
                         item.IsFollowed = item.User.IsLiked();
                     }
@@ -1098,6 +1099,9 @@ namespace PixivWPF.Pages
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
+                    await Task.Yield();
+                    await Task.Delay(250);
+
                     ImageTiles.UpdateTilesImage();
                 }
             }
@@ -1152,6 +1156,9 @@ namespace PixivWPF.Pages
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
+                    await Task.Yield();
+                    await Task.Delay(250);
+                    
                     ImageTiles.UpdateTilesImage();
                 }
             }
@@ -1205,6 +1212,9 @@ namespace PixivWPF.Pages
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
+                    await Task.Yield();
+                    await Task.Delay(250);
+
                     ImageTiles.UpdateTilesImage();
                 }
             }
@@ -1258,6 +1268,9 @@ namespace PixivWPF.Pages
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
+                    await Task.Yield();
+                    await Task.Delay(250);
+
                     ImageTiles.UpdateTilesImage();
                 }
             }
@@ -1314,6 +1327,9 @@ namespace PixivWPF.Pages
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
+                    await Task.Yield();
+                    await Task.Delay(250);
+
                     ImageTiles.UpdateTilesImage();
                 }
             }
@@ -1371,6 +1387,9 @@ namespace PixivWPF.Pages
                         }
                         if (!Application.Current.IsLogin()) await Task.Delay(250);
                         this.DoEvents();
+                        await Task.Yield();
+                        await Task.Delay(250);
+
                         ImageTiles.UpdateTilesImage();
                     }
                 }
@@ -1427,6 +1446,9 @@ namespace PixivWPF.Pages
                         }
                         if (!Application.Current.IsLogin()) await Task.Delay(250);
                         this.DoEvents();
+                        await Task.Yield();
+                        await Task.Delay(250);
+
                         ImageTiles.UpdateTilesImage();
                     }
                 }
@@ -1493,6 +1515,9 @@ namespace PixivWPF.Pages
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
+                    await Task.Yield();
+                    await Task.Delay(250);
+
                     ImageTiles.UpdateTilesImage();
                 }
             }
@@ -1555,6 +1580,9 @@ namespace PixivWPF.Pages
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
+                    await Task.Yield();
+                    await Task.Delay(250);
+
                     ImageTiles.UpdateTilesImage();
                 }
             }
@@ -1637,6 +1665,9 @@ namespace PixivWPF.Pages
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
+                    await Task.Yield();
+                    await Task.Delay(250);
+
                     ImageTiles.UpdateTilesImage();
                 }
             }
@@ -1694,6 +1725,9 @@ namespace PixivWPF.Pages
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
+                    await Task.Yield();
+                    await Task.Delay(250);
+
                     ImageTiles.UpdateTilesImage();
                 }
             }
@@ -1750,6 +1784,9 @@ namespace PixivWPF.Pages
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
+                    await Task.Yield();
+                    await Task.Delay(250);
+
                     ImageTiles.UpdateTilesImage();
                 }
             }
@@ -1806,6 +1843,9 @@ namespace PixivWPF.Pages
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
+                    await Task.Yield();
+                    await Task.Delay(250);
+
                     ImageTiles.UpdateTilesImage();
                 }
             }

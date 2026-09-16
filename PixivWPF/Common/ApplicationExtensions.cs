@@ -1500,7 +1500,8 @@ namespace PixivWPF.Common
                     catch (Exception ex) { ex.ERROR(); continue; }
                     finally
                     {
-                        await Task.Delay(1);
+                        //await Task.Delay(1);
+                        await Task.Yield();
                         DoEvents();
                         if (!active)
                         {
@@ -2465,7 +2466,7 @@ namespace PixivWPF.Common
             }
         }
 
-        static public void HistoryAdd(this Application app, Pixeez.Objects.Work illust, ObservableCollection<PixivItem> source)
+        static public async void HistoryAdd(this Application app, Pixeez.Objects.Work illust, ObservableCollection<PixivItem> source)
         {
             if (source is ObservableCollection<PixivItem>)
             {
@@ -2499,7 +2500,7 @@ namespace PixivWPF.Common
                     }
                     else
                     {
-                        source.Insert(0, illust.WorkItem());
+                        source.Insert(0, await illust.WorkItem());
                         var setting = app.LoadSetting();
                         if (source.Count > setting.HistoryLimit)
                         {
@@ -3663,7 +3664,8 @@ namespace PixivWPF.Common
                     }
                     catch (Exception)
                     {
-                        await Task.Delay(1);
+                        //await Task.Delay(1);
+                        await Task.Yield();
                     }
                 }
                 finally
@@ -4321,6 +4323,7 @@ namespace PixivWPF.Common
                     {
                         if (async)
                         {
+                            await Task.Yield();
                             if (realtime)
                                 await dispatcher.BeginInvoke(action, DispatcherPriority.Send);
                             else
@@ -4345,6 +4348,7 @@ namespace PixivWPF.Common
                     {
                         if (async)
                         {
+                            await Task.Yield();
                             if (realtime)
                                 await dispatcher.BeginInvoke(action, DispatcherPriority.Send, paramlist);
                             else
