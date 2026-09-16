@@ -1,4 +1,5 @@
-﻿using MahApps.Metro.Controls;
+﻿using Hjg.Pngcs;
+using MahApps.Metro.Controls;
 using Pixeez.Objects;
 using System;
 using System.Collections;
@@ -645,11 +646,8 @@ namespace PixivWPF.Common
             //PART_ImageTiles.InvalidateMeasure();
             //PART_ImageTiles.UpdateLayout();
 
-            if (Viewer is ScrollViewer)
-            {
-                Viewer.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
-                //Viewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
-            }
+            Viewer?.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
+            //Viewer?.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
         }
 
         public void Refresh()
@@ -721,7 +719,7 @@ namespace PixivWPF.Common
         {
             if (image is Image)
             {
-                new Action(() =>
+                new Action(async () =>
                 {
                     if (source == null)
                     {
@@ -738,7 +736,9 @@ namespace PixivWPF.Common
                     {
                         image.Source = source;
                         if (image.Source.CanFreeze) image.Source.Freeze();
+                        await Task.Yield();
                     }
+                    await Task.Yield();
                     //GC.Collect();
                 }).Invoke(async: async);
             }
@@ -759,9 +759,7 @@ namespace PixivWPF.Common
         private IList<PixivItem> LastItems = new List<PixivItem>();
         private void TouchImage()
         {
-            //var need_updates = ItemList.Where(t => t.IsNotPage() && t.IsDownloaded && !LastItems.ContainsKey(t) && LastItems[t] == false);
-            //Commands.TouchMeta.Execute(need_updates.ToList());
-            var need_updates = ItemList.Where(t => t.IsNotPage() && t.IsDownloaded && !LastItems.Contains(t));
+            var need_updates = Dispatcher.Invoke(() => ItemList.Where(t => t.IsNotPage() && t.IsDownloaded && !LastItems.Contains(t)));
             Commands.TouchMeta.Execute(need_updates.ToList());
         }
 
@@ -846,6 +844,18 @@ namespace PixivWPF.Common
             }
         }
 
+        private SortDescription _default_ascending_ = new("ItemIndex", ListSortDirection.Ascending);
+        private SortDescription _default_descending_ = new("ItemIndex", ListSortDirection.Descending);
+
+        public void Sort(string propName = null, bool? a2z = null )
+        {
+            var sort = new SortDescription(propName ?? "ItemIndex", a2z ?? true ? ListSortDirection.Ascending : ListSortDirection.Descending);
+
+            PART_ImageTiles?.Items?.SortDescriptions.Clear();
+            PART_ImageTiles?.Items?.SortDescriptions.Add(sort);
+            PART_ImageTiles?.Items?.IsLiveSorting = true;
+        }
+
         private BackgroundWorker UpdateTileTask = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
         private CancellationTokenSource UpdateTileTaskCancelSrc = new();
         //private CancellationTokenSource _gallery_gc = new();
@@ -923,13 +933,14 @@ namespace PixivWPF.Common
                         #region Loading cached thumbnails
                         UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(60));
                         opt.CancellationToken = UpdateTileTaskCancelSrc.Token;
-                        Parallel.ForEach(cached, opt, (item, loopstate, itemIndex) =>
+                        Parallel.ForEach(cached, opt, async (item, loopstate, itemIndex) =>
                         {
                             if (UpdateTileTask.CancellationPending || UpdateTileTaskCancelSrc.IsCancellationRequested) { e.Cancel = true; loopstate.Stop(); }
                             try
                             {
                                 item.State = TaskStatus.Faulted;
-                                using (var img = item.Thumb.LoadImageFromUrl(overwrite, size: thumb_size).GetAwaiter().GetResult())
+                                //using (var img = item.Thumb.LoadImageFromUrl(overwrite, size: thumb_size).GetAwaiter().GetResult())
+                                using (var img = await item.Thumb.LoadImageFromUrl(overwrite, size: thumb_size))
                                 {
                                     if (img.Source != null)
                                     {
@@ -956,7 +967,7 @@ namespace PixivWPF.Common
                         #region Loading filted items downloading thumbnails
                         UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(120));
                         opt.CancellationToken = UpdateTileTaskCancelSrc.Token;
-                        Parallel.ForEach(needUpdate_v, opt, (item, loopstate, itemIndex) =>
+                        Parallel.ForEach(needUpdate_v, opt, async (item, loopstate, itemIndex) =>
                         {
                             if (UpdateTileTask.CancellationPending || UpdateTileTaskCancelSrc.IsCancellationRequested) { e.Cancel = true; loopstate.Stop(); }
                             try
@@ -964,7 +975,8 @@ namespace PixivWPF.Common
                                 if (!cached.Contains(item))
                                 {
                                     item.State = TaskStatus.Running;
-                                    using (var img = item.Thumb.LoadImageFromUrl(overwrite, size: thumb_size).GetAwaiter().GetResult())
+                                    //using (var img = item.Thumb.LoadImageFromUrl(overwrite, size: thumb_size).GetAwaiter().GetResult())
+                                    using (var img = await item.Thumb.LoadImageFromUrl(overwrite, size: thumb_size))
                                     {
                                         if (UpdateTileTask.CancellationPending) { e.Cancel = true; loopstate.Stop(); }
                                         if (img.Source != null)
@@ -1016,7 +1028,7 @@ namespace PixivWPF.Common
                         #region Loading need downloading thumbnails
                         UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(120));
                         opt.CancellationToken = UpdateTileTaskCancelSrc.Token;
-                        Parallel.ForEach(needUpdate_a, opt, (item, loopstate, itemIndex) =>
+                        Parallel.ForEach(needUpdate_a, opt, async (item, loopstate, itemIndex) =>
                         {
                             if (UpdateTileTask.CancellationPending || UpdateTileTaskCancelSrc.IsCancellationRequested) { e.Cancel = true; loopstate.Stop(); }
                             try
@@ -1024,7 +1036,8 @@ namespace PixivWPF.Common
                                 if (!cached.Contains(item))
                                 {
                                     item.State = TaskStatus.Running;
-                                    using (var img = item.Thumb.LoadImageFromUrl(overwrite, size: thumb_size).GetAwaiter().GetResult())
+                                    //using (var img = item.Thumb.LoadImageFromUrl(overwrite, size: thumb_size).GetAwaiter().GetResult())
+                                    using (var img = await item.Thumb.LoadImageFromUrl(overwrite, size: thumb_size))
                                     {
                                         if (UpdateTileTask.CancellationPending) { e.Cancel = true; loopstate.Stop(); }
                                         if (img.Source != null)
@@ -1124,6 +1137,7 @@ namespace PixivWPF.Common
                                             {
                                                 if (item.Source == null) item.Source = img.Source;
                                                 if (item.Source is ImageSource) item.State = TaskStatus.RanToCompletion;
+                                                await Task.Yield();
                                             }
                                             else item.State = TaskStatus.Faulted;
                                         }
@@ -1245,9 +1259,9 @@ namespace PixivWPF.Common
             }
             finally
             {
-                LastItems = ItemList.Where(t => t.IsDownloaded).ToList();
+                LastItems = Dispatcher.Invoke(() => ItemList.Where(t => t.IsDownloaded).ToList());
                 this.DoEvents();
-                Task.Delay(1).GetAwaiter().GetResult();
+                //Task.Delay(1).GetAwaiter().GetResult();
                 ReleaseUpdateLock();
                 Application.Current.DelayGC();
                 //Application.Current.DelayGC(_gallery_gc);
@@ -1581,12 +1595,12 @@ namespace PixivWPF.Common
                             var image = tile is Grid ? tile.FindByName<Image>("PART_Thumbnail") : null;
                             if (ring.State == TaskStatus.RanToCompletion)
                             {
-                                if (canvas is Canvas)
+                                if (canvas is not null)
                                 {
                                     RenderCanvas(canvas, item.Source);
                                     CanvasList[id] = canvas;
                                 }
-                                else if (image is Image)
+                                else if (image is not null)
                                 {
                                     RenderImage(image, item.Source);
                                     ImageList[id] = image;
@@ -1594,11 +1608,11 @@ namespace PixivWPF.Common
                             }
                             else if (ring.State == TaskStatus.Canceled)
                             {
-                                if (canvas is Canvas)
+                                if (canvas is not null)
                                 {
                                     RenderCanvas(canvas, null);
                                 }
-                                else if (image is Image)
+                                else if (image is not null)
                                 {
                                     RenderImage(image, null);
                                 }

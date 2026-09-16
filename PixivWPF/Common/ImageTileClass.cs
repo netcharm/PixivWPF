@@ -992,7 +992,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<PixivItem> WorkItem(this Pixeez.Objects.Work illust, string url = "", string nexturl = "", PixivItemType work_type = PixivItemType.Work)
+        public static async Task<PixivItem> WorkItem(this Pixeez.Objects.Work illust, string url = "", string nexturl = "", PixivItemType work_type = PixivItemType.Work, int? index = null)
         {
             PixivItem result = null;
             try
@@ -1039,6 +1039,7 @@ namespace PixivWPF.Common
                         result = new PixivItem()
                         {
                             ItemType = work_type,
+                            ItemIndex = index ?? -1,
                             NextURL = nexturl,
                             Thumb = url,
                             Index = -1,
@@ -1288,19 +1289,21 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async void AddTo(this Pixeez.Objects.Work illust, IList<PixivItem> Collection, string nexturl = "")
+        public static async void AddTo(this Pixeez.Objects.Work illust, IList<PixivItem> Collection, string nexturl = "", int? index = null)
         {
             try
             {
-                if (illust is Pixeez.Objects.Work && Collection is IList<PixivItem>)
+                if (illust is not null && Collection is not null)
                 {
                     var url = illust.GetThumbnailUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
-                        var i = await illust.WorkItem(url, nexturl);
-                        if (i is PixivItem)
+                        var idx = index ?? (Collection.Count > 0 ? Collection.Max(ci => ci.ItemIndex) + 1 : 0);
+                        var i = await illust.WorkItem(url, nexturl, index: idx);
+                        if (i is not null)
                         {
-                            i.ItemIndex = Collection.Count > 0 ? Collection.Max(ci => ci.ItemIndex) + 1 : 0;
+                            //i.ItemIndex = Collection.Count > 0 ? Collection.Max(ci => ci.ItemIndex) + 1 : 0;
+                            if (i.ItemIndex < 0) i.ItemIndex = idx;
                             i.ToolTip = $"🗨[{Collection.Count + 1}], {i.ToolTip}";
                             Collection.Add(i);
                             //await Task.Delay(1);
@@ -1323,7 +1326,7 @@ namespace PixivWPF.Common
                 if (pages is Pixeez.Objects.MetaPages && Collection is IList<PixivItem>)
                 {
                     var p = await PageItem(pages, illust, index, nexturl);
-                    if (p is PixivItem)
+                    if (p is not null)
                     {
                         Collection.Add(p);
                         //await Task.Delay(1);
