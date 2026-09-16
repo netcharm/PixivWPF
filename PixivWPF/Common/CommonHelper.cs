@@ -6414,14 +6414,14 @@ namespace PixivWPF.Common
             //finally { GC.Collect(); }
         }
 
-        static public void Touch(this string file, string url, bool local = false, bool meta = false, bool force = false)
+        static public async void Touch(this string file, string url, bool local = false, bool meta = false, bool force = false)
         {
             try
             {
                 if (File.Exists(file) && file.WaitFileUnlock())
                 {
                     FileInfo fi = new FileInfo(file);
-                    fi.Touch(url, local, meta, force);
+                    await fi.Touch(url, local, meta, force);
                 }
             }
             catch (Exception ex) { var id = Path.GetFileName(file); ex.ERROR($"Touch_{id}"); }
@@ -6453,7 +6453,7 @@ namespace PixivWPF.Common
         static public async void TouchAsync(this FileInfo fileinfo, string url, bool local = false, bool meta = false, bool force = false)
         {
             //await new Action(() => { Touch(file, url, local, meta, force); }).InvokeAsync();
-            await Task.Run(() => { Touch(fileinfo, url, local, meta, force); }, new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token);
+            await Task.Run(async () => { await Touch(fileinfo, url, local, meta, force); }, new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token);
         }
 
         static public async void TouchAsync(this string file, string url, bool local = false, bool meta = false, bool force = false)
@@ -7229,7 +7229,7 @@ namespace PixivWPF.Common
         #region Get Downloaded List routines
         static public IEnumerable<string> GetDownloadedFiles(this PixivItem item)
         {
-            List<string> result = new List<string>();
+            List<string> result = [];
             try
             {
                 if (item.IsWork())

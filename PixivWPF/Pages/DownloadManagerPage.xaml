@@ -10,7 +10,6 @@
       xmlns:local="clr-namespace:PixivWPF.Pages"
       Loaded="Page_Loaded"
       mc:Ignorable="d"
-      VisualTextRenderingMode="Auto"
       RenderOptions.BitmapScalingMode="HighQuality"
       RenderOptions.CachingHint="Cache"
       RenderOptions.ClearTypeHint="Enabled"

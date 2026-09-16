@@ -127,7 +127,7 @@ namespace PixivWPF.Pages
                                                 if (ReduceSize)
                                                     await f.FullName.ReduceImageFileSize("jpg", keep_name: true, quality: setting.DownloadRecudeJpegQuality);
                                                 else
-                                                    f.Touch(url, meta: true, fix_name: false);
+                                                    await f.Touch(url, meta: true, fix_name: false);
                                             }
                                             else if (Mode.Equals("attach", StringComparison.CurrentCultureIgnoreCase))
                                             {

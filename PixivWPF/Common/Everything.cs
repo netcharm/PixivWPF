@@ -64,13 +64,14 @@ namespace PixivWPF.Common
             //
             _files_ ??= new();
             _files_nested_ ??= new();
+            var prefix = nested ? $"{System.IO.Path.PathSeparator}" : "";
             if (_files_.IsEmpty || !_files_.ContainsKey(path) || _files_[path] == null || !_files_[path].Any())
             {
                 UpdateFiles(path, nested);
             }
             if (_files_.ContainsKey(path))
             {
-                result = [.. _files_[path].Where(f => Regex.IsMatch(f.Key, $"\\{pattern}", RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f.Key)).Where(f => !f.EndsWith(".TMP", StringComparison.CurrentCultureIgnoreCase))];
+                result = [.. _files_[path].Where(f => Regex.IsMatch(f.Key, $"{prefix}{pattern}", RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f.Key)).Where(f => !f.EndsWith(".TMP", StringComparison.CurrentCultureIgnoreCase))];
             }
             return (result);
         }
