@@ -71,6 +71,7 @@ namespace PixivWPF.Common
             }
             if (_files_.ContainsKey(path))
             {
+                pattern = pattern.Replace(".", "\\.");
                 result = [.. _files_[path].Where(f => Regex.IsMatch(f.Key, $"{prefix}{pattern}", RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f.Key)).Where(f => !f.EndsWith(".TMP", StringComparison.CurrentCultureIgnoreCase))];
             }
             return (result);
@@ -83,11 +84,12 @@ namespace PixivWPF.Common
             _files_nested_[path] = nested;
 
             var prefix = nested ? $"{System.IO.Path.PathSeparator}" : "";
+            pattern = pattern.Replace(".", "\\.");
             if (_files_.IsEmpty || !_files_.ContainsKey(path) || _files_[path] == null || !_files_[path].Any())
             {
                 _files_[path] ??= [];
                 var files = Environment.Is64BitProcess ? everything64?.EnumerateFiles(path, "*.*", nested) : everything32?.EnumerateFiles(path, "*.*", nested);
-                foreach (var f in files.Where(f => !f.EndsWith(".TMP", StringComparison.CurrentCultureIgnoreCase)))
+                foreach (var f in files.Where(f => !f.EndsWith(".TMP", StringComparison.CurrentCultureIgnoreCase)).ToArray())
                 {
                     _files_[path][f] = nested;
                     if (Regex.IsMatch(f, $"{prefix}{pattern}", RegexOptions.IgnoreCase))
@@ -99,7 +101,7 @@ namespace PixivWPF.Common
             else if (_files_?.ContainsKey(path) ?? false)
             {
                 var result = _files_[path].Where(f => Regex.IsMatch(f.Key, $"{prefix}{pattern}", RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f.Key)).Where(f => !f.EndsWith(".TMP", StringComparison.CurrentCultureIgnoreCase));
-                foreach (var f in result) { yield return (f); }
+                foreach (var f in result.ToArray()) { yield return (f); }
             }
         }
         #endregion
