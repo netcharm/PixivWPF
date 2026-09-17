@@ -1,6 +1,7 @@
 ﻿using Hjg.Pngcs;
 using MahApps.Metro.Controls;
 using MahApps.Metro.IconPacks;
+using Microsoft.DwayneNeed.Numerics;
 using PixivWPF.Common;
 using System;
 using System.Collections.Concurrent;
@@ -615,11 +616,21 @@ namespace PixivWPF.Pages
             {
                 if (_update_tiles_checker_.Tag is int && (int)_update_tiles_checker_.Tag > 0)
                 {
-                    if (ImageTiles?.Items?.Count == (int)_update_tiles_checker_?.Tag)
+                    if (ImageTiles?.Items?.Count >= (int)_update_tiles_checker_?.Tag)
                     {
-                        ImageTiles?.Sort();
-                        ImageTiles?.UpdateTilesImage();
-                        _update_tiles_checker_.Stop();
+                        var interval = _update_tiles_checker_?.Interval.TotalMilliseconds;
+                        if (interval == 250)
+                        {
+                            ImageTiles?.Sort();
+                            ImageTiles?.UpdateTilesImage();
+                            _update_tiles_checker_?.Stop();
+                            _update_tiles_checker_?.Interval = TimeSpan.FromSeconds(10);
+                            _update_tiles_checker_?.Start();
+                        }
+                        else if (interval == 10000)
+                        {
+                            ImageTiles?.UpdateTilesThumb();
+                        }
                     }
                 }
             };
@@ -627,6 +638,8 @@ namespace PixivWPF.Pages
 
         public void StartUpdateTilesChecker(int value)
         {
+            _update_tiles_checker_?.Stop();
+            _update_tiles_checker_?.Interval = TimeSpan.FromSeconds(0.25);
             _update_tiles_checker_?.Tag = Math.Max(0, value);
             _update_tiles_checker_?.Start();
         }

@@ -97,7 +97,7 @@ namespace PixivWPF.Common
 
         [Description("Get Total Image Tiles Count")]
         [Category("Common Properties")]
-        public int Count { get { return (ItemList is ObservableCollection<PixivItem> ? ItemList.Count : 0); } }
+        public int Count { get { return (ItemList is not null ? ItemList.Count : 0); } }
 
         [Description("Get Displayed Image Tiles Count")]
         [Category("Common Properties")]
@@ -109,7 +109,18 @@ namespace PixivWPF.Common
 
         [Description("Get Total Image Tiles Count")]
         [Category("Common Properties")]
-        public int TotalCount { get { return (ItemList is ObservableCollection<PixivItem> ? ItemList.Count : 0); } }
+        public int TotalCount { get { return (ItemList is not null ? ItemList.Count : 0); } }
+
+        [Description("Get Total Image Tiles Thumb Count")]
+        [Category("Common Properties")]
+        public int ThumbCount
+        {
+            get
+            {
+                if (FiltedList is null) return (0);
+                else return (FiltedList.Count(i => i.Source != null));
+            }
+        }
         #endregion
 
         #region Tiles Layout
@@ -658,7 +669,7 @@ namespace PixivWPF.Common
 
         private async void RenderCanvas(Canvas canvas, ImageSource source, bool batch = false, bool async = false)
         {
-            if (canvas is Canvas)
+            if (canvas is not null)
             {
                 if (async)
                 {
@@ -717,7 +728,7 @@ namespace PixivWPF.Common
 
         private void RenderImage(Image image, ImageSource source, bool batch = false, bool async = false)
         {
-            if (image is Image)
+            if (image is not null)
             {
                 new Action(async () =>
                 {
@@ -865,7 +876,7 @@ namespace PixivWPF.Common
             try
             {
                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
-                var overwrite = e.Argument is bool ? (bool)e.Argument : false;
+                var overwrite = e?.Argument is bool && (bool)e?.Argument;
 
                 var items = ItemList.ToList();
                 var filted = FiltedList.ToList();
@@ -1269,42 +1280,6 @@ namespace PixivWPF.Common
             }
         }
 
-        public void UpdateTileImage(int index, bool overwrite = false)
-        {
-            if (0 <= index && index < Items.Count)
-            {
-                var item = Items[index];
-                var id = GetID(item);
-                var canvas = CanvasList.ContainsKey(id) ? CanvasList[id] : null;
-                var image = ImageList.ContainsKey(id) ? ImageList[id] : null;
-                if (item.State == TaskStatus.RanToCompletion)
-                {
-                    if (canvas is Canvas)
-                    {
-                        RenderCanvas(canvas, item.Source);
-                        CanvasList[id] = canvas;
-                    }
-                    else if (image is Image)
-                    {
-                        RenderImage(image, item.Source);
-                        ImageList[id] = image;
-                    }
-                }
-                else if (item.State == TaskStatus.Canceled)
-                {
-                    if (canvas is Canvas)
-                    {
-                        RenderCanvas(canvas, null);
-                    }
-                    else if (image is Image)
-                    {
-                        RenderImage(image, null);
-                    }
-                }
-                //GC.Collect();
-            }
-        }
-
         public async void UpdateTilesImage(bool overwrite = false, bool touch = true)
         {
             this.DoEvents();
@@ -1333,6 +1308,110 @@ namespace PixivWPF.Common
                     ReleaseUpdateLock();
                     //GC.Collect();
                 }
+            }
+        }
+
+        private CancellationTokenSource _thumb_update_ = new();
+        public async void UpdateTilesThumb()
+        {
+            _thumb_update_ ??= new();
+            await Task.Delay(50);
+            _thumb_update_?.Cancel();
+
+            try
+            {
+                await Task.Yield();
+                await Task.Delay(250);
+                _thumb_update_ = new();
+
+                await Task.Run(async () =>
+                {
+                    foreach (var item in FiltedList)
+                    {
+                        if (_thumb_update_?.IsCancellationRequested ?? false) break;
+                        if (item.Source == null)
+                        {
+                            item.State = TaskStatus.Created;
+                            using var img = await item.Thumb.LoadImageFromUrl(false, size: Application.Current.GetDefaultThumbSize());
+                            if (img.Source != null)
+                            {
+                                if (item.Source == null) item.Source = img.Source;
+                                if (item.Source is not null) item.State = TaskStatus.RanToCompletion;
+                            }
+                        }
+                        if (item.State == TaskStatus.RanToCompletion)
+                        {
+                            UpdateTileThumb(item);
+                        }
+                    }
+                }, _thumb_update_?.Token ?? CancellationToken.None);
+            }
+            catch (Exception ex) { ex.ERROR("UpdateTilesThumb"); }
+        }
+
+        public void UpdateTileThumb(PixivItem item)
+        {
+            try
+            {
+                if (item is null) return;
+
+                var id = GetID(item);
+                if (id != null)
+                {
+                    Dispatcher.InvokeAsync(() =>
+                    {
+                        if (item.Tag is Canvas)
+                        {
+                            var canvas = item.Tag as Canvas;
+                            if (canvas.Background is null) RenderCanvas(canvas, item.Source);
+                        }
+                        else if (item?.Tag is Image)
+                        {
+                            var image = item.Tag as Image;
+                            if (image.Source is null) RenderImage(image, item.Source);
+                        }
+                        else
+                        {
+                            var canvas = CanvasList.ContainsKey(id) ? CanvasList[id] : null;
+                            var image = ImageList.ContainsKey(id) ? ImageList[id] : null;
+                            if (item.State == TaskStatus.RanToCompletion)
+                            {
+                                if (canvas is not null)
+                                {
+                                    RenderCanvas(canvas, item.Source);
+                                    CanvasList[id] = canvas;
+                                }
+                                else if (image is not null)
+                                {
+                                    RenderImage(image, item.Source);
+                                    ImageList[id] = image;
+                                }
+                            }
+                            else if (item.State == TaskStatus.Canceled)
+                            {
+                                if (canvas is not null)
+                                {
+                                    RenderCanvas(canvas, null);
+                                }
+                                else if (image is not null)
+                                {
+                                    RenderImage(image, null);
+                                }
+                            }
+                        }
+                        //GC.Collect();
+                    }, System.Windows.Threading.DispatcherPriority.Background);
+                }
+            }
+            catch (Exception ex) { ex.ERROR("UpdateTileThumb"); }
+        }
+
+        public void UpdateTileThumb(int index)
+        {
+            if (0 <= index && index < Items.Count)
+            {
+                var item = Items[index];
+                UpdateTileThumb(item);
             }
         }
 
@@ -1582,17 +1661,17 @@ namespace PixivWPF.Common
                 {
                     var ring = sender as ProgressRingCloud;
                     var tile = ring.Parent is Grid ? ring.Parent as Grid : null;
-                    var item = tile is Grid && tile.DataContext is PixivItem ? tile.DataContext as PixivItem : null;
-                    if (item == null) item = tile is Grid && tile.Tag is PixivItem ? tile.Tag as PixivItem : null;
-                    if (item is PixivItem)
+                    var item = tile?.DataContext is PixivItem ? tile?.DataContext as PixivItem : null;
+                    if (item == null) item = tile?.Tag is PixivItem ? tile?.Tag as PixivItem : null;
+                    if (item is not null)
                     {
                         ring.UpdateState();
                         var id = GetID(item);
                         long lid = 0;
                         if (long.TryParse(GetID(item, false), out lid) && lid > 0)
                         {
-                            var canvas = tile is Grid ? tile.FindByName<Canvas>("PART_ThumbnailCanvas") : null;
-                            var image = tile is Grid ? tile.FindByName<Image>("PART_Thumbnail") : null;
+                            var canvas = tile is not null ? tile?.FindByName<Canvas>("PART_ThumbnailCanvas") : null;
+                            var image = tile is not null ? tile?.FindByName<Image>("PART_Thumbnail") : null;
                             if (ring.State == TaskStatus.RanToCompletion)
                             {
                                 if (canvas is not null)
@@ -1617,6 +1696,9 @@ namespace PixivWPF.Common
                                     RenderImage(image, null);
                                 }
                             }
+                         
+                            if (canvas != null) { canvas?.Tag = id; item?.Tag = canvas; }
+                            else if (image != null) { image?.Tag = id; item?.Tag = image; }
                         }
                         RingList[id] = ring;
                         //GC.Collect();
