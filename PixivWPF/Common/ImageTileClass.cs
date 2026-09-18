@@ -74,6 +74,13 @@ namespace PixivWPF.Common
         }
 
         public PixivItemType ItemType { get; set; } = PixivItemType.None;
+        
+        public DateTime CreationTime { get; } = DateTime.Now;
+        public DateTime LastAccessTime { get; private set; } = DateTime.Now;
+        public void SetLastAccessTime()
+        {
+            LastAccessTime = DateTime.Now;
+        }
 
         public double TileWidth { get; set; } = 128.0;
         public double TileHeight { get; set; } = 128.0;

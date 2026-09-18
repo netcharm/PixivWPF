@@ -861,10 +861,13 @@ namespace PixivWPF.Common
         public void Sort(string propName = null, bool? a2z = null )
         {
             var sort = new SortDescription(propName ?? "ItemIndex", a2z ?? true ? ListSortDirection.Ascending : ListSortDirection.Descending);
-
-            PART_ImageTiles?.Items?.SortDescriptions.Clear();
-            PART_ImageTiles?.Items?.SortDescriptions.Add(sort);
-            PART_ImageTiles?.Items?.IsLiveSorting = true;
+            Dispatcher.InvokeAsync(async () => 
+            {
+                PART_ImageTiles?.Items?.SortDescriptions.Clear();
+                PART_ImageTiles?.Items?.SortDescriptions.Add(sort);
+                PART_ImageTiles?.Items?.IsLiveSorting = true;
+                await Task.Yield();
+            });
         }
 
         private BackgroundWorker UpdateTileTask = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };

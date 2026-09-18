@@ -20,6 +20,14 @@ namespace PixivWPF.Common
         //private ConcurrentDictionary<string, List<string>> _files_;
         private ConcurrentDictionary<string, Dictionary<string, bool>> _files_;
         private ConcurrentDictionary<string, bool> _files_nested_;
+        
+        //private Dictionary<string, string> _pattern_rule_ = new() { {".", "\\." }, }};
+
+        private string Escape(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return (text);
+            return (Regex.Replace(text, @"([\[\]\(\)\{\}\$\.\+\-\%\!\~\|\\\/])", "\\$1", RegexOptions.IgnoreCase).Replace("?", ".{1,1}").Replace("*", ".*"));
+        }
 
         public bool IsAvailable
         {
@@ -71,7 +79,7 @@ namespace PixivWPF.Common
             }
             if (_files_.ContainsKey(path))
             {
-                pattern = pattern.Replace(".", "\\.");
+                pattern = Escape(pattern);
                 result = [.. _files_[path].Where(f => Regex.IsMatch(f.Key, $"{prefix}{pattern}", RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f.Key)).Where(f => !f.EndsWith(".TMP", StringComparison.CurrentCultureIgnoreCase))];
             }
             return (result);
@@ -84,7 +92,7 @@ namespace PixivWPF.Common
             _files_nested_[path] = nested;
 
             var prefix = nested ? $"{System.IO.Path.PathSeparator}" : "";
-            pattern = pattern.Replace(".", "\\.");
+            pattern = Escape(pattern);
             if (_files_.IsEmpty || !_files_.ContainsKey(path) || _files_[path] == null || !_files_[path].Any())
             {
                 _files_[path] ??= [];

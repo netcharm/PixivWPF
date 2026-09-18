@@ -69,7 +69,12 @@ namespace PixivWPF.Common
             }
         }
 
-        public DateTime AddedTimeStamp { get; set; } = DateTime.Now;
+        public DateTime CreationTime { get; } = DateTime.Now;
+        public DateTime LastAccessTime { get; private set; } = DateTime.Now;
+        public void SetLastAccessTime()
+        {
+            LastAccessTime = DateTime.Now;
+        }
 
         [DefaultValue(false)]
         public bool UsingProxy { get; set; } = false;
@@ -418,6 +423,14 @@ namespace PixivWPF.Common
         private DownloadInfo Info { get; set; }
 
         #region member properties
+        public DateTime CreationTime { get { return (Info?.CreationTime ?? default); } }
+        public DateTime LastAccessTime { get { return (Info?.LastAccessTime ?? default); } private set; }
+        public void SetLastAccessTime()
+        {
+            if (Info is null) LastAccessTime = DateTime.Now;
+            else Info?.SetLastAccessTime();
+        }
+
         public bool Canceling
         {
             get { return (Info?.Canceled ?? false); }

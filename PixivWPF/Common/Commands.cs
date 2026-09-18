@@ -2526,8 +2526,8 @@ namespace PixivWPF.Common
                     await new Action(() =>
                     {
                         var win = Application.Current.HistoryTitle().GetWindowByTitle();
-                        if (win is ContentWindow && win.Content is HistoryPage)
-                            (win.Content as HistoryPage).AddToHistory(obj);
+                        if (win is ContentWindow && win?.Content is HistoryPage)
+                            (win?.Content as HistoryPage).AddToHistory(obj);
                         else
                         {
                             if (obj is Pixeez.Objects.Work) Application.Current.HistoryAdd(obj as Pixeez.Objects.Work);

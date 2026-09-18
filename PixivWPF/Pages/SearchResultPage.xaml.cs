@@ -446,7 +446,7 @@ namespace PixivWPF.Pages
                         await tokens.AccessNewApiAsync<Pixeez.Objects.UsersSearchResult>(next_url);
                     next_url = related.next_url ?? string.Empty;
 
-                    if (related is Pixeez.Objects.UsersSearchResult)
+                    if (related?.Users is not null)
                     {
                         ResultExpander.Tag = next_url;
                         foreach (var user in related.Users)
@@ -467,7 +467,7 @@ namespace PixivWPF.Pages
                     query = string.IsNullOrEmpty(filter) ? query : $"{query} {filter}";
                     var related = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "title_and_caption") :
                         await tokens.AccessNewApiAsync<Pixeez.Objects.Illusts>(next_url);
-                    if (related is Pixeez.Objects.Illusts)
+                    if (related?.illusts is not null)
                     {
                         ResultExpander.Tag = next_url;
                         foreach (var illust in related.illusts)
@@ -490,7 +490,7 @@ namespace PixivWPF.Pages
                         await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
                     next_url = related.next_url ?? string.Empty;
 
-                    if (related is Pixeez.Objects.Illusts && related.illusts is Array)
+                    if (related?.illusts is not null)
                     {
                         ResultExpander.Tag = next_url;
                         foreach (var illust in related.illusts)
@@ -512,7 +512,7 @@ namespace PixivWPF.Pages
                     var related = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "partial_match_for_tags") : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
                     next_url = related.next_url ?? string.Empty;
 
-                    if (related is Pixeez.Objects.Illusts && related.illusts is Array)
+                    if (related?.illusts is not null)
                     {
                         ResultExpander.Tag = next_url;
                         foreach (var illust in related.illusts)
@@ -521,6 +521,7 @@ namespace PixivWPF.Pages
                             illust.Cache();
                             illust.AddTo(ResultItems.Items, related.next_url);
                             id_illust.Add(illust.Id);
+                            await Task.Yield();
                             this.DoEvents();
                         }
                         this.DoEvents();
@@ -549,6 +550,9 @@ namespace PixivWPF.Pages
                         Application.Current.DelayGC();
                     }
                 }
+                
+                await Task.Yield();
+                await Task.Delay(250);
                 ResultItems.UpdateTilesImage(touch: ResultItems.Count > 1);
 
                 if (ResultItems.Items.Count() == 1 && no_filter)

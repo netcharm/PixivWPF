@@ -70,7 +70,7 @@ namespace PixivWPF.Pages
 
         public void AddToHistory(Pixeez.Objects.Work illust)
         {
-            if (HistoryItems.Items is ObservableCollection<PixivItem>)
+            if (HistoryItems.Items is not null)
             {
                 Application.Current.HistoryAdd(illust, HistoryItems.Items);
                 UpdateDetail();
@@ -79,7 +79,7 @@ namespace PixivWPF.Pages
 
         public void AddToHistory(Pixeez.Objects.User user)
         {
-            if (HistoryItems.Items is ObservableCollection<PixivItem>)
+            if (HistoryItems.Items is not null)
             {
                 Application.Current.HistoryAdd(user, HistoryItems.Items);
                 UpdateDetail();
@@ -88,7 +88,7 @@ namespace PixivWPF.Pages
 
         public void AddToHistory(Pixeez.Objects.UserBase user)
         {
-            if (HistoryItems.Items is ObservableCollection<PixivItem>)
+            if (HistoryItems.Items is not null)
             {
                 Application.Current.HistoryAdd(user, HistoryItems.Items);
                 UpdateDetail();
@@ -115,6 +115,7 @@ namespace PixivWPF.Pages
                     UpdateDownloadState();
                     this.DoEvents();
                 }
+                HistoryItems.Sort("CreationTime", false);
                 HistoryItems.UpdateTilesImage(overwrite, touch: false);
             }
             catch (Exception ex)

@@ -1003,7 +1003,7 @@ namespace PixivWPF.Pages
                 }
                 else if (sender == PART_SortItemsBy_AddedTime)
                 {
-                    sort_field = "AddedTimeStamp";
+                    sort_field = "CreationTime";
                 }
                 else if (sender == PART_SortItemsBy_DownloadState)
                 {

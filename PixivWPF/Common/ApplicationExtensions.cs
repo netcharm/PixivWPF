@@ -2390,7 +2390,7 @@ namespace PixivWPF.Common
             var result = false;
             try
             {
-                result = item is PixivItem && history.Where(h => h.ID.Equals(item.ID) && h.Uid.Equals(item.Uid)).Count() > 0;
+                result = item is not null && history.Where(h => h.ID.Equals(item.ID) && h.Uid.Equals(item.Uid)).Count() > 0;
             }
             catch (Exception ex) { ex.ERROR("InHistory"); }
             return (result);
@@ -2420,7 +2420,7 @@ namespace PixivWPF.Common
 
         static public void HistoryAdd(this Application app, Pixeez.Objects.UserBase user, ObservableCollection<PixivItem> source)
         {
-            if (source is ObservableCollection<PixivItem>)
+            if (source is not null)
             {
                 try
                 {
@@ -2439,6 +2439,7 @@ namespace PixivWPF.Common
                     if (found.Count() >= 1)
                     {
                         var u = found.FirstOrDefault();
+                        u.SetLastAccessTime();
                         u.User = user;
                         u.IsFollowed = u.Illust.IsLiked();
                         u.IsFavorited = u.User.IsLiked();
@@ -2468,7 +2469,7 @@ namespace PixivWPF.Common
 
         static public async void HistoryAdd(this Application app, Pixeez.Objects.Work illust, ObservableCollection<PixivItem> source)
         {
-            if (source is ObservableCollection<PixivItem>)
+            if (source is not null)
             {
                 try
                 {
@@ -2489,6 +2490,7 @@ namespace PixivWPF.Common
                     if (found.Count() >= 1)
                     {
                         var i = found.FirstOrDefault();
+                        i.SetLastAccessTime();
                         i.Illust = illust;
                         i.User = illust.User;
                         i.IsFollowed = i.Illust.IsLiked();
@@ -2521,10 +2523,12 @@ namespace PixivWPF.Common
 
         static public void HistoryAdd(this Application app, PixivItem item, ObservableCollection<PixivItem> source)
         {
-            if (source is ObservableCollection<PixivItem>)
+            if (source is not null && item is not null)
             {
                 try
                 {
+                    item.SetLastAccessTime();
+
                     long new_id = -1;
                     long.TryParse(item.ID, out new_id);
                     if (source.Count() > 0)
@@ -2596,7 +2600,7 @@ namespace PixivWPF.Common
 
         static public void HistoryUpdate(this Application app, ObservableCollection<PixivItem> source = null)
         {
-            if (source is ObservableCollection<PixivItem> && source != history)
+            if (source is not null && source != history)
             {
                 if (history is ObservableCollection<PixivItem>)
                 {
@@ -2615,6 +2619,7 @@ namespace PixivWPF.Common
 
         static private void UpdateHistoryFromCache(IEnumerable<PixivItem> items)
         {
+            if (items is null) return;
             foreach (var item in items)
             {
                 if (item.IsWork())
@@ -2641,7 +2646,7 @@ namespace PixivWPF.Common
         static public IEnumerable<PixivItem> HistoryList(this Application app, bool full_update = false)
         {
             var result = new List<PixivItem>();
-            if (history is ObservableCollection<PixivItem>)
+            if (history is not null)
             {
                 if (full_update)
                     UpdateHistoryFromCache(history);
@@ -2657,7 +2662,7 @@ namespace PixivWPF.Common
 
         static public ObservableCollection<PixivItem> HistorySource(this Application app, bool full_update = false)
         {
-            if (history is ObservableCollection<PixivItem>)
+            if (history is not null)
             {
                 if (full_update)
                     UpdateHistoryFromCache(history);
@@ -2672,7 +2677,7 @@ namespace PixivWPF.Common
 
         static public PixivItem HistoryRecent(this Application app, int index = 0)
         {
-            if (history.Count > 0)
+            if (history?.Count > 0)
             {
                 var idx = history.Count > index ? history.Count - index -1 : history.Count - 1;
                 return (idx >= 0 ? history.Skip(idx).Take(1).FirstOrDefault() : null);
@@ -2682,7 +2687,7 @@ namespace PixivWPF.Common
 
         static public PixivItem HistoryRecentIllust(this Application app, int index = 0)
         {
-            if (history.Count > 0)
+            if (history?.Count > 0)
             {
                 var illusts = history.Where(h => h.IsWork());
                 var idx = illusts.Count() > index ? illusts.Count() - index -1 : illusts.Count() - 1;
@@ -2693,7 +2698,7 @@ namespace PixivWPF.Common
 
         static public PixivItem HistoryRecentUser(this Application app, int index = 0)
         {
-            if (history.Count > 0)
+            if (history?.Count > 0)
             {
                 var users = history.Where(h => h.IsUser());
                 var idx = users.Count() > index ? users.Count() - index -1 : users.Count() - 1;
@@ -2704,30 +2709,30 @@ namespace PixivWPF.Common
 
         static public IList<PixivItem> HistoryRecents(this Application app, int num = 1)
         {
-            if (history.Count > 0)
+            if (history?.Count > 0)
             {
                 var recents = history.Where(h => h.IsWork()||h.IsUser());
-                return (recents.Take(num).ToList());
+                return ([.. recents.OrderByDescending(r => r.LastAccessTime).Take(num)]);
             }
             else return (null);
         }
 
         static public IList<PixivItem> HistoryRecentIllusts(this Application app, int num = 1)
         {
-            if (history.Count > 0)
+            if (history?.Count > 0)
             {
                 var illusts = history.Where(h => h.IsWork());
-                return (illusts.Take(num).ToList());
+                return ([.. illusts.OrderByDescending(r => r.LastAccessTime).Take(num)]);
             }
             else return (null);
         }
 
         static public IList<PixivItem> HistoryRecentUsers(this Application app, int num = 1)
         {
-            if (history.Count > 0)
+            if (history?.Count > 0)
             {
                 var users = history.Where(h => h.IsUser());
-                return (users.Take(num).ToList());
+                return ([.. users.OrderByDescending(r => r.LastAccessTime).Take(num)]);
             }
             else return (null);
         }
