@@ -964,11 +964,17 @@ namespace PixivWPF.Common
             _everything_instcnce_ ??= new();
             if (setting.UsingEverything && (_everything_instcnce_?.IsAvailable ?? false))
             {
-                return (_everything_instcnce_.EnumerateFiles(folder, pattern, nested).NaturalSort());
+                foreach (var file in _everything_instcnce_.GetFiles(folder, pattern, nested).NaturalSort())
+                {
+                    yield return (file);
+                }
             }
             else
             {
-                return (Directory.EnumerateFiles(folder, pattern, nested ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).NaturalSort());
+                foreach (var file in Directory.EnumerateFiles(folder, pattern, nested ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).NaturalSort())
+                {
+                    yield return (file);
+                }
             }
         }
 
@@ -7025,8 +7031,8 @@ namespace PixivWPF.Common
                             else if (!orig)
                             {
                                 //var files = Directory.EnumerateFiles(folder, $"{id}{sep}.*", nested);
-                                var files = GetFiles(folder, $"{id}{sep}.*", local.IncludeSubFolder);
-                                //var files = EnumerateFiles(folder, $"{id}{sep}.*", local.IncludeSubFolder);
+                                //var files = GetFiles(folder, $"{id}{sep}.*", local.IncludeSubFolder);
+                                var files = EnumerateFiles(folder, $"{id}{sep}.*", local.IncludeSubFolder);
                                 //var files = GetFiles(folder, $"{fn}.*", local.IncludeSubFolder);
                                 //var files = EnumerateFiles(folder, $"{fn}.*", local.IncludeSubFolder);
                                 if (files.Count() > 0)
@@ -7055,8 +7061,8 @@ namespace PixivWPF.Common
                             else if (!orig)
                             {
                                 //var files = Directory.EnumerateFiles(folder, $"{id}{sep}.*", nested);
-                                var files = GetFiles(folder, $"{id}{sep}.*", local.IncludeSubFolder);
-                                //var files = EnumerateFiles(folder, $"{id}{sep}.*", local.IncludeSubFolder);
+                                //var files = GetFiles(folder, $"{id}{sep}.*", local.IncludeSubFolder);
+                                var files = EnumerateFiles(folder, $"{id}{sep}.*", local.IncludeSubFolder);
                                 //var files = GetFiles(folder, $"{fn}.*", local.IncludeSubFolder);
                                 //var files = EnumerateFiles(folder, $"{fn}.*", local.IncludeSubFolder);
                                 if (files.Count() > 0)
@@ -7188,8 +7194,8 @@ namespace PixivWPF.Common
                         if (result) break;
 
                         //var files = Directory.EnumerateFiles(folder, $"{id}_*.*", nested).NaturalSort();
-                        var files = GetFiles(folder, $"{id}_*.*", local.IncludeSubFolder).NaturalSort();
-                        //var files = EnumerateFiles(folder, $"{id}_*.*", local.IncludeSubFolder).NaturalSort();
+                        //var files = GetFiles(folder, $"{id}_*.*", local.IncludeSubFolder).NaturalSort();
+                        var files = EnumerateFiles(folder, $"{id}_*.*", local.IncludeSubFolder).NaturalSort();
                         if (files.Count() > 0)
                         {
                             if (touch) { files.Skip(1).TouchAsync(url, meta: touch); }
@@ -7199,8 +7205,8 @@ namespace PixivWPF.Common
                         if (result) break;
 
                         //files = Directory.EnumerateFiles(folder, $"{id}.*", nested).NaturalSort();
-                        files = GetFiles(folder, $"{id}.*", local.IncludeSubFolder).NaturalSort();
-                        //files = EnumerateFiles(folder, $"{id}.*", local.IncludeSubFolder).NaturalSort();
+                        //files = GetFiles(folder, $"{id}.*", local.IncludeSubFolder).NaturalSort();
+                        files = EnumerateFiles(folder, $"{id}.*", local.IncludeSubFolder).NaturalSort();
                         if (files.Count() > 0)
                         {
                             if (touch) { files.Skip(1).TouchAsync(url, meta: touch); }
