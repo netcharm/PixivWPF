@@ -4330,7 +4330,7 @@ namespace PixivWPF.Common
                         {
                             await Task.Yield();
                             if (realtime)
-                                await dispatcher.BeginInvoke(action, DispatcherPriority.Send);
+                                await dispatcher.BeginInvoke(action, DispatcherPriority.Render);
                             else
                                 await dispatcher.BeginInvoke(action, priority == DispatcherPriority.Invalid ? DispatcherPriority.Background : priority);
                         }
@@ -4355,7 +4355,7 @@ namespace PixivWPF.Common
                         {
                             await Task.Yield();
                             if (realtime)
-                                await dispatcher.BeginInvoke(action, DispatcherPriority.Send, paramlist);
+                                await dispatcher.BeginInvoke(action, DispatcherPriority.Render, paramlist);
                             else
                                 await dispatcher.BeginInvoke(action, priority == DispatcherPriority.Invalid ? DispatcherPriority.Background : priority, paramlist);
                         }
@@ -4375,7 +4375,7 @@ namespace PixivWPF.Common
                 if (dispatcher is Dispatcher)
                 {
                     if (realtime)
-                        await dispatcher.InvokeAsync(action, DispatcherPriority.Send);
+                        await dispatcher.InvokeAsync(action, DispatcherPriority.Render);
                     else
                         await dispatcher.InvokeAsync(action, priority == DispatcherPriority.Invalid ? DispatcherPriority.Background : priority);
                 }
@@ -4391,7 +4391,7 @@ namespace PixivWPF.Common
                 if (dispatcher is Dispatcher)
                 {
                     if (realtime)
-                        await dispatcher.InvokeAsync(action, DispatcherPriority.Send, cancelToken);
+                        await dispatcher.InvokeAsync(action, DispatcherPriority.Render, cancelToken);
                     else
                         await dispatcher.InvokeAsync(action, priority == DispatcherPriority.Invalid ? DispatcherPriority.Background : priority, cancelToken);
                 }

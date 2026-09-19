@@ -6452,20 +6452,32 @@ namespace PixivWPF.Common
 
         static public async void TouchAsync(this FileInfo fileinfo, string url, bool local = false, bool meta = false, bool force = false)
         {
-            //await new Action(() => { Touch(file, url, local, meta, force); }).InvokeAsync();
-            await Task.Run(async () => { await Touch(fileinfo, url, local, meta, force); }, new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token);
+            try
+            {
+                //await new Action(() => { Touch(file, url, local, meta, force); }).InvokeAsync();
+                await Task.Run(async () => { await Touch(fileinfo, url, local, meta, force); }, new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token);
+            }
+            catch (Exception ex) { ex.ERROR("TouchAsync"); }
         }
 
         static public async void TouchAsync(this string file, string url, bool local = false, bool meta = false, bool force = false)
         {
             //await new Action(() => { Touch(file, url, local, meta, force); }).InvokeAsync();
-            await Task.Run(() => { Touch(file, url, local, meta, force); }, new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token);
+            try
+            {
+                await Task.Run(() => { Touch(file, url, local, meta, force); }, new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token);
+            }
+            catch (Exception ex) { ex.ERROR("TouchAsync"); }
         }
 
         static public async void TouchAsync(this PixivItem item, bool local = false, bool meta = true, bool force = false)
         {
             //await new Action(() => { Touch(item, local, meta, force); }).InvokeAsync();
-            await Task.Run(() => { Touch(item, local, meta, force); }, new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token);
+            try
+            {
+                await Task.Run(() => { Touch(item, local, meta, force); }, new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token);
+            }
+            catch (Exception ex) { ex.ERROR("TouchAsync"); }
         }
 
         static public async void TouchAsync(this IEnumerable<string> files, string url, bool local = false, bool meta = false, bool force = false)
@@ -6473,7 +6485,11 @@ namespace PixivWPF.Common
             foreach (var file in files)
             {
                 //await new Action(() => { Touch(file, url, local, meta, force); }).InvokeAsync();
-                await Task.Run(() => { Touch(file, url, local, meta, force); }, new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token);
+                try
+                {
+                    await Task.Run(() => { Touch(file, url, local, meta, force); }, new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token);
+                }
+                catch (Exception ex) { ex.ERROR("TouchAsync"); }
             }
         }
 
@@ -6481,7 +6497,11 @@ namespace PixivWPF.Common
         {
             foreach (var item in items)
             {
-                await Task.Run(() => { Touch(item, local, meta, force); }, new CancellationTokenSource(TimeSpan.FromSeconds(1)).Token);
+                    try
+                    {
+                        await Task.Run(() => { Touch(item, local, meta, force); }, new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token);
+                }
+                catch (Exception ex) { ex.ERROR("TouchAsync"); }
             }
         }
         #endregion

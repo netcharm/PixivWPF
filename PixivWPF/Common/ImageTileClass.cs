@@ -76,7 +76,7 @@ namespace PixivWPF.Common
         public PixivItemType ItemType { get; set; } = PixivItemType.None;
         
         public DateTime CreationTime { get; } = DateTime.Now;
-        public DateTime LastAccessTime { get; private set; } = DateTime.Now;
+        public DateTime LastAccessTime { get => field; private set => field = value; } = DateTime.Now;
         public void SetLastAccessTime()
         {
             LastAccessTime = DateTime.Now;

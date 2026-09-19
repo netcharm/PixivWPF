@@ -2447,7 +2447,7 @@ namespace PixivWPF.Pages
                     if (string.IsNullOrEmpty(next_url)) FavoriteNextPage.ToolTip = null;
                     var related = string.IsNullOrEmpty(next_url) ? await tokens.GetRelatedWorks(item.Illust.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
 
-                    if (related is Pixeez.Objects.Illusts && related.illusts is Array)
+                    if (related?.illusts is not null)
                     {
                         next_url = related.next_url ?? string.Empty;
 
@@ -2487,7 +2487,7 @@ namespace PixivWPF.Pages
                         }
                         this.DoEvents();
                         await Task.Yield();
-                        await Task.Delay(250);
+                        await Task.Delay(500);
 
                         //RelatedItems.UpdateTilesImage();
                         if (related.illusts.Count() <= 0) "No Result".ShowToast("INFO", tag: "ShowRelated");
@@ -2626,7 +2626,7 @@ namespace PixivWPF.Pages
                                 }
                                 this.DoEvents();
                                 await Task.Yield();
-                                await Task.Delay(250);
+                                await Task.Delay(500);
 
                                 //RelatedItems.UpdateTilesImage();
                                 if (related.illusts.Count() <= 0) { "No Result".ShowToast("INFO", tag: "ShowUserWorks"); break; }

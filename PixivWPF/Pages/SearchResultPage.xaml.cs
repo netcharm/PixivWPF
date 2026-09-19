@@ -552,7 +552,7 @@ namespace PixivWPF.Pages
                 }
                 
                 await Task.Yield();
-                await Task.Delay(250);
+                await Task.Delay(500);
                 ResultItems.UpdateTilesImage(touch: ResultItems.Count > 1);
 
                 if (ResultItems.Items.Count() == 1 && no_filter)

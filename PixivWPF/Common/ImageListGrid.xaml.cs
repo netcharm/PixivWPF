@@ -860,11 +860,13 @@ namespace PixivWPF.Common
 
         public void Sort(string propName = null, bool? a2z = null )
         {
-            var sort = new SortDescription(propName ?? "ItemIndex", a2z ?? true ? ListSortDirection.Ascending : ListSortDirection.Descending);
+            var sort_1 = new SortDescription(propName ?? "ItemIndex", a2z ?? true ? ListSortDirection.Ascending : ListSortDirection.Descending);
+            var sort_2 = new SortDescription("CreationTime", ListSortDirection.Ascending);
             Dispatcher.InvokeAsync(async () => 
             {
                 PART_ImageTiles?.Items?.SortDescriptions.Clear();
-                PART_ImageTiles?.Items?.SortDescriptions.Add(sort);
+                PART_ImageTiles?.Items?.SortDescriptions.Add(sort_1);
+                PART_ImageTiles?.Items?.SortDescriptions.Add(sort_2);
                 PART_ImageTiles?.Items?.IsLiveSorting = true;
                 await Task.Yield();
             });
@@ -1346,6 +1348,7 @@ namespace PixivWPF.Common
                         {
                             UpdateTileThumb(item);
                         }
+                        await Task.Yield();
                     }
                 }, _thumb_update_?.Token ?? CancellationToken.None);
             }
@@ -1366,12 +1369,20 @@ namespace PixivWPF.Common
                         if (item.Tag is Canvas)
                         {
                             var canvas = item.Tag as Canvas;
-                            if (canvas.Background is null) RenderCanvas(canvas, item.Source);
+                            if (canvas.Background is null)
+                            {
+                                RenderCanvas(canvas, item.Source);
+                                $"ID: {id} Rendered".DEBUG("UpdateTileThumbCanvas");
+                            }
                         }
                         else if (item?.Tag is Image)
                         {
                             var image = item.Tag as Image;
-                            if (image.Source is null) RenderImage(image, item.Source);
+                            if (image.Source is null)
+                            {
+                                RenderImage(image, item.Source);
+                                $"ID: {id} Rendered".DEBUG("UpdateTileThumbImage");
+                            }
                         }
                         else
                         {
@@ -1383,11 +1394,13 @@ namespace PixivWPF.Common
                                 {
                                     RenderCanvas(canvas, item.Source);
                                     CanvasList[id] = canvas;
+                                    $"ID: {id} Rendered".DEBUG("UpdateTileThumbCanvas");
                                 }
                                 else if (image is not null)
                                 {
                                     RenderImage(image, item.Source);
                                     ImageList[id] = image;
+                                    $"ID: {id} Rendered".DEBUG("UpdateTileThumbImage");
                                 }
                             }
                             else if (item.State == TaskStatus.Canceled)
@@ -1395,10 +1408,12 @@ namespace PixivWPF.Common
                                 if (canvas is not null)
                                 {
                                     RenderCanvas(canvas, null);
+                                    $"ID: {id} Cleared".DEBUG("UpdateTileThumbCanvas");
                                 }
                                 else if (image is not null)
                                 {
                                     RenderImage(image, null);
+                                    $"ID: {id} Cleared".DEBUG("UpdateTileThumbImage");
                                 }
                             }
                         }

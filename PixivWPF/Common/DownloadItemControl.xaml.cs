@@ -423,8 +423,8 @@ namespace PixivWPF.Common
         private DownloadInfo Info { get; set; }
 
         #region member properties
-        public DateTime CreationTime { get { return (Info?.CreationTime ?? default); } }
-        public DateTime LastAccessTime { get { return (Info?.LastAccessTime ?? default); } private set; }
+        public DateTime CreationTime => (Info?.CreationTime ?? default);
+        public DateTime LastAccessTime { get => (Info?.LastAccessTime ?? field); private set; }
         public void SetLastAccessTime()
         {
             if (Info is null) LastAccessTime = DateTime.Now;
@@ -737,7 +737,7 @@ namespace PixivWPF.Common
 
         public void UpdateInfo(bool force = false)
         {
-            new Action(() => { UpdateProgress(force); }).Invoke(async: true, realtime: true);
+            new Action(() => { UpdateProgress(force); }).Invoke(async: true, realtime: false);
         }
         #endregion
 

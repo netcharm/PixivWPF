@@ -192,15 +192,15 @@ namespace PixivWPF.Pages
         private void KeepLastSelected(string id = null, bool prefetching = true)
         {
             if (string.IsNullOrEmpty(id)) id = lastSelectedId;
-            new Action(() =>
+            new Action(async () =>
             {
                 if (ImageTiles.ItemsCount > 0)
                 {
                     if (!string.IsNullOrEmpty(id))
                     {
-                        foreach (var item in ImageTiles.Items)
+                        foreach (var item in ImageTiles.FiltedList)
                         {
-                            if (item is PixivItem)
+                            if (item is not null)
                             {
                                 var ID = (item as PixivItem).ID;
                                 if (ID.Equals(id, StringComparison.CurrentCultureIgnoreCase))
@@ -212,6 +212,7 @@ namespace PixivWPF.Pages
                                 }
                             }
                             this.DoEvents();
+                            await Task.Yield();
                         }
                     }
                     if (ImageTiles.SelectedIndex < 0 && string.IsNullOrEmpty(lastSelectedId))
@@ -219,6 +220,7 @@ namespace PixivWPF.Pages
                         ImageTiles.SelectedIndex = 0;
                         ImageTiles.ScrollIntoView(ImageTiles.SelectedItem);
                         this.DoEvents();
+                        await Task.Yield();
                     }
                     if (prefetching) Prefetching();
                     this.DoEvents();
@@ -623,9 +625,13 @@ namespace PixivWPF.Pages
                         {
                             ImageTiles?.Sort();
                             ImageTiles?.UpdateTilesImage();
+
+                            KeepLastSelected(lastSelectedId);
+
                             _update_tiles_checker_?.Stop();
                             _update_tiles_checker_?.Interval = TimeSpan.FromSeconds(10);
                             _update_tiles_checker_?.Start();
+                            "UpdateTilesImage".DEBUG("UpdateTilesChecker");
                         }
                         else if (interval == 10000)
                         {
