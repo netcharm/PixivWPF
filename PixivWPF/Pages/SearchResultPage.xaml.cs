@@ -33,7 +33,7 @@ namespace PixivWPF.Pages
 
         private MenuItem ActionResultFilter = null;
         private ContextMenu ContextMenuResultFilter = null;
-        private ConcurrentDictionary<string, Tuple<MenuItem, MenuItem>> filter_items = new ConcurrentDictionary<string, Tuple<MenuItem, MenuItem>>();
+        private readonly ConcurrentDictionary<string, Tuple<MenuItem, MenuItem>> filter_items = new();
 
         public string Contents { get; set; } = string.Empty;
 
@@ -66,7 +66,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private SemaphoreSlim CanUpdateing = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim CanUpdateing = new(1, 1);
 
         public async void UpdateDetail(string content)
         {
@@ -75,16 +75,16 @@ namespace PixivWPF.Pages
                 try
                 {
                     ResultExpander.Show();
-                    if (Contents is string && !string.IsNullOrEmpty(Contents))
+                    if (!string.IsNullOrEmpty(content))
                     {
                         if (!ResultExpander.IsExpanded) ResultExpander.IsExpanded = true;
 
                         var tokens = await CommonHelper.ShowLogin();
-                        if (tokens == null) throw (new Exception("No Token"));
+                        if (tokens == null) throw new Exception("No Token");
 
-                        ShowResultInline(tokens, Contents, result_filter);
+                        ShowResultInline(tokens, content, result_filter);
                     }
-                    if (ResultNextPage is Button) ResultNextPage.Show();
+                    ResultNextPage?.Show();
                 }
                 catch (Exception ex)
                 {
@@ -93,7 +93,7 @@ namespace PixivWPF.Pages
                 finally
                 {
                     if (ParentWindow != null) ParentWindow.SizeToContent = SizeToContent.WidthAndHeight;
-                    if (CanUpdateing is SemaphoreSlim && CanUpdateing.CurrentCount <= 0) CanUpdateing.Release();
+                    if (CanUpdateing?.CurrentCount <= 0) CanUpdateing?.Release();
                     Application.Current.DelayGC();
                 }
             }
@@ -199,63 +199,51 @@ namespace PixivWPF.Pages
 
         public void PrevIllust()
         {
-            if (this is SearchResultPage && ResultItems.ItemsCount > 1)
+            if (ResultItems?.ItemsCount > 1)
             {
                 if (ResultItems.IsCurrentFirst)
-                    ResultItems.MoveCurrentToLast();
+                    ResultItems?.MoveCurrentToLast();
                 else
-                    ResultItems.MoveCurrentToPrevious();
-                ResultItems.ScrollIntoView(ResultItems.SelectedItem);
+                    ResultItems?.MoveCurrentToPrevious();
+                ResultItems?.ScrollIntoView(ResultItems.SelectedItem);
             }
         }
 
         public void NextIllust()
         {
-            if (this is SearchResultPage && ResultItems.ItemsCount > 1)
+            if (ResultItems?.ItemsCount > 1)
             {
                 if (ResultItems.IsCurrentLast)
-                    ResultItems.MoveCurrentToFirst();
+                    ResultItems?.MoveCurrentToFirst();
                 else
-                    ResultItems.MoveCurrentToNext();
-                ResultItems.ScrollIntoView(ResultItems.SelectedItem);
+                    ResultItems?.MoveCurrentToNext();
+                ResultItems?.ScrollIntoView(ResultItems.SelectedItem);
             }
         }
 
         public void ScrollPageUp()
         {
-            if (ResultItems is ImageListGrid)
-            {
-                ResultItems.PageUp();
-            }
+            ResultItems?.PageUp();
         }
 
         public void ScrollPageDown()
         {
-            if (ResultItems is ImageListGrid)
-            {
-                ResultItems.PageDown();
-            }
+            ResultItems?.PageDown();
         }
 
         public void ScrollPageFirst()
         {
-            if (ResultItems is ImageListGrid)
-            {
-                ResultItems.PageFirst();
-            }
+            ResultItems?.PageFirst();
         }
 
         public void ScrollPageLast()
         {
-            if (ResultItems is ImageListGrid)
-            {
-                ResultItems.PageLast();
-            }
+            ResultItems?.PageLast();
         }
 
         public void Copy()
         {
-            List<string> info = new List<string>();
+            List<string> info = [];
             foreach (var item in ResultItems.GetSelected(WithSelectionOrder: false, NonForAll: true))
             {
                 if (item.IsUser())
@@ -308,34 +296,28 @@ namespace PixivWPF.Pages
 
             #region Update ContextMenu
             var cmr = Resources["MenuSearchResult"] as ContextMenu;
-            if (cmr is ContextMenu)
+            foreach (dynamic item in cmr?.Items)
             {
-                foreach (dynamic item in cmr.Items)
+                if (item is MenuItem && item.Name.Equals("ActionResultFilter", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    if (item is MenuItem && item.Name.Equals("ActionResultFilter", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        ActionResultFilter = item;
-                        if ((item as MenuItem).Items.Count > 0)
-                            ((item as MenuItem).Items[0] as MenuItem).IsChecked = true;
-                        break;
-                    }
+                    ActionResultFilter = item;
+                    if ((item as MenuItem).Items.Count > 0)
+                        ((item as MenuItem).Items[0] as MenuItem).IsChecked = true;
+                    break;
                 }
             }
 
             var cmf = Resources["MenuSearchFilter"] as ContextMenu;
-            if (cmf is ContextMenu)
+            ContextMenuResultFilter = cmf;
+            foreach (dynamic item in cmf?.Items)
             {
-                ContextMenuResultFilter = cmf;
-                foreach (dynamic item in cmf.Items)
+                if (item is MenuItem)
                 {
-                    if (item is MenuItem)
+                    var mi = item as MenuItem;
+                    if (mi.Name.Equals("SearchFilter_00000users", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        var mi = item as MenuItem;
-                        if (mi.Name.Equals("SearchFilter_00000users", StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            mi.IsChecked = true;
-                            break;
-                        }
+                        mi.IsChecked = true;
+                        break;
                     }
                 }
             }
@@ -372,8 +354,8 @@ namespace PixivWPF.Pages
         }
 
         #region Search Result Panel related routines
-        List<long?> id_user = new List<long?>();
-        List<long?> id_illust = new List<long?>();
+        readonly List<long?> id_user = [];
+        readonly List<long?> id_illust = [];
         private async void ShowResultInline(Pixeez.Tokens tokens, string content, string filter = "", string next_url = "", bool append = false)
         {
             try
@@ -535,7 +517,7 @@ namespace PixivWPF.Pages
                     var related = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "title_and_caption") : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
                     next_url = related.next_url ?? string.Empty;
 
-                    if (related is Pixeez.Objects.Illusts && related.illusts is Array)
+                    if (related?.illusts is not null)
                     {
                         ResultExpander.Tag = next_url;
                         foreach (var illust in related.illusts)
@@ -678,7 +660,7 @@ namespace PixivWPF.Pages
             if (sender is MenuItem)
             {
                 var setting = Application.Current.LoadSetting();
-                var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+                //var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
                 var shift = Keyboard.Modifiers == ModifierKeys.Shift;
 
                 var type = (shift ? !setting.DownloadWithAutoReduce : setting.DownloadWithAutoReduce) ? DownloadType.None : DownloadType.Original;
@@ -693,7 +675,7 @@ namespace PixivWPF.Pages
             if (sender is MenuItem)
             {
                 var setting = Application.Current.LoadSetting();
-                var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+                //var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
                 var shift = Keyboard.Modifiers == ModifierKeys.Shift;
 
                 var type = (shift ? !setting.DownloadWithAutoReduce : setting.DownloadWithAutoReduce) ? DownloadType.None : DownloadType.Original;
@@ -764,7 +746,7 @@ namespace PixivWPF.Pages
                 {
                     if (sender is MenuItem)
                     {
-                        IList<PixivItem> items = new List<PixivItem>();
+                        IList<PixivItem> items = [];
                         var host = (sender as MenuItem).GetContextMenuHost();
                         if (host == ResultItems || host == ResultExpander) items = ResultItems.GetSelectedIllusts();
 
@@ -801,7 +783,7 @@ namespace PixivWPF.Pages
                         var host = (sender as MenuItem).GetContextMenuHost();
                         if (host == ResultItems || host == ResultExpander)
                         {
-                            IList<PixivItem> items = ResultItems.GetSelected().GroupBy(i => i.UserID).Select(g => g.First()).ToList();
+                            IList<PixivItem> items = [.. ResultItems.GetSelected().GroupBy(i => i.UserID).Select(g => g.First())];
 
                             if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase))
                             {
@@ -824,13 +806,13 @@ namespace PixivWPF.Pages
 
         private void ResultExpander_Expanded(object sender, RoutedEventArgs e)
         {
-            if (Contents is string && !string.IsNullOrEmpty(Contents)) UpdateDetail(Contents);
+            if (!string.IsNullOrEmpty(Contents)) UpdateDetail(Contents);
         }
 
         private void ResultExpander_Collapsed(object sender, RoutedEventArgs e)
         {
-            ResultItems.Ready();
-            if (ResultNextPage is Button) ResultNextPage.Hide();
+            ResultItems?.Ready();
+            ResultNextPage?.Hide();
         }
 
         private void ResultItems_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -858,7 +840,7 @@ namespace PixivWPF.Pages
         {
             e.Handled = true;
 
-            if (sender == SearchFilter && SearchFilter.ContextMenu is ContextMenu)
+            if (sender == SearchFilter && SearchFilter?.ContextMenu is not null)
             {
                 SearchFilter.ContextMenu.IsOpen = true;
             }
@@ -882,7 +864,7 @@ namespace PixivWPF.Pages
                             var cmi = ContextMenuResultFilter.Items.Cast<MenuItem>().Where(o=>string.Equals(o.Uid, item.Uid, StringComparison.CurrentCultureIgnoreCase));
                             if (cmi.Count() > 0)
                             {
-                                if (cmi.First() is MenuItem) cmi.First().IsChecked = item.IsChecked;
+                                if (cmi?.First() is not null) cmi.First().IsChecked = item.IsChecked;
                             }
                         }
                     }
@@ -901,7 +883,7 @@ namespace PixivWPF.Pages
                             var cmi = ActionResultFilter.Items.Cast<MenuItem>().Where(o=>string.Equals(o.Uid, item.Uid, StringComparison.CurrentCultureIgnoreCase));
                             if (cmi.Count() > 0)
                             {
-                                if (cmi.First() is MenuItem) cmi.First().IsChecked = item.IsChecked;
+                                if (cmi?.First() is not null) cmi.First().IsChecked = item.IsChecked;
                             }
                         }
                     }
@@ -920,13 +902,13 @@ namespace PixivWPF.Pages
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
-            if (Contents is string)
+            if (!string.IsNullOrEmpty(Contents))
             {
                 var next_url = string.Empty;
                 if (ResultExpander.Tag is string)
                     next_url = ResultExpander.Tag as string;
 
-                var append = sender == ResultNextAppend || sender.GetUid().Equals("ActionNextResultAppend", StringComparison.CurrentCultureIgnoreCase) ? true : false;
+                var append = sender == ResultNextAppend || sender.GetUid().Equals("ActionNextResultAppend", StringComparison.CurrentCultureIgnoreCase);
                 ShowResultInline(tokens, Contents, result_filter, next_url, append);
             }
             ResultNextPage.Show();

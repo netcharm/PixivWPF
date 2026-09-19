@@ -120,22 +120,25 @@ namespace PixivWPF.Common
         public async Task<bool> UpdateFilesAsync(string path, bool nested = false)
         {
             var result = false;
+            _files_ ??= new();
+            _files_nested_ ??= new();                
             _cancel_update_ ??= new();
             _cancel_update_.Cancel();
             await Task.Delay(50);
             _cancel_update_ = new();
             try
             {
-                result = await Task.Run(async () =>
+                if (await _update_files_?.WaitAsync(TimeSpan.FromSeconds(5), _cancel_update_?.Token ?? CancellationToken.None))
                 {
-                    var ret = false;
-                    if (await _update_files_?.WaitAsync(TimeSpan.FromSeconds(5), _cancel_update_?.Token ?? CancellationToken.None))
+                    result = await Task.Run(async () =>
                     {
+                        var ret = false;
                         try
                         {
                             await Task.Delay(TimeSpan.FromSeconds(5), _cancel_update_.Token);
                             _cancel_update_.Token.ThrowIfCancellationRequested();
                             ret = UpdateFiles(path, nested);
+                            await Task.Yield();
                         }
                         catch (OperationCanceledException)
                         {
@@ -146,9 +149,9 @@ namespace PixivWPF.Common
                         {
                             if (_update_files_?.CurrentCount == 0) _update_files_?.Release();
                         }
-                    }
-                    return (ret);
-                }, _cancel_update_?.Token ?? CancellationToken.None);
+                        return (ret);
+                    }, _cancel_update_?.Token ?? CancellationToken.None);
+                }
             }
             catch (Exception ex) { ex.ERROR("EverythingUpdateFilesAsync"); }
             return (result);
@@ -186,14 +189,16 @@ namespace PixivWPF.Common
             try
             {
                 _update_file_ ??= new(1, 1);
-                result = await Task.Run(async () =>
+                if (await _update_file_?.WaitAsync(TimeSpan.FromSeconds(5), _cancel_update_?.Token ?? CancellationToken.None))
                 {
-                    var ret = false;
-                    if (await _update_file_?.WaitAsync(TimeSpan.FromSeconds(5), _cancel_update_?.Token ?? CancellationToken.None))
+                    result = await Task.Run(async () =>
                     {
+                        var ret = false;
                         try
                         {
+                            await Task.Yield();
                             ret = UpdateFile(file_new, file_old, change);
+                            await Task.Yield();
                         }
                         catch (OperationCanceledException)
                         {
@@ -207,9 +212,9 @@ namespace PixivWPF.Common
                         {
                             if (_update_file_?.CurrentCount == 0) _update_file_?.Release();
                         }
-                    }
-                    return (ret);
-                }, _cancel_update_?.Token ?? CancellationToken.None);
+                        return (ret);
+                    }, _cancel_update_?.Token ?? CancellationToken.None);
+                }
             }
             catch (Exception ex) { ex.ERROR("EverythingUpdateFilesAsync"); }
             return (result);
@@ -288,6 +293,9 @@ namespace PixivWPF.Common
         {
             var result = true;
             if (!IsAvailable) return (false);
+            
+            _files_ ??= new();
+            
             foreach (var path in _files_?.Keys ?? Enumerable.Empty<string>())
             {
                 if (_cancel_refresh_?.Token.IsCancellationRequested ?? false) { result = false; break; }
@@ -304,6 +312,7 @@ namespace PixivWPF.Common
         {
             var result = false;
 
+            _files_ ??= new();
             _cancel_refresh_ ??= new();
             _refresh_files_ ??= new(1, 1);
 
@@ -317,7 +326,8 @@ namespace PixivWPF.Common
                         foreach (var path in _files_?.Keys ?? Enumerable.Empty<string>())
                         {
                             if (_cancel_refresh_?.Token.IsCancellationRequested ?? false) { ret = false; break; }
-                            ret &= await Task.Run(() => UpdateFiles(path, nested: _files_nested_[path]));
+                            ret &= UpdateFiles(path, nested: _files_nested_[path]);
+                            await Task.Yield();
                         }
                         return (ret);
                     }, _cancel_refresh_?.Token ?? CancellationToken.None);
