@@ -2489,6 +2489,7 @@ namespace PixivWPF.Pages
                         await Task.Yield();
                         await Task.Delay(500);
 
+                        RelatedItems.Sort();
                         //RelatedItems.UpdateTilesImage();
                         if (related.illusts.Count() <= 0) "No Result".ShowToast("INFO", tag: "ShowRelated");
                         else UpdateThumb();
@@ -2628,6 +2629,7 @@ namespace PixivWPF.Pages
                                 await Task.Yield();
                                 await Task.Delay(500);
 
+                                RelatedItems.Sort();
                                 //RelatedItems.UpdateTilesImage();
                                 if (related.illusts.Count() <= 0) { "No Result".ShowToast("INFO", tag: "ShowUserWorks"); break; }
                                 else UpdateThumb(prefetching: !append_all);
@@ -2739,6 +2741,7 @@ namespace PixivWPF.Pages
                         await Task.Yield();
                         await Task.Delay(250);
 
+                        FavoriteItems.Sort();;
                         //FavoriteItems.UpdateTilesImage();
                         if (favorites.illusts.Count() <= 0) "No Result".ShowToast("INFO", tag: "ShowFavorite");
                         else UpdateThumb();
