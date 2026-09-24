@@ -1193,7 +1193,13 @@ namespace ImageViewer
                                     if (attr.EndsWith("Keywords") || attr.EndsWith("Author") || attr.EndsWith("Artist") || attr.EndsWith("Copyright") || attr.EndsWith("Copyrights") || attr.EndsWith("artist") || attr.EndsWith("copyright"))
                                     {
                                         var keywords = value.Split([';'], StringSplitOptions.RemoveEmptyEntries).Select(w => w.Trim()).ToList();
-                                        for (var i = 5; i < keywords.Count; i += 5) { keywords[i] = $"{Environment.NewLine}{keywords[i]}"; }
+                                        //for (var i = 5; i < keywords.Count; i += 5) { keywords[i] = $"{Environment.NewLine}{keywords[i]}"; }
+                                        int len = 0;
+                                        for (int i = 0; i < keywords.Count; i++)
+                                        {
+                                            len += keywords[i].Length;
+                                            if (len >= 32) { keywords[i] = $"{Environment.NewLine}{keywords[i]}"; len = 0; }
+                                        }
                                         value = string.Join("; ", keywords) + ';';
                                     }
                                     else if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
