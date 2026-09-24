@@ -358,6 +358,13 @@ namespace ImageViewer
 
         public MagickGeometry CurrentGeometry { get; internal set; }
 
+        private Encoding MBCS = Encoding.GetEncoding("GB18030");
+
+        private int LengthCJK(string s)
+        {
+            return (string.IsNullOrEmpty(s) ? 0 : MBCS.GetByteCount(s));
+        }
+
         /// <summary>
         ///
         /// </summary>
@@ -1197,8 +1204,9 @@ namespace ImageViewer
                                         int len = 0;
                                         for (int i = 0; i < keywords.Count; i++)
                                         {
-                                            len += keywords[i].Length;
-                                            if (len >= 32) { keywords[i] = $"{Environment.NewLine}{keywords[i]}"; len = 0; }
+                                            //len += keywords[i].Length;
+                                            len += LengthCJK(keywords[i]);
+                                            if (len >= 64) { keywords[i] = $"{Environment.NewLine}{keywords[i]}"; len = 0; }
                                         }
                                         value = string.Join("; ", keywords) + ';';
                                     }
