@@ -358,8 +358,16 @@ namespace ImageViewer
 
         public MagickGeometry CurrentGeometry { get; internal set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private readonly Encoding MBCS = Encoding.GetEncoding("GB18030");
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="s"></param>
+        /// <returns></returns>
         private int LengthCJK(string s)
         {
             return (string.IsNullOrEmpty(s) ? 0 : MBCS.GetByteCount(s));
