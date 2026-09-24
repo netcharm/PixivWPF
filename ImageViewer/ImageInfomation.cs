@@ -1201,12 +1201,12 @@ namespace ImageViewer
                                     {
                                         var keywords = value.Split([';'], StringSplitOptions.RemoveEmptyEntries).Select(w => w.Trim()).ToList();
                                         //for (var i = 5; i < keywords.Count; i += 5) { keywords[i] = $"{Environment.NewLine}{keywords[i]}"; }
-                                        int len = 0;
+                                        int lens = 0;
                                         for (int i = 0; i < keywords.Count; i++)
                                         {
-                                            //len += keywords[i].Length;
-                                            len += LengthCJK(keywords[i]);
-                                            if (len >= 64) { keywords[i] = $"{Environment.NewLine}{keywords[i]}"; len = 0; }
+                                            int len = LengthCJK(keywords[i]);
+                                            lens += len;
+                                            if (lens >= 64) { keywords[i] = $"{Environment.NewLine}{keywords[i]}"; lens = len; }
                                         }
                                         value = string.Join("; ", keywords) + ';';
                                     }
