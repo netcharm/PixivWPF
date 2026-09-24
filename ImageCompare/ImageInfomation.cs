@@ -294,6 +294,21 @@ namespace ImageCompare
         /// <summary>
         /// 
         /// </summary>
+        private readonly Encoding MBCS = Encoding.GetEncoding("GB18030");
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="s"></param>
+        /// <returns></returns>
+        private int LengthCJK(string s)
+        {
+            return (string.IsNullOrEmpty(s) ? 0 : MBCS.GetByteCount(s));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="image"></param>
         /// <param name="use_system"></param>
         public void FixDPI(MagickImage image = null, bool use_system = false)
@@ -695,7 +710,14 @@ namespace ImageCompare
                                     if (attr.EndsWith("Keywords") || attr.EndsWith("Author") || attr.EndsWith("Artist") || attr.EndsWith("Copyright") || attr.EndsWith("Copyrights") || attr.EndsWith("artist") || attr.EndsWith("copyright"))
                                     {
                                         var keywords = value.Split(new char[] { ';', '#' }, StringSplitOptions.RemoveEmptyEntries).Select(w => w.Trim()).ToList();
-                                        for (var i = 5; i < keywords.Count; i += 5) { keywords[i] = $"{Environment.NewLine}{keywords[i]}"; }
+                                        //for (var i = 5; i < keywords.Count; i += 5) { keywords[i] = $"{Environment.NewLine}{keywords[i]}"; }
+                                        int lens = 0;
+                                        for (int i = 0; i < keywords.Count; i++)
+                                        {
+                                            int len = LengthCJK(keywords[i]);
+                                            lens += len;
+                                            if (lens >= 64) { keywords[i] = $"{Environment.NewLine}{keywords[i]}"; lens = len; }
+                                        }
                                         value = string.Join("; ", keywords) + ';';
                                     }
                                     else if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
