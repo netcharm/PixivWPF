@@ -2265,6 +2265,7 @@ namespace ImageSearch
                         #endregion
 
                         #region show results
+                        ReportMessage("Loading Results Images ...");
                         foreach (var im in imlist)
                         {
                             using (var skb = similar.LoadImage(im.Key))
@@ -2291,6 +2292,7 @@ namespace ImageSearch
                                                 HasExifTag = tooltip.Contains("Tags        :"),
                                                 Favoriteed = tooltip.Contains("Rank=4") || tooltip.Contains("Rank=5"),
                                             });
+                                            ReportMessage($"\"{im.Key}\" thumbnail added");
                                         }, System.Windows.Threading.DispatcherPriority.Normal);
                                         #endregion
                                     }

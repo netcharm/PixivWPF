@@ -989,6 +989,7 @@ namespace ImageSearch.Search
 
                         mso.Seek(0, SeekOrigin.Begin);
                         result = SKBitmap.Decode(mso);
+                        ReportMessage($"\"{file}\" loaded");
                     }
                     catch (Exception ex) { ReportMessage(ex); }
                 }
