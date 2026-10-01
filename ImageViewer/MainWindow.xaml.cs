@@ -3610,10 +3610,21 @@ namespace ImageViewer
                     var value = GrayscaleMode;
                     if (Enum.TryParse(appSection.Settings["GrayscaleMode"].Value, out value)) GrayscaleMode = value;
                 }
+
                 if (appSection.Settings.AllKeys.Contains("ZoomFitMode"))
                 {
                     var value = CurrentZoomFitMode;
                     if (Enum.TryParse(appSection.Settings["ZoomFitMode"].Value, out value)) CurrentZoomFitMode = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("ZoomMin"))
+                {
+                    var value = ZoomMin;
+                    if (double.TryParse(appSection.Settings["ZoomMin"].Value, out value)) ZoomMin = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("ZoomMax"))
+                {
+                    var value = ZoomMax;
+                    if (double.TryParse(appSection.Settings["ZoomMax"].Value, out value)) ZoomMax = value;
                 }
 
                 if (appSection.Settings.AllKeys.Contains("ImageMagnifierZoomFactor"))
@@ -3853,6 +3864,16 @@ namespace ImageViewer
                     else
                         appSection.Settings.Add("ZoomFitMode", CurrentZoomFitMode.ToString());
 
+                    if (appSection.Settings.AllKeys.Contains("ZoomMin"))
+                        appSection.Settings["ZoomMin"].Value = ZoomMin.ToString();
+                    else
+                        appSection.Settings.Add("ZoomMin", ZoomMin.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("ZoomMax"))
+                        appSection.Settings["ZoomMax"].Value = ZoomMax.ToString();
+                    else
+                        appSection.Settings.Add("ZoomMax", ZoomMax.ToString());
+
                     if (appSection.Settings.AllKeys.Contains("LastHaldFolder"))
                         appSection.Settings["LastHaldFolder"].Value = LastHaldFolder;
                     else
@@ -3988,8 +4009,10 @@ namespace ImageViewer
             #endregion
 
             #region Default Zoom Ratio
-            ZoomMin = ZoomRatio.Minimum;
-            ZoomMax = ZoomRatio.Maximum;
+            //ZoomMin = ZoomRatio.Minimum;
+            //ZoomMax = ZoomRatio.Maximum;
+            ZoomRatio.Minimum = ZoomMin;
+            ZoomRatio.Maximum = ZoomMax;
             ZoomRatio.Value = 1.0;
             ZoomRatio.MouseWheel += Slider_MouseWheel;
             #endregion

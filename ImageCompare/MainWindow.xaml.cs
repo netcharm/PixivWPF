@@ -3542,6 +3542,17 @@ namespace ImageCompare
                     var value = CurrentZoomFitMode;
                     if (Enum.TryParse(appSection.Settings["ZoomFitMode"].Value, out value)) CurrentZoomFitMode = value;
                 }
+                if (appSection.Settings.AllKeys.Contains("ZoomMin"))
+                {
+                    var value = ZoomMin;
+                    if (double.TryParse(appSection.Settings["ZoomMin"].Value, out value)) ZoomMin = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("ZoomMax"))
+                {
+                    var value = ZoomMax;
+                    if (double.TryParse(appSection.Settings["ZoomMax"].Value, out value)) ZoomMax = value;
+                }
+
                 if (appSection.Settings.AllKeys.Contains("ImageLayout"))
                 {
                     var value = CurrentImageLayout;
@@ -3775,6 +3786,16 @@ namespace ImageCompare
                     else
                         appSection.Settings.Add("ZoomFitMode", CurrentZoomFitMode.ToString());
 
+                    if (appSection.Settings.AllKeys.Contains("ZoomMin"))
+                        appSection.Settings["ZoomMin"].Value = ZoomMin.ToString();
+                    else
+                        appSection.Settings.Add("ZoomMin", ZoomMin.ToString());
+
+                    if (appSection.Settings.AllKeys.Contains("ZoomMax"))
+                        appSection.Settings["ZoomMax"].Value = ZoomMax.ToString();
+                    else
+                        appSection.Settings.Add("ZoomMax", ZoomMax.ToString());
+
                     if (appSection.Settings.AllKeys.Contains("ImageLayout"))
                         appSection.Settings["ImageLayout"].Value = CurrentImageLayout.ToString();
                     else
@@ -3924,8 +3945,10 @@ namespace ImageCompare
             #region Default Zoom Ratio
             //ZoomFitAll.IsChecked = true;
             //ImageActions_Click(ZoomFitAll, e);
-            ZoomMin = ZoomRatio.Minimum;
-            ZoomMax = ZoomRatio.Maximum;
+            //ZoomMin = ZoomRatio.Minimum;
+            //ZoomMax = ZoomRatio.Maximum;
+            ZoomRatio.Minimum = ZoomMin;
+            ZoomRatio.Maximum = ZoomMax;
             #endregion
 
             ImageCompareFuzzy.MouseWheel += Slider_MouseWheel;
