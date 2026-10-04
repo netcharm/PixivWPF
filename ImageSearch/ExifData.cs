@@ -73,36 +73,6 @@ using System.Text;
 
 namespace CompactExifLib
 {
-#pragma warning disable CS8600
-#pragma warning disable CS8601
-#pragma warning disable CS8603
-#pragma warning disable CS8604
-#pragma warning disable CS8618
-#pragma warning disable CS8625
-
-#pragma warning disable IDE0017
-#pragma warning disable IDE0018
-#pragma warning disable IDE0031
-#pragma warning disable IDE0034
-#pragma warning disable IDE0044
-#pragma warning disable IDE0051
-#pragma warning disable IDE0054
-#pragma warning disable IDE0056
-#pragma warning disable IDE0057
-#pragma warning disable IDE0059
-#pragma warning disable IDE0060
-#pragma warning disable IDE0063
-#pragma warning disable IDE0066
-#pragma warning disable IDE0090
-#pragma warning disable IDE0150
-#pragma warning disable IDE0180
-#pragma warning disable IDE0251
-#pragma warning disable IDE0290
-#pragma warning disable IDE0300
-#pragma warning disable IDE1006
-
-#pragma warning disable CA1069
-#pragma warning disable CA1822
 
     public class Magick
     {
@@ -166,8 +136,8 @@ namespace CompactExifLib
                 if (qvalue == 0)
                     return QUALITY_UNDEFINED;
 
-                int[]? realHash = null;
-                int[]? realSums = null;
+                int[] realHash = null;
+                int[] realSums = null;
                 if (qts.GetTable(0) != null && qts.GetTable(1) != null)
                 {
                     realHash = hash;
@@ -248,7 +218,7 @@ namespace CompactExifLib
             int sum = 0;
             for (int i = 0; i < QuantTables.MAX_TABLE_COUNT; i++)
             {
-                int[]? table = qts.GetTable(i);
+                int[] table = qts.GetTable(i);
                 if (table != null)
                 {
                     for (int j = 0; j < table.Length; j++)
@@ -387,7 +357,7 @@ namespace CompactExifLib
             return b & 0xff;
         }
 
-        public int[]? GetTable(int index)
+        public int[] GetTable(int index)
         {
             if (index >= MAX_TABLE_COUNT || index < 0)
                 return null;
@@ -3305,18 +3275,22 @@ namespace CompactExifLib
 
         private void InitIfdInteroperability(byte[] IfdRawData, int IfdRawDataIndex)
         {
-            int TagCount = ExifReadUInt16(IfdRawData, IfdRawDataIndex);
-            IfdRawDataIndex += 2;
-            var InteroperabilityIfdTable = new Dictionary<ExifTagId, TagItem>(TagCount);
-            TagTable[(uint)ExifIfd.Interoperability] = InteroperabilityIfdTable;
-            int j = 0;
-            while (j < TagCount)
+            try
             {
-                TagItem TempTagData = CreateTagWithReferenceToIfdRawData(IfdRawData, IfdRawDataIndex);
-                AddIfNotExists(InteroperabilityIfdTable, TempTagData);
-                IfdRawDataIndex += 12;
-                j++;
+                int TagCount = ExifReadUInt16(IfdRawData, IfdRawDataIndex);
+                IfdRawDataIndex += 2;
+                var InteroperabilityIfdTable = new Dictionary<ExifTagId, TagItem>(TagCount);
+                TagTable[(uint)ExifIfd.Interoperability] = InteroperabilityIfdTable;
+                int j = 0;
+                while (j < TagCount)
+                {
+                    TagItem TempTagData = CreateTagWithReferenceToIfdRawData(IfdRawData, IfdRawDataIndex);
+                    AddIfNotExists(InteroperabilityIfdTable, TempTagData);
+                    IfdRawDataIndex += 12;
+                    j++;
+                }
             }
+            catch { }
         }
 
 
@@ -4460,6 +4434,7 @@ namespace CompactExifLib
     public enum ExifTagId
     {
         // IFD Primary Data, some tags are also used in IFD Thumbnail Data
+        ProcessingSoftware = 0x000B,
         NewSubfileType = 0x00FE,
         SubfileType = 0x00FF,
         ImageWidth = 0x0100,
