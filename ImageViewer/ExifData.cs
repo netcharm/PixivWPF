@@ -3275,18 +3275,22 @@ namespace CompactExifLib
 
         private void InitIfdInteroperability(byte[] IfdRawData, int IfdRawDataIndex)
         {
-            int TagCount = ExifReadUInt16(IfdRawData, IfdRawDataIndex);
-            IfdRawDataIndex += 2;
-            var InteroperabilityIfdTable = new Dictionary<ExifTagId, TagItem>(TagCount);
-            TagTable[(uint)ExifIfd.Interoperability] = InteroperabilityIfdTable;
-            int j = 0;
-            while (j < TagCount)
+            try
             {
-                TagItem TempTagData = CreateTagWithReferenceToIfdRawData(IfdRawData, IfdRawDataIndex);
-                AddIfNotExists(InteroperabilityIfdTable, TempTagData);
-                IfdRawDataIndex += 12;
-                j++;
+                int TagCount = ExifReadUInt16(IfdRawData, IfdRawDataIndex);
+                IfdRawDataIndex += 2;
+                var InteroperabilityIfdTable = new Dictionary<ExifTagId, TagItem>(TagCount);
+                TagTable[(uint)ExifIfd.Interoperability] = InteroperabilityIfdTable;
+                int j = 0;
+                while (j < TagCount)
+                {
+                    TagItem TempTagData = CreateTagWithReferenceToIfdRawData(IfdRawData, IfdRawDataIndex);
+                    AddIfNotExists(InteroperabilityIfdTable, TempTagData);
+                    IfdRawDataIndex += 12;
+                    j++;
+                }
             }
+            catch { }
         }
 
 
@@ -4430,6 +4434,7 @@ namespace CompactExifLib
     public enum ExifTagId
     {
         // IFD Primary Data, some tags are also used in IFD Thumbnail Data
+        ProcessingSoftware = 0x000B,
         NewSubfileType = 0x00FE,
         SubfileType = 0x00FF,
         ImageWidth = 0x0100,

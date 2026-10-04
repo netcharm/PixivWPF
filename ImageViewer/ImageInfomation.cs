@@ -1545,17 +1545,21 @@ namespace ImageViewer
                         }
                         else if (fs.Length > 0 && fs.CanRead && fs.CanSeek)
                         {
-                            var exif = new CompactExifLib.ExifData(fs);
-                            if (exif?.ImageType == CompactExifLib.ImageType.Unknown)
+                            try
                             {
-                                OriginalDepth = 0;
-                                OriginalEndian = Endian.Undefined;
+                                var exif = new CompactExifLib.ExifData(fs);
+                                if (exif?.ImageType == CompactExifLib.ImageType.Unknown)
+                                {
+                                    OriginalDepth = 0;
+                                    OriginalEndian = Endian.Undefined;
+                                }
+                                else
+                                {
+                                    OriginalDepth = (uint)exif?.ColorDepth;
+                                    OriginalEndian = exif?.ByteOrder == CompactExifLib.ExifByteOrder.LittleEndian ? Endian.LSB : Endian.MSB;
+                                }
                             }
-                            else
-                            {
-                                OriginalDepth = (uint)exif?.ColorDepth;
-                                OriginalEndian = exif?.ByteOrder == CompactExifLib.ExifByteOrder.LittleEndian ? Endian.LSB : Endian.MSB;
-                            }
+                            catch (Exception ex) { (ex.Message + Environment.NewLine + ex.StackTrace).ShowMessage(); }
 
                             fs.Seek(0, SeekOrigin.Begin);
                             try
@@ -1570,6 +1574,7 @@ namespace ImageViewer
                                         image = new MagickImage(fs, ext.GetImageFileFormat());
                                         count++;
                                     }
+                                    if (OriginalDepth == 0) OriginalDepth = image.Depth * image.ChannelCount;
                                     FixEndian(image, OriginalEndian);
                                     Original = new MagickImage(image);
                                 }
@@ -1581,6 +1586,8 @@ namespace ImageViewer
                                 {
                                     fs?.Seek(0, SeekOrigin.Begin);
                                     Original = new MagickImage(fs, MagickFormat.Unknown);
+                                    if (OriginalDepth == 0) OriginalDepth = Original.Depth * Original.ChannelCount;
+                                    if (OriginalEndian == Endian.Undefined) OriginalEndian = Original.Endian;
                                 }
                             }
                         }
