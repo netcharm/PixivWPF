@@ -11950,11 +11950,11 @@ namespace PixivWPF.Common
                 if (dlg.ShowDialog(dm) == CommonFileDialogResult.Ok)
                 {
                     setting.LastFolder = dlg.FileName;
-                    result = string.IsNullOrEmpty(file) ? setting.LastFolder : Path.Combine(setting.LastFolder, Path.GetFileName(file));
                     // Do something with selected folder string
                     if (!string.IsNullOrEmpty(setting.LastFolder)) setting.LastFolder.INFO("ChangeSaveFolder");
                 }
-            }            
+            }
+            result = string.IsNullOrEmpty(file) ? setting.LastFolder : Path.Combine(setting.LastFolder, Path.GetFileName(file));
             return (result);
         }
 

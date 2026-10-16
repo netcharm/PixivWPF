@@ -1,8 +1,4 @@
-﻿using Hjg.Pngcs;
-using MahApps.Metro.Controls;
-using MahApps.Metro.IconPacks;
-using Microsoft.DwayneNeed.Numerics;
-using PixivWPF.Common;
+﻿
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -21,6 +17,12 @@ using System.Windows.Threading;
 
 namespace PixivWPF.Pages
 {
+    using Hjg.Pngcs;
+    using MahApps.Metro.Controls;
+    using MahApps.Metro.IconPacks;
+    using Microsoft.DwayneNeed.Numerics;
+    using PixivWPF.Common;
+
     /// <summary>
     /// PageTiles.xaml 的交互逻辑
     /// </summary>
@@ -661,7 +663,7 @@ namespace PixivWPF.Pages
         {
             if (PrefetchingImagesTask is PrefetchingTask) PrefetchingImagesTask.Dispose();
         }
-
+        
         public TilesPage()
         {
             InitializeComponent();

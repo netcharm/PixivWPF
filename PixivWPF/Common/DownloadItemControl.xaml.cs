@@ -743,6 +743,7 @@ namespace PixivWPF.Common
             if (force) LastElapsed = TimeSpan.FromSeconds(1);
             else if (LastElapsed.TotalMilliseconds < 250 && State == DownloadItemState.Downloading) return;
             progress?.Report(Progress);
+            Dispatcher.InvokeAsync(async () => { await Task.Yield(); });
         }
 
         public void UpdateInfo(bool force = false)
