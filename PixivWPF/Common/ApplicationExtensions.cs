@@ -585,6 +585,7 @@ namespace PixivWPF.Common
             return (ws, pb);
         }
 
+        static private SemaphoreSlim _gc_require_ = new(1,1);
         static private CancellationTokenSource _gc_ = new();
         static public async void GC(this Application app, string name, bool wait = false, bool system_memory = false)
         {
@@ -603,11 +604,18 @@ namespace PixivWPF.Common
                     long mem_ws_before = 0, mem_pb_before = 0, mem_ws_after = 0, mem_pb_after = 0;
                     if (system_memory) (mem_ws_before, mem_pb_before) = Application.Current.MemoryUsage();
 
-                    var before = System.GC.GetTotalMemory(true);
-                    System.GC.Collect();
-                    if (wait) System.GC.WaitForPendingFinalizers();
-                    var after = System.GC.GetTotalMemory(true);
-                    $"Managed Memory Usage: {before.SmartFileSize()} => {after.SmartFileSize()}".DEBUG(name ?? string.Empty);
+                    if (await _gc_require_?.WaitAsync(0))
+                    {
+                        try
+                        {
+                            var before = System.GC.GetTotalMemory(true);
+                            System.GC.Collect();
+                            if (wait) System.GC.WaitForPendingFinalizers();
+                            var after = System.GC.GetTotalMemory(true);
+                            $"Managed Memory Usage: {before.SmartFileSize()} => {after.SmartFileSize()}".DEBUG(name ?? string.Empty);
+                        }
+                        finally { _gc_require_?.Release(); }
+                    }
 
                     if (system_memory)
                     {
@@ -629,18 +637,53 @@ namespace PixivWPF.Common
                 {
                     _gc_ ??= new();
                     _gc_?.Cancel();
+                    await Task.Yield();
                     await Task.Delay(50);
+                    await Task.Yield();
                     _gc_ = new();
                     //await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60)); }, _gc_.Token).ContinueWith((t, o) => System.GC.Collect(), _gc_.Token, continuationOptions: TaskContinuationOptions.OnlyOnRanToCompletion);
-                    await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60), _gc_.Token); if (_gc_?.IsCancellationRequested ?? true) return; System.GC.Collect(); "Global Executed".DEBUG("DelayGC"); }, _gc_.Token);
+                    await Task.Run(async () =>
+                    {
+                        await Task.Yield();
+                        await Task.Delay(TimeSpan.FromSeconds(60), _gc_.Token);
+                        await Task.Yield();
+
+                        if (_gc_?.IsCancellationRequested ?? true) return;
+                        if (await _gc_require_?.WaitAsync(0))
+                        {
+                            try
+                            {
+                                System.GC.Collect();
+                                "Global Executed".DEBUG("DelayGC");
+                            }
+                            finally { _gc_require_?.Release(); }
+                        }
+                    }, _gc_.Token);
                 }
                 else
                 {
                     cancel?.Cancel();
+                    await Task.Yield();
                     await Task.Delay(50);
+                    await Task.Yield();
                     cancel = new();
                     //await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60)); }, cancel.Token).ContinueWith((t, o) => System.GC.Collect(), _gc_.Token, continuationOptions: TaskContinuationOptions.OnlyOnRanToCompletion);
-                    await Task.Run(async () => { await Task.Delay(TimeSpan.FromSeconds(60), cancel.Token); if (cancel?.IsCancellationRequested ?? true) return; System.GC.Collect(); "Global Executed".DEBUG("DelayGC"); }, cancel.Token);
+                    await Task.Run(async () =>
+                    {
+                        await Task.Yield();
+                        await Task.Delay(TimeSpan.FromSeconds(60), cancel.Token);
+                        await Task.Yield();
+                        if (cancel?.IsCancellationRequested ?? true) return;
+                        if (await _gc_require_?.WaitAsync(0))
+                        {
+                            try
+                            {
+                                System.GC.Collect();
+                                "Global Executed".DEBUG("DelayGC");
+                            }
+                            finally { _gc_require_?.Release(); }
+                        }
+                    }, cancel.Token);
                 }
             }
             //catch (TaskCanceledException ex) { ex.DEBUG("DelayGC"); }
@@ -2318,24 +2361,28 @@ namespace PixivWPF.Common
 
         static private async void CloseToastAsync()
         {
-            await new Action(() =>
+            await new Action(async () =>
             {
                 var setting = Application.Current.LoadSetting();
                 var now = Environment.TickCount;
                 long value = 0L;
                 foreach (var kv in toast_list.ToList())
                 {
-                    var delta = Math.Abs(TimeSpan.FromMilliseconds(now - kv.Value).TotalSeconds);
-                    if (delta >= setting.ToastTimeout + 5)
+                    if (kv.Key is null) toast_list.TryRemove(kv.Key, out value);
+                    else
                     {
-                        try
+                        var delta = Math.Abs(TimeSpan.FromMilliseconds(now - kv.Value).TotalSeconds);
+                        if (delta >= setting.ToastTimeout + 5)
                         {
-                            if (kv.Key is Window) kv.Key.Close();
-                            toast_list.TryRemove(kv.Key, out value);
+                            try
+                            {
+                                kv.Key?.Close();
+                                toast_list.TryRemove(kv.Key, out value);
+                            }
+                            catch (Exception ex) { ex.ERROR("CloseToastAsync"); }
                         }
-                        catch (Exception ex) { ex.ERROR("CloseToastAsync"); }
                     }
-                    else if (!(kv.Key is Window)) toast_list.TryRemove(kv.Key, out value);
+                    await Task.Yield();
                 }
             }).InvokeAsync();
         }
@@ -2357,7 +2404,7 @@ namespace PixivWPF.Common
 
         static private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            if (toast_list is ConcurrentDictionary<Window, long> && toast_list.Count > 0) CloseToastAsync();
+            if (toast_list?.Count > 0) CloseToastAsync();
             Commands.SaveOpenedWindows.Execute(null);
         }
 
@@ -2487,6 +2534,7 @@ namespace PixivWPF.Common
                     var illusts = source.Where(i => i.IsWork()).Distinct();
                     var found = illusts.Where(i => i.Illust.Id == new_id);
                     var file = string.Empty;
+                    List<string> files = [];
                     if (found.Count() >= 1)
                     {
                         var i = found.FirstOrDefault();
@@ -2495,8 +2543,9 @@ namespace PixivWPF.Common
                         i.User = illust.User;
                         i.IsFollowed = i.Illust.IsLiked();
                         i.IsFavorited = i.User.IsLiked();
-                        i.IsDownloaded = i.Illust.IsPartDownloaded(out file);
+                        i.IsDownloaded = i.Illust.IsPartDownloaded(out file, out files);
                         i.DownloadedFilePath = file;
+                        i.DownloadedFilePaths = files;
                         //i.State = TaskStatus.RanToCompletion;
                         source.Move(source.IndexOf(i), 0);
                     }
@@ -2625,7 +2674,7 @@ namespace PixivWPF.Common
                 if (item.IsWork())
                 {
                     var i = item.ID.FindIllust();
-                    if (i is Pixeez.Objects.Work && i.User is Pixeez.Objects.UserBase)
+                    if (i?.User is not null)
                     {
                         item.Illust = i;
                         item.User = i.User;
@@ -2637,7 +2686,7 @@ namespace PixivWPF.Common
                 else if (item.IsUser())
                 {
                     var u = item.ID.FindUser();
-                    if (u is Pixeez.Objects.UserBase) item.User = u;
+                    if (u is not null) item.User = u;
                     item.IsFollowed = item.User.IsLiked();
                 }
             }

@@ -1,7 +1,4 @@
-﻿using ControlzEx.Standard;
-using NLog.LayoutRenderers;
-using PixivWPF.Common;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -23,6 +20,10 @@ namespace PixivWPF.Pages
 #pragma warning disable IDE0079
 #pragma warning disable IDE0044
 #pragma warning disable IDE1006
+
+    using ControlzEx.Standard;
+    using NLog.LayoutRenderers;
+    using PixivWPF.Common;
 
     public class DownloadParams
     {
@@ -161,25 +162,22 @@ namespace PixivWPF.Pages
 
         private async void UpdateDownloadState(long? illustid = null, bool? exists = null)
         {
-            foreach (var item in Items.ToArray())
+            foreach (var item in Items.Where(i => i is not null).ToArray())
             {
-                if (item is not null)
+                if (illustid is null)
                 {
-                    if (illustid is null)
+                    await new Action(() =>
                     {
-                        await new Action(() =>
-                        {
-                            item.UpdateDownloadState(item.IllustID, exists);
-                        }).InvokeAsync(true);
-                    }
-                    else if (item.IllustID == illustid)
+                        item.UpdateDownloadState(item.IllustID, exists);
+                    }).InvokeAsync(true);
+                }
+                else if (item.IllustID == illustid)
+                {
+                    await new Action(() =>
                     {
-                        await new Action(() =>
-                        {
-                            item.UpdateDownloadState(illustid, exists);
-                        }).InvokeAsync(true);
-                        break;
-                    }
+                        item.UpdateDownloadState(illustid, exists);
+                    }).InvokeAsync(true);
+                    //break;
                 }
             }
         }
@@ -512,7 +510,9 @@ namespace PixivWPF.Pages
                         Url = url,
                         FileTime = dt
                     };
+                    await Task.Yield();
                     Add(item);
+                    await Task.Yield();
                     if (CanAddItem?.CurrentCount <= 0) CanAddItem?.Release();
                 }
             }
@@ -867,7 +867,7 @@ namespace PixivWPF.Pages
                     else
                     {
                         setting = Application.Current.LoadSetting();
-                        var non_exists = items.Where(o => o.State == DownloadItemState.NonExists);
+                        var non_exists = items.Where(o => o.State == DownloadItemState.NonExists);// || o.Url.IsDownloaded());
                         if (non_exists.Count() > 0)
                         {
                             foreach (var i in non_exists) { i.State = DownloadItemState.Remove; }
@@ -1047,6 +1047,8 @@ namespace PixivWPF.Pages
                 }
                 DownloadItems.Items.SortDescriptions.Clear();
                 DownloadItems.Items.SortDescriptions.Add(new SortDescription(sort_field, sort_dir));
+                DownloadItems.Items.LiveSortingProperties.Clear();
+                DownloadItems.Items.LiveSortingProperties.Add(sort_field);
                 DownloadItems.Items.IsLiveSorting = true;
             }
             catch (Exception ex)

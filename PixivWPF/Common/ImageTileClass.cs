@@ -24,22 +24,26 @@ namespace PixivWPF.Common
 {
     public enum PixivItemType { None, User, Works, Work, Pages, Page, Manga, Novel, Ugoira, Movie, }
 
-    public class FilterParam
+    public class PixivItemFilterParam
     {
+        public string ContentInclude { get; set; } = string.Empty;
+        public string ContentExclude { get; set; } = string.Empty;
+
         public string Type { get; set; } = string.Empty;
         public string Fast { get; set; } = string.Empty;
+
         public string FavoitedRange { get; set; } = string.Empty;
         public string Favorited { get; set; } = string.Empty;
         public string Followed { get; set; } = string.Empty;
         public string Downloaded { get; set; } = string.Empty;
+
         public string AI { get; set; } = string.Empty;
         public string Movie { get; set; } = string.Empty;
         public string MMD { get; set; } = string.Empty;
         public string FullListed { get; set; } = string.Empty;
+
         public string Sanity { get; set; } = string.Empty;
         public bool SanityOption_IncludeUnder { get; set; } = true;
-        public string ContentInclude { get; set; } = string.Empty;
-        public string ContentExclude { get; set; } = string.Empty;
     }
 
     public class PixivItem : FrameworkElement, INotifyPropertyChanged, IDisposable
@@ -72,6 +76,8 @@ namespace PixivWPF.Common
             }
             disposed = true;
         }
+
+        public int ItemIndex { get; internal set; }
 
         public PixivItemType ItemType { get; set; } = PixivItemType.None;
         
@@ -136,6 +142,19 @@ namespace PixivWPF.Common
             set { state = value; NotifyPropertyChanged("State"); }
         }
 
+        public long Id
+        {
+            get
+            {
+                if (this.IsWork()) return (Illust?.Id ?? 0);
+                else if (this.IsUser()) return (User?.Id ?? 0);
+                else return (0);
+            }
+        }
+        public string Artist { get { return (Illust?.User?.Name); } }
+        public string Title { get { return (Illust?.Title); } }
+        public DateTime PubTime { get { return (Illust?.GetDateTime() ?? default); } }
+
         public int AIType { get; set; }
         public bool IsAI { get { return (this.IsAI()); } }
         public bool HasAI { get { return (this.HasAI()); } }
@@ -197,6 +216,29 @@ namespace PixivWPF.Common
                 return (count);
             }
         }
+        public int FavedCount { get { return (WorkFavorited); } }
+        public int TotalFaved { get { return (WorkFavorited); } }
+
+        [Description("Get Illust Viewed Count")]
+        [Category("Common Properties")]
+        public int WorkViewed
+        {
+            get
+            {
+                var count = 0;
+                if (this.IsWork())
+                {
+                    if (Illust is Pixeez.Objects.IllustWork)
+                        count = (Illust as Pixeez.Objects.IllustWork).total_view;
+                    else if (Illust.Stats != null)
+                        count = Illust.Stats.ViewsCount.Value;
+                }
+                return (count);
+            }
+        }
+        public int ViewedCount { get { return (WorkViewed); } }
+        public int TotalViewed { get { return (WorkViewed); } }
+
 
         [Description("Get User Followed Count")]
         [Category("Common Properties")]
@@ -299,9 +341,15 @@ namespace PixivWPF.Common
             get
             {
                 if (UsePartDownloaded)
+                {
+                    //_ = await Illust.IsPartDownloaded(Count <= 1, index: Index, touch: false);
                     return (IsPartDownloadedVisibility == Visibility.Visible || Illust.IsPartDownloaded(touch: false));
+                }
                 else
+                {
+                    //_ = await Illust.IsDownloadedAsync(Count <= 1, index: Index, touch: false);
                     return (IsDownloadedVisibility == Visibility.Visible || Illust.IsDownloaded(Count <= 1, index: Index, touch: false));
+                }
             }
             set
             {
@@ -341,8 +389,6 @@ namespace PixivWPF.Common
         public string Sanity { get; set; } = "all";
         public bool IsR18 { get { return (Sanity.Equals("18+")); } }
 
-        public int ItemIndex { get; internal set; }
-
         private ImageSource Resize(ImageSource source, double width, double height)
         {
             ImageSource result = source;
@@ -374,607 +420,643 @@ namespace PixivWPF.Common
         }
 
         #region Tiles Filter Helper
-        public static Predicate<object> GetFilter(this string filter)
+        public static Func<object, bool> CreateFilter(this string filter)
         {
-            Predicate<object> result_filter = null;
+            if (string.IsNullOrEmpty(filter)) return (null);
             Func<object, bool> filter_action = null;
-
-            if (!string.IsNullOrEmpty(filter))
+            filter = filter.ToLower();
+            #region item type
+            if (filter.Equals("user"))
             {
-                filter = filter.ToLower();
-                #region item type
-                if (filter.Equals("user"))
-                {
-                    filter_action = new Func<object, bool>(obj =>
-                    {
-                        var result = true;
-                        if (obj is PixivItem)
-                        {
-                            result = (obj as PixivItem).IsUser();
-                        }
-                        return (result);
-                    });
-                }
-                else if (filter.Equals("work"))
-                {
-                    filter_action = new Func<object, bool>(obj =>
-                    {
-                        var result = true;
-                        if (obj is PixivItem)
-                        {
-                            result = (obj as PixivItem).IsWork();
-                        }
-                        return (result);
-                    });
-                }
-                #endregion
-                #region item states
-                else if (filter.Equals("favorited"))
-                {
-                    filter_action = new Func<object, bool>(obj =>
-                    {
-                        var result = true;
-                        if (obj is PixivItem)
-                        {
-                            result = (obj as PixivItem).IsFavorited;
-                        }
-                        return (result);
-                    });
-                }
-                else if (filter.StartsWith("favorited_"))
-                {
-                    int range = 0;
-                    if (int.TryParse(filter.Substring(10), out range))
-                    {
-                        filter_action = new Func<object, bool>(obj =>
-                        {
-                            var result = true;
-                            if (obj is PixivItem)
-                            {
-                                var item = (obj as PixivItem);
-                                if (item.IsWork())
-                                {
-                                    var illust = item.Illust;
-                                    if (illust is Pixeez.Objects.IllustWork)
-                                    {
-                                        var fav_count = (illust as Pixeez.Objects.IllustWork).total_bookmarks;
-                                        result = fav_count > range;
-                                    }
-                                    else if (illust is Pixeez.Objects.NormalWork && illust.Stats is Pixeez.Objects.WorkStats)
-                                    {
-                                        var fav_count = illust.Stats.FavoritedCount.Public + illust.Stats.FavoritedCount.Private;
-                                        result = fav_count > range;
-                                    }
-                                }
-                            }
-                            return (result);
-                        });
-                    }
-                }
-                else if (filter.Equals("notfavorited"))
-                {
-                    filter_action = new Func<object, bool>(obj =>
-                    {
-                        var result = true;
-                        if (obj is PixivItem)
-                        {
-                            result = !(obj as PixivItem).IsFavorited;
-                        }
-                        return (result);
-                    });
-                }
-                else if (filter.Equals("followed"))
-                {
-                    filter_action = new Func<object, bool>(obj =>
-                    {
-                        var result = true;
-                        if (obj is PixivItem)
-                        {
-                            result = (obj as PixivItem).IsFollowed;
-                        }
-                        return (result);
-                    });
-                }
-                else if (filter.Equals("notfollowed"))
-                {
-                    filter_action = new Func<object, bool>(obj =>
-                    {
-                        var result = true;
-                        if (obj is PixivItem)
-                        {
-                            result = !(obj as PixivItem).IsFollowed;
-                        }
-                        return (result);
-                    });
-                }
-                else if (filter.Equals("downloaded"))
-                {
-                    filter_action = new Func<object, bool>(obj =>
-                    {
-                        var result = true;
-                        if (obj is PixivItem)
-                        {
-                            result = (obj as PixivItem).IsDownloaded;
-                        }
-                        return (result);
-                    });
-                }
-                else if (filter.Equals("notdownloaded"))
-                {
-                    filter_action = new Func<object, bool>(obj =>
-                    {
-                        var result = true;
-                        if (obj is PixivItem)
-                        {
-                            result = !(obj as PixivItem).IsDownloaded;
-                        }
-                        return (result);
-                    });
-                }
-                else if (filter.Equals("movie"))
-                {
-                    filter_action = new Func<object, bool>(obj =>
-                    {
-                        var result = true;
-                        if (obj is PixivItem)
-                        {
-                            result = (obj as PixivItem).IsMovie;
-                        }
-                        return (result);
-                    });
-                }
-                else if (filter.Equals("notmovie"))
-                {
-                    filter_action = new Func<object, bool>(obj =>
-                    {
-                        var result = true;
-                        if (obj is PixivItem)
-                        {
-                            result = !(obj as PixivItem).IsMovie;
-                        }
-                        return (result);
-                    });
-                }
-                else if (filter.Equals("mmd"))
-                {
-                    filter_action = new Func<object, bool>(obj =>
-                    {
-                        var result = true;
-                        if (obj is PixivItem)
-                        {
-                            result = (obj as PixivItem).IsMMD;
-                        }
-                        return (result);
-                    });
-                }
-                else if (filter.Equals("notmmd"))
-                {
-                    filter_action = new Func<object, bool>(obj =>
-                    {
-                        var result = true;
-                        if (obj is PixivItem)
-                        {
-                            result = !(obj as PixivItem).IsMMD;
-                        }
-                        return (result);
-                    });
-                }
-                #endregion
-                #region Sanity
-                else if (filter.Equals("allage") || filter.Equals("fullage"))
-                {
-                    filter_action = new Func<object, bool>(obj =>
-                    {
-                        var result = true;
-                        if (obj is PixivItem)
-                        {
-                            var item = obj as PixivItem;
-                            result = item.Sanity.Equals("all", StringComparison.CurrentCultureIgnoreCase);
-                        }
-                        return (result);
-                    });
-                }
-                else if (filter.Equals("r18") || filter.Equals("18+"))
-                {
-                    filter_action = new Func<object, bool>(obj =>
-                    {
-                        var result = true;
-                        if (obj is PixivItem)
-                        {
-                            var item = obj as PixivItem;
-                            result = item.Sanity.Equals("18+", StringComparison.CurrentCultureIgnoreCase);
-                        }
-                        return (result);
-                    });
-                }
-                else if (filter.Equals("r15") || filter.Equals("15+"))
-                {
-                    filter_action = new Func<object, bool>(obj =>
-                    {
-                        var result = true;
-                        if (obj is PixivItem)
-                        {
-                            var item = obj as PixivItem;
-                            result = item.Sanity.Equals("15+", StringComparison.CurrentCultureIgnoreCase);
-                        }
-                        return (result);
-                    });
-                }
-                #endregion
-            }
-            if (filter_action != null)
-                result_filter = new Predicate<object>(filter_action);
-            else
-                result_filter = null;
-            return (result_filter);
-        }
-
-        public static Predicate<object> GetFilter(this FilterParam filter)
-        {
-            Predicate<object> result_filter = null;
-
-            if (filter is FilterParam)
-            {
-                Func<object, bool> filter_action = null;
-
-                #region pre-process filter key/value
-                var filter_type = string.IsNullOrEmpty(filter.Type) ? string.Empty : filter.Type.ToLower();
-                var filter_fav_no = string.IsNullOrEmpty(filter.FavoitedRange) ? string.Empty : filter.FavoitedRange.ToLower();
-                var filter_fast = string.IsNullOrEmpty(filter.Fast) ? string.Empty : filter.Fast.ToLower();
-                var filter_fav = string.IsNullOrEmpty(filter.Favorited) ? string.Empty : filter.Favorited.ToLower();
-                var filter_follow = string.IsNullOrEmpty(filter.Followed) ? string.Empty : filter.Followed.ToLower();
-                var filter_down = string.IsNullOrEmpty(filter.Downloaded) ? string.Empty : filter.Downloaded.ToLower();
-                var filter_ai = string.IsNullOrEmpty(filter.AI) ? string.Empty : filter.AI.ToLower();
-                var filter_movie = string.IsNullOrEmpty(filter.Movie) ? string.Empty : filter.Movie.ToLower();
-                var filter_mmd = string.IsNullOrEmpty(filter.MMD) ? string.Empty : filter.MMD.ToLower();
-                var filter_full = string.IsNullOrEmpty(filter.FullListed) ? string.Empty : filter.FullListed.ToLower();
-                var filter_sanity = string.IsNullOrEmpty(filter.Sanity) ? string.Empty : filter.Sanity.ToLower();
-
-                var content_include = filter.ContentInclude.Trim();
-                var content_exclude = filter.ContentExclude.Trim();
-
-                if (filter_fav_no.Length > 10) filter_fav_no = filter_fav_no.Substring(10);
-                if (filter_fast.Length > 5) filter_fast = filter_fast.Substring(5);
-                if (filter_sanity.Length > 7) filter_sanity = filter_sanity.Substring(7);
-                #endregion
-
-                #region item type
-                bool user = filter_type.Equals("user");
-                bool work = filter_type.Equals("work");
-                #endregion
-
-                #region item states
-                bool favorited = filter_fav.Equals("favorited");
-                bool notfavorited = filter_fav.Equals("notfavorited");
-
-                bool followed = filter_follow.Equals("followed");
-                bool notfollowed = filter_follow.Equals("notfollowed");
-
-                bool downloaded = filter_down.Equals("downloaded");
-                bool notdownloaded = filter_down.Equals("notdownloaded");
-
-                bool aigc = filter_ai.Equals("aigc");
-                bool notaigc = filter_ai.Equals("notaigc");
-                bool aiad = filter_ai.Equals("aiad");
-                bool noai = filter_ai.Equals("noai");
-
-                bool movie = filter_movie.Equals("movie");
-                bool notmovie = filter_movie.Equals("notmovie");
-
-                bool mmd = filter_mmd.Equals("mmd");
-                bool notmmd = filter_mmd.Equals("notmmd");
-
-                bool full = filter_full.Equals("fulllist");
-                bool notfull = filter_full.Equals("notfulllist");
-                #endregion
-
-                #region sanity / not_sanity
-                string[] sanity_age_18 = new string[] { "all", "12+", "15+", "17+", "18+" };
-                string[] sanity_age_17 = new string[] { "all", "12+", "15+", "17+" };
-                string[] sanity_age_15 = new string[] { "all", "12+", "15+" };
-                string[] sanity_age_12 = new string[] { "all", "12+" };
-                string[] sanity_age_all = new string[] { "all" };
-                bool sanity_include_under = filter.SanityOption_IncludeUnder;
-                int sanity_age = -1;
-                int not_sanity_age = -1;
-                if (filter_sanity.Equals("allage") || filter_sanity.Equals("fullage") || filter_sanity.Equals("all")) sanity_age = 0;
-                else if (filter_sanity.Equals("noallage") || filter_sanity.Equals("nofullage+") || filter_sanity.Equals("noall")) not_sanity_age = 0;
-                else if (filter_sanity.Equals("r12") || filter_sanity.Equals("r12+") || filter_sanity.Equals("12+")) sanity_age = 12;
-                else if (filter_sanity.Equals("nor12") || filter_sanity.Equals("nor12+") || filter_sanity.Equals("no12+")) not_sanity_age = 12;
-                else if (filter_sanity.Equals("r15") || filter_sanity.Equals("r15+") || filter_sanity.Equals("15+")) sanity_age = 15;
-                else if (filter_sanity.Equals("nor15") || filter_sanity.Equals("nor15+") || filter_sanity.Equals("no15+")) not_sanity_age = 15;
-                else if (filter_sanity.Equals("r17") || filter_sanity.Equals("r17+") || filter_sanity.Equals("17+")) sanity_age = 17;
-                else if (filter_sanity.Equals("nor17") || filter_sanity.Equals("nor17+") || filter_sanity.Equals("no17+")) not_sanity_age = 17;
-                else if (filter_sanity.Equals("r18") || filter_sanity.Equals("r18+") || filter_sanity.Equals("18+")) sanity_age = 18;
-                else if (filter_sanity.Equals("nor18") || filter_sanity.Equals("nor18+") || filter_sanity.Equals("no18+")) not_sanity_age = 18;
-                #endregion
-
-                #region item favorite range
-                int fav_range = 0;
-                int.TryParse(filter_fav_no, out fav_range);
-                #endregion
-
-                #region fast
-                bool portrait = filter_fast.Equals("portrait");
-                bool landscape = filter_fast.Equals("landscape");
-                bool square = filter_fast.Equals("square");
-
-                bool singlepage = filter_fast.Equals("singlepage");
-                bool multipages = filter_fast.Equals("notsinglepage");
-
-                bool size_s = filter_fast.Equals("size1k");
-                bool size_m = filter_fast.Equals("size2k");
-                bool size_l = filter_fast.Equals("size4k");
-                bool size_h = filter_fast.Equals("size8k");
-
-                bool in_history = filter_fast.Equals("inhistory");
-                bool not_in_history = filter_fast.Equals("notinhistory");
-                #endregion
-
-                var hist = Application.Current.HistoryList();
-                var hist_ids = hist.Select(h => h.ID).ToList();
-                var hist_idl = hist.Select(h => long.Parse(h.ID)).ToList();
-
                 filter_action = new Func<object, bool>(obj =>
                 {
                     var result = true;
                     if (obj is PixivItem)
                     {
-                        var item = obj as PixivItem;
-                        #region filter by type
-                        if (user || work)
+                        result = (obj as PixivItem).IsUser();
+                    }
+                    return (result);
+                });
+            }
+            else if (filter.Equals("work"))
+            {
+                filter_action = new Func<object, bool>(obj =>
+                {
+                    var result = true;
+                    if (obj is PixivItem)
+                    {
+                        result = (obj as PixivItem).IsWork();
+                    }
+                    return (result);
+                });
+            }
+            #endregion
+            #region item states
+            else if (filter.Equals("favorited"))
+            {
+                filter_action = new Func<object, bool>(obj =>
+                {
+                    var result = true;
+                    if (obj is PixivItem)
+                    {
+                        result = (obj as PixivItem).IsFavorited;
+                    }
+                    return (result);
+                });
+            }
+            else if (filter.StartsWith("favorited_"))
+            {
+                int range = 0;
+                if (int.TryParse(filter.Substring(10), out range))
+                {
+                    filter_action = new Func<object, bool>(obj =>
+                    {
+                        var result = true;
+                        if (obj is PixivItem)
                         {
-                            if (user)
-                                result = item.IsUser();
-                            else if (work)
-                                result = item.IsWork();
-                        }
-                        #endregion
-                        #region filter by fast simple condition
-                        if (!string.IsNullOrEmpty(filter_fast))
-                        {
-                            #region fast author
-                            if (filter_fast.Equals("currentauthor"))
-                            {
-                                if (item.IsWork())
-                                {
-                                    //var illust = item.Illust;
-                                    //result = result && illust.User.Id ?? -1 == 
-                                }
-                            }
-                            #endregion
-                            #region work aspect
-                            else if (item.IsWork() && (portrait || landscape || square))
-                            {
-                                var width = item.Illust.Width ?? 0;
-                                var height = item.Illust.Height ?? 0;
-                                if (width > 0 && height > 0)
-                                {
-                                    double aspect = (double)width / (double)height;
-                                    if (landscape)
-                                        result = result && (aspect >= 1.05);
-                                    else if (portrait)
-                                        result = result && (aspect <= 0.95);
-                                    else if (square)
-                                        result = result && (0.95 < aspect && aspect < 1.05);
-                                }
-                            }
-                            #endregion
-                            #region size
-                            else if (item.IsWork() && (size_s || size_m || size_l || size_h))
-                            {
-                                var width = item.Illust.Width ?? 0;
-                                var height = item.Illust.Height ?? 0;
-                                if (size_s)
-                                    result = result && (width <= 1024 || height <= 1024);
-                                else if (size_m)
-                                    result = result && (width > 1024 && width <= 2048) || (height > 1024 && height <= 2048);
-                                else if (size_l)
-                                    result = result && (width > 2048 && width <= 4096) || (height > 2048 && height <= 4096);
-                                else if (size_h)
-                                    result = result && (width >= 4096 || height >= 4096);
-                            }
-                            #endregion
-                            #region pages
-                            else if (item.IsWork() && (singlepage || multipages))
-                            {
-                                if (singlepage)
-                                    result = result && (item.Count <= 1);
-                                else if (multipages)
-                                    result = result && (item.Count > 1);
-                            }
-                            #endregion
-                            #region history
-                            else if (in_history || not_in_history)
-                            {
-                                if (in_history)
-                                    result = result && hist_ids.Contains(item.ID);
-                                else if (not_in_history)
-                                    result = result && !hist_ids.Contains(item.ID);
-                            }
-                            #endregion
-                        }
-                        #endregion
-                        #region filter by favorited number
-                        if (fav_range > 0)
-                        {
+                            var item = (obj as PixivItem);
                             if (item.IsWork())
                             {
                                 var illust = item.Illust;
                                 if (illust is Pixeez.Objects.IllustWork)
                                 {
                                     var fav_count = (illust as Pixeez.Objects.IllustWork).total_bookmarks;
-                                    result = result && (fav_count > fav_range);
+                                    result = fav_count > range;
                                 }
                                 else if (illust is Pixeez.Objects.NormalWork && illust.Stats is Pixeez.Objects.WorkStats)
                                 {
                                     var fav_count = illust.Stats.FavoritedCount.Public + illust.Stats.FavoritedCount.Private;
-                                    result = result && (fav_count > fav_range);
+                                    result = fav_count > range;
                                 }
                             }
                         }
-                        #endregion
-                        #region filter by favorited state
-                        if (favorited || notfavorited)
-                        {
-                            if (favorited)
-                                result = result && item.IsFavorited;
-                            else if (notfavorited)
-                                result = result && !item.IsFavorited;
-                        }
-                        #endregion
-                        #region filter by followed state
-                        if (followed || notfollowed)
-                        {
-                            if (followed)
-                                result = result && item.IsFollowed;
-                            else if (notfollowed)
-                                result = result && !item.IsFollowed;
-                        }
-                        #endregion
-                        #region filter by downloaded state
-                        if (downloaded || notdownloaded)
-                        {
-                            if (downloaded)
-                                result = result && item.IsDownloaded;
-                            else if (notdownloaded)
-                                result = result && !item.IsDownloaded;
-                        }
-                        #endregion
-                        #region filter by AI state
-                        if (aigc || notaigc || aiad || noai)
-                        {
-                            if (aigc)
-                                result = result && item.IsAI();
-                            if (notaigc)
-                                result = result && !item.IsAI();
-                            else if (aiad)
-                                result = result && (item.HasAI() && !item.IsAI());
-                            else if (noai)
-                                result = result && !(item.IsAI() || item.HasAI());
-                        }
-                        #endregion
-                        #region filter by movie state
-                        if (movie || notmovie)
-                        {
-                            if (movie)
-                                result = result && item.IsMovie;
-                            else if (notmovie)
-                                result = result && !item.IsMovie;
-                        }
-                        #endregion
-                        #region filter by mmd state
-                        if (mmd || notmmd)
-                        {
-                            if (mmd)
-                                result = result && item.IsMMD;
-                            else if (notmmd)
-                                result = result && !item.IsMMD;
-                        }
-                        #endregion
-                        #region filter by full listed state
-                        if (full || notfull)
-                        {
-                            if (full)
-                                result = result && item.IsFulllisted();
-                            else if (notfull)
-                                result = result && !item.IsFulllisted();
-                        }
-                        #endregion
-                        #region filter by sanity state
-                        if (sanity_age >= 0 || not_sanity_age >= 0)
-                        {
-                            var sanity = item.Sanity.ToLower();
-                            if (sanity_age == 0)
-                                result = result && sanity.Equals("all");
-                            else if (not_sanity_age == 0)
-                                result = result && !sanity.Equals("all");
-
-                            else if (sanity_include_under)
-                            {
-                                if (sanity_age == 12)
-                                    result = result && sanity_age_12.Contains(sanity);
-                                else if (not_sanity_age == 0)
-                                    result = result && !sanity_age_12.Contains(sanity);
-
-                                else if (sanity_age == 15)
-                                    result = result && sanity_age_15.Contains(sanity);
-                                else if (not_sanity_age == 15)
-                                    result = result && !sanity_age_15.Contains(sanity);
-
-                                else if (sanity_age == 17)
-                                    result = result && sanity_age_17.Contains(sanity);
-                                else if (not_sanity_age == 17)
-                                    result = result && !sanity_age_17.Contains(sanity);
-
-                                else if (sanity_age == 18)
-                                    result = result && sanity_age_18.Contains(sanity);
-                                else if (not_sanity_age == 18)
-                                    result = result && !sanity_age_18.Contains(sanity);
-                            }
-                            else
-                            {
-                                if (sanity_age == 12)
-                                    result = result && sanity.Equals("12+");
-                                else if (not_sanity_age == 0)
-                                    result = result && !sanity.Equals("12+");
-
-                                else if (sanity_age == 15)
-                                    result = result && sanity.Equals("15+");
-                                else if (not_sanity_age == 15)
-                                    result = result && !sanity.Equals("15+");
-
-                                else if (sanity_age == 17)
-                                    result = result && sanity.Equals("17+");
-                                else if (not_sanity_age == 17)
-                                    result = result && !sanity.Equals("17+");
-
-                                else if (sanity_age == 18)
-                                    result = result && sanity.Equals("18+");
-                                else if (not_sanity_age == 18)
-                                    result = result && !sanity.Equals("18+");
-                            }
-                        }
-                        #endregion
-                        #region filter by contents
-                        if (item.IsWork())
-                        {
-                            var work = item.Illust;
-                            var title = work.Title.Trim();
-                            var uname = work.User is not null ? $"{work.User.Name}" : "";
-                            var caption = work.Caption.HtmlToText(decode: true, br: false);
-                            var tags = work.Tags.Count > 0 ? $"#{string.Join(" #", work.Tags)}" : "";
-                            if (!string.IsNullOrEmpty(content_include))
-                            {
-                                result &= title.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
-                                          caption.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
-                                          uname.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
-                                          tags.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0;
-                            }
-                            if (!string.IsNullOrEmpty(content_exclude))
-                            {
-                                result &= title.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0 &&
-                                          caption.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0 &&
-                                          uname.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0 &&
-                                          tags.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0;
-                            }
-                        }
-                        else if (item.IsUser())
-                        {
-                            var user = item.User;
-                            var uname = $"{user?.Name}";
-                            result &= !string.IsNullOrEmpty(content_include) && uname.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0;
-                            result &= !string.IsNullOrEmpty(content_exclude) && uname.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0;
-                        }
-                        #endregion
+                        return (result);
+                    });
+                }
+            }
+            else if (filter.Equals("notfavorited"))
+            {
+                filter_action = new Func<object, bool>(obj =>
+                {
+                    var result = true;
+                    if (obj is PixivItem)
+                    {
+                        result = !(obj as PixivItem).IsFavorited;
                     }
                     return (result);
                 });
+            }
+            else if (filter.Equals("followed"))
+            {
+                filter_action = new Func<object, bool>(obj =>
+                {
+                    var result = true;
+                    if (obj is PixivItem)
+                    {
+                        result = (obj as PixivItem).IsFollowed;
+                    }
+                    return (result);
+                });
+            }
+            else if (filter.Equals("notfollowed"))
+            {
+                filter_action = new Func<object, bool>(obj =>
+                {
+                    var result = true;
+                    if (obj is PixivItem)
+                    {
+                        result = !(obj as PixivItem).IsFollowed;
+                    }
+                    return (result);
+                });
+            }
+            else if (filter.Equals("downloaded"))
+            {
+                filter_action = new Func<object, bool>(obj =>
+                {
+                    var result = true;
+                    if (obj is PixivItem)
+                    {
+                        result = (obj as PixivItem).IsDownloaded;
+                    }
+                    return (result);
+                });
+            }
+            else if (filter.Equals("notdownloaded"))
+            {
+                filter_action = new Func<object, bool>(obj =>
+                {
+                    var result = true;
+                    if (obj is PixivItem)
+                    {
+                        result = !(obj as PixivItem).IsDownloaded;
+                    }
+                    return (result);
+                });
+            }
+            else if (filter.Equals("movie"))
+            {
+                filter_action = new Func<object, bool>(obj =>
+                {
+                    var result = true;
+                    if (obj is PixivItem)
+                    {
+                        result = (obj as PixivItem).IsMovie;
+                    }
+                    return (result);
+                });
+            }
+            else if (filter.Equals("notmovie"))
+            {
+                filter_action = new Func<object, bool>(obj =>
+                {
+                    var result = true;
+                    if (obj is PixivItem)
+                    {
+                        result = !(obj as PixivItem).IsMovie;
+                    }
+                    return (result);
+                });
+            }
+            else if (filter.Equals("mmd"))
+            {
+                filter_action = new Func<object, bool>(obj =>
+                {
+                    var result = true;
+                    if (obj is PixivItem)
+                    {
+                        result = (obj as PixivItem).IsMMD;
+                    }
+                    return (result);
+                });
+            }
+            else if (filter.Equals("notmmd"))
+            {
+                filter_action = new Func<object, bool>(obj =>
+                {
+                    var result = true;
+                    if (obj is PixivItem)
+                    {
+                        result = !(obj as PixivItem).IsMMD;
+                    }
+                    return (result);
+                });
+            }
+            #endregion
+            #region Sanity
+            else if (filter.Equals("allage") || filter.Equals("fullage"))
+            {
+                filter_action = new Func<object, bool>(obj =>
+                {
+                    var result = true;
+                    if (obj is PixivItem)
+                    {
+                        var item = obj as PixivItem;
+                        result = item.Sanity.Equals("all", StringComparison.CurrentCultureIgnoreCase);
+                    }
+                    return (result);
+                });
+            }
+            else if (filter.Equals("r18") || filter.Equals("18+"))
+            {
+                filter_action = new Func<object, bool>(obj =>
+                {
+                    var result = true;
+                    if (obj is PixivItem)
+                    {
+                        var item = obj as PixivItem;
+                        result = item.Sanity.Equals("18+", StringComparison.CurrentCultureIgnoreCase);
+                    }
+                    return (result);
+                });
+            }
+            else if (filter.Equals("r15") || filter.Equals("15+"))
+            {
+                filter_action = new Func<object, bool>(obj =>
+                {
+                    var result = true;
+                    if (obj is PixivItem)
+                    {
+                        var item = obj as PixivItem;
+                        result = item.Sanity.Equals("15+", StringComparison.CurrentCultureIgnoreCase);
+                    }
+                    return (result);
+                });
+            }
+            #endregion
 
+            return (filter_action);
+        }
+
+        public static Func<object, bool> CreateFilter(this PixivItemFilterParam filter)
+        {
+            if (filter == null) return (null);
+
+            #region pre-process filter key/value
+            var filter_type = string.IsNullOrEmpty(filter.Type) ? string.Empty : filter.Type.ToLower();
+            var filter_fav_no = string.IsNullOrEmpty(filter.FavoitedRange) ? string.Empty : filter.FavoitedRange.ToLower();
+            var filter_fast = string.IsNullOrEmpty(filter.Fast) ? string.Empty : filter.Fast.ToLower();
+            var filter_fav = string.IsNullOrEmpty(filter.Favorited) ? string.Empty : filter.Favorited.ToLower();
+            var filter_follow = string.IsNullOrEmpty(filter.Followed) ? string.Empty : filter.Followed.ToLower();
+            var filter_down = string.IsNullOrEmpty(filter.Downloaded) ? string.Empty : filter.Downloaded.ToLower();
+            var filter_ai = string.IsNullOrEmpty(filter.AI) ? string.Empty : filter.AI.ToLower();
+            var filter_movie = string.IsNullOrEmpty(filter.Movie) ? string.Empty : filter.Movie.ToLower();
+            var filter_mmd = string.IsNullOrEmpty(filter.MMD) ? string.Empty : filter.MMD.ToLower();
+            var filter_full = string.IsNullOrEmpty(filter.FullListed) ? string.Empty : filter.FullListed.ToLower();
+            var filter_sanity = string.IsNullOrEmpty(filter.Sanity) ? string.Empty : filter.Sanity.ToLower();
+
+            var content_include = filter.ContentInclude.Trim();
+            var content_exclude = filter.ContentExclude.Trim();
+
+            if (filter_fav_no.Length > 10) filter_fav_no = filter_fav_no.Substring(10);
+            if (filter_fast.Length > 5) filter_fast = filter_fast.Substring(5);
+            if (filter_sanity.Length > 7) filter_sanity = filter_sanity.Substring(7);
+            #endregion
+
+            #region item type
+            bool user = filter_type.Equals("user");
+            bool work = filter_type.Equals("work");
+            #endregion
+
+            #region item states
+            bool favorited = filter_fav.Equals("favorited");
+            bool notfavorited = filter_fav.Equals("notfavorited");
+
+            bool followed = filter_follow.Equals("followed");
+            bool notfollowed = filter_follow.Equals("notfollowed");
+
+            bool downloaded = filter_down.Equals("downloaded");
+            bool notdownloaded = filter_down.Equals("notdownloaded");
+
+            bool aigc = filter_ai.Equals("aigc");
+            bool notaigc = filter_ai.Equals("notaigc");
+            bool aiad = filter_ai.Equals("aiad");
+            bool noai = filter_ai.Equals("noai");
+
+            bool movie = filter_movie.Equals("movie");
+            bool notmovie = filter_movie.Equals("notmovie");
+
+            bool mmd = filter_mmd.Equals("mmd");
+            bool notmmd = filter_mmd.Equals("notmmd");
+
+            bool full = filter_full.Equals("fulllist");
+            bool notfull = filter_full.Equals("notfulllist");
+            #endregion
+
+            #region sanity / not_sanity
+            string[] sanity_age_18 = new string[] { "all", "12+", "15+", "17+", "18+" };
+            string[] sanity_age_17 = new string[] { "all", "12+", "15+", "17+" };
+            string[] sanity_age_15 = new string[] { "all", "12+", "15+" };
+            string[] sanity_age_12 = new string[] { "all", "12+" };
+            string[] sanity_age_all = new string[] { "all" };
+            bool sanity_include_under = filter.SanityOption_IncludeUnder;
+            int sanity_age = -1;
+            int not_sanity_age = -1;
+            if (filter_sanity.Equals("allage") || filter_sanity.Equals("fullage") || filter_sanity.Equals("all")) sanity_age = 0;
+            else if (filter_sanity.Equals("noallage") || filter_sanity.Equals("nofullage+") || filter_sanity.Equals("noall")) not_sanity_age = 0;
+            else if (filter_sanity.Equals("r12") || filter_sanity.Equals("r12+") || filter_sanity.Equals("12+")) sanity_age = 12;
+            else if (filter_sanity.Equals("nor12") || filter_sanity.Equals("nor12+") || filter_sanity.Equals("no12+")) not_sanity_age = 12;
+            else if (filter_sanity.Equals("r15") || filter_sanity.Equals("r15+") || filter_sanity.Equals("15+")) sanity_age = 15;
+            else if (filter_sanity.Equals("nor15") || filter_sanity.Equals("nor15+") || filter_sanity.Equals("no15+")) not_sanity_age = 15;
+            else if (filter_sanity.Equals("r17") || filter_sanity.Equals("r17+") || filter_sanity.Equals("17+")) sanity_age = 17;
+            else if (filter_sanity.Equals("nor17") || filter_sanity.Equals("nor17+") || filter_sanity.Equals("no17+")) not_sanity_age = 17;
+            else if (filter_sanity.Equals("r18") || filter_sanity.Equals("r18+") || filter_sanity.Equals("18+")) sanity_age = 18;
+            else if (filter_sanity.Equals("nor18") || filter_sanity.Equals("nor18+") || filter_sanity.Equals("no18+")) not_sanity_age = 18;
+            #endregion
+
+            #region item favorite range
+            int fav_range = 0;
+            int.TryParse(filter_fav_no, out fav_range);
+            #endregion
+
+            #region fast
+            bool portrait = filter_fast.Equals("portrait");
+            bool landscape = filter_fast.Equals("landscape");
+            bool square = filter_fast.Equals("square");
+
+            bool singlepage = filter_fast.Equals("singlepage");
+            bool multipages = filter_fast.Equals("notsinglepage");
+
+            bool size_s = filter_fast.Equals("size1k");
+            bool size_m = filter_fast.Equals("size2k");
+            bool size_l = filter_fast.Equals("size4k");
+            bool size_h = filter_fast.Equals("size8k");
+
+            bool in_history = filter_fast.Equals("inhistory");
+            bool not_in_history = filter_fast.Equals("notinhistory");
+            #endregion
+
+            var hist = Application.Current.HistoryList();
+            var hist_ids = hist.Select(h => h.ID).ToList();
+            var hist_idl = hist.Select(h => long.Parse(h.ID)).ToList();
+
+            var filter_action = new Func<object, bool>(obj =>
+            {
+                var result = true;
+                if (obj is PixivItem)
+                {
+                    var item = obj as PixivItem;
+                    #region filter by type
+                    if (user || work)
+                    {
+                        if (user)
+                            result = item.IsUser();
+                        else if (work)
+                            result = item.IsWork();
+                    }
+                    #endregion
+                    #region filter by fast simple condition
+                    if (!string.IsNullOrEmpty(filter_fast))
+                    {
+                        #region fast author
+                        if (filter_fast.Equals("currentauthor"))
+                        {
+                            if (item.IsWork())
+                            {
+                                //var illust = item.Illust;
+                                //result = result && illust.User.Id ?? -1 == 
+                            }
+                        }
+                        #endregion
+                        #region work aspect
+                        else if (item.IsWork() && (portrait || landscape || square))
+                        {
+                            var width = item.Illust.Width ?? 0;
+                            var height = item.Illust.Height ?? 0;
+                            if (width > 0 && height > 0)
+                            {
+                                double aspect = (double)width / (double)height;
+                                if (landscape)
+                                    result = result && (aspect >= 1.05);
+                                else if (portrait)
+                                    result = result && (aspect <= 0.95);
+                                else if (square)
+                                    result = result && (0.95 < aspect && aspect < 1.05);
+                            }
+                        }
+                        #endregion
+                        #region size
+                        else if (item.IsWork() && (size_s || size_m || size_l || size_h))
+                        {
+                            var width = item.Illust.Width ?? 0;
+                            var height = item.Illust.Height ?? 0;
+                            if (size_s)
+                                result = result && (width <= 1024 || height <= 1024);
+                            else if (size_m)
+                                result = result && (width > 1024 && width <= 2048) || (height > 1024 && height <= 2048);
+                            else if (size_l)
+                                result = result && (width > 2048 && width <= 4096) || (height > 2048 && height <= 4096);
+                            else if (size_h)
+                                result = result && (width >= 4096 || height >= 4096);
+                        }
+                        #endregion
+                        #region pages
+                        else if (item.IsWork() && (singlepage || multipages))
+                        {
+                            if (singlepage)
+                                result = result && (item.Count <= 1);
+                            else if (multipages)
+                                result = result && (item.Count > 1);
+                        }
+                        #endregion
+                        #region history
+                        else if (in_history || not_in_history)
+                        {
+                            if (in_history)
+                                result = result && hist_ids.Contains(item.ID);
+                            else if (not_in_history)
+                                result = result && !hist_ids.Contains(item.ID);
+                        }
+                        #endregion
+                    }
+                    #endregion
+                    #region filter by favorited number
+                    if (fav_range > 0)
+                    {
+                        if (item.IsWork())
+                        {
+                            var illust = item.Illust;
+                            if (illust is Pixeez.Objects.IllustWork)
+                            {
+                                var fav_count = (illust as Pixeez.Objects.IllustWork).total_bookmarks;
+                                result = result && (fav_count > fav_range);
+                            }
+                            else if (illust is Pixeez.Objects.NormalWork && illust.Stats is Pixeez.Objects.WorkStats)
+                            {
+                                var fav_count = illust.Stats.FavoritedCount.Public + illust.Stats.FavoritedCount.Private;
+                                result = result && (fav_count > fav_range);
+                            }
+                        }
+                    }
+                    #endregion
+                    #region filter by favorited state
+                    if (favorited || notfavorited)
+                    {
+                        if (favorited)
+                            result = result && item.IsFavorited;
+                        else if (notfavorited)
+                            result = result && !item.IsFavorited;
+                    }
+                    #endregion
+                    #region filter by followed state
+                    if (followed || notfollowed)
+                    {
+                        if (followed)
+                            result = result && item.IsFollowed;
+                        else if (notfollowed)
+                            result = result && !item.IsFollowed;
+                    }
+                    #endregion
+                    #region filter by downloaded state
+                    if (downloaded || notdownloaded)
+                    {
+                        if (downloaded)
+                            result = result && item.IsDownloaded;
+                        else if (notdownloaded)
+                            result = result && !item.IsDownloaded;
+                    }
+                    #endregion
+                    #region filter by AI state
+                    if (aigc || notaigc || aiad || noai)
+                    {
+                        if (aigc)
+                            result = result && item.IsAI();
+                        if (notaigc)
+                            result = result && !item.IsAI();
+                        else if (aiad)
+                            result = result && (item.HasAI() && !item.IsAI());
+                        else if (noai)
+                            result = result && !(item.IsAI() || item.HasAI());
+                    }
+                    #endregion
+                    #region filter by movie state
+                    if (movie || notmovie)
+                    {
+                        if (movie)
+                            result = result && item.IsMovie;
+                        else if (notmovie)
+                            result = result && !item.IsMovie;
+                    }
+                    #endregion
+                    #region filter by mmd state
+                    if (mmd || notmmd)
+                    {
+                        if (mmd)
+                            result = result && item.IsMMD;
+                        else if (notmmd)
+                            result = result && !item.IsMMD;
+                    }
+                    #endregion
+                    #region filter by full listed state
+                    if (full || notfull)
+                    {
+                        if (full)
+                            result = result && item.IsFulllisted();
+                        else if (notfull)
+                            result = result && !item.IsFulllisted();
+                    }
+                    #endregion
+                    #region filter by sanity state
+                    if (sanity_age >= 0 || not_sanity_age >= 0)
+                    {
+                        var sanity = item.Sanity.ToLower();
+                        if (sanity_age == 0)
+                            result = result && sanity.Equals("all");
+                        else if (not_sanity_age == 0)
+                            result = result && !sanity.Equals("all");
+
+                        else if (sanity_include_under)
+                        {
+                            if (sanity_age == 12)
+                                result = result && sanity_age_12.Contains(sanity);
+                            else if (not_sanity_age == 0)
+                                result = result && !sanity_age_12.Contains(sanity);
+
+                            else if (sanity_age == 15)
+                                result = result && sanity_age_15.Contains(sanity);
+                            else if (not_sanity_age == 15)
+                                result = result && !sanity_age_15.Contains(sanity);
+
+                            else if (sanity_age == 17)
+                                result = result && sanity_age_17.Contains(sanity);
+                            else if (not_sanity_age == 17)
+                                result = result && !sanity_age_17.Contains(sanity);
+
+                            else if (sanity_age == 18)
+                                result = result && sanity_age_18.Contains(sanity);
+                            else if (not_sanity_age == 18)
+                                result = result && !sanity_age_18.Contains(sanity);
+                        }
+                        else
+                        {
+                            if (sanity_age == 12)
+                                result = result && sanity.Equals("12+");
+                            else if (not_sanity_age == 0)
+                                result = result && !sanity.Equals("12+");
+
+                            else if (sanity_age == 15)
+                                result = result && sanity.Equals("15+");
+                            else if (not_sanity_age == 15)
+                                result = result && !sanity.Equals("15+");
+
+                            else if (sanity_age == 17)
+                                result = result && sanity.Equals("17+");
+                            else if (not_sanity_age == 17)
+                                result = result && !sanity.Equals("17+");
+
+                            else if (sanity_age == 18)
+                                result = result && sanity.Equals("18+");
+                            else if (not_sanity_age == 18)
+                                result = result && !sanity.Equals("18+");
+                        }
+                    }
+                    #endregion
+                    #region filter by contents
+                    if (item.IsWork())
+                    {
+                        var work = item.Illust;
+                        var title = work.Title.Trim();
+                        var uname = work.User is not null ? $"{work.User.Name}" : "";
+                        var caption = work.Caption.HtmlToText(decode: true, br: false);
+                        var tags = work.Tags.Count > 0 ? $"#{string.Join(" #", work.Tags)}" : "";
+                        if (!string.IsNullOrEmpty(content_include))
+                        {
+                            foreach (var content in content_include.Split(["&&", "||", ";", ",", " "], StringSplitOptions.RemoveEmptyEntries).Select(f => f.Trim()).Where(f => !string.IsNullOrEmpty(f)))
+                            {
+                                result &= title.IndexOf(content, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
+                                        caption.IndexOf(content, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
+                                        uname.IndexOf(content, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
+                                        tags.IndexOf(content, StringComparison.CurrentCultureIgnoreCase) >= 0;
+                            }
+                            //result &= title.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
+                            //        caption.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
+                            //        uname.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
+                            //        tags.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0;
+                        }
+                        if (!string.IsNullOrEmpty(content_exclude))
+                        {
+                            foreach (var content in content_exclude.Split(["&&", "||", ";", ",", " "], StringSplitOptions.RemoveEmptyEntries).Select(f => f.Trim()).Where(f => !string.IsNullOrEmpty(f)))
+                            {
+                                result &= title.IndexOf(content, StringComparison.CurrentCultureIgnoreCase) < 0 &&
+                                      caption.IndexOf(content, StringComparison.CurrentCultureIgnoreCase) < 0 &&
+                                      uname.IndexOf(content, StringComparison.CurrentCultureIgnoreCase) < 0 &&
+                                      tags.IndexOf(content, StringComparison.CurrentCultureIgnoreCase) < 0;
+                            }
+                            //result &= title.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0 &&
+                            //      caption.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0 &&
+                            //      uname.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0 &&
+                            //      tags.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0;
+                        }
+                    }
+                    else if (item.IsUser())
+                    {
+                        var user = item.User;
+                        var uname = $"{user?.Name}";
+                        if (!string.IsNullOrEmpty(content_include))
+                        {
+                            foreach (var content in content_include.Split(["&&", "||", ";", ",", " "], StringSplitOptions.RemoveEmptyEntries).Select(f => f.Trim()).Where(f => !string.IsNullOrEmpty(f)))
+                            {
+                                result &= !string.IsNullOrEmpty(content) && uname.IndexOf(content, StringComparison.CurrentCultureIgnoreCase) >= 0;
+                            }
+                        }
+                        if (!string.IsNullOrEmpty(content_exclude))
+                        {
+                            foreach (var content in content_exclude.Split(["&&", "||", ";", ",", " "], StringSplitOptions.RemoveEmptyEntries).Select(f => f.Trim()).Where(f => !string.IsNullOrEmpty(f)))
+                            {
+                                result &= !string.IsNullOrEmpty(content) && uname.IndexOf(content, StringComparison.CurrentCultureIgnoreCase) < 0;
+                            }
+                        }
+                        //result &= !string.IsNullOrEmpty(content_include) && uname.IndexOf(content_include, StringComparison.CurrentCultureIgnoreCase) >= 0;
+                        //result &= !string.IsNullOrEmpty(content_exclude) && uname.IndexOf(content_exclude, StringComparison.CurrentCultureIgnoreCase) < 0;
+                    }
+                    #endregion
+                }
+                return (result);
+            });
+            return (filter_action);
+        }
+
+        public static Predicate<object> GetFilter(this string filter)
+        {
+            Predicate<object> result_filter = null;
+            if (!string.IsNullOrEmpty(filter.Trim()))
+            {
+                var filter_action = CreateFilter(filter);
                 if (filter_action != null)
                     result_filter = new Predicate<object>(filter_action);
             }
+            return (result_filter);
+        }
 
+        public static Predicate<object> GetFilter(this PixivItemFilterParam filter)
+        {
+            Predicate<object> result_filter = null;
+            if (filter is not null)
+            {
+                var filter_action = CreateFilter(filter);
+                if (filter_action != null)
+                    result_filter = new Predicate<object>(filter_action);
+            }
             return (result_filter);
         }
 
@@ -983,7 +1065,7 @@ namespace PixivWPF.Common
             return (await Task.Run(() => { return (filter.GetFilter()); }));
         }
 
-        public async static Task<Predicate<object>> GetFilterAsync(this FilterParam filter)
+        public async static Task<Predicate<object>> GetFilterAsync(this PixivItemFilterParam filter)
         {
             return (await Task.Run(() => { return (filter.GetFilter()); }));
         }
@@ -1068,9 +1150,10 @@ namespace PixivWPF.Common
                             Caption = illust.Caption,
                             AIType = illust.AIType,
                             ToolTip = $"📅[{illust.GetDateTime()}][{illust.Id}]{tooltip}",
-                            IsDownloaded = work_type != PixivItemType.Work || illust == null ? false : (await illust.IsPartDownloadedAsync(touch: false)).Exists,
+                            IsDownloaded = false,
                             Tag = illust
                         };
+                        result?.IsDownloaded = illust != null && work_type == PixivItemType.Work && (await illust.IsPartDownloadedAsync(touch: false)).Exists;
                     }
                     else { "URL is NULL".ERROR("WorkItem"); }
                 }
@@ -1082,7 +1165,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static PixivItem UserItem(this Pixeez.Objects.UserBase user, string nexturl = "")
+        public static PixivItem UserItem(this Pixeez.Objects.UserBase user, string nexturl = "", int? index = null)
         {
             PixivItem result = null;
             try
@@ -1119,6 +1202,7 @@ namespace PixivWPF.Common
                     result = new PixivItem()
                     {
                         ItemType = PixivItemType.User,
+                        ItemIndex = index ?? -1,
                         NextURL = nexturl,
                         Thumb = url,
                         BadgeValue = nu.Stats == null ? null : nu.Stats.Works.Value.ToString(),
@@ -1167,6 +1251,7 @@ namespace PixivWPF.Common
                     result = new PixivItem()
                     {
                         ItemType = PixivItemType.User,
+                        ItemIndex = index ?? -1,
                         NextURL = nexturl,
                         Thumb = url,
                         BadgeValue = null,
@@ -1198,17 +1283,18 @@ namespace PixivWPF.Common
             if (!string.IsNullOrEmpty(url))
             {
                 p = await illust.WorkItem(url, nexturl, work_type: PixivItemType.Page);
-                if (p is PixivItem)
+                if (p is not null)
                 {
                     p.DisplayTitle = false;
                     p.Index = index;
+                    //p.ItemIndex = index;
                     p.Count = illust.PageCount ?? 0;
                     p.IsFavorited = false;
                     p.IsFollowed = false;
                     p.IsDisplayFavMark = false;
                     p.BadgeValue = (index + 1).ToString();
                     p.Subject = $"{p.Subject} - {index + 1}/{illust.PageCount ?? 0}";
-                    p.IsDownloaded = illust == null ? false : (await page.GetOriginalUrl().IsDownloadedAsync(false, touch: touch)).Exists;
+                    p.IsDownloaded = illust != null && (await page.GetOriginalUrl().IsDownloadedAsync(false, touch: touch)).Exists;
                     p.Tag = page;
                     p.DoEvents();
                 }
@@ -1223,17 +1309,18 @@ namespace PixivWPF.Common
             if (!string.IsNullOrEmpty(url))
             {
                 p = await illust.WorkItem(url, nexturl, work_type: PixivItemType.Pages);
-                if (p is PixivItem)
+                if (p is not null)
                 {
                     p.DisplayTitle = false;
                     p.Index = index;
+                    //p.ItemIndex = index;
                     p.Count = illust.PageCount ?? 0;
                     p.IsFavorited = false;
                     p.IsFollowed = false;
                     p.IsDisplayFavMark = false;
                     p.BadgeValue = (index + 1).ToString();
                     p.Subject = $"{p.Subject} - {index + 1}/{illust.PageCount ?? 0}";
-                    p.IsDownloaded = illust == null ? false : (await page.GetOriginalUrl().IsDownloadedAsync(false, touch: touch)).Exists;
+                    p.IsDownloaded = illust != null && (await page.GetOriginalUrl().IsDownloadedAsync(false, touch: touch)).Exists;
                     p.Tag = page;
                     p.DoEvents();
                 }
@@ -1285,37 +1372,37 @@ namespace PixivWPF.Common
         }
         
         #region Image Tile Add Helper
-        public static async void AddTo(this IList<Pixeez.Objects.Work> works, IList<PixivItem> Collection, string nexturl = "")
+        public static async void AddTo(this IList<Pixeez.Objects.Work> works, IList<PixivItem> collection, string nexturl = "", int? index = null)
         {
             foreach (var illust in works)
             {
-                illust.AddTo(Collection, nexturl);
+                illust.AddTo(collection, nexturl, index);
                 //await Task.Delay(1);
                 await Task.Yield();
                 Application.Current.DoEvents();
             }
         }
 
-        public static async void AddTo(this Pixeez.Objects.Work illust, IList<PixivItem> Collection, string nexturl = "", int? index = null)
+        public static async void AddTo(this Pixeez.Objects.Work illust, IList<PixivItem> collection, string nexturl = "", int? index = null)
         {
             try
             {
-                if (illust is not null && Collection is not null)
+                if (illust is not null && collection is not null)
                 {
                     var url = illust.GetThumbnailUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
-                        var idx = index ?? (Collection.Count > 0 ? Collection.Max(ci => ci.ItemIndex) + 1 : 0);
+                        var idx = index ?? (collection.Count > 0 ? collection.Max(ci => ci.ItemIndex) + 1 : 0);
                         var i = await illust.WorkItem(url, nexturl, index: idx);
                         if (i is not null)
                         {
                             //i.ItemIndex = Collection.Count > 0 ? Collection.Max(ci => ci.ItemIndex) + 1 : 0;
                             if (i.ItemIndex < 0) i.ItemIndex = idx;
-                            i.ToolTip = $"🗨[{Collection.Count + 1}], {i.ToolTip}";
-                            Collection.Add(i);
+                            i.ToolTip = $"🗨[{(idx <= 0 ? collection.Count + 1 : idx)}], {i.ToolTip}";
+                            collection.Add(i);
                             //await Task.Delay(1);
                             await Task.Yield();
-                            i.DoEvents();
+                            //i.DoEvents();
                         }
                     }
                 }
@@ -1326,16 +1413,16 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async void AddTo(this Pixeez.Objects.MetaPages pages, IList<PixivItem> Collection, Pixeez.Objects.Work illust, int index, string nexturl = "")
+        public static async void AddTo(this Pixeez.Objects.MetaPages pages, IList<PixivItem> collection, Pixeez.Objects.Work illust, int index, string nexturl = "")
         {
             try
             {
-                if (pages is Pixeez.Objects.MetaPages && Collection is IList<PixivItem>)
+                if (pages is Pixeez.Objects.MetaPages && collection is IList<PixivItem>)
                 {
                     var p = await PageItem(pages, illust, index, nexturl);
                     if (p is not null)
                     {
-                        Collection.Add(p);
+                        collection.Add(p);
                         //await Task.Delay(1);
                         await Task.Yield();
                         p.DoEvents();
@@ -1348,16 +1435,16 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async void AddTo(this Pixeez.Objects.Page page, IList<PixivItem> Collection, Pixeez.Objects.Work illust, int index, string nexturl = "")
+        public static async void AddTo(this Pixeez.Objects.Page page, IList<PixivItem> collection, Pixeez.Objects.Work illust, int index, string nexturl = "")
         {
             try
             {
-                if (page is Pixeez.Objects.Page && Collection is IList<PixivItem>)
+                if (page is Pixeez.Objects.Page && collection is IList<PixivItem>)
                 {
                     var p = await PageItem(page, illust, index, nexturl);
                     if (p is not null)
                     {
-                        Collection.Add(p);
+                        collection.Add(p);
                         //await Task.Delay(1);
                         await Task.Yield();
                         p.DoEvents();
@@ -1370,14 +1457,15 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async void AddTo(this Pixeez.Objects.UserBase user, IList<PixivItem> Collection, string nexturl = "")
+        public static async void AddTo(this Pixeez.Objects.UserBase user, IList<PixivItem> collection, string nexturl = "", int? index = null)
         {
             try
             {
-                if (user is not null && Collection is not null)
+                if (user is not null && collection is not null)
                 {
-                    var u = user.UserItem(nexturl);
-                    Collection.Add(u);
+                    var idx = index ?? (collection.Count > 0 ? collection.Max(ci => ci.ItemIndex) + 1 : 0);
+                    var u = user.UserItem(nexturl, index: idx);
+                    collection.Add(u);
                     //await Task.Delay(1);
                     await Task.Yield();
                     u.DoEvents();

@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-
+using System.Windows.Threading;
 using MahApps.Metro.IconPacks;
 using WPFNotification.Model;
 
@@ -16,8 +16,8 @@ namespace PixivWPF.Common
         [DefaultValue("OK")]
         public string Label
         {
-            get { return (Text is TextBlock ? Text.Text : string.Empty); }
-            set { if(Text is TextBlock) Text.Text = value; }
+            get { return (Text?.Text ?? string.Empty); }
+            set { Text?.Text = value; }
         }
 
         [Description("Get or Set Button Icon")]
@@ -25,14 +25,12 @@ namespace PixivWPF.Common
         [DefaultValue("OK")]
         public string IconKind
         {
-            get { return(Kind is PackIconModern ? Kind.Kind.ToString() : string.Empty); }
+            get { return (Kind?.Kind.ToString() ?? string.Empty); }
             set
             {
-                if (Kind is PackIconModern)
+                if (Kind is not null && Enum.TryParse(value, true, out PackIconModernKind kind))
                 {
-                    PackIconModernKind kind = PackIconModernKind.Check;
-                    Enum.TryParse(value, true, out kind);
-                    Kind.Kind = kind;
+                    Kind?.Kind = kind;
                 }
             }
         }
@@ -42,15 +40,8 @@ namespace PixivWPF.Common
         [DefaultValue(true)]
         public bool Visiable
         {
-            get { return (Button is Button ? (Button.Visibility == Visibility.Visible ? true : false) : false); }
-            set
-            {
-                if (Button is Button)
-                {
-                    if (value) Button.Visibility = Visibility.Visible;
-                    else Button.Visibility = Visibility.Collapsed;
-                }
-            }
+            get { return (Button?.Visibility == Visibility.Visible); }
+            set { Button?.Visibility = value ? Visibility.Visible : Visibility.Collapsed; }
         }
 
         public bool HasImage { get; set; } = true;
@@ -77,7 +68,7 @@ namespace PixivWPF.Common
             set
             {
                 toasttype = value;
-                if(IsLoaded) SetButton(value);
+                SetButton(value);
             }
         }
 
@@ -87,6 +78,8 @@ namespace PixivWPF.Common
         public CustomButton ButtonCancel;
         public CustomButton ButtonOpenFile;
         public CustomButton ButtonOpenFolder;
+
+        private DispatcherTimer timer;
 
         private Setting setting = Application.Current.LoadSetting();
 
@@ -215,13 +208,17 @@ namespace PixivWPF.Common
                 {
                     if (Preview.Source == null)
                     {
-                        using (var img = await url.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize()))
-                        {
-                            Preview.Source = img.Source;
-                        }
+                        using var img = await url.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize());
+                        Preview.Source = img.Source;
                     }
                 }
             }
+        }
+
+        private void Close()
+        {
+            if (parentWindow == null) parentWindow = Window.GetWindow(this);
+            parentWindow?.Close();
         }
 
         public ToastItem()
@@ -235,8 +232,16 @@ namespace PixivWPF.Common
 
             try
             {
+                timer ??= new(DispatcherPriority.ContextIdle) { IsEnabled = false, Interval = TimeSpan.FromSeconds(setting.ToastTimeout) };
+                timer?.Tick += (o, e) => { Close(); };
+                timer?.Start();
+            }
+            catch (Exception ex) { ex.ERROR("ToastLoaded"); }
+
+            try
+            {
                 parentWindow = Window.GetWindow(this);
-                if (parentWindow is Window)
+                if (parentWindow is not null)
                 {
                     parentWindow.Closing += Window_Closing;
                     Application.Current.AddToast(parentWindow);
@@ -262,7 +267,7 @@ namespace PixivWPF.Common
                     else Preview.Show();
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("ToastLoaded"); }
 
             try
             {
@@ -273,40 +278,39 @@ namespace PixivWPF.Common
                     SetState(toast.State, toast.StateDescription);
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("ToastLoaded"); }
 
             try
             {
                 SetButton(ItemType);
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("ToastLoaded"); }
 
             try
             {
                 CheckImageSource();
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("ToastLoaded"); }
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
-            if (parentWindow is Window)
+            Preview?.Source = null;
+            if (parentWindow is not null)
             {
-                Preview.Dispose();
+                Preview?.Dispose();
                 parentWindow = null;
             }
-            if (Preview is Image) Preview.Source = null;
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
-            if(parentWindow == null) parentWindow = Window.GetWindow(this);
-            if (parentWindow is Window) parentWindow.Close();
+            Close();
         }
 
         private void OK_Click(object sender, RoutedEventArgs e)
         {
-            CloseButton_Click(sender, e);
+            Close();
         }
 
         private void OpenFolder_Click(object sender, RoutedEventArgs e)
@@ -314,7 +318,7 @@ namespace PixivWPF.Common
             if (sender is Button)
             {
                 var btn = sender as Button;
-                if (btn.Tag is string)
+                if (btn?.Tag is string)
                 {
                     var FileName = (string)btn.Tag;
                     FileName.OpenFileWithShell(true);
@@ -324,34 +328,34 @@ namespace PixivWPF.Common
 
         private void OpenFile_Click(object sender, RoutedEventArgs e)
         {
-            if(sender is Button)
+            if (sender is Button)
             {
                 var btn = sender as Button;
-                if(btn.Tag is string)
+                if (btn?.Tag is string)
                 {
                     var FileName = (string)btn.Tag;
                     FileName.OpenFileWithShell();
                 }
-            }            
+            }
         }
 
         private void Preview_TargetUpdated(object sender, DataTransferEventArgs e)
         {
-            if(sender == Preview)
+            if (sender == Preview)
             {
-                if(e.Property.Name.Equals("Source", StringComparison.CurrentCultureIgnoreCase) ||
+                if (e.Property.Name.Equals("Source", StringComparison.CurrentCultureIgnoreCase) ||
                    e.Property.Name.Equals("Tag", StringComparison.CurrentCultureIgnoreCase))
                 {
                     CheckImageSource();
                 }
             }
-            else if(sender == border)
+            else if (sender == border)
             {
                 if (e.Property.Name.Equals("Tag", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    if (border.Tag is ToastType)
+                    if (border?.Tag is ToastType type)
                     {
-                        ItemType = (ToastType)(border.Tag);
+                        ItemType = type;
                         CheckImageSource();
                     }
                 }

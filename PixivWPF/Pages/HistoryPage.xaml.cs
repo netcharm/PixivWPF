@@ -115,7 +115,7 @@ namespace PixivWPF.Pages
                     UpdateDownloadState();
                     this.DoEvents();
                 }
-                HistoryItems.Sort("CreationTime", false);
+                //HistoryItems.Sort("CreationTime", false);
                 HistoryItems.UpdateTilesImage(overwrite, touch: false);
             }
             catch (Exception ex)
@@ -165,7 +165,7 @@ namespace PixivWPF.Pages
             HistoryItems.SetFilter(filter);
         }
 
-        public void SetFilter(FilterParam filter)
+        public void SetFilter(PixivItemFilterParam filter)
         {
             HistoryItems.SetFilter(filter);
         }
@@ -361,6 +361,8 @@ namespace PixivWPF.Pages
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             ParentWindow = Window.GetWindow(this);
+            
+            HistoryItems?.Sort("LastAccessTime", a2z: false);
 
             if (ParentWindow != null)
             {

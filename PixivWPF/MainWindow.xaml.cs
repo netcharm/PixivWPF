@@ -995,9 +995,12 @@ namespace PixivWPF
 
         private void LiveFilter_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
+            var setting = Application.Current.LoadSetting();
             LiveFilterNotDownloaded.IsChecked = !LiveFilterNotDownloaded.IsChecked;
             LiveFilterNotAIGC.IsChecked = !LiveFilterNotAIGC.IsChecked;
             LiveFilterNotMovie.IsChecked = !LiveFilterNotMovie.IsChecked;
+            LiveFilterInclude.Text = string.Join(" && ", setting.FilterContentsInclude);
+            LiveFilterExclude.Text = string.Join(" || ", setting.FilterContentsExclude);
             LiveFilterItem_Click(sender, e);
         }
 
@@ -1284,7 +1287,7 @@ namespace PixivWPF
                        string.IsNullOrEmpty(filter_sanity);
             LiveFilterNone.IsChecked = none;
 
-            var filter = new FilterParam()
+            var filter = new PixivItemFilterParam()
             {
                 // ContentExclude = none ? string.Empty : filter_exclude,
                 // ContentInclude = none ? string.Empty : filter_include,

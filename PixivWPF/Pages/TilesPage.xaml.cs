@@ -547,7 +547,7 @@ namespace PixivWPF.Pages
             KeepLastSelected(id, prefetching: false);
         }
 
-        public void SetFilter(FilterParam filter)
+        public void SetFilter(PixivItemFilterParam filter)
         {
             var id = GetLastSelectedID();
             ImageTiles.SetFilter(filter);
@@ -623,7 +623,7 @@ namespace PixivWPF.Pages
                         var interval = _update_tiles_checker_?.Interval.TotalMilliseconds;
                         if (interval == 250)
                         {
-                            ImageTiles?.Sort();
+                            //ImageTiles?.Sort();
                             ImageTiles?.UpdateTilesImage();
 
                             KeepLastSelected(lastSelectedId);
@@ -971,7 +971,7 @@ namespace PixivWPF.Pages
         }
 
         //private CancellationTokenSource _detail_gc = new();
-        private int _update_tiles_delay_ = 2500;
+        //private int _update_tiles_delay_ = 2500;
         internal void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false, string id = "", int works_count = 30)
         {
             if (ParentWindow == null) ParentWindow = this.GetMainWindow();
@@ -1000,7 +1000,7 @@ namespace PixivWPF.Pages
             setting = Application.Current.LoadSetting();
 
             ImageTiles.SelectedIndex = -1;
-            ImageTiles.Sort();
+            //ImageTiles.Sort();
 
             LastPage = target;
             switch (target)
@@ -1152,14 +1152,14 @@ namespace PixivWPF.Pages
                         if (!ids.Contains(illust.Id.Value))
                         {
                             ids.Add(illust.Id.Value);
-                            illust.AddTo(ImageTiles.Items, nexturl);
+                            illust.AddTo(ImageTiles.Items, nexturl, index: ids.Count());
                             this.DoEvents();
                         }
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     await Task.Yield();
-                    StartUpdateTilesChecker(root.illusts.Count());
+                    StartUpdateTilesChecker(ids.Count());
                     //await Task.Delay(_update_tiles_delay_);
                     //ImageTiles.Sort();
                     //ImageTiles.UpdateTilesImage();
@@ -1211,16 +1211,17 @@ namespace PixivWPF.Pages
                         if (!ids.Contains(illust.Id.Value))
                         {
                             ids.Add(illust.Id.Value);
-                            illust.AddTo(ImageTiles.Items, nexturl);
+                            illust.AddTo(ImageTiles.Items, nexturl, index: ids.Count());
                             this.DoEvents();
                         }
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     await Task.Yield();
-                    await Task.Delay(_update_tiles_delay_);
-                    ImageTiles.Sort();
-                    ImageTiles.UpdateTilesImage();
+                    StartUpdateTilesChecker(ids.Count());
+                    //await Task.Delay(_update_tiles_delay_);
+                    //ImageTiles.Sort();
+                    //ImageTiles.UpdateTilesImage();
                 }
             }
             catch (Exception ex)
@@ -1268,14 +1269,14 @@ namespace PixivWPF.Pages
                         if (!ids.Contains(tag.illust.Id.Value))
                         {
                             ids.Add(tag.illust.Id.Value);
-                            tag.illust.AddTo(ImageTiles.Items, nexturl);
+                            tag.illust.AddTo(ImageTiles.Items, nexturl, index: ids.Count());
                             this.DoEvents();
                         }
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     await Task.Yield();
-                    StartUpdateTilesChecker(root.tags.Count());
+                    StartUpdateTilesChecker(ids.Count());
                     //await Task.Delay(_update_tiles_delay_);
                     //ImageTiles.Sort();
                     //ImageTiles.UpdateTilesImage();
@@ -1326,14 +1327,14 @@ namespace PixivWPF.Pages
                         if (!ids.Contains(feed.User.Id.Value))
                         {
                             ids.Add(feed.User.Id.Value);
-                            feed.User.AddTo(ImageTiles.Items);
+                            feed.User.AddTo(ImageTiles.Items, index: ids.Count());
                             this.DoEvents();
                         }
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     await Task.Yield();
-                    StartUpdateTilesChecker(root.Count());
+                    StartUpdateTilesChecker(ids.Count());
                     //await Task.Delay(_update_tiles_delay_);
                     //ImageTiles.Sort();
                     //ImageTiles.UpdateTilesImage();
@@ -1387,14 +1388,14 @@ namespace PixivWPF.Pages
                         if (!ids.Contains(feed.User.Id.Value))
                         {
                             ids.Add(feed.User.Id.Value);
-                            feed.User.AddTo(ImageTiles.Items);
+                            feed.User.AddTo(ImageTiles.Items, index: ids.Count());
                             this.DoEvents();
                         }
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     await Task.Yield();
-                    StartUpdateTilesChecker(root.Count()); 
+                    StartUpdateTilesChecker(ids.Count()); 
                     //await Task.Delay(_update_tiles_delay_);
                     //ImageTiles.Sort();
                     //ImageTiles.UpdateTilesImage();
@@ -1449,14 +1450,14 @@ namespace PixivWPF.Pages
                             if (!ids.Contains(illust.Id.Value))
                             {
                                 ids.Add(illust.Id.Value);
-                                illust.AddTo(ImageTiles.Items, nexturl);
+                                illust.AddTo(ImageTiles.Items, nexturl, index: ids.Count());
                                 this.DoEvents();
                             }
                         }
                         if (!Application.Current.IsLogin()) await Task.Delay(250);
                         this.DoEvents();
                         await Task.Yield();
-                        StartUpdateTilesChecker(root.illusts.Count());
+                        StartUpdateTilesChecker(ids.Count());
                         //await Task.Delay(_update_tiles_delay_);
                         //ImageTiles.Sort();
                         //ImageTiles.UpdateTilesImage();
@@ -1510,14 +1511,14 @@ namespace PixivWPF.Pages
                             if (!ids.Contains(illust.Id.Value))
                             {
                                 ids.Add(illust.Id.Value);
-                                illust.AddTo(ImageTiles.Items, nexturl);
+                                illust.AddTo(ImageTiles.Items, nexturl, index: ids.Count());
                                 this.DoEvents();
                             }
                         }
                         if (!Application.Current.IsLogin()) await Task.Delay(250);
                         this.DoEvents();
                         await Task.Yield();
-                        StartUpdateTilesChecker(root.illusts.Count());
+                        StartUpdateTilesChecker(ids.Count());
                         //await Task.Delay(_update_tiles_delay_);
                         //ImageTiles.Sort();
                         //ImageTiles.UpdateTilesImage();
@@ -1574,7 +1575,7 @@ namespace PixivWPF.Pages
                                 if (!ids.Contains(illust.Id.Value))
                                 {
                                     ids.Add(illust.Id.Value);
-                                    illust.AddTo(ImageTiles.Items, nexturl);
+                                    illust.AddTo(ImageTiles.Items, nexturl, index: ids.Count());
                                     this.DoEvents();
                                 }
                             }
@@ -1588,7 +1589,7 @@ namespace PixivWPF.Pages
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     await Task.Yield();
-                    StartUpdateTilesChecker(root.Select(w => w.Works.Count()).Sum());
+                    StartUpdateTilesChecker(ids.Count());
                     //await Task.Delay(_update_tiles_delay_);
                     //ImageTiles.Sort();
                     //ImageTiles.UpdateTilesImage();
@@ -1643,19 +1644,19 @@ namespace PixivWPF.Pages
                 {
                     foreach (var illust in root.illusts)
                     {
-                        await Task.Yield();
                         illust.Cache();
                         if (!ids.Contains(illust.Id.Value))
                         {
                             ids.Add(illust.Id.Value);
-                            illust.AddTo(ImageTiles.Items, nexturl);
+                            illust.AddTo(ImageTiles.Items, nexturl, index: ids.Count());
                             this.DoEvents();
+                            await Task.Yield();
                         }
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     await Task.Yield();
-                    StartUpdateTilesChecker(root.illusts.Count());
+                    StartUpdateTilesChecker(ids.Count());
                     //await Task.Delay(_update_tiles_delay_);
                     //ImageTiles.Sort();
                     //ImageTiles.UpdateTilesImage();
@@ -1735,14 +1736,14 @@ namespace PixivWPF.Pages
                         if (!ids.Contains(user.Id.Value))
                         {
                             ids.Add(user.Id.Value);
-                            user.AddTo(ImageTiles.Items, nexturl);
+                            user.AddTo(ImageTiles.Items, nexturl, index: ids.Count());
                             this.DoEvents();
                         }
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     await Task.Yield();
-                    StartUpdateTilesChecker(root.Users.Count());
+                    StartUpdateTilesChecker(ids.Count());
                     //await Task.Delay(_update_tiles_delay_);
                     //ImageTiles.Sort();
                     //ImageTiles.UpdateTilesImage();
@@ -1797,14 +1798,14 @@ namespace PixivWPF.Pages
                         if (!ids.Contains(user.Id.Value))
                         {
                             ids.Add(user.Id.Value);
-                            user.AddTo(ImageTiles.Items, nexturl);
+                            user.AddTo(ImageTiles.Items, nexturl, index: ids.Count());
                             this.DoEvents();
                         }
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     await Task.Yield();
-                    StartUpdateTilesChecker(root.Users.Count());
+                    StartUpdateTilesChecker(ids.Count());
                     //await Task.Delay(_update_tiles_delay_);
                     //ImageTiles.Sort();
                     //ImageTiles.UpdateTilesImage();
@@ -1858,14 +1859,14 @@ namespace PixivWPF.Pages
                         if (!ids.Contains(user.Id.Value))
                         {
                             ids.Add(user.Id.Value);
-                            user.AddTo(ImageTiles.Items, nexturl);
+                            user.AddTo(ImageTiles.Items, nexturl, index: ids.Count());
                             this.DoEvents();
                         }
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     await Task.Yield();
-                    StartUpdateTilesChecker(root.Users.Count());
+                    StartUpdateTilesChecker(ids.Count());
                     //await Task.Delay(_update_tiles_delay_);
                     //ImageTiles.Sort();
                     //ImageTiles.UpdateTilesImage();
@@ -1919,14 +1920,14 @@ namespace PixivWPF.Pages
                         if (!ids.Contains(user.Id.Value))
                         {
                             ids.Add(user.Id.Value);
-                            user.AddTo(ImageTiles.Items, nexturl);
+                            user.AddTo(ImageTiles.Items, nexturl, index: ids.Count());
                             this.DoEvents();
                         }
                     }
                     if (!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     await Task.Yield();
-                    StartUpdateTilesChecker(root.Users.Count());
+                    StartUpdateTilesChecker(ids.Count());
                     //await Task.Delay(_update_tiles_delay_);
                     //ImageTiles.Sort();
                     //ImageTiles.UpdateTilesImage();

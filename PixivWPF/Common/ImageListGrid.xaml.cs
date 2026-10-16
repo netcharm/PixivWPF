@@ -1,5 +1,6 @@
 ﻿using Hjg.Pngcs;
 using MahApps.Metro.Controls;
+using NLog.Filters;
 using Pixeez.Objects;
 using System;
 using System.Collections;
@@ -616,6 +617,7 @@ namespace PixivWPF.Common
             {
                 if (string.IsNullOrEmpty(filter)) Filter = null;
                 //else Filter = await Dispatcher.InvokeAsync(() => { return (filter.GetFilter()); });
+                //else Filter = Dispatcher.Invoke(async () => { return (await filter.GetFilterAsync()); });
                 else Filter = await filter.GetFilterAsync();
             }
             catch (Exception ex)
@@ -624,12 +626,13 @@ namespace PixivWPF.Common
             }
         }
 
-        public async void SetFilter(FilterParam filter)
+        public async void SetFilter(PixivItemFilterParam filter)
         {
             try
             {
-                if (filter is FilterParam)
+                if (filter is PixivItemFilterParam)
                     //Filter = await Dispatcher.InvokeAsync(() => { return (filter.GetFilter()); });
+                    //Filter = Dispatcher.Invoke(async () => { return (await filter.GetFilterAsync()); });
                     Filter = await filter.GetFilterAsync();
                 else Filter = null;
             }
@@ -858,15 +861,52 @@ namespace PixivWPF.Common
         private SortDescription _default_ascending_ = new("ItemIndex", ListSortDirection.Ascending);
         private SortDescription _default_descending_ = new("ItemIndex", ListSortDirection.Descending);
 
+        public bool SortAscending
+        {
+            get
+            {
+                if (PART_ImageTiles?.Items?.SortDescriptions?.Any() ?? false)
+                {
+                    var sort = PART_ImageTiles?.Items?.SortDescriptions.FirstOrDefault();
+                    return (sort?.Direction == ListSortDirection.Ascending);
+                }
+                else return (true);
+            }
+            set
+            {
+                if (PART_ImageTiles?.Items?.SortDescriptions?.Any() ?? false)
+                {
+                    //var sort = PART_ImageTiles?.Items?.SortDescriptions.First();
+                    //sort?.Direction = value ? ListSortDirection.Ascending : ListSortDirection.Descending;
+                }
+            }
+        }
+
+        public string SortProperty
+        {
+            get
+            {
+                if (PART_ImageTiles?.Items?.SortDescriptions?.Any() ?? false)
+                {
+                    var sort = PART_ImageTiles?.Items?.SortDescriptions.FirstOrDefault();
+                    return (sort?.PropertyName);
+                }
+                else return (string.Empty);
+            }
+        }
+
         public void Sort(string propName = null, bool? a2z = null )
         {
-            var sort_1 = new SortDescription(propName ?? "ItemIndex", a2z ?? true ? ListSortDirection.Ascending : ListSortDirection.Descending);
-            var sort_2 = new SortDescription("CreationTime", ListSortDirection.Ascending);
+            var sort_1 = new SortDescription(propName ?? "ItemIndex", (a2z ?? true) ? ListSortDirection.Ascending : ListSortDirection.Descending);
             Dispatcher.InvokeAsync(async () => 
             {
+                PART_ImageTiles?.Items?.IsLiveSorting = false;
+                await Task.Yield();
+
                 PART_ImageTiles?.Items?.SortDescriptions.Clear();
                 PART_ImageTiles?.Items?.SortDescriptions.Add(sort_1);
-                PART_ImageTiles?.Items?.SortDescriptions.Add(sort_2);
+                await Task.Yield();
+
                 PART_ImageTiles?.Items?.IsLiveSorting = true;
                 await Task.Yield();
             });
@@ -1471,24 +1511,25 @@ namespace PixivWPF.Common
                                 item.IsFavorited = item.Illust.IsLiked();
                                 item.IsFollowed = item.User.IsLiked();
 
+                                item.DownloadedFilePaths?.Clear();
                                 if (item.IsPage() || item.IsPages())
                                 {
                                     var state = await item.Illust.IsDownloadedAsync(false, index: item.Index, touch: touch);
-                                    string f = state.Path;
                                     bool download = state.Exists;
                                     item.IsDownloaded = download;
-                                    item.DownloadedFilePath = f;
+                                    item.DownloadedFilePath = state.FileName;
+                                    item.DownloadedFilePaths?.AddRange(state.FileNames);                                    
                                     item.UsePartDownloaded = false;
                                     if (item.DisplayBadge) item.DisplayBadge = true;
                                 }
                                 else
                                 {
                                     var state = await item.Illust.IsPartDownloadedAsync(touch: touch);
-                                    string f = state.Path;
                                     bool part_down = state.Exists;
                                     item.IsDownloaded = part_down;
                                     item.IsPartDownloaded = part_down;
-                                    item.DownloadedFilePath = f;
+                                    item.DownloadedFilePath = state.FileName;
+                                    item.DownloadedFilePaths?.AddRange(state.FileNames);
                                     item.UsePartDownloaded = true;
                                     if (item.DisplayBadge != item.HasPages()) item.DisplayBadge = item.HasPages();
 
@@ -1595,21 +1636,25 @@ namespace PixivWPF.Common
 
             //DataContext = this;
 
-            if (UpdateTileTask is BackgroundWorker)
-            {
-                UpdateTileTask.DoWork += UpdateTileTask_DoWork;
-            }
+            UpdateTileTask?.DoWork += UpdateTileTask_DoWork;
 
             ToolTip = new ToolTip();
             UpdateGalleryTooltip(this);
 
             var expander = this.TryFindParent<Expander>();
-            if (expander is Expander)
+            if (expander is not null)
             {
-                expander.ToolTipOpening += PART_ToolTipOpening;
-                expander.ToolTip = new ToolTip();
+                expander?.ToolTipOpening += PART_ToolTipOpening;
+                expander?.ToolTip = new ToolTip();
                 UpdateGalleryTooltip(expander);
             }
+
+            //var filter = new FilterParam();
+            //var filters = filter.CreateFilterFunc();
+            //CollectionViewSource.Filter += async (o, e) =>
+            //{
+            //    e.Accepted = filters.Invoke();
+            //}
 
             PreviewMouseMove += PART_ImageListGrid_MouseMove;
             PreviewMouseDown += PART_ImageListGrid_MouseDown;

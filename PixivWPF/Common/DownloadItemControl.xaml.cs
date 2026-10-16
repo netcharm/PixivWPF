@@ -1,7 +1,4 @@
-﻿using MahApps.Metro.Controls;
-using PixivWPF.Pages;
-using Prism.Dialogs;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -25,6 +22,10 @@ namespace PixivWPF.Common
     #pragma warning disable IDE0079
     #pragma warning disable IDE0044
     #pragma warning disable IDE1006
+
+    using MahApps.Metro.Controls;
+    using PixivWPF.Pages;
+    using Prism.Dialogs;
 
     public enum DownloadItemState { Idle, Downloading, Paused, Finished, Failed, Writing, Deleted, NonExists, Remove, Older, NDays, Unknown }
 
@@ -364,6 +365,7 @@ namespace PixivWPF.Common
                     try
                     {
                         Instance?.PART_ThumbnailWait.Show();
+                        await Task.Yield();
 
                         using var img = await ThumbnailUrl.LoadImageFromUrl(overwrite, size: Application.Current.GetDefaultThumbSize(), cancelToken: _thumb_cancel_);
                         if (img.Source != null)
@@ -372,15 +374,23 @@ namespace PixivWPF.Common
                             Instance?.PART_ThumbnailWait.Hide();
                         }
                         else Instance?.PART_ThumbnailWait.Fail();
+                        await Task.Yield();
                     }
                     catch (Exception ex) { ex.ERROR($"DownloadItem_{IllustID}_RefreshThumbnail"); Instance?.PART_ThumbnailWait.Fail(); }
                     finally
                     {
                         if (Thumbnail == null) Instance?.PART_ThumbnailWait.Fail();
                         else Instance?.PART_ThumbnailWait.Hide();
+                        await Task.Yield();
                         NotifyPropertyChanged("Thumbnail");
                     }
                 }).InvokeAsync(cancelToken: _thumb_cancel_.Token);
+            }
+            else
+            {
+                if (Thumbnail == null) Instance?.PART_ThumbnailWait.Fail();
+                else Instance?.PART_ThumbnailWait.Hide();
+                await Task.Yield();
             }
         }
 

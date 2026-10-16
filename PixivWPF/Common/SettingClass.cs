@@ -430,7 +430,7 @@ namespace PixivWPF.Common
             Save(false, configfile);
         }
 
-        private static DateTime lastConfigUpdate = default(DateTime);
+        private static DateTime lastConfigUpdate = default;
         public static Setting Load(bool force = false, bool loadtags = true, string configfile = "", bool startup = false)
         {
             Setting result = Cache is Setting ? Cache : new Setting();
@@ -2126,14 +2126,36 @@ namespace PixivWPF.Common
         #endregion
 
         #region Live Filter Related
-        private string[] filter_mmd_tags = new string[]{ "mmd", "vroid" };
+        private string[] filter_mmd_tags = ["mmd", "vroid"];
         public string[] FilterMMDTags 
         {
-            get { return (Cache is Setting ? Cache.filter_mmd_tags : filter_mmd_tags); }
+            get { return (Cache is not null ? Cache.filter_mmd_tags : filter_mmd_tags); }
             set
             {
                 filter_mmd_tags = value;
-                if (Cache is Setting) Cache.filter_mmd_tags = filter_mmd_tags;
+                Cache?.filter_mmd_tags = filter_mmd_tags;
+            }
+        }
+
+        private string[] filter_contents_include = [];
+        public string[] FilterContentsInclude
+        {
+            get { return (Cache is not null ? Cache.filter_contents_include : filter_contents_include); }
+            set
+            {
+                filter_contents_include = value;
+                Cache?.filter_contents_include = filter_contents_include;
+            }
+        }
+
+        private string[] filter_contents_exclude = [];
+        public string[] FilterContentsExclude
+        {
+            get { return (Cache is not null ? Cache.filter_contents_exclude : filter_contents_exclude); }
+            set
+            {
+                filter_contents_exclude = value;
+                Cache?.filter_contents_exclude = filter_contents_exclude;
             }
         }
         #endregion

@@ -72,12 +72,15 @@ namespace PixivWPF.Common
             //
             _files_ ??= new();
             _files_nested_ ??= new();
+            _files_nested_[path] = nested;
+
             var prefix = nested ? $"{System.IO.Path.PathSeparator}" : "";
             if (_files_.IsEmpty || !_files_.ContainsKey(path) || _files_[path] == null || !_files_[path].Any())
             {
                 UpdateFiles(path, nested);
             }
-            if (_files_.ContainsKey(path))
+            _update_file_ ??= new(1, 1);
+            if (WaitUpdateFile() && _files_.ContainsKey(path))
             {
                 pattern = Escape(pattern);
                 result = [.. _files_[path].Where(f => Regex.IsMatch(f.Key, $"{prefix}{pattern}", RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f.Key)).Where(f => !f.EndsWith(".TMP", StringComparison.CurrentCultureIgnoreCase))];
@@ -106,7 +109,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            else if (_files_?.ContainsKey(path) ?? false)
+            else if (WaitUpdateFile() && _files_.ContainsKey(path))
             {
                 var result = _files_[path].Where(f => Regex.IsMatch(f.Key, $"{prefix}{pattern}", RegexOptions.IgnoreCase)).Select(f => System.IO.Path.Combine(path, f.Key)).Where(f => !f.EndsWith(".TMP", StringComparison.CurrentCultureIgnoreCase));
                 foreach (var f in result.ToArray()) { yield return (f); }
@@ -273,7 +276,7 @@ namespace PixivWPF.Common
                 {
                     _files_[fn_path][fn_name] = _files_nested_[fn_path];
                     result = true;
-                    $"Change File: \"{file_new}\"".DEBUG("EverythingUpdateFile");
+                    $"Created File: \"{file_new}\"".DEBUG("EverythingUpdateFile");
                 }
                 else
                 {
@@ -282,6 +285,32 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.ERROR("EverythingUpdateFile"); }
+            return (result);
+        }
+
+        private bool WaitUpdateFile()
+        {
+            var result = false;
+            try
+            {
+                _update_file_ ??= new(1, 1);
+                result = _update_file_.Wait(250);
+            }
+            catch (Exception ex) { ex.ERROR("EverythingWaitUpdateFile"); }
+            finally { if (_update_file_?.CurrentCount < 1) _update_file_?.Release(); }
+            return (result);
+        }
+
+        private async Task<bool> WaitUpdateFileAsync()
+        {
+            var result = false;
+            try
+            {
+                _update_file_ ??= new(1, 1);
+                result = await _update_file_.WaitAsync(250);
+            }
+            catch (Exception ex) { ex.ERROR("EverythingWaitUpdateFile"); }
+            finally { if (_update_file_?.CurrentCount < 1) _update_file_?.Release(); }
             return (result);
         }
         #endregion

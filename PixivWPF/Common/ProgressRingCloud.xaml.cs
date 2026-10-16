@@ -249,7 +249,7 @@ namespace PixivWPF.Common
 
         private void _Show_()
         {
-            //lock (this)
+            Dispatcher.Invoke(() =>
             {
                 IsActive = true;
                 Visibility = Visibility.Visible;
@@ -260,12 +260,12 @@ namespace PixivWPF.Common
                 PART_Mark.Visibility = Visibility.Visible;
                 PART_Percentage.Text = string.Empty;
                 PART_Percentage.Visibility = Visibility.Visible;
-            }
+            });
         }
 
         private void _Hide_()
         {
-            //lock (this)
+            Dispatcher.Invoke(() =>
             {
                 IsActive = false;
                 Visibility = Visibility.Collapsed;
@@ -275,12 +275,12 @@ namespace PixivWPF.Common
                 PART_Mark.FontFamily = WaitSymbolFontFamily;
                 PART_Mark.Visibility = Visibility.Collapsed;
                 PART_Percentage.Visibility = Visibility.Collapsed;
-            }
+            });
         }
 
         private void _Disable_()
         {
-            //lock (this)
+            Dispatcher.Invoke(() =>
             {
                 IsActive = false;
                 Visibility = Visibility.Visible;
@@ -290,12 +290,12 @@ namespace PixivWPF.Common
                 PART_Mark.FontFamily = ReloadEnabled ? ReloadSymbolFontFamily : WaitSymbolFontFamily;
                 PART_Mark.Visibility = Visibility.Visible;
                 PART_Percentage.Visibility = Visibility.Visible;
-            }
+            });
         }
 
         private void _Enable_()
         {
-            //lock (this)
+            Dispatcher.Invoke(() =>
             {
                 IsActive = true;
                 Visibility = Visibility.Visible;
@@ -305,7 +305,7 @@ namespace PixivWPF.Common
                 PART_Mark.FontFamily = ReloadEnabled ? ReloadSymbolFontFamily : WaitSymbolFontFamily;
                 PART_Mark.Visibility = Visibility.Visible;
                 PART_Percentage.Visibility = Visibility.Visible;
-            }
+            });
         }
 
         public void Show()

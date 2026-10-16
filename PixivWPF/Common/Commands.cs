@@ -1861,7 +1861,7 @@ namespace PixivWPF.Common
                             if (item.Index >= 0 && item.Index < item.Count)
                             {
                                 state = await illust.IsDownloadedAsync(item.Index, touch: false);
-                                fp = state.Path;
+                                fp = state.FileName;
                                 if (state.Exists) fp.OpenFileWithShell();
                             }
                             else
@@ -1869,7 +1869,7 @@ namespace PixivWPF.Common
                                 for (var i = 0; i < item.Count; i++)
                                 {
                                     state = await illust.IsDownloadedAsync(i, touch: false);
-                                    fp = state.Path;
+                                    fp = state.FileName;
                                     if (state.Exists) fp.OpenFileWithShell();
                                 }
                             }
@@ -1882,7 +1882,7 @@ namespace PixivWPF.Common
                                 state = await illust.IsDownloadedAsync(true, item.Index, touch: false);
                             else
                                 state = await illust.IsPartDownloadedAsync(touch: false);
-                            fp = state.Path;
+                            fp = state.FileName;
 
                             if (!string.IsNullOrEmpty(fp)) fp.OpenFileWithShell();
                         }
@@ -1957,7 +1957,7 @@ namespace PixivWPF.Common
                             if (item.Index >= 0 && item.Index < item.Count)
                             {
                                 state = await illust.IsDownloadedAsync(item.Index, touch: false);
-                                fp = state.Path;
+                                fp = state.FileName;
                                 if (state.Exists) fp.OpenFileWithShell(openwith: true);
                             }
                             else
@@ -1965,7 +1965,7 @@ namespace PixivWPF.Common
                                 for (var i = 0; i < item.Count; i++)
                                 {
                                     state = await illust.IsDownloadedAsync(i, touch: false);
-                                    fp = state.Path;
+                                    fp = state.FileName;
                                     if (state.Exists) fp.OpenFileWithShell(openwith: true);
                                 }
                             }
@@ -1978,7 +1978,7 @@ namespace PixivWPF.Common
                                 state = await illust.IsDownloadedAsync(true, item.Index, touch: false);
                             else
                                 state = await illust.IsPartDownloadedAsync(touch: false);
-                            fp = state.Path;
+                            fp = state.FileName;
                             if (!string.IsNullOrEmpty(fp)) fp.OpenFileWithShell(openwith: true);
                         }
                     }
@@ -2072,7 +2072,7 @@ namespace PixivWPF.Common
                             if (item.Index >= 0)
                             {
                                 state = await illust.IsDownloadedAsync(item.Index, touch: false);
-                                fp = state.Path;
+                                fp = state.FileName;
                                 if (state.Exists)
                                     fp.OpenFileWithShell(command: setting.ShellShowMetaCmd, custom_params: setting.ShellShowMetaParams);
                             }
@@ -2081,7 +2081,7 @@ namespace PixivWPF.Common
                                 for (var i = 0; i < item.Count; i++)
                                 {
                                     state = await illust.IsDownloadedAsync(i, touch: false);
-                                    fp = state.Path;
+                                    fp = state.FileName;
                                     if (state.Exists)
                                         fp.OpenFileWithShell(command: setting.ShellShowMetaCmd, custom_params: setting.ShellShowMetaParams);
                                 }
@@ -2095,7 +2095,7 @@ namespace PixivWPF.Common
                                 state = await illust.IsDownloadedAsync(true, item.Index, touch: false);
                             else
                                 state = await illust.IsPartDownloadedAsync(touch: false);
-                            fp = state.Path;
+                            fp = state.FileName;
 
                             if (!string.IsNullOrEmpty(fp))
                                 fp.OpenFileWithShell(command: setting.ShellShowMetaCmd, custom_params: setting.ShellShowMetaParams);
@@ -2209,13 +2209,26 @@ namespace PixivWPF.Common
                             if (item.Index >= 0)
                             {
                                 var state = await illust.IsDownloadedAsync(item.Index, touch: false);
-                                var fp = state.Path;
+                                var fp = state.FileName;
+                                var fps = state.FileNames;
                                 if (state.Exists)
                                 {
                                     if (use_shell)
                                         fp.OpenFileWithShell(command: setting.ShellTouchMetaCmd, custom_params: setting.ShellTouchMetaParams);
                                     else
                                         await (new FileInfo(fp).AttachMetaInfo(item.Illust.GetDateTime(), item.ID, true));
+
+                                    if (fps.Any())
+                                    {
+                                        foreach (var f in fps.Where(f => !f.Equals(fp, StringComparison.CurrentCultureIgnoreCase)))
+                                        {
+                                            if (use_shell)
+                                                f.OpenFileWithShell(command: setting.ShellTouchMetaCmd, custom_params: setting.ShellTouchMetaParams);
+                                            else
+                                                await (new FileInfo(f).AttachMetaInfo(item.Illust.GetDateTime(), item.ID, true));
+                                            await Task.Yield();
+                                        }
+                                    }
                                 }
                             }
                             else
@@ -2223,13 +2236,26 @@ namespace PixivWPF.Common
                                 for (var i = 0; i < item.Count; i++)
                                 {
                                     var state = await illust.IsDownloadedAsync(i, touch: false);
-                                    var fp = state.Path;
+                                    var fp = state.FileName;
+                                    var fps = state.FileNames;
                                     if (state.Exists)
                                     {
                                         if (use_shell)
                                             fp.OpenFileWithShell(command: setting.ShellTouchMetaCmd, custom_params: setting.ShellTouchMetaParams);
                                         else
                                             await (new FileInfo(fp).AttachMetaInfo(item.Illust.GetDateTime(), item.ID, true));
+
+                                        if (fps.Any())
+                                        {
+                                            foreach (var f in fps.Where(f => !f.Equals(fp, StringComparison.CurrentCultureIgnoreCase)))
+                                            {
+                                                if (use_shell)
+                                                    f.OpenFileWithShell(command: setting.ShellTouchMetaCmd, custom_params: setting.ShellTouchMetaParams);
+                                                else
+                                                    await (new FileInfo(f).AttachMetaInfo(item.Illust.GetDateTime(), item.ID, true));
+                                                await Task.Yield();
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -2243,14 +2269,29 @@ namespace PixivWPF.Common
                                 state = await illust.IsDownloadedAsync(true, item.Index, touch: false);
                             else
                                 state = await illust.IsPartDownloadedAsync(touch: false);
-                            var fp = state.Path;
+                            var fp = state.FileName;
+                            var fps = state.FileNames;
 
-                            if (!string.IsNullOrEmpty(fp))
+                            if (state.Exists)
                             {
-                                if (use_shell)
-                                    fp.OpenFileWithShell(command: setting.ShellTouchMetaCmd, custom_params: setting.ShellTouchMetaParams);
-                                else
-                                    await (new FileInfo(fp).AttachMetaInfo(item.Illust.GetDateTime(), item.ID, true));
+                                if (!string.IsNullOrEmpty(fp))
+                                {
+                                    if (use_shell)
+                                        fp.OpenFileWithShell(command: setting.ShellTouchMetaCmd, custom_params: setting.ShellTouchMetaParams);
+                                    else
+                                        await (new FileInfo(fp).AttachMetaInfo(item.Illust.GetDateTime(), item.ID, true));
+                                }
+                                if (fps.Any())
+                                {
+                                    foreach (var f in fps.Where(f => !f.Equals(fp, StringComparison.CurrentCultureIgnoreCase)))
+                                    {
+                                        if (use_shell)
+                                            f.OpenFileWithShell(command: setting.ShellTouchMetaCmd, custom_params: setting.ShellTouchMetaParams);
+                                        else
+                                            await (new FileInfo(f).AttachMetaInfo(item.Illust.GetDateTime(), item.ID, true));
+                                        await Task.Yield();
+                                    }
+                                }
                             }
                         }
                     }
@@ -2300,7 +2341,7 @@ namespace PixivWPF.Common
                         if (item.Index >= 0)
                         {
                             var state = await illust.IsDownloadedAsync(item.Index, touch: false);
-                            string fp = state.Path;
+                            string fp = state.FileName;
                             item.IsDownloaded = state.Exists;
                             string fp_d = item.IsDownloaded ? fp : string.Empty;
                             string fp_o = illust.GetOriginalUrl(item.Index).GetImageCacheFile();
@@ -2313,7 +2354,7 @@ namespace PixivWPF.Common
                         else
                         {
                             var state = await illust.IsPartDownloadedAsync(touch: false);
-                            var fp = state.Path;
+                            var fp = state.FileName;
                             item.IsDownloaded = state.Exists;
                             string fp_d = item.IsDownloaded ? fp : string.Empty;
                             string fp_o = illust.GetOriginalUrl().GetImageCacheFile();
@@ -2418,7 +2459,7 @@ namespace PixivWPF.Common
                         if (item.HasPages() || item.IsPage() || item.IsPages() || item.Count > 1)
                         {
                             var state = await illust.IsDownloadedAsync(item.Index >= 0 ? item.Index : 0, touch: false);
-                            string fp = state.Path;
+                            string fp = state.FileName;
                             item.IsDownloaded = state.Exists;
                             string fp_d = item.IsDownloaded ? fp : string.Empty;
                             string fp_o = illust.GetOriginalUrl(item.Index).GetImageCacheFile();
@@ -2431,7 +2472,7 @@ namespace PixivWPF.Common
                         else
                         {
                             var state = await illust.IsPartDownloadedAsync(touch: false);
-                            string fp = state.Path;
+                            string fp = state.FileName;
                             item.IsDownloaded = state.Exists;
                             string fp_d = item.IsDownloaded ? fp : string.Empty;
                             string fp_o = illust.GetOriginalUrl().GetImageCacheFile();
@@ -2978,7 +3019,7 @@ namespace PixivWPF.Common
                             for (var i = 0; i < item.Count; i++)
                             {
                                 var state = await illust.IsDownloadedAsync(i, touch: false);
-                                var fp = state.Path;
+                                var fp = state.FileName;
                                 if (state.Exists)
                                 {
                                     await fp.ConvertImageTo("jpg", keep_name: keep_name, quality: setting.DownloadConvertJpegQuality, force: force);
@@ -2992,7 +3033,7 @@ namespace PixivWPF.Common
                                 state = await illust.IsDownloadedAsync(item.Index, touch: false);
                             else
                                 state = await illust.IsPartDownloadedAsync(touch: false);
-                            var fp = state.Path;
+                            var fp = state.FileName;
 
                             await fp.ConvertImageTo("jpg", keep_name: keep_name, quality: setting.DownloadConvertJpegQuality, force: force);
                         }
@@ -3164,7 +3205,7 @@ namespace PixivWPF.Common
                             for (var i = 0; i < item.Count; i++)
                             {
                                 var state = await illust.IsDownloadedAsync(i, touch: false);
-                                var fp = state.Path;
+                                var fp = state.FileName;
                                 if (state.Exists)
                                 {
                                     await Task.Run(async () =>
@@ -3183,7 +3224,7 @@ namespace PixivWPF.Common
                                 state = await illust.IsDownloadedAsync(item.Index, touch: false);
                             else
                                 state = await illust.IsPartDownloadedAsync(touch: false);
-                            var fp = state.Path;
+                            var fp = state.FileName;
 
                             await Task.Run(async () =>
                             {
@@ -3209,7 +3250,7 @@ namespace PixivWPF.Common
                             for (var i = 0; i < item.Count; i++)
                             {
                                 var state = await illust.IsDownloadedAsync(i, touch: false);
-                                var fp = state.Path;
+                                var fp = state.FileName;
                                 if (state.Exists)
                                 {
                                     await Task.Run(async () =>
@@ -3228,7 +3269,7 @@ namespace PixivWPF.Common
                                 state = await illust.IsDownloadedAsync(item.Index, touch: false);
                             else
                                 state = await illust.IsPartDownloadedAsync(touch: false);
-                            var fp = state.Path;
+                            var fp = state.FileName;
 
                             await Task.Run(async () =>
                             {

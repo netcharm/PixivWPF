@@ -80,6 +80,23 @@
                 </MenuItem.Icon>
             </MenuItem>
             <Separator />
+            <MenuItem x:Uid="ActionSort" Header="Sort By ..." Click="ActionSortIllusts_Click">
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE174;" Style="{DynamicResource MenuItemIcon16}"/>
+                </MenuItem.Icon>
+                <MenuItem x:Uid="ActionSortByIndex" Header="ItemIndex" Click="ActionSortIllusts_Click" />
+                <MenuItem x:Uid="ActionSortByID" Header="ID" Click="ActionSortIllusts_Click" />
+                <MenuItem x:Uid="ActionSortByArtist" Header="Artist" Click="ActionSortIllusts_Click" />
+                <MenuItem x:Uid="ActionSortByPubTime" Header="Upload Time" Click="ActionSortIllusts_Click" />
+                <MenuItem x:Uid="ActionSortByTitle" Header="Title" Click="ActionSortIllusts_Click" />
+                <MenuItem x:Uid="ActionSortByTotalFaved" Header="Total Faved" Click="ActionSortIllusts_Click" />
+                <MenuItem x:Uid="ActionSortByTotalViewed" Header="Total Viewed" Click="ActionSortIllusts_Click" />
+                <MenuItem x:Uid="ActionSortByFav" Header="Favorited" Click="ActionSortIllusts_Click" />
+                <MenuItem x:Uid="ActionSortByFollow" Header="Followed" Click="ActionSortIllusts_Click" />
+                <MenuItem x:Uid="ActionSortByDownload" Header="Downloaded" Click="ActionSortIllusts_Click" />
+                <MenuItem x:Uid="ActionSortByCreationTime" Header="Creation Time" Click="ActionSortIllusts_Click" />
+                <MenuItem x:Uid="ActionSortByLastAccessTime" Header="Access Time" Click="ActionSortIllusts_Click" />
+            </MenuItem>            
             <MenuItem x:Uid="ActionRefresh" Header="Refresh Illusts" Click="ActionRefreshResult_Click">
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE117;" Style="{DynamicResource MenuItemIcon16}"/>

@@ -149,9 +149,10 @@ namespace PixivWPF.Pages
                 var i = await illust.WorkItem();
                 if (i.IsWork())
                 {
+                    var state = await illust.IsDownloadedAsync(index_n, touch: false);
                     i.IsFavorited = illust.IsLiked();
                     i.IsFollowed = illust.User.IsLiked();
-                    i.IsDownloaded = illust.IsDownloaded(index_n, touch: false);
+                    i.IsDownloaded = state.Exists;
                     i.NextURL = Contents.NextURL;
                     i.Thumb = illust.GetThumbnailUrl(index_n);
                     i.Index = index_n;
@@ -489,11 +490,12 @@ namespace PixivWPF.Pages
                     var setting = Application.Current.LoadSetting();
                     var size = setting.QueryOriginalImageSize ? $" [{(await Contents.Illust.GetOriginalUrl(Contents.Index).QueryImageFileSize() ?? -1).SmartFileSize()}]" : string.Empty;
                     var original = $"Original   = {Contents.Illust.GetOriginalUrl(Contents.Index).GetImageName(Contents.Count <= 1)}{size}";
+                    var state = await Contents.Illust.IsDownloadedAsync(Contents.Index, touch: false);
 
                     StringBuilder sb = new StringBuilder();
                     sb.AppendLine($"Favorited  = {Contents.Illust.IsLiked()}");
                     sb.AppendLine($"Page Index = {Contents.Index + 1} / {Contents.Count}");
-                    sb.AppendLine($"Downloaded = {Contents.Illust.IsDownloaded(Contents.Index, touch: false)}");
+                    sb.AppendLine($"Downloaded = {state.Exists}");
                     sb.AppendLine(original);
 
                     InfoBar.ToolTip = sb.ToString().Trim();

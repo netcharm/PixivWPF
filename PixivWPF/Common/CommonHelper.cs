@@ -66,6 +66,7 @@ namespace PixivWPF.Common
     using WPFNotification.Core.Configuration;
     using WPFNotification.Model;
     using WPFNotification.Services;
+    using static System.Windows.Forms.AxHost;
 
     #region Page enmu type
     public enum PixivPage
@@ -3551,8 +3552,9 @@ namespace PixivWPF.Common
                 {
                     var downloaded = new List<string>();
                     string fp = string.Empty;
+                    List<string> fps = [];
                     if (item.HasPages()) downloaded.AddRange(item.GetDownloadedFiles());
-                    else if (item.Illust.IsDownloaded(out fp, is_meta_single_page: true)) downloaded.Add(fp);
+                    else if (item.Illust.IsDownloaded(out fp, out fps, is_meta_single_page: true)) downloaded.Add(fp);
 
                     var file = original ? item.Illust.GetOriginalUrl(item.Index).GetImageCachePath() : item.Illust.GetPreviewUrl(item.Index, large_preview).GetImageCachePath();
                     if (string.IsNullOrEmpty(file)) file = item.Illust.GetThumbnailUrl().GetImageCachePath();
@@ -3615,8 +3617,9 @@ namespace PixivWPF.Common
                         if (open_downloaded)
                         {
                             string fp = string.Empty;
+                            List<string> fps = [];
                             if (item.HasPages() || item.IsPage()) downloaded.AddRange(item.GetDownloadedFiles());
-                            else if (item.Illust.IsDownloaded(out fp, is_meta_single_page: true)) downloaded.Add(fp);
+                            else if (item.Illust.IsDownloaded(out fp, out fps, is_meta_single_page: true)) downloaded.Add(fp);
                         }
                     }
                 }
@@ -6156,7 +6159,7 @@ namespace PixivWPF.Common
 #if DEBUG
                     //try { } catch (Exception ex) { ex.StackTrace.DEBUG("AttachMetaCallStacl"); }
                     var trace = new System.Diagnostics.StackTrace(true);
-                    trace.ToString().DEBUG("AttachMetaCallStack");
+                    //trace.ToString().DEBUG("AttachMetaCallStack");
 #endif
                     //GC.Collect();
                 }
@@ -6376,14 +6379,14 @@ namespace PixivWPF.Common
                                         var meta_ret = true;
                                         setting = Application.Current.LoadSetting();
                                         //if (setting.DownloadAttachMetaInfo && meta && await fileinfo.WaitFileUnlockAsync())
-                                        if (setting.DownloadAttachMetaInfo && meta && fileinfo.WaitFileUnlock())
+                                        if (setting.DownloadAttachMetaInfo && meta && await fileinfo.WaitFileUnlockAsync())
                                         {
                                             await Task.Yield();
                                             meta_ret = await fileinfo.AttachMetaInfo(dt: fdt, force: force);
                                             fileinfo = new FileInfo(fileinfo.FullName);
                                         }
                                         //if (await fileinfo.WaitFileUnlockAsync())
-                                        if (meta_ret && fileinfo.WaitFileUnlock())
+                                        if (meta_ret && await fileinfo.WaitFileUnlockAsync())
                                         {
 #if DEBUG
                                             Debug.WriteLine($"=> Touching Time : {fileinfo.Name}");
@@ -6424,7 +6427,7 @@ namespace PixivWPF.Common
         {
             try
             {
-                if (File.Exists(file) && file.WaitFileUnlock())
+                if (File.Exists(file) && await file.WaitFileUnlockAsync())
                 {
                     FileInfo fi = new FileInfo(file);
                     await fi.Touch(url, local, meta, force);
@@ -6440,19 +6443,35 @@ namespace PixivWPF.Common
 
         static public void Touch(this PixivItem item, bool local = false, bool meta = false, bool force = false)
         {
+            bool download = false;
             if (item.IsPage())
             {
                 string file = string.Empty;
-                item.IsDownloaded = item.Illust.IsDownloaded(out file, item.Index, item.Count <= 1, touch: force);
+                List<string> files = new List<string>();
+                //item.IsDownloaded = item.Illust.IsDownloaded(out file, out files, item.Index, item.Count <= 1, touch: force);
+                download = item.Illust.IsDownloaded(out file, out files, item.Index, item.Count <= 1, touch: false);
+                item.IsDownloaded = download;
                 item.DownloadedFilePath = file;
+                item.DownloadedFilePaths = files;
                 item.DownloadedTooltip = file;
             }
             else if (item.IsWork())
             {
                 string file = string.Empty;
-                item.IsDownloaded = item.Illust.IsPartDownloaded(out file, touch: force);
+                List<string> files = new List<string>();
+                download = item.Illust.IsPartDownloaded(out file, out files, touch: false);
+                item.IsDownloaded = download;
                 item.DownloadedFilePath = file;
+                item.DownloadedFilePaths = files;
                 item.DownloadedTooltip = file;
+            }
+            if (download && force)
+            {
+                item.DownloadedFilePath.Touch(item.Illust, local, meta, force);
+                foreach (var file in item?.DownloadedFilePaths?.Where(f => !f.Equals(item.DownloadedFilePath, StringComparison.CurrentCultureIgnoreCase)) ?? [])
+                {
+                    file.Touch(item.Illust, local, meta, force);
+                }
             }
         }
 
@@ -6905,9 +6924,11 @@ namespace PixivWPF.Common
         #endregion
 
         #region IsDownloaded
+        private static readonly SemaphoreSlim _query_downloaded_ = new(1,1);
         public class DownloadState
         {
-            public string Path { get; set; } = string.Empty;
+            public string FileName { get; set; } = string.Empty;
+            public string[] FileNames { get; set; } = [];
             public bool Exists { get; set; } = false;
         }
 
@@ -6927,23 +6948,42 @@ namespace PixivWPF.Common
 
         internal static async Task<DownloadState> IsDownloadedAsync(this Pixeez.Objects.Work illust, int index = -1, bool touch = false)
         {
-            if (illust is Pixeez.Objects.Work)
+            if (illust is not null)
+            {
+                await Task.Yield();
                 return (await illust.GetOriginalUrl(index).IsDownloadedAsync(touch: touch));
+            }
             else
                 return (new DownloadState());
         }
 
         internal static async Task<DownloadState> IsDownloadedAsync(this string url, bool is_meta_single_page = false, bool touch = false)
         {
-            var result = await Task.Run(async () =>
+            DownloadState result = new();
+            if (await _query_downloaded_.WaitAsync(TimeSpan.FromSeconds(5)))
             {
-                await Task.Yield();
-                var state = new DownloadState();
-                var file = string.Empty;
-                state.Exists = IsDownloaded(url, out file, is_meta_single_page, touch);
-                state.Path = file;
-                return(state);
-            });
+                try
+                {
+                    result = await Task.Run(async () =>
+                    {
+                        var state = new DownloadState();
+                        try
+                        {
+                            await Task.Yield();
+                            var file = string.Empty;
+                            var filea = new List<string>();
+                            state.Exists = IsDownloaded(url, out file, out filea, is_meta_single_page, touch);
+                            state.FileName = file;
+                            state.FileNames = filea.ToArray();
+                        }
+                        catch (Exception ex) { ex.ERROR("IsDowncloadedAsync"); }
+                        finally { if (_query_downloaded_?.CurrentCount <= 0) _query_downloaded_?.Release(); }
+                        return (state);
+                    });
+                }
+                catch (Exception ex) { ex.ERROR("IsDowncloadedAsync"); }
+                finally { }
+            }
             return (result);
         }
 
@@ -6955,13 +6995,14 @@ namespace PixivWPF.Common
                 return (false);
         }
 
-        internal static bool IsDownloaded(this PixivItem item, out string filepath, bool touch = false)
+        internal static bool IsDownloaded(this PixivItem item, out string filepath, out List<string> filepaths, bool touch = false)
         {
             if (item.Illust is Pixeez.Objects.Work)
-                return (item.Illust.GetOriginalUrl().IsDownloaded(out filepath, touch));
+                return (item.Illust.GetOriginalUrl().IsDownloaded(out filepath, out filepaths, touch));
             else
             {
                 filepath = string.Empty;
+                filepaths = [];
                 return (false);
             }
         }
@@ -6982,13 +7023,14 @@ namespace PixivWPF.Common
                 return (false);
         }
 
-        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, out string filepath, int index = -1, bool is_meta_single_page = false, bool touch = false)
+        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, out string filepath, out List<string> filepaths, int index = -1, bool is_meta_single_page = false, bool touch = false)
         {
             if (illust is Pixeez.Objects.Work)
-                return (illust.GetOriginalUrl(index).IsDownloaded(out filepath, is_meta_single_page, touch));
+                return (illust.GetOriginalUrl(index).IsDownloaded(out filepath, out filepaths, is_meta_single_page, touch));
             else
             {
                 filepath = string.Empty;
+                filepaths = [];
                 return (false);
             }
         }
@@ -6996,13 +7038,15 @@ namespace PixivWPF.Common
         internal static bool IsDownloaded(this string url, bool is_meta_single_page = false, bool touch = false)
         {
             string fp = string.Empty;
-            return (IsDownloaded(url, out fp, is_meta_single_page, touch));
+            List<string> fps = [];
+            return (IsDownloaded(url, out fp, out fps, is_meta_single_page, touch));
         }
 
-        internal static bool IsDownloaded(this string url, out string filepath, bool is_meta_single_page = false, bool touch = false)
+        internal static bool IsDownloaded(this string url, out string filepath, out List<string> filepaths, bool is_meta_single_page = false, bool touch = false)
         {
             bool result = false;
             filepath = string.Empty;
+            filepaths = [];
             try
             {
                 var sep = is_meta_single_page ? string.Empty : "_*";
@@ -7039,6 +7083,7 @@ namespace PixivWPF.Common
                                 {
                                     //filepath = Path.Combine(folder, $"{id}{Path.GetExtension(f)}");
                                     filepath = files.First();
+                                    filepaths.AddRange(files);
                                     result = true;
                                     break;
                                 }
@@ -7069,6 +7114,7 @@ namespace PixivWPF.Common
                                 {
                                     //filepath = Path.Combine(folder, $"{id}{Path.GetExtension(f)}");
                                     filepath = files.First();
+                                    filepaths.AddRange(files);
                                     result = true;
                                     break;
                                 }
@@ -7107,15 +7153,30 @@ namespace PixivWPF.Common
 
         internal static async Task<DownloadState> IsPartDownloadedAsync(this string url, bool touch = false)
         {
-            var result = await Task.Run(async () =>
+            DownloadState result = new();
+            if (await _query_downloaded_.WaitAsync(TimeSpan.FromSeconds(5)))
             {
-                await Task.Yield();
-                var state = new DownloadState();
-                var file = string.Empty;
-                state.Exists = IsPartDownloaded(url, out file, touch);
-                state.Path = file;
-                return(state);
-            });
+                try
+                {
+                    result = await Task.Run(async () =>
+                    {
+                        var state = new DownloadState();
+                        try
+                        {
+                            await Task.Yield();
+                            var file = string.Empty;
+                            var files = new List<string>();
+                            state.Exists = IsPartDownloaded(url, out file, out files, touch);
+                            state.FileName = file;
+                        }
+                        catch (Exception ex) { ex.ERROR("IsPartDownloadedAsync"); }
+                        finally { if (_query_downloaded_?.CurrentCount <= 0) _query_downloaded_?.Release(); }
+                        return (state);
+                    });
+                }
+                catch (Exception ex) { ex.ERROR("IsPartDownloadedAsync"); }
+                finally { }
+            }
             return (result);
         }
 
@@ -7127,13 +7188,14 @@ namespace PixivWPF.Common
                 return (false);
         }
 
-        internal static bool IsPartDownloaded(this PixivItem item, out string filepath, bool touch = false)
+        internal static bool IsPartDownloaded(this PixivItem item, out string filepath, out List<string> filepaths, bool touch = false)
         {
             if (item.Illust is Pixeez.Objects.Work)
-                return (item.Illust.GetOriginalUrl().IsPartDownloaded(out filepath, touch));
+                return (item.Illust.GetOriginalUrl().IsPartDownloaded(out filepath, out filepaths, touch));
             else
             {
                 filepath = string.Empty;
+                filepaths = [];
                 return (false);
             }
         }
@@ -7146,13 +7208,14 @@ namespace PixivWPF.Common
                 return (false);
         }
 
-        internal static bool IsPartDownloaded(this Pixeez.Objects.Work illust, out string filepath, bool touch = false)
+        internal static bool IsPartDownloaded(this Pixeez.Objects.Work illust, out string filepath, out List<string> filepaths, bool touch = false)
         {
             if (illust is Pixeez.Objects.Work)
-                return (illust.GetOriginalUrl().IsPartDownloaded(out filepath, touch: touch));
+                return (illust.GetOriginalUrl().IsPartDownloaded(out filepath, out filepaths, touch: touch));
             else
             {
                 filepath = string.Empty;
+                filepaths = [];
                 return (false);
             }
         }
@@ -7160,13 +7223,15 @@ namespace PixivWPF.Common
         internal static bool IsPartDownloaded(this string url, bool touch = false)
         {
             string fp = string.Empty;
-            return (IsPartDownloaded(url, out fp, touch));
+            List<string> fps = [];
+            return (IsPartDownloaded(url, out fp, out fps, touch));
         }
 
-        internal static bool IsPartDownloaded(this string url, out string filepath, bool touch = false)
+        internal static bool IsPartDownloaded(this string url, out string filepath, out List<string> filepaths, bool touch = false)
         {
             bool result = false;
             filepath = string.Empty;
+            filepaths = [];
             try
             {
                 var file_s = url.GetImageName(true);
@@ -7200,6 +7265,7 @@ namespace PixivWPF.Common
                         {
                             if (touch) { files.Skip(1).TouchAsync(url, meta: touch); }
                             filepath = files.First();
+                            filepaths.AddRange(files);
                             result = true;
                         }
                         if (result) break;
@@ -7211,6 +7277,7 @@ namespace PixivWPF.Common
                         {
                             if (touch) { files.Skip(1).TouchAsync(url, meta: touch); }
                             filepath = files.First();
+                            filepaths.AddRange(files);
                             result = true;
                         }
                     }
@@ -7307,7 +7374,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Download/Convert/Resize Image routines
-        static private Dictionary<string, string[]> exts = new Dictionary<string, string[]>()
+        static private Dictionary<string, string[]> exts = new()
         {
             { ".png", new string[] { ".png", "image/png", "PNG" } },
             { ".bmp", new string[] { ".bmp", "image/bmp", "image/bitmap" } },
@@ -7399,9 +7466,8 @@ namespace PixivWPF.Common
             while (file.IsLocked() && wait_count > 0)
             {
                 wait_count--;
-                var t = Task.Delay(interval);
-                await t.ConfigureAwait(false);
-                t.Dispose();
+                await Task.Yield();
+                await Task.Delay(interval);
             }
             return (true);
         }
@@ -7415,9 +7481,8 @@ namespace PixivWPF.Common
             while (filename.IsLocked() && wait_count > 0)
             {
                 wait_count--;
-                var t = Task.Delay(interval);
-                await t.ConfigureAwait(false);
-                t.Dispose();
+                await Task.Yield();
+                await Task.Delay(interval);
             }
             return (true);
         }
@@ -7444,7 +7509,7 @@ namespace PixivWPF.Common
                 //or being processed by another thread
                 //or does not exist (has already been processed)
                 result = true;
-                try { if (stream is FileStream) { stream.Close(); stream.Dispose(); } }
+                try { stream?.Close(); stream?.Dispose(); }
                 catch { }
             }
             //file is not locked
@@ -7473,7 +7538,7 @@ namespace PixivWPF.Common
                 //or being processed by another thread
                 //or does not exist (has already been processed)
                 result = true;
-                try { if (stream is FileStream) { stream.Close(); stream.Dispose(); } }
+                try { stream?.Close(); stream?.Dispose(); }
                 catch { }
             }
             //file is not locked
@@ -8904,9 +8969,8 @@ namespace PixivWPF.Common
                 while (file.IsDownloading() && wait_count > 0)
                 {
                     wait_count--;
-                    var t = Task.Delay(interval);
-                    await t;
-                    t.Dispose();
+                    await Task.Yield();
+                    await Task.Delay(interval);
                 }
                 exists = File.Exists(file);
                 //GC.Collect();
@@ -11858,11 +11922,15 @@ namespace PixivWPF.Common
 
         static public string ChangeSaveFolder(string file = "")
         {
-            var result = string.Empty;
             setting = Application.Current.LoadSetting();
-            if (string.IsNullOrEmpty(file))
+            var result = setting.LastFolder;
+
+            if (string.IsNullOrEmpty(file) || string.IsNullOrEmpty(setting.LastFolder))
             {
-                CommonOpenFileDialog dlg = new CommonOpenFileDialog()
+                Window dm = GetWindowByTitle(Application.Current.DownloadTitle());
+                if (dm is not ContentWindow) dm = Application.Current.MainWindow;
+
+                CommonOpenFileDialog dlg = new()
                 {
                     Title = "Select Folder",
                     IsFolderPicker = true,
@@ -11879,31 +11947,14 @@ namespace PixivWPF.Common
                     ShowPlacesList = true
                 };
 
-                Window dm = GetWindowByTitle(Application.Current.DownloadTitle());
-                if (!(dm is ContentWindow)) dm = Application.Current.MainWindow;
                 if (dlg.ShowDialog(dm) == CommonFileDialogResult.Ok)
                 {
-                    result = dlg.FileName;
                     setting.LastFolder = dlg.FileName;
+                    result = string.IsNullOrEmpty(file) ? setting.LastFolder : Path.Combine(setting.LastFolder, Path.GetFileName(file));
                     // Do something with selected folder string
                     if (!string.IsNullOrEmpty(setting.LastFolder)) setting.LastFolder.INFO("ChangeSaveFolder");
                 }
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(setting.LastFolder))
-                {
-                    SaveFileDialog dlgSave = new SaveFileDialog();
-                    dlgSave.FileName = file;
-                    if (dlgSave.ShowDialog() == true)
-                    {
-                        file = dlgSave.FileName;
-                        setting.LastFolder = Path.GetDirectoryName(file);
-                        if (!string.IsNullOrEmpty(setting.LastFolder)) setting.LastFolder.INFO("ChangeSaveFolder");
-                    }
-                }
-                result = Path.Combine(setting.LastFolder, Path.GetFileName(file));
-            }
+            }            
             return (result);
         }
 

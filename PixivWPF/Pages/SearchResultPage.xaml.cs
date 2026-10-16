@@ -259,7 +259,7 @@ namespace PixivWPF.Pages
             ResultItems.SetFilter(filter);
         }
 
-        public void SetFilter(FilterParam filter)
+        public void SetFilter(PixivItemFilterParam filter)
         {
             ResultItems.SetFilter(filter);
         }
@@ -293,6 +293,8 @@ namespace PixivWPF.Pages
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             ParentWindow = Window.GetWindow(this);
+
+            ResultItems?.Sort();
 
             #region Update ContextMenu
             var cmr = Resources["MenuSearchResult"] as ContextMenu;
@@ -532,10 +534,16 @@ namespace PixivWPF.Pages
                         Application.Current.DelayGC();
                     }
                 }
-                
+
                 await Task.Yield();
-                await Task.Delay(500);
+                await Task.Delay(1000);
+                await Task.Yield();
+
                 ResultItems.UpdateTilesImage(touch: ResultItems.Count > 1);
+
+                await Task.Yield();
+                await Task.Delay(1000);
+                await Task.Yield();
 
                 if (ResultItems.Items.Count() == 1 && no_filter)
                 {
@@ -543,17 +551,18 @@ namespace PixivWPF.Pages
                     //foreach (var item in ResultItems.Items) item.Touch = false;
                     Commands.Open.Execute(ResultItems);
                 }
-                if (ResultItems.Items.Count() <= 1 && no_filter)
-                {
-                    if (ResultItems.Items.Count() <= 0) $"Searching \"{Contents}\" No Result".ShowToast("INFO");
 
-                    if (ParentWindow != null)
-                    {
-                        this.DoEvents();
-                        //await Task.Delay(1);
-                        await Task.Yield();
-                        ParentWindow.Close();
-                    }
+                await Task.Yield();
+                await Task.Delay(500);
+                await Task.Yield();
+
+                if (id_user?.Count <= 1 && id_illust?.Count <= 1 && ResultItems.Items.Count() <= 1 && no_filter)
+                {
+                    if (id_user?.Count <= 0 && id_illust?.Count <= 0) $"Searching \"{Contents}\" No Result".ShowToast("INFO");
+
+                    this.DoEvents();
+                    await Task.Yield();
+                    ParentWindow?.Close();
                 }
             }
             catch (Exception ex)
@@ -668,6 +677,82 @@ namespace PixivWPF.Pages
 
                 Commands.SaveIllust.Execute(items);
             }
+        }
+
+        private void ActionSortIllusts_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (sender is MenuItem)
+                {
+                    var mi = sender as MenuItem;
+                    var host = mi.GetContextMenuHost();
+                    ImageListGrid galllery = null;
+                    if (host == ResultItems || host == ResultExpander) galllery = ResultItems;
+                    else return;
+
+                    var last_dir = galllery.SortAscending;
+                    var last_prop = galllery.SortProperty;
+                    var new_dir = last_dir;
+                    var new_prop = string.Empty;
+
+                    if (mi.Uid.Equals("ActionSortByIndex", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        new_prop = "ItemIndex";
+                    }
+                    else if (mi.Uid.Equals("ActionSortByID", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        new_prop = "Id";
+                    }
+                    else if (mi.Uid.Equals("ActionSortByArtist", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        new_prop = "Artist";
+                    }
+                    else if (mi.Uid.Equals("ActionSortByPubTime", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        new_prop = "PubTime";
+                    }
+                    else if (mi.Uid.Equals("ActionSortByTitle", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        new_prop = "Title";
+                    }
+                    else if (mi.Uid.Equals("ActionSortByFav", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        new_prop = "IsFavorited";
+                    }
+                    else if (mi.Uid.Equals("ActionSortByFollow", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        new_prop = "IsFollowed";
+                    }
+                    else if (mi.Uid.Equals("ActionSortByDownload", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        new_prop = "IsPartDownloaded";
+                    }
+                    else if (mi.Uid.Equals("ActionSortByCreationTime", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        new_prop = "CreationTime";
+                    }
+                    else if (mi.Uid.Equals("ActionSortByLastAccessTime", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        new_prop = "LastAccessTime";
+                    }
+                    else if (mi.Uid.Equals("ActionSortByTotalFaved", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        new_prop = "TotalFaved";
+                    }
+                    else if (mi.Uid.Equals("ActionSortByTotalViewed", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        new_prop = "TotalViewed";
+                    }
+
+                    if (!string.IsNullOrEmpty(new_prop))
+                    {
+                        if (new_prop.Equals(last_prop)) new_dir = !last_dir;
+                        galllery.Sort(new_prop, new_dir);
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         private void ActionSaveAllResult_Click(object sender, RoutedEventArgs e)
