@@ -272,9 +272,9 @@ namespace ImageCompare
         //private double LastCompositeBlendRatio = 50;
 
         private Channels CompareImageChannels = Channels.All;
-        private bool CompareImageAutoMatchSize { get { return (AutoMatchSize.Dispatcher.Invoke(() => AutoMatchSize.IsChecked ?? false)); } }
-        private bool CompareImageForceScale { get { return (UseSmallerImage.Dispatcher.Invoke(() => UseSmallerImage.IsChecked ?? false)); } }
-        private bool CompareImageForceColor { get { return (UseColorImage.Dispatcher.Invoke(() => UseColorImage.IsChecked ?? false)); } }
+        private bool CompareImageAutoMatchSize { get { return (AutoMatchSize.Dispatcher.Invoke(() => AutoMatchSize.IsChecked ?? false)); } set { AutoMatchSize.Dispatcher.Invoke(() => AutoMatchSize.IsChecked = value); } }
+        private bool CompareImageForceScale { get { return (UseSmallerImage.Dispatcher.Invoke(() => UseSmallerImage.IsChecked ?? false)); } set { UseSmallerImage.Dispatcher.Invoke(() => UseSmallerImage.IsChecked = value); } }
+        private bool CompareImageForceColor { get { return (UseColorImage.Dispatcher.Invoke(() => UseColorImage.IsChecked ?? false)); } set { UseColorImage.Dispatcher.Invoke(() => UseColorImage.IsChecked = value); } }
         private ErrorMetric ErrorMetricMode = ErrorMetric.Fuzz;
         private CompositeOperator CompositeMode = CompositeOperator.Difference;
         private PixelIntensityMethod GrayscaleMode = PixelIntensityMethod.Undefined;
@@ -1274,6 +1274,45 @@ namespace ImageCompare
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="src"></param>
+        /// <param name="dst"></param>
+        /// <returns></returns>
+        private bool GuessIsCropedImage(ImageInformation src, ImageInformation dst)
+        {
+            var result = false;
+            if ((src?.ValidCurrent ?? false) && (dst?.ValidCurrent ?? false))
+            {
+                result = src.OriginalSize.Width == dst.OriginalSize.Width || src.OriginalSize.Height == dst.OriginalSize.Height;
+            }
+            return (result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void AutoScaleMode()
+        {
+            try
+            {
+                var image_s = ImageSource.GetInformation();
+                var image_t = ImageTarget.GetInformation();
+                if (GuessIsCropedImage(image_s, image_t))
+                {
+                    CompareImageAutoMatchSize = false;
+                    Dispatcher.Invoke(() =>
+                    {
+                        SmallSizeModeIndep.IsChecked = false;
+                        SmallSizeModeLink.IsChecked = true;
+                        ScaleMode = ImageScaleMode.Relative;
+                    });
+                }
+            }
+            catch (Exception ex) { ex.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="hald"></param>
         private void LoadHaldLutFile(string hald = null)
         {
@@ -1516,10 +1555,10 @@ namespace ImageCompare
                 action |= await image.LoadImageFromClipboard();
                 if (action)
                 {
-                    CloseQualityChanger(source: source is null ? ImageType.All : source ?? ImageType.All);
+                    CloseQualityChanger(source: source is null ? ImageType.All : source ?? ImageType.All);                    
 
                     _last_loading_ = load_type;
-                    RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: load_type));
+                    RenderRun(() => { AutoScaleMode(); UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: load_type); });
                 }
                 else
                 {
@@ -1549,7 +1588,7 @@ namespace ImageCompare
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 ret = await image.LoadImageFromPrevFile();
                 if (ret) _last_loading_ = source ? ImageType.Source : ImageType.Target;
-                if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: _last_loading_));
+                if (ret) RenderRun(() => { AutoScaleMode(); UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: _last_loading_); });
                 else
                 {
                     if (source) IsLoadingSource = false;
@@ -1578,7 +1617,7 @@ namespace ImageCompare
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 ret = await image.LoadImageFromNextFile();
                 if (ret) _last_loading_ = source ? ImageType.Source : ImageType.Target;
-                if (ret) RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: _last_loading_));
+                if (ret) RenderRun(() => { AutoScaleMode(); UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: _last_loading_); });
                 else
                 {
                     if (source) IsLoadingSource = false;
@@ -1648,7 +1687,7 @@ namespace ImageCompare
                     if (action)
                     {
                         _last_loading_ = load_type;
-                        RenderRun(() => UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: load_type));
+                        RenderRun(() => { AutoScaleMode(); UpdateImageViewer(compose: LastOpIsComposite, assign: true, reload: true, reload_type: load_type); });
                     }
                     else
                     {
