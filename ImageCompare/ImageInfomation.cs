@@ -720,7 +720,40 @@ namespace ImageCompare
                                         }
                                         value = string.Join("; ", keywords) + ';';
                                     }
-                                    else if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
+                                    else if (attr.EndsWith("Comment") || attr.EndsWith("Comments"))
+                                    {
+                                        if (value.Length > 32)
+                                        {
+                                            int lens = LengthCJK(value.Substring(0, 31));
+                                            int idx = 0;
+                                            var va = value.ToArray();
+                                            var sb = new StringBuilder();
+                                            for (int i = 31; i < va.Length; i++)
+                                            {
+                                                if (va[i] == '\r' || va[i] == '\n') { if (lens > 0) { sb.AppendLine(value.Substring(idx, i - idx)); } idx = i; lens = 0; continue; }
+                                                var len = va[i] >= 256 ? 2 : 1;
+                                                lens += len;
+                                                if (lens >= 70) { sb.AppendLine(value.Substring(idx, i - idx)); idx = i; lens = 0; }
+                                                else if (i == va.Length - 1) { sb.AppendLine(value.Substring(idx)); }
+                                            }
+                                            value = sb.ToString().Trim();
+                                        }
+                                    }
+                                    else if (value.Length > 32)
+                                    {
+                                        int lens = LengthCJK(value.Substring(0, 31));
+                                        int idx = 0;
+                                        var va = value.ToArray();
+                                        var sb = new StringBuilder();
+                                        for (int i = 31; i < va.Length; i++)
+                                        {
+                                            if (va[i] == '\r' || va[i] == '\n') { if (lens > 0) { sb.AppendLine(value.Substring(idx, i - idx)); } idx = i; lens = 0; continue; }
+                                            var len = va[i] >= 256 ? 2 : 1;
+                                            lens += len;
+                                            if (lens >= 66) { sb.AppendLine($"{value.Substring(0, i)} ..."); break; }
+                                        }
+                                        value = sb.ToString().Trim();
+                                    }
                                     attrs.Add($"  {label}= {value.TextPadding(label, 4)}");
                                 }
                                 catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(Application.Current?.GetMainWindow(), $"{attr} : {ex.Message}"); }
